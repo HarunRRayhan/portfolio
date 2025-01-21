@@ -7,6 +7,7 @@ import { HeroSectionV2 } from "@/Components/HeroSectionV2"
 import { LogoSection } from "@/Components/LogoSection"
 import { SkillsSection } from "@/Components/SkillsSection"
 import { TechStackSection } from "@/Components/TechStackSection"
+import { ReviewSlideSection } from "@/Components/ReviewSlideSection"
 import { ErrorBoundary } from "@/Components/ErrorBoundary"
 
 export default function Homepage() {
@@ -30,6 +31,9 @@ export default function Homepage() {
                 </ErrorBoundary>
                 <ErrorBoundary>
                     <TechStackSection/>
+                </ErrorBoundary>
+                <ErrorBoundary>
+                    <ReviewSlideSection/>
                 </ErrorBoundary>
             </main>
         </ErrorBoundary>
