@@ -10,42 +10,44 @@ import { HandMetal, ArrowRight } from 'lucide-react'
 export function Footer() {
   return (
     <footer className="relative">
-      {/* CTA Section */}
-      <div className="relative z-10 mx-auto max-w-7xl px-4 -mb-16 bg-white">
-        <div className="bg-[#1a1a2e] rounded-[24px] shadow-2xl">
-          <div className="px-8 py-12">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-              <div className="space-y-2">
-                <h2 className="text-3xl md:text-4xl font-bold text-white">Ready to level up?</h2>
-                <p className="text-gray-400">Let's build something extraordinary together</p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/portfolio">
-                  <Button 
-                    variant="outline"
-                    className="relative group bg-transparent text-white hover:text-white hover:bg-white/10 border-white/20 font-medium px-6 py-2 rounded-full flex items-center gap-2 transition-all duration-300"
-                  >
-                    View Portfolio
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-                  </Button>
-                </Link>
-                <Link href="/contact">
-                  <Button 
-                    className="relative group bg-[#6EE7B7] hover:bg-[#6EE7B7]/90 text-[#1a1a2e] font-medium px-6 py-2 rounded-full flex items-center gap-2 transition-all duration-300"
-                  >
-                    <HandMetal className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
-                    Start a Project
-                  </Button>
-                </Link>
+      {/* Main Footer Section */}
+      <div className="relative bg-gradient-to-r from-[#86D2F1] via-[#7C3AED] to-[#8B5CF6]">
+        {/* CTA Section - Positioned to overlap */}
+        <div className="absolute left-0 right-0 -top-16">
+          <div className="relative z-10 mx-auto max-w-7xl px-4">
+            <div className="bg-[#1a1a2e] rounded-[24px] shadow-2xl">
+              <div className="px-8 py-12">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+                  <div className="space-y-2">
+                    <h2 className="text-3xl md:text-4xl font-bold text-white">Ready to level up?</h2>
+                    <p className="text-gray-400">Let's build something extraordinary together</p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <Link href="/portfolio">
+                      <Button 
+                        variant="outline"
+                        className="relative group bg-transparent text-white hover:text-white hover:bg-white/10 border-white/20 font-medium px-6 py-2 rounded-full flex items-center gap-2 transition-all duration-300"
+                      >
+                        View Portfolio
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                      </Button>
+                    </Link>
+                    <Link href="/contact">
+                      <Button 
+                        className="relative group bg-[#6EE7B7] hover:bg-[#6EE7B7]/90 text-[#1a1a2e] font-medium px-6 py-2 rounded-full flex items-center gap-2 transition-all duration-300"
+                      >
+                        <HandMetal className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
+                        Start a Project
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Main Footer Section */}
-      <div className="relative bg-gradient-to-r from-[#86D2F1] via-[#7C3AED] to-[#8B5CF6] pt-32 pb-16">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 pt-32 pb-16">
           <div className="flex flex-col items-center">
             {/* Logo & Tagline */}
             <motion.div
@@ -119,7 +121,6 @@ export function Footer() {
             >
               {[
                 { href: "#", icon: Icons.twitter, label: "Twitter" },
-                { href: "#", icon: Icons.globe, label: "Website" },
                 { href: "#", icon: Icons.linkedin, label: "LinkedIn" },
                 { href: "#", icon: Icons.github, label: "GitHub" },
                 { href: "mailto:hello@harun.dev", icon: Icons.mail, label: "Email" },
