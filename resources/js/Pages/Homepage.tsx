@@ -9,8 +9,10 @@ import { ErrorBoundary } from "@/Components/ErrorBoundary"
 export default function Homepage() {
     return (
         <ErrorBoundary>
-            <Head title="Harun R. Rayhan - Senior Software Engineer & DevOps Consultant"/>
-            <main className="min-h-screen">
+            <Head>
+                <title>Harun R. Rayhan - Senior Software Engineer & DevOps Consultant</title>
+            </Head>
+            <main className="min-h-screen font-sans">
                 <ErrorBoundary>
                     <Menubar/>
                 </ErrorBoundary>
