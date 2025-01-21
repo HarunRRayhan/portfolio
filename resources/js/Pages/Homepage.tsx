@@ -6,6 +6,7 @@ import { Menubar } from "@/Components/Menubar"
 import { HeroSectionV2 } from "@/Components/HeroSectionV2"
 import { LogoSection } from "@/Components/LogoSection"
 import { SkillsSection } from "@/Components/SkillsSection"
+import { TechStackSection } from "@/Components/TechStackSection"
 import { ErrorBoundary } from "@/Components/ErrorBoundary"
 
 export default function Homepage() {
@@ -26,6 +27,9 @@ export default function Homepage() {
                 </ErrorBoundary>
                 <ErrorBoundary>
                     <SkillsSection/>
+                </ErrorBoundary>
+                <ErrorBoundary>
+                    <TechStackSection/>
                 </ErrorBoundary>
             </main>
         </ErrorBoundary>
