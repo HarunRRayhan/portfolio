@@ -5,6 +5,7 @@ import { Head } from "@inertiajs/react"
 import { Menubar } from "@/Components/Menubar"
 import { HeroSectionV2 } from "@/Components/HeroSectionV2"
 import { LogoSection } from "@/Components/LogoSection"
+import { SkillsSection } from "@/Components/SkillsSection"
 import { ErrorBoundary } from "@/Components/ErrorBoundary"
 
 export default function Homepage() {
@@ -22,6 +23,9 @@ export default function Homepage() {
                 </ErrorBoundary>
                 <ErrorBoundary>
                     <LogoSection/>
+                </ErrorBoundary>
+                <ErrorBoundary>
+                    <SkillsSection/>
                 </ErrorBoundary>
             </main>
         </ErrorBoundary>
