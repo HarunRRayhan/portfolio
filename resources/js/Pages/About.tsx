@@ -3,6 +3,7 @@ import { Menubar } from "@/Components/Menubar"
 import { Footer } from "@/Components/Footer"
 import { ErrorBoundary } from "@/Components/ErrorBoundary"
 import { AboutHero } from "@/Components/AboutHero"
+import { JourneyTimeline } from "@/Components/JourneyTimeline"
 
 export default function About() {
   return (
@@ -16,6 +17,10 @@ export default function About() {
 
         <ErrorBoundary>
           <AboutHero />
+        </ErrorBoundary>
+
+        <ErrorBoundary>
+          <JourneyTimeline />
         </ErrorBoundary>
 
         <ErrorBoundary>
