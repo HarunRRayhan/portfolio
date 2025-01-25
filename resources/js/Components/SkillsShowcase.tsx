@@ -1,12 +1,21 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Infinity } from "lucide-react"
+import { Infinity, CircleDot } from "lucide-react"
 
-const skills = [
+type Skill = {
+  name: string
+  logo?: string
+  isIcon?: boolean
+  icon?: any
+  isHot?: boolean
+  iconColors?: string[]
+}
+
+const skills: Skill[] = [
   {
     name: "AWS",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg",
+    logo: "/images/skills/aws.svg",
     isHot: true,
   },
   {
@@ -17,68 +26,70 @@ const skills = [
   },
   {
     name: "Terraform",
-    logo: "https://www.datocms-assets.com/2885/1620155116-brandhcterraformverticalcolor.svg",
+    logo: "/images/skills/terraform.svg",
     isHot: true,
   },
   {
     name: "Kubernetes",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/3/39/Kubernetes_logo_without_workmark.svg",
+    logo: "/images/skills/kubernetes.svg",
   },
   {
     name: "Docker",
-    logo: "https://www.docker.com/wp-content/uploads/2022/03/Moby-logo.png",
+    logo: "/images/skills/docker.png",
   },
   {
     name: "Python",
-    logo: "https://s3.dualstack.us-east-2.amazonaws.com/pythondotorg-assets/media/community/logos/python-logo-only.png",
+    logo: "/images/skills/python.png",
   },
   {
     name: "Serverless",
-    logo: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-k1tNzFgi9ighjAso7EoeAnEi6R1XXq.png",
+    logo: "/images/skills/serverless.png",
     isHot: true,
   },
   {
     name: "Go",
-    logo: "https://go.dev/blog/go-brand/Go-Logo/SVG/Go-Logo_Blue.svg",
+    logo: "/images/skills/go.svg",
   },
   {
     name: "Jenkins",
-    logo: "https://www.jenkins.io/images/logos/jenkins/jenkins.svg",
+    logo: "/images/skills/jenkins.svg",
   },
   {
     name: "Node.js",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/d/d9/Node.js_logo.svg",
+    logo: "/images/skills/nodejs.svg",
   },
   {
     name: "Nginx",
-    logo: "https://nginx.org/nginx.png",
+    logo: "/images/skills/nginx.png",
   },
   {
     name: "Laravel",
-    logo: "https://laravel.com/img/logomark.min.svg",
+    logo: "/images/skills/laravel.svg",
   },
   {
     name: "Git",
-    logo: "https://git-scm.com/images/logos/downloads/Git-Icon-1788C.png",
+    logo: "/images/skills/git.png",
   },
   {
     name: "CI/CD Pipeline",
-    logo: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-9dH2DZcYQfHw4Uynm8frBvqRls9IIY.png",
+    isIcon: true,
+    icon: Infinity,
+    iconColors: ["#3B82F6", "#F97316"],
   },
   {
     name: "GitHub Actions",
-    logo: "https://github.githubassets.com/images/modules/site/features/actions-icon-actions.svg",
+    logo: "/images/skills/github-actions.svg",
   },
   {
     name: "Cypress",
-    logo: "https://asset.brandfetch.io/idIq_kF0rb/idv3zwmSiY.jpeg",
-  },
+    logo: "/images/skills/cypress.jpg",
+  }
 ]
 
 const FireIcon = () => (
   <div className="w-6 h-6 relative group-hover:scale-125 transition-transform duration-300">
     <img
-      src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/icons8-fire-9d0OLGwPQF2HB61Cdm3fVI4DQfC4xQ.gif"
+      src="/images/icons/fire.gif"
       alt="Hot skill indicator"
       className="w-full h-full object-contain"
     />
@@ -111,7 +122,16 @@ export function SkillsShowcase() {
               <div className="group relative">
                 <div className="w-24 h-24 rounded-xl bg-white flex items-center justify-center mb-4 shadow-sm hover:scale-110 transition-transform duration-300 p-4">
                   {skill.isIcon ? (
-                    <skill.icon className="w-12 h-12 text-[#06B6D4] animate-pulse" />
+                    <div className="relative">
+                      {skill.iconColors ? (
+                        <>
+                          <skill.icon className="w-12 h-12 absolute text-[#3B82F6]" style={{ transform: 'translateX(-4px)' }} />
+                          <skill.icon className="w-12 h-12 absolute text-[#F97316]" style={{ transform: 'translateX(4px)' }} />
+                        </>
+                      ) : (
+                        <skill.icon className="w-12 h-12 text-[#06B6D4] animate-pulse" />
+                      )}
+                    </div>
                   ) : (
                     <img
                       src={skill.logo || "/placeholder.svg"}
