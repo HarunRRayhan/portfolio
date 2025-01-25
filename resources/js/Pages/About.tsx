@@ -5,11 +5,12 @@ import {ErrorBoundary} from "@/Components/ErrorBoundary"
 import {AboutHero} from "@/Components/AboutHero"
 import {JourneyTimeline} from "@/Components/JourneyTimeline"
 import {SkillsShowcase} from "@/Components/SkillsShowcase"
+import {PersonalValues} from "@/Components/PersonalValues"
 
 export default function About() {
     return (
         <>
-            <Head title="About"/>
+            <Head title="About - Harun"/>
 
             <main className="relative min-h-screen">
                 <ErrorBoundary>
@@ -21,11 +22,15 @@ export default function About() {
                 </ErrorBoundary>
 
                 <ErrorBoundary>
-                    <JourneyTimeline/>
+                    <SkillsShowcase/>
                 </ErrorBoundary>
 
                 <ErrorBoundary>
-                    <SkillsShowcase/>
+                    <PersonalValues/>
+                </ErrorBoundary>
+
+                <ErrorBoundary>
+                    <JourneyTimeline/>
                 </ErrorBoundary>
 
                 <ErrorBoundary>
