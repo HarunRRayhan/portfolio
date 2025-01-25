@@ -6,6 +6,7 @@ import {AboutHero} from "@/Components/AboutHero"
 import {JourneyTimeline} from "@/Components/JourneyTimeline"
 import {SkillsShowcase} from "@/Components/SkillsShowcase"
 import {PersonalValues} from "@/Components/PersonalValues"
+import {FAQSection} from "@/Components/FAQSection"
 
 export default function About() {
     return (
@@ -31,6 +32,10 @@ export default function About() {
 
                 <ErrorBoundary>
                     <JourneyTimeline/>
+                </ErrorBoundary>
+
+                <ErrorBoundary>
+                    <FAQSection/>
                 </ErrorBoundary>
 
                 <ErrorBoundary>
