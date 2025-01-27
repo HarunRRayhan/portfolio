@@ -19,8 +19,8 @@ const menuItems = [
   { name: "About", href: "/about" },
   { name: "Services", href: "/services" },
   { name: "Blog", href: "/blog" },
-  { name: "Book a Session", href: "/book-session" },
-  { name: "Contact", href: "/contact" }
+  { name: "Book a Session", href: "/book" },
+  { name: "Contact", href: "/contact" },
 ]
 
 export function Menubar() {
