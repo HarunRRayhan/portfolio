@@ -7,6 +7,7 @@ import {JourneyTimeline} from "@/Components/JourneyTimeline"
 import {SkillsShowcase} from "@/Components/SkillsShowcase"
 import {PersonalValues} from "@/Components/PersonalValues"
 import {FAQSection} from "@/Components/FAQSection"
+import { VolunteeringSection } from "@/Components/VolunteeringSection"
 
 export default function About() {
     return (
@@ -28,6 +29,10 @@ export default function About() {
 
                 <ErrorBoundary>
                     <PersonalValues/>
+                </ErrorBoundary>
+
+                <ErrorBoundary>
+                    <VolunteeringSection />
                 </ErrorBoundary>
 
                 <ErrorBoundary>
