@@ -25,6 +25,10 @@ Route::get('/services/cloud-architecture', function () {
     return Inertia::render('Services/CloudArchitecture');
 })->name('services.cloud-architecture');
 
+Route::get('/services/devops', function () {
+    return Inertia::render('Services/DevOps');
+})->name('services.devops');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
