@@ -29,6 +29,10 @@ Route::get('/services/devops', function () {
     return Inertia::render('Services/DevOps');
 })->name('services.devops');
 
+Route::get('/services/infrastructure-as-code', function () {
+    return Inertia::render('Services/InfrastructureAsCode');
+})->name('services.infrastructure-as-code');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
