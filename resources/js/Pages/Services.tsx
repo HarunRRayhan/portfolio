@@ -6,7 +6,20 @@ import { Menubar } from "@/Components/Menubar"
 import { Footer } from "@/Components/Footer"
 import { Button } from "@/Components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/Components/ui/card/index"
-import { ArrowRight, Cloud, Code, Database, Lock, Server, Zap, MessageSquare } from "lucide-react"
+import {
+  ArrowRight,
+  Cloud,
+  Code,
+  Database,
+  Lock,
+  Server,
+  Zap,
+  ArrowRightLeft,
+  Brain,
+  Network,
+  MonitorSmartphone,
+  MessageSquare,
+} from "lucide-react"
 import { Link } from "@inertiajs/react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/Components/ui/accordion"
 
@@ -25,11 +38,10 @@ const services = [
     link: "/services/devops",
   },
   {
-    icon: Database,
-    title: "Database Optimization",
-    description:
-      "Optimize your database performance, security, and scalability for improved application responsiveness.",
-    link: "/services/database-optimization",
+    icon: Server,
+    title: "Infrastructure as Code",
+    description: "Implement and manage your infrastructure using modern IaC tools like Terraform and AWS CDK.",
+    link: "/services/infrastructure-as-code",
   },
   {
     icon: Lock,
@@ -38,10 +50,11 @@ const services = [
     link: "/services/security-consulting",
   },
   {
-    icon: Server,
-    title: "Infrastructure as Code",
-    description: "Implement and manage your infrastructure using modern IaC tools like Terraform and AWS CDK.",
-    link: "/services/infrastructure-as-code",
+    icon: Database,
+    title: "Database Optimization",
+    description:
+      "Optimize your database performance, security, and scalability for improved application responsiveness.",
+    link: "/services/database-optimization",
   },
   {
     icon: Zap,
@@ -49,6 +62,42 @@ const services = [
     description:
       "Boost your application and infrastructure performance with expert analysis and optimization techniques.",
     link: "/services/performance-optimization",
+  },
+  {
+    icon: Cloud,
+    title: "Serverless Infrastructure",
+    description: "Design and implement scalable serverless solutions to reduce operational overhead and costs.",
+    link: "/services/serverless-infrastructure",
+  },
+  {
+    icon: ArrowRightLeft,
+    title: "Infrastructure Migration",
+    description: "Seamlessly migrate your infrastructure to modern, scalable platforms with minimal downtime.",
+    link: "/services/infrastructure-migration",
+  },
+  {
+    icon: Brain,
+    title: "MLOps (AI/ML Infrastructure)",
+    description: "Build and manage robust infrastructure for AI/ML workflows, from development to production.",
+    link: "/services/mlops",
+  },
+  {
+    icon: Database,
+    title: "Database Migration",
+    description: "Migrate your databases to modern platforms while ensuring data integrity and minimal disruption.",
+    link: "/services/database-migration",
+  },
+  {
+    icon: Network,
+    title: "Network Optimization",
+    description: "Enhance your network infrastructure for improved performance, security, and reliability.",
+    link: "/services/network-optimization",
+  },
+  {
+    icon: MonitorSmartphone,
+    title: "Monitoring and Observability",
+    description: "Implement comprehensive monitoring and observability solutions for your entire stack.",
+    link: "/services/monitoring-observability",
   },
 ]
 
