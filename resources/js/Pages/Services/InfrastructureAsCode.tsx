@@ -18,11 +18,11 @@ const technologies = [
   },
   {
     name: "AWS CloudFormation",
-    logo: "https://raw.githubusercontent.com/awsicons/aws-icons/master/png/Architecture-Service-Icons/Management-Governance/AWS-CloudFormation.png",
+    logo: "/images/logos/aws-cloudformation.svg",
   },
   {
     name: "AWS CDK",
-    logo: "https://raw.githubusercontent.com/aws/aws-cdk/main/logo/svg/AWS-CDK_Icon_128.svg",
+    logo: "/images/logos/aws-cdk.svg",
   },
   {
     name: "Ansible",
