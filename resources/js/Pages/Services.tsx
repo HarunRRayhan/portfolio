@@ -1,7 +1,8 @@
 "use client"
 
 import React from "react"
-import { Head } from "@inertiajs/react"
+import { Head, Link } from "@inertiajs/react"
+import { motion } from "framer-motion"
 import { Menubar } from "@/Components/Menubar"
 import { Footer } from "@/Components/Footer"
 import { Button } from "@/Components/ui/button"
@@ -19,8 +20,8 @@ import {
   Network,
   MonitorSmartphone,
   MessageSquare,
+  Grid,
 } from "lucide-react"
-import { Link } from "@inertiajs/react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/Components/ui/accordion"
 
 const services = [
@@ -134,76 +135,93 @@ const faqs = [
   },
 ]
 
-export default function Services() {
+export default function ServicesPage() {
   return (
     <>
       <Head title="Services" />
       <main className="flex flex-col min-h-screen">
         <Menubar />
-        <div className="flex-grow">
-          <section className="py-24 bg-gradient-to-br from-[#86D2F1] via-[#7C3AED] to-[#8B5CF6]">
-            <div className="container mx-auto px-4">
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 text-center">Our Services</h1>
-              <p className="text-xl text-white/90 max-w-3xl mx-auto text-center mb-12">
-                Elevate your business with our comprehensive range of software engineering and cloud services.
-              </p>
-            </div>
-          </section>
+        <section className="py-24 bg-gradient-to-br from-[#86D2F1] via-[#7C3AED] to-[#8B5CF6]">
+          <div className="container mx-auto px-4 text-center">
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="w-16 h-16 rounded-lg bg-white/10 flex items-center justify-center mx-auto mb-6"
+            >
+              <Grid className="w-8 h-8 text-white" />
+            </motion.div>
+            <motion.h1
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="text-4xl md:text-5xl font-bold text-white mb-6"
+            >
+              Our Services
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-xl text-white/90 max-w-3xl mx-auto"
+            >
+              Elevate your business with our comprehensive range of software engineering and cloud services.
+            </motion.p>
+          </div>
+        </section>
 
-          <section className="py-24 bg-white">
-            <div className="container mx-auto px-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {services.map((service, index) => (
-                  <Card key={index} className="flex flex-col">
-                    <CardHeader>
-                      <div className="w-12 h-12 rounded-lg bg-[#7C3AED] bg-opacity-10 flex items-center justify-center mb-4">
-                        <service.icon className="w-6 h-6 text-[#7C3AED]" />
-                      </div>
-                      <CardTitle>{service.title}</CardTitle>
-                      <CardDescription>{service.description}</CardDescription>
-                    </CardHeader>
-                    <CardFooter className="mt-auto">
-                      <Link href={service.link}>
-                        <Button variant="outline" className="w-full">
-                          Learn More
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </Button>
-                      </Link>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-              <div className="mt-16 text-center">
-                <Link href="/contact">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="bg-white text-[#7C3AED] hover:bg-[#7C3AED] hover:text-white border-[#7C3AED] transition-all duration-300"
-                  >
-                    <MessageSquare className="w-5 h-5 mr-2" />
-                    Is the service you're looking for missing? We might do it. Send us a message.
-                  </Button>
-                </Link>
-              </div>
+        <section className="py-24 bg-white">
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {services.map((service, index) => (
+                <Card key={index} className="flex flex-col">
+                  <CardHeader>
+                    <div className="w-12 h-12 rounded-lg bg-[#7C3AED] bg-opacity-10 flex items-center justify-center mb-4">
+                      <service.icon className="w-6 h-6 text-[#7C3AED]" />
+                    </div>
+                    <CardTitle>{service.title}</CardTitle>
+                    <CardDescription>{service.description}</CardDescription>
+                  </CardHeader>
+                  <CardFooter className="mt-auto">
+                    <Link href={service.link}>
+                      <Button variant="outline" className="w-full">
+                        Learn More
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </Link>
+                  </CardFooter>
+                </Card>
+              ))}
             </div>
-          </section>
+            <div className="mt-16 text-center">
+              <Link href="/contact">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="bg-white text-[#7C3AED] hover:bg-[#7C3AED] hover:text-white border-[#7C3AED] transition-all duration-300"
+                >
+                  <MessageSquare className="w-5 h-5 mr-2" />
+                  Is the service you're looking for missing? We might do it. Send us a message.
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
 
-          <section className="py-24 bg-gray-50">
-            <div className="container mx-auto px-4">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-12 text-center">
-                Frequently Asked Questions
-              </h2>
-              <Accordion type="single" collapsible className="max-w-3xl mx-auto">
-                {faqs.map((faq, index) => (
-                  <AccordionItem key={index} value={`item-${index}`}>
-                    <AccordionTrigger className="text-left">{faq.question}</AccordionTrigger>
-                    <AccordionContent>{faq.answer}</AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </div>
-          </section>
-        </div>
+        <section className="py-24 bg-gray-50">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-12 text-center">Frequently Asked Questions</h2>
+            <Accordion type="single" collapsible className="max-w-3xl mx-auto">
+              {faqs.map((faq, index) => (
+                <AccordionItem key={index} value={`item-${index}`}>
+                  <AccordionTrigger className="text-left">{faq.question}</AccordionTrigger>
+                  <AccordionContent>{faq.answer}</AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        </section>
+
         <Footer />
       </main>
     </>
