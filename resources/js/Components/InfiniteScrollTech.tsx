@@ -37,7 +37,7 @@ export function InfiniteScrollTech({ technologies, backgroundColor = "#F8F9FA" }
             initial={{ x: 0 }}
             animate={{ x: "-50%" }}
             transition={{
-              duration: 30,
+              duration: 120,
               repeat: Number.POSITIVE_INFINITY,
               ease: "linear",
             }}
