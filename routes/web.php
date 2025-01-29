@@ -61,6 +61,10 @@ Route::get('/services/database-migration', function () {
     return Inertia::render('Services/DatabaseMigration');
 })->name('services.database-migration');
 
+Route::get('/services/monitoring-observability', function () {
+    return Inertia::render('Services/MonitoringObservability');
+})->name('services.monitoring-observability');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
