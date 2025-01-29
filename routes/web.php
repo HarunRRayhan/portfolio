@@ -33,6 +33,10 @@ Route::get('/services/infrastructure-as-code', function () {
     return Inertia::render('Services/InfrastructureAsCode');
 })->name('services.infrastructure-as-code');
 
+Route::get('/services/serverless-infrastructure', function () {
+    return Inertia::render('Services/ServerlessInfrastructure');
+})->name('services.serverless-infrastructure');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
