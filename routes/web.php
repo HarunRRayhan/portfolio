@@ -45,6 +45,10 @@ Route::get('/services/security-consulting', function () {
     return Inertia::render('Services/SecurityConsulting');
 })->name('services.security-consulting');
 
+Route::get('/services/performance-optimization', function () {
+    return Inertia::render('Services/PerformanceOptimization');
+})->name('services.performance-optimization');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
