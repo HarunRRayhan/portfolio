@@ -34,7 +34,7 @@ export default function Book() {
         </section>
 
         {/* Calendar Section */}
-        <section className="py-16 bg-gray-50 flex-grow">
+        <section className="py-32 bg-gray-50 flex-grow">
           <div className="container mx-auto px-4">
             <Card className="max-w-2xl mx-auto shadow-lg">
               <CardContent className="p-8">
