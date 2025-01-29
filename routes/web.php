@@ -53,6 +53,10 @@ Route::get('/services/infrastructure-migration', function () {
     return Inertia::render('Services/InfrastructureMigration');
 })->name('services.infrastructure-migration');
 
+Route::get('/services/mlops', function () {
+    return Inertia::render('Services/MLOps');
+})->name('services.mlops');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
