@@ -69,6 +69,10 @@ Route::get('/services/database-optimization', function () {
     return Inertia::render('Services/DatabaseOptimization');
 })->name('services.database-optimization');
 
+Route::get('/book', function () {
+    return Inertia::render('Book');
+})->name('book');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
