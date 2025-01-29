@@ -11,16 +11,16 @@ import {
   navigationMenuTriggerStyle,
 } from "@/Components/ui/navigation-menu"
 import { Logo } from "./Logo"
-import { Menu } from 'lucide-react'
+import { Menu, ExternalLink } from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger } from "@/Components/ui/sheet"
 
 const menuItems = [
   { name: "Home", href: "/" },
   { name: "About", href: "/about" },
   { name: "Services", href: "/services" },
-  { name: "Blog", href: "/blog" },
-  { name: "Book a Session", href: "/book-session" },
-  { name: "Contact", href: "/contact" }
+  { name: "Blog", href: "https://blog.harun.dev", external: true },
+  { name: "Book a Session", href: "/book" },
+  { name: "Contact", href: "/contact" },
 ]
 
 export function Menubar() {
@@ -38,6 +38,52 @@ export function Menubar() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  const renderMenuItem = (item: typeof menuItems[0]) => {
+    const content = (
+      <>
+        <span className="relative z-10 flex items-center gap-1">
+          {item.name}
+          {item.external && <ExternalLink className="w-4 h-4" />}
+        </span>
+        {item.name === "Book a Session" && (
+          <span className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#6EE7B7] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
+        )}
+      </>
+    )
+
+    if (item.external) {
+      return (
+        <a
+          href={item.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(
+            navigationMenuTriggerStyle,
+            "text-white transition-all duration-300 cursor-pointer no-underline",
+            "bg-transparent hover:bg-transparent relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:origin-left after:scale-x-0 hover:after:scale-x-100 after:bg-gradient-to-r after:from-[#6EE7B7] after:to-transparent after:transition-transform after:duration-300"
+          )}
+        >
+          {content}
+        </a>
+      )
+    }
+
+    return (
+      <Link
+        href={item.href}
+        className={cn(
+          navigationMenuTriggerStyle,
+          "text-white transition-all duration-300 cursor-pointer no-underline",
+          item.name === "Book a Session" 
+            ? "!bg-white/90 !text-[#7C3AED] hover:!bg-[#9F7AEA] hover:!text-white transition-all duration-300 relative overflow-hidden group"
+            : "bg-transparent hover:bg-transparent relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:origin-left after:scale-x-0 hover:after:scale-x-100 after:bg-gradient-to-r after:from-[#6EE7B7] after:to-transparent after:transition-transform after:duration-300"
+        )}
+      >
+        {content}
+      </Link>
+    )
+  }
+
   return (
     <div 
       className={cn(
@@ -54,25 +100,7 @@ export function Menubar() {
             <NavigationMenuList>
               {menuItems.map((item) => (
                 <NavigationMenuItem key={item.name}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      navigationMenuTriggerStyle,
-                      "text-white transition-all duration-300 cursor-pointer no-underline",
-                      item.name === "Book a Session" 
-                        ? "!bg-white/90 !text-[#7C3AED] hover:!bg-[#9F7AEA] hover:!text-white transition-all duration-300 relative overflow-hidden group"
-                        : "bg-transparent hover:bg-transparent relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:origin-left after:scale-x-0 hover:after:scale-x-100 after:bg-gradient-to-r after:from-[#6EE7B7] after:to-transparent after:transition-transform after:duration-300"
-                    )}
-                  >
-                    {item.name === "Book a Session" ? (
-                      <>
-                        <span className="relative z-10">{item.name}</span>
-                        <span className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#6EE7B7] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
-                      </>
-                    ) : (
-                      <span className="relative z-10">{item.name}</span>
-                    )}
-                  </Link>
+                  {renderMenuItem(item)}
                 </NavigationMenuItem>
               ))}
             </NavigationMenuList>
@@ -88,21 +116,34 @@ export function Menubar() {
             <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-[#7C3AED]">
               <nav className="flex flex-col gap-4">
                 {menuItems.map((item) => (
-                  <Link 
-                    key={item.name} 
-                    href={item.href}
-                    className={cn(
-                      "text-white text-lg py-2 px-4 rounded-md transition-all duration-300 hover:cursor-pointer no-underline",
-                      item.name === "Book a Session" 
-                        ? "!bg-white/90 !text-[#7C3AED] hover:!bg-[#9F7AEA] hover:!text-white relative overflow-hidden group"
-                        : "hover:bg-white/10"
-                    )}
-                  >
-                    {item.name}
-                    {item.name === "Book a Session" && (
-                      <span className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#6EE7B7] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
-                    )}
-                  </Link>
+                  item.external ? (
+                    <a
+                      key={item.name}
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-white text-lg py-2 px-4 rounded-md transition-all duration-300 hover:cursor-pointer no-underline hover:bg-white/10 flex items-center gap-1"
+                    >
+                      {item.name}
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                  ) : (
+                    <Link 
+                      key={item.name} 
+                      href={item.href}
+                      className={cn(
+                        "text-white text-lg py-2 px-4 rounded-md transition-all duration-300 hover:cursor-pointer no-underline",
+                        item.name === "Book a Session" 
+                          ? "!bg-white/90 !text-[#7C3AED] hover:!bg-[#9F7AEA] hover:!text-white relative overflow-hidden group"
+                          : "hover:bg-white/10"
+                      )}
+                    >
+                      {item.name}
+                      {item.name === "Book a Session" && (
+                        <span className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#6EE7B7] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
+                      )}
+                    </Link>
+                  )
                 ))}
               </nav>
             </SheetContent>
