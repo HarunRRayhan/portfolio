@@ -18,7 +18,7 @@ const technologies = [
   },
   {
     name: "AWS API Gateway",
-    logo: "https://d2q66yyjeovezo.cloudfront.net/icon/945f3fc449518a73b9f5f32868db466c-926961f91b072604c42b7f39ce2eaf1c.svg",
+    logo: "/images/logos/api-gateway.png",
   },
   {
     name: "AWS DynamoDB",
@@ -34,7 +34,7 @@ const technologies = [
   },
   {
     name: "Google Cloud Functions",
-    logo: "https://www.gstatic.com/devrel-devsite/prod/v2f6fb68338062e7c16672db62c4ab042dcaffd7d3236adfb2697c5e6479f1619/cloud/images/products/logos/svg/cloud-functions.svg",
+    logo: "https://seeklogo.com/images/G/google-cloud-functions-logo-AECD57BFA2-seeklogo.com.png",
   },
   {
     name: "Vercel",
@@ -46,11 +46,11 @@ const technologies = [
   },
   {
     name: "CloudFlare Workers",
-    logo: "https://www.cloudflare.com/static/1e7eafd4d3d1d16d7bb6e8c6a4c1f02c/Cloudflare-Workers-Logotype-Vertical-RGB.svg",
+    logo: "/images/logos/cloudflare-workers.svg",
   },
   {
     name: "AWS Step Functions",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/0/0f/AWS_Step_Functions_logo.svg",
+    logo: "/images/logos/step-functions.png",
   },
   {
     name: "AWS EventBridge",
