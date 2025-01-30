@@ -159,18 +159,20 @@ export default function Contact() {
                         <CommandInput
                           placeholder="Search or add services..."
                           value={searchValue}
-                          onValueChange={setSearchValue}
+                          onChange={(e) => setSearchValue(e.target.value)}
                         />
                         <CommandList>
                           <CommandEmpty>
-                            <button
-                              type="button"
-                              onClick={() => addCustomService(searchValue)}
-                              className="flex w-full items-center gap-2 px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
-                            >
-                              <Plus className="h-4 w-4" />
-                              Add &quot;{searchValue}&quot;
-                            </button>
+                            {searchValue.trim() ? (
+                              <button
+                                type="button"
+                                onClick={() => addCustomService(searchValue)}
+                                className="flex w-full items-center gap-2 text-sm hover:bg-accent hover:text-accent-foreground"
+                              >
+                                <Plus className="h-4 w-4" />
+                                Add &quot;{searchValue}&quot;
+                              </button>
+                            ) : null}
                           </CommandEmpty>
                           <CommandGroup>
                             {services
