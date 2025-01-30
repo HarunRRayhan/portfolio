@@ -132,34 +132,56 @@ export default function Contact() {
                                 <form onSubmit={handleSubmit}
                                       className="space-y-6 bg-white p-8 rounded-lg shadow-lg border border-gray-100">
                                     <div>
-                                        <Label htmlFor="name">Name</Label>
-                                        <Input id="name" value={name} onChange={handleInputChange} required/>
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="email">Email</Label>
-                                        <Input id="email" type="email" value={email} onChange={handleInputChange}
-                                               required/>
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="subject">Subject</Label>
-                                        <Input id="subject" value={subject} onChange={handleInputChange} required/>
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="message">Message</Label>
-                                        <Textarea
-                                            id="message"
-                                            value={message}
-                                            onChange={handleInputChange}
-                                            className="min-h-[100px] resize-none overflow-hidden"
+                                        <Label htmlFor="name">Name <span className="text-red-500">*</span></Label>
+                                        <Input 
+                                            id="name" 
+                                            value={name} 
+                                            onChange={handleInputChange} 
+                                            placeholder="Enter your name"
+                                            className="bg-gray-50/50 border-gray-200 focus:bg-white transition-colors"
                                             required
                                         />
                                     </div>
                                     <div>
-                                        <Label htmlFor="services">Services (Optional)</Label>
+                                        <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
+                                        <Input 
+                                            id="email" 
+                                            type="email" 
+                                            value={email} 
+                                            onChange={handleInputChange}
+                                            placeholder="Enter your email address"
+                                            className="bg-gray-50/50 border-gray-200 focus:bg-white transition-colors"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="subject">Subject <span className="text-red-500">*</span></Label>
+                                        <Input 
+                                            id="subject" 
+                                            value={subject} 
+                                            onChange={handleInputChange}
+                                            placeholder="What is your message about?"
+                                            className="bg-gray-50/50 border-gray-200 focus:bg-white transition-colors"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="message">Message <span className="text-red-500">*</span></Label>
+                                        <Textarea
+                                            id="message"
+                                            value={message}
+                                            onChange={handleInputChange}
+                                            placeholder="Write your message here..."
+                                            className="min-h-[100px] resize-none overflow-hidden bg-gray-50/50 border-gray-200 focus:bg-white transition-colors"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="services">Services</Label>
                                         <Popover open={open} onOpenChange={setOpen}>
                                             <PopoverTrigger asChild>
                                                 <Button variant="outline" role="combobox" aria-expanded={open}
-                                                        className="w-full justify-between">
+                                                        className="w-full justify-between bg-gray-50/50 border-gray-200 hover:bg-gray-50/80">
                                                     {selectedServices.length > 0 ? `${selectedServices.length} selected` : "Select services"}
                                                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50"/>
                                                 </Button>
@@ -219,7 +241,7 @@ export default function Contact() {
                                     </div>
                                     <Button
                                         type="submit"
-                                        className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-semibold py-2 px-4 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50 flex items-center gap-2 justify-center"
+                                        className="h-10 bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-semibold px-8 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50 flex items-center gap-2 justify-center"
                                     >
                                         <Send className="w-4 h-4"/>
                                         Send Message
