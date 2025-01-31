@@ -21,6 +21,8 @@ import { Toaster } from "sonner"
 import { usePage } from '@inertiajs/react'
 import { PageProps as InertiaPageProps } from '@inertiajs/core'
 import confetti from 'canvas-confetti';
+import { Envelope } from "@/Components/ui/envelope"
+import { AnimatePresence } from "framer-motion"
 
 const predefinedServices = [
     "Cloud Architecture & Migration",
@@ -57,7 +59,8 @@ export default function Contact() {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [referrer, setReferrer] = useState("")
     const [errors, setErrors] = useState<Record<string, string>>({})
-    const [showSuccessBanner, setShowSuccessBanner] = useState(false)
+    const [showEnvelope, setShowEnvelope] = useState(false)
+    const [showForm, setShowForm] = useState(true)
 
     useEffect(() => {
         setReferrer(document.referrer || 'direct')
@@ -74,7 +77,11 @@ export default function Contact() {
             particleCount: 150,
             spread: 100,
             origin: { y: 0.6 },
-            colors: ['#7C3AED', '#8B5CF6', '#6D28D9']
+            colors: ['#7C3AED', '#8B5CF6', '#6D28D9'],
+            angle: 90,
+            startVelocity: 30,
+            gravity: 0.5,
+            ticks: 200
         });
     }
 
@@ -93,22 +100,39 @@ export default function Contact() {
         }, {
             preserveScroll: true,
             onSuccess: () => {
-                setName("")
-                setEmail("")
-                setSubject("")
-                setMessage("")
-                setSelectedServices([])
                 setIsSubmitting(false)
+                setShowEnvelope(true)
+                setShowForm(false)
                 triggerConfetti()
-                setShowSuccessBanner(true)
-                toast.success("Thank you for your message! We will get back to you soon.")
+                toast.success("Thank you for your message! We will get back to you soon.", {
+                    duration: 5000,
+                    position: 'top-right'
+                })
             },
             onError: (errors: any) => {
                 setErrors(errors)
-                toast.error("Please check the form for errors.")
+                toast.error("Please check the form for errors.", {
+                    duration: 5000,
+                    position: 'top-right'
+                })
                 setIsSubmitting(false)
             }
         })
+    }
+
+    const handleNewRequest = () => {
+        resetForm()
+        setShowEnvelope(false)
+        setShowForm(true)
+    }
+
+    const resetForm = () => {
+        setName("")
+        setEmail("")
+        setSubject("")
+        setMessage("")
+        setSelectedServices([])
+        setShowForm(true)
     }
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -186,176 +210,178 @@ export default function Contact() {
                                 transition={{duration: 0.6}}
                                 className="max-w-2xl mx-auto"
                             >
-                                {showSuccessBanner && (
-                                    <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center justify-between">
-                                        <div className="flex items-center">
-                                            <div className="flex-shrink-0">
-                                                <Check className="h-5 w-5 text-green-400" aria-hidden="true" />
-                                            </div>
-                                            <div className="ml-3">
-                                                <p className="text-sm font-medium text-green-800">
-                                                    Message sent successfully! We'll get back to you soon.
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            className="inline-flex rounded-md p-1.5 text-green-500 hover:bg-green-100 focus:outline-none"
-                                            onClick={() => setShowSuccessBanner(false)}
+                                <AnimatePresence mode="wait">
+                                    {showForm && (
+                                        <motion.div
+                                            key="form"
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -20 }}
+                                            transition={{ duration: 0.3 }}
                                         >
-                                            <X className="h-5 w-5" />
-                                        </button>
-                                    </div>
-                                )}
-
-                                <form onSubmit={handleSubmit}
-                                      className="space-y-8 bg-white p-12 rounded-xl shadow-lg border border-gray-100">
-                                    <input type="hidden" name="referrer" value={referrer} />
-                                    <div className="space-y-3">
-                                        <Label htmlFor="name" className="text-xl font-medium">Name <span className="text-red-500">*</span></Label>
-                                        <Input 
-                                            id="name" 
-                                            value={name} 
-                                            onChange={handleInputChange} 
-                                            placeholder="Enter your name"
-                                            className={cn(
-                                                "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-xl h-16 px-5",
-                                                errors.name && "border-red-500 focus:border-red-500"
-                                            )}
-                                            required
-                                        />
-                                        {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-                                    </div>
-                                    <div className="space-y-3">
-                                        <Label htmlFor="email" className="text-xl font-medium">Email <span className="text-red-500">*</span></Label>
-                                        <Input 
-                                            id="email" 
-                                            type="email" 
-                                            value={email} 
-                                            onChange={handleInputChange}
-                                            placeholder="Enter your email address"
-                                            className={cn(
-                                                "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-xl h-16 px-5",
-                                                errors.email && "border-red-500 focus:border-red-500"
-                                            )}
-                                            required
-                                        />
-                                        {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-                                    </div>
-                                    <div className="space-y-3">
-                                        <Label htmlFor="subject" className="text-xl font-medium">Subject <span className="text-red-500">*</span></Label>
-                                        <Input 
-                                            id="subject" 
-                                            value={subject} 
-                                            onChange={handleInputChange}
-                                            placeholder="What is your message about?"
-                                            className={cn(
-                                                "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-xl h-16 px-5",
-                                                errors.subject && "border-red-500 focus:border-red-500"
-                                            )}
-                                            required
-                                        />
-                                        {errors.subject && <p className="text-red-500 text-sm mt-1">{errors.subject}</p>}
-                                    </div>
-                                    <div className="space-y-3">
-                                        <Label htmlFor="message" className="text-xl font-medium">Message <span className="text-red-500">*</span></Label>
-                                        <Textarea
-                                            id="message"
-                                            value={message}
-                                            onChange={handleInputChange}
-                                            placeholder="Write your message here..."
-                                            className={cn(
-                                                "min-h-[150px] resize-none overflow-hidden bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-xl p-5",
-                                                errors.message && "border-red-500 focus:border-red-500"
-                                            )}
-                                            required
-                                        />
-                                        {errors.message && <p className="text-red-500 text-sm mt-1">{errors.message}</p>}
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="services" className="text-lg font-medium">Services</Label>
-                                        <Popover open={open} onOpenChange={setOpen}>
-                                            <PopoverTrigger asChild>
-                                                <Button variant="outline" role="combobox" aria-expanded={open}
-                                                        className="w-full justify-between bg-gray-50/50 border-gray-200 hover:bg-gray-50/80 text-lg h-14 px-4">
-                                                    {selectedServices.length > 0 ? `${selectedServices.length} selected` : "Select services"}
-                                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50"/>
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                                                <Command>
-                                                    <CommandInput
-                                                        placeholder="Search or add services..."
-                                                        value={searchValue}
-                                                        onChange={(e) => setSearchValue(e.target.value)}
+                                            <form onSubmit={handleSubmit}
+                                                  className="space-y-8 bg-white p-12 rounded-xl shadow-lg border border-gray-100">
+                                                <input type="hidden" name="referrer" value={referrer} />
+                                                <div className="space-y-3">
+                                                    <Label htmlFor="name" className="text-xl font-medium">Name <span className="text-red-500">*</span></Label>
+                                                    <Input 
+                                                        id="name" 
+                                                        value={name} 
+                                                        onChange={handleInputChange} 
+                                                        placeholder="Enter your name"
+                                                        className={cn(
+                                                            "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-xl h-16 px-5",
+                                                            errors.name && "border-red-500 focus:border-red-500"
+                                                        )}
+                                                        required
                                                     />
-                                                    <CommandList>
-                                                        <CommandEmpty>
-                                                            {searchValue.trim() ? (
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => addCustomService(searchValue)}
-                                                                    className="flex w-full items-center gap-2 text-sm hover:bg-accent hover:text-accent-foreground"
-                                                                >
-                                                                    <Plus className="h-4 w-4"/>
-                                                                    Add &quot;{searchValue}&quot;
-                                                                </button>
-                                                            ) : null}
-                                                        </CommandEmpty>
-                                                        <CommandGroup>
-                                                            {services
-                                                                .filter((service) => service.toLowerCase().includes(searchValue.toLowerCase()))
-                                                                .map((service) => (
-                                                                    <CommandItem key={service}
-                                                                                 onSelect={() => toggleService(service)}>
-                                                                        <Check
-                                                                            className={cn(
-                                                                                "mr-2 h-4 w-4",
-                                                                                selectedServices.includes(service) ? "opacity-100" : "opacity-0",
-                                                                            )}
-                                                                        />
-                                                                        {service}
-                                                                    </CommandItem>
-                                                                ))}
-                                                        </CommandGroup>
-                                                    </CommandList>
-                                                </Command>
-                                            </PopoverContent>
-                                        </Popover>
-                                        <div className="mt-2 flex flex-wrap gap-2">
-                                            {selectedServices.map((service) => (
-                                                <span key={service}
-                                                      className="bg-[#7C3AED] text-white px-2 py-1 rounded-full text-sm">
-                        {service}
-                                                    <button type="button" onClick={() => toggleService(service)}
-                                                            className="ml-2 focus:outline-none">
-                          &times;
-                        </button>
-                      </span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <Button
-                                        type="submit"
-                                        disabled={isSubmitting}
-                                        className="h-16 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xl font-semibold px-10 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50 flex items-center gap-3 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        {isSubmitting ? (
-                                            <>
-                                                <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                </svg>
-                                                <span className="ml-2">Sending...</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Send className="w-6 h-6" />
-                                                Send Message
-                                            </>
-                                        )}
-                                    </Button>
-                                </form>
+                                                    {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+                                                </div>
+                                                <div className="space-y-3">
+                                                    <Label htmlFor="email" className="text-xl font-medium">Email <span className="text-red-500">*</span></Label>
+                                                    <Input 
+                                                        id="email" 
+                                                        type="email" 
+                                                        value={email} 
+                                                        onChange={handleInputChange}
+                                                        placeholder="Enter your email address"
+                                                        className={cn(
+                                                            "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-xl h-16 px-5",
+                                                            errors.email && "border-red-500 focus:border-red-500"
+                                                        )}
+                                                        required
+                                                    />
+                                                    {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+                                                </div>
+                                                <div className="space-y-3">
+                                                    <Label htmlFor="subject" className="text-xl font-medium">Subject <span className="text-red-500">*</span></Label>
+                                                    <Input 
+                                                        id="subject" 
+                                                        value={subject} 
+                                                        onChange={handleInputChange}
+                                                        placeholder="What is your message about?"
+                                                        className={cn(
+                                                            "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-xl h-16 px-5",
+                                                            errors.subject && "border-red-500 focus:border-red-500"
+                                                        )}
+                                                        required
+                                                    />
+                                                    {errors.subject && <p className="text-red-500 text-sm mt-1">{errors.subject}</p>}
+                                                </div>
+                                                <div className="space-y-3">
+                                                    <Label htmlFor="message" className="text-xl font-medium">Message <span className="text-red-500">*</span></Label>
+                                                    <Textarea
+                                                        id="message"
+                                                        value={message}
+                                                        onChange={handleInputChange}
+                                                        placeholder="Write your message here..."
+                                                        className={cn(
+                                                            "min-h-[150px] resize-none overflow-hidden bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-xl p-5",
+                                                            errors.message && "border-red-500 focus:border-red-500"
+                                                        )}
+                                                        required
+                                                    />
+                                                    {errors.message && <p className="text-red-500 text-sm mt-1">{errors.message}</p>}
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="services" className="text-lg font-medium">Services</Label>
+                                                    <Popover open={open} onOpenChange={setOpen}>
+                                                        <PopoverTrigger asChild>
+                                                            <Button variant="outline" role="combobox" aria-expanded={open}
+                                                                    className="w-full justify-between bg-gray-50/50 border-gray-200 hover:bg-gray-50/80 text-lg h-14 px-4">
+                                                                {selectedServices.length > 0 ? `${selectedServices.length} selected` : "Select services"}
+                                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50"/>
+                                                            </Button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                                            <Command>
+                                                                <CommandInput
+                                                                    placeholder="Search or add services..."
+                                                                    value={searchValue}
+                                                                    onChange={(e) => setSearchValue(e.target.value)}
+                                                                />
+                                                                <CommandList>
+                                                                    <CommandEmpty>
+                                                                        {searchValue.trim() ? (
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => addCustomService(searchValue)}
+                                                                                className="flex w-full items-center gap-2 text-sm hover:bg-accent hover:text-accent-foreground"
+                                                                            >
+                                                                                <Plus className="h-4 w-4"/>
+                                                                                Add &quot;{searchValue}&quot;
+                                                                            </button>
+                                                                        ) : null}
+                                                                    </CommandEmpty>
+                                                                    <CommandGroup>
+                                                                        {services
+                                                                            .filter((service) => service.toLowerCase().includes(searchValue.toLowerCase()))
+                                                                            .map((service) => (
+                                                                                <CommandItem key={service}
+                                                                                             onSelect={() => toggleService(service)}>
+                                                                                    <Check
+                                                                                        className={cn(
+                                                                                            "mr-2 h-4 w-4",
+                                                                                            selectedServices.includes(service) ? "opacity-100" : "opacity-0",
+                                                                                        )}
+                                                                                    />
+                                                                                    {service}
+                                                                                </CommandItem>
+                                                                            ))}
+                                                                    </CommandGroup>
+                                                                </CommandList>
+                                                            </Command>
+                                                        </PopoverContent>
+                                                    </Popover>
+                                                    <div className="mt-2 flex flex-wrap gap-2">
+                                                        {selectedServices.map((service) => (
+                                                            <span key={service}
+                                                                  className="bg-[#7C3AED] text-white px-2 py-1 rounded-full text-sm">
+                            {service}
+                                                            <button type="button" onClick={() => toggleService(service)}
+                                                                    className="ml-2 focus:outline-none">
+                                                              &times;
+                                                            </button>
+                                                          </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    type="submit"
+                                                    disabled={isSubmitting}
+                                                    className="h-16 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xl font-semibold px-10 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50 flex items-center gap-3 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                                >
+                                                    {isSubmitting ? (
+                                                        <>
+                                                            <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                            </svg>
+                                                            <span className="ml-2">Sending...</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Send className="w-6 h-6" />
+                                                            Send Message
+                                                        </>
+                                                    )}
+                                                </Button>
+                                            </form>
+                                        </motion.div>
+                                    )}
+
+                                    {showEnvelope && (
+                                        <motion.div
+                                            key="confirmation"
+                                            className="bg-white p-12 rounded-xl shadow-lg border border-gray-100"
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -20 }}
+                                        >
+                                            <Envelope onComplete={handleNewRequest} />
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </motion.div>
                         </div>
                     </section>
