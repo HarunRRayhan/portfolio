@@ -8,13 +8,19 @@ import {Button} from "@/Components/ui/button"
 import {Input} from "@/Components/ui/input"
 import {Textarea} from "@/Components/ui/textarea"
 import {Label} from "@/Components/ui/label"
-import {Check, ChevronsUpDown, Plus, Send} from "lucide-react"
+import {Check, ChevronsUpDown, Plus, Send, X} from "lucide-react"
 import {cn} from "@/lib/utils"
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/Components/ui/command"
 import {Popover, PopoverContent, PopoverTrigger} from "@/Components/ui/popover"
 import type React from "react"
 import {ErrorBoundary} from "@/Components/ErrorBoundary"
 import {Head} from "@inertiajs/react";
+import {router} from '@inertiajs/react'
+import {toast} from "sonner"
+import { Toaster } from "sonner"
+import { usePage } from '@inertiajs/react'
+import { PageProps as InertiaPageProps } from '@inertiajs/core'
+import confetti from 'canvas-confetti';
 
 const predefinedServices = [
     "Cloud Architecture & Migration",
@@ -31,7 +37,15 @@ const predefinedServices = [
     "Scalability Solutions",
 ]
 
+interface PageProps extends InertiaPageProps {
+    flash?: {
+        type?: 'success' | 'error';
+        message?: string;
+    };
+}
+
 export default function Contact() {
+    const { flash } = usePage<PageProps>().props
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
     const [subject, setSubject] = useState("")
@@ -40,8 +54,14 @@ export default function Contact() {
     const [open, setOpen] = useState(false)
     const [searchValue, setSearchValue] = useState("")
     const [services, setServices] = useState<string[]>(predefinedServices)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [referrer, setReferrer] = useState("")
+    const [errors, setErrors] = useState<Record<string, string>>({})
+    const [showSuccessBanner, setShowSuccessBanner] = useState(false)
 
     useEffect(() => {
+        setReferrer(document.referrer || 'direct')
+
         const textarea = document.getElementById("message") as HTMLTextAreaElement
         if (textarea) {
             textarea.style.height = "auto"
@@ -49,10 +69,46 @@ export default function Contact() {
         }
     }, [message])
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    const triggerConfetti = () => {
+        confetti({
+            particleCount: 150,
+            spread: 100,
+            origin: { y: 0.6 },
+            colors: ['#7C3AED', '#8B5CF6', '#6D28D9']
+        });
+    }
+
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        // Handle form submission logic here
-        console.log({name, email, subject, message, selectedServices})
+        setIsSubmitting(true)
+        setErrors({})
+
+        router.post('/contact', {
+            name,
+            email,
+            subject,
+            message,
+            services: selectedServices,
+            referrer
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setName("")
+                setEmail("")
+                setSubject("")
+                setMessage("")
+                setSelectedServices([])
+                setIsSubmitting(false)
+                triggerConfetti()
+                setShowSuccessBanner(true)
+                toast.success("Thank you for your message! We will get back to you soon.")
+            },
+            onError: (errors: any) => {
+                setErrors(errors)
+                toast.error("Please check the form for errors.")
+                setIsSubmitting(false)
+            }
+        })
     }
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -94,6 +150,7 @@ export default function Contact() {
 
     return (
         <ErrorBoundary>
+            <Toaster position="top-right" richColors />
             <Head>
                 <title>Contact</title>
             </Head>
@@ -129,52 +186,91 @@ export default function Contact() {
                                 transition={{duration: 0.6}}
                                 className="max-w-2xl mx-auto"
                             >
+                                {showSuccessBanner && (
+                                    <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center justify-between">
+                                        <div className="flex items-center">
+                                            <div className="flex-shrink-0">
+                                                <Check className="h-5 w-5 text-green-400" aria-hidden="true" />
+                                            </div>
+                                            <div className="ml-3">
+                                                <p className="text-sm font-medium text-green-800">
+                                                    Message sent successfully! We'll get back to you soon.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            className="inline-flex rounded-md p-1.5 text-green-500 hover:bg-green-100 focus:outline-none"
+                                            onClick={() => setShowSuccessBanner(false)}
+                                        >
+                                            <X className="h-5 w-5" />
+                                        </button>
+                                    </div>
+                                )}
+
                                 <form onSubmit={handleSubmit}
-                                      className="space-y-8 bg-white p-10 rounded-xl shadow-lg border border-gray-100">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="name" className="text-lg font-medium">Name <span className="text-red-500">*</span></Label>
+                                      className="space-y-8 bg-white p-12 rounded-xl shadow-lg border border-gray-100">
+                                    <input type="hidden" name="referrer" value={referrer} />
+                                    <div className="space-y-3">
+                                        <Label htmlFor="name" className="text-xl font-medium">Name <span className="text-red-500">*</span></Label>
                                         <Input 
                                             id="name" 
                                             value={name} 
                                             onChange={handleInputChange} 
                                             placeholder="Enter your name"
-                                            className="bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg h-14 px-4"
+                                            className={cn(
+                                                "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-xl h-16 px-5",
+                                                errors.name && "border-red-500 focus:border-red-500"
+                                            )}
                                             required
                                         />
+                                        {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="email" className="text-lg font-medium">Email <span className="text-red-500">*</span></Label>
+                                    <div className="space-y-3">
+                                        <Label htmlFor="email" className="text-xl font-medium">Email <span className="text-red-500">*</span></Label>
                                         <Input 
                                             id="email" 
                                             type="email" 
                                             value={email} 
                                             onChange={handleInputChange}
                                             placeholder="Enter your email address"
-                                            className="bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg h-14 px-4"
+                                            className={cn(
+                                                "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-xl h-16 px-5",
+                                                errors.email && "border-red-500 focus:border-red-500"
+                                            )}
                                             required
                                         />
+                                        {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="subject" className="text-lg font-medium">Subject <span className="text-red-500">*</span></Label>
+                                    <div className="space-y-3">
+                                        <Label htmlFor="subject" className="text-xl font-medium">Subject <span className="text-red-500">*</span></Label>
                                         <Input 
                                             id="subject" 
                                             value={subject} 
                                             onChange={handleInputChange}
                                             placeholder="What is your message about?"
-                                            className="bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg h-14 px-4"
+                                            className={cn(
+                                                "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-xl h-16 px-5",
+                                                errors.subject && "border-red-500 focus:border-red-500"
+                                            )}
                                             required
                                         />
+                                        {errors.subject && <p className="text-red-500 text-sm mt-1">{errors.subject}</p>}
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="message" className="text-lg font-medium">Message <span className="text-red-500">*</span></Label>
+                                    <div className="space-y-3">
+                                        <Label htmlFor="message" className="text-xl font-medium">Message <span className="text-red-500">*</span></Label>
                                         <Textarea
                                             id="message"
                                             value={message}
                                             onChange={handleInputChange}
                                             placeholder="Write your message here..."
-                                            className="min-h-[150px] resize-none overflow-hidden bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg p-4"
+                                            className={cn(
+                                                "min-h-[150px] resize-none overflow-hidden bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-xl p-5",
+                                                errors.message && "border-red-500 focus:border-red-500"
+                                            )}
                                             required
                                         />
+                                        {errors.message && <p className="text-red-500 text-sm mt-1">{errors.message}</p>}
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="services" className="text-lg font-medium">Services</Label>
@@ -241,10 +337,23 @@ export default function Contact() {
                                     </div>
                                     <Button
                                         type="submit"
-                                        className="h-10 bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-semibold px-8 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50 flex items-center gap-2 justify-center"
+                                        disabled={isSubmitting}
+                                        className="h-16 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xl font-semibold px-10 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50 flex items-center gap-3 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <Send className="w-4 h-4"/>
-                                        Send Message
+                                        {isSubmitting ? (
+                                            <>
+                                                <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                <span className="ml-2">Sending...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Send className="w-6 h-6" />
+                                                Send Message
+                                            </>
+                                        )}
                                     </Button>
                                 </form>
                             </motion.div>

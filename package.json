@@ -9,6 +9,7 @@
         "@headlessui/react": "^2.0.0",
         "@inertiajs/react": "^2.0.0",
         "@tailwindcss/forms": "^0.5.3",
+        "@types/canvas-confetti": "^1.9.0",
         "@types/node": "^18.13.0",
         "@types/react": "^18.0.28",
         "@types/react-dom": "^18.0.10",
@@ -30,11 +31,13 @@
         "@radix-ui/react-navigation-menu": "^1.2.3",
         "@radix-ui/react-popover": "^1.1.5",
         "@radix-ui/react-slot": "^1.1.1",
+        "canvas-confetti": "^1.9.3",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "embla-carousel-react": "^8.5.2",
         "framer-motion": "^12.0.0",
         "lucide-react": "^0.469.0",
+        "sonner": "^1.7.3",
         "tailwind-merge": "^2.6.0",
         "tailwindcss-animate": "^1.0.7"
     }
