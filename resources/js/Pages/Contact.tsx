@@ -130,58 +130,58 @@ export default function Contact() {
                                 className="max-w-2xl mx-auto"
                             >
                                 <form onSubmit={handleSubmit}
-                                      className="space-y-6 bg-white p-8 rounded-lg shadow-lg border border-gray-100">
-                                    <div>
-                                        <Label htmlFor="name" className="text-base">Name <span className="text-red-500">*</span></Label>
+                                      className="space-y-8 bg-white p-10 rounded-xl shadow-lg border border-gray-100">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="name" className="text-lg font-medium">Name <span className="text-red-500">*</span></Label>
                                         <Input 
                                             id="name" 
                                             value={name} 
                                             onChange={handleInputChange} 
                                             placeholder="Enter your name"
-                                            className="bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-base h-12"
+                                            className="bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg h-14 px-4"
                                             required
                                         />
                                     </div>
-                                    <div>
-                                        <Label htmlFor="email" className="text-base">Email <span className="text-red-500">*</span></Label>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="email" className="text-lg font-medium">Email <span className="text-red-500">*</span></Label>
                                         <Input 
                                             id="email" 
                                             type="email" 
                                             value={email} 
                                             onChange={handleInputChange}
                                             placeholder="Enter your email address"
-                                            className="bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-base h-12"
+                                            className="bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg h-14 px-4"
                                             required
                                         />
                                     </div>
-                                    <div>
-                                        <Label htmlFor="subject" className="text-base">Subject <span className="text-red-500">*</span></Label>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="subject" className="text-lg font-medium">Subject <span className="text-red-500">*</span></Label>
                                         <Input 
                                             id="subject" 
                                             value={subject} 
                                             onChange={handleInputChange}
                                             placeholder="What is your message about?"
-                                            className="bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-base h-12"
+                                            className="bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg h-14 px-4"
                                             required
                                         />
                                     </div>
-                                    <div>
-                                        <Label htmlFor="message" className="text-base">Message <span className="text-red-500">*</span></Label>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="message" className="text-lg font-medium">Message <span className="text-red-500">*</span></Label>
                                         <Textarea
                                             id="message"
                                             value={message}
                                             onChange={handleInputChange}
                                             placeholder="Write your message here..."
-                                            className="min-h-[100px] resize-none overflow-hidden bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-base"
+                                            className="min-h-[150px] resize-none overflow-hidden bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg p-4"
                                             required
                                         />
                                     </div>
-                                    <div>
-                                        <Label htmlFor="services" className="text-base">Services</Label>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="services" className="text-lg font-medium">Services</Label>
                                         <Popover open={open} onOpenChange={setOpen}>
                                             <PopoverTrigger asChild>
                                                 <Button variant="outline" role="combobox" aria-expanded={open}
-                                                        className="w-full justify-between bg-gray-50/50 border-gray-200 hover:bg-gray-50/80 text-base h-12">
+                                                        className="w-full justify-between bg-gray-50/50 border-gray-200 hover:bg-gray-50/80 text-lg h-14 px-4">
                                                     {selectedServices.length > 0 ? `${selectedServices.length} selected` : "Select services"}
                                                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50"/>
                                                 </Button>
