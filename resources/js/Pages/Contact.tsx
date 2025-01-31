@@ -132,56 +132,56 @@ export default function Contact() {
                                 <form onSubmit={handleSubmit}
                                       className="space-y-6 bg-white p-8 rounded-lg shadow-lg border border-gray-100">
                                     <div>
-                                        <Label htmlFor="name">Name <span className="text-red-500">*</span></Label>
+                                        <Label htmlFor="name" className="text-base">Name <span className="text-red-500">*</span></Label>
                                         <Input 
                                             id="name" 
                                             value={name} 
                                             onChange={handleInputChange} 
                                             placeholder="Enter your name"
-                                            className="bg-gray-50/50 border-gray-200 focus:bg-white transition-colors"
+                                            className="bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-base h-12"
                                             required
                                         />
                                     </div>
                                     <div>
-                                        <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
+                                        <Label htmlFor="email" className="text-base">Email <span className="text-red-500">*</span></Label>
                                         <Input 
                                             id="email" 
                                             type="email" 
                                             value={email} 
                                             onChange={handleInputChange}
                                             placeholder="Enter your email address"
-                                            className="bg-gray-50/50 border-gray-200 focus:bg-white transition-colors"
+                                            className="bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-base h-12"
                                             required
                                         />
                                     </div>
                                     <div>
-                                        <Label htmlFor="subject">Subject <span className="text-red-500">*</span></Label>
+                                        <Label htmlFor="subject" className="text-base">Subject <span className="text-red-500">*</span></Label>
                                         <Input 
                                             id="subject" 
                                             value={subject} 
                                             onChange={handleInputChange}
                                             placeholder="What is your message about?"
-                                            className="bg-gray-50/50 border-gray-200 focus:bg-white transition-colors"
+                                            className="bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-base h-12"
                                             required
                                         />
                                     </div>
                                     <div>
-                                        <Label htmlFor="message">Message <span className="text-red-500">*</span></Label>
+                                        <Label htmlFor="message" className="text-base">Message <span className="text-red-500">*</span></Label>
                                         <Textarea
                                             id="message"
                                             value={message}
                                             onChange={handleInputChange}
                                             placeholder="Write your message here..."
-                                            className="min-h-[100px] resize-none overflow-hidden bg-gray-50/50 border-gray-200 focus:bg-white transition-colors"
+                                            className="min-h-[100px] resize-none overflow-hidden bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-base"
                                             required
                                         />
                                     </div>
                                     <div>
-                                        <Label htmlFor="services">Services</Label>
+                                        <Label htmlFor="services" className="text-base">Services</Label>
                                         <Popover open={open} onOpenChange={setOpen}>
                                             <PopoverTrigger asChild>
                                                 <Button variant="outline" role="combobox" aria-expanded={open}
-                                                        className="w-full justify-between bg-gray-50/50 border-gray-200 hover:bg-gray-50/80">
+                                                        className="w-full justify-between bg-gray-50/50 border-gray-200 hover:bg-gray-50/80 text-base h-12">
                                                     {selectedServices.length > 0 ? `${selectedServices.length} selected` : "Select services"}
                                                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50"/>
                                                 </Button>
