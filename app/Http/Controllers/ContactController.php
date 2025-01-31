@@ -25,7 +25,7 @@ class ContactController extends Controller
             ]);
 
             // Send email
-            Mail::to(config('mail.from.address'))->send(new ContactFormMail($submission->toArray()));
+            Mail::to(config('mail.to.address'))->send(new ContactFormMail($submission->toArray()));
 
             // Update status
             $submission->update(['status' => 'sent']);
@@ -36,11 +36,11 @@ class ContactController extends Controller
             ]);
         } catch (\Exception $e) {
             report($e);
-            
+
             return redirect()->back()->with('flash', [
                 'type' => 'error',
                 'message' => 'Sorry, something went wrong. Please try again later.'
             ]);
         }
     }
-} 
+}
