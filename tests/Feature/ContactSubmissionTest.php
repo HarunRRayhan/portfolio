@@ -207,7 +207,7 @@ class ContactSubmissionTest extends TestCase
 
         $response->assertRedirect();
         $submission = ContactSubmission::first();
-        $this->assertNull($submission->referrer); // Changed to expect null for missing referrer
+        $this->assertNull($submission->referrer);
     }
 
     #[Test]
@@ -269,5 +269,240 @@ class ContactSubmissionTest extends TestCase
             ['<script>alert("xss")</script>', '<img src="x" onerror="alert(1)">'],
             $submission->services
         );
+    }
+
+    #[Test]
+    public function it_validates_email_with_various_formats()
+    {
+        $validEmails = [
+            'test@example.com',
+            'test+label@example.com',
+            'test.name@example.co.uk',
+            'test.name-with-dash@example.com',
+            '123@example.com'
+        ];
+
+        $invalidEmails = [
+            'invalid-email',
+            'test@',
+            '@example.com',
+            'test@.com',
+            'test@example.',
+            'test@exam ple.com',
+            'test@example..com',
+        ];
+
+        foreach ($validEmails as $email) {
+            $data = [
+                'name' => 'John Doe',
+                'email' => $email,
+                'subject' => 'Test Subject',
+                'message' => 'Test Message'
+            ];
+
+            $response = $this->post('/contact', $data);
+            $response->assertSessionDoesntHaveErrors('email');
+        }
+
+        foreach ($invalidEmails as $email) {
+            $data = [
+                'name' => 'John Doe',
+                'email' => $email,
+                'subject' => 'Test Subject',
+                'message' => 'Test Message'
+            ];
+
+            $response = $this->post('/contact', $data);
+            $response->assertSessionHasErrors('email');
+        }
+    }
+
+    #[Test]
+    public function it_validates_services_array()
+    {
+        // Test invalid service format (not an array)
+        $data = [
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'subject' => 'Test Subject',
+            'message' => 'Test Message',
+            'services' => 'Not an array'
+        ];
+
+        $response = $this->post('/contact', $data);
+        $response->assertSessionHasErrors('services');
+
+        // Test invalid service items (non-string values)
+        $data['services'] = [123, true, ['nested']];
+        $response = $this->post('/contact', $data);
+        $response->assertSessionHasErrors('services.*');
+
+        // Test empty array (should be valid as it's nullable)
+        $data['services'] = [];
+        $response = $this->post('/contact', $data);
+        $response->assertSessionDoesntHaveErrors('services');
+
+        // Test array with valid strings
+        $data['services'] = ['Service 1', 'Service 2'];
+        $response = $this->post('/contact', $data);
+        $response->assertSessionDoesntHaveErrors('services');
+    }
+
+    #[Test]
+    public function it_validates_string_fields()
+    {
+        // Test non-string values
+        $data = [
+            'name' => ['array instead of string'],
+            'email' => 'john@example.com',
+            'subject' => 123,
+            'message' => true
+        ];
+
+        $response = $this->post('/contact', $data);
+        $response->assertSessionHasErrors(['name', 'subject', 'message']);
+
+        // Test with valid UTF-8 characters
+        $data = [
+            'name' => 'John Doe 高橋',
+            'email' => 'john@example.com',
+            'subject' => 'Test Subject ✨',
+            'message' => 'Hello こんにちは 👋',
+        ];
+
+        $response = $this->post('/contact', $data);
+        $response->assertSessionDoesntHaveErrors(['name', 'subject', 'message']);
+    }
+
+    #[Test]
+    public function it_validates_required_fields_are_not_empty()
+    {
+        $data = [
+            'name' => '',
+            'email' => '',
+            'subject' => '',
+            'message' => ''
+        ];
+
+        $response = $this->post('/contact', $data);
+        $response->assertSessionHasErrors(['name', 'email', 'subject', 'message']);
+    }
+
+    #[Test]
+    public function it_validates_name_length()
+    {
+        $data = [
+            'name' => str_repeat('a', 256),
+            'email' => 'test@example.com',
+            'subject' => 'Test Subject',
+            'message' => 'Test Message'
+        ];
+
+        $response = $this->post('/contact', $data);
+        $response->assertSessionHasErrors('name');
+
+        $data['name'] = str_repeat('a', 255);
+        $response = $this->post('/contact', $data);
+        $response->assertSessionDoesntHaveErrors('name');
+    }
+
+    #[Test]
+    public function it_validates_email_length()
+    {
+        $data = [
+            'name' => 'John Doe',
+            'email' => str_repeat('a', 247) . '@test.com', // 256 chars
+            'subject' => 'Test Subject',
+            'message' => 'Test Message'
+        ];
+
+        $response = $this->post('/contact', $data);
+        $response->assertSessionHasErrors('email');
+
+        $data['email'] = str_repeat('a', 246) . '@test.com'; // 255 chars
+        $response = $this->post('/contact', $data);
+        $response->assertSessionDoesntHaveErrors('email');
+    }
+
+    #[Test]
+    public function it_validates_subject_length()
+    {
+        $data = [
+            'name' => 'John Doe',
+            'email' => 'test@example.com',
+            'subject' => str_repeat('a', 256),
+            'message' => 'Test Message'
+        ];
+
+        $response = $this->post('/contact', $data);
+        $response->assertSessionHasErrors('subject');
+
+        $data['subject'] = str_repeat('a', 255);
+        $response = $this->post('/contact', $data);
+        $response->assertSessionDoesntHaveErrors('subject');
+    }
+
+    #[Test]
+    public function it_allows_long_messages()
+    {
+        $data = [
+            'name' => 'John Doe',
+            'email' => 'test@example.com',
+            'subject' => 'Test Subject',
+            'message' => str_repeat('a', 65535)
+        ];
+
+        $response = $this->post('/contact', $data);
+        $response->assertSessionDoesntHaveErrors('message');
+    }
+
+    #[Test]
+    public function it_validates_referrer_field()
+    {
+        // Test with valid referrer
+        $data = [
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'subject' => 'Test Subject',
+            'message' => 'Test Message',
+            'referrer' => 'https://example.com'
+        ];
+
+        $response = $this->post('/contact', $data);
+        $response->assertSessionDoesntHaveErrors('referrer');
+
+        // Test with too long referrer
+        $data['referrer'] = str_repeat('a', 256);
+        $response = $this->post('/contact', $data);
+        $response->assertSessionHasErrors('referrer');
+
+        // Test with null referrer (should be valid as it's nullable)
+        $data['referrer'] = null;
+        $response = $this->post('/contact', $data);
+        $response->assertSessionDoesntHaveErrors('referrer');
+
+        // Test with empty string referrer (should be valid as it's nullable)
+        $data['referrer'] = '';
+        $response = $this->post('/contact', $data);
+        $response->assertSessionDoesntHaveErrors('referrer');
+    }
+
+    #[Test]
+    public function it_preserves_whitespace_in_message()
+    {
+        $data = [
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'subject' => 'Test Subject',
+            'message' => "First line\nSecond line\n\nThird line with    spaces",
+            'services' => ['Service 1', 'Service 2'],
+            'referrer' => 'direct'
+        ];
+
+        $response = $this->post('/contact', $data);
+        $response->assertSessionDoesntHaveErrors();
+        
+        $submission = ContactSubmission::first();
+        $this->assertEquals("First line\nSecond line\n\nThird line with    spaces", $submission->message);
     }
 } 
