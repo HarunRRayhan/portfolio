@@ -208,7 +208,7 @@ export default function Contact() {
                                 initial={{opacity: 0, y: 20}}
                                 animate={{opacity: 1, y: 0}}
                                 transition={{duration: 0.6}}
-                                className="max-w-2xl mx-auto"
+                                className="max-w-3xl mx-auto"
                             >
                                 <AnimatePresence mode="wait">
                                     {showForm && (
