@@ -275,6 +275,18 @@ export default function Contact() {
                                                         id="message"
                                                         value={message}
                                                         onChange={handleInputChange}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Tab' && !e.shiftKey) {
+                                                                e.preventDefault();
+                                                                setOpen(true);
+                                                                setTimeout(() => {
+                                                                    const searchInput = document.querySelector('[cmdk-input]') as HTMLInputElement;
+                                                                    if (searchInput) {
+                                                                        searchInput.focus();
+                                                                    }
+                                                                }, 0);
+                                                            }
+                                                        }}
                                                         placeholder="Write your message here..."
                                                         className={cn(
                                                             "min-h-[150px] resize-none overflow-hidden bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg p-4",
@@ -288,17 +300,46 @@ export default function Contact() {
                                                     <Label htmlFor="services" className="text-lg font-medium">Services</Label>
                                                     <Popover open={open} onOpenChange={setOpen}>
                                                         <PopoverTrigger asChild>
-                                                            <Button variant="outline" role="combobox" aria-expanded={open}
-                                                                    className="w-full justify-between bg-gray-50/50 border-gray-200 hover:bg-gray-50/80 text-lg h-14 px-4">
+                                                            <Button 
+                                                                variant="outline" 
+                                                                role="combobox" 
+                                                                aria-expanded={open}
+                                                                tabIndex={0}
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                                        e.preventDefault();
+                                                                        setOpen(true);
+                                                                    }
+                                                                }}
+                                                                className="w-full justify-between bg-gray-50/50 border-gray-200 hover:bg-gray-50/80 text-lg h-14 px-4 focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50 focus:border-purple-600"
+                                                            >
                                                                 {selectedServices.length > 0 ? `${selectedServices.length} selected` : "Select services"}
                                                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50"/>
                                                             </Button>
                                                         </PopoverTrigger>
-                                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                                        <PopoverContent 
+                                                            className="w-[--radix-popover-trigger-width] p-0"
+                                                            onOpenAutoFocus={(e) => {
+                                                                const searchInput = document.querySelector('[cmdk-input]') as HTMLInputElement;
+                                                                if (searchInput) {
+                                                                    searchInput.focus();
+                                                                }
+                                                            }}
+                                                        >
                                                             <Command>
                                                                 <CommandInput
                                                                     placeholder="Search or add services..."
                                                                     value={searchValue}
+                                                                    onKeyDown={(e) => {
+                                                                        if (e.key === 'Tab' && !searchValue) {
+                                                                            e.preventDefault();
+                                                                            setOpen(false);
+                                                                            const submitButton = document.querySelector('button[type="submit"]');
+                                                                            if (submitButton) {
+                                                                                (submitButton as HTMLElement).focus();
+                                                                            }
+                                                                        }
+                                                                    }}
                                                                     onChange={(e) => setSearchValue(e.target.value)}
                                                                 />
                                                                 <CommandList>
