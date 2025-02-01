@@ -104,10 +104,7 @@ export default function Contact() {
                 setShowEnvelope(true)
                 setShowForm(false)
                 triggerConfetti()
-                const formSection = document.querySelector('.py-32')
-                if (formSection) {
-                    formSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                }
+                window.scrollTo({ top: 0, behavior: 'smooth' })
                 toast.success("Thank you for your message! We will get back to you soon.", {
                     duration: 5000,
                     position: 'top-right'
