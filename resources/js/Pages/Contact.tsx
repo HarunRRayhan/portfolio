@@ -104,6 +104,7 @@ export default function Contact() {
                 setShowEnvelope(true)
                 setShowForm(false)
                 triggerConfetti()
+                window.scrollTo({ top: 0, behavior: 'smooth' })
                 toast.success("Thank you for your message! We will get back to you soon.", {
                     duration: 5000,
                     position: 'top-right'
@@ -208,7 +209,7 @@ export default function Contact() {
                                 initial={{opacity: 0, y: 20}}
                                 animate={{opacity: 1, y: 0}}
                                 transition={{duration: 0.6}}
-                                className="max-w-2xl mx-auto"
+                                className="max-w-3xl mx-auto"
                             >
                                 <AnimatePresence mode="wait">
                                     {showForm && (
@@ -223,14 +224,14 @@ export default function Contact() {
                                                   className="space-y-8 bg-white p-12 rounded-xl shadow-lg border border-gray-100">
                                                 <input type="hidden" name="referrer" value={referrer} />
                                                 <div className="space-y-3">
-                                                    <Label htmlFor="name" className="text-xl font-medium">Name <span className="text-red-500">*</span></Label>
+                                                    <Label htmlFor="name" className="text-lg font-medium">Name <span className="text-red-500">*</span></Label>
                                                     <Input 
                                                         id="name" 
                                                         value={name} 
                                                         onChange={handleInputChange} 
                                                         placeholder="Enter your name"
                                                         className={cn(
-                                                            "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-xl h-16 px-5",
+                                                            "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg h-14 px-4",
                                                             errors.name && "border-red-500 focus:border-red-500"
                                                         )}
                                                         required
@@ -238,7 +239,7 @@ export default function Contact() {
                                                     {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
                                                 </div>
                                                 <div className="space-y-3">
-                                                    <Label htmlFor="email" className="text-xl font-medium">Email <span className="text-red-500">*</span></Label>
+                                                    <Label htmlFor="email" className="text-lg font-medium">Email <span className="text-red-500">*</span></Label>
                                                     <Input 
                                                         id="email" 
                                                         type="email" 
@@ -246,7 +247,7 @@ export default function Contact() {
                                                         onChange={handleInputChange}
                                                         placeholder="Enter your email address"
                                                         className={cn(
-                                                            "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-xl h-16 px-5",
+                                                            "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg h-14 px-4",
                                                             errors.email && "border-red-500 focus:border-red-500"
                                                         )}
                                                         required
@@ -254,14 +255,14 @@ export default function Contact() {
                                                     {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
                                                 </div>
                                                 <div className="space-y-3">
-                                                    <Label htmlFor="subject" className="text-xl font-medium">Subject <span className="text-red-500">*</span></Label>
+                                                    <Label htmlFor="subject" className="text-lg font-medium">Subject <span className="text-red-500">*</span></Label>
                                                     <Input 
                                                         id="subject" 
                                                         value={subject} 
                                                         onChange={handleInputChange}
                                                         placeholder="What is your message about?"
                                                         className={cn(
-                                                            "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-xl h-16 px-5",
+                                                            "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg h-14 px-4",
                                                             errors.subject && "border-red-500 focus:border-red-500"
                                                         )}
                                                         required
@@ -269,14 +270,26 @@ export default function Contact() {
                                                     {errors.subject && <p className="text-red-500 text-sm mt-1">{errors.subject}</p>}
                                                 </div>
                                                 <div className="space-y-3">
-                                                    <Label htmlFor="message" className="text-xl font-medium">Message <span className="text-red-500">*</span></Label>
+                                                    <Label htmlFor="message" className="text-lg font-medium">Message <span className="text-red-500">*</span></Label>
                                                     <Textarea
                                                         id="message"
                                                         value={message}
                                                         onChange={handleInputChange}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Tab' && !e.shiftKey) {
+                                                                e.preventDefault();
+                                                                setOpen(true);
+                                                                setTimeout(() => {
+                                                                    const searchInput = document.querySelector('[cmdk-input]') as HTMLInputElement;
+                                                                    if (searchInput) {
+                                                                        searchInput.focus();
+                                                                    }
+                                                                }, 0);
+                                                            }
+                                                        }}
                                                         placeholder="Write your message here..."
                                                         className={cn(
-                                                            "min-h-[150px] resize-none overflow-hidden bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-xl p-5",
+                                                            "min-h-[150px] resize-none overflow-hidden bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg p-4",
                                                             errors.message && "border-red-500 focus:border-red-500"
                                                         )}
                                                         required
@@ -287,17 +300,49 @@ export default function Contact() {
                                                     <Label htmlFor="services" className="text-lg font-medium">Services</Label>
                                                     <Popover open={open} onOpenChange={setOpen}>
                                                         <PopoverTrigger asChild>
-                                                            <Button variant="outline" role="combobox" aria-expanded={open}
-                                                                    className="w-full justify-between bg-gray-50/50 border-gray-200 hover:bg-gray-50/80 text-lg h-14 px-4">
+                                                            <Button 
+                                                                variant="outline" 
+                                                                role="combobox" 
+                                                                aria-expanded={open}
+                                                                tabIndex={0}
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                                        e.preventDefault();
+                                                                        setOpen(true);
+                                                                    }
+                                                                }}
+                                                                className="w-full justify-between bg-gray-50/50 border-gray-200 hover:bg-gray-50/80 text-lg h-14 px-4 focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50 focus:border-purple-600"
+                                                            >
                                                                 {selectedServices.length > 0 ? `${selectedServices.length} selected` : "Select services"}
                                                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50"/>
                                                             </Button>
                                                         </PopoverTrigger>
-                                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                                        <PopoverContent 
+                                                            className="w-[--radix-popover-trigger-width] p-0"
+                                                            onOpenAutoFocus={(e) => {
+                                                                const searchInput = document.querySelector('[cmdk-input]') as HTMLInputElement;
+                                                                if (searchInput) {
+                                                                    searchInput.focus();
+                                                                }
+                                                            }}
+                                                        >
                                                             <Command>
                                                                 <CommandInput
                                                                     placeholder="Search or add services..."
                                                                     value={searchValue}
+                                                                    onKeyDown={(e) => {
+                                                                        if (e.key === 'Tab' && !searchValue) {
+                                                                            e.preventDefault();
+                                                                            setOpen(false);
+                                                                            const submitButton = document.querySelector('button[type="submit"]');
+                                                                            if (submitButton) {
+                                                                                (submitButton as HTMLElement).focus();
+                                                                            }
+                                                                        }
+                                                                        if (e.key === 'Escape') {
+                                                                            setOpen(false);
+                                                                        }
+                                                                    }}
                                                                     onChange={(e) => setSearchValue(e.target.value)}
                                                                 />
                                                                 <CommandList>
@@ -306,7 +351,13 @@ export default function Contact() {
                                                                             <button
                                                                                 type="button"
                                                                                 onClick={() => addCustomService(searchValue)}
-                                                                                className="flex w-full items-center gap-2 text-sm hover:bg-accent hover:text-accent-foreground"
+                                                                                onKeyDown={(e) => {
+                                                                                    if (e.key === 'Enter') {
+                                                                                        e.preventDefault();
+                                                                                        addCustomService(searchValue);
+                                                                                    }
+                                                                                }}
+                                                                                className="flex w-full items-center gap-2 p-2 text-sm hover:bg-accent hover:text-accent-foreground"
                                                                             >
                                                                                 <Plus className="h-4 w-4"/>
                                                                                 Add &quot;{searchValue}&quot;
@@ -317,8 +368,17 @@ export default function Contact() {
                                                                         {services
                                                                             .filter((service) => service.toLowerCase().includes(searchValue.toLowerCase()))
                                                                             .map((service) => (
-                                                                                <CommandItem key={service}
-                                                                                             onSelect={() => toggleService(service)}>
+                                                                                <CommandItem 
+                                                                                    key={service}
+                                                                                    onSelect={() => toggleService(service)}
+                                                                                    onKeyDown={(e) => {
+                                                                                        if (e.key === 'Enter') {
+                                                                                            e.preventDefault();
+                                                                                            toggleService(service);
+                                                                                        }
+                                                                                    }}
+                                                                                    className="cursor-pointer"
+                                                                                >
                                                                                     <Check
                                                                                         className={cn(
                                                                                             "mr-2 h-4 w-4",
@@ -349,11 +409,11 @@ export default function Contact() {
                                                 <Button
                                                     type="submit"
                                                     disabled={isSubmitting}
-                                                    className="h-16 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xl font-semibold px-10 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50 flex items-center gap-3 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    className="h-12 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-base font-semibold px-6 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-400 focus:ring-opacity-75 focus:bg-[#6D28D9] flex items-center gap-2 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
                                                     {isSubmitting ? (
                                                         <>
-                                                            <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                                             </svg>
@@ -361,7 +421,7 @@ export default function Contact() {
                                                         </>
                                                     ) : (
                                                         <>
-                                                            <Send className="w-6 h-6" />
+                                                            <Send className="w-5 h-5" />
                                                             Send Message
                                                         </>
                                                     )}
