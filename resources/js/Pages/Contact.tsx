@@ -223,14 +223,14 @@ export default function Contact() {
                                                   className="space-y-8 bg-white p-12 rounded-xl shadow-lg border border-gray-100">
                                                 <input type="hidden" name="referrer" value={referrer} />
                                                 <div className="space-y-3">
-                                                    <Label htmlFor="name" className="text-xl font-medium">Name <span className="text-red-500">*</span></Label>
+                                                    <Label htmlFor="name" className="text-lg font-medium">Name <span className="text-red-500">*</span></Label>
                                                     <Input 
                                                         id="name" 
                                                         value={name} 
                                                         onChange={handleInputChange} 
                                                         placeholder="Enter your name"
                                                         className={cn(
-                                                            "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-xl h-16 px-5",
+                                                            "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg h-14 px-4",
                                                             errors.name && "border-red-500 focus:border-red-500"
                                                         )}
                                                         required
@@ -238,7 +238,7 @@ export default function Contact() {
                                                     {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
                                                 </div>
                                                 <div className="space-y-3">
-                                                    <Label htmlFor="email" className="text-xl font-medium">Email <span className="text-red-500">*</span></Label>
+                                                    <Label htmlFor="email" className="text-lg font-medium">Email <span className="text-red-500">*</span></Label>
                                                     <Input 
                                                         id="email" 
                                                         type="email" 
@@ -246,7 +246,7 @@ export default function Contact() {
                                                         onChange={handleInputChange}
                                                         placeholder="Enter your email address"
                                                         className={cn(
-                                                            "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-xl h-16 px-5",
+                                                            "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg h-14 px-4",
                                                             errors.email && "border-red-500 focus:border-red-500"
                                                         )}
                                                         required
@@ -254,14 +254,14 @@ export default function Contact() {
                                                     {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
                                                 </div>
                                                 <div className="space-y-3">
-                                                    <Label htmlFor="subject" className="text-xl font-medium">Subject <span className="text-red-500">*</span></Label>
+                                                    <Label htmlFor="subject" className="text-lg font-medium">Subject <span className="text-red-500">*</span></Label>
                                                     <Input 
                                                         id="subject" 
                                                         value={subject} 
                                                         onChange={handleInputChange}
                                                         placeholder="What is your message about?"
                                                         className={cn(
-                                                            "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-xl h-16 px-5",
+                                                            "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg h-14 px-4",
                                                             errors.subject && "border-red-500 focus:border-red-500"
                                                         )}
                                                         required
@@ -269,14 +269,14 @@ export default function Contact() {
                                                     {errors.subject && <p className="text-red-500 text-sm mt-1">{errors.subject}</p>}
                                                 </div>
                                                 <div className="space-y-3">
-                                                    <Label htmlFor="message" className="text-xl font-medium">Message <span className="text-red-500">*</span></Label>
+                                                    <Label htmlFor="message" className="text-lg font-medium">Message <span className="text-red-500">*</span></Label>
                                                     <Textarea
                                                         id="message"
                                                         value={message}
                                                         onChange={handleInputChange}
                                                         placeholder="Write your message here..."
                                                         className={cn(
-                                                            "min-h-[150px] resize-none overflow-hidden bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-xl p-5",
+                                                            "min-h-[150px] resize-none overflow-hidden bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg p-4",
                                                             errors.message && "border-red-500 focus:border-red-500"
                                                         )}
                                                         required
@@ -349,7 +349,7 @@ export default function Contact() {
                                                 <Button
                                                     type="submit"
                                                     disabled={isSubmitting}
-                                                    className="h-16 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xl font-semibold px-10 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50 flex items-center gap-3 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    className="h-14 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-lg font-semibold px-8 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50 flex items-center gap-3 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
                                                     {isSubmitting ? (
                                                         <>
