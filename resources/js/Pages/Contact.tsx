@@ -339,6 +339,9 @@ export default function Contact() {
                                                                                 (submitButton as HTMLElement).focus();
                                                                             }
                                                                         }
+                                                                        if (e.key === 'Escape') {
+                                                                            setOpen(false);
+                                                                        }
                                                                     }}
                                                                     onChange={(e) => setSearchValue(e.target.value)}
                                                                 />
@@ -348,7 +351,13 @@ export default function Contact() {
                                                                             <button
                                                                                 type="button"
                                                                                 onClick={() => addCustomService(searchValue)}
-                                                                                className="flex w-full items-center gap-2 text-sm hover:bg-accent hover:text-accent-foreground"
+                                                                                onKeyDown={(e) => {
+                                                                                    if (e.key === 'Enter') {
+                                                                                        e.preventDefault();
+                                                                                        addCustomService(searchValue);
+                                                                                    }
+                                                                                }}
+                                                                                className="flex w-full items-center gap-2 p-2 text-sm hover:bg-accent hover:text-accent-foreground"
                                                                             >
                                                                                 <Plus className="h-4 w-4"/>
                                                                                 Add &quot;{searchValue}&quot;
@@ -359,8 +368,17 @@ export default function Contact() {
                                                                         {services
                                                                             .filter((service) => service.toLowerCase().includes(searchValue.toLowerCase()))
                                                                             .map((service) => (
-                                                                                <CommandItem key={service}
-                                                                                             onSelect={() => toggleService(service)}>
+                                                                                <CommandItem 
+                                                                                    key={service}
+                                                                                    onSelect={() => toggleService(service)}
+                                                                                    onKeyDown={(e) => {
+                                                                                        if (e.key === 'Enter') {
+                                                                                            e.preventDefault();
+                                                                                            toggleService(service);
+                                                                                        }
+                                                                                    }}
+                                                                                    className="cursor-pointer"
+                                                                                >
                                                                                     <Check
                                                                                         className={cn(
                                                                                             "mr-2 h-4 w-4",
@@ -391,7 +409,7 @@ export default function Contact() {
                                                 <Button
                                                     type="submit"
                                                     disabled={isSubmitting}
-                                                    className="h-12 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-base font-semibold px-6 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50 flex items-center gap-2 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    className="h-12 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-base font-semibold px-6 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-400 focus:ring-opacity-75 focus:bg-[#6D28D9] flex items-center gap-2 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
                                                     {isSubmitting ? (
                                                         <>
