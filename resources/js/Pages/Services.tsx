@@ -27,10 +27,10 @@ import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/Co
 const services = [
     {
         icon: Cloud,
-        title: "Cloud Architecture",
+        title: "Multi-Cloud Architecture",
         description:
-            "Design and implement scalable, secure, and cost-effective cloud solutions tailored to your business needs.",
-        link: "/services/cloud-architecture",
+            "Design and implement robust multi-cloud solutions that leverage the best of AWS, Azure, and Google Cloud Platform.",
+        link: "/services/multi-cloud-architecture",
     },
     {
         icon: Cloud,

@@ -74,6 +74,10 @@ Route::get('/services/aws-cloud', function () {
     return Inertia::render('Services/AWSCloud');
 })->name('services.aws-cloud');
 
+Route::get('/services/multi-cloud-architecture', function () {
+    return Inertia::render('Services/MultiCloudArchitecture');
+})->name('services.multi-cloud-architecture');
+
 Route::get('/book', function () {
     return Inertia::render('Book');
 })->name('book');
