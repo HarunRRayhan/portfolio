@@ -109,7 +109,75 @@ export default function DevOpsPage() {
 
   return (
     <>
-      <Head title="DevOps Implementation" />
+      <Head>
+        <title>DevOps Implementation & Consulting Services | Harun R. Rayhan</title>
+        <meta name="description" content="Transform your development and operations with expert DevOps consulting services. Implement CI/CD pipelines, automation, and modern DevOps practices to accelerate your software delivery." />
+        <meta name="keywords" content="DevOps services, CI/CD implementation, DevOps consulting, automation services, DevOps transformation, continuous integration, continuous deployment" />
+        
+        {/* OpenGraph Tags */}
+        <meta property="og:title" content="DevOps Implementation & Consulting Services | Harun R. Rayhan" />
+        <meta property="og:description" content="Transform your development and operations with expert DevOps consulting services. Implement CI/CD pipelines, automation, and modern DevOps practices to accelerate your software delivery." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={window.location.href} />
+        
+        {/* Twitter Card Tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="DevOps Implementation & Consulting Services | Harun R. Rayhan" />
+        <meta name="twitter:description" content="Transform your development and operations with expert DevOps consulting services. Implement CI/CD pipelines, automation, and modern DevOps practices to accelerate your software delivery." />
+        
+        {/* Canonical URL */}
+        <link rel="canonical" href={window.location.href} />
+
+        {/* JSON-LD Structured Data */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Service",
+            "name": "DevOps Implementation Services",
+            "provider": {
+              "@type": "Person",
+              "name": "Harun R. Rayhan",
+              "description": "DevOps and Cloud Architecture Expert"
+            },
+            "serviceType": "DevOps Consulting",
+            "description": "Expert DevOps implementation and consulting services for businesses",
+            "offers": {
+              "@type": "Offer",
+              "description": "CI/CD Implementation, DevOps Automation, and Process Optimization"
+            },
+            "hasOfferCatalog": {
+              "@type": "OfferCatalog",
+              "name": "DevOps Services",
+              "itemListElement": [
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "CI/CD Pipeline Implementation",
+                    "description": "Design and implement efficient continuous integration and deployment pipelines"
+                  }
+                },
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "DevOps Automation",
+                    "description": "Automate development and operations processes for increased efficiency"
+                  }
+                },
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "DevOps Culture & Practices",
+                    "description": "Implement modern DevOps practices and foster a culture of collaboration"
+                  }
+                }
+              ]
+            }
+          })}
+        </script>
+      </Head>
       <main className="flex flex-col min-h-screen">
         <Menubar />
         <ServiceHero

@@ -93,7 +93,75 @@ export default function InfrastructureAsCodePage() {
 
   return (
     <>
-      <Head title="Infrastructure as Code" />
+      <Head>
+        <title>Infrastructure as Code (IaC) Services | Harun R. Rayhan</title>
+        <meta name="description" content="Expert Infrastructure as Code (IaC) services using Terraform, AWS CDK, and other modern tools. Automate your infrastructure deployment and management for better efficiency and reliability." />
+        <meta name="keywords" content="Infrastructure as Code, IaC, Terraform, AWS CDK, infrastructure automation, cloud infrastructure, DevOps automation" />
+        
+        {/* OpenGraph Tags */}
+        <meta property="og:title" content="Infrastructure as Code (IaC) Services | Harun R. Rayhan" />
+        <meta property="og:description" content="Expert Infrastructure as Code (IaC) services using Terraform, AWS CDK, and other modern tools. Automate your infrastructure deployment and management for better efficiency and reliability." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={window.location.href} />
+        
+        {/* Twitter Card Tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Infrastructure as Code (IaC) Services | Harun R. Rayhan" />
+        <meta name="twitter:description" content="Expert Infrastructure as Code (IaC) services using Terraform, AWS CDK, and other modern tools. Automate your infrastructure deployment and management for better efficiency and reliability." />
+        
+        {/* Canonical URL */}
+        <link rel="canonical" href={window.location.href} />
+
+        {/* JSON-LD Structured Data */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Service",
+            "name": "Infrastructure as Code Services",
+            "provider": {
+              "@type": "Person",
+              "name": "Harun R. Rayhan",
+              "description": "Infrastructure Automation Expert"
+            },
+            "serviceType": "Infrastructure Automation",
+            "description": "Expert Infrastructure as Code implementation and consulting services",
+            "offers": {
+              "@type": "Offer",
+              "description": "Infrastructure Automation, Terraform Implementation, AWS CDK Solutions"
+            },
+            "hasOfferCatalog": {
+              "@type": "OfferCatalog",
+              "name": "Infrastructure as Code Services",
+              "itemListElement": [
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "Terraform Implementation",
+                    "description": "Design and implement infrastructure using HashiCorp Terraform"
+                  }
+                },
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "AWS CDK Solutions",
+                    "description": "Develop infrastructure using AWS Cloud Development Kit"
+                  }
+                },
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "Infrastructure Automation",
+                    "description": "Automate infrastructure deployment and management"
+                  }
+                }
+              ]
+            }
+          })}
+        </script>
+      </Head>
       <main className="flex flex-col min-h-screen">
         <Menubar />
         <ServiceHero
