@@ -76,8 +76,14 @@ export default function DatabaseOptimization() {
       <ServiceHero
         icon={Database}
         title="Database Optimization"
-        description="Optimize your database performance, security, and scalability for improved application responsiveness."
+        description="Optimize your database performance, scalability, and reliability for maximum efficiency."
       />
+      <div className="container mx-auto px-4 py-4">
+        <Link href="/services" className="inline-flex items-center text-[#7C3AED] hover:text-[#6D28D9] font-medium">
+          <ArrowRight className="w-4 h-4 mr-2 rotate-180" />
+          Back to Services
+        </Link>
+      </div>
       <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
         <div className="container mx-auto px-4">
           <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
