@@ -74,10 +74,16 @@ export default function MonitoringObservability() {
     <main className="flex flex-col min-h-screen">
       <Menubar />
       <ServiceHero
-        icon={MonitorSmartphone}
-        title="Monitoring and Observability"
-        description="Implement comprehensive monitoring and observability solutions for your entire stack."
+        icon={BarChart}
+        title="Monitoring & Observability"
+        description="Implement comprehensive monitoring solutions to gain deep insights into your infrastructure and applications."
       />
+      <div className="container mx-auto px-4 py-4">
+        <Link href="/services" className="inline-flex items-center text-[#7C3AED] hover:text-[#6D28D9] font-medium">
+          <ArrowRight className="w-4 h-4 mr-2 rotate-180" />
+          Back to Services
+        </Link>
+      </div>
       <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
         <div className="container mx-auto px-4">
           <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
