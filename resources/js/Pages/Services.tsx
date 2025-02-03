@@ -33,6 +33,12 @@ const services = [
         link: "/services/cloud-architecture",
     },
     {
+        icon: Cloud,
+        title: "AWS Cloud",
+        description: "Leverage the full power of Amazon Web Services with our expert AWS cloud solutions and management.",
+        link: "/services/aws-cloud",
+    },
+    {
         icon: Code,
         title: "DevOps Implementation",
         description: "Streamline your development and operations with cutting-edge DevOps practices and tools.",
@@ -100,13 +106,13 @@ const services = [
         description: "Implement comprehensive monitoring and observability solutions for your entire stack.",
         link: "/services/monitoring-observability",
     },
-    {
-        icon: Database,
-        title: "Database Optimization",
-        description:
-            "Optimize your database performance, security, and scalability for improved application responsiveness.",
-        link: "/services/database-optimization",
-    },
+    // {
+    //     icon: Database,
+    //     title: "Database Optimization",
+    //     description:
+    //         "Optimize your database performance, security, and scalability for improved application responsiveness.",
+    //     link: "/services/database-optimization",
+    // },
 ]
 
 const faqs = [
