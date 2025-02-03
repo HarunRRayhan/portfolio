@@ -177,7 +177,44 @@ export default function Contact() {
         <ErrorBoundary>
             <Toaster position="top-right" richColors />
             <Head>
-                <title>Contact</title>
+                <title>Contact Harun | Cloud & DevOps Consulting Services</title>
+                <meta name="description" content="Get in touch for expert cloud computing and DevOps consulting services. Let's discuss your project needs in AWS, infrastructure automation, CI/CD, or any other cloud services." />
+                <meta name="keywords" content="contact, cloud consulting, DevOps services, AWS expert, professional services, cloud architecture" />
+                
+                {/* OpenGraph Tags */}
+                <meta property="og:title" content="Contact Harun | Cloud & DevOps Consulting Services" />
+                <meta property="og:description" content="Get in touch for expert cloud computing and DevOps consulting services. Let's discuss your project needs in AWS, infrastructure automation, CI/CD, or any other cloud services." />
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content={window.location.href} />
+                
+                {/* Twitter Card Tags */}
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content="Contact Harun | Cloud & DevOps Consulting Services" />
+                <meta name="twitter:description" content="Get in touch for expert cloud computing and DevOps consulting services. Let's discuss your project needs in AWS, infrastructure automation, CI/CD, or any other cloud services." />
+                
+                {/* Canonical URL */}
+                <link rel="canonical" href={window.location.href} />
+
+                {/* JSON-LD Structured Data */}
+                <script type="application/ld+json">
+                    {JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "ContactPage",
+                        "name": "Contact Harun - Cloud & DevOps Consulting",
+                        "description": "Get in touch for expert cloud computing and DevOps consulting services.",
+                        "mainEntity": {
+                            "@type": "Organization",
+                            "name": "Harun's Cloud & DevOps Services",
+                            "contactPoint": {
+                                "@type": "ContactPoint",
+                                "contactType": "customer service",
+                                "availableLanguage": ["English"],
+                                "areaServed": "Worldwide"
+                            },
+                            "serviceType": predefinedServices
+                        }
+                    })}
+                </script>
             </Head>
             <div className="flex flex-col min-h-screen relative">
                 <div className="fixed top-0 left-0 right-0 z-50">

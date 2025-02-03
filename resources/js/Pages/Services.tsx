@@ -151,7 +151,50 @@ const faqs = [
 export default function ServicesPage() {
     return (
         <>
-            <Head title="Services"/>
+            <Head>
+                <title>Professional Cloud & DevOps Services | Harun's Portfolio</title>
+                <meta name="description" content="Expert cloud computing, DevOps, and software engineering services including AWS, Infrastructure as Code, CI/CD, security consulting, and performance optimization." />
+                <meta name="keywords" content="cloud services, AWS, DevOps, Infrastructure as Code, CI/CD, security consulting, performance optimization" />
+                
+                {/* OpenGraph Tags */}
+                <meta property="og:title" content="Professional Cloud & DevOps Services | Harun's Portfolio" />
+                <meta property="og:description" content="Expert cloud computing, DevOps, and software engineering services including AWS, Infrastructure as Code, CI/CD, security consulting, and performance optimization." />
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content={window.location.href} />
+                
+                {/* Twitter Card Tags */}
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content="Professional Cloud & DevOps Services | Harun's Portfolio" />
+                <meta name="twitter:description" content="Expert cloud computing, DevOps, and software engineering services including AWS, Infrastructure as Code, CI/CD, security consulting, and performance optimization." />
+                
+                {/* Canonical URL */}
+                <link rel="canonical" href={window.location.href} />
+
+                {/* JSON-LD Structured Data */}
+                <script type="application/ld+json">
+                    {JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "ProfessionalService",
+                        "name": "Harun's Cloud & DevOps Services",
+                        "description": "Expert cloud computing, DevOps, and software engineering services including AWS, Infrastructure as Code, CI/CD, security consulting, and performance optimization.",
+                        "offers": services.map(service => ({
+                            "@type": "Offer",
+                            "name": service.title,
+                            "description": service.description
+                        })),
+                        "hasOfferCatalog": {
+                            "@type": "OfferCatalog",
+                            "name": "Cloud & DevOps Services",
+                            "itemListElement": services.map((service, index) => ({
+                                "@type": "OfferCatalog",
+                                "position": index + 1,
+                                "name": service.title,
+                                "description": service.description
+                            }))
+                        }
+                    })}
+                </script>
+            </Head>
             <main className="flex flex-col min-h-screen">
                 <Menubar/>
                 <section className="py-24 bg-gradient-to-br from-[#86D2F1] via-[#7C3AED] to-[#8B5CF6]">
