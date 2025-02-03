@@ -19,7 +19,51 @@ export default function Welcome({
 
     return (
         <>
-            <Head title="Welcome" />
+            <Head>
+                <title>Welcome to Harun's Portfolio | Cloud & DevOps Expert</title>
+                <meta name="description" content="Welcome to Harun's portfolio - Expert in cloud computing, DevOps, and software engineering. Discover professional services in AWS, infrastructure automation, and more." />
+                <meta name="keywords" content="cloud computing, DevOps, software engineering, AWS expert, portfolio, professional services" />
+                
+                {/* OpenGraph Tags */}
+                <meta property="og:title" content="Welcome to Harun's Portfolio | Cloud & DevOps Expert" />
+                <meta property="og:description" content="Welcome to Harun's portfolio - Expert in cloud computing, DevOps, and software engineering. Discover professional services in AWS, infrastructure automation, and more." />
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content={window.location.href} />
+                
+                {/* Twitter Card Tags */}
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content="Welcome to Harun's Portfolio | Cloud & DevOps Expert" />
+                <meta name="twitter:description" content="Welcome to Harun's portfolio - Expert in cloud computing, DevOps, and software engineering. Discover professional services in AWS, infrastructure automation, and more." />
+                
+                {/* Canonical URL */}
+                <link rel="canonical" href={window.location.href} />
+
+                {/* JSON-LD Structured Data */}
+                <script type="application/ld+json">
+                    {JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "ProfilePage",
+                        "mainEntity": {
+                            "@type": "Person",
+                            "name": "Harun",
+                            "description": "Cloud Computing and DevOps Expert",
+                            "url": window.location.href,
+                            "sameAs": [
+                                "https://github.com/yourusername",
+                                "https://linkedin.com/in/yourusername"
+                            ],
+                            "knowsAbout": [
+                                "Cloud Computing",
+                                "DevOps",
+                                "AWS",
+                                "Infrastructure as Code",
+                                "CI/CD",
+                                "Software Engineering"
+                            ]
+                        }
+                    })}
+                </script>
+            </Head>
             <div className="bg-gray-50 text-black/50 dark:bg-black dark:text-white/50">
                 <img
                     id="background"
