@@ -27,10 +27,16 @@ import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/Co
 const services = [
     {
         icon: Cloud,
-        title: "Cloud Architecture",
+        title: "Multi-Cloud Architecture",
         description:
-            "Design and implement scalable, secure, and cost-effective cloud solutions tailored to your business needs.",
-        link: "/services/cloud-architecture",
+            "Design and implement robust multi-cloud solutions that leverage the best of AWS, Azure, and Google Cloud Platform.",
+        link: "/services/multi-cloud-architecture",
+    },
+    {
+        icon: Cloud,
+        title: "AWS Cloud",
+        description: "Leverage the full power of Amazon Web Services with our expert AWS cloud solutions and management.",
+        link: "/services/aws-cloud",
     },
     {
         icon: Code,
@@ -100,13 +106,13 @@ const services = [
         description: "Implement comprehensive monitoring and observability solutions for your entire stack.",
         link: "/services/monitoring-observability",
     },
-    {
-        icon: Database,
-        title: "Database Optimization",
-        description:
-            "Optimize your database performance, security, and scalability for improved application responsiveness.",
-        link: "/services/database-optimization",
-    },
+    // {
+    //     icon: Database,
+    //     title: "Database Optimization",
+    //     description:
+    //         "Optimize your database performance, security, and scalability for improved application responsiveness.",
+    //     link: "/services/database-optimization",
+    // },
 ]
 
 const faqs = [
