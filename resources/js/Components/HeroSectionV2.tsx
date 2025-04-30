@@ -1,6 +1,6 @@
 import { Button } from "@/Components/ui/button"
 import { motion } from "framer-motion"
-import { Github, Linkedin, Twitter, ArrowRight } from 'lucide-react'
+import { Github, Linkedin, Twitter, ArrowRight, Mail } from 'lucide-react'
 import { Link } from '@inertiajs/react'
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 
@@ -47,18 +47,18 @@ const phrases = [
 const LOGO_SIZE = 55;
 
 const logos: Logo[] = [
-  { name: 'DevOps', image: 'https://cdn.worldvectorlogo.com/logos/devops-2.svg' },
   { name: 'AWS', image: 'https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg' },
-  { name: 'Docker', image: 'https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png' },
-  { name: 'Kubernetes', image: 'https://upload.wikimedia.org/wikipedia/commons/3/39/Kubernetes_logo_without_workmark.svg' },
+  { name: 'DevOps', image: 'https://cdn.worldvectorlogo.com/logos/devops-2.svg' },
   { name: 'Terraform', image: 'https://www.vectorlogo.zone/logos/terraformio/terraformio-icon.svg' },
   { name: 'GitHub', image: 'https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg' },
+  { name: 'Kubernetes', image: 'https://upload.wikimedia.org/wikipedia/commons/3/39/Kubernetes_logo_without_workmark.svg' },
+  { name: 'Docker', image: 'https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png' },
   { name: 'Golang', image: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Go_Logo_Blue.svg' },
   { name: 'Jenkins', image: 'https://upload.wikimedia.org/wikipedia/commons/e/e9/Jenkins_logo.svg' },
 ].map(logo => ({
   ...logo,
   scale: 1,
-  targetScale: 1,
+  targetScale: Math.random() * 0.2 + 0.9,
   scaleSpeed: Math.random() * 0.02 + 0.01
 }));
 
@@ -72,6 +72,7 @@ export function HeroSectionV2() {
   const animationRef = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const lastUpdateRef = useRef(Date.now());
+  const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
 
   const typeWriter = useCallback(() => {
     const currentPhrase = phrases[currentPhraseIndex];
@@ -112,57 +113,6 @@ export function HeroSectionV2() {
       return { x, y };
     };
 
-    const updatePositions = () => {
-      const container = containerRef.current;
-      if (!container) return;
-
-      const rect = container.getBoundingClientRect();
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
-      const radius = Math.min(rect.width, rect.height) * 0.45;
-
-      const newNodes = logos.map((logo, index) => {
-        const angle = (index / logos.length) * 2 * Math.PI;
-        const position = calculateNodePosition(centerX, centerY, radius, angle);
-        return {
-          id: index,
-          ...position,
-          logo: logo,
-          angle: angle,
-          scale: logo.scale,
-          targetScale: logo.targetScale,
-          scaleSpeed: logo.scaleSpeed
-        };
-      });
-
-      setNodes(newNodes);
-      setEdges(generateEdges(newNodes));
-    };
-
-    const generateEdges = (nodes: Node[]) => {
-      const edges: Edge[] = [];
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const sourceScale = nodes[i].scale;
-          const targetScale = nodes[j].scale;
-          
-          edges.push({
-            source: {
-              x: nodes[i].x,
-              y: nodes[i].y,
-              scale: sourceScale
-            },
-            target: {
-              x: nodes[j].x,
-              y: nodes[j].y,
-              scale: targetScale
-            }
-          });
-        }
-      }
-      return edges;
-    };
-
     const updateScales = () => {
       const now = Date.now();
       const deltaTime = (now - lastUpdateRef.current) / 1000;
@@ -194,23 +144,85 @@ export function HeroSectionV2() {
       });
     };
 
+    const updatePositions = () => {
+      const container = containerRef.current;
+      if (!container) return;
+
+      const rect = container.getBoundingClientRect();
+      setContainerDimensions({ width: rect.width, height: rect.height });
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      const radius = Math.min(rect.width, rect.height) * 0.4;
+
+      const newNodes = logos.map((logo, index) => {
+        const angle = (index / logos.length) * 2 * Math.PI;
+        const position = calculateNodePosition(centerX, centerY, radius, angle);
+        return {
+          id: index,
+          ...position,
+          logo: logo,
+          angle: angle,
+          scale: logo.scale,
+          targetScale: logo.targetScale,
+          scaleSpeed: logo.scaleSpeed
+        };
+      });
+
+      setNodes(newNodes);
+      setEdges(generateEdges(newNodes));
+    };
+
+    const generateEdges = (nodes: Node[]) => {
+      const edges: Edge[] = [];
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          edges.push({
+            source: {
+              x: nodes[i].x,
+              y: nodes[i].y,
+              scale: nodes[i].scale
+            },
+            target: {
+              x: nodes[j].x,
+              y: nodes[j].y,
+              scale: nodes[j].scale
+            }
+          });
+        }
+      }
+      return edges;
+    };
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.target === containerRef.current) {
+          updatePositions();
+        }
+      }
+    });
+
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
     updatePositions();
-    window.addEventListener('resize', updatePositions);
+
+    let animationFrameId: number;
 
     const animate = () => {
       updateScales();
       
       setNodes(prevNodes => {
-        const updatedNodes = prevNodes.map(node => {
-          const newAngle = node.angle + 0.0005;
-          const container = containerRef.current;
-          if (!container) return node;
+        const container = containerRef.current;
+        if (!container) return prevNodes;
 
-          const rect = container.getBoundingClientRect();
-          const centerX = rect.width / 2;
-          const centerY = rect.height / 2;
-          const radius = Math.min(rect.width, rect.height) * 0.45;
-          
+        const rect = container.getBoundingClientRect();
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const radius = Math.min(rect.width, rect.height) * 0.4;
+        
+        const updatedNodes = prevNodes.map(node => {
+          const newAngle = node.angle + 0.0002;
           const position = calculateNodePosition(centerX, centerY, radius, newAngle);
 
           return {
@@ -219,28 +231,38 @@ export function HeroSectionV2() {
             angle: newAngle
           };
         });
+
         setEdges(generateEdges(updatedNodes));
         return updatedNodes;
       });
 
-      animationRef.current = requestAnimationFrame(animate);
+      animationFrameId = requestAnimationFrame(animate);
     };
 
     animate();
 
     return () => {
-      window.removeEventListener('resize', updatePositions);
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
       }
+      resizeObserver.disconnect();
     };
   }, []);
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#86D2F1] via-[#7C3AED] to-[#8B5CF6]">
       {/* Background animation */}
-      <div ref={containerRef} className="absolute inset-0 pointer-events-none overflow-hidden">
-        <svg width="100%" height="100%">
+      <div 
+        ref={containerRef} 
+        className="absolute inset-0 pointer-events-none overflow-hidden"
+        style={{ width: '100%', height: '100%' }}
+      >
+        <svg 
+          width="100%" 
+          height="100%" 
+          style={{ position: 'absolute', top: 0, left: 0 }}
+          preserveAspectRatio="xMidYMid slice"
+        >
           {edges.map((edge, index) => (
             <line
               key={index}
@@ -261,7 +283,7 @@ export function HeroSectionV2() {
               left: `${node.x}px`,
               top: `${node.y}px`,
               transform: `translate(-50%, -50%) scale(${node.scale})`,
-              transition: 'all 4s ease-out'
+              transition: 'transform 0.3s ease-out'
             }}
           >
             <img
@@ -345,7 +367,7 @@ export function HeroSectionV2() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Link href="/book-session">
+              <Link href="/book">
                 <Button 
                   variant="default" 
                   size="lg" 
@@ -361,34 +383,46 @@ export function HeroSectionV2() {
           {/* Social links */}
           <div className="flex justify-center space-x-4">
             <motion.a 
-              href="https://github.com/yourusername" 
+              href="https://github.com/HarunRRayhan" 
               target="_blank" 
               rel="noopener noreferrer" 
               aria-label="GitHub Profile"
               whileHover={{ scale: 1.1, rotate: 5 }}
               whileTap={{ scale: 0.9 }}
+              className="w-8 h-8 flex items-center justify-center group"
             >
-              <Github className="w-8 h-8 text-[#6EE7B7] hover:text-white transition-colors" />
+              <Github className="w-8 h-8 text-[#6EE7B7] group-hover:text-white transition-colors" />
             </motion.a>
             <motion.a 
-              href="https://twitter.com/yourusername" 
+              href="https://x.com/HarunRRayhan" 
               target="_blank" 
               rel="noopener noreferrer" 
               aria-label="Twitter Profile"
               whileHover={{ scale: 1.1, rotate: 5 }}
               whileTap={{ scale: 0.9 }}
+              className="w-8 h-8 flex items-center justify-center group"
             >
-              <Twitter className="w-8 h-8 text-[#6EE7B7] hover:text-white transition-colors" />
+              <Twitter className="w-8 h-8 text-[#6EE7B7] group-hover:text-white transition-colors" />
             </motion.a>
             <motion.a 
-              href="https://linkedin.com/in/yourusername" 
+              href="https://www.linkedin.com/in/harunrrayhan/" 
               target="_blank" 
               rel="noopener noreferrer" 
               aria-label="LinkedIn Profile"
               whileHover={{ scale: 1.1, rotate: 5 }}
               whileTap={{ scale: 0.9 }}
+              className="w-8 h-8 flex items-center justify-center group"
             >
-              <Linkedin className="w-8 h-8 text-[#6EE7B7] hover:text-white transition-colors" />
+              <Linkedin className="w-8 h-8 text-[#6EE7B7] group-hover:text-white transition-colors" />
+            </motion.a>
+            <motion.a 
+              href="mailto:me@harun.dev?subject=Hello%20Harun" 
+              aria-label="Email"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              whileTap={{ scale: 0.9 }}
+              className="w-8 h-8 flex items-center justify-center group"
+            >
+              <Mail className="w-8 h-8 text-[#6EE7B7] group-hover:text-white transition-colors" />
             </motion.a>
           </div>
         </motion.div>
