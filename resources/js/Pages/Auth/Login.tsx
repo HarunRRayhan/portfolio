@@ -17,7 +17,7 @@ export default function Login({
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
-        remember: false,
+        remember: '0',
     });
 
     const submit: FormEventHandler = (e) => {
@@ -76,9 +76,9 @@ export default function Login({
                     <label className="flex items-center">
                         <Checkbox
                             name="remember"
-                            checked={data.remember}
+                            checked={data.remember === '1'}
                             onChange={(e) =>
-                                setData('remember', e.target.checked)
+                                setData('remember', e.target.checked ? '1' : '0')
                             }
                         />
                         <span className="ms-2 text-sm text-gray-600">
