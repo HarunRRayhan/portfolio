@@ -23,7 +23,7 @@ export function Footer() {
                     <p className="text-gray-400">Let's build something extraordinary together</p>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-4">
-                    <Link href="/portfolio">
+                    <Link href="/">
                       <Button 
                         variant="outline"
                         className="relative group bg-transparent text-white hover:text-white hover:bg-white/10 border-white/20 font-medium px-6 py-2 rounded-full flex items-center gap-2 transition-all duration-300"
@@ -80,17 +80,15 @@ export function Footer() {
               <div className="text-center">
                 <h4 className="text-white font-semibold mb-4">Services</h4>
                 <ul className="space-y-2">
-                  <li><Link href="/services/cloud" className="text-white/80 hover:text-white transition-colors">Cloud Solutions</Link></li>
                   <li><Link href="/services/devops" className="text-white/80 hover:text-white transition-colors">DevOps</Link></li>
-                  <li><Link href="/services/architecture" className="text-white/80 hover:text-white transition-colors">Architecture</Link></li>
+                  <li><Link href="/services/aws-cloud" className="text-white/80 hover:text-white transition-colors">Cloud Solutions</Link></li>
                 </ul>
               </div>
               <div className="text-center">
                 <h4 className="text-white font-semibold mb-4">Resources</h4>
                 <ul className="space-y-2">
-                  <li><Link href="/blog" className="text-white/80 hover:text-white transition-colors">Blog</Link></li>
-                  <li><Link href="/case-studies" className="text-white/80 hover:text-white transition-colors">Case Studies</Link></li>
-                  <li><Link href="/tutorials" className="text-white/80 hover:text-white transition-colors">Tutorials</Link></li>
+                  <li><a href="https://blog.harun.dev" target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors">Blog</a></li>
+                  <li><Link href="/" className="text-white/80 hover:text-white transition-colors">Portfolio</Link></li>
                 </ul>
               </div>
               <div className="text-center">
@@ -98,7 +96,6 @@ export function Footer() {
                 <ul className="space-y-2">
                   <li><Link href="/about" className="text-white/80 hover:text-white transition-colors">About</Link></li>
                   <li><Link href="/contact" className="text-white/80 hover:text-white transition-colors">Contact</Link></li>
-                  <li><Link href="/careers" className="text-white/80 hover:text-white transition-colors">Careers</Link></li>
                 </ul>
               </div>
               <div className="text-center">
@@ -106,7 +103,6 @@ export function Footer() {
                 <ul className="space-y-2">
                   <li><Link href="/privacy" className="text-white/80 hover:text-white transition-colors">Privacy</Link></li>
                   <li><Link href="/terms" className="text-white/80 hover:text-white transition-colors">Terms</Link></li>
-                  <li><Link href="/cookies" className="text-white/80 hover:text-white transition-colors">Cookies</Link></li>
                 </ul>
               </div>
             </motion.div>
@@ -120,14 +116,16 @@ export function Footer() {
               className="flex flex-wrap justify-center gap-6 mb-16"
             >
               {[
-                { href: "#", icon: Icons.twitter, label: "Twitter" },
-                { href: "#", icon: Icons.linkedin, label: "LinkedIn" },
-                { href: "#", icon: Icons.github, label: "GitHub" },
-                { href: "mailto:hello@harun.dev", icon: Icons.mail, label: "Email" },
+                { href: "https://x.com/HarunRRayhan", icon: Icons.twitter, label: "Twitter" },
+                { href: "https://www.linkedin.com/in/harunrrayhan/", icon: Icons.linkedin, label: "LinkedIn" },
+                { href: "https://github.com/HarunRRayhan", icon: Icons.github, label: "GitHub" },
+                { href: "mailto:me@harun.dev?subject=Hello%20Harun", icon: Icons.mail, label: "Email" },
               ].map((social, index) => (
                 <motion.a
                   key={social.label}
                   href={social.href}
+                  target={social.href.startsWith('mailto:') ? undefined : '_blank'}
+                  rel={social.href.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
                   className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition-all duration-300 group relative overflow-hidden"
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   whileTap={{ scale: 0.9 }}
