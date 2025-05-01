@@ -16,10 +16,10 @@ import { Sheet, SheetContent, SheetTrigger } from "@/Components/ui/sheet"
 
 const menuItems = [
   { name: "Home", href: "/" },
-  { name: "About", href: "/about" },
   { name: "Services", href: "/services" },
-  { name: "Blog", href: "https://blog.harun.dev", external: true },
   { name: "Book a Session", href: "/book" },
+  { name: "Blog", href: "https://blog.harun.dev", external: true },
+  { name: "About", href: "/about" },
   { name: "Contact", href: "/contact" },
 ]
 
@@ -74,7 +74,7 @@ export function Menubar() {
         className={cn(
           navigationMenuTriggerStyle,
           "text-white transition-all duration-300 cursor-pointer no-underline",
-          item.name === "Book a Session" 
+          item.name === "Book a Session"
             ? "!bg-white/90 !text-[#7C3AED] hover:!bg-[#9F7AEA] hover:!text-white transition-all duration-300 relative overflow-hidden group"
             : "bg-transparent hover:bg-transparent relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:origin-left after:scale-x-0 hover:after:scale-x-100 after:bg-gradient-to-r after:from-[#6EE7B7] after:to-transparent after:transition-transform after:duration-300"
         )}
@@ -85,11 +85,11 @@ export function Menubar() {
   }
 
   return (
-    <div 
+    <div
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out",
-        isScrolled 
-          ? "bg-gradient-to-r from-[#86D2F1] via-[#7C3AED] to-[#8B5CF6] shadow-lg backdrop-blur-sm bg-opacity-95" 
+        isScrolled
+          ? "bg-gradient-to-r from-[#86D2F1] via-[#7C3AED] to-[#8B5CF6] shadow-lg backdrop-blur-sm bg-opacity-95"
           : "bg-transparent"
       )}
     >
@@ -128,12 +128,12 @@ export function Menubar() {
                       <ExternalLink className="w-4 h-4" />
                     </a>
                   ) : (
-                    <Link 
-                      key={item.name} 
+                    <Link
+                      key={item.name}
                       href={item.href}
                       className={cn(
                         "text-white text-lg py-2 px-4 rounded-md transition-all duration-300 hover:cursor-pointer no-underline",
-                        item.name === "Book a Session" 
+                        item.name === "Book a Session"
                           ? "!bg-white/90 !text-[#7C3AED] hover:!bg-[#9F7AEA] hover:!text-white relative overflow-hidden group"
                           : "hover:bg-white/10"
                       )}
@@ -152,4 +152,4 @@ export function Menubar() {
       </div>
     </div>
   )
-} 
+}
