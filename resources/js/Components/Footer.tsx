@@ -23,17 +23,17 @@ export function Footer() {
                     <p className="text-gray-400">Let's build something extraordinary together</p>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-4">
-                    <Link href="/">
-                      <Button 
+                    <Link href="/services">
+                      <Button
                         variant="outline"
                         className="relative group bg-transparent text-white hover:text-white hover:bg-white/10 border-white/20 font-medium px-6 py-2 rounded-full flex items-center gap-2 transition-all duration-300"
                       >
-                        View Portfolio
+                        View Services
                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
                       </Button>
                     </Link>
                     <Link href="/contact">
-                      <Button 
+                      <Button
                         className="relative group bg-[#6EE7B7] hover:bg-[#6EE7B7]/90 text-[#1a1a2e] font-medium px-6 py-2 rounded-full flex items-center gap-2 transition-all duration-300"
                       >
                         <HandMetal className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
@@ -166,4 +166,4 @@ export function Footer() {
       </div>
     </footer>
   )
-} 
+}
