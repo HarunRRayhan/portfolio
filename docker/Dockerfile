@@ -15,6 +15,9 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
+# Debug: print package.json and package-lock.json
+RUN cat package.json && echo '---' && cat package-lock.json
+
 # Install ALL dependencies for building
 RUN npm ci --no-audit --no-fund
 
