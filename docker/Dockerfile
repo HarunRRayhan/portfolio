@@ -3,33 +3,15 @@ WORKDIR /app
 COPY . .
 RUN composer install --no-dev --optimize-autoloader
 
-FROM node:18 AS deps
-
-# Add build arguments
-ARG NODE_ENV=production
-ENV NODE_ENV=${NODE_ENV}
-ENV NODE_OPTIONS="--max-old-space-size=8192"
-
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Debug: print package.json and package-lock.json
-RUN cat package.json && echo '---' && cat package-lock.json
-
-# Install ALL dependencies for building
-RUN npm ci --no-audit --no-fund
-
-# Debug: check installed modules
-RUN npm ls @inertiajs/react laravel-vite-plugin || true
-
 FROM node:18 AS builder
 
 WORKDIR /app
 
-# Copy dependencies from deps stage
-COPY --from=deps /app/node_modules ./node_modules
+# Copy all source files
+COPY . .
+
+# Install dependencies
+RUN npm ci --no-audit --no-fund
 
 # Install TypeScript globally
 RUN npm install -g typescript
@@ -113,9 +95,6 @@ export default defineConfig({ \
     }, \
   }, \
 });' > vite.config.ts
-
-# Copy source files
-COPY . .
 
 # Build the application
 RUN npm run build
