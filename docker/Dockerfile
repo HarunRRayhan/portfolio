@@ -3,7 +3,7 @@ WORKDIR /app
 COPY . .
 RUN composer install --no-dev --optimize-autoloader
 
-FROM node:18-alpine AS deps
+FROM node:18 AS deps
 
 # Add build arguments
 ARG NODE_ENV=production
@@ -24,7 +24,7 @@ RUN npm ci --no-audit --no-fund
 # Debug: check installed modules
 RUN npm ls @inertiajs/react laravel-vite-plugin || true
 
-FROM node:18-alpine AS builder
+FROM node:18 AS builder
 
 WORKDIR /app
 
