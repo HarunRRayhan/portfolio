@@ -3,110 +3,12 @@ WORKDIR /app
 COPY . .
 RUN composer install --no-dev --optimize-autoloader
 
-FROM node:18 AS builder
-
-WORKDIR /app
-
-# Copy all source files
-COPY . .
-
-# Install dependencies
-RUN npm ci --no-audit --no-fund
-
-# Install TypeScript globally
-RUN npm install -g typescript
-
-# Create missing type declarations
-RUN mkdir -p types && \
-    echo 'declare module "clsx" { const clsx: (...args: any[]) => string; export default clsx; }' > types/clsx.d.ts && \
-    echo 'declare module "tailwind-merge" { export function twMerge(...args: any[]): string; }' > types/tailwind-merge.d.ts && \
-    echo 'declare module "canvas-confetti" { const confetti: any; export default confetti; }' > types/canvas-confetti.d.ts && \
-    echo 'declare module "sonner" { export const Toaster: any; export const toast: any; }' > types/sonner.d.ts && \
-    echo 'declare module "lucide-react" { export * from "lucide-react"; }' > types/lucide-react.d.ts && \
-    echo 'declare module "@inertiajs/react" { export * from "@inertiajs/react"; }' > types/inertiajs-react.d.ts && \
-    echo 'declare module "@inertiajs/core" { export * from "@inertiajs/core"; }' > types/inertiajs-core.d.ts && \
-    echo 'declare module "@headlessui/react" { export * from "@headlessui/react"; }' > types/headlessui-react.d.ts && \
-    echo 'declare module "@radix-ui/react-accordion" { export * from "@radix-ui/react-accordion"; }' > types/radix-ui-accordion.d.ts && \
-    echo 'declare module "@radix-ui/react-slot" { export * from "@radix-ui/react-slot"; }' > types/radix-ui-slot.d.ts && \
-    echo 'declare module "@radix-ui/react-dialog" { export * from "@radix-ui/react-dialog"; }' > types/radix-ui-dialog.d.ts && \
-    echo 'declare module "@radix-ui/react-navigation-menu" { export * from "@radix-ui/react-navigation-menu"; }' > types/radix-ui-navigation-menu.d.ts && \
-    echo 'declare module "@radix-ui/react-popover" { export * from "@radix-ui/react-popover"; }' > types/radix-ui-popover.d.ts && \
-    echo 'declare module "class-variance-authority" { export * from "class-variance-authority"; }' > types/class-variance-authority.d.ts && \
-    echo 'declare module "embla-carousel-react" { export * from "embla-carousel-react"; }' > types/embla-carousel-react.d.ts && \
-    echo 'declare module "laravel-vite-plugin" { export * from "laravel-vite-plugin"; }' > types/laravel-vite-plugin.d.ts && \
-    echo 'declare module "laravel-vite-plugin/inertia-helpers" { export * from "laravel-vite-plugin/inertia-helpers"; }' > types/laravel-vite-plugin-inertia-helpers.d.ts && \
-    echo 'declare module "framer-motion" { export * from "framer-motion"; }' > types/framer-motion.d.ts
-
-# Create TypeScript configuration
-RUN echo '{ \
-  "compilerOptions": { \
-    "target": "es5", \
-    "lib": ["dom", "dom.iterable", "esnext"], \
-    "allowJs": true, \
-    "skipLibCheck": true, \
-    "strict": false, \
-    "forceConsistentCasingInFileNames": true, \
-    "noEmit": true, \
-    "esModuleInterop": true, \
-    "module": "esnext", \
-    "moduleResolution": "node", \
-    "resolveJsonModule": true, \
-    "isolatedModules": true, \
-    "jsx": "preserve", \
-    "incremental": true, \
-    "baseUrl": ".", \
-    "paths": { \
-      "@/*": ["resources/js/*"] \
-    }, \
-    "types": ["vite/client", "node"] \
-  }, \
-  "include": ["resources/js/**/*.ts", "resources/js/**/*.tsx", "types/**/*.d.ts"], \
-  "exclude": ["node_modules"] \
-}' > tsconfig.json
-
-# Create Vite configuration
-RUN echo 'import { defineConfig } from "vite"; \
-import laravel from "laravel-vite-plugin"; \
-import react from "@vitejs/plugin-react"; \
-import path from "path"; \
-export default defineConfig({ \
-  plugins: [ \
-    laravel({ \
-      input: "resources/js/app.tsx", \
-      refresh: true, \
-    }), \
-    react(), \
-  ], \
-  resolve: { \
-    alias: { \
-      "@": path.resolve(__dirname, "./resources/js"), \
-    }, \
-  }, \
-  build: { \
-    chunkSizeWarningLimit: 1600, \
-    outDir: "public/build", \
-    manifest: true, \
-    rollupOptions: { \
-      output: { \
-        manualChunks: { \
-          vendor: ["react", "react-dom"], \
-        }, \
-      }, \
-    }, \
-  }, \
-});' > vite.config.ts
-
-# Build the application
-RUN npm run build
-
 FROM php:8.2-fpm-alpine
 
 # Install system dependencies
 RUN apk add --no-cache \
     linux-headers \
     $PHPIZE_DEPS \
-    nodejs \
-    npm \
     postgresql-dev \
     libzip-dev \
     zip \
@@ -124,23 +26,23 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Copy built files from builder stage
-COPY --from=builder /app/public/build ./public/build
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/bootstrap ./bootstrap
-COPY --from=builder /app/config ./config
-COPY --from=builder /app/database ./database
-COPY --from=builder /app/resources ./resources
-COPY --from=builder /app/routes ./routes
-COPY --from=builder /app/storage ./storage
-COPY --from=builder /app/app ./app
-COPY --from=composer /app/vendor ./vendor
-COPY --from=builder /app/composer.json ./
-COPY --from=builder /app/composer.lock ./
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/package-lock.json ./
-COPY --from=builder /app/artisan ./
-COPY --from=builder /app/.env ./
+# Copy built assets and source code (assume built locally)
+COPY public/build ./public/build
+COPY public ./public
+COPY bootstrap ./bootstrap
+COPY config ./config
+COPY database ./database
+COPY resources ./resources
+COPY routes ./routes
+COPY storage ./storage
+COPY app ./app
+COPY vendor ./vendor
+COPY composer.json ./
+COPY composer.lock ./
+COPY package.json ./
+COPY package-lock.json ./
+COPY artisan ./
+COPY .env ./
 
 # Copy Nginx configuration
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
