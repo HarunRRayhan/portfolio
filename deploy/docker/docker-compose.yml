@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: /opt/portfolio
+      dockerfile: docker/Dockerfile
+      args:
+        - NODE_ENV=production
+    volumes:
+      - /opt/portfolio:/var/www/html
+      - /opt/portfolio/storage:/var/www/html/storage
+      - /etc/nginx/ssl:/etc/nginx/ssl:ro
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_URL=https://harun.dev
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=${POSTGRES_DB}
+      - DB_USERNAME=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 16G
+        reservations:
+          cpus: '2'
+          memory: 8G
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data: 

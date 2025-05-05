@@ -22,3 +22,15 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+deploy/.env.deploy
+
+# Sensitive deploy and terraform files
+# (Added for comprehensive protection)
+deploy/**/*.pem
+deploy/**/.terraform
+deploy/**/terraform.tfstate
+deploy/**/terraform.tfstate.backup
+deploy/**/terraform.tfstate.*.backup
+deploy/**/terraform.tfvars
+deploy/**/.env
+
