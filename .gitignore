@@ -34,5 +34,6 @@ deploy/**/terraform.tfstate.backup
 deploy/**/terraform.tfstate.*.backup
 deploy/**/terraform.tfvars
 deploy/**/.env
+deploy/*.zip
 deploy/*.log
 deploy/**/*.log

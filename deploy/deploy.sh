@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Set up logging
+LOG_DIR="$(dirname "$0")/log"
+mkdir -p "$LOG_DIR"
+LOG_FILE="$LOG_DIR/deploy-$(date '+%Y%m%d-%H%M%S').log"
+exec > >(tee -a "$LOG_FILE") 2>&1
+
 # Load environment variables
 if [ -f "$(dirname "$0")/.env.deploy" ]; then
   set -a
@@ -17,7 +23,7 @@ NC='\033[0m'
 
 # Function to execute SSH commands
 execute_ssh() {
-    ssh -i "$SSH_KEY" "$REMOTE_USER@$REMOTE_HOST" "$1"
+    ssh -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REMOTE_USER@$REMOTE_HOST" "$1"
 }
 
 # Function to clone or update the git repository on the server
@@ -35,6 +41,14 @@ clone_or_update_repo() {
 }
 
 echo -e "${GREEN}Starting deployment...${NC}"
+
+# Fix permissions on the server before anything else
+echo -e "${GREEN}Fixing permissions on server...${NC}"
+execute_ssh "sudo chown -R ubuntu:ubuntu $APP_DIR || true"
+
+# Ensure ubuntu user is in the docker group for Docker access
+echo -e "${GREEN}Ensuring ubuntu user is in the docker group...${NC}"
+execute_ssh "sudo usermod -aG docker ubuntu"
 
 # Create .env file
 echo -e "${GREEN}Creating .env file...${NC}"
@@ -100,13 +114,53 @@ VITE_PUSHER_SCHEME="${PUSHER_SCHEME}"
 VITE_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
 EOL
 
+# Ensure resources/views exists with a placeholder for Laravel
+mkdir -p ../resources/views
+if [ ! -f ../resources/views/.placeholder ]; then
+  touch ../resources/views/.placeholder
+fi
+
+# Build frontend locally and zip assets
+echo -e "${GREEN}Building frontend locally...${NC}"
+cd .. && npm ci && npm run build && cd deploy
+zip -r public-build.zip ../public/build
+
 # Clone or update repo on server
 echo -e "${GREEN}Cloning or updating repository on server...${NC}"
 clone_or_update_repo
 
+# Upload local build assets
+echo -e "${GREEN}Uploading built frontend assets...${NC}"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" public-build.zip "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/public-build.zip"
+
+# Extract on server
+echo -e "${GREEN}Extracting frontend assets on server...${NC}"
+execute_ssh "unzip -o $APP_DIR/public-build.zip -d $APP_DIR/public/"
+
 # Copy .env file
 echo -e "${GREEN}Copying .env file...${NC}"
-scp -i "$SSH_KEY" .env "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/.env"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" .env "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/.env"
+
+# Upload and extract build artifacts before Docker Compose
+echo -e "${GREEN}Uploading build-artifact.zip to server...${NC}"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$(dirname "$0")/build-artifact.zip" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/build-artifact.zip"
+echo -e "${GREEN}Installing unzip on server if needed...${NC}"
+execute_ssh "sudo apt-get update && sudo apt-get install -y unzip"
+echo -e "${GREEN}Extracting build-artifact.zip on server...${NC}"
+execute_ssh "unzip -o $APP_DIR/build-artifact.zip -d $APP_DIR/"
+
+# Generate SSL cert and key on the server if not present
+SSL_PATH="/etc/nginx/ssl"
+SSL_CRT="$SSL_PATH/harun.dev.crt"
+SSL_KEY="$SSL_PATH/harun.dev.key"
+echo -e "${GREEN}Ensuring SSL certificate and key exist on server...${NC}"
+execute_ssh "sudo mkdir -p $SSL_PATH && \
+  if [ ! -f $SSL_CRT ] || [ ! -f $SSL_KEY ]; then \
+    sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+      -keyout $SSL_KEY -out $SSL_CRT \
+      -subj '/CN=harun.dev'; \
+    sudo chmod 600 $SSL_CRT $SSL_KEY && sudo chown root:root $SSL_CRT $SSL_KEY; \
+  fi"
 
 # Execute deployment commands
 echo -e "${GREEN}Executing deployment commands...${NC}"

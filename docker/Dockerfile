@@ -1,57 +1,55 @@
-FROM php:8.2-fpm-alpine
+# Builder stage
+FROM php:8.2-fpm-alpine AS builder
 
-# Install system dependencies
-RUN apk add --no-cache \
-    linux-headers \
-    $PHPIZE_DEPS \
-    postgresql-dev \
-    libzip-dev \
-    zip \
-    unzip \
-    git \
-    nginx \
-    supervisor \
-    openssl
+# Install build dependencies
+RUN apk add --no-cache $PHPIZE_DEPS postgresql-dev libzip-dev zip unzip git
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo pdo_pgsql zip
+WORKDIR /app
 
-WORKDIR /var/www/html
-
-# Copy built assets and source code (assume built locally)
-COPY public/build ./public/build
-COPY public ./public
+# Copy composer files and source
+COPY composer.json composer.lock ./
+COPY app ./app
 COPY bootstrap ./bootstrap
 COPY config ./config
 COPY database ./database
 COPY resources ./resources
 COPY routes ./routes
-COPY storage ./storage
-COPY app ./app
-COPY composer.json ./
-COPY composer.lock ./
-COPY package.json ./
-COPY package-lock.json ./
 COPY artisan ./
-COPY .env ./
 
-# Install Composer dependencies
+# Install Composer
 RUN wget https://getcomposer.org/composer-stable.phar -O composer.phar \
     && php composer.phar install --no-dev --optimize-autoloader \
     && rm composer.phar
 
-# Copy Nginx configuration
-COPY docker/nginx.conf /etc/nginx/http.d/default.conf
+# Production image
+FROM php:8.2-fpm-alpine
 
-# Create SSL directory
-RUN mkdir -p /etc/nginx/ssl
+# Install runtime dependencies only
+RUN apk add --no-cache postgresql-libs libzip openssl
+
+WORKDIR /var/www/html
+
+# Copy built assets and production files
+COPY public ./public
+COPY --from=builder /app/vendor ./vendor
+COPY --from=builder /app/app ./app
+COPY --from=builder /app/bootstrap ./bootstrap
+COPY --from=builder /app/config ./config
+COPY --from=builder /app/database ./database
+COPY --from=builder /app/resources ./resources
+COPY --from=builder /app/routes ./routes
+COPY --from=builder /app/artisan ./
+COPY .env ./
+
+# Ensure required directories exist
+RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public/build /var/www/html/resources/views \
+    && touch /var/www/html/resources/views/.placeholder
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
     && chmod -R 755 /var/www/html/bootstrap/cache \
-    && chmod -R 755 /var/www/html/public/build \
-    && chmod -R 755 /etc/nginx/ssl
+    && chmod -R 755 /var/www/html/public/build
 
 # Generate application key if not set
 RUN php artisan key:generate --force
@@ -68,25 +66,6 @@ RUN php artisan config:clear \
     && php artisan view:cache \
     && php artisan optimize
 
-# Create supervisor configuration
-RUN echo "[supervisord]" > /etc/supervisord.conf \
-    && echo "nodaemon=true" >> /etc/supervisord.conf \
-    && echo "user=root" >> /etc/supervisord.conf \
-    && echo "logfile=/var/log/supervisord.log" >> /etc/supervisord.conf \
-    && echo "pidfile=/var/run/supervisord.pid" >> /etc/supervisord.conf \
-    && echo "" >> /etc/supervisord.conf \
-    && echo "[program:php-fpm]" >> /etc/supervisord.conf \
-    && echo "command=php-fpm" >> /etc/supervisord.conf \
-    && echo "" >> /etc/supervisord.conf \
-    && echo "[program:nginx]" >> /etc/supervisord.conf \
-    && echo "command=nginx -g 'daemon off;'" >> /etc/supervisord.conf
+EXPOSE 9000
 
-# Add healthcheck
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:80/ || exit 1
-
-# Expose the ports
-EXPOSE 80 443
-
-# Start supervisor
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"] 
+CMD ["php-fpm"] 
