@@ -18,9 +18,6 @@ COPY package*.json ./
 # Install ALL dependencies for building
 RUN npm ci --no-audit --no-fund
 
-# Debug: list installed modules
-RUN ls -l node_modules/@inertiajs || echo '@inertiajs not found' && ls -l node_modules/laravel-vite-plugin || echo 'laravel-vite-plugin not found'
-
 FROM node:18-alpine AS builder
 
 WORKDIR /app
