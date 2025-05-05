@@ -21,6 +21,9 @@ RUN cat package.json && echo '---' && cat package-lock.json
 # Install ALL dependencies for building
 RUN npm ci --no-audit --no-fund
 
+# Debug: check installed modules
+RUN npm ls @inertiajs/react laravel-vite-plugin || true
+
 FROM node:18-alpine AS builder
 
 WORKDIR /app
