@@ -20,16 +20,18 @@ execute_ssh() {
     ssh -i "$SSH_KEY" "$REMOTE_USER@$REMOTE_HOST" "$1"
 }
 
-# Function to copy files
-copy_files() {
-    rsync -avz -e "ssh -i $SSH_KEY" \
-        --exclude '.git' \
-        --exclude 'node_modules' \
-        --exclude 'vendor' \
-        --exclude '.env' \
-        --exclude 'storage/*' \
-        --exclude 'bootstrap/cache/*' \
-        ./ "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/"
+# Function to clone or update the git repository on the server
+clone_or_update_repo() {
+    execute_ssh "if [ ! -d $APP_DIR/.git ]; then \
+        if [ -d $APP_DIR ]; then \
+            rm -rf $APP_DIR/* $APP_DIR/.[!.]* $APP_DIR/..?* 2>/dev/null || true; \
+        else \
+            mkdir -p $APP_DIR; \
+        fi; \
+        git clone --branch $GIT_BRANCH $GIT_REPO $APP_DIR; \
+    else \
+        cd $APP_DIR && git fetch origin && git checkout $GIT_BRANCH && git pull origin $GIT_BRANCH; \
+    fi"
 }
 
 echo -e "${GREEN}Starting deployment...${NC}"
@@ -98,9 +100,9 @@ VITE_PUSHER_SCHEME="${PUSHER_SCHEME}"
 VITE_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
 EOL
 
-# Copy files to server
-echo -e "${GREEN}Copying files to server...${NC}"
-copy_files
+# Clone or update repo on server
+echo -e "${GREEN}Cloning or updating repository on server...${NC}"
+clone_or_update_repo
 
 # Copy .env file
 echo -e "${GREEN}Copying .env file...${NC}"
@@ -119,6 +121,6 @@ execute_ssh "cd $APP_DIR && \
     docker-compose -f docker/docker-compose.yml exec -T app php artisan view:cache && \
     docker-compose -f docker/docker-compose.yml exec -T app php artisan migrate --force && \
     docker-compose -f docker/docker-compose.yml exec -T app php artisan storage:link && \
-    docker-compose -f docker/docker-compose.yml exec -T app chown -R www-data:www-data storage bootstrap/cache"
+    docker-compose -f docker/docker-compose.yml exec -T app chown -R ubuntu:ubuntu storage bootstrap/cache"
 
 echo -e "${GREEN}Deployment completed!${NC}" 

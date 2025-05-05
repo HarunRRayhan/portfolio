@@ -11,11 +11,10 @@ fi
 # SERVER_IP and SERVER_USER are now loaded from .env.deploy
 
 # SSH into server and set up SSL
-ssh -i deploy/terraform/portfolio-key.pem $SERVER_USER@$SERVER_IP << 'ENDSSH'
-# Install certbot
-sudo yum update -y
-sudo amazon-linux-extras install -y epel
-sudo yum install -y certbot
+ssh -i terraform/portfolio-key.pem $SERVER_USER@$SERVER_IP << 'ENDSSH'
+# Update and install certbot for Ubuntu
+sudo apt-get update -y
+sudo apt-get install -y certbot
 
 # Stop any running nginx
 sudo systemctl stop nginx || true
@@ -27,7 +26,7 @@ sudo certbot certonly --standalone -d harun.dev --non-interactive --agree-tos --
 sudo mkdir -p /opt/portfolio/ssl
 sudo cp /etc/letsencrypt/live/harun.dev/fullchain.pem /opt/portfolio/ssl/harun.dev.crt
 sudo cp /etc/letsencrypt/live/harun.dev/privkey.pem /opt/portfolio/ssl/harun.dev.key
-sudo chown -R ec2-user:ec2-user /opt/portfolio/ssl
+sudo chown -R ubuntu:ubuntu /opt/portfolio/ssl
 
 # Stop nginx (Docker will handle it)
 sudo systemctl stop nginx || true
