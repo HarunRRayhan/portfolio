@@ -1,8 +1,3 @@
-FROM composer:latest AS composer
-WORKDIR /app
-COPY . .
-RUN composer install --no-dev --optimize-autoloader
-
 FROM php:8.2-fpm-alpine
 
 # Install system dependencies
@@ -21,9 +16,6 @@ RUN apk add --no-cache \
 # Install PHP extensions
 RUN docker-php-ext-install pdo pdo_pgsql zip
 
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
 WORKDIR /var/www/html
 
 # Copy built assets and source code (assume built locally)
@@ -36,13 +28,17 @@ COPY resources ./resources
 COPY routes ./routes
 COPY storage ./storage
 COPY app ./app
-COPY vendor ./vendor
 COPY composer.json ./
 COPY composer.lock ./
 COPY package.json ./
 COPY package-lock.json ./
 COPY artisan ./
 COPY .env ./
+
+# Install Composer dependencies
+RUN wget https://getcomposer.org/composer-stable.phar -O composer.phar \
+    && php composer.phar install --no-dev --optimize-autoloader \
+    && rm composer.phar
 
 # Copy Nginx configuration
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
