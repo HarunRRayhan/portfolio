@@ -1,3 +1,8 @@
+FROM composer:latest AS composer
+WORKDIR /app
+COPY . .
+RUN composer install --no-dev --optimize-autoloader
+
 FROM node:18-alpine AS deps
 
 # Add build arguments
@@ -11,25 +16,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install ALL dependencies for building
-RUN npm ci --no-audit --no-fund && \
-    npm install --save-dev \
-    @types/node \
-    @types/react \
-    @types/react-dom \
-    @types/axios && \
-    npm install \
-    @headlessui/react \
-    @inertiajs/react \
-    @inertiajs/core \
-    @radix-ui/react-accordion \
-    @radix-ui/react-slot \
-    @radix-ui/react-dialog \
-    @radix-ui/react-navigation-menu \
-    @radix-ui/react-popover \
-    class-variance-authority \
-    embla-carousel-react \
-    laravel-vite-plugin \
-    framer-motion
+RUN npm ci --no-audit --no-fund
 
 FROM node:18-alpine AS builder
 
@@ -127,7 +114,6 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Start a new stage for the production image
 FROM php:8.2-fpm-alpine
 
 # Install system dependencies
@@ -163,7 +149,7 @@ COPY --from=builder /app/resources ./resources
 COPY --from=builder /app/routes ./routes
 COPY --from=builder /app/storage ./storage
 COPY --from=builder /app/app ./app
-COPY --from=builder /app/vendor ./vendor
+COPY --from=composer /app/vendor ./vendor
 COPY --from=builder /app/composer.json ./
 COPY --from=builder /app/composer.lock ./
 COPY --from=builder /app/package.json ./
@@ -183,10 +169,6 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/bootstrap/cache \
     && chmod -R 755 /var/www/html/public/build \
     && chmod -R 755 /etc/nginx/ssl
-
-# Install production dependencies
-RUN composer install --no-dev --optimize-autoloader \
-    && npm install --production
 
 # Generate application key if not set
 RUN php artisan key:generate --force
