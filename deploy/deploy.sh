@@ -172,11 +172,8 @@ execute_ssh "cd $APP_DIR && \
   sudo chown -R www-data:www-data storage bootstrap/cache && \
   sudo chmod -R 775 storage bootstrap/cache"
 
-# Upload wait-for-db.sh to server
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" ../docker/wait-for-db.sh "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/wait-for-db.sh"
-execute_ssh "chmod +x $APP_DIR/wait-for-db.sh"
-# Wait for the database to be ready before running migrations
-execute_ssh "$APP_DIR/wait-for-db.sh db 5432 60"
+# Wait for the database to be ready inside the app container before migrations
+execute_ssh "cd $APP_DIR && docker-compose -f docker/docker-compose.yml exec -T app ./wait-for-db.sh db 5432 60"
 
 # Execute deployment commands
 echo -e "${GREEN}Executing deployment commands...${NC}"
