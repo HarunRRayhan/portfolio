@@ -175,6 +175,10 @@ execute_ssh "cd $APP_DIR && \
 # Wait for the database to be ready inside the app container before migrations
 execute_ssh "cd $APP_DIR && docker-compose -f docker/docker-compose.yml exec -T app ./wait-for-db.sh db 5432 60"
 
+# Ensure correct permissions on host before up
+sudo chown -R 82:82 storage bootstrap/cache
+sudo chmod -R 775 storage bootstrap/cache
+
 # Execute deployment commands
 echo -e "${GREEN}Executing deployment commands...${NC}"
 execute_ssh "cd $APP_DIR && \
@@ -187,6 +191,7 @@ execute_ssh "cd $APP_DIR && \
     docker-compose -f docker/docker-compose.yml exec -T app php artisan view:cache && \
     docker-compose -f docker/docker-compose.yml exec -T app php artisan migrate --force && \
     docker-compose -f docker/docker-compose.yml exec -T app php artisan storage:link && \
-    docker-compose -f docker/docker-compose.yml exec -T app chown -R ubuntu:ubuntu storage bootstrap/cache"
+    docker-compose -f docker/docker-compose.yml exec -T app chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
+    docker-compose -f docker/docker-compose.yml exec -T app chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache"
 
 echo -e "${GREEN}Deployment completed!${NC}"
