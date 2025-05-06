@@ -31,6 +31,7 @@ WORKDIR /var/www/html
 
 # Copy built assets and production files
 COPY public ./public
+COPY composer.json ./
 COPY --from=builder /app/vendor ./vendor
 COPY --from=builder /app/app ./app
 COPY --from=builder /app/bootstrap ./bootstrap
