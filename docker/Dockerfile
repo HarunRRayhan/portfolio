@@ -43,6 +43,7 @@ COPY --from=builder /app/resources ./resources
 COPY --from=builder /app/routes ./routes
 COPY --from=builder /app/artisan ./
 COPY .env ./
+COPY ../docker/wait-for-db.sh ./wait-for-db.sh
 
 # Ensure required directories exist
 RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public/build /var/www/html/resources/views \
