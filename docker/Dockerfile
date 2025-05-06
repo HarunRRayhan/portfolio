@@ -51,6 +51,9 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/bootstrap/cache \
     && chmod -R 755 /var/www/html/public/build
 
+# Debug: list resources and config before artisan commands
+RUN ls -l /var/www/html/resources && ls -l /var/www/html/resources/views && ls -l /var/www/html/config
+
 # Generate application key if not set
 RUN php artisan key:generate --force
 
@@ -61,10 +64,7 @@ RUN php artisan storage:link
 RUN php artisan config:clear \
     && php artisan config:cache \
     && php artisan route:clear \
-    && php artisan route:cache \
-    && php artisan view:clear \
-    && php artisan view:cache \
-    && php artisan optimize
+    && php artisan route:cache
 
 EXPOSE 9000
 
