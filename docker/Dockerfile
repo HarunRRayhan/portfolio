@@ -25,8 +25,8 @@ RUN wget https://getcomposer.org/composer-stable.phar -O composer.phar \
 # Production image
 FROM php:8.2-fpm-alpine
 
-# Install runtime dependencies only
-RUN apk add --no-cache postgresql-libs libzip openssl \
+# Install runtime and build dependencies only
+RUN apk add --no-cache postgresql-libs postgresql-dev libzip openssl \
     && docker-php-ext-install pdo pdo_pgsql
 
 WORKDIR /var/www/html
