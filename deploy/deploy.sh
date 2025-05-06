@@ -166,13 +166,18 @@ execute_ssh "sudo mkdir -p $SSL_PATH && \
     sudo chmod 600 $SSL_CRT $SSL_KEY && sudo chown root:root $SSL_CRT $SSL_KEY; \
   fi"
 
+# Ensure required Laravel cache and storage directories exist and are writable by www-data
+execute_ssh "cd $APP_DIR && \
+  mkdir -p storage/framework/views storage/framework/cache storage/logs bootstrap/cache && \
+  sudo chown -R www-data:www-data storage bootstrap/cache && \
+  sudo chmod -R 775 storage bootstrap/cache"
+
 # Execute deployment commands
 echo -e "${GREEN}Executing deployment commands...${NC}"
 execute_ssh "cd $APP_DIR && \
     docker-compose -f docker/docker-compose.yml down && \
     docker-compose -f docker/docker-compose.yml build --no-cache && \
     docker-compose -f docker/docker-compose.yml up -d && \
-    docker-compose -f docker/docker-compose.yml exec -T app composer install --no-dev --optimize-autoloader && \
     docker-compose -f docker/docker-compose.yml exec -T app php artisan key:generate --force && \
     docker-compose -f docker/docker-compose.yml exec -T app php artisan config:cache && \
     docker-compose -f docker/docker-compose.yml exec -T app php artisan route:cache && \
