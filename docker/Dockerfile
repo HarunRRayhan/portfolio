@@ -2,7 +2,8 @@
 FROM php:8.2-fpm-alpine AS builder
 
 # Install build dependencies
-RUN apk add --no-cache $PHPIZE_DEPS postgresql-dev libzip-dev zip unzip git
+RUN apk add --no-cache $PHPIZE_DEPS postgresql-dev libzip-dev zip unzip git \
+    && docker-php-ext-install pdo pdo_pgsql
 
 WORKDIR /app
 
@@ -25,7 +26,8 @@ RUN wget https://getcomposer.org/composer-stable.phar -O composer.phar \
 FROM php:8.2-fpm-alpine
 
 # Install runtime dependencies only
-RUN apk add --no-cache postgresql-libs libzip openssl
+RUN apk add --no-cache postgresql-libs libzip openssl \
+    && docker-php-ext-install pdo pdo_pgsql
 
 WORKDIR /var/www/html
 
