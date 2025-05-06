@@ -6,6 +6,7 @@ services:
       args:
         - NODE_ENV=production
     volumes:
+      - /opt/portfolio/.env:/var/www/html/.env
       - /opt/portfolio/storage:/var/www/html/storage
       - /etc/nginx/ssl:/etc/nginx/ssl:ro
     environment:
