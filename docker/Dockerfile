@@ -54,9 +54,6 @@ RUN chown -R www-data:www-data /var/www/html \
 # Debug: list resources and config before artisan commands
 RUN ls -l /var/www/html/resources && ls -l /var/www/html/resources/views && ls -l /var/www/html/config
 
-# Generate application key if not set
-RUN php artisan key:generate --force
-
 # Create storage link
 RUN php artisan storage:link
 

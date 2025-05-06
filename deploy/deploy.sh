@@ -23,6 +23,13 @@ if [ -f "$(dirname "$0")/.env.deploy" ]; then
   set +a
 fi
 
+# Ensure SSH_KEY is relative to the deploy directory
+if [ -n "$SSH_KEY" ] && [[ "$SSH_KEY" != /* ]]; then
+  SSH_KEY="$(cd "$(dirname "$0")" && pwd)/$SSH_KEY"
+fi
+
+echo "[DEBUG] SSH_KEY resolved to: $SSH_KEY"
+
 # Configuration
 # REMOTE_USER, REMOTE_HOST, SSH_KEY, APP_DIR are now loaded from .env.deploy
 
@@ -174,4 +181,4 @@ execute_ssh "cd $APP_DIR && \
     docker-compose -f docker/docker-compose.yml exec -T app php artisan storage:link && \
     docker-compose -f docker/docker-compose.yml exec -T app chown -R ubuntu:ubuntu storage bootstrap/cache"
 
-echo -e "${GREEN}Deployment completed!${NC}" 
+echo -e "${GREEN}Deployment completed!${NC}"

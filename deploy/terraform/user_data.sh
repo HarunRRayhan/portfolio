@@ -9,8 +9,7 @@ apt-get install -y \
     apt-transport-https \
     ca-certificates \
     curl \
-    software-properties-common \
-    nginx
+    software-properties-common
 
 # Install Docker
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
@@ -26,33 +25,5 @@ systemctl enable docker
 curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
 
-# Start and enable Nginx
-systemctl start nginx
-systemctl enable nginx
-
 # Create application directory
-mkdir -p /opt/portfolio
-
-# Set up Nginx configuration
-cat > /etc/nginx/sites-available/portfolio.conf << 'EOL'
-server {
-    listen 80;
-    server_name _;
-
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-EOL
-
-# Enable the site
-ln -sf /etc/nginx/sites-available/portfolio.conf /etc/nginx/sites-enabled/
-rm -f /etc/nginx/sites-enabled/default
-
-# Reload Nginx configuration
-nginx -t && systemctl reload nginx 
+mkdir -p /opt/portfolio 

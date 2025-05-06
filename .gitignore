@@ -38,3 +38,4 @@ deploy/**/.env.*
 deploy/*.zip
 deploy/*.log
 deploy/**/*.log
+deploy/terraform-outputs.json
