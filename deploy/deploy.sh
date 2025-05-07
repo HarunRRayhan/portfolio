@@ -206,7 +206,7 @@ step 6 "Checking Node.js version"
 # Check if nvm is installed
 if ! command -v nvm &> /dev/null; then
   echo "nvm not found, attempting to source from common locations..."
-  
+
   # Try to source nvm from common locations
   if [ -s "$HOME/.nvm/nvm.sh" ]; then
     . "$HOME/.nvm/nvm.sh"
@@ -215,12 +215,12 @@ if ! command -v nvm &> /dev/null; then
   elif [ -s "/usr/local/opt/nvm/nvm.sh" ]; then
     . "/usr/local/opt/nvm/nvm.sh"
   fi
-  
+
   # Check again after sourcing
   if ! command -v nvm &> /dev/null; then
     echo "Installing nvm..."
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-    
+
     # Source nvm after installation
     export NVM_DIR="$HOME/.nvm"
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
@@ -231,12 +231,12 @@ fi
 NODE_VERSION=$(node -v 2>/dev/null | sed 's/v//;s/\..*//' || echo "0")
 if [ "$NODE_VERSION" -lt 18 ]; then
   echo "Node.js >= 18 is required. Current: $(node -v 2>/dev/null || echo 'not installed')"
-  
+
   if command -v nvm &> /dev/null; then
     echo "Attempting to switch to Node.js LTS using nvm..."
     nvm install --lts
     nvm use --lts
-    
+
     # Check version again after nvm use
     NODE_VERSION=$(node -v | sed 's/v//;s/\..*//')
     if [ "$NODE_VERSION" -lt 18 ]; then
@@ -356,5 +356,51 @@ execute_ssh "cd $APP_DIR && docker-compose -f docker/docker-compose.yml exec -T 
 
 success "Deployment completed!"
 
-# 21. Print total time and summary
+# 21. Purge CDN Cache (Cloudflare)
+step 21 "Purging CDN Cache (Cloudflare)"
+if [ -z "$CLOUDFLARE_ZONE_ID" ] || [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+  echo "Skipping Cloudflare CDN purge - missing CLOUDFLARE_ZONE_ID or CLOUDFLARE_API_TOKEN"
+  echo "To enable Cloudflare cache purging, add the following to your .env.deploy file:"
+  echo "CLOUDFLARE_ZONE_ID=your_zone_id"
+  echo "CLOUDFLARE_API_TOKEN=your_api_token"
+  echo "CLOUDFLARE_EMAIL=your_email@example.com (only needed for Global API Key authentication)"
+else
+  echo "Attempting to purge Cloudflare cache for zone ID $CLOUDFLARE_ZONE_ID"
+
+  # Check if this is likely an API Token or a Global API Key based on length
+  if [[ ${#CLOUDFLARE_API_TOKEN} -gt 35 ]]; then
+    # Likely an API Token - use Bearer Authentication
+    echo "Using API Token authentication method..."
+    RESULT=$(curl -s -X POST \
+      "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/purge_cache" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+      -d '{"purge_everything":true}')
+  else
+    # Likely a Global API Key - needs email
+    echo "Using Global API Key authentication method..."
+    if [ -z "$CLOUDFLARE_EMAIL" ]; then
+      echo "Missing CLOUDFLARE_EMAIL for Global API Key authentication"
+      echo "Please add CLOUDFLARE_EMAIL to your .env.deploy file"
+    else
+      RESULT=$(curl -s -X POST \
+        "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/purge_cache" \
+        -H "Content-Type: application/json" \
+        -H "X-Auth-Email: $CLOUDFLARE_EMAIL" \
+        -H "X-Auth-Key: $CLOUDFLARE_API_TOKEN" \
+        -d '{"purge_everything":true}')
+    fi
+  fi
+  
+  # Check if we have a result to evaluate
+  if [ -n "$RESULT" ]; then
+    if echo "$RESULT" | grep -q '"success":true'; then
+      echo "Cloudflare cache purged successfully!"
+    else
+      echo "Failed to purge Cloudflare cache. Response: $RESULT"
+    fi
+  fi
+fi
+
+# 22. Print total time and summary
 print_total_time
