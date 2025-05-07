@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -e
+set -o pipefail
+
 # Get absolute path to script directory, regardless of where it's called from
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
@@ -284,9 +287,9 @@ execute_ssh "ls -lh $APP_DIR/public-build.zip && echo '[DEBUG] Uploaded public-b
 step 11 "Installing unzip on server if needed"
 execute_ssh "sudo apt-get update && sudo apt-get install -y unzip"
 
-# 12. Upload public build zip
-step 12 "Uploading public build zip"
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/public-build.zip" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/public-build.zip"
+# 12. Extract frontend assets
+step 12 "Extracting frontend assets from zip file"
+execute_ssh "mkdir -p $APP_DIR/public && cd $APP_DIR && unzip -o public-build.zip -d public && ls -la public/build && echo '[DEBUG] Extracted frontend assets to public/build'"
 
 # 13. Set up docker env on the server & start containers
 step 13 "Setting up docker environment on server & starting containers"
@@ -296,6 +299,7 @@ scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/docker-compose.
 # 14. Copy .env file
 step 14 "Copying .env file"
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/.env" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/.env"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/.env" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/.env"
 
 # 15. Generate SSL cert and key on the server if not present
 step 15 "Ensuring SSL certificate and key exist on server"
@@ -322,7 +326,7 @@ step 17 "Executing deployment commands"
 execute_ssh "cd $APP_DIR && \
     docker-compose -f docker/docker-compose.yml down && \
     docker-compose -f docker/docker-compose.yml build --no-cache && \
-    docker-compose -f docker/docker-compose.yml up -d && \
+    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f docker/docker-compose.yml up -d && \
     touch .env && chmod 666 .env && \
     docker-compose -f docker/docker-compose.yml ps | grep app && \
     APP_KEY=\$(docker-compose -f docker/docker-compose.yml exec -T app php artisan key:generate --show) && \
