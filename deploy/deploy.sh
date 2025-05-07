@@ -157,7 +157,7 @@ wait_for_app_container() {
   local timeout=60
   local elapsed=0
   while [ $elapsed -lt $timeout ]; do
-    STATUS=$(execute_ssh "cd $APP_DIR && docker-compose -f docker/docker-compose.yml ps --services --filter 'status=running' | grep '^app$'")
+    STATUS=$(execute_ssh "cd $APP_DIR && docker-compose -f ./docker/docker-compose.yml ps --services --filter 'status=running' | grep '^app$'")
     if [ "$STATUS" = "app" ]; then
       return 0
     fi
@@ -294,7 +294,7 @@ execute_ssh "mkdir -p $APP_DIR/public && cd $APP_DIR && unzip -o public-build.zi
 # 13. Set up docker env on the server & start containers
 step 13 "Setting up docker environment on server & starting containers"
 execute_ssh "mkdir -p $APP_DIR/docker $APP_DIR/bootstrap/cache $APP_DIR/storage $APP_DIR/storage/logs $APP_DIR/storage/framework/sessions $APP_DIR/storage/framework/views $APP_DIR/storage/framework/cache"
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/docker-compose.yml" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/docker-compose.yml"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/docker/docker-compose.yml" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/docker-compose.yml"
 
 # 14. Copy .env file
 step 14 "Copying .env file"
@@ -325,21 +325,21 @@ execute_ssh "cd $APP_DIR && \
 step 17 "Executing deployment commands"
 # The app container will wait for the db container to be healthy due to 'depends_on' and healthcheck in docker-compose.yml
 execute_ssh "cd $APP_DIR && \
-    docker-compose -f docker/docker-compose.yml down && \
-    docker-compose -f docker/docker-compose.yml build --no-cache && \
-    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f docker/docker-compose.yml up -d && \
+    docker-compose -f ./docker/docker-compose.yml down && \
+    docker-compose -f ./docker/docker-compose.yml build --no-cache && \
+    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./docker/docker-compose.yml up -d && \
     touch .env && chmod 666 .env && \
-    docker-compose -f docker/docker-compose.yml ps | grep app && \
-    APP_KEY=\$(docker-compose -f docker/docker-compose.yml exec -T app php artisan key:generate --show) && \
+    docker-compose -f ./docker/docker-compose.yml ps | grep app && \
+    APP_KEY=\$(docker-compose -f ./docker/docker-compose.yml exec -T app php artisan key:generate --show) && \
     echo \"Found APP_KEY: \$APP_KEY\" && \
     grep -q \"^APP_KEY=\" .env && sed -i \"s|^APP_KEY=.*|\$APP_KEY|\" .env || echo \"\$APP_KEY\" >> .env && \
-    docker-compose -f docker/docker-compose.yml exec -T app php artisan config:cache && \
-    docker-compose -f docker/docker-compose.yml exec -T app php artisan route:cache && \
-    docker-compose -f docker/docker-compose.yml exec -T app php artisan view:cache && \
-    docker-compose -f docker/docker-compose.yml exec -T app php artisan migrate --force && \
-    docker-compose -f docker/docker-compose.yml exec -T app php artisan storage:link && \
-    docker-compose -f docker/docker-compose.yml exec -T app chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
-    docker-compose -f docker/docker-compose.yml exec -T app chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache"
+    docker-compose -f ./docker/docker-compose.yml exec -T app php artisan config:cache && \
+    docker-compose -f ./docker/docker-compose.yml exec -T app php artisan route:cache && \
+    docker-compose -f ./docker/docker-compose.yml exec -T app php artisan view:cache && \
+    docker-compose -f ./docker/docker-compose.yml exec -T app php artisan migrate --force && \
+    docker-compose -f ./docker/docker-compose.yml exec -T app php artisan storage:link && \
+    docker-compose -f ./docker/docker-compose.yml exec -T app chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
+    docker-compose -f ./docker/docker-compose.yml exec -T app chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache"
 
 # 18. Check app container status
 step 18 "Checking app container status"
@@ -350,15 +350,15 @@ fi
 
 # 19. Ensure wait-for-db.sh is executable in the container
 step 19 "Ensuring wait-for-db.sh is executable in the container"
-execute_ssh "cd $APP_DIR && docker-compose -f docker/docker-compose.yml exec -T app chmod +x ./wait-for-db.sh"
+execute_ssh "cd $APP_DIR && docker-compose -f ./docker/docker-compose.yml exec -T app chmod +x ./wait-for-db.sh"
 
 # 20. Wait for the database to be ready
 step 20 "Waiting for the database to be ready inside the app container"
-execute_ssh "cd $APP_DIR && docker-compose -f docker/docker-compose.yml exec -T app ./wait-for-db.sh db 5432 60"
+execute_ssh "cd $APP_DIR && docker-compose -f ./docker/docker-compose.yml exec -T app ./wait-for-db.sh db 5432 60"
 
 # 21 Test DB connection from app container
 step 21 "Testing database connection from app container"
-execute_ssh "cd $APP_DIR && docker-compose -f docker/docker-compose.yml exec -T app php artisan migrate:status"
+execute_ssh "cd $APP_DIR && docker-compose -f ./docker/docker-compose.yml exec -T app php artisan migrate:status"
 
 success "Deployment completed!"
 
