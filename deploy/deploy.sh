@@ -323,6 +323,7 @@ execute_ssh "cd $APP_DIR && \
 
 # 17. Execute deployment commands
 step 17 "Executing deployment commands"
+# The app container will wait for the db container to be healthy due to 'depends_on' and healthcheck in docker-compose.yml
 execute_ssh "cd $APP_DIR && \
     docker-compose -f docker/docker-compose.yml down && \
     docker-compose -f docker/docker-compose.yml build --no-cache && \
@@ -355,10 +356,14 @@ execute_ssh "cd $APP_DIR && docker-compose -f docker/docker-compose.yml exec -T 
 step 20 "Waiting for the database to be ready inside the app container"
 execute_ssh "cd $APP_DIR && docker-compose -f docker/docker-compose.yml exec -T app ./wait-for-db.sh db 5432 60"
 
+# 21 Test DB connection from app container
+step 21 "Testing database connection from app container"
+execute_ssh "cd $APP_DIR && docker-compose -f docker/docker-compose.yml exec -T app php artisan migrate:status"
+
 success "Deployment completed!"
 
-# 21. Purge CDN Cache (Cloudflare)
-step 21 "Purging CDN Cache (Cloudflare)"
+# 22. Purge CDN Cache (Cloudflare)
+step 22 "Purging CDN Cache (Cloudflare)"
 if [ -z "$CLOUDFLARE_ZONE_ID" ] || [ -z "$CLOUDFLARE_API_TOKEN" ]; then
   echo "Skipping Cloudflare CDN purge - missing CLOUDFLARE_ZONE_ID or CLOUDFLARE_API_TOKEN"
   echo "To enable Cloudflare cache purging, add the following to your .env.deploy file:"
