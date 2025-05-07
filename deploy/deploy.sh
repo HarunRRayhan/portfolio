@@ -38,9 +38,6 @@ fi
 
 echo "[DEBUG] SSH_KEY resolved to: $SSH_KEY"
 
-# Configuration
-# REMOTE_USER, REMOTE_HOST, SSH_KEY, APP_DIR are now loaded from .env.deploy
-
 # Colors for output
 GREEN='\033[0;32m'
 RED='\033[0;31m'
