@@ -380,8 +380,7 @@ else
     # Likely a Global API Key - needs email
     echo "Using Global API Key authentication method..."
     if [ -z "$CLOUDFLARE_EMAIL" ]; then
-      echo "Missing CLOUDFLARE_EMAIL for Global API Key authentication"
-      echo "Please add CLOUDFLARE_EMAIL to your .env.deploy file"
+      echo "Failed to purge Cloudflare cache. Response: $RESULT"
     else
       RESULT=$(curl -s -X POST \
         "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/purge_cache" \
@@ -391,7 +390,7 @@ else
         -d '{"purge_everything":true}')
     fi
   fi
-  
+
   # Check if we have a result to evaluate
   if [ -n "$RESULT" ]; then
     if echo "$RESULT" | grep -q '"success":true'; then
