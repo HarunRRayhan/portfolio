@@ -13,7 +13,11 @@
 # Set up logging
 LOG_DIR="$(dirname "$0")/log"
 mkdir -p "$LOG_DIR"
-LOG_FILE="$LOG_DIR/deploy-$(date '+%Y%m%d-%H%M%S').log"
+# Archive previous deploy.log if it exists
+if [ -f "$LOG_DIR/deploy.log" ]; then
+  mv "$LOG_DIR/deploy.log" "$LOG_DIR/deploy-$(date '+%Y%m%d-%H%M%S').log"
+fi
+LOG_FILE="$LOG_DIR/deploy.log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
 # Load environment variables
@@ -38,6 +42,56 @@ GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m'
 
+# Signature and start time
+SCRIPT_START_TIME=$(date +%s)
+echo -e "\n\033[1;35m==============================================="
+echo -e "   🚀 Harun's Portfolio Deployment Script 🚀"
+echo -e "===============================================\033[0m\n"
+echo "Started at: $(date)"
+
+# Remove associative array, use indexed array for step times
+STEP_TIMES=()
+
+# Helper: Print step header, track and print step time
+step() {
+  STEP_NUM=$1
+  STEP_NAME="$2"
+  echo -e "\n\033[1;36m++++++++++++++++++++++++++++++++++++++++++++++"
+  printf '+++   STEP %d: %s   +++\n' "$STEP_NUM" "$STEP_NAME"
+  echo -e "++++++++++++++++++++++++++++++++++++++++++++++\033[0m\n"
+  STEP_START_TIME=$(date +%s)
+}
+
+# Helper: Print success info to terminal only
+success() {
+  echo -e "\033[0;32m$1\033[0m"
+  STEP_END_TIME=$(date +%s)
+  STEP_DURATION=$((STEP_END_TIME - STEP_START_TIME))
+  echo -e "\033[0;33mStep took $STEP_DURATION seconds.\033[0m\n"
+  STEP_TIMES+=("$STEP_DURATION")
+}
+
+# Helper: Print error info to terminal only
+fail() {
+  echo -e "\033[0;31m$1\033[0m"
+  STEP_END_TIME=$(date +%s)
+  STEP_DURATION=$((STEP_END_TIME - STEP_START_TIME))
+  echo -e "\033[0;33mStep took $STEP_DURATION seconds.\033[0m\n"
+  STEP_TIMES+=("$STEP_DURATION")
+}
+
+# At the end, print total time
+print_total_time() {
+  SCRIPT_END_TIME=$(date +%s)
+  TOTAL_DURATION=$((SCRIPT_END_TIME - SCRIPT_START_TIME))
+  echo -e "\n\033[1;35m==============================================="
+  echo -e "   🎉 Deployment completed in $TOTAL_DURATION seconds! 🎉"
+  echo -e "===============================================\033[0m\n"
+  for i in $(seq 1 ${#STEP_TIMES[@]}); do
+    echo "Step $i took: ${STEP_TIMES[$((i-1))]:-N/A} seconds"
+  done
+}
+
 # Function to execute SSH commands
 execute_ssh() {
     ssh -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REMOTE_USER@$REMOTE_HOST" "$1"
@@ -60,7 +114,9 @@ clone_or_update_repo() {
 # Function to robustly merge env files
 merge_env_files() {
     # $1 = base file, $2 = override file, $3 = output file
-    cp "$1" "$3"
+    if ! cmp -s "$1" "$3"; then
+        cp "$1" "$3"
+    fi
     if [ -f "$2" ]; then
         while IFS= read -r line; do
             # Only process non-empty, non-comment lines
@@ -92,23 +148,38 @@ overlay_inline_envs() {
     IFS=$OLDIFS
 }
 
-echo -e "${GREEN}Starting deployment...${NC}"
+# Add this helper function near the top of the script
+wait_for_app_container() {
+  local timeout=60
+  local elapsed=0
+  while [ $elapsed -lt $timeout ]; do
+    STATUS=$(execute_ssh "cd $APP_DIR && docker-compose -f docker/docker-compose.yml ps --services --filter 'status=running' | grep '^app$'")
+    if [ "$STATUS" = "app" ]; then
+      return 0
+    fi
+    sleep 2
+    elapsed=$((elapsed+2))
+  done
+  echo "App container did not start within $timeout seconds." >&2
+  return 1
+}
 
-# Fix permissions on the server before anything else
-echo -e "${GREEN}Fixing permissions on server...${NC}"
+# 1. Start
+step 1 "Starting deployment"
+echo "[DEBUG] SSH_KEY resolved to: $SSH_KEY"
+
+# 2. Fix permissions on the server before anything else
+step 2 "Fixing permissions on server"
 execute_ssh "sudo chown -R ubuntu:ubuntu $APP_DIR || true"
 
-# Ensure ubuntu user is in the docker group for Docker access
-echo -e "${GREEN}Ensuring ubuntu user is in the docker group...${NC}"
+# 3. Ensure ubuntu user is in the docker group for Docker access
+step 3 "Ensuring ubuntu user is in the docker group"
 execute_ssh "sudo usermod -aG docker ubuntu"
 
-echo -e "${GREEN}Generating .env file from .env.example, .env.appprod, and deploy variables...${NC}"
-
-# Always start from .env.example
+# 4. Generate .env file from .env.example, .env.appprod, and deploy variables
+step 4 "Generating .env file from .env.example, .env.appprod, and deploy variables"
 merge_env_files "../.env.example" "$(dirname "$0")/.env.appprod" ".env"
-# Overlay with deploy/.env.deploy variables (if any)
 merge_env_files ".env" "$(dirname "$0")/.env.deploy" ".env"
-# Overlay with any key=value arguments passed to the script (highest priority)
 for arg in "$@"; do
     if [[ "$arg" =~ ^[A-Za-z_][A-Za-z0-9_]*= ]]; then
         key="${arg%%=*}"
@@ -118,46 +189,75 @@ for arg in "$@"; do
     fi
 done
 
-# Ensure resources/views exists with a real Blade placeholder for Laravel
+# 5. Ensure resources/views exists with a real Blade placeholder for Laravel
+step 5 "Ensuring resources/views exists with placeholder"
 mkdir -p ../resources/views
 if [ ! -f ../resources/views/placeholder.blade.php ]; then
   echo "{{-- Placeholder view to satisfy Laravel --}}" > ../resources/views/placeholder.blade.php
 fi
 
-# Build frontend locally and zip assets
-echo -e "${GREEN}Building frontend locally...${NC}"
-cd .. && npm ci && npm run build && cd deploy
-zip -r public-build.zip ../public/build
+# 6. Check Node.js version before build
+step 6 "Checking Node.js version"
+NODE_VERSION=$(node -v | sed 's/v//;s/\..*//')
+if [ "$NODE_VERSION" -lt 18 ]; then
+  fail "Node.js >= 18 is required for frontend build. Current: $(node -v)"
+  exit 1
+fi
 
-# Clone or update repo on server
-echo -e "${GREEN}Cloning or updating repository on server...${NC}"
+# 7. Build frontend locally and zip assets
+step 7 "Building frontend locally"
+cd .. && npm ci && npm run build
+BUILD_STATUS=$?
+cd deploy
+if [ $BUILD_STATUS -ne 0 ]; then
+  fail "Frontend build failed. Aborting deploy."
+  exit 1
+fi
+zip -r public-build.zip ../public/build > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+  ZIP_SIZE=$(du -h public-build.zip | cut -f1)
+  success "public-build.zip created successfully ($ZIP_SIZE)"
+else
+  fail "Failed to create public-build.zip. Aborting deploy."
+  exit 1
+fi
+
+# 8. Clone or update repo on server
+step 8 "Cloning or updating repository on server"
 clone_or_update_repo
 
-# Upload local build assets
-echo -e "${GREEN}Uploading built frontend assets...${NC}"
+# 9. Ensure host storage directory has correct structure and permissions (after clone)
+step 9 "Ensuring host storage directory structure and permissions"
+HOST_STORAGE_DIR="/opt/portfolio/storage"
+execute_ssh "if [ -d '$HOST_STORAGE_DIR' ]; then \
+  mkdir -p '$HOST_STORAGE_DIR/framework/views' '$HOST_STORAGE_DIR/framework/cache' '$HOST_STORAGE_DIR/logs'; \
+  sudo chown -R 82:82 '$HOST_STORAGE_DIR'; \
+  sudo chmod -R 775 '$HOST_STORAGE_DIR'; \
+else \
+  echo '[WARN] Host storage directory $HOST_STORAGE_DIR does not exist!'; \
+fi"
+
+# 10. Upload local build assets
+step 10 "Uploading built frontend assets"
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" public-build.zip "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/public-build.zip"
 
-# Extract on server
-echo -e "${GREEN}Extracting frontend assets on server...${NC}"
-execute_ssh "unzip -o $APP_DIR/public-build.zip -d $APP_DIR/public/"
+# 11. Install unzip on server if needed
+step 11 "Installing unzip on server if needed"
+execute_ssh "sudo apt-get update && sudo apt-get install -y unzip"
 
-# Copy .env file
-echo -e "${GREEN}Copying .env file...${NC}"
+# 12. Extract on server
+step 12 "Extracting frontend assets on server"
+execute_ssh "unzip -o $APP_DIR/public-build.zip -d $APP_DIR/public/ > /dev/null 2>&1 && du -sh $APP_DIR/public-build.zip || (echo 'Failed to unzip public-build.zip on server.' && exit 1)"
+
+# 13. Copy .env file
+step 13 "Copying .env file"
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" .env "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/.env"
 
-# Upload and extract build artifacts before Docker Compose
-echo -e "${GREEN}Uploading build-artifact.zip to server...${NC}"
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$(dirname "$0")/build-artifact.zip" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/build-artifact.zip"
-echo -e "${GREEN}Installing unzip on server if needed...${NC}"
-execute_ssh "sudo apt-get update && sudo apt-get install -y unzip"
-echo -e "${GREEN}Extracting build-artifact.zip on server...${NC}"
-execute_ssh "unzip -o $APP_DIR/build-artifact.zip -d $APP_DIR/"
-
-# Generate SSL cert and key on the server if not present
+# 14. Generate SSL cert and key on the server if not present
+step 14 "Ensuring SSL certificate and key exist on server"
 SSL_PATH="/etc/nginx/ssl"
 SSL_CRT="$SSL_PATH/harun.dev.crt"
 SSL_KEY="$SSL_PATH/harun.dev.key"
-echo -e "${GREEN}Ensuring SSL certificate and key exist on server...${NC}"
 execute_ssh "sudo mkdir -p $SSL_PATH && \
   if [ ! -f $SSL_CRT ] || [ ! -f $SSL_KEY ]; then \
     sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
@@ -166,21 +266,32 @@ execute_ssh "sudo mkdir -p $SSL_PATH && \
     sudo chmod 600 $SSL_CRT $SSL_KEY && sudo chown root:root $SSL_CRT $SSL_KEY; \
   fi"
 
-# Ensure required Laravel cache and storage directories exist and are writable by www-data
+# 15. Ensure required Laravel cache and storage directories exist and are writable by www-data
+step 15 "Ensuring Laravel cache and storage directories exist and are writable"
 execute_ssh "cd $APP_DIR && \
   mkdir -p storage/framework/views storage/framework/cache storage/logs bootstrap/cache && \
   sudo chown -R www-data:www-data storage bootstrap/cache && \
   sudo chmod -R 775 storage bootstrap/cache"
 
-# Wait for the database to be ready inside the app container before migrations
+# After docker-compose up -d, before any exec commands:
+step 16 "Bringing up containers with docker-compose"
+execute_ssh "cd $APP_DIR && docker-compose -f docker/docker-compose.yml up -d"
+wait_for_app_container || fail "App container did not start in time. Aborting deploy." && exit 1
+
+# Now proceed with exec commands for wait-for-db.sh, etc.
+step 17 "Ensuring wait-for-db.sh is executable in the container"
+execute_ssh "cd $APP_DIR && docker-compose -f docker/docker-compose.yml exec -T app chmod +x ./wait-for-db.sh"
+
+step 18 "Waiting for the database to be ready inside the app container"
 execute_ssh "cd $APP_DIR && docker-compose -f docker/docker-compose.yml exec -T app ./wait-for-db.sh db 5432 60"
 
-# Ensure correct permissions on host before up
+# 19. Ensure correct permissions on host before up
+step 19 "Ensuring correct permissions on host before up"
 sudo chown -R 82:82 storage bootstrap/cache
 sudo chmod -R 775 storage bootstrap/cache
 
-# Execute deployment commands
-echo -e "${GREEN}Executing deployment commands...${NC}"
+# 20. Execute deployment commands
+step 20 "Executing deployment commands"
 execute_ssh "cd $APP_DIR && \
     docker-compose -f docker/docker-compose.yml down && \
     docker-compose -f docker/docker-compose.yml build --no-cache && \
@@ -194,4 +305,7 @@ execute_ssh "cd $APP_DIR && \
     docker-compose -f docker/docker-compose.yml exec -T app chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
     docker-compose -f docker/docker-compose.yml exec -T app chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache"
 
-echo -e "${GREEN}Deployment completed!${NC}"
+success "Deployment completed!"
+
+# At the very end of the script, before exit:
+print_total_time
