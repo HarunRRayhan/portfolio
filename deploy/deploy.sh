@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Get absolute path to script directory, regardless of where it's called from
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+
 # Usage:
 #   ./deploy.sh [KEY=VALUE ...]
 #   Example: ./deploy.sh APP_DEBUG=true FOO=bar
@@ -11,7 +15,7 @@
 #   4. Inline key=value arguments (provided at runtime)
 
 # Set up logging
-LOG_DIR="$(dirname "$0")/log"
+LOG_DIR="$SCRIPT_DIR/log"
 mkdir -p "$LOG_DIR"
 # Archive previous deploy.log if it exists
 if [ -f "$LOG_DIR/deploy.log" ]; then
@@ -21,15 +25,15 @@ LOG_FILE="$LOG_DIR/deploy.log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
 # Load environment variables
-if [ -f "$(dirname "$0")/.env.deploy" ]; then
+if [ -f "$SCRIPT_DIR/.env.deploy" ]; then
   set -a
-  . "$(dirname "$0")/.env.deploy"
+  . "$SCRIPT_DIR/.env.deploy"
   set +a
 fi
 
 # Ensure SSH_KEY is relative to the deploy directory
 if [ -n "$SSH_KEY" ] && [[ "$SSH_KEY" != /* ]]; then
-  SSH_KEY="$(cd "$(dirname "$0")" && pwd)/$SSH_KEY"
+  SSH_KEY="$SCRIPT_DIR/$SSH_KEY"
 fi
 
 echo "[DEBUG] SSH_KEY resolved to: $SSH_KEY"
@@ -141,8 +145,8 @@ overlay_inline_envs() {
         if [[ "$arg" =~ ^[A-Za-z_][A-Za-z0-9_]*= ]]; then
             key="${arg%%=*}"
             value="${arg#*=}"
-            sed -i '' "/^$key=/d" ".env"
-            echo "$key=$value" >> ".env"
+            sed -i '' "/^$key=/d" "$SCRIPT_DIR/.env"
+            echo "$key=$value" >> "$SCRIPT_DIR/.env"
         fi
     done
     IFS=$OLDIFS
@@ -178,49 +182,86 @@ execute_ssh "sudo usermod -aG docker ubuntu"
 
 # 4. Generate .env file from .env.example, .env.appprod, and deploy variables
 step 4 "Generating .env file from .env.example, .env.appprod, and deploy variables"
-merge_env_files "../.env.example" "$(dirname "$0")/.env.appprod" ".env"
-merge_env_files ".env" "$(dirname "$0")/.env.deploy" ".env"
+merge_env_files "$REPO_ROOT/.env.example" "$SCRIPT_DIR/.env.appprod" "$SCRIPT_DIR/.env"
+merge_env_files "$SCRIPT_DIR/.env" "$SCRIPT_DIR/.env.deploy" "$SCRIPT_DIR/.env"
 for arg in "$@"; do
     if [[ "$arg" =~ ^[A-Za-z_][A-Za-z0-9_]*= ]]; then
         key="${arg%%=*}"
         value="${arg#*=}"
-        grep -v "^$key=" .env > .env.tmp && mv .env.tmp .env
-        echo "$key=$value" >> .env
+        grep -v "^$key=" "$SCRIPT_DIR/.env" > "$SCRIPT_DIR/.env.tmp" && mv "$SCRIPT_DIR/.env.tmp" "$SCRIPT_DIR/.env"
+        echo "$key=$value" >> "$SCRIPT_DIR/.env"
     fi
 done
 
 # 5. Ensure resources/views exists with a real Blade placeholder for Laravel
 step 5 "Ensuring resources/views exists with placeholder"
-mkdir -p ../resources/views
-if [ ! -f ../resources/views/placeholder.blade.php ]; then
-  echo "{{-- Placeholder view to satisfy Laravel --}}" > ../resources/views/placeholder.blade.php
+mkdir -p "$REPO_ROOT/resources/views"
+if [ ! -f "$REPO_ROOT/resources/views/placeholder.blade.php" ]; then
+  echo "{{-- Placeholder view to satisfy Laravel --}}" > "$REPO_ROOT/resources/views/placeholder.blade.php"
 fi
 
 # 6. Check Node.js version before build
 step 6 "Checking Node.js version"
-NODE_VERSION=$(node -v | sed 's/v//;s/\..*//')
+
+# Check if nvm is installed
+if ! command -v nvm &> /dev/null; then
+  echo "nvm not found, attempting to source from common locations..."
+  
+  # Try to source nvm from common locations
+  if [ -s "$HOME/.nvm/nvm.sh" ]; then
+    . "$HOME/.nvm/nvm.sh"
+  elif [ -s "$NVM_DIR/nvm.sh" ]; then
+    . "$NVM_DIR/nvm.sh"
+  elif [ -s "/usr/local/opt/nvm/nvm.sh" ]; then
+    . "/usr/local/opt/nvm/nvm.sh"
+  fi
+  
+  # Check again after sourcing
+  if ! command -v nvm &> /dev/null; then
+    echo "Installing nvm..."
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+    
+    # Source nvm after installation
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  fi
+fi
+
+# Check Node.js version
+NODE_VERSION=$(node -v 2>/dev/null | sed 's/v//;s/\..*//' || echo "0")
 if [ "$NODE_VERSION" -lt 18 ]; then
-  fail "Node.js >= 18 is required for frontend build. Current: $(node -v)"
-  exit 1
+  echo "Node.js >= 18 is required. Current: $(node -v 2>/dev/null || echo 'not installed')"
+  
+  if command -v nvm &> /dev/null; then
+    echo "Attempting to switch to Node.js LTS using nvm..."
+    nvm install --lts
+    nvm use --lts
+    
+    # Check version again after nvm use
+    NODE_VERSION=$(node -v | sed 's/v//;s/\..*//')
+    if [ "$NODE_VERSION" -lt 18 ]; then
+      fail "Failed to switch to Node.js >= 18 using nvm. Please install Node.js >= 18 manually."
+      exit 1
+    else
+      echo "Successfully switched to Node.js $(node -v) using nvm."
+    fi
+  else
+    fail "nvm is not available after installation attempt. Please install Node.js >= 18 manually."
+    exit 1
+  fi
 fi
 
 # 7. Build frontend locally and zip assets
 step 7 "Building frontend locally"
-cd .. && npm ci && npm run build
+cd "$REPO_ROOT" && npm ci && npm run build
 BUILD_STATUS=$?
-cd deploy
+cd "$SCRIPT_DIR"
 if [ $BUILD_STATUS -ne 0 ]; then
   fail "Frontend build failed. Aborting deploy."
   exit 1
 fi
-zip -r public-build.zip ../public/build > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-  ZIP_SIZE=$(du -h public-build.zip | cut -f1)
-  success "public-build.zip created successfully ($ZIP_SIZE)"
-else
-  fail "Failed to create public-build.zip. Aborting deploy."
-  exit 1
-fi
+rm -f "$SCRIPT_DIR/public-build.zip"
+(cd "$REPO_ROOT/public" && zip -r "$SCRIPT_DIR/public-build.zip" build > /dev/null 2>&1)
 
 # 8. Clone or update repo on server
 step 8 "Cloning or updating repository on server"
@@ -239,22 +280,28 @@ fi"
 
 # 10. Upload local build assets
 step 10 "Uploading built frontend assets"
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" public-build.zip "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/public-build.zip"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/public-build.zip" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/public-build.zip"
+execute_ssh "ls -lh $APP_DIR/public-build.zip && echo '[DEBUG] Uploaded public-build.zip to: $APP_DIR/public-build.zip'"
 
 # 11. Install unzip on server if needed
 step 11 "Installing unzip on server if needed"
 execute_ssh "sudo apt-get update && sudo apt-get install -y unzip"
 
-# 12. Extract on server
-step 12 "Extracting frontend assets on server"
-execute_ssh "unzip -o $APP_DIR/public-build.zip -d $APP_DIR/public/ > /dev/null 2>&1 && du -sh $APP_DIR/public-build.zip || (echo 'Failed to unzip public-build.zip on server.' && exit 1)"
+# 12. Upload public build zip
+step 12 "Uploading public build zip"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/public-build.zip" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/public-build.zip"
 
-# 13. Copy .env file
-step 13 "Copying .env file"
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" .env "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/.env"
+# 13. Set up docker env on the server & start containers
+step 13 "Setting up docker environment on server & starting containers"
+execute_ssh "mkdir -p $APP_DIR/docker $APP_DIR/bootstrap/cache $APP_DIR/storage $APP_DIR/storage/logs $APP_DIR/storage/framework/sessions $APP_DIR/storage/framework/views $APP_DIR/storage/framework/cache"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/docker-compose.yml" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/docker-compose.yml"
 
-# 14. Generate SSL cert and key on the server if not present
-step 14 "Ensuring SSL certificate and key exist on server"
+# 14. Copy .env file
+step 14 "Copying .env file"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/.env" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/.env"
+
+# 15. Generate SSL cert and key on the server if not present
+step 15 "Ensuring SSL certificate and key exist on server"
 SSL_PATH="/etc/nginx/ssl"
 SSL_CRT="$SSL_PATH/harun.dev.crt"
 SSL_KEY="$SSL_PATH/harun.dev.key"
@@ -266,37 +313,24 @@ execute_ssh "sudo mkdir -p $SSL_PATH && \
     sudo chmod 600 $SSL_CRT $SSL_KEY && sudo chown root:root $SSL_CRT $SSL_KEY; \
   fi"
 
-# 15. Ensure required Laravel cache and storage directories exist and are writable by www-data
-step 15 "Ensuring Laravel cache and storage directories exist and are writable"
+# 16. Ensure required Laravel cache and storage directories exist and are writable by www-data
+step 16 "Ensuring Laravel cache and storage directories exist and are writable"
 execute_ssh "cd $APP_DIR && \
   mkdir -p storage/framework/views storage/framework/cache storage/logs bootstrap/cache && \
   sudo chown -R www-data:www-data storage bootstrap/cache && \
   sudo chmod -R 775 storage bootstrap/cache"
 
-# After docker-compose up -d, before any exec commands:
-step 16 "Bringing up containers with docker-compose"
-execute_ssh "cd $APP_DIR && docker-compose -f docker/docker-compose.yml up -d"
-wait_for_app_container || fail "App container did not start in time. Aborting deploy." && exit 1
-
-# Now proceed with exec commands for wait-for-db.sh, etc.
-step 17 "Ensuring wait-for-db.sh is executable in the container"
-execute_ssh "cd $APP_DIR && docker-compose -f docker/docker-compose.yml exec -T app chmod +x ./wait-for-db.sh"
-
-step 18 "Waiting for the database to be ready inside the app container"
-execute_ssh "cd $APP_DIR && docker-compose -f docker/docker-compose.yml exec -T app ./wait-for-db.sh db 5432 60"
-
-# 19. Ensure correct permissions on host before up
-step 19 "Ensuring correct permissions on host before up"
-sudo chown -R 82:82 storage bootstrap/cache
-sudo chmod -R 775 storage bootstrap/cache
-
-# 20. Execute deployment commands
-step 20 "Executing deployment commands"
+# 17. Execute deployment commands
+step 17 "Executing deployment commands"
 execute_ssh "cd $APP_DIR && \
     docker-compose -f docker/docker-compose.yml down && \
     docker-compose -f docker/docker-compose.yml build --no-cache && \
     docker-compose -f docker/docker-compose.yml up -d && \
-    docker-compose -f docker/docker-compose.yml exec -T app php artisan key:generate --force && \
+    touch .env && chmod 666 .env && \
+    docker-compose -f docker/docker-compose.yml ps | grep app && \
+    APP_KEY=\$(docker-compose -f docker/docker-compose.yml exec -T app php artisan key:generate --show) && \
+    echo \"Found APP_KEY: \$APP_KEY\" && \
+    grep -q \"^APP_KEY=\" .env && sed -i \"s|^APP_KEY=.*|\$APP_KEY|\" .env || echo \"\$APP_KEY\" >> .env && \
     docker-compose -f docker/docker-compose.yml exec -T app php artisan config:cache && \
     docker-compose -f docker/docker-compose.yml exec -T app php artisan route:cache && \
     docker-compose -f docker/docker-compose.yml exec -T app php artisan view:cache && \
@@ -305,7 +339,22 @@ execute_ssh "cd $APP_DIR && \
     docker-compose -f docker/docker-compose.yml exec -T app chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
     docker-compose -f docker/docker-compose.yml exec -T app chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache"
 
+# 18. Check app container status
+step 18 "Checking app container status"
+if ! wait_for_app_container; then
+  fail "App container did not start in time. Aborting deploy."
+  exit 1
+fi
+
+# 19. Ensure wait-for-db.sh is executable in the container
+step 19 "Ensuring wait-for-db.sh is executable in the container"
+execute_ssh "cd $APP_DIR && docker-compose -f docker/docker-compose.yml exec -T app chmod +x ./wait-for-db.sh"
+
+# 20. Wait for the database to be ready
+step 20 "Waiting for the database to be ready inside the app container"
+execute_ssh "cd $APP_DIR && docker-compose -f docker/docker-compose.yml exec -T app ./wait-for-db.sh db 5432 60"
+
 success "Deployment completed!"
 
-# At the very end of the script, before exit:
+# 21. Print total time and summary
 print_total_time
