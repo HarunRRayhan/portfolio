@@ -49,3 +49,13 @@ variable "db_password" {
   type        = string
   sensitive   = true
 }
+
+variable "r2_bucket_name" {
+  description = "Name of the Cloudflare R2 bucket to use"
+  type        = string
+}
+
+variable "cloudflare_account_id" {
+  description = "Cloudflare Account ID for R2 bucket binding (if needed)"
+  type        = string
+}

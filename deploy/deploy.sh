@@ -251,24 +251,46 @@ if [ "$NODE_VERSION" -lt 18 ]; then
   fi
 fi
 
-# 7. Build frontend locally and zip assets
+# 7. Build frontend locally
 step 7 "Building frontend locally"
-cd "$REPO_ROOT" && npm ci && npm run build
+cd "$REPO_ROOT"
+
+# Empty out public/build/assets if it exists
+if [ -d "public/build/assets" ]; then
+  echo "[INFO] Emptying public/build/assets before build..."
+  rm -rf public/build/assets/*
+fi
+
+npm ci && npm run build
 BUILD_STATUS=$?
 cd "$SCRIPT_DIR"
 if [ $BUILD_STATUS -ne 0 ]; then
   fail "Frontend build failed. Aborting deploy."
   exit 1
 fi
-rm -f "$SCRIPT_DIR/public-build.zip"
-(cd "$REPO_ROOT/public" && zip -r "$SCRIPT_DIR/public-build.zip" build > /dev/null 2>&1)
 
-# 8. Clone or update repo on server
-step 8 "Cloning or updating repository on server"
+# 8. Upload static assets to Cloudflare R2
+step 8 "Uploading static assets to Cloudflare R2"
+if [ -z "$R2_BUCKET_NAME" ] || [ -z "$R2_S3_ENDPOINT" ] || [ -z "$R2_ACCESS_KEY_ID" ] || [ -z "$R2_SECRET_ACCESS_KEY" ]; then
+  fail "R2_BUCKET_NAME, R2_S3_ENDPOINT, R2_ACCESS_KEY_ID, or R2_SECRET_ACCESS_KEY not set. Aborting."
+  exit 1
+fi
+
+export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
+export AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
+
+aws s3 sync "$REPO_ROOT/public/build" "s3://$R2_BUCKET_NAME/build" --endpoint-url "$R2_S3_ENDPOINT" --delete
+aws s3 sync "$REPO_ROOT/public/fonts" "s3://$R2_BUCKET_NAME/fonts" --endpoint-url "$R2_S3_ENDPOINT" --delete
+aws s3 sync "$REPO_ROOT/public/images" "s3://$R2_BUCKET_NAME/images" --endpoint-url "$R2_S3_ENDPOINT" --delete
+
+success "Static assets uploaded to Cloudflare R2."
+
+# 9. Clone or update repo on server
+step 9 "Cloning or updating repository on server"
 clone_or_update_repo
 
-# 9. Ensure host storage directory has correct structure and permissions (after clone)
-step 9 "Ensuring host storage directory structure and permissions"
+# 10. Ensure host storage directory has correct structure and permissions (after clone)
+step 10 "Ensuring host storage directory structure and permissions"
 HOST_STORAGE_DIR="/opt/portfolio/storage"
 execute_ssh "if [ -d '$HOST_STORAGE_DIR' ]; then \
   mkdir -p '$HOST_STORAGE_DIR/framework/views' '$HOST_STORAGE_DIR/framework/cache' '$HOST_STORAGE_DIR/logs'; \
@@ -278,31 +300,36 @@ else \
   echo '[WARN] Host storage directory $HOST_STORAGE_DIR does not exist!'; \
 fi"
 
-# 10. Upload local build assets
-step 10 "Uploading built frontend assets"
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/public-build.zip" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/public-build.zip"
-execute_ssh "ls -lh $APP_DIR/public-build.zip && echo '[DEBUG] Uploaded public-build.zip to: $APP_DIR/public-build.zip'"
+# 11. Upload remaining public files to server (excluding build, fonts, images)
+step 11 "Uploading remaining public files to server"
+# Only upload files in public/ that are not in build, fonts, images
+tmp_sync_dir="$SCRIPT_DIR/public-server-sync"
+rm -rf "$tmp_sync_dir"
+mkdir -p "$tmp_sync_dir"
+cd "$REPO_ROOT/public"
+find . -maxdepth 1 -type f -exec cp {} "$tmp_sync_dir/" \;
+# Always include manifest.json if it exists in build
+test -f "$REPO_ROOT/public/build/manifest.json" && cp "$REPO_ROOT/public/build/manifest.json" "$tmp_sync_dir/"
+cd "$SCRIPT_DIR"
+tar czf public-server-files.tar.gz -C "$tmp_sync_dir" .
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" public-server-files.tar.gz "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/public-server-files.tar.gz"
+execute_ssh "mkdir -p $APP_DIR/public && tar xzf $APP_DIR/public-server-files.tar.gz -C $APP_DIR/public && rm $APP_DIR/public-server-files.tar.gz"
+rm -rf "$tmp_sync_dir" public-server-files.tar.gz
 
-# 11. Install unzip on server if needed
-step 11 "Installing unzip on server if needed"
-execute_ssh "sudo apt-get update && sudo apt-get install -y unzip"
+success "Remaining public files uploaded to server."
 
-# 12. Extract frontend assets
-step 12 "Extracting frontend assets from zip file"
-execute_ssh "mkdir -p $APP_DIR/public && cd $APP_DIR && unzip -o public-build.zip -d public && ls -la public/build && echo '[DEBUG] Extracted frontend assets to public/build'"
-
-# 13. Set up docker env on the server & start containers
-step 13 "Setting up docker environment on server & starting containers"
+# 12. Set up docker env on the server & start containers
+step 12 "Setting up docker environment on server & starting containers"
 execute_ssh "mkdir -p $APP_DIR/docker $APP_DIR/bootstrap/cache $APP_DIR/storage $APP_DIR/storage/logs $APP_DIR/storage/framework/sessions $APP_DIR/storage/framework/views $APP_DIR/storage/framework/cache"
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/docker/docker-compose.yml" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/docker-compose.yml"
 
-# 14. Copy .env file
-step 14 "Copying .env file"
+# 13. Copy .env file
+step 13 "Copying .env file"
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/.env" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/.env"
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/.env" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/.env"
 
-# 15. Generate SSL cert and key on the server if not present
-step 15 "Ensuring SSL certificate and key exist on server"
+# 14. Generate SSL cert and key on the server if not present
+step 14 "Ensuring SSL certificate and key exist on server"
 SSL_PATH="/etc/nginx/ssl"
 SSL_CRT="$SSL_PATH/harun.dev.crt"
 SSL_KEY="$SSL_PATH/harun.dev.key"
@@ -314,15 +341,15 @@ execute_ssh "sudo mkdir -p $SSL_PATH && \
     sudo chmod 600 $SSL_CRT $SSL_KEY && sudo chown root:root $SSL_CRT $SSL_KEY; \
   fi"
 
-# 16. Ensure required Laravel cache and storage directories exist and are writable by www-data
-step 16 "Ensuring Laravel cache and storage directories exist and are writable"
+# 15. Ensure required Laravel cache and storage directories exist and are writable by www-data
+step 15 "Ensuring Laravel cache and storage directories exist and are writable"
 execute_ssh "cd $APP_DIR && \
   mkdir -p storage/framework/views storage/framework/cache storage/logs bootstrap/cache && \
   sudo chown -R www-data:www-data storage bootstrap/cache && \
   sudo chmod -R 775 storage bootstrap/cache"
 
-# 17. Execute deployment commands
-step 17 "Executing deployment commands"
+# 16. Execute deployment commands
+step 16 "Executing deployment commands"
 # The app container will wait for the db container to be healthy due to 'depends_on' and healthcheck in docker-compose.yml
 execute_ssh "cd $APP_DIR && \
     docker-compose -f ./docker/docker-compose.yml down && \
@@ -341,29 +368,29 @@ execute_ssh "cd $APP_DIR && \
     docker-compose -f ./docker/docker-compose.yml exec -T app chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
     docker-compose -f ./docker/docker-compose.yml exec -T app chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache"
 
-# 18. Check app container status
-step 18 "Checking app container status"
+# 17. Check app container status
+step 17 "Checking app container status"
 if ! wait_for_app_container; then
   fail "App container did not start in time. Aborting deploy."
   exit 1
 fi
 
-# 19. Ensure wait-for-db.sh is executable in the container
-step 19 "Ensuring wait-for-db.sh is executable in the container"
+# 18. Ensure wait-for-db.sh is executable in the container
+step 18 "Ensuring wait-for-db.sh is executable in the container"
 execute_ssh "cd $APP_DIR && docker-compose -f ./docker/docker-compose.yml exec -T app chmod +x ./wait-for-db.sh"
 
-# 20. Wait for the database to be ready
-step 20 "Waiting for the database to be ready inside the app container"
+# 19. Wait for the database to be ready
+step 19 "Waiting for the database to be ready inside the app container"
 execute_ssh "cd $APP_DIR && docker-compose -f ./docker/docker-compose.yml exec -T app ./wait-for-db.sh db 5432 60"
 
-# 21 Test DB connection from app container
-step 21 "Testing database connection from app container"
+# 20 Test DB connection from app container
+step 20 "Testing database connection from app container"
 execute_ssh "cd $APP_DIR && docker-compose -f ./docker/docker-compose.yml exec -T app php artisan migrate:status"
 
 success "Deployment completed!"
 
-# 22. Purge CDN Cache (Cloudflare)
-step 22 "Purging CDN Cache (Cloudflare)"
+# 21. Purge CDN Cache (Cloudflare)
+step 21 "Purging CDN Cache (Cloudflare)"
 if [ -z "$CLOUDFLARE_ZONE_ID" ] || [ -z "$CLOUDFLARE_API_TOKEN" ]; then
   echo "Skipping Cloudflare CDN purge - missing CLOUDFLARE_ZONE_ID or CLOUDFLARE_API_TOKEN"
   echo "To enable Cloudflare cache purging, add the following to your .env.deploy file:"
