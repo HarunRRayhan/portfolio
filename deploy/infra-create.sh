@@ -79,24 +79,6 @@ update_portfolio_key() {
     chmod 600 "$SCRIPT_DIR/portfolio-key.pem"
 }
 
-update_env_lightsail_bucket() {
-    local bucket_name="$1"
-    if grep -q '^LIGHTSAIL_BUCKET_NAME=' "$SCRIPT_DIR/.env.deploy"; then
-        sed -i '' "s|^LIGHTSAIL_BUCKET_NAME=.*|LIGHTSAIL_BUCKET_NAME=$bucket_name|" "$SCRIPT_DIR/.env.deploy"
-    else
-        echo "LIGHTSAIL_BUCKET_NAME=$bucket_name" >> "$SCRIPT_DIR/.env.deploy"
-    fi
-}
-
-update_env_lightsail_endpoint() {
-    local endpoint="$1"
-    if grep -q '^LIGHTSAIL_BUCKET_ENDPOINT=' "$SCRIPT_DIR/.env.deploy"; then
-        sed -i '' "s|^LIGHTSAIL_BUCKET_ENDPOINT=.*|LIGHTSAIL_BUCKET_ENDPOINT=$endpoint|" "$SCRIPT_DIR/.env.deploy"
-    else
-        echo "LIGHTSAIL_BUCKET_ENDPOINT=$endpoint" >> "$SCRIPT_DIR/.env.deploy"
-    fi
-}
-
 update_env_asset_urls() {
     local vite_url="$1"
     local asset_url="$2"
@@ -160,18 +142,14 @@ step 2 "Extracting Terraform outputs"
 terraform output -json > "$SCRIPT_DIR/terraform-outputs.json"
 PUBLIC_IP=$(jq -r '.public_ip.value' "$SCRIPT_DIR/terraform-outputs.json")
 PRIVATE_KEY=$(jq -r '.private_key.value' "$SCRIPT_DIR/terraform-outputs.json")
-LIGHTSAIL_BUCKET_NAME=$(jq -r '.lightsail_bucket_name.value' "$SCRIPT_DIR/terraform-outputs.json")
-LIGHTSAIL_BUCKET_ENDPOINT=$(jq -r '.lightsail_bucket_endpoint.value' "$SCRIPT_DIR/terraform-outputs.json")
 VITE_ASSET_BASE_URL=$(jq -r '.vite_asset_base_url.value' "$SCRIPT_DIR/terraform-outputs.json")
 ASSET_URL=$(jq -r '.asset_url.value' "$SCRIPT_DIR/terraform-outputs.json")
-success "Extracted outputs: PUBLIC_IP=$PUBLIC_IP, LIGHTSAIL_BUCKET_NAME=$LIGHTSAIL_BUCKET_NAME, LIGHTSAIL_BUCKET_ENDPOINT=$LIGHTSAIL_BUCKET_ENDPOINT, VITE_ASSET_BASE_URL=$VITE_ASSET_BASE_URL, ASSET_URL=$ASSET_URL"
+success "Extracted outputs: PUBLIC_IP=$PUBLIC_IP, VITE_ASSET_BASE_URL=$VITE_ASSET_BASE_URL, ASSET_URL=$ASSET_URL"
 cd "$SCRIPT_DIR"
 
 # 3. Update .env.deploy
-step 3 "Updating .env.deploy with new PUBLIC_IP, Lightsail bucket, and endpoint"
+step 3 "Updating .env.deploy with new PUBLIC_IP and asset URLs"
 update_env_deploy "$PUBLIC_IP"
-update_env_lightsail_bucket "$LIGHTSAIL_BUCKET_NAME"
-update_env_lightsail_endpoint "$LIGHTSAIL_BUCKET_ENDPOINT"
 update_env_asset_urls "$VITE_ASSET_BASE_URL" "$ASSET_URL"
 # Always ensure VITE_ASSET_BASE_URL and ASSET_URL are present in .env.deploy
 if grep -q '^VITE_ASSET_BASE_URL=' "$SCRIPT_DIR/.env.deploy"; then

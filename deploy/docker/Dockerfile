@@ -31,9 +31,10 @@ RUN apk add --no-cache postgresql-libs postgresql-dev libzip openssl \
 
 WORKDIR /var/www/html
 
-# Copy built assets and production files
-COPY public ./public
-COPY public/build ./public/build
+# Only copy manifest.json from public/build
+COPY public/build/manifest.json ./public/build/manifest.json
+
+# Copy other necessary files
 COPY composer.json ./
 COPY --from=builder /app/vendor ./vendor
 COPY --from=builder /app/app ./app

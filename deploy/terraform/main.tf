@@ -102,3 +102,11 @@ resource "cloudflare_record" "cdn_cname" {
   proxied = true
 }
 
+resource "cloudflare_record" "root_a" {
+  zone_id = var.cloudflare_zone_id
+  name    = "@"
+  type    = "A"
+  value   = aws_lightsail_static_ip.portfolio.ip_address
+  proxied = true
+}
+

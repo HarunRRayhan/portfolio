@@ -350,7 +350,6 @@ execute_ssh "cd $APP_DIR && \
 
 # 16. Execute deployment commands
 step 16 "Executing deployment commands"
-# The app container will wait for the db container to be healthy due to 'depends_on' and healthcheck in docker-compose.yml
 execute_ssh "cd $APP_DIR && \
     docker-compose -f ./docker/docker-compose.yml down && \
     docker-compose -f ./docker/docker-compose.yml build --no-cache && \
@@ -359,7 +358,7 @@ execute_ssh "cd $APP_DIR && \
     docker-compose -f ./docker/docker-compose.yml ps | grep app && \
     APP_KEY=\$(docker-compose -f ./docker/docker-compose.yml exec -T app php artisan key:generate --show) && \
     echo \"Found APP_KEY: \$APP_KEY\" && \
-    grep -q \"^APP_KEY=\" .env && sed -i \"s|^APP_KEY=.*|\$APP_KEY|\" .env || echo \"\$APP_KEY\" >> .env && \
+    grep -q \"^APP_KEY=\" .env && sed -i \"s|^APP_KEY=.*|$APP_KEY|\" .env || echo \"\$APP_KEY\" >> .env && \
     docker-compose -f ./docker/docker-compose.yml exec -T app php artisan config:cache && \
     docker-compose -f ./docker/docker-compose.yml exec -T app php artisan route:cache && \
     docker-compose -f ./docker/docker-compose.yml exec -T app php artisan view:cache && \
