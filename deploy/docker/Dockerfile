@@ -34,6 +34,12 @@ WORKDIR /var/www/html
 # Only copy manifest.json from public/build
 COPY public/build/manifest.json ./public/build/manifest.json
 
+# Copy all other public files except build, fonts, images
+COPY public/*.php ./public/
+COPY public/*.txt ./public/
+COPY public/*.ico ./public/
+COPY public/.htaccess ./public/
+
 # Copy other necessary files
 COPY composer.json ./
 COPY --from=builder /app/vendor ./vendor
