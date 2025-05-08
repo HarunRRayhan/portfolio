@@ -289,6 +289,9 @@ success "Static assets uploaded to Cloudflare R2."
 step 9 "Cloning or updating repository on server"
 clone_or_update_repo
 
+# Check for required Docker context files after clone
+execute_ssh "if [ ! -f $APP_DIR/docker/Dockerfile ] || [ ! -f $APP_DIR/docker/wait-for-db.sh ]; then echo '[ERROR] Required Docker context files missing after git clone. Ensure docker/Dockerfile and docker/wait-for-db.sh are committed to the repo.' >&2; exit 1; fi"
+
 # 10. Ensure host storage directory has correct structure and permissions (after clone)
 step 10 "Ensuring host storage directory structure and permissions"
 HOST_STORAGE_DIR="/opt/portfolio/storage"
