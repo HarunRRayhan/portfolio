@@ -20,11 +20,11 @@ const technologies = [
   },
   {
     name: "Grafana",
-    logo: getImageUrl("/images/logos/tech/grafana_logo_swirl_fullcolor.svg"),
+    logo: getImageUrl("/images/logos/grafana_logo_swirl_fullcolor.svg"),
   },
   {
     name: "ELK Stack",
-    logo: getImageUrl("/images/logos/tech/logo-elastic-outlined-black.svg"),
+    logo: getImageUrl("/images/logos/logo-elastic-outlined-black.svg"),
   },
   {
     name: "Datadog",
@@ -40,7 +40,7 @@ const technologies = [
   },
   {
     name: "Nagios",
-    logo: getImageUrl("/images/logos/tech/Nagios-Logo.jpg"),
+    logo: getImageUrl("/images/logos/Nagios-Logo.jpg"),
   },
   {
     name: "Zabbix",
@@ -52,11 +52,11 @@ const technologies = [
   },
   {
     name: "Zipkin",
-    logo: getImageUrl("/images/logos/tech/zipkin-logo-200x119.jpg"),
+    logo: getImageUrl("/images/logos/zipkin-logo-200x119.jpg"),
   },
   {
     name: "AWS CloudWatch",
-    logo: getImageUrl("/images/logos/tech/AWS-CloudWatch_icon_64_Squid.4c65a3d318a1e2c52a77f4f60b336430c9d7294a.png"),
+    logo: getImageUrl("/images/logos/AWS-CloudWatch_icon_64_Squid.4c65a3d318a1e2c52a77f4f60b336430c9d7294a.png"),
   },
 ]
 

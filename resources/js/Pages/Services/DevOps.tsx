@@ -63,7 +63,7 @@ const technologies = [
   },
   {
     name: "Nagios",
-    logo: getImageUrl("/images/logos/tech/Nagios-Logo.jpg"),
+    logo: getImageUrl("/images/logos/Nagios-Logo.jpg"),
   },
   {
     name: "Splunk",
@@ -71,7 +71,7 @@ const technologies = [
   },
   {
     name: "ELK Stack",
-    logo: getImageUrl("/images/logos/tech/logo-elastic-outlined-black.svg"),
+    logo: getImageUrl("/images/logos/logo-elastic-outlined-black.svg"),
   },
 ]
 

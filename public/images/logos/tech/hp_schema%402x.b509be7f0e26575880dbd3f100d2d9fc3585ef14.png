@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+      <style>
+        .st0{fill:#0096D6;}
+        .st1{fill:#FFFFFF;}
+      </style>
+      <rect x="30" y="30" class="st0" width="140" height="140" rx="10" ry="10"/>
+      <text x="100" y="100" font-family="Arial, sans-serif" font-size="40" font-weight="bold" text-anchor="middle" fill="#FFFFFF">HP</text>
+      <text x="100" y="130" font-family="Arial, sans-serif" font-size="20" font-weight="normal" text-anchor="middle" fill="#FFFFFF">Schema</text>
+    </svg>

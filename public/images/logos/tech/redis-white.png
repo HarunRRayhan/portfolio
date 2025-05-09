@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+      <style>
+        .st0{fill:#A41E11;}
+        .st1{fill:#FFFFFF;}
+      </style>
+      <rect x="20" y="20" class="st0" width="160" height="160" rx="15" ry="15"/>
+      <path class="st1" d="M100,50l-40,20v60l40,20l40-20V70L100,50z M100,70l20,10l-20,10l-20-10L100,70z M70,100l20,10l-20,10V100z
+        M100,130l-20-10l20-10l20,10L100,130z M130,120l-20-10V90l20,10V120z"/>
+    </svg>

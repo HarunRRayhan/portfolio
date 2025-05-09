@@ -40,7 +40,7 @@ const technologies = [
   },
   {
     name: "Elasticsearch",
-    logo: getImageUrl("/images/logos/tech/logo-elastic-outlined-black.svg"),
+    logo: getImageUrl("/images/logos/logo-elastic-outlined-black.svg"),
   },
   {
     name: "Cassandra",

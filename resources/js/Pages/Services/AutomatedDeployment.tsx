@@ -28,7 +28,7 @@ const technologies = [
   },
   {
     name: "CircleCI",
-    logo: getImageUrl("/images/logos/tech/circleci-logo-stacked-fb-657e221fda1646a7e652c09c9fbfb2b0feb5d710089bb4d8e8c759d37a832694.png"),
+    logo: getImageUrl("/images/logos/circleci-logo-stacked-fb-657e221fda1646a7e652c09c9fbfb2b0feb5d710089bb4d8e8c759d37a832694.png"),
   },
   {
     name: "Travis CI",
@@ -36,7 +36,7 @@ const technologies = [
   },
   {
     name: "AWS CodePipeline",
-    logo: getImageUrl("/images/logos/tech/console_codepipeline_icon.0c5de384dc60b71dae9d780b0c572d5deb9e3f0a.png"),
+    logo: getImageUrl("/images/logos/console_codepipeline_icon.0c5de384dc60b71dae9d780b0c572d5deb9e3f0a.png"),
   },
   {
     name: "Azure DevOps",
