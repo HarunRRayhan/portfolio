@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import { Award, Users } from "lucide-react"
+import { getImageUrl } from "../lib/imageUtils"
 
 export function VolunteeringSection() {
   return (
@@ -31,7 +32,7 @@ export function VolunteeringSection() {
               <div className="flex items-start gap-8">
                 <div className="w-32 h-32 rounded-lg flex items-center justify-center flex-shrink-0">
                   <img
-                    src="/images/community/aws-community-builder.png"
+                    src={getImageUrl("/images/community/aws-community-builder.png")}
                     alt="AWS Community Builder"
                     className="w-32 h-32 object-contain"
                   />

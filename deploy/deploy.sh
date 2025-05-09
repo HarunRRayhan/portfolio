@@ -266,8 +266,25 @@ if [ -d "public/build/assets" ]; then
   rm -rf public/build/assets/*
 fi
 
+# Backup existing .env file if it exists
+if [ -f "$REPO_ROOT/.env" ]; then
+  echo "[INFO] Backing up existing .env file..."
+  cp "$REPO_ROOT/.env" "$REPO_ROOT/.env.backup"
+fi
+
+# Copy .env.appprod to .env for the build process
+cp "$SCRIPT_DIR/.env.appprod" "$REPO_ROOT/.env"
+
 npm ci && npm run build
 BUILD_STATUS=$?
+
+# Restore the original .env file if backup exists
+if [ -f "$REPO_ROOT/.env.backup" ]; then
+  echo "[INFO] Restoring original .env file..."
+  cp "$REPO_ROOT/.env.backup" "$REPO_ROOT/.env"
+  rm "$REPO_ROOT/.env.backup"
+fi
+
 cd "$SCRIPT_DIR"
 if [ $BUILD_STATUS -ne 0 ]; then
   fail "Frontend build failed. Aborting deploy."
