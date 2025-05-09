@@ -329,6 +329,9 @@ success "Remaining public files uploaded to server."
 # 12. Set up docker env on the server & start containers
 step 12 "Setting up docker environment on server & starting containers"
 execute_ssh "mkdir -p $APP_DIR/deploy/docker $APP_DIR/bootstrap/cache $APP_DIR/storage $APP_DIR/storage/logs $APP_DIR/storage/framework/sessions $APP_DIR/storage/framework/views $APP_DIR/storage/framework/cache"
+# Ensure nginx.conf is a file, not a directory
+execute_ssh "if [ -d $APP_DIR/deploy/docker/nginx.conf ]; then rm -rf $APP_DIR/deploy/docker/nginx.conf; fi"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/nginx.conf" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/docker/nginx.conf"
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/docker-compose.yml" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/docker/docker-compose.yml"
 
 # 13. Copy .env file
