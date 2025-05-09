@@ -78,7 +78,7 @@ resource "random_id" "bucket_suffix" {
 }
 
 # Cloudflare R2 CDN Worker
-resource "cloudflare_worker_script" "cdn_proxy" {
+resource "cloudflare_workers_script" "cdn_proxy" {
   name      = "cdn-harun-dev"
   account_id = var.cloudflare_account_id
   content   = file("${path.module}/cdn-proxy.js")
@@ -88,10 +88,10 @@ resource "cloudflare_worker_script" "cdn_proxy" {
   }
 }
 
-resource "cloudflare_worker_route" "cdn_route" {
+resource "cloudflare_workers_route" "cdn_route" {
   zone_id    = var.cloudflare_zone_id
   pattern    = "cdn.harun.dev/*"
-  script_name = cloudflare_worker_script.cdn_proxy.name
+  script_name = cloudflare_workers_script.cdn_proxy.name
 }
 
 resource "cloudflare_record" "cdn_cname" {
@@ -106,7 +106,7 @@ resource "cloudflare_record" "root_a" {
   zone_id = var.cloudflare_zone_id
   name    = "@"
   type    = "A"
-  value   = aws_lightsail_static_ip.portfolio.ip_address
+  content = aws_lightsail_static_ip.portfolio.ip_address
   proxied = true
 }
 
