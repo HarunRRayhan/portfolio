@@ -11,51 +11,52 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 import { InfiniteScrollTech } from "@/Components/InfiniteScrollTech"
+import { getImageUrl } from "@/lib/imageUtils"
 
 const technologies = [
   {
     name: "AWS Migration Hub",
-    logo: "https://d1.awsstatic.com/icons/aws-icons/AWS-Migration-Hub_icon_64_squid.3cea7d6a3d2c3c0c0d4bfb3c6d0e3e0e.png",
+    logo: getImageUrl("/images/logos/migration/aws-migration-hub.png"),
   },
   {
     name: "Azure Migrate",
-    logo: "https://azure.microsoft.com/svghandler/migrate/?width=300&height=300",
+    logo: getImageUrl("/images/logos/migration/azure-migrate.png"),
   },
   {
     name: "Google Cloud Migrate",
-    logo: "https://www.gstatic.com/devrel-devsite/prod/v2210075187f059b839246c2c03840474501c3c6024a99fb78f6293c1b4c0f664/cloud/images/cloud-logo.svg",
+    logo: getImageUrl("/images/logos/migration/gcp-logo.svg"),
   },
   {
     name: "VMware vSphere",
-    logo: "https://www.vmware.com/content/dam/digitalmarketing/vmware/en/images/company/vmware-logo-grey.svg",
+    logo: getImageUrl("/images/logos/migration/vmware-logo.svg"),
   },
   {
     name: "Terraform",
-    logo: "https://www.terraform.io/img/logo-hashicorp.svg",
+    logo: getImageUrl("/images/logos/migration/terraform-logo.svg"),
   },
   {
     name: "Ansible",
-    logo: "https://www.ansible.com/hubfs/2016_Images/Assets/Ansible-Mark-Large-RGB-Mango.png",
+    logo: getImageUrl("/images/logos/migration/ansible-logo.png"),
   },
   {
     name: "Docker",
-    logo: "https://www.docker.com/sites/default/files/d8/2019-07/vertical-logo-monochromatic.png",
+    logo: getImageUrl("/images/logos/migration/docker-logo.png"),
   },
   {
     name: "Kubernetes",
-    logo: "https://kubernetes.io/images/favicon.png",
+    logo: getImageUrl("/images/logos/migration/kubernetes-logo.png"),
   },
   {
     name: "CloudEndure Migration",
-    logo: "https://d1.awsstatic.com/product-marketing/CloudEndure/CloudEndure_logo_light.3a2fddd4fb1aef9c41c14e0bd52de4ef4b9b15a7.png",
+    logo: getImageUrl("/images/logos/migration/cloudendure-logo.png"),
   },
   {
     name: "Carbonite Migrate",
-    logo: "https://www.carbonite.com/globalassets/images/logos/carbonite-logo-2020.svg",
+    logo: getImageUrl("/images/logos/migration/carbonite-logo.svg"),
   },
   {
     name: "Velostrata",
-    logo: "https://velostrata.com/wp-content/themes/velostrata/images/logo.png",
+    logo: getImageUrl("/images/logos/migration/velostrata-logo.png"),
   },
 ]
 

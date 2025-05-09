@@ -5,6 +5,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Button } from "@/Components/ui/button"
 import { MessageCircle } from "lucide-react"
 import { Link } from "@inertiajs/react"
+import { getImageUrl } from "../lib/imageUtils"
 
 const faqs = [
   {

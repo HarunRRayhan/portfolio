@@ -9,51 +9,52 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 import { InfiniteScrollTech } from "@/Components/InfiniteScrollTech"
+import { getImageUrl } from "@/lib/imageUtils"
 
 const technologies = [
   {
     name: "Amazon EC2",
-    logo: "https://d1.awsstatic.com/icons/jp/console_ec2_icon.64795d08c5e23e92c12fe08c2dd5bd99255af047.png",
+    logo: getImageUrl("/images/logos/aws/ec2-icon.png"),
   },
   {
     name: "Amazon S3",
-    logo: "https://d1.awsstatic.com/icons/jp/console_s3_icon.3230f0d3f9b7d9d0ed0c40aa9f2c9a73d2f75f58.png",
+    logo: getImageUrl("/images/logos/aws/s3-icon.png"),
   },
   {
     name: "Amazon RDS",
-    logo: "https://d1.awsstatic.com/icons/jp/console_rds_icon.a2ca6f2d69b4a1a5ebea4e7af26e7efe7d37d8c3.png",
+    logo: getImageUrl("/images/logos/aws/rds-icon.png"),
   },
   {
     name: "Amazon Lambda",
-    logo: "https://d1.awsstatic.com/icons/jp/console_lambda_icon.c2f9445286e6d03cb6e6c22d51d2f0a472f3b53c.png",
+    logo: getImageUrl("/images/logos/aws/lambda-icon.png"),
   },
   {
     name: "Amazon VPC",
-    logo: "https://d1.awsstatic.com/icons/jp/console_vpc_icon.d7d5a1df5d71901a3b1a36ce01b5b8c6e1d1e4df.png",
+    logo: getImageUrl("/images/logos/aws/vpc-icon.png"),
   },
   {
     name: "Amazon CloudFront",
-    logo: "https://d1.awsstatic.com/icons/jp/console_cloudfront_icon.0d4509692ecd6adb0e4e8b4a4c26e1e0c57f8b52.png",
+    logo: getImageUrl("/images/logos/aws/cloudfront-icon.png"),
   },
   {
     name: "AWS IAM",
-    logo: "https://d1.awsstatic.com/icons/jp/console_iam_icon.0ae0e0a6340dec68d2e4be79a7e9458d3d1c2c58.png",
+    logo: getImageUrl("/images/logos/aws/iam-icon.png"),
   },
   {
     name: "Amazon ECS",
-    logo: "https://d1.awsstatic.com/icons/jp/ecs-ec2.5a2c0a9d10e01d70a1b0b2f0c7f7d1d9d9b9e9e9.png",
+    logo: getImageUrl("/images/logos/aws/ecs-icon.png"),
   },
   {
     name: "Amazon EKS",
-    logo: "https://d1.awsstatic.com/icons/jp/eks-ec2.5a2c0a9d10e01d70a1b0b2f0c7f7d1d9d9b9e9e9.png",
+    logo: getImageUrl("/images/logos/aws/eks-icon.png"),
   },
   {
     name: "AWS CloudFormation",
-    logo: "https://d1.awsstatic.com/icons/jp/console_cloudformation_icon.0d4509692ecd6adb0e4e8b4a4c26e1e0c57f8b52.png",
+    logo: getImageUrl("/images/logos/aws/cloudformation-icon.png"),
   },
   {
     name: "Amazon CloudWatch",
-    logo: "https://d1.awsstatic.com/icons/jp/console_cloudwatch_icon.0d4509692ecd6adb0e4e8b4a4c26e1e0c57f8b52.png",
+    logo: getImageUrl("/images/logos/aws/cloudwatch-icon.png"),
   },
 ]
 

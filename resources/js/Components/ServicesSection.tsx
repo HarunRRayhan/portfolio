@@ -5,6 +5,7 @@ import { motion } from "framer-motion"
 import { Link } from "@inertiajs/react"
 import { Cloud, Code2, Database, Globe, Lock, Server, Settings, Users, ArrowRight } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/Components/ui/card/index"
+import { getImageUrl } from "../lib/imageUtils"
 
 const services = [
   {

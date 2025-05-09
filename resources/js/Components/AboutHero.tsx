@@ -3,6 +3,7 @@
 import { motion } from "framer-motion"
 import { Button } from "@/Components/ui/button"
 import { FileDown } from "lucide-react"
+import { getImageUrl } from "../lib/imageUtils"
 
 export function AboutHero() {
   return (
@@ -44,7 +45,7 @@ export function AboutHero() {
           >
             <div className="relative mx-auto">
               <img
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/1724510563675-2-HGUREtjVmDqynr0x56IlMU0yIJtex3.jpeg"
+                src={getImageUrl("/images/profile/harun-profile.jpeg")}
                 alt="Harun R. Rayhan - Software Engineer and Cloud Architect"
                 className="w-80 h-80 rounded-full shadow-2xl border-4 border-white/20 object-cover"
                 loading="eager"

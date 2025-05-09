@@ -5,6 +5,7 @@ import {
     TransitionChild,
 } from '@headlessui/react';
 import { PropsWithChildren } from 'react';
+import { getImageUrl } from "../lib/imageUtils"
 
 export default function Modal({
     children,

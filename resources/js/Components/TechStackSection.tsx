@@ -2,68 +2,69 @@
 
 import {motion} from 'framer-motion'
 import {useEffect, useRef, useState} from 'react'
+import {getImageUrl} from '../lib/imageUtils'
 
 const technologies = [
     {
         name: 'Node.js',
-        logo: '/images/tech/nodejs.svg'
+        logo: getImageUrl("/images/tech/nodejs.svg")
     },
     {
         name: 'Linux',
-        logo: '/images/tech/linux.svg'
+        logo: getImageUrl("/images/tech/linux.svg")
     },
     {
         name: 'AWS',
-        logo: '/images/tech/aws.svg'
+        logo: getImageUrl("/images/tech/aws.svg")
     },
     {
         name: 'Terraform',
-        logo: '/images/tech/terraform.svg'
+        logo: getImageUrl("/images/tech/terraform.svg")
     },
     {
         name: 'Docker',
-        logo: '/images/tech/docker.png'
+        logo: getImageUrl("/images/tech/docker.png")
     },
     {
         name: 'Kubernetes',
-        logo: '/images/tech/kubernetes.svg'
+        logo: getImageUrl("/images/tech/kubernetes.svg")
     },
     {
         name: 'Jenkins',
-        logo: '/images/tech/jenkins.svg'
+        logo: getImageUrl("/images/tech/jenkins.svg")
     },
     {
         name: 'GitHub Actions',
-        logo: '/images/tech/github-actions.svg'
+        logo: getImageUrl("/images/tech/github-actions.svg")
     },
     {
         name: 'Laravel',
-        logo: '/images/tech/laravel.svg'
+        logo: getImageUrl("/images/tech/laravel.svg")
     },
     {
         name: 'Python',
-        logo: '/images/tech/python.svg'
+        logo: getImageUrl("/images/tech/python.svg")
     },
     {
         name: 'Go',
-        logo: '/images/tech/go.svg'
+        logo: getImageUrl("/images/tech/go.svg")
     },
     // Duplicate for infinite scroll
     {
         name: 'Node.js',
-        logo: '/images/tech/nodejs.svg'
+        logo: getImageUrl("/images/tech/nodejs.svg")
     },
     {
         name: 'Linux',
-        logo: '/images/tech/linux.svg'
+        logo: getImageUrl("/images/tech/linux.svg")
     },
     {
         name: 'AWS',
-        logo: '/images/tech/aws.svg'
+        logo: getImageUrl("/images/tech/aws.svg")
     },
     {
         name: 'Terraform',
-        logo: '/images/tech/terraform.svg'
+        logo: getImageUrl("/images/tech/terraform.svg")
     }
 ]
 
@@ -129,7 +130,7 @@ export function TechStackSection() {
                         >
                             <div className="flex flex-col items-center gap-2">
                                 <img
-                                    src={tech.logo}
+                                    src={getImageUrl(tech.logo)}
                                     alt={`${tech.name} logo`}
                                     className="w-16 h-16 object-contain"
                                 />

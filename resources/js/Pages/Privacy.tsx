@@ -4,6 +4,7 @@ import { Menubar } from '@/Components/Menubar'
 import { Footer } from '@/Components/Footer'
 import { Container } from '@/Components/ui/container'
 import { Shield } from 'lucide-react'
+import { getImageUrl } from "@/lib/imageUtils"
 
 export default function Privacy() {
   return (

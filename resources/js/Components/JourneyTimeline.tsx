@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import { Briefcase, GraduationCap } from "lucide-react"
+import { getImageUrl } from "../lib/imageUtils"
 
 const timelineEvents = [
   {

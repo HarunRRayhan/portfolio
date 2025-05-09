@@ -10,6 +10,7 @@ import { TechStackSection } from "@/Components/TechStackSection"
 import { ReviewSlideSection } from "@/Components/ReviewSlideSection"
 import { Footer } from "@/Components/Footer"
 import { ErrorBoundary } from "@/Components/ErrorBoundary"
+import { getImageUrl } from "@/lib/imageUtils"
 
 export default function Homepage() {
     return (

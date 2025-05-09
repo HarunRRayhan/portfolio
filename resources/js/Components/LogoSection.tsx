@@ -2,72 +2,73 @@
 
 import { motion } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
+import { getImageUrl } from "../lib/imageUtils"
 
 const companies = [
   {
     name: 'SocialHP Inc.',
-    logo: '/images/companies/socialhp.png'
+    logo: getImageUrl("/images/companies/socialhp.png")
   },
   {
     name: 'LOreal France',
-    logo: '/images/companies/loreal.svg'
+    logo: getImageUrl("/images/companies/loreal.svg")
   },
   {
     name: "Kiehl's",
-    logo: '/images/companies/kiehls.svg'
+    logo: getImageUrl("/images/companies/kiehls.svg")
   },
   {
     name: 'Samsung',
-    logo: '/images/companies/samsung.png'
+    logo: getImageUrl("/images/companies/samsung.png")
   },
   {
     name: 'Prudential',
-    logo: '/images/companies/prudential.jpg'
+    logo: getImageUrl("/images/companies/prudential.jpg")
   },
   {
     name: 'Lonza',
-    logo: '/images/companies/lonza.svg'
+    logo: getImageUrl("/images/companies/lonza.svg")
   },
   {
     name: 'Fleetcor',
-    logo: '/images/companies/fleetcor.png'
+    logo: getImageUrl("/images/companies/fleetcor.png")
   },
   {
     name: 'NCR',
-    logo: '/images/companies/ncr.svg'
+    logo: getImageUrl("/images/companies/ncr.svg")
   },
   // Duplicate for infinite scroll
   {
     name: 'SocialHP Inc.',
-    logo: '/images/companies/socialhp.png'
+    logo: getImageUrl("/images/companies/socialhp.png")
   },
   {
     name: 'LOreal France',
-    logo: '/images/companies/loreal.svg'
+    logo: getImageUrl("/images/companies/loreal.svg")
   },
   {
     name: "Kiehl's",
-    logo: '/images/companies/kiehls.svg'
+    logo: getImageUrl("/images/companies/kiehls.svg")
   },
   {
     name: 'Samsung',
-    logo: '/images/companies/samsung.png'
+    logo: getImageUrl("/images/companies/samsung.png")
   },
   {
     name: 'Prudential',
-    logo: '/images/companies/prudential.jpg'
+    logo: getImageUrl("/images/companies/prudential.jpg")
   },
   {
     name: 'Lonza',
-    logo: '/images/companies/lonza.svg'
+    logo: getImageUrl("/images/companies/lonza.svg")
   },
   {
     name: 'Fleetcor',
-    logo: '/images/companies/fleetcor.png'
+    logo: getImageUrl("/images/companies/fleetcor.png")
   },
   {
     name: 'NCR',
-    logo: '/images/companies/ncr.svg'
+    logo: getImageUrl("/images/companies/ncr.svg")
   }
 ] as Array<{ name: string; logo: string; className?: string }>
 

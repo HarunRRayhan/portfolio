@@ -21,24 +21,25 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 import { InfiniteScrollTech } from "@/Components/InfiniteScrollTech"
+import { getImageUrl } from "@/lib/imageUtils"
 
 const technologies = [
-  { name: "MySQL", logo: "https://www.mysql.com/common/logos/logo-mysql-170x115.png" },
-  { name: "PostgreSQL", logo: "https://www.postgresql.org/media/img/about/press/elephant.png" },
-  { name: "MongoDB", logo: "https://www.mongodb.com/assets/images/global/leaf.png" },
-  { name: "Oracle", logo: "https://www.oracle.com/a/ocom/img/rh03-oracle-logo.png" },
-  { name: "Microsoft SQL Server", logo: "https://www.microsoft.com/en-us/sql-server/img/sql-server-logo.png" },
+  { name: "MySQL", logo: getImageUrl("/images/logos/db/mysql-logo.png") },
+  { name: "PostgreSQL", logo: getImageUrl("/images/logos/db/postgresql-logo.png") },
+  { name: "MongoDB", logo: getImageUrl("/images/logos/db/mongodb-logo.png") },
+  { name: "Oracle", logo: getImageUrl("/images/logos/db/oracle-logo.png") },
+  { name: "Microsoft SQL Server", logo: getImageUrl("/images/logos/db/sqlserver-logo.png") },
   {
     name: "Amazon RDS",
-    logo: "https://d1.awsstatic.com/rdsImages/hp_schema%402x.b509be7f0e26575880dbd3f100d2d9fc3585ef14.png",
+    logo: getImageUrl("/images/logos/db/aws-rds-logo.png"),
   },
   {
     name: "Google Cloud SQL",
-    logo: "https://www.gstatic.com/devrel-devsite/prod/v2210075187f059b839246c2c03840474501c3c6024a99fb78f6293c1b4c0f664/cloud/images/cloud-logo.svg",
+    logo: getImageUrl("/images/logos/db/gcp-logo.svg"),
   },
   {
     name: "Azure SQL Database",
-    logo: "https://azurecomcdn.azureedge.net/cvt-fe62df23db878c43b28b61c1015349635dc17981d8a7e21e3958a2c0753e4957/svg/azure.svg",
+    logo: getImageUrl("/images/logos/db/azure-logo.svg"),
   },
 ]
 

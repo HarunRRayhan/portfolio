@@ -23,6 +23,7 @@ import { PageProps as InertiaPageProps } from '@inertiajs/core'
 import confetti from 'canvas-confetti';
 import { Envelope } from "@/Components/ui/envelope"
 import { AnimatePresence } from "framer-motion"
+import { getImageUrl } from "@/lib/imageUtils"
 
 const predefinedServices = [
     "Cloud Architecture & Migration",

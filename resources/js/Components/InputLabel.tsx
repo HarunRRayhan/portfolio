@@ -1,4 +1,5 @@
 import { LabelHTMLAttributes } from 'react';
+import { getImageUrl } from "../lib/imageUtils"
 
 export default function InputLabel({
     value,

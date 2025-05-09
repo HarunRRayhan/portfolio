@@ -12,6 +12,7 @@ import {
 import {motion} from 'framer-motion'
 import {ChevronLeft, ChevronRight, Star} from 'lucide-react'
 import useEmblaCarousel from 'embla-carousel-react'
+import {getImageUrl} from "../lib/imageUtils"
 
 const reviews = [
     {
@@ -20,7 +21,7 @@ const reviews = [
         author: "Alen B.",
         position: "CEO & Co-Founder, Social HP",
         rating: 5,
-        image: "/images/clients/alen.png",
+        image: getImageUrl("/images/clients/alen.png"),
         companyLogo: (
             <svg className="w-20 h-10" viewBox="0 0 100 30">
                 <text x="0" y="20" className="text-gray-400 font-bold text-sm">Social HP</text>
@@ -33,7 +34,7 @@ const reviews = [
         author: "Tyler P.",
         position: "CEO, SRM Inc.",
         rating: 5,
-        image: "https://api.dicebear.com/7.x/avataaars/svg?seed=TylerP",
+        image: getImageUrl("/images/avatars/tyler.svg"),
         companyLogo: (
             <svg className="w-20 h-10" viewBox="0 0 100 30">
                 <text x="0" y="20" className="text-gray-400 font-bold text-sm">SRM Inc.</text>
@@ -46,7 +47,7 @@ const reviews = [
         author: "Jason L.",
         position: "Founder at United Innovations Pty Ltd.",
         rating: 5,
-        image: "https://api.dicebear.com/7.x/avataaars/svg?seed=Jason",
+        image: getImageUrl("/images/avatars/jason.svg"),
         companyLogo: (
             <svg className="w-20 h-10" viewBox="0 0 100 30">
                 <text x="0" y="20" className="text-gray-400 font-bold text-sm">TechCorp</text>
@@ -59,7 +60,7 @@ const reviews = [
         author: "Joel G.",
         position: "CEO at Trinax SG",
         rating: 5,
-        image: "/images/clients/joel.jpeg",
+        image: getImageUrl("/images/clients/joel.jpeg"),
         companyLogo: (
             <svg className="w-20 h-10" viewBox="0 0 100 30">
                 <text x="0" y="20" className="text-gray-400 font-bold text-sm">Trinax SG</text>

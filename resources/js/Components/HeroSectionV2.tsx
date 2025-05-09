@@ -3,6 +3,7 @@ import { motion } from "framer-motion"
 import { Github, Linkedin, Twitter, ArrowRight, Mail } from 'lucide-react'
 import { Link } from '@inertiajs/react'
 import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { getImageUrl } from "../lib/imageUtils"
 
 interface Logo {
   name: string;
@@ -47,14 +48,14 @@ const phrases = [
 const LOGO_SIZE = 55;
 
 const logos: Logo[] = [
-  { name: 'AWS', image: 'https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg' },
-  { name: 'DevOps', image: 'https://cdn.worldvectorlogo.com/logos/devops-2.svg' },
-  { name: 'Terraform', image: 'https://www.vectorlogo.zone/logos/terraformio/terraformio-icon.svg' },
-  { name: 'GitHub', image: 'https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg' },
-  { name: 'Kubernetes', image: 'https://upload.wikimedia.org/wikipedia/commons/3/39/Kubernetes_logo_without_workmark.svg' },
-  { name: 'Docker', image: 'https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png' },
-  { name: 'Golang', image: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Go_Logo_Blue.svg' },
-  { name: 'Jenkins', image: 'https://upload.wikimedia.org/wikipedia/commons/e/e9/Jenkins_logo.svg' },
+  { name: 'AWS', image: getImageUrl('/images/logos/tech/aws-logo.svg') },
+  { name: 'DevOps', image: getImageUrl('/images/logos/tech/devops-logo.svg') },
+  { name: 'Terraform', image: getImageUrl('/images/logos/tech/terraform-logo.svg') },
+  { name: 'GitHub', image: getImageUrl('/images/logos/tech/github-logo.svg') },
+  { name: 'Kubernetes', image: getImageUrl('/images/logos/tech/kubernetes-logo.svg') },
+  { name: 'Docker', image: getImageUrl('/images/logos/tech/docker-logo.png') },
+  { name: 'Golang', image: getImageUrl('/images/logos/tech/golang-logo.svg') },
+  { name: 'Jenkins', image: getImageUrl('/images/logos/tech/jenkins-logo.svg') },
 ].map(logo => ({
   ...logo,
   scale: 1,

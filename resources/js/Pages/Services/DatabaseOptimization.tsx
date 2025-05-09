@@ -11,51 +11,52 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 import { InfiniteScrollTech } from "@/Components/InfiniteScrollTech"
+import { getImageUrl } from "@/lib/imageUtils"
 
 const technologies = [
   {
     name: "MySQL",
-    logo: "https://www.mysql.com/common/logos/logo-mysql-170x115.png",
+    logo: getImageUrl("/images/logos/tech/logo-mysql-170x115.png"),
   },
   {
     name: "PostgreSQL",
-    logo: "https://www.postgresql.org/media/img/about/press/elephant.png",
+    logo: getImageUrl("/images/logos/db/elephant.png"),
   },
   {
     name: "MongoDB",
-    logo: "https://www.mongodb.com/assets/images/global/leaf.png",
+    logo: getImageUrl("/images/logos/db/leaf.png"),
   },
   {
     name: "Oracle",
-    logo: "https://www.oracle.com/a/ocom/img/rh03-oracle-logo.png",
+    logo: getImageUrl("/images/logos/tech/rh03-oracle-logo.png"),
   },
   {
     name: "Microsoft SQL Server",
-    logo: "https://www.microsoft.com/en-us/sql-server/img/sql-server-logo.png",
+    logo: getImageUrl("/images/logos/db/sql-server-logo.png"),
   },
   {
     name: "Redis",
-    logo: "https://redis.io/images/redis-white.png",
+    logo: getImageUrl("/images/logos/tech/redis-white.png"),
   },
   {
     name: "Elasticsearch",
-    logo: "https://static-www.elastic.co/v3/assets/bltefdd0b53724fa2ce/blt36f2da8d650732a0/5d0823c3d8ff351753cbc99f/logo-elastic-outlined-black.svg",
+    logo: getImageUrl("/images/logos/tech/logo-elastic-outlined-black.svg"),
   },
   {
     name: "Cassandra",
-    logo: "https://cassandra.apache.org/_/img/cassandra_logo.svg",
+    logo: getImageUrl("/images/logos/tech/cassandra_logo.svg"),
   },
   {
     name: "Amazon RDS",
-    logo: "https://d1.awsstatic.com/rdsImages/hp_schema%402x.b509be7f0e26575880dbd3f100d2d9fc3585ef14.png",
+    logo: getImageUrl("/images/logos/tech/hp_schema%402x.b509be7f0e26575880dbd3f100d2d9fc3585ef14.png"),
   },
   {
     name: "Google Cloud SQL",
-    logo: "https://www.gstatic.com/devrel-devsite/prod/v2210075187f059b839246c2c03840474501c3c6024a99fb78f6293c1b4c0f664/cloud/images/cloud-logo.svg",
+    logo: getImageUrl("/images/logos/tech/cloud-logo.svg"),
   },
   {
     name: "Azure SQL Database",
-    logo: "https://azurecomcdn.azureedge.net/cvt-fe62df23db878c43b28b61c1015349635dc17981d8a7e21e3958a2c0753e4957/svg/azure.svg",
+    logo: getImageUrl("/images/logos/cloud/azure.svg"),
   },
 ]
 

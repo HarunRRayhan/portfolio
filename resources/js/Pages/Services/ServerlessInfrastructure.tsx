@@ -11,51 +11,52 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 import { InfiniteScrollTech } from "@/Components/InfiniteScrollTech"
+import { getImageUrl } from "@/lib/imageUtils"
 
 const technologies = [
   {
     name: "AWS Lambda",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/5/5c/Amazon_Lambda_architecture_logo.svg",
+    logo: getImageUrl("/images/logos/tech/Amazon_Lambda_architecture_logo.svg"),
   },
   {
     name: "AWS API Gateway",
-    logo: "/images/logos/api-gateway.png",
+    logo: getImageUrl("/images/logos/api-gateway.png"),
   },
   {
     name: "AWS DynamoDB",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/f/fd/DynamoDB.png",
+    logo: getImageUrl("/images/logos/tech/DynamoDB.png"),
   },
   {
     name: "AWS S3",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/b/bc/Amazon-S3-Logo.svg",
+    logo: getImageUrl("/images/logos/tech/Amazon-S3-Logo.svg"),
   },
   {
     name: "Azure Functions",
-    logo: "https://azure.microsoft.com/svghandler/functions/?width=300&height=300",
+    logo: getImageUrl("/images/logos/cloud/functions.png"),
   },
   {
     name: "Google Cloud Functions",
-    logo: "https://seeklogo.com/images/G/google-cloud-functions-logo-AECD57BFA2-seeklogo.com.png",
+    logo: getImageUrl("/images/logos/tech/google-cloud-functions-logo-AECD57BFA2-seeklogo.com.png"),
   },
   {
     name: "Vercel",
-    logo: "https://assets.vercel.com/image/upload/v1607554385/repositories/vercel/logo.png",
+    logo: getImageUrl("/images/logos/cloud/logo.png"),
   },
   {
     name: "Netlify",
-    logo: "https://www.netlify.com/v3/img/components/logomark.png",
+    logo: getImageUrl("/images/logos/cloud/logomark.png"),
   },
   {
     name: "CloudFlare Workers",
-    logo: "/images/logos/cloudflare-workers.svg",
+    logo: getImageUrl("/images/logos/cloudflare-workers.svg"),
   },
   {
     name: "AWS Step Functions",
-    logo: "/images/logos/step-functions.png",
+    logo: getImageUrl("/images/logos/step-functions.png"),
   },
   {
     name: "AWS EventBridge",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/3/3d/AWS_EventBridge_logo.svg",
+    logo: getImageUrl("/images/logos/tech/AWS_EventBridge_logo.svg"),
   },
 ]
 

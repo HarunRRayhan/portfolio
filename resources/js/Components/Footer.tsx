@@ -6,6 +6,7 @@ import { Button } from "@/Components/ui/button"
 import { Logo } from "@/Components/Logo"
 import { Link } from "@inertiajs/react"
 import { HandMetal, ArrowRight } from 'lucide-react'
+import { getImageUrl } from "../lib/imageUtils"
 
 export function Footer() {
   return (
