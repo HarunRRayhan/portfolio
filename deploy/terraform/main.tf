@@ -12,7 +12,7 @@ terraform {
 }
 
 provider "aws" {
-    region = var.aws_region
+    region     = var.aws_region
     access_key = var.aws_access_key
     secret_key = var.aws_secret_key
     # profile = "haruns-portfolio-hrwprod"
@@ -71,10 +71,42 @@ resource "aws_lightsail_instance_public_ports" "portfolio" {
 }
 
 # Cloudflare DNS record
-resource "cloudflare_record" "portfolio" {
-    zone_id = var.cloudflare_zone_id
-    name    = var.domain_name
-    value   = aws_lightsail_static_ip.portfolio.ip_address
-    type    = "A"
-    proxied = true
+# Removed cloudflare_record.portfolio resource to avoid DNS record conflict
+
+resource "random_id" "bucket_suffix" {
+    byte_length = 4 # 8 hex characters
 }
+
+# Cloudflare R2 CDN Worker
+resource "cloudflare_workers_script" "cdn_proxy" {
+  name      = "cdn-harun-dev"
+  account_id = var.cloudflare_account_id
+  content   = file("${path.module}/cdn-proxy.js")
+  r2_bucket_binding {
+    name        = "ASSETS_BUCKET"
+    bucket_name = var.r2_bucket_name
+  }
+}
+
+resource "cloudflare_workers_route" "cdn_route" {
+  zone_id    = var.cloudflare_zone_id
+  pattern    = "cdn.harun.dev/*"
+  script_name = cloudflare_workers_script.cdn_proxy.name
+}
+
+resource "cloudflare_record" "cdn_cname" {
+  zone_id = var.cloudflare_zone_id
+  name    = "cdn"
+  type    = "CNAME"
+  content = "workers.dev"
+  proxied = true
+}
+
+resource "cloudflare_record" "root_a" {
+  zone_id = var.cloudflare_zone_id
+  name    = "@"
+  type    = "A"
+  content = aws_lightsail_static_ip.portfolio.ip_address
+  proxied = true
+}
+

@@ -5,6 +5,7 @@ set -o pipefail
 
 # Get absolute path to script directory
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # Set up logging
 LOG_DIR="$SCRIPT_DIR/log"
@@ -78,6 +79,21 @@ update_portfolio_key() {
     chmod 600 "$SCRIPT_DIR/portfolio-key.pem"
 }
 
+update_env_asset_urls() {
+    local vite_url="$1"
+    local asset_url="$2"
+    if grep -q '^VITE_ASSET_BASE_URL=' "$SCRIPT_DIR/.env.deploy"; then
+        sed -i '' "s|^VITE_ASSET_BASE_URL=.*|VITE_ASSET_BASE_URL=$vite_url|" "$SCRIPT_DIR/.env.deploy"
+    else
+        echo "VITE_ASSET_BASE_URL=$vite_url" >> "$SCRIPT_DIR/.env.deploy"
+    fi
+    if grep -q '^ASSET_URL=' "$SCRIPT_DIR/.env.deploy"; then
+        sed -i '' "s|^ASSET_URL=.*|ASSET_URL=$asset_url|" "$SCRIPT_DIR/.env.deploy"
+    else
+        echo "ASSET_URL=$asset_url" >> "$SCRIPT_DIR/.env.deploy"
+    fi
+}
+
 wait_for_ssh() {
     local ip="$1"
     local key_file="$2"
@@ -91,23 +107,61 @@ wait_for_ssh() {
     echo -e "${GREEN}[INFO] SSH is now available.${NC}"
 }
 
+# Extract R2 and Cloudflare variables for Terraform
+R2_BUCKET_NAME=$(grep '^R2_BUCKET_NAME=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
+CLOUDFLARE_ACCOUNT_ID=$(grep '^CLOUDFLARE_ACCOUNT_ID=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
+CLOUDFLARE_ZONE_ID=$(grep '^CLOUDFLARE_ZONE_ID=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
+CLOUDFLARE_API_TOKEN=$(grep '^CLOUDFLARE_API_TOKEN=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
+
+echo "[DEBUG] R2_BUCKET_NAME: '$R2_BUCKET_NAME'"
+echo "[DEBUG] CLOUDFLARE_ACCOUNT_ID: '$CLOUDFLARE_ACCOUNT_ID'"
+echo "[DEBUG] CLOUDFLARE_ZONE_ID: '$CLOUDFLARE_ZONE_ID'"
+echo "[DEBUG] CLOUDFLARE_API_TOKEN: '$CLOUDFLARE_API_TOKEN'"
+
+if [ -z "$R2_BUCKET_NAME" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+  echo "[ERROR] R2_BUCKET_NAME or CLOUDFLARE_ACCOUNT_ID is empty. Check your .env.deploy file."
+  exit 1
+fi
+
 # 1. Start
 step 1 "Running terraform apply -auto-approve"
 cd "$SCRIPT_DIR/terraform"
-terraform apply -auto-approve
+echo "[DEBUG] Running: terraform apply -auto-approve -var=\"r2_bucket_name=$R2_BUCKET_NAME\" -var=\"cloudflare_account_id=$CLOUDFLARE_ACCOUNT_ID\""
+terraform apply -auto-approve \
+  -var="r2_bucket_name=$R2_BUCKET_NAME" \
+  -var="cloudflare_account_id=$CLOUDFLARE_ACCOUNT_ID"
+APPLY_STATUS=$?
+if [ $APPLY_STATUS -ne 0 ]; then
+  echo "[ERROR] Terraform apply failed with status $APPLY_STATUS" >&2
+  exit $APPLY_STATUS
+fi
 success "Terraform apply completed."
 
 # 2. Extract outputs
 step 2 "Extracting Terraform outputs"
-terraform output -json > ../terraform-outputs.json
+terraform output -json > "$SCRIPT_DIR/terraform-outputs.json"
+PUBLIC_IP=$(jq -r '.public_ip.value' "$SCRIPT_DIR/terraform-outputs.json")
+PRIVATE_KEY=$(jq -r '.private_key.value' "$SCRIPT_DIR/terraform-outputs.json")
+VITE_ASSET_BASE_URL=$(jq -r '.vite_asset_base_url.value' "$SCRIPT_DIR/terraform-outputs.json")
+ASSET_URL=$(jq -r '.asset_url.value' "$SCRIPT_DIR/terraform-outputs.json")
+success "Extracted outputs: PUBLIC_IP=$PUBLIC_IP, VITE_ASSET_BASE_URL=$VITE_ASSET_BASE_URL, ASSET_URL=$ASSET_URL"
 cd "$SCRIPT_DIR"
-PUBLIC_IP=$(jq -r '.public_ip.value' terraform-outputs.json)
-PRIVATE_KEY=$(jq -r '.private_key.value' terraform-outputs.json)
-success "Extracted outputs: PUBLIC_IP=$PUBLIC_IP"
 
 # 3. Update .env.deploy
-step 3 "Updating .env.deploy with new PUBLIC_IP"
+step 3 "Updating .env.deploy with new PUBLIC_IP and asset URLs"
 update_env_deploy "$PUBLIC_IP"
+update_env_asset_urls "$VITE_ASSET_BASE_URL" "$ASSET_URL"
+# Always ensure VITE_ASSET_BASE_URL and ASSET_URL are present in .env.deploy
+if grep -q '^VITE_ASSET_BASE_URL=' "$SCRIPT_DIR/.env.deploy"; then
+    sed -i '' "s|^VITE_ASSET_BASE_URL=.*|VITE_ASSET_BASE_URL=$VITE_ASSET_BASE_URL|" "$SCRIPT_DIR/.env.deploy"
+else
+    echo "VITE_ASSET_BASE_URL=$VITE_ASSET_BASE_URL" >> "$SCRIPT_DIR/.env.deploy"
+fi
+if grep -q '^ASSET_URL=' "$SCRIPT_DIR/.env.deploy"; then
+    sed -i '' "s|^ASSET_URL=.*|ASSET_URL=$ASSET_URL|" "$SCRIPT_DIR/.env.deploy"
+else
+    echo "ASSET_URL=$ASSET_URL" >> "$SCRIPT_DIR/.env.deploy"
+fi
 success ".env.deploy updated."
 
 # 4. Update portfolio-key.pem
@@ -120,4 +174,4 @@ step 5 "Waiting for SSH to become available"
 wait_for_ssh "$PUBLIC_IP" "$SCRIPT_DIR/portfolio-key.pem"
 success "SSH is available."
 
-print_total_time 
+print_total_time
