@@ -192,6 +192,11 @@ for arg in "$@"; do
         echo "$key=$value" >> "$SCRIPT_DIR/.env"
     fi
 done
+# Clean up .env: only keep valid KEY=VALUE lines, one per line
+sed -i.bak -n '/^[A-Za-z_][A-Za-z0-9_]*=.*/p' "$SCRIPT_DIR/.env"
+rm -f "$SCRIPT_DIR/.env.bak"
+# Copy the generated .env to the repo root for Docker build
+cp "$SCRIPT_DIR/.env" "$REPO_ROOT/.env"
 
 # 5. Ensure resources/views exists with a real Blade placeholder for Laravel
 step 5 "Ensuring resources/views exists with placeholder"
@@ -323,13 +328,18 @@ success "Remaining public files uploaded to server."
 
 # 12. Set up docker env on the server & start containers
 step 12 "Setting up docker environment on server & starting containers"
-execute_ssh "mkdir -p $APP_DIR/docker $APP_DIR/bootstrap/cache $APP_DIR/storage $APP_DIR/storage/logs $APP_DIR/storage/framework/sessions $APP_DIR/storage/framework/views $APP_DIR/storage/framework/cache"
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/docker/docker-compose.yml" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/docker-compose.yml"
+execute_ssh "mkdir -p $APP_DIR/deploy/docker $APP_DIR/bootstrap/cache $APP_DIR/storage $APP_DIR/storage/logs $APP_DIR/storage/framework/sessions $APP_DIR/storage/framework/views $APP_DIR/storage/framework/cache"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/docker-compose.yml" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/docker/docker-compose.yml"
 
 # 13. Copy .env file
 step 13 "Copying .env file"
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/.env" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/.env"
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/.env" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/.env"
+# Remove any existing .env on the server before copying
+execute_ssh "rm -f $APP_DIR/.env"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/.env" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/.env"
+
+# Ensure manifest.json is present before Docker build
+execute_ssh "mkdir -p $APP_DIR/public/build"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/public/build/manifest.json" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/public/build/manifest.json"
 
 # 14. Generate SSL cert and key on the server if not present
 step 14 "Ensuring SSL certificate and key exist on server"
@@ -354,21 +364,25 @@ execute_ssh "cd $APP_DIR && \
 # 16. Execute deployment commands
 step 16 "Executing deployment commands"
 execute_ssh "cd $APP_DIR && \
-    docker-compose -f ./docker/docker-compose.yml down && \
-    docker-compose -f ./docker/docker-compose.yml build --no-cache && \
-    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./docker/docker-compose.yml up -d && \
+    docker-compose -f ./deploy/docker/docker-compose.yml down && \
+    docker-compose -f ./deploy/docker/docker-compose.yml build --no-cache && \
+    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml up -d && \
     touch .env && chmod 666 .env && \
-    docker-compose -f ./docker/docker-compose.yml ps | grep app && \
-    APP_KEY=\$(docker-compose -f ./docker/docker-compose.yml exec -T app php artisan key:generate --show) && \
-    echo \"Found APP_KEY: \$APP_KEY\" && \
-    grep -q \"^APP_KEY=\" .env && sed -i \"s|^APP_KEY=.*|$APP_KEY|\" .env || echo \"\$APP_KEY\" >> .env && \
-    docker-compose -f ./docker/docker-compose.yml exec -T app php artisan config:cache && \
-    docker-compose -f ./docker/docker-compose.yml exec -T app php artisan route:cache && \
-    docker-compose -f ./docker/docker-compose.yml exec -T app php artisan view:cache && \
-    docker-compose -f ./docker/docker-compose.yml exec -T app php artisan migrate --force && \
-    docker-compose -f ./docker/docker-compose.yml exec -T app php artisan storage:link && \
-    docker-compose -f ./docker/docker-compose.yml exec -T app chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
-    docker-compose -f ./docker/docker-compose.yml exec -T app chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache"
+    docker-compose -f ./deploy/docker/docker-compose.yml ps | grep app"
+# Remove the .env from the repo root after build
+rm -f "$REPO_ROOT/.env"
+
+# Update APP_KEY in .env on the server
+execute_ssh "cd $APP_DIR && APP_KEY=\$(docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan key:generate --show) && echo Found APP_KEY: \$APP_KEY && (grep -q '^APP_KEY=' .env && sed -i 's|^APP_KEY=.*|APP_KEY=\$APP_KEY|' .env || echo APP_KEY=\$APP_KEY >> .env)"
+
+execute_ssh "cd $APP_DIR && \
+    docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan config:cache && \
+    docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan route:cache && \
+    docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan view:cache && \
+    docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan migrate --force && \
+    docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan storage:link && \
+    docker-compose -f ./deploy/docker/docker-compose.yml exec -T app chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
+    docker-compose -f ./deploy/docker/docker-compose.yml exec -T app chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache"
 
 # 17. Check app container status
 step 17 "Checking app container status"
