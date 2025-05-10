@@ -8,6 +8,7 @@ import {SkillsShowcase} from "@/Components/SkillsShowcase"
 import {PersonalValues} from "@/Components/PersonalValues"
 import {FAQSection} from "@/Components/FAQSection"
 import { VolunteeringSection } from "@/Components/VolunteeringSection"
+import { getImageUrl } from "@/lib/imageUtils"
 
 export default function About() {
     return (

@@ -1,4 +1,5 @@
 import { InertiaLinkProps, Link } from '@inertiajs/react';
+import { getImageUrl } from "../lib/imageUtils"
 
 export default function ResponsiveNavLink({
     active = false,

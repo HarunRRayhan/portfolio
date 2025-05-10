@@ -1,4 +1,5 @@
 import { SVGAttributes } from 'react';
+import { getImageUrl } from "../lib/imageUtils"
 
 export default function ApplicationLogo(props: SVGAttributes<SVGElement>) {
     return (

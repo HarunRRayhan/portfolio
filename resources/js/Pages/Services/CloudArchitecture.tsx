@@ -25,19 +25,20 @@ import {
 } from "lucide-react"
 import { Link } from "@inertiajs/react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/Components/ui/accordion"
+import { getImageUrl } from "@/lib/imageUtils"
 
 const technologies = [
-  { name: "AWS", logo: "https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg" },
-  { name: "Azure", logo: "https://upload.wikimedia.org/wikipedia/commons/a/a8/Microsoft_Azure_Logo.svg" },
-  { name: "Google Cloud", logo: "https://upload.wikimedia.org/wikipedia/commons/5/51/Google_Cloud_logo.svg" },
+  { name: "AWS", logo: getImageUrl("/images/logos/cloud-arch/aws-logo.svg") },
+  { name: "Azure", logo: getImageUrl("/images/logos/cloud-arch/azure-logo.svg") },
+  { name: "Google Cloud", logo: getImageUrl("/images/logos/cloud-arch/gcp-logo.svg") },
   {
     name: "Kubernetes",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/3/39/Kubernetes_logo_without_workmark.svg",
+    logo: getImageUrl("/images/logos/cloud-arch/kubernetes-logo.svg"),
   },
-  { name: "Docker", logo: "https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png" },
-  { name: "Terraform", logo: "https://www.vectorlogo.zone/logos/terraformio/terraformio-icon.svg" },
-  { name: "Ansible", logo: "https://upload.wikimedia.org/wikipedia/commons/2/24/Ansible_logo.svg" },
-  { name: "Jenkins", logo: "https://upload.wikimedia.org/wikipedia/commons/e/e9/Jenkins_logo.svg" },
+  { name: "Docker", logo: getImageUrl("/images/logos/cloud-arch/docker-logo.png") },
+  { name: "Terraform", logo: getImageUrl("/images/logos/cloud-arch/terraform-logo.svg") },
+  { name: "Ansible", logo: getImageUrl("/images/logos/cloud-arch/ansible-logo.svg") },
+  { name: "Jenkins", logo: getImageUrl("/images/logos/cloud-arch/jenkins-logo.svg") },
 ]
 
 const fadeInUp = {

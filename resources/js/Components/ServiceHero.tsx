@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import { LucideIcon } from "lucide-react"
+import { getImageUrl } from "../lib/imageUtils"
 
 interface ServiceHeroProps {
   icon: LucideIcon

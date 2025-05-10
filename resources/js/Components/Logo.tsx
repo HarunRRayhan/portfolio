@@ -2,6 +2,7 @@
 
 import { Link } from '@inertiajs/react'
 import { cn } from "@/lib/utils"
+import { getImageUrl } from "../lib/imageUtils"
 
 interface LogoProps {
   className?: string

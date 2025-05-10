@@ -8,47 +8,48 @@ import { Link, Head } from '@inertiajs/react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/Components/ui/accordion"
 import { motion } from "framer-motion"
 import { InfiniteScrollTech } from "@/Components/InfiniteScrollTech"
+import { getImageUrl } from "@/lib/imageUtils"
 
 const technologies = [
   {
     name: "Amazon Web Services",
-    logo: "https://d1.awsstatic.com/logos/aws-logo-lockups/poweredbyaws/PB_AWS_logo_RGB_stacked_REV_SQ.91cd4af40773cbfbd15577a3c2b8a346fe3e8fa2.png",
+    logo: getImageUrl("/images/logos/cloud/aws-logo.png"),
   },
   {
     name: "Microsoft Azure",
-    logo: "https://azure.microsoft.com/svghandler/azure/?width=300&height=300",
+    logo: getImageUrl("/images/logos/cloud/azure-logo.png"),
   },
   {
     name: "Google Cloud Platform",
-    logo: "https://www.gstatic.com/devrel-devsite/prod/v2210075187f059b839246c2c03840474501c3c6024a99fb78f6293c1b4c0f664/cloud/images/cloud-logo.svg",
+    logo: getImageUrl("/images/logos/cloud/gcp-logo.svg"),
   },
   {
     name: "Kubernetes",
-    logo: "https://kubernetes.io/images/favicon.png",
+    logo: getImageUrl("/images/logos/cloud/kubernetes-logo.png"),
   },
   {
     name: "Terraform",
-    logo: "https://www.terraform.io/img/logo-hashicorp.svg",
+    logo: getImageUrl("/images/logos/cloud/terraform-logo.svg"),
   },
   {
     name: "Docker",
-    logo: "https://www.docker.com/sites/default/files/d8/2019-07/vertical-logo-monochromatic.png",
+    logo: getImageUrl("/images/logos/cloud/docker-logo.png"),
   },
   {
     name: "Ansible",
-    logo: "https://www.ansible.com/hubfs/2016_Images/Assets/Ansible-Mark-Large-RGB-Mango.png",
+    logo: getImageUrl("/images/logos/cloud/ansible-logo.png"),
   },
   {
     name: "HashiCorp Vault",
-    logo: "https://www.hashicorp.com/img/logo-hashicorp.svg",
+    logo: getImageUrl("/images/logos/cloud/hashicorp-logo.svg"),
   },
   {
     name: "Prometheus",
-    logo: "https://raw.githubusercontent.com/cncf/artwork/master/projects/prometheus/icon/color/prometheus-icon-color.svg",
+    logo: getImageUrl("/images/logos/cloud/prometheus-logo.svg"),
   },
   {
     name: "Grafana",
-    logo: "https://grafana.com/static/img/logos/grafana_logo_swirl_fullcolor.svg",
+    logo: getImageUrl("/images/logos/cloud/grafana-logo.svg"),
   },
 ]
 

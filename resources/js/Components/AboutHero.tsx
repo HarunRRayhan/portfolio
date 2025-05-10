@@ -3,14 +3,15 @@
 import { motion } from "framer-motion"
 import { Button } from "@/Components/ui/button"
 import { FileDown } from "lucide-react"
+import { getImageUrl } from "../lib/imageUtils"
 
 export function AboutHero() {
   return (
     <section className="relative py-20 overflow-hidden bg-gradient-to-br from-[#86D2F1] via-[#7C3AED] to-[#8B5CF6]">
       <div className="container mx-auto px-4">
-        <div className="flex flex-col lg:flex-row items-center">
+        <div className="flex flex-col lg:flex-row items-center justify-between">
           <motion.div
-            className="lg:w-1/2 text-center lg:text-left mb-10 lg:mb-0"
+            className="lg:w-1/2 text-center lg:text-left mb-10 lg:mb-0 pr-0 lg:pr-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
@@ -37,14 +38,14 @@ export function AboutHero() {
             </motion.div>
           </motion.div>
           <motion.div
-            className="lg:w-1/2"
+            className="lg:w-1/2 flex justify-end"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8 }}
           >
-            <div className="relative mx-auto">
+            <div className="relative">
               <img
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/1724510563675-2-HGUREtjVmDqynr0x56IlMU0yIJtex3.jpeg"
+                src={getImageUrl("/images/profile/harun-profile.jpeg")}
                 alt="Harun R. Rayhan - Software Engineer and Cloud Architect"
                 className="w-80 h-80 rounded-full shadow-2xl border-4 border-white/20 object-cover"
                 loading="eager"

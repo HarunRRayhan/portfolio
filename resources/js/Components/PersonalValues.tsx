@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import { Heart, Lightbulb, Users, Zap } from "lucide-react"
+import { getImageUrl } from "../lib/imageUtils"
 
 const values = [
   {

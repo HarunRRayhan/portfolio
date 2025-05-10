@@ -21,51 +21,52 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 import { InfiniteScrollTech } from "@/Components/InfiniteScrollTech"
+import { getImageUrl } from "@/lib/imageUtils"
 
 const technologies = [
   {
     name: "Nessus",
-    logo: "https://www.tenable.com/sites/drupal.dmz.tenablesecurity.com/files/images/product-images/Nessus-2020.svg",
+    logo: getImageUrl("/images/logos/security/nessus-logo.svg"),
   },
   {
     name: "Qualys",
-    logo: "https://www.qualys.com/asset/image/qualys-logo.svg",
+    logo: getImageUrl("/images/logos/security/qualys-logo.svg"),
   },
   {
     name: "Metasploit",
-    logo: "https://www.metasploit.com/includes/images/metasploit-logo.svg",
+    logo: getImageUrl("/images/logos/security/metasploit-logo.svg"),
   },
   {
     name: "Wireshark",
-    logo: "https://www.wireshark.org/assets/theme-2015/images/wireshark_logo.png",
+    logo: getImageUrl("/images/logos/security/wireshark-logo.png"),
   },
   {
     name: "Burp Suite",
-    logo: "https://portswigger.net/content/images/svg/icons/professional.svg",
+    logo: getImageUrl("/images/logos/security/burpsuite-logo.svg"),
   },
   {
     name: "OWASP ZAP",
-    logo: "https://www.zaproxy.org/img/zap-logo.svg",
+    logo: getImageUrl("/images/logos/security/zap-logo.svg"),
   },
   {
     name: "Snort",
-    logo: "https://www.snort.org/assets/logo-8f4dbc9a0f1c9c8f6d3f4f7f7f7f7f7f.png",
+    logo: getImageUrl("/images/logos/security/snort-logo.png"),
   },
   {
     name: "Splunk",
-    logo: "https://www.splunk.com/content/dam/splunk-blogs/images/2017/02/splunk-logo.png",
+    logo: getImageUrl("/images/logos/security/splunk-logo.png"),
   },
   {
     name: "Kali Linux",
-    logo: "https://www.kali.org/images/kali-logo.svg",
+    logo: getImageUrl("/images/logos/security/kali-logo.svg"),
   },
   {
     name: "AWS Security Hub",
-    logo: "https://d1.awsstatic.com/icons/console_securityhub_icon.be2b86cd1b1a41e1d1d1c0c9d42d77981413213d.png",
+    logo: getImageUrl("/images/logos/security/aws-securityhub-logo.png"),
   },
   {
     name: "Azure Security Center",
-    logo: "https://azure.microsoft.com/svghandler/security-center/?width=300&height=300",
+    logo: getImageUrl("/images/logos/security/azure-security-center-logo.png"),
   },
 ]
 

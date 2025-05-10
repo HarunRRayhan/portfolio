@@ -110,3 +110,11 @@ resource "cloudflare_record" "root_a" {
   proxied = true
 }
 
+resource "cloudflare_record" "www_cname" {
+  zone_id = var.cloudflare_zone_id
+  name    = "www"
+  type    = "CNAME"
+  content = "harun.dev"
+  proxied = true
+}
+

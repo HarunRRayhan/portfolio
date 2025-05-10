@@ -13,6 +13,7 @@ import {
 import { Logo } from "./Logo"
 import { Menu, ExternalLink } from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger } from "@/Components/ui/sheet"
+import { getImageUrl } from "../lib/imageUtils"
 
 const menuItems = [
   { name: "Home", href: "/" },

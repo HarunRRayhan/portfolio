@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import { Infinity, CircleDot } from "lucide-react"
+import { getImageUrl } from "../lib/imageUtils"
 
 type Skill = {
   name: string
@@ -15,7 +16,7 @@ type Skill = {
 const skills: Skill[] = [
   {
     name: "AWS",
-    logo: "/images/skills/aws.svg",
+    logo: getImageUrl("/images/skills/aws.svg"),
     isHot: true,
   },
   {
@@ -26,49 +27,49 @@ const skills: Skill[] = [
   },
   {
     name: "Terraform",
-    logo: "/images/skills/terraform.svg",
+    logo: getImageUrl("/images/skills/terraform.svg"),
     isHot: true,
   },
   {
     name: "Kubernetes",
-    logo: "/images/skills/kubernetes.svg",
+    logo: getImageUrl("/images/skills/kubernetes.svg"),
   },
   {
     name: "Docker",
-    logo: "/images/skills/docker.png",
+    logo: getImageUrl("/images/skills/docker.png"),
   },
   {
     name: "Python",
-    logo: "/images/skills/python.png",
+    logo: getImageUrl("/images/skills/python.png"),
   },
   {
     name: "Serverless",
-    logo: "/images/skills/serverless.png",
+    logo: getImageUrl("/images/skills/serverless.png"),
     isHot: true,
   },
   {
     name: "Go",
-    logo: "/images/skills/go.svg",
+    logo: getImageUrl("/images/skills/go.svg"),
   },
   {
     name: "Jenkins",
-    logo: "/images/skills/jenkins.svg",
+    logo: getImageUrl("/images/skills/jenkins.svg"),
   },
   {
     name: "Node.js",
-    logo: "/images/skills/nodejs.svg",
+    logo: getImageUrl("/images/skills/nodejs.svg"),
   },
   {
     name: "Nginx",
-    logo: "/images/skills/nginx.png",
+    logo: getImageUrl("/images/skills/nginx.png"),
   },
   {
     name: "Laravel",
-    logo: "/images/skills/laravel.svg",
+    logo: getImageUrl("/images/skills/laravel.svg"),
   },
   {
     name: "Git",
-    logo: "/images/skills/git.png",
+    logo: getImageUrl("/images/skills/git.png"),
   },
   {
     name: "CI/CD Pipeline",
@@ -78,18 +79,18 @@ const skills: Skill[] = [
   },
   {
     name: "GitHub Actions",
-    logo: "/images/skills/github-actions.svg",
+    logo: getImageUrl("/images/skills/github-actions.svg"),
   },
   {
     name: "Cypress",
-    logo: "/images/skills/cypress.jpg",
+    logo: getImageUrl("/images/skills/cypress.jpg"),
   }
 ]
 
 const FireIcon = () => (
   <div className="w-6 h-6 relative group-hover:scale-125 transition-transform duration-300">
     <img
-      src="/images/icons/fire.gif"
+      src={getImageUrl("/images/icons/fire.gif")}
       alt="Hot skill indicator"
       className="w-full h-full object-contain"
     />
@@ -134,7 +135,7 @@ export function SkillsShowcase() {
                     </div>
                   ) : (
                     <img
-                      src={skill.logo || "/placeholder.svg"}
+                      src={getImageUrl(skill.logo || "/placeholder.svg")}
                       alt={`${skill.name} logo`}
                       className="w-full h-full object-contain"
                     />

@@ -10,67 +10,68 @@ import { Button } from "@/Components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card/index"
 import { Code, GitBranch, Repeat, ArrowRight, CheckCircle, Users } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/Components/ui/accordion"
+import { getImageUrl } from "@/lib/imageUtils"
 
 const technologies = [
   {
     name: "Jenkins",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/e/e9/Jenkins_logo.svg",
+    logo: getImageUrl("/images/logos/tech/Jenkins_logo.svg"),
   },
   {
     name: "Docker",
-    logo: "https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png",
+    logo: getImageUrl("/images/logos/tech/vertical-logo-monochromatic.png"),
   },
   {
     name: "Kubernetes",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/3/39/Kubernetes_logo_without_workmark.svg",
+    logo: getImageUrl("/images/logos/tech/Kubernetes_logo_without_workmark.svg"),
   },
   {
     name: "Terraform",
-    logo: "https://www.vectorlogo.zone/logos/terraformio/terraformio-icon.svg",
+    logo: getImageUrl("/images/logos/tech/terraformio-icon.svg"),
   },
   {
     name: "AWS",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg",
+    logo: getImageUrl("/images/logos/tech/Amazon_Web_Services_Logo.svg"),
   },
   {
     name: "GitHub Actions",
-    logo: "https://github.githubassets.com/images/modules/site/features/actions-icon-actions.svg",
+    logo: getImageUrl("/images/logos/tech/actions-icon-actions.svg"),
   },
   {
     name: "Ansible",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/2/24/Ansible_logo.svg",
+    logo: getImageUrl("/images/logos/tech/Ansible_logo.svg"),
   },
   {
     name: "Prometheus",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/3/38/Prometheus_software_logo.svg",
+    logo: getImageUrl("/images/logos/tech/Prometheus_software_logo.svg"),
   },
   {
     name: "Grafana",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/3/3b/Grafana_icon.svg",
+    logo: getImageUrl("/images/logos/tech/Grafana_icon.svg"),
   },
   {
     name: "GitLab",
-    logo: "https://about.gitlab.com/images/press/logo/svg/gitlab-icon-rgb.svg",
+    logo: getImageUrl("/images/logos/tech/gitlab-icon-rgb.svg"),
   },
   {
     name: "Puppet",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/b/bd/Puppet_transparent_logo.svg",
+    logo: getImageUrl("/images/logos/tech/Puppet_transparent_logo.svg"),
   },
   {
     name: "Chef",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/8/8a/Chef_logo.svg",
+    logo: getImageUrl("/images/logos/tech/Chef_logo.svg"),
   },
   {
     name: "Nagios",
-    logo: "https://www.nagios.org/wp-content/uploads/2015/05/Nagios-Logo.jpg",
+    logo: getImageUrl("/images/logos/Nagios-Logo.jpg"),
   },
   {
     name: "Splunk",
-    logo: "https://www.splunk.com/content/dam/splunk-blogs/images/2017/02/splunk-logo.png",
+    logo: getImageUrl("/images/logos/tech/splunk-logo.png"),
   },
   {
     name: "ELK Stack",
-    logo: "https://static-www.elastic.co/v3/assets/bltefdd0b53724fa2ce/blt36f2da8d650732a0/5d0823c3d8ff351753cbc99f/logo-elastic-outlined-black.svg",
+    logo: getImageUrl("/images/logos/logo-elastic-outlined-black.svg"),
   },
 ]
 

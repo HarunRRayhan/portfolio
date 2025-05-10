@@ -11,51 +11,52 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 import { InfiniteScrollTech } from "@/Components/InfiniteScrollTech"
+import { getImageUrl } from "@/lib/imageUtils"
 
 const technologies = [
   {
     name: "TensorFlow",
-    logo: "https://www.tensorflow.org/images/tf_logo_social.png",
+    logo: getImageUrl("/images/logos/tech/tf_logo_social.png"),
   },
   {
     name: "PyTorch",
-    logo: "https://pytorch.org/assets/images/pytorch-logo.png",
+    logo: getImageUrl("/images/logos/tech/pytorch-logo.png"),
   },
   {
     name: "Kubernetes",
-    logo: "https://kubernetes.io/images/favicon.png",
+    logo: getImageUrl("/images/logos/tech/favicon.png"),
   },
   {
     name: "Kubeflow",
-    logo: "https://www.kubeflow.org/docs/images/logo.svg",
+    logo: getImageUrl("/images/logos/tech/logo.svg"),
   },
   {
     name: "MLflow",
-    logo: "https://www.mlflow.org/docs/latest/_static/MLflow-logo-final-black.png",
+    logo: getImageUrl("/images/logos/tech/MLflow-logo-final-black.png"),
   },
   {
     name: "Apache Airflow",
-    logo: "https://airflow.apache.org/docs/apache-airflow/stable/_images/pin_large.png",
+    logo: getImageUrl("/images/logos/tech/pin_large.png"),
   },
   {
     name: "Docker",
-    logo: "https://www.docker.com/sites/default/files/d8/2019-07/vertical-logo-monochromatic.png",
+    logo: getImageUrl("/images/logos/tech/vertical-logo-monochromatic.png"),
   },
   {
     name: "Nvidia CUDA",
-    logo: "https://developer.nvidia.com/sites/default/files/akamai/cuda/images/cuda_logo_white.jpg",
+    logo: getImageUrl("/images/logos/tech/cuda_logo_white.jpg"),
   },
   {
     name: "Amazon SageMaker",
-    logo: "https://d1.awsstatic.com/logos/aws/SageMaker_Amazon.6e2760a8a5f7e5f3a8b7e9f9b6d2f7e7e5f3a8b7e9f9b6d2f7e7.png",
+    logo: getImageUrl("/images/logos/tech/SageMaker_Amazon.6e2760a8a5f7e5f3a8b7e9f9b6d2f7e7e5f3a8b7e9f9b6d2f7e7.png"),
   },
   {
     name: "Google Cloud AI Platform",
-    logo: "https://www.gstatic.com/devrel-devsite/prod/v2210075187f059b839246c2c03840474501c3c6024a99fb78f6293c1b4c0f664/cloud/images/cloud-logo.svg",
+    logo: getImageUrl("/images/logos/tech/cloud-logo.svg"),
   },
   {
     name: "Azure Machine Learning",
-    logo: "https://azure.microsoft.com/svghandler/machine-learning/?width=300&height=300",
+    logo: getImageUrl("/images/logos/cloud/machine-learning.png"),
   },
 ]
 

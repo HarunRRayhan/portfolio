@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
+import { getImageUrl } from "@/lib/imageUtils"
 
 export default function Dashboard() {
     return (

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+      <style>
+        .st0{fill:#4285F4;}
+        .st1{fill:#FFFFFF;}
+      </style>
+      <rect x="20" y="20" class="st0" width="160" height="160" rx="15" ry="15"/>
+      <path class="st1" d="M60,60l80,80 M140,60L60,140"/>
+      <circle class="st1" cx="60" cy="60" r="15"/>
+      <circle class="st1" cx="140" cy="60" r="15"/>
+      <circle class="st1" cx="60" cy="140" r="15"/>
+      <circle class="st1" cx="140" cy="140" r="15"/>
+    </svg>

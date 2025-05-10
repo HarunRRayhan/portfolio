@@ -11,51 +11,52 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 import { InfiniteScrollTech } from "@/Components/InfiniteScrollTech"
+import { getImageUrl } from "@/lib/imageUtils"
 
 const technologies = [
   {
     name: "Prometheus",
-    logo: "https://raw.githubusercontent.com/cncf/artwork/master/projects/prometheus/icon/color/prometheus-icon-color.svg",
+    logo: getImageUrl("/images/logos/tech/prometheus-icon-color.svg"),
   },
   {
     name: "Grafana",
-    logo: "https://grafana.com/static/img/logos/grafana_logo_swirl_fullcolor.svg",
+    logo: getImageUrl("/images/logos/grafana_logo_swirl_fullcolor.svg"),
   },
   {
     name: "ELK Stack",
-    logo: "https://static-www.elastic.co/v3/assets/bltefdd0b53724fa2ce/blt36f2da8d650732a0/5d0823c3d8ff351753cbc99f/logo-elastic-outlined-black.svg",
+    logo: getImageUrl("/images/logos/logo-elastic-outlined-black.svg"),
   },
   {
     name: "Datadog",
-    logo: "https://imgix.datadoghq.com/img/about/presskit/logo-v/dd_vertical_purple.png",
+    logo: getImageUrl("/images/logos/tech/dd_vertical_purple.png"),
   },
   {
     name: "New Relic",
-    logo: "https://newrelic.com/themes/custom/erno/assets/mediakit/new_relic_logo_vertical.svg",
+    logo: getImageUrl("/images/logos/tech/new_relic_logo_vertical.svg"),
   },
   {
     name: "Splunk",
-    logo: "https://www.splunk.com/content/dam/splunk-blogs/images/2017/02/splunk-logo.png",
+    logo: getImageUrl("/images/logos/tech/splunk-logo.png"),
   },
   {
     name: "Nagios",
-    logo: "https://www.nagios.org/wp-content/uploads/2015/05/Nagios-Logo.jpg",
+    logo: getImageUrl("/images/logos/Nagios-Logo.jpg"),
   },
   {
     name: "Zabbix",
-    logo: "https://assets.zabbix.com/img/logo/zabbix_logo_500x131.png",
+    logo: getImageUrl("/images/logos/tech/zabbix_logo_500x131.png"),
   },
   {
     name: "Jaeger",
-    logo: "https://www.jaegertracing.io/img/jaeger-logo.png",
+    logo: getImageUrl("/images/logos/tech/jaeger-logo.png"),
   },
   {
     name: "Zipkin",
-    logo: "https://zipkin.io/public/img/zipkin-logo-200x119.jpg",
+    logo: getImageUrl("/images/logos/zipkin-logo-200x119.jpg"),
   },
   {
     name: "AWS CloudWatch",
-    logo: "https://d1.awsstatic.com/icons/aws-icons/AWS-CloudWatch_icon_64_Squid.4c65a3d318a1e2c52a77f4f60b336430c9d7294a.png",
+    logo: getImageUrl("/images/logos/AWS-CloudWatch_icon_64_Squid.4c65a3d318a1e2c52a77f4f60b336430c9d7294a.png"),
   },
 ]
 

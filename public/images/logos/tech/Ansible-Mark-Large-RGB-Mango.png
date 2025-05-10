@@ -1,0 +1,1869 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" prefix="og: https://ogp.me/ns#">
+    <head>
+        <script>performance.mark('HEAD Start');</script>
+        <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <title>Ansible Collaborative</title>
+        <link rel="preconnect" href="https://static.redhat.com">
+    <link rel="preconnect" href="https://consent.trustarc.com">
+            <script id="rhdc_analytics_get_top_eddl_pagedata">var pageData = {"pageCategory":"ansible-collaborative","pageName":"rh|ansible-collaborative","pageTitle":"Ansible Collaborative","pageType":"page","pageSubType":"","siteExperience":"","siteLanguage":"en","subsection":"","subsection2":"","subsection3":"","cms":"RH CMS 1.0","analyticsTitle":"","contentID":"801631","contentType":"","destinationURL":"https:\/\/www.redhat.com\/en\/ansible-collaborative","gated":"false","offerID":"","errorType":"","contentPublishDate":"2024-10-10","siteName":"rh","dataObject":"appEventData","queryParameters":{"intcmp":"7015Y000003t7aWQAQ"},"taxonomyRegion":["4521"],"taxonomyTopic":["75551"],"pageStatus":"published"};</script>
+<script id="rhdc_analytics_get_top_eddl_js">!function(e,a){"use strict";e.appEventData=e.appEventData||[],e.pageData=e.pageData||[];const t={event:"Page Load Started",page:pageData};if(a.referrer){let e=a.createElement("a");e.href=a.referrer,t.page.previousPage=e.href}t.page.siteExperience=e.innerWidth<=768?"tablet":"desktop",appEventData.push(t)}(window,document);</script>
+<script id="dpal" src="https://www.redhat.com/dtm.js" async></script>
+<script id="trustarc" src="https://static.redhat.com/libs/redhat/marketing/latest/trustarc/trustarc.js" async></script>
+<script src="https://static.redhat.com/libs/redhat/marketing/latest/trustarc/trustecm/js/trustecm.js" data-domain="www.redhat.com" async></script>
+<script class="trustecm" data-src="https://static.redhat.com/libs/redhat/marketing/latest/trustarc/trustecm/js/trustecm-functional.js" data-tracker-type="functional"></script>
+<script class="trustecm" data-src="https://static.redhat.com/libs/redhat/marketing/latest/trustarc/trustecm/js/trustecm-advertising.js" data-tracker-type="advertising"></script>
+<script type="importmap">{"imports":{"@rhds/elements/":"/modules/contrib/red_hat_shared_libs/dist/rhds-elements/modules/"},"scopes":{}}</script>
+
+    <script type="application/json" data-drupal-selector="drupal-settings-json">{"path":{"baseUrl":"\/","pathPrefix":"en\/","currentPath":"node\/801631","currentPathIsAdmin":false,"isFront":false,"currentLanguage":"en","currentQuery":{"intcmp":"7015Y000003t7aWQAQ"}},"pluralDelimiter":"\u0003","suppressDeprecationErrors":true,"rh_oidc_manager":{"debug":false,"cookie_settings":{"rh_sso_session_enabled":true},"oidc_settings":{"authority":"https:\/\/sso.redhat.com\/auth\/realms\/redhat-external","client_id":"rhcom","loadUserInfo":true,"post_logout_redirect_uri":"https:\/\/www.redhat.com\/en","redirect_uri":"https:\/\/www.redhat.com\/en","scope":"openid profile_level.rh_events id.email id.idp id.job.title id.job.department id.name id.organization id.sub id.username roles api.graphql api.console profile","silent_redirect_uri":"https:\/\/www.redhat.com\/en\/silent-renew.html"}},"rhdc_analytics":{"searchTerm":null},"rhdc_bulk_tagging":{"should_skip_product_primary_product_requirement":true,"field_taxonomy_product":{"add":"If there is currently no \u003Cb\u003EPrimary Product\u003C\/b\u003E value before this operation,\n    a \u003Cb\u003EProduct\u003C\/b\u003E value will be chosen as the \u003Cb\u003EPrimary Product\u003C\/b\u003E.","remove":"\u003Cul\u003E\n    \u003Cli\u003EIf removing all existing \u003Cb\u003EProduct\u003C\/b\u003E value(s), the \u003Cb\u003EPrimary Product\u003C\/b\u003E will also be removed.\u003C\/li\u003E\n    \u003Cli\u003EIf not, please choose a new valid \u003Cb\u003EPrimary Product\u003C\/b\u003E in a previous operation\n    before removing the \u003Cb\u003EProduct\u003C\/b\u003E.\u003C\/li\u003E\n    \u003C\/ul\u003E","replace":"If the \u003Cb\u003EProduct\u003C\/b\u003E that is being replaced is the \u003Cb\u003EPrimary Product\u003C\/b\u003E,\n    please change the \u003Cb\u003EPrimary Product\u003C\/b\u003E in a previous operation."},"field_taxonomy_product_primary":{"add":"The \u003Cb\u003EPrimary Product\u003C\/b\u003E that is being added must be a value of an existing \u003Cb\u003EProduct\u003C\/b\u003E value.\n    If the \u003Cb\u003EPrimary Product\u003C\/b\u003E value to add is not, please add that \u003Cb\u003EProduct\u003C\/b\u003E in a previous operation.","remove":"You cannot remove the \u003Cb\u003EPrimary Product\u003C\/b\u003E. This operation will be skipped.","replace":"If the new \u003Cb\u003EPrimary Product\u003C\/b\u003E value is not an existing \u003Cb\u003EProduct\u003C\/b\u003E value,\n    please add that \u003Cb\u003EProduct\u003C\/b\u003E in a previous operation."}},"rhdcCore":{"webrh":{"version":"2.3.0"}},"rhdc_solr_listing":{"testmode":false},"csp":{"nonce":"TjY2pHi2B3K9uJH1Sxqh6g"},"user":{"uid":0,"permissionsHash":"4737a889089cbdcce048bf0dfd5713f83cd2c1f0062562282543460f381f5099"}}</script>
+<script src="/rhdc/system-files/js/js_cxtbX2Xb1Bc676pF4E5TmkfubZpHlRb6aZMsvK6nDVs.js?scope=header&amp;delta=0&amp;language=en&amp;theme=rhdc&amp;include=eJyNkEEOQjEIRC9k7SE8SEMptmh_UUCNt7dfTXThwg0ZZl5IBqWSGniyBjpl52xRWxhw5QrOMoIRyiig9422lMEoXTjWLhn6rqkstPrCBdMCAyppRCVwennYmYZPpGBcRyh0UsKZly_TyEOHUQOKHJmeSZrX-t0Z7clsl6PX7cF-ZZ81USk9ZXGX5R-SVEX_AY1nIyNQbJsbZW0xn9_itKevfz0Aga2DgQ"></script>
+<script src="/modules/contrib/rh_oidc_manager/libraries/dist/js/index.min.js?svuzcl" type="module"></script>
+<script src="https://static.redhat.com/libs/@redhat/marketing/latest/rh.mktg.js" async></script>
+
+        <link rel="stylesheet" media="all" href="/rhdc/system-files/css/css_JyXWI3qtkT6qC3CFAwmttmSI0qml-WWSJt4WgRHjljU.css?delta=0&amp;language=en&amp;theme=rhdc&amp;include=eJx1kFuOwyAMRTeUhEXMQpABFyyZh4zpTHY_JM1Mq0r9wdfHV37AsNehNlD39Y6ym1rQV14Eg02g9sb4Q47R8mk0j3Dij54-XANVlGJ7A08l_lt7gkMyuW4krQXuFEGplrXPsSWA7Isk66CjHWQiVwf8laRmnDx4czzrA5_AQgHelXw3KqMriN9mo45FtzxrEWWDRss3OknGQZl7IASUi3iQ8CLfigpPZfNgpWM18heNWFCemdTRLk15TraYHf51bzd8OfeCx_eg_AIxA5cH" />
+<link rel="stylesheet" media="print" href="https://static.redhat.com/libs/redhat/marketing/latest/trustarc/trustecm/css/trustecm.css" data-onload-media="all" onload="this.onload=null;this.media=this.dataset.onloadMedia" />
+<link rel="stylesheet" media="all" href="/rhdc/system-files/css/css_eCWuHspUrzLtcxTv0g6oplQppK-8BwdjvJANU8Lykx0.css?delta=2&amp;language=en&amp;theme=rhdc&amp;include=eJx1kFuOwyAMRTeUhEXMQpABFyyZh4zpTHY_JM1Mq0r9wdfHV37AsNehNlD39Y6ym1rQV14Eg02g9sb4Q47R8mk0j3Dij54-XANVlGJ7A08l_lt7gkMyuW4krQXuFEGplrXPsSWA7Isk66CjHWQiVwf8laRmnDx4czzrA5_AQgHelXw3KqMriN9mo45FtzxrEWWDRss3OknGQZl7IASUi3iQ8CLfigpPZfNgpWM18heNWFCemdTRLk15TraYHf51bzd8OfeCx_eg_AIxA5cH" />
+<link rel="stylesheet" media="all" href="/rhdc/system-files/css/css_znOR13BaOno67pEUXb1uQEHrJrxr6C1qAacTjUFZO10.css?delta=3&amp;language=en&amp;theme=rhdc&amp;include=eJx1kFuOwyAMRTeUhEXMQpABFyyZh4zpTHY_JM1Mq0r9wdfHV37AsNehNlD39Y6ym1rQV14Eg02g9sb4Q47R8mk0j3Dij54-XANVlGJ7A08l_lt7gkMyuW4krQXuFEGplrXPsSWA7Isk66CjHWQiVwf8laRmnDx4czzrA5_AQgHelXw3KqMriN9mo45FtzxrEWWDRss3OknGQZl7IASUi3iQ8CLfigpPZfNgpWM18heNWFCemdTRLk15TraYHf51bzd8OfeCx_eg_AIxA5cH" />
+
+    <link type="text/css" href="/ux/webdms/css/styles.min.css" rel="stylesheet" />
+<link type="text/css" href="/ux/webdms/css/projects/topic-article.min.css" rel="stylesheet" />
+<link type="text/css" href="/ux/webdms/css/projects/osh-stack.min.css" rel="stylesheet" />
+<link type="text/css" href="/ux/dx-web/css/projects/rh-navigation-secondary.min.css" rel="stylesheet" />
+<link type="text/css" href="/ux/dx-web/css/projects/ansible-nav-footer.min.css" rel="stylesheet" />
+
+        <link rel="preload" href="/themes/custom/rh_base_ui/src/fonts/red_hat_text/RedHatTextVFModified.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/themes/custom/rh_base_ui/src/fonts/red_hat_display/RedHatDisplayVFModified.woff2" as="font" type="font/woff2" crossorigin>
+                            <script type="speculationrules">{"prerender": [{"urls": ["/en"]}]}</script>
+                          <meta name="description" content="Ansible Collaborative" />
+<link rel="canonical" href="https://www.redhat.com/en/ansible-collaborative" />
+<link rel="image_src" href="https://www.redhat.com/themes/custom/rhdc/img/red-hat-social-share.jpg" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://www.redhat.com/en/ansible-collaborative" />
+<meta property="og:title" content="Ansible Collaborative" />
+<meta property="og:description" content="Ansible Collaborative" />
+<meta property="og:image" content="https://www.redhat.com/themes/custom/rhdc/img/red-hat-social-share.jpg" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:description" content="Ansible Collaborative" />
+<meta name="twitter:title" content="Ansible Collaborative" />
+<meta name="twitter:url" content="https://www.redhat.com/en/ansible-collaborative" />
+<meta name="twitter:image" content="https://www.redhat.com/themes/custom/rhdc/img/red-hat-social-share.jpg" />
+<meta name="Generator" content="Drupal 10 (https://www.drupal.org)" />
+<meta name="MobileOptimized" content="width" />
+<meta name="HandheldFriendly" content="true" />
+<!-- Required styles from dx-utilities. See red_hat_shared_libs_preprocess_html. -->
+<style>.dx-gap-y,.dx-row{row-gap:32px !important;}.dx-bg-gray-10{background-color:#f2f2f2 !important;}.dx-bg-gray-95{background-color:#151515 !important;}.hover\:dx-bg-gray-10:hover{background-color:#f2f2f2 !important;}.hover\:dx-bg-gray-95:hover{background-color:#151515 !important;}[class*=dx-border]{border-style:solid;border-width:0;}.dx-border-t-3{border-top-width:3px !important;}.dx-row+.dx-row{padding-top:32px;}.dx-row{--bs-gutter-x:32px !important;--bs-gutter-y:0 !important;display:flex !important;flex-wrap:wrap !important;margin-top:calc(var(--bs-gutter-y) * -1) !important;margin-right:calc(var(--bs-gutter-x) / -2) !important;margin-left:calc(var(--bs-gutter-x) / -2) !important;}.dx-col-12{flex:0 0 auto !important;width:100% !important;}.dx-items-center{align-items:center !important;}.dx-justify-between{justify-content:space-between !important;}.dx-row>*{box-sizing:border-box;padding-right:calc(var(--bs-gutter-x) / 2);padding-left:calc(var(--bs-gutter-x) / 2);}.dx-band{padding:64px 0;}.dx-container,.dx-container-fluid,.dx-container-fluid-max{padding-right:16px;padding-left:16px;}.dx-container .dx-container,.dx-container .dx-container-fluid,.dx-container .dx-container-fluid-max,.dx-container-fluid .dx-container,.dx-container-fluid .dx-container-fluid,.dx-container-fluid .dx-container-fluid-max,.dx-container-fluid-max .dx-container,.dx-container-fluid-max .dx-container-fluid,.dx-container-fluid-max .dx-container-fluid-max{padding-right:0;padding-left:0;}.dx-container,.dx-container-fluid-max{margin-right:auto;margin-left:auto;}.dx-absolute{position:absolute !important;}.dx-relative{position:relative !important;}.dx-top-0{top:0 !important;}.dx-flex{display:flex !important;}.dx-hidden{display:none !important;}.dx-object-cover{-o-object-fit:cover !important;object-fit:cover !important;}.dx-object-ct{-o-object-position:center top !important;object-position:center top !important;}.dx-h-full{height:100% !important;}.dx-w-full{width:100% !important;}.dx-mb-1{margin-bottom:8px !important;}.dx-mb-10{margin-bottom:80px !important;}.dx-mb-11{margin-bottom:88px !important;}.dx-mb-12{margin-bottom:96px !important;}.dx-mb-2{margin-bottom:16px !important;}.dx-px-0{padding-left:0 !important;padding-right:0 !important;}.dx-px-3{padding-left:24px !important;padding-right:24px !important;}.dx-py-0{padding-top:0 !important;padding-bottom:0 !important;}.dx-py-4{padding-top:32px !important;padding-bottom:32px !important;}.dx-pb-8{padding-bottom:64px !important;}.dx-pl-1{padding-left:8px !important;}.dx-pl-10{padding-left:80px !important;}.dx-pl-11{padding-left:88px !important;}.dx-pl-12{padding-left:96px !important;}.dx-pr-1{padding-right:8px !important;}.dx-pr-10{padding-right:80px !important;}.dx-pr-11{padding-right:88px !important;}.dx-pr-12{padding-right:96px !important;}.dx-pt-8{padding-top:64px !important;}.dx-list-none{list-style-type:none !important;}.dx-text-12{font-size:.75rem !important;}.dx-text-14{font-size:.875rem !important;}.dx-text-16{font-size:1rem !important;}.dx-text-gray-10{color:#f2f2f2 !important;}.dx-text-white{color:#fff !important;}.hover\:dx-text-gray-10:hover{color:#f2f2f2 !important;}.hover\:dx-text-white:hover{color:#fff !important;}@media (min-width:576px){.sm\:dx-gap-y,.sm\:dx-row{row-gap:32px !important;}.sm\:dx-bg-gray-10{background-color:#f2f2f2 !important;}.sm\:dx-bg-gray-95{background-color:#151515 !important;}.sm\:dx-border-t-3{border-top-width:3px !important;}.sm\:dx-row+.sm\:dx-row{padding-top:32px;}.sm\:dx-row{--bs-gutter-x:32px !important;--bs-gutter-y:0 !important;display:flex !important;flex-wrap:wrap !important;margin-top:calc(var(--bs-gutter-y) * -1) !important;margin-right:calc(var(--bs-gutter-x) / -2) !important;margin-left:calc(var(--bs-gutter-x) / -2) !important;}.sm\:dx-col-12{flex:0 0 auto !important;width:100% !important;}.sm\:dx-items-center{align-items:center !important;}.sm\:dx-justify-between{justify-content:space-between !important;}.sm\:dx-absolute{position:absolute !important;}.sm\:dx-relative{position:relative !important;}.sm\:dx-top-0{top:0 !important;}.sm\:dx-flex{display:flex !important;}.sm\:dx-hidden{display:none !important;}.sm\:dx-object-cover{-o-object-fit:cover !important;object-fit:cover !important;}.sm\:dx-object-ct{-o-object-position:center top !important;object-position:center top !important;}.sm\:dx-h-full{height:100% !important;}.sm\:dx-w-full{width:100% !important;}.sm\:dx-mb-1{margin-bottom:8px !important;}.sm\:dx-mb-10{margin-bottom:80px !important;}.sm\:dx-mb-11{margin-bottom:88px !important;}.sm\:dx-mb-12{margin-bottom:96px !important;}.sm\:dx-mb-2{margin-bottom:16px !important;}.sm\:dx-px-0{padding-left:0 !important;padding-right:0 !important;}.sm\:dx-px-3{padding-left:24px !important;padding-right:24px !important;}.sm\:dx-py-0{padding-top:0 !important;padding-bottom:0 !important;}.sm\:dx-py-4{padding-top:32px !important;padding-bottom:32px !important;}.sm\:dx-pb-8{padding-bottom:64px !important;}.sm\:dx-pl-1{padding-left:8px !important;}.sm\:dx-pl-10{padding-left:80px !important;}.sm\:dx-pl-11{padding-left:88px !important;}.sm\:dx-pl-12{padding-left:96px !important;}.sm\:dx-pr-1{padding-right:8px !important;}.sm\:dx-pr-10{padding-right:80px !important;}.sm\:dx-pr-11{padding-right:88px !important;}.sm\:dx-pr-12{padding-right:96px !important;}.sm\:dx-pt-8{padding-top:64px !important;}.sm\:dx-text-12{font-size:.75rem !important;}.sm\:dx-text-14{font-size:.875rem !important;}.sm\:dx-text-16{font-size:1rem !important;}.sm\:dx-text-gray-10{color:#f2f2f2 !important;}.sm\:dx-text-white{color:#fff !important;}}@media (min-width:768px){.md\:dx-gap-y,.md\:dx-row{row-gap:32px !important;}.md\:dx-bg-gray-10{background-color:#f2f2f2 !important;}.md\:dx-bg-gray-95{background-color:#151515 !important;}.md\:dx-border-t-3{border-top-width:3px !important;}.md\:dx-row+.md\:dx-row{padding-top:32px;}.md\:dx-row{--bs-gutter-x:32px !important;--bs-gutter-y:0 !important;display:flex !important;flex-wrap:wrap !important;margin-top:calc(var(--bs-gutter-y) * -1) !important;margin-right:calc(var(--bs-gutter-x) / -2) !important;margin-left:calc(var(--bs-gutter-x) / -2) !important;}.md\:dx-col-4{flex:0 0 auto !important;width:33.333333333333% !important;}.md\:dx-col-6{flex:0 0 auto !important;width:50% !important;}.md\:dx-col-12{flex:0 0 auto !important;width:100% !important;}.md\:dx-items-center{align-items:center !important;}.md\:dx-justify-between{justify-content:space-between !important;}.dx-container,.dx-container-fluid,.dx-container-fluid-max{padding-right:32px;padding-left:32px;}.dx-container{max-width:768px;}.md\:dx-absolute{position:absolute !important;}.md\:dx-relative{position:relative !important;}.md\:dx-top-0{top:0 !important;}.md\:dx-block{display:block !important;}.md\:dx-inline{display:inline !important;}.md\:dx-flex{display:flex !important;}.md\:dx-hidden{display:none !important;}.md\:dx-object-cover{-o-object-fit:cover !important;object-fit:cover !important;}.md\:dx-object-ct{-o-object-position:center top !important;object-position:center top !important;}.md\:dx-h-full{height:100% !important;}.md\:dx-w-full{width:100% !important;}.md\:dx-mb-1{margin-bottom:8px !important;}.md\:dx-mb-10{margin-bottom:80px !important;}.md\:dx-mb-11{margin-bottom:88px !important;}.md\:dx-mb-12{margin-bottom:96px !important;}.md\:dx-mb-2{margin-bottom:16px !important;}.md\:dx-px-0{padding-left:0 !important;padding-right:0 !important;}.md\:dx-px-1{padding-left:8px !important;padding-right:8px !important;}.md\:dx-px-10{padding-left:80px !important;padding-right:80px !important;}.md\:dx-px-11{padding-left:88px !important;padding-right:88px !important;}.md\:dx-px-12{padding-left:96px !important;padding-right:96px !important;}.md\:dx-px-3{padding-left:24px !important;padding-right:24px !important;}.md\:dx-px-4{padding-left:32px !important;padding-right:32px !important;}.md\:dx-py-0{padding-top:0 !important;padding-bottom:0 !important;}.md\:dx-py-4{padding-top:32px !important;padding-bottom:32px !important;}.md\:dx-pb-8{padding-bottom:64px !important;}.md\:dx-pl-1{padding-left:8px !important;}.md\:dx-pl-10{padding-left:80px !important;}.md\:dx-pl-11{padding-left:88px !important;}.md\:dx-pl-12{padding-left:96px !important;}.md\:dx-pr-1{padding-right:8px !important;}.md\:dx-pr-10{padding-right:80px !important;}.md\:dx-pr-11{padding-right:88px !important;}.md\:dx-pr-12{padding-right:96px !important;}.md\:dx-pt-8{padding-top:64px !important;}.md\:dx-text-12{font-size:.75rem !important;}.md\:dx-text-14{font-size:.875rem !important;}.md\:dx-text-16{font-size:1rem !important;}.md\:dx-text-gray-10{color:#f2f2f2 !important;}.md\:dx-text-white{color:#fff !important;}}@media (min-width:992px){.lg\:dx-gap-y,.lg\:dx-row{row-gap:32px !important;}.lg\:dx-bg-gray-10{background-color:#f2f2f2 !important;}.lg\:dx-bg-gray-95{background-color:#151515 !important;}.lg\:dx-border-t-3{border-top-width:3px !important;}.lg\:dx-row+.lg\:dx-row{padding-top:32px;}.lg\:dx-row{--bs-gutter-x:32px !important;--bs-gutter-y:0 !important;display:flex !important;flex-wrap:wrap !important;margin-top:calc(var(--bs-gutter-y) * -1) !important;margin-right:calc(var(--bs-gutter-x) / -2) !important;margin-left:calc(var(--bs-gutter-x) / -2) !important;}.lg\:dx-col-3{flex:0 0 auto !important;width:25% !important;}.lg\:dx-col-4{flex:0 0 auto !important;width:33.333333333333% !important;}.lg\:dx-col-6{flex:0 0 auto !important;width:50% !important;}.lg\:dx-col-7{flex:0 0 auto !important;width:58.333333333333% !important;}.lg\:dx-col-8{flex:0 0 auto !important;width:66.666666666667% !important;}.lg\:dx-col-9{flex:0 0 auto !important;width:75% !important;}.lg\:dx-col-12{flex:0 0 auto !important;width:100% !important;}.lg\:dx-items-center{align-items:center !important;}.lg\:dx-justify-between{justify-content:space-between !important;}.dx-container{max-width:992px;}.lg\:dx-absolute{position:absolute !important;}.lg\:dx-relative{position:relative !important;}.lg\:dx-top-0{top:0 !important;}.lg\:dx-flex{display:flex !important;}.lg\:dx-hidden{display:none !important;}.lg\:dx-object-cover{-o-object-fit:cover !important;object-fit:cover !important;}.lg\:dx-object-ct{-o-object-position:center top !important;object-position:center top !important;}.lg\:dx-h-full{height:100% !important;}.lg\:dx-w-full{width:100% !important;}.lg\:dx-mb-1{margin-bottom:8px !important;}.lg\:dx-mb-10{margin-bottom:80px !important;}.lg\:dx-mb-11{margin-bottom:88px !important;}.lg\:dx-mb-12{margin-bottom:96px !important;}.lg\:dx-mb-2{margin-bottom:16px !important;}.lg\:dx-px-0{padding-left:0 !important;padding-right:0 !important;}.lg\:dx-px-3{padding-left:24px !important;padding-right:24px !important;}.lg\:dx-px-8{padding-left:64px !important;padding-right:64px !important;}.lg\:dx-py-0{padding-top:0 !important;padding-bottom:0 !important;}.lg\:dx-py-2{padding-top:16px !important;padding-bottom:16px !important;}.lg\:dx-py-4{padding-top:32px !important;padding-bottom:32px !important;}.lg\:dx-pb-8{padding-bottom:64px !important;}.lg\:dx-pl-1{padding-left:8px !important;}.lg\:dx-pl-10{padding-left:80px !important;}.lg\:dx-pl-11{padding-left:88px !important;}.lg\:dx-pl-12{padding-left:96px !important;}.lg\:dx-pr-1{padding-right:8px !important;}.lg\:dx-pr-10{padding-right:80px !important;}.lg\:dx-pr-11{padding-right:88px !important;}.lg\:dx-pr-12{padding-right:96px !important;}.lg\:dx-pt-8{padding-top:64px !important;}.lg\:dx-text-right{text-align:right !important;}.lg\:dx-text-12{font-size:.75rem !important;}.lg\:dx-text-14{font-size:.875rem !important;}.lg\:dx-text-16{font-size:1rem !important;}.lg\:dx-text-gray-10{color:#f2f2f2 !important;}.lg\:dx-text-white{color:#fff !important;}}@media (min-width:1200px){.xl\:dx-gap-y,.xl\:dx-row{row-gap:32px !important;}.xl\:dx-bg-gray-10{background-color:#f2f2f2 !important;}.xl\:dx-bg-gray-95{background-color:#151515 !important;}.xl\:dx-border-t-3{border-top-width:3px !important;}.xl\:dx-row+.xl\:dx-row{padding-top:32px;}.xl\:dx-row{--bs-gutter-x:32px !important;--bs-gutter-y:0 !important;display:flex !important;flex-wrap:wrap !important;margin-top:calc(var(--bs-gutter-y) * -1) !important;margin-right:calc(var(--bs-gutter-x) / -2) !important;margin-left:calc(var(--bs-gutter-x) / -2) !important;}.xl\:dx-col-12{flex:0 0 auto !important;width:100% !important;}.xl\:dx-items-center{align-items:center !important;}.xl\:dx-justify-between{justify-content:space-between !important;}.dx-container{max-width:1200px;}.xl\:dx-absolute{position:absolute !important;}.xl\:dx-relative{position:relative !important;}.xl\:dx-top-0{top:0 !important;}.xl\:dx-flex{display:flex !important;}.xl\:dx-hidden{display:none !important;}.xl\:dx-object-cover{-o-object-fit:cover !important;object-fit:cover !important;}.xl\:dx-object-ct{-o-object-position:center top !important;object-position:center top !important;}.xl\:dx-h-full{height:100% !important;}.xl\:dx-w-full{width:100% !important;}.xl\:dx-mb-1{margin-bottom:8px !important;}.xl\:dx-mb-10{margin-bottom:80px !important;}.xl\:dx-mb-11{margin-bottom:88px !important;}.xl\:dx-mb-12{margin-bottom:96px !important;}.xl\:dx-mb-2{margin-bottom:16px !important;}.xl\:dx-px-0{padding-left:0 !important;padding-right:0 !important;}.xl\:dx-px-3{padding-left:24px !important;padding-right:24px !important;}.xl\:dx-py-0{padding-top:0 !important;padding-bottom:0 !important;}.xl\:dx-py-4{padding-top:32px !important;padding-bottom:32px !important;}.xl\:dx-pb-8{padding-bottom:64px !important;}.xl\:dx-pl-1{padding-left:8px !important;}.xl\:dx-pl-10{padding-left:80px !important;}.xl\:dx-pl-11{padding-left:88px !important;}.xl\:dx-pl-12{padding-left:96px !important;}.xl\:dx-pr-1{padding-right:8px !important;}.xl\:dx-pr-10{padding-right:80px !important;}.xl\:dx-pr-11{padding-right:88px !important;}.xl\:dx-pr-12{padding-right:96px !important;}.xl\:dx-pt-8{padding-top:64px !important;}.xl\:dx-text-12{font-size:.75rem !important;}.xl\:dx-text-14{font-size:.875rem !important;}.xl\:dx-text-16{font-size:1rem !important;}.xl\:dx-text-gray-10{color:#f2f2f2 !important;}.xl\:dx-text-white{color:#fff !important;}}@media (min-width:1440px){.\32xl\:dx-gap-y,.\32xl\:dx-row{row-gap:32px !important;}.\32xl\:dx-bg-gray-10{background-color:#f2f2f2 !important;}.\32xl\:dx-bg-gray-95{background-color:#151515 !important;}.\32xl\:dx-border-t-3{border-top-width:3px !important;}.\32xl\:dx-row+.\32xl\:dx-row{padding-top:32px;}.\32xl\:dx-row{--bs-gutter-x:32px !important;--bs-gutter-y:0 !important;display:flex !important;flex-wrap:wrap !important;margin-top:calc(var(--bs-gutter-y) * -1) !important;margin-right:calc(var(--bs-gutter-x) / -2) !important;margin-left:calc(var(--bs-gutter-x) / -2) !important;}.\32xl\:dx-col-12{flex:0 0 auto !important;width:100% !important;}.\32xl\:dx-items-center{align-items:center !important;}.\32xl\:dx-justify-between{justify-content:space-between !important;}.dx-container,.dx-container-fluid-max{max-width:1440px;}.\32xl\:dx-absolute{position:absolute !important;}.\32xl\:dx-relative{position:relative !important;}.\32xl\:dx-top-0{top:0 !important;}.\32xl\:dx-flex{display:flex !important;}.\32xl\:dx-hidden{display:none !important;}.\32xl\:dx-object-cover{-o-object-fit:cover !important;object-fit:cover !important;}.\32xl\:dx-object-ct{-o-object-position:center top !important;object-position:center top !important;}.\32xl\:dx-h-full{height:100% !important;}.\32xl\:dx-w-full{width:100% !important;}.\32xl\:dx-mb-1{margin-bottom:8px !important;}.\32xl\:dx-mb-10{margin-bottom:80px !important;}.\32xl\:dx-mb-11{margin-bottom:88px !important;}.\32xl\:dx-mb-12{margin-bottom:96px !important;}.\32xl\:dx-mb-2{margin-bottom:16px !important;}.\32xl\:dx-px-0{padding-left:0 !important;padding-right:0 !important;}.\32xl\:dx-px-3{padding-left:24px !important;padding-right:24px !important;}.\32xl\:dx-py-0{padding-top:0 !important;padding-bottom:0 !important;}.\32xl\:dx-py-4{padding-top:32px !important;padding-bottom:32px !important;}.\32xl\:dx-pb-8{padding-bottom:64px !important;}.\32xl\:dx-pl-1{padding-left:8px !important;}.\32xl\:dx-pl-10{padding-left:80px !important;}.\32xl\:dx-pl-11{padding-left:88px !important;}.\32xl\:dx-pl-12{padding-left:96px !important;}.\32xl\:dx-pr-1{padding-right:8px !important;}.\32xl\:dx-pr-10{padding-right:80px !important;}.\32xl\:dx-pr-11{padding-right:88px !important;}.\32xl\:dx-pr-12{padding-right:96px !important;}.\32xl\:dx-pt-8{padding-top:64px !important;}.\32xl\:dx-text-12{font-size:.75rem !important;}.\32xl\:dx-text-14{font-size:.875rem !important;}.\32xl\:dx-text-16{font-size:1rem !important;}.\32xl\:dx-text-gray-10{color:#f2f2f2 !important;}.\32xl\:dx-text-white{color:#fff !important;}}</style>
+
+<!-- End of dx-utilities styles. --><meta http-equiv="content-language" content="en" />
+<meta name="last-publish-date" content="Thu, 18 May 2023 00:00:00 GMT" />
+<meta name="node-type" content="page" />
+<meta name="source" content="rhdc_drupal" />
+<meta name="rhdc_key" content="369fbdc4dbaad00d9d3790b3eed38369" />
+<meta name="taxonomy-region" content="Global" />
+<meta name="taxonomy-region-tid" content="4521" />
+<meta name="taxonomy-topic" content="Communities" />
+<meta name="taxonomy-topic-tid" content="75551" />
+<meta name="dateline" content="2023-05-18T00:00:00.00Z" />
+<meta name="source_title" content="Ansible Collaborative" />
+<link rel="icon" href="/favicon.ico" type="image/x-icon" />
+<link rel="alternate" hreflang="en" href="https://www.redhat.com/en/ansible-collaborative" />
+
+    <script>performance.mark('HEAD End'); performance.measure('HEAD Time', 'HEAD Start', 'HEAD End');</script>
+  </head>
+  <body class="updated path-node rhdc-node-type-page page-node-801631" >
+    
+            <div class="rhb-region rhb-region--highlighted"></div>
+  
+  <div class="rhb-region rhb-region--content" id="rhb-main-content" role="main">
+    <article>
+  <div>
+                                    
+  <!-- Pattern | raw_html -->
+
+                                    
+            <div class="dx-band dx-py-0" id="ansible-nav-component-container"><rh-navigation-secondary class="dx-w-full sticky" id="primary-nav-component" role="navigation" aria-label="primary" data-analytics-region="primary-navigation-ansible" color-palette="dark"><a href="https://www.redhat.com/en/ansible-collaborative" data-analytics-text="Red Hat Ansible Automation Platform" data-analytics-category="Ansible nav" slot="logo" id="secondary-nav-logo"><img class="logo" src="https://redhat.com/rhdc/managed-files/ansible-logo_white.svg" alt="Ansible logo"> </a>
+    <ul slot="nav">
+        <!-- TAB 1 - Documentation -->
+        <li>
+            <rh-navigation-secondary-dropdown><a class="nav-menu-item" href="#" data-analytics-text="Documentation" data-analytics-category="Ansible secondary nav" slot="link">Documentation </a><rh-navigation-secondary-menu slot="menu">
+            <div class="dx-container dx-w-full">
+                <div class="dx-row">
+                    <div class="dx-col-12 lg:dx-col-3 dx-px-0 ansible-nav-wrapper">
+                        <ul class="dx-list-none">
+                            <li class="dx-mb-2 dx-text-16">
+                                <a href="https://docs.ansible.com/" data-analytics-text="Project documentation" data-analytics-category="Ansible primary nav|Project documentation" title="Ansible community documentation">Project documentation </a>
+                            </li>
+                            <li class="dx-mb-2 dx-text-16">
+                                <a href="https://access.redhat.com/documentation/en-us/red_hat_ansible_automation_platform?sc_cid=7015Y000003szaeQAA" data-analytics-text="Ansible Automation Platform documentation" data-analytics-category="Ansible primary nav|Ansible Automation Platform documentation" title="Red Hat Ansible Automation Platform | Red Hat Product Documentation">Ansible Automation Platform documentation </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            </rh-navigation-secondary-menu></rh-navigation-secondary-dropdown>
+        </li>
+        <!-- TAB 2 - Galaxy -->
+        <li class="dx-text-white">
+            <a class="nav-menu-item dx-border-t-3" href="https://galaxy.ansible.com/" data-analytics-text="Galaxy" data-analytics-category="Ansible nav|Galaxy" title="Ansible Galaxy - Welcome to Galaxy">Galaxy </a>
+        </li>
+        <!-- TAB 3 - Forum -->
+        <li>
+            <a class="nav-menu-item dx-border-t-3" href="https://forum.ansible.com/" data-analytics-text="Forum" data-analytics-category="Ansible nav|Forum" title="Ansible - The Ansible Community forum">Forum </a>
+        </li>
+        <!-- TAB 4 - Resources -->
+        <li>
+            <rh-navigation-secondary-dropdown><a class="nav-menu-item" href="#" data-analytics-text="Resources" data-analytics-category="Ansible secondary nav" slot="link">Resources </a><rh-navigation-secondary-menu slot="menu">
+            <div class="dx-container dx-w-full dx-px-0">
+                <div class="lg:dx-row">
+                    <div class="dx-col-12 lg:dx-col-3 dx-px-0 ansible-nav-wrapper">
+                        <ul class="dx-list-none">
+                            <li class="dx-mb-2 dx-text-16">
+                                <a href="https://www.redhat.com/en/ansible-collaborative/how-ansible-works" data-analytics-text="How Ansible works" data-analytics-category="Ansible primary nav|How Ansible works" title="How Ansible works | Ansible Collaborative">How Ansible works </a>
+                            </li>
+                            <li class="dx-mb-2 dx-text-16">
+                                <a href="https://www.redhat.com/en/ansible-collaborative/ecosystem" data-analytics-text="Ansible ecosystem" data-analytics-category="Ansible primary nav|Ansible ecosystem" title="Ansible ecosystem">Ansible ecosystem </a>
+                            </li>
+                            <li class="dx-text-16 dx-mb-2">
+                                <a href="https://www.redhat.com/en/ansible-collaborative/faq" data-analytics-text="Frequently asked questions" data-analytics-category="Ansible primary nav|Frequently asked questions" title="Frequently asked questions">Frequently asked questions </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="dx-col-12 lg:dx-col-3 dx-px-0 ansible-nav-wrapper">
+                        <ul class="dx-list-none">
+                            <li class="dx-mb-2 dx-text-16">
+                                <a href="https://forum.ansible.com/c/events/8" data-analytics-text="Events" data-analytics-category="Ansible primary nav|Events" title="Latest Events topics - Ansible">Events </a>
+                            </li>
+                            <li class="dx-mb-2 dx-text-16">
+                                <a href="https://www.redhat.com/en/ansible-collaborative/ansible-community-training" data-analytics-text="Ansible community training" data-analytics-category="Ansible primary nav|Ansible community training" title="Ansible community training">Ansible community training </a>
+                            </li>
+                            <li class="dx-mb-2 dx-text-16">
+                                <a href="https://www.redhat.com/en/ansible-collaborative/contact-us" data-analytics-text="Contact us" data-analytics-category="Ansible primary nav|Contact us" title="Contact us">Contact us </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            </rh-navigation-secondary-menu></rh-navigation-secondary-dropdown>
+        </li>
+        <!-- TAB 5 - Ansible Automation Platform -->
+        <li>
+            <a class="nav-menu-item dx-border-t-3" href="/en/technologies/management/ansible?sc_cid=7015Y000003szaKQAQ" data-analytics-text="Ansible Automation Platform" data-analytics-category="Ansible nav|Ansible Automation Platform" title="Red Hat Ansible Automation Platform">Ansible Automation Platform </a>
+        </li>
+    </ul>
+    </rh-navigation-secondary></div>
+      
+
+              
+
+
+
+                        <div class="one-column">
+      
+      
+      
+                </div>
+  
+<section  data-rh-theme="dark" id="custom-hero" class="dx-bg-gray-95 dx-pt-8 dx-pb-8 dx-relative" section-properties-enabled>  <img alt='' class='dx-hidden md:dx-block dx-absolute dx-h-full dx-w-full dx-top-0 dx-object-ct dx-object-cover' src='/rhdc/managed-files/ansible-collaborative-hero-teal-bkg.png'>
+    
+    
+          <div class="dx-container  dx-relative">
+          <div class="dx-row  dx-justify-between ">
+                            <div class="dx-col-12 lg:dx-col-8 rhpb-region  dx-flex" style="flex-direction:column">
+            
+  <!-- Subpattern | simple_text -->
+
+                
+                    
+                    
+                    
+                    
+                    
+                                    
+        
+            
+                    
+                
+                                
+        
+    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"              data-rh-layout="stacked"    >
+                            <div class="rh-group-body"      data-rh-layout="min-stacked"     >
+                                    <!-- Component | Band_header -->
+
+
+    
+                
+                                                
+  <div class="rh-band-header--component" data-rh-align=left        ><h2 class="rh-band-header-hero-headline" id="rh-04dll">Ansible Collaborative</h2>
+</div>
+                                    <!-- Component | Generic -->
+
+
+    <div class="rh-generic--component"
+                 data-rh-align="left"    >
+        <h4>A gathering space to build automation skills and success</h4><p>Welcome to the Ansible® Collaborative, a destination for Ansible users, customers, partners, and vendors to learn and share automation content.</p>
+    </div>
+                            </div>
+                            <div class="rh-group-footer"         >
+                                    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"                 >
+                            <div class="rh-group-body"      data-rh-layout="buttons-flex-left-end"     >
+                                    <!-- Subpattern | simple_cta -->
+
+    <!-- Component | CTA -->
+
+
+    
+                        
+    
+    <span class="rh-cta--component"                                 data-rh-cta-type="ghost"
+    >
+        <a class="rh-cta-link"                 href="https://forum.ansible.com/"                target="_self"        data-analytics-linkType="cta"
+        data-analytics-text="Try a lab"                aria-describedby="rh-04dll"     >Join the Ansible forum</a>
+    </span>
+                            </div>
+                    </div>
+                            </div>
+            </div>
+
+
+          </div>
+              </div>
+    </div>
+  </section>          <div class="one-column">
+      
+      
+      
+                </div>
+  
+<section  class="dx-pt-8 dx-pb-8" section-properties-enabled>  
+    
+    
+          <div class="dx-container  dx-relative">
+          <div class="dx-row  dx-justify-between ">
+                            <div class="dx-col-12 lg:dx-col-8 rhpb-region  dx-flex" style="flex-direction:column">
+            
+  <!-- Subpattern | simple_text -->
+
+                
+                    
+                    
+                    
+                    
+                    
+                                    
+        
+            
+                    
+                
+                                                    
+        
+    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"              data-rh-layout="stacked"    >
+                            <div class="rh-group-body"      data-rh-layout="min-stacked"     >
+                                    <!-- Component | Band_header -->
+
+
+    
+                
+                                                
+  <div class="rh-band-header--component" data-rh-align=left        ><h2 class="rh-band-header-subsection-headline" id="rh-1uqgy">What is Ansible?</h2>
+</div>
+                                    <!-- Component | Generic -->
+
+
+    <div class="rh-generic--component"
+                 data-rh-align="left"    >
+        <p>No matter your role, or your automation goals, Ansible can help you connect teams and deliver efficiencies.<br><br>Ansible is an open source IT automation engine that automates provisioning, configuration management, application deployment, orchestration, and many other IT processes. It is free to use, and the project benefits from the experience and intelligence of its thousands of contributors.<br><br><a href="/en/technologies/management/ansible" data-entity-type="node" data-entity-uuid="05540cf9-f4f5-480e-8be7-97b2abe5deaf" data-entity-substitution="canonical" title="Red Hat Ansible Automation Platform">Red Hat® Ansible Automation Platform</a>&nbsp;combines more than a dozen upstream projects into a unified, security-hardened enterprise platform for mission-critical automation. It builds on the foundation of the open source project to create an end-to-end automation experience for cross-functional teams.</p>
+    </div>
+                            </div>
+                            <div class="rh-group-footer"         >
+                                    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"                 >
+                            <div class="rh-group-body"      data-rh-layout="min-stacked"     >
+                                    <!-- Subpattern | simple_cta -->
+
+    <!-- Component | CTA -->
+
+
+    
+                        
+    
+    <span class="rh-cta--component"                                 data-rh-cta-type="secondary"
+    >
+        <a class="rh-cta-link"                 href="/en/ansible-collaborative/how-ansible-works"        title="How Ansible works"        target="_self"        data-analytics-linkType="cta"
+        data-analytics-text="How Ansible works"                aria-describedby="rh-1uqgy"     >How Ansible works<span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">
+  <path d="M31.58 18.24a.64.64 0 0 0-.14-.68l-9-9c-.56-.58-1.47.32-.88.88l7.93 7.94H5a.62.62 0 1 0 0 1.24h24.49l-7.93 7.94a.62.62 0 0 0 .88.88l9-9a.72.72 0 0 0 .14-.2Z"/>
+</svg>
+</span></a>
+    </span>
+                            </div>
+                    </div>
+                            </div>
+            </div>
+
+
+          </div>
+              </div>
+    </div>
+  </section>
+<section  class="dx-bg-gray-10 dx-pt-8 dx-pb-8" section-properties-enabled>  
+    
+    
+          <div class="dx-container  dx-relative">
+          <div class="dx-row  ">
+                            <div class="dx-col-12 lg:dx-col-8 rhpb-region  dx-flex" style="flex-direction:column">
+            
+  <!-- Subpattern | simple_text -->
+
+                
+                    
+                    
+                    
+                    
+                    
+                                    
+        
+            
+                    
+                
+                                                    
+        
+    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"              data-rh-layout="stacked"    >
+                            <div class="rh-group-body"      data-rh-layout="min-stacked"     >
+                                    <!-- Component | Band_header -->
+
+
+    
+                
+                                                
+  <div class="rh-band-header--component" data-rh-align=left        ><h2 class="rh-band-header-subsection-headline" id="rh-mj50l">Automate Policy as Code for consistency and compliance</h2>
+</div>
+                                    <!-- Component | Generic -->
+
+
+    <div class="rh-generic--component"
+                 data-rh-align="left"    >
+        <p>Ansible’s automated Policy as Code capabilities will help you automate compliance and policy enforcement across the full operational life cycle that now includes AI—from creating automation to managing IT processes at scale. Join the Ansible Policy as Code advocacy group to learn best practices, share your ideas with others, and help to shape this technology as it develops.</p>
+    </div>
+                            </div>
+                            <div class="rh-group-footer"         >
+                                    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"                 >
+                            <div class="rh-group-body"      data-rh-layout="buttons-flex-left-end"     >
+                                    <!-- Subpattern | simple_cta -->
+
+    <!-- Component | CTA -->
+
+
+    
+                        
+    
+    <span class="rh-cta--component"                                 data-rh-cta-type="ghost"
+    >
+        <a class="rh-cta-link"                 href="https://forum.ansible.com/tag/policy-as-code"                target="_self"        data-analytics-linkType="cta"
+        data-analytics-text="Customers"                aria-describedby="rh-mj50l"     >Customers</a>
+    </span>
+                                    <!-- Subpattern | simple_cta -->
+
+    <!-- Component | CTA -->
+
+
+    
+                        
+    
+    <span class="rh-cta--component"                                 data-rh-cta-type="ghost"
+    >
+        <a class="rh-cta-link"                 href="https://forum.ansible.com/tag/policy-as-code-partn"                target="_self"        data-analytics-linkType="cta"
+        data-analytics-text="Partners"                aria-describedby="rh-mj50l"     >Partners</a>
+    </span>
+                            </div>
+                    </div>
+                            </div>
+            </div>
+
+
+          </div>
+              </div>
+    </div>
+  </section>
+<section  class="dx-pt-8 dx-pb-8" section-properties-enabled>  
+    
+    
+          <div class="dx-container  dx-relative">
+          <div class="dx-row   match-region-heights ">
+                            <div class="dx-col-12 md:dx-col-12 rhpb-region  dx-flex" style="flex-direction:column">
+            
+  <!-- Subpattern | simple_text -->
+
+                
+                    
+        
+                    
+                    
+                    
+                                    
+        
+            
+                    
+    
+            
+    
+    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"              data-rh-layout="stacked"    >
+                            <div class="rh-group-body"      data-rh-layout="min-stacked"     >
+                                    <!-- Component | Band_header -->
+
+
+    
+                
+                                                
+  <div class="rh-band-header--component" data-rh-align=left        ><h2 class="rh-band-header-subsection-headline" >Learn Ansible skills</h2>
+</div>
+                            </div>
+                    </div>
+
+
+          </div>
+                            <div class="dx-col-12 lg:dx-col-6 rhpb-region  dx-flex" style="flex-direction:column">
+            
+  <!-- Subpattern | card_flex -->
+
+
+                                    
+        
+
+
+
+<div class="rh-card--layout card-flex--subpattern"         data-at-card="flex"    data-rh-background="white"
+    data-rh-justify="justify"
+    data-rh-layout="min-stacked"
+    data-rh-theme="light"
+            data-rh-bg-align="cover"
+>
+
+    
+            <div class="rh-card-content" data-rh-layout="min-stacked">
+                                                <!-- Subpattern | text_basic -->
+
+                        
+        
+                    
+                    
+                
+    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"     data-at-card=&quot;flex&quot;         data-rh-layout="stacked"    >
+                            <div class="rh-group-body"      data-rh-layout="min-stacked"     >
+                                    <!-- Component | Band_header -->
+
+
+        
+  <div class="rh-band-header--hash-offset" data-rh-hash="true"id="documentation"></div><div class="rh-band-header--component" data-rh-align=left data-rh-theme="desaturated"        ><h3 class="rh-band-header-nested-section-headline" id="rh-f36pz">Documentation</h3>
+</div>
+                                    <!-- Component | Generic -->
+
+
+    <div class="rh-generic--component"
+                 data-rh-align="left"    >
+        <ul><li><a href="https://docs.ansible.com/ansible/latest/getting_started/introduction.html">Introduction to Ansible</a></li><li><a href="https://docs.ansible.com/ansible/latest/getting_started/get_started_ansible.html">Start automating with Ansible</a></li><li><a href="https://docs.ansible.com/ansible/latest/getting_started/get_started_playbook.html">Create a playbook</a></li><li><a href="https://docs.ansible.com/ansible/latest/getting_started/basic_concepts.html">Explore Ansible concepts</a></li><li><a href="https://docs.ansible.com/ansible/latest/getting_started/get_started_inventory.html">Build an inventory</a></li></ul>
+    </div>
+                            </div>
+                    </div>
+                                </div>
+    
+            <footer class="rh-card-footer" data-rh-layout="">
+                                                                                                    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"                 >
+                            <div class="rh-group-body"         >
+                                    <!-- Component | Cta_multi_basic -->
+
+
+                    <div class="rh-cta-multi-basic--component"    data-rh-align="left"                data-rh-display="stacked"
+        >
+                    <!-- Subpattern | simple_cta -->
+
+            </div>
+                            </div>
+                    </div>
+                    </footer>
+    
+</div>
+
+
+          </div>
+                            <div class="dx-col-12 lg:dx-col-6 rhpb-region  dx-flex" style="flex-direction:column">
+            
+  <!-- Subpattern | card_flex -->
+
+
+                                    
+        
+
+
+
+<div class="rh-card--layout card-flex--subpattern"         data-at-card="flex"    data-rh-background="white"
+    data-rh-justify="justify"
+    data-rh-layout="min-stacked"
+    data-rh-theme="light"
+            data-rh-bg-align="cover"
+>
+
+    
+            <div class="rh-card-content" data-rh-layout="min-stacked">
+                                                <!-- Subpattern | text_basic -->
+
+                        
+        
+                    
+                    
+                
+    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"     data-at-card=&quot;flex&quot;         data-rh-layout="stacked"    >
+                            <div class="rh-group-body"      data-rh-layout="min-stacked"     >
+                                    <!-- Component | Band_header -->
+
+
+        
+  <div class="rh-band-header--hash-offset" data-rh-hash="true"id="interactive-labs"></div><div class="rh-band-header--component" data-rh-align=left        ><h2 class="rh-band-header-nested-section-headline" id="rh-nlfiq">Interactive labs</h2>
+</div>
+                                    <!-- Component | Generic -->
+
+
+    <div class="rh-generic--component"
+                 data-rh-align="left"    >
+        <div data-rh-layout="stacked" data-eq-pts="xxs-group: 0, xs-group: 220, sm-group: 320, md-group: 420, lg-group: 620" data-eq-state="xxs-group xs-group"><div data-rh-layout="min-stacked"><div data-rh-align="left"><ul><li><a href="https://play.instruqt.com/redhat/invite/2uijms9cndx0">Writing first Ansible playbook</a></li><li><a href="https://play.instruqt.com/redhat/invite/2uijms9cndx0">Intro to Ansible automation controller</a></li><li><a href="https://play.instruqt.com/redhat/invite/2uijms9cndx0">Get started with ansible-navigator</a></li><li><a href="https://play.instruqt.com/redhat/invite/2uijms9cndx0">Get started with ansible-builder</a></li><li><a href="https://play.instruqt.com/redhat/invite/2uijms9cndx0">Get started with Event-Driven Ansible and Ansible rulebooks</a></li></ul></div></div></div>
+    </div>
+                            </div>
+                    </div>
+                                </div>
+    
+            <footer class="rh-card-footer" data-rh-layout="">
+                                                                                                    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"                 >
+                            <div class="rh-group-body"         >
+                                    <!-- Component | Cta_multi_basic -->
+
+
+                    <div class="rh-cta-multi-basic--component"    data-rh-align="left"                data-rh-display="stacked"
+        >
+                    <!-- Subpattern | simple_cta -->
+
+            </div>
+                            </div>
+                    </div>
+                    </footer>
+    
+</div>
+
+
+          </div>
+                            <div class="dx-col-12 rhpb-region  dx-flex" style="flex-direction:column">
+            
+  <!-- Subpattern | simple_text -->
+
+                
+                    
+        
+                    
+                    
+                    
+                                    
+        
+            
+        
+    
+                                                    
+        
+    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"              data-rh-layout="stacked"    >
+                                    <div class="rh-group-footer"         >
+                                    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"                 >
+                            <div class="rh-group-body"      data-rh-layout="min-stacked"     >
+                                    <!-- Subpattern | simple_cta -->
+
+    <!-- Component | CTA -->
+
+
+    
+                        
+    
+    <span class="rh-cta--component"                                 data-rh-cta-type="secondary"
+    >
+        <a class="rh-cta-link"                 href="https://www.redhat.com/en/technologies/management/ansible/learn?sc_cid=7015Y000003szaeQAA"                target="_self"        data-analytics-linkType="cta"
+        data-analytics-text="Explore Red Hat Ansible Automation Platform learning materials and tools"                    >Explore Red Hat Ansible Automation Platform learning materials and tools<span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">
+  <path d="M31.58 18.24a.64.64 0 0 0-.14-.68l-9-9c-.56-.58-1.47.32-.88.88l7.93 7.94H5a.62.62 0 1 0 0 1.24h24.49l-7.93 7.94a.62.62 0 0 0 .88.88l9-9a.72.72 0 0 0 .14-.2Z"/>
+</svg>
+</span></a>
+    </span>
+                            </div>
+                    </div>
+                            </div>
+            </div>
+
+
+          </div>
+              </div>
+    </div>
+  </section>
+<section  class="dx-bg-gray-10 dx-pt-8 dx-pb-8" section-properties-enabled>  
+    
+    
+          <div class="dx-container  dx-relative">
+          <div class="dx-row  dx-justify-between dx-items-center ">
+                            <div class="dx-col-12 lg:dx-col-7 rhpb-region  dx-flex" style="flex-direction:column">
+            
+  <!-- Subpattern | simple_text -->
+
+                
+                    
+                    
+                    
+                    
+                    
+                                    
+        
+            
+                    
+                
+                                                    
+        
+    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"              data-rh-layout="stacked"    >
+                            <div class="rh-group-body"      data-rh-layout="min-stacked"     >
+                                    <!-- Component | Band_header -->
+
+
+    
+                
+                                                
+  <div class="rh-band-header--component" data-rh-align=left        ><h2 class="rh-band-header-subsection-headline" id="rh-m9z9e">Ready to move from patchwork to platform?</h2>
+</div>
+                                    <!-- Component | Generic -->
+
+
+    <div class="rh-generic--component"
+                 data-rh-align="left"    >
+        <p>You already know the benefits of upstream Ansible tools. But if your organization is ready to take automation to the next level, it's time to consider Red Hat Ansible Automation Platform. It delivers more capabilities-like event-driven automation and generative AI-that reduce manual effort and increase efficiency, as well as enhanced security and end-to-end technical support.</p>
+    </div>
+                            </div>
+                            <div class="rh-group-footer"         >
+                                    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"                 >
+                            <div class="rh-group-body"      data-rh-layout="min-stacked"     >
+                                    <!-- Subpattern | simple_cta -->
+
+    <!-- Component | CTA -->
+
+
+    
+                        
+    
+    <span class="rh-cta--component"                                 data-rh-cta-type="secondary"
+    >
+        <a class="rh-cta-link"                 href="/en/engage/replace-patchwork-automation"        title="Replace your patchwork automation—with a strategic platform"        target="_self"        data-analytics-linkType="cta"
+        data-analytics-text="Get the details"                aria-describedby="rh-m9z9e"     >Get the details<span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">
+  <path d="M31.58 18.24a.64.64 0 0 0-.14-.68l-9-9c-.56-.58-1.47.32-.88.88l7.93 7.94H5a.62.62 0 1 0 0 1.24h24.49l-7.93 7.94a.62.62 0 0 0 .88.88l9-9a.72.72 0 0 0 .14-.2Z"/>
+</svg>
+</span></a>
+    </span>
+                            </div>
+                    </div>
+                            </div>
+            </div>
+
+
+          </div>
+                            <div class="dx-col-12 md:dx-col-4 rhpb-region  dx-flex" style="flex-direction:column">
+            
+  <!-- Subpattern | simple_text -->
+
+                
+                    
+        
+                    
+                    
+                    
+                                    
+        
+            
+        
+                
+            
+    
+    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"              data-rh-layout="stacked"    >
+                            <div class="rh-group-body"      data-rh-layout="min-stacked"     >
+                                    <!-- Component | Generic -->
+
+
+    <div class="rh-generic--component"
+                 data-rh-align="center"    >
+        <p><a href="https://www.redhat.com/en/technologies/management/ansible" title="Red Hat Ansible Automation Platform"><img alt="Red Hat Ansible Automation Platform logo" src="https://www.redhat.com/rhdc/managed-files/Logo-Red_Hat-Ansible_Automation_Platform-A-Standard-RGB_0.svg" width="350px" loading="lazy"></a></p>
+    </div>
+                            </div>
+                    </div>
+
+
+          </div>
+              </div>
+    </div>
+  </section>
+<section  class="dx-pt-8 dx-pb-8" section-properties-enabled>  
+    
+    
+          <div class="dx-container  dx-relative">
+          <div class="dx-row   match-region-heights ">
+                            <div class="dx-col-12 md:dx-col-12 rhpb-region  dx-flex" style="flex-direction:column">
+            
+  <!-- Subpattern | simple_text -->
+
+                
+                    
+        
+                    
+                    
+                    
+                                    
+        
+            
+                    
+                
+            
+    
+    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"              data-rh-layout="stacked"    >
+                            <div class="rh-group-body"      data-rh-layout="min-stacked"     >
+                                    <!-- Component | Band_header -->
+
+
+    
+                
+                                                
+  <div class="rh-band-header--component" data-rh-align=left        ><h2 class="rh-band-header-subsection-headline" >Ansible collections</h2>
+</div>
+                                    <!-- Component | Generic -->
+
+
+    <div class="rh-generic--component"
+                 data-rh-align="left"    >
+        <p>With Ansible Galaxy, you can jump-start your automation with pre-packaged roles and collections. Use this content in Ansible Playbooks to automate your work faster and improve productivity.</p>
+    </div>
+                            </div>
+                    </div>
+
+
+  <!-- Component | spacer -->
+
+
+<div class="rh-spacer--component" data-rh-vheight="2x-large"  >
+</div>
+
+
+  <!-- Subpattern | simple_text -->
+
+                
+                    
+        
+                    
+                    
+                    
+                                    
+        
+                        
+                    
+    
+            
+    
+    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"              data-rh-layout="stacked"    >
+                            <div class="rh-group-body"      data-rh-layout="min-stacked"     >
+                                    <!-- Component | Band_header -->
+
+
+    
+                
+                                                
+  <div class="rh-band-header--component" data-rh-align=left     data-rh-size=small    ><h2 class="rh-band-header-nested-section-headline" >Featured collections</h2>
+</div>
+                            </div>
+                    </div>
+
+
+          </div>
+                            <div class="dx-col-12 lg:dx-col-4 rhpb-region  dx-flex" style="flex-direction:column">
+            
+  <!-- Subpattern | card_flex -->
+
+
+                                    
+        
+
+
+
+<div class="rh-card--layout card-flex--subpattern"         data-at-card="flex"    data-rh-background="white"
+    data-rh-justify="justify"
+    data-rh-layout="min-stacked"
+    data-rh-theme="light"
+            data-rh-bg-align="cover"
+>
+
+    
+            <div class="rh-card-content" data-rh-layout="min-stacked">
+                                                <!-- Subpattern | text_basic -->
+
+                        
+        
+                    
+                    
+                
+    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"     data-at-card=&quot;flex&quot;         data-rh-layout="stacked"    >
+                            <div class="rh-group-body"      data-rh-layout="min-stacked"     >
+                                    <!-- Component | Band_header -->
+
+
+        
+  <div class="rh-band-header--hash-offset" data-rh-hash="true"id="middleware_automation"></div><div class="rh-band-header--component" data-rh-align=left data-rh-theme="desaturated"        ><h3 class="rh-band-header-nested-section-headline" id="rh-hvvvd">middleware_automation</h3>
+</div>
+                                    <!-- Component | Generic -->
+
+
+    <div class="rh-generic--component"
+                 data-rh-align="left"    >
+        <div data-rh-align="left"><p>Build, deploy, and manage multi-cloud application infrastructure at scale by automating Kafka, WildFly, Infinispan, Keyclock and more with the Ansible Middleware Collections.</p></div>
+    </div>
+                            </div>
+                    </div>
+                                </div>
+    
+            <footer class="rh-card-footer" data-rh-layout="">
+                                                                                                    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"                 >
+                            <div class="rh-group-body"         >
+                                    <!-- Component | Cta_multi_basic -->
+
+
+                    <div class="rh-cta-multi-basic--component"    data-rh-align="left"                data-rh-display="stacked"
+        >
+                    <!-- Subpattern | simple_cta -->
+
+    <!-- Component | CTA -->
+
+
+    
+                        
+    
+    <span class="rh-cta--component"                                 data-rh-cta-type="secondary"
+    >
+        <a class="rh-cta-link"                 href="https://galaxy.ansible.com/ui/namespaces/middleware_automation/"                        data-analytics-linkType="cta"
+        data-analytics-text="Learn more"                    >Learn more<span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">
+  <path d="M31.58 18.24a.64.64 0 0 0-.14-.68l-9-9c-.56-.58-1.47.32-.88.88l7.93 7.94H5a.62.62 0 1 0 0 1.24h24.49l-7.93 7.94a.62.62 0 0 0 .88.88l9-9a.72.72 0 0 0 .14-.2Z"/>
+</svg>
+</span></a>
+    </span>
+            </div>
+                            </div>
+                    </div>
+                    </footer>
+    
+</div>
+
+
+          </div>
+                            <div class="dx-col-12 lg:dx-col-4 rhpb-region  dx-flex" style="flex-direction:column">
+            
+  <!-- Subpattern | card_flex -->
+
+
+                                    
+        
+
+
+
+<div class="rh-card--layout card-flex--subpattern"         data-at-card="flex"    data-rh-background="white"
+    data-rh-justify="justify"
+    data-rh-layout="min-stacked"
+    data-rh-theme="light"
+            data-rh-bg-align="cover"
+>
+
+    
+            <div class="rh-card-content" data-rh-layout="min-stacked">
+                                                <!-- Subpattern | text_basic -->
+
+                        
+        
+                    
+                    
+                
+    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"     data-at-card=&quot;flex&quot;         data-rh-layout="stacked"    >
+                            <div class="rh-group-body"      data-rh-layout="min-stacked"     >
+                                    <!-- Component | Band_header -->
+
+
+        
+  <div class="rh-band-header--hash-offset" data-rh-hash="true"id="kubernetescore"></div><div class="rh-band-header--component" data-rh-align=left        ><h2 class="rh-band-header-nested-section-headline" id="rh-34y0u">kubernetes.core</h2>
+</div>
+                                    <!-- Component | Generic -->
+
+
+    <div class="rh-generic--component"
+                 data-rh-align="left"    >
+        <p>Automate the provisioning and maintenance of Kubernetes and OpenShift clusters as well as the management of applications with the kubernetes.core Collection.</p>
+    </div>
+                            </div>
+                    </div>
+                                </div>
+    
+            <footer class="rh-card-footer" data-rh-layout="">
+                                                                                                    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"                 >
+                            <div class="rh-group-body"         >
+                                    <!-- Component | Cta_multi_basic -->
+
+
+                    <div class="rh-cta-multi-basic--component"    data-rh-align="left"                data-rh-display="stacked"
+        >
+                    <!-- Subpattern | simple_cta -->
+
+    <!-- Component | CTA -->
+
+
+    
+                        
+    
+    <span class="rh-cta--component"                                 data-rh-cta-type="secondary"
+    >
+        <a class="rh-cta-link"                 href="https://galaxy.ansible.com/ui/repo/published/kubernetes/core/"                        data-analytics-linkType="cta"
+        data-analytics-text="Learn more"                    >Learn more<span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">
+  <path d="M31.58 18.24a.64.64 0 0 0-.14-.68l-9-9c-.56-.58-1.47.32-.88.88l7.93 7.94H5a.62.62 0 1 0 0 1.24h24.49l-7.93 7.94a.62.62 0 0 0 .88.88l9-9a.72.72 0 0 0 .14-.2Z"/>
+</svg>
+</span></a>
+    </span>
+            </div>
+                            </div>
+                    </div>
+                    </footer>
+    
+</div>
+
+
+          </div>
+                            <div class="dx-col-12 lg:dx-col-4 rhpb-region  dx-flex" style="flex-direction:column">
+            
+  <!-- Subpattern | card_flex -->
+
+
+                                    
+        
+
+
+
+<div class="rh-card--layout card-flex--subpattern"         data-at-card="flex"    data-rh-background="white"
+    data-rh-justify="justify"
+    data-rh-layout="min-stacked"
+    data-rh-theme="light"
+            data-rh-bg-align="cover"
+>
+
+    
+            <div class="rh-card-content" data-rh-layout="min-stacked">
+                                                <!-- Subpattern | text_basic -->
+
+                        
+        
+                    
+                    
+                
+    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"     data-at-card=&quot;flex&quot;         data-rh-layout="stacked"    >
+                            <div class="rh-group-body"      data-rh-layout="min-stacked"     >
+                                    <!-- Component | Band_header -->
+
+
+        
+  <div class="rh-band-header--hash-offset" data-rh-hash="true"id="communityvmware"></div><div class="rh-band-header--component" data-rh-align=left        ><h2 class="rh-band-header-nested-section-headline" id="rh-oeicw">community.vmware</h2>
+</div>
+                                    <!-- Component | Generic -->
+
+
+    <div class="rh-generic--component"
+                 data-rh-align="left"    >
+        <p>Manage all your VMWare infrastructure, including vSphere, the Datacenters, Clusters and your Virtual Machines with the Ansible community.vmware Collection.</p>
+    </div>
+                            </div>
+                    </div>
+                                </div>
+    
+            <footer class="rh-card-footer" data-rh-layout="">
+                                                                                                    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"                 >
+                            <div class="rh-group-body"         >
+                                    <!-- Component | Cta_multi_basic -->
+
+
+                    <div class="rh-cta-multi-basic--component"    data-rh-align="left"                data-rh-display="stacked"
+        >
+                    <!-- Subpattern | simple_cta -->
+
+    <!-- Component | CTA -->
+
+
+    
+                        
+    
+    <span class="rh-cta--component"                                 data-rh-cta-type="secondary"
+    >
+        <a class="rh-cta-link"                 href="https://galaxy.ansible.com/ui/repo/published/community/vmware/"                        data-analytics-linkType="cta"
+        data-analytics-text="Learn more"                    >Learn more<span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">
+  <path d="M31.58 18.24a.64.64 0 0 0-.14-.68l-9-9c-.56-.58-1.47.32-.88.88l7.93 7.94H5a.62.62 0 1 0 0 1.24h24.49l-7.93 7.94a.62.62 0 0 0 .88.88l9-9a.72.72 0 0 0 .14-.2Z"/>
+</svg>
+</span></a>
+    </span>
+            </div>
+                            </div>
+                    </div>
+                    </footer>
+    
+</div>
+
+
+          </div>
+                            <div class="dx-col-12 rhpb-region  dx-flex" style="flex-direction:column">
+            
+  <!-- Subpattern | simple_text -->
+
+                
+                    
+        
+                    
+                    
+                    
+                                    
+        
+            
+        
+    
+                                                    
+        
+    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"              data-rh-layout="stacked"    >
+                                    <div class="rh-group-footer"         >
+                                    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"                 >
+                            <div class="rh-group-body"      data-rh-layout="min-stacked"     >
+                                    <!-- Subpattern | simple_cta -->
+
+    <!-- Component | CTA -->
+
+
+    
+                        
+    
+    <span class="rh-cta--component"                                 data-rh-cta-type="secondary"
+    >
+        <a class="rh-cta-link"                 href="https://galaxy.ansible.com/ui/collections/"                target="_self"        data-analytics-linkType="cta"
+        data-analytics-text="Explore all collections on Ansible Galaxy"                    >Explore all collections on Ansible Galaxy<span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">
+  <path d="M31.58 18.24a.64.64 0 0 0-.14-.68l-9-9c-.56-.58-1.47.32-.88.88l7.93 7.94H5a.62.62 0 1 0 0 1.24h24.49l-7.93 7.94a.62.62 0 0 0 .88.88l9-9a.72.72 0 0 0 .14-.2Z"/>
+</svg>
+</span></a>
+    </span>
+                            </div>
+                    </div>
+                            </div>
+            </div>
+
+
+          </div>
+              </div>
+    </div>
+  </section>
+<section  class="dx-bg-gray-10 dx-pt-8 dx-pb-8" section-properties-enabled>  
+    
+    
+          <div class="dx-container  dx-relative">
+          <div class="dx-row  ">
+                            <div class="dx-col-12 lg:dx-col-8 rhpb-region  dx-flex" style="flex-direction:column">
+            
+  <!-- Subpattern | simple_text -->
+
+                
+                    
+                    
+                    
+                    
+                    
+                                    
+        
+            
+                    
+                
+                                                    
+        
+    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"              data-rh-layout="stacked"    >
+                            <div class="rh-group-body"      data-rh-layout="min-stacked"     >
+                                    <!-- Component | Band_header -->
+
+
+    
+                
+                                                
+  <div class="rh-band-header--component" data-rh-align=left        ><h2 class="rh-band-header-subsection-headline" id="rh-9oqg5">Automation adoption</h2>
+</div>
+                                    <!-- Component | Generic -->
+
+
+    <div class="rh-generic--component"
+                 data-rh-align="left"    >
+        <div><p>Expanding automation in your organization requires expertise in both technology and culture. Red Hat excels in creating and supporting successful communities, and we can help you build yours.</p></div>
+    </div>
+                            </div>
+                            <div class="rh-group-footer"         >
+                                    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"                 >
+                            <div class="rh-group-body"      data-rh-layout="min-stacked"     >
+                                    <!-- Subpattern | simple_cta -->
+
+    <!-- Component | CTA -->
+
+
+    
+                        
+    
+    <span class="rh-cta--component"                                 data-rh-cta-type="secondary"
+    >
+        <a class="rh-cta-link"                 href="/en/topics/automation/how-to-build-automation-center-of-excellence"        title="How to build an automation Center of Excellence"        target="_self"        data-analytics-linkType="cta"
+        data-analytics-text="Learn how to build a CoE"                aria-describedby="rh-9oqg5"     >Learn how to build a CoE<span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">
+  <path d="M31.58 18.24a.64.64 0 0 0-.14-.68l-9-9c-.56-.58-1.47.32-.88.88l7.93 7.94H5a.62.62 0 1 0 0 1.24h24.49l-7.93 7.94a.62.62 0 0 0 .88.88l9-9a.72.72 0 0 0 .14-.2Z"/>
+</svg>
+</span></a>
+    </span>
+                            </div>
+                    </div>
+                            </div>
+            </div>
+
+
+          </div>
+              </div>
+    </div>
+  </section>
+<section  data-rh-theme="dark" class="dx-bg-gray-95 dx-pt-8 dx-pb-8 dx-relative" section-properties-enabled>  <img alt='' class='dx-hidden md:dx-block dx-absolute dx-h-full dx-w-full dx-top-0 dx-object-ct dx-object-cover' src='/rhdc/managed-files/ansible-collaborative-hero-teal-bkg.png'>
+    
+    
+          <div class="dx-container  dx-relative">
+          <div class="dx-row   match-region-heights ">
+                            <div class="dx-col-12 md:dx-col-12 rhpb-region  dx-flex" style="flex-direction:column">
+            
+  <!-- Subpattern | simple_text -->
+
+                
+                    
+        
+                    
+                    
+                    
+                                    
+        
+            
+                    
+                
+            
+    
+    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"              data-rh-layout="stacked"    >
+                            <div class="rh-group-body"      data-rh-layout="min-stacked"     >
+                                    <!-- Component | Band_header -->
+
+
+    
+                
+                                                
+  <div class="rh-band-header--component" data-rh-align=left        ><h2 class="rh-band-header-subsection-headline" >Ansible ecosystem</h2>
+</div>
+                                    <!-- Component | Generic -->
+
+
+    <div class="rh-generic--component"
+                 data-rh-align="left"    >
+        <p>The projects in the Ansible collaborative let you expand automation to an unlimited set of use cases.</p>
+    </div>
+                            </div>
+                    </div>
+
+
+          </div>
+                            <div class="dx-col-12 lg:dx-col-4 rhpb-region  dx-flex" style="flex-direction:column">
+            
+  <!-- Subpattern | card_flex -->
+
+
+                                    
+        
+
+
+
+<div class="rh-card--layout card-flex--subpattern"         data-rh-card="sections" data-at-card="flex"    data-rh-background="white"
+    data-rh-justify="justify"
+    data-rh-layout="min-stacked"
+    data-rh-theme="light"
+            data-rh-bg-align="cover"
+>
+
+            <header class="rh-card-header">
+                                                                                                                    <!-- Subpattern | simple_media -->
+
+
+
+    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"     data-rh-card-header=image            >
+                            <div class="rh-group-body"      data-rh-layout="stacked"     >
+                                    <!-- Component | Image_embed -->
+
+    
+
+
+    <div class="rh-image-embed--component"
+                 data-rh-align="left"                
+                        >
+
+        <div class="rh-image-embed-container">
+                                                                <div class="rh-image-embed-span" >
+
+                                                    <img class="rh-image-embed-img" src="/rhdc/managed-files/ansible-core.svg"          alt="Ansible core logo"         height="64"         width="64"                         loading="lazy"     >
+                        
+                    </div>
+                                                </div>
+            </div>
+                            </div>
+                    </div>
+                                </header>
+    
+            <div class="rh-card-content" data-rh-layout="min-stacked">
+                                                <!-- Subpattern | text_basic -->
+
+                        
+        
+                    
+                    
+                
+    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"     data-rh-card=&quot;sections&quot; data-at-card=&quot;flex&quot;         data-rh-layout="stacked"    >
+                            <div class="rh-group-body"      data-rh-layout="min-stacked"     >
+                                    <!-- Component | Band_header -->
+
+
+        
+  <div class="rh-band-header--hash-offset" data-rh-hash="true"id="ansible-core"></div><div class="rh-band-header--component" data-rh-align=left data-rh-theme="desaturated"        ><h3 class="rh-band-header-nested-section-headline" id="rh-kvizv">Ansible Core</h3>
+</div>
+                                    <!-- Component | Generic -->
+
+
+    <div class="rh-generic--component"
+                 data-rh-align="left"    >
+        <p>Learn about the Ansible programming language, automation tooling, and architectural framework.</p>
+    </div>
+                            </div>
+                    </div>
+                                </div>
+    
+            <footer class="rh-card-footer" data-rh-layout="">
+                                                                                                    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"                 >
+                            <div class="rh-group-body"         >
+                                    <!-- Component | Cta_multi_basic -->
+
+
+                    <div class="rh-cta-multi-basic--component"    data-rh-align="left"                data-rh-display="stacked"
+        >
+                    <!-- Subpattern | simple_cta -->
+
+    <!-- Component | CTA -->
+
+
+    
+                        
+    
+    <span class="rh-cta--component"                                 data-rh-cta-type="secondary"
+    >
+        <a class="rh-cta-link"                 href="https://ansible.readthedocs.io/projects/ansible-core/"        title="Ansible Core Documentation"                data-analytics-linkType="cta"
+        data-analytics-text="Read more"        data-analytics-category="Learn the benefits of automating public cloud environments "            >Read the docs<span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">
+  <path d="M31.58 18.24a.64.64 0 0 0-.14-.68l-9-9c-.56-.58-1.47.32-.88.88l7.93 7.94H5a.62.62 0 1 0 0 1.24h24.49l-7.93 7.94a.62.62 0 0 0 .88.88l9-9a.72.72 0 0 0 .14-.2Z"/>
+</svg>
+</span></a>
+    </span>
+            </div>
+                            </div>
+                    </div>
+                    </footer>
+    
+</div>
+
+
+          </div>
+                            <div class="dx-col-12 lg:dx-col-4 rhpb-region  dx-flex" style="flex-direction:column">
+            
+  <!-- Subpattern | card_flex -->
+
+
+                                    
+        
+
+
+
+<div class="rh-card--layout card-flex--subpattern"         data-rh-card="sections" data-at-card="flex"    data-rh-background="white"
+    data-rh-justify="justify"
+    data-rh-layout="min-stacked"
+    data-rh-theme="light"
+            data-rh-bg-align="cover"
+>
+
+            <header class="rh-card-header">
+                                                                                                                    <!-- Subpattern | simple_media -->
+
+
+
+    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"     data-rh-card-header=image            >
+                            <div class="rh-group-body"      data-rh-layout="stacked"     >
+                                    <!-- Component | Image_embed -->
+
+    
+
+
+    <div class="rh-image-embed--component"
+                 data-rh-align="left"                
+                        >
+
+        <div class="rh-image-embed-container">
+                                                                <div class="rh-image-embed-span" >
+
+                                                    <img class="rh-image-embed-img" src="/rhdc/managed-files/eda.svg"          alt="Event-Driven Ansible"         height="64"         width="64"                         loading="lazy"     >
+                        
+                    </div>
+                                                </div>
+            </div>
+                            </div>
+                    </div>
+                                </header>
+    
+            <div class="rh-card-content" data-rh-layout="min-stacked">
+                                                <!-- Subpattern | text_basic -->
+
+                        
+        
+                    
+                    
+                
+    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"     data-rh-card=&quot;sections&quot; data-at-card=&quot;flex&quot;         data-rh-layout="stacked"    >
+                            <div class="rh-group-body"      data-rh-layout="min-stacked"     >
+                                    <!-- Component | Band_header -->
+
+
+        
+  <div class="rh-band-header--hash-offset" data-rh-hash="true"id="event-driven-ansible"></div><div class="rh-band-header--component" data-rh-align=left data-rh-theme="desaturated"        ><h3 class="rh-band-header-nested-section-headline" id="rh-hwhj0">Event-Driven Ansible</h3>
+</div>
+                                    <!-- Component | Generic -->
+
+
+    <div class="rh-generic--component"
+                 data-rh-align="left"    >
+        <p>Subscribe to event sources to scale automation and deliver more efficient IT operations.</p>
+    </div>
+                            </div>
+                    </div>
+                                </div>
+    
+            <footer class="rh-card-footer" data-rh-layout="">
+                                                                                                    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"                 >
+                            <div class="rh-group-body"         >
+                                    <!-- Component | Cta_multi_basic -->
+
+
+                    <div class="rh-cta-multi-basic--component"    data-rh-align="left"                data-rh-display="stacked"
+        >
+                    <!-- Subpattern | simple_cta -->
+
+    <!-- Component | CTA -->
+
+
+    
+                        
+    
+    <span class="rh-cta--component"                                 data-rh-cta-type="secondary"
+    >
+        <a class="rh-cta-link"                 href="https://ansible.readthedocs.io/projects/rulebook/"        title="Welcome to Ansible Rulebook documentation"                data-analytics-linkType="cta"
+        data-analytics-text="Read the docs"                    >Read the docs<span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">
+  <path d="M31.58 18.24a.64.64 0 0 0-.14-.68l-9-9c-.56-.58-1.47.32-.88.88l7.93 7.94H5a.62.62 0 1 0 0 1.24h24.49l-7.93 7.94a.62.62 0 0 0 .88.88l9-9a.72.72 0 0 0 .14-.2Z"/>
+</svg>
+</span></a>
+    </span>
+            </div>
+                            </div>
+                    </div>
+                    </footer>
+    
+</div>
+
+
+          </div>
+                            <div class="dx-col-12 lg:dx-col-4 rhpb-region  dx-flex" style="flex-direction:column">
+            
+  <!-- Subpattern | card_flex -->
+
+
+                                    
+        
+
+
+
+<div class="rh-card--layout card-flex--subpattern"         data-rh-card="sections" data-at-card="flex"    data-rh-background="white"
+    data-rh-justify="justify"
+    data-rh-layout="min-stacked"
+    data-rh-theme="light"
+            data-rh-bg-align="cover"
+>
+
+            <header class="rh-card-header">
+                                                                                                                    <!-- Subpattern | simple_media -->
+
+
+
+    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"     data-rh-card-header=image            >
+                            <div class="rh-group-body"      data-rh-layout="stacked"     >
+                                    <!-- Component | Image_embed -->
+
+    
+
+
+    <div class="rh-image-embed--component"
+                 data-rh-align="left"                
+                        >
+
+        <div class="rh-image-embed-container">
+                                                                <div class="rh-image-embed-span" >
+
+                                                    <img class="rh-image-embed-img" src="/rhdc/managed-files/ansible-community.svg"          alt="Ansible community logo"         height="64"         width="64"                         loading="lazy"     >
+                        
+                    </div>
+                                                </div>
+            </div>
+                            </div>
+                    </div>
+                                </header>
+    
+            <div class="rh-card-content" data-rh-layout="min-stacked">
+                                                <!-- Subpattern | text_basic -->
+
+                        
+        
+                    
+                    
+                
+    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"     data-rh-card=&quot;sections&quot; data-at-card=&quot;flex&quot;         data-rh-layout="stacked"    >
+                            <div class="rh-group-body"      data-rh-layout="min-stacked"     >
+                                    <!-- Component | Band_header -->
+
+
+        
+  <div class="rh-band-header--hash-offset" data-rh-hash="true"id="developer-tools"></div><div class="rh-band-header--component" data-rh-align=left data-rh-theme="desaturated"        ><h3 class="rh-band-header-nested-section-headline" id="rh-jwpda">Developer tools</h3>
+</div>
+                                    <!-- Component | Generic -->
+
+
+    <div class="rh-generic--component"
+                 data-rh-align="left"    >
+        <p>Use tooling to develop and test Ansible content for consistent, trusted automation.</p>
+    </div>
+                            </div>
+                    </div>
+                                </div>
+    
+            <footer class="rh-card-footer" data-rh-layout="">
+                                                                                                    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"                 >
+                            <div class="rh-group-body"         >
+                                    <!-- Component | Cta_multi_basic -->
+
+
+                    <div class="rh-cta-multi-basic--component"    data-rh-align="left"                data-rh-display="stacked"
+        >
+                    <!-- Subpattern | simple_cta -->
+
+    <!-- Component | CTA -->
+
+
+    
+                        
+    
+    <span class="rh-cta--component"                                 data-rh-cta-type="secondary"
+    >
+        <a class="rh-cta-link"                 href="https://ansible.readthedocs.io/projects/dev-tools/"        title="Ansible Development Tools"                data-analytics-linkType="cta"
+        data-analytics-text="Read more"        data-analytics-category="Learn the benefits of automating public cloud environments "            >Read the docs<span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">
+  <path d="M31.58 18.24a.64.64 0 0 0-.14-.68l-9-9c-.56-.58-1.47.32-.88.88l7.93 7.94H5a.62.62 0 1 0 0 1.24h24.49l-7.93 7.94a.62.62 0 0 0 .88.88l9-9a.72.72 0 0 0 .14-.2Z"/>
+</svg>
+</span></a>
+    </span>
+            </div>
+                            </div>
+                    </div>
+                    </footer>
+    
+</div>
+
+
+          </div>
+                            <div class="dx-col-12 rhpb-region  dx-flex" style="flex-direction:column">
+            
+  <!-- Subpattern | simple_text -->
+
+                
+                    
+        
+                    
+                    
+                    
+                                    
+        
+            
+        
+    
+                                
+        
+    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"              data-rh-layout="stacked"    >
+                                    <div class="rh-group-footer"         >
+                                    
+
+
+
+
+
+<!-- Group layout -->
+    <div class="rh-group--layout"                 >
+                            <div class="rh-group-body"      data-rh-layout="buttons-flex-left-end"     >
+                                    <!-- Subpattern | simple_cta -->
+
+    <!-- Component | CTA -->
+
+
+    
+                        
+    
+    <span class="rh-cta--component"                                 data-rh-cta-type="ghost"
+    >
+        <a class="rh-cta-link"                 href="/ansible-collaborative/ecosystem"        title="Ansible ecosystem"        target="_self"        data-analytics-linkType="cta"
+        data-analytics-text="View all projects"                    >View all projects</a>
+    </span>
+                            </div>
+                    </div>
+                            </div>
+            </div>
+
+
+          </div>
+              </div>
+    </div>
+  </section>
+<section >  
+    
+    
+          <div class="dx-container  dx-relative">
+          <div class="dx-row  ">
+                            <div class="dx-col-12 md:dx-col-6 rhpb-region  dx-flex" style="flex-direction:column">
+            
+          </div>
+              </div>
+    </div>
+  </section>          <div class="one-column">
+      
+      
+      
+                            <div  class="dx-relative content-region">
+          
+  <!-- Pattern | raw_html -->
+
+                                    
+            <section class="dx-band ansible-footer dx-py-4"><div class="dx-w-full dx-px-3 md:dx-px-4 lg:dx-px-8"><div class="dx-row"><div class="dx-col-12 lg:dx-col-9 global-secondary"><p class="ansible-copyright dx-text-gray-10 dx-text-14 dx-mb-1">© 2025 Red&nbsp;Hat, Inc.</p><ul class="dx-list-none ansible-footer-list dx-mb-1"><li class="md:dx-inline dx-pr-1"><a class="ansible-footer-link dx-text-white dx-text-12" href="https://www.redhat.com/en/about/company" data-analytics-category="Ansible Footer|About Red Hat" data-analytics-text="About Red Hat">About&nbsp;Red&nbsp;Hat</a></li><li class="md:dx-inline md:dx-px-1"><a class="ansible-footer-link dx-text-white dx-text-12" href="https://www.redhat.com/en/about/privacy-policy" data-analytics-category="Ansible Footer|Red Hat legal and privacy links" data-analytics-text="Privacy statement">Privacy statement</a></li><li class="md:dx-inline md:dx-px-1"><a class="ansible-footer-link dx-text-white dx-text-12" href="https://www.redhat.com/en/about/terms-use" data-analytics-category="Ansible Footer|Terms of use" data-analytics-text="Terms of use">Terms&nbsp;of&nbsp;use</a></li><li class="md:dx-inline md:dx-px-1"><a class="ansible-footer-link dx-text-white dx-text-12" href="https://www.redhat.com/en/about/all-policies-guidelines" data-analytics-category="Ansible Footer|All policies and guidelines" data-analytics-text="All policies and guidelines">All&nbsp;policies&nbsp;and&nbsp;guidelines</a></li><li class="md:dx-inline md:dx-px-1"><a class="ansible-footer-link dx-text-white dx-text-12" href="https://www.redhat.com/en/about/digital-accessibility" data-analytics-category="Ansible Footer|Digital accessibility" data-analytics-text="Digital accessibility">Digital accessibility</a></li><li class="md:dx-inline md:dx-pl-1"><span class="ansible-footer-link dx-text-white dx-text-12" id="teconsent">&nbsp;</span></li></ul></div><div class="dx-col-12 lg:dx-col-3 lg:dx-py-2 lg:dx-text-right"><p class="dx-text-12 dx-text-white">Sponsored by <a href="https://www.redhat.com/en" title="Sponsored by Red Hat."><img class="dx-pl-1" src="/rhdc/managed-files/logo-RedHat_white.svg" alt="Red Hat" width="100"></a></p></div></div></div></section><style>
+a.truste_cursor_pointer {
+    color: white !important;
+}
+</style>
+      
+
+              
+
+
+
+        </div>
+                  </div>
+  
+  </div>
+</article>
+
+  </div>
+
+
+
+  
+    <div id="consent_blackbar" style="position: fixed;bottom: 0;width: 100%;z-index: 5;padding: 10px;"></div>
+<script>if (("undefined" !== typeof _satellite) && ("function" === typeof _satellite.pageBottom)) {_satellite.pageBottom();}</script>
+
+    <script src="/rhdc/system-files/js/js_NDgUGtA9mM7Txsmv50_YTQAZN0dqIE2sxjMq9f9vNgw.js?scope=footer&amp;delta=0&amp;language=en&amp;theme=rhdc&amp;include=eJyNkEEOQjEIRC9k7SE8SEMptmh_UUCNt7dfTXThwg0ZZl5IBqWSGniyBjpl52xRWxhw5QrOMoIRyiig9422lMEoXTjWLhn6rqkstPrCBdMCAyppRCVwennYmYZPpGBcRyh0UsKZly_TyEOHUQOKHJmeSZrX-t0Z7clsl6PX7cF-ZZ81USk9ZXGX5R-SVEX_AY1nIyNQbJsbZW0xn9_itKevfz0Aga2DgQ"></script>
+<script src="/modules/contrib/red_hat_shared_libs/dist/rhds-elements/modules/rh-navigation-secondary/rh-navigation-secondary.js" type="module"></script>
+<script src="/rhdc/system-files/js/js_CdLf2nYjljimgpYK5zVkuhTqmgBDo9lsU72jHE-Ba6c.js?scope=footer&amp;delta=2&amp;language=en&amp;theme=rhdc&amp;include=eJyNkEEOQjEIRC9k7SE8SEMptmh_UUCNt7dfTXThwg0ZZl5IBqWSGniyBjpl52xRWxhw5QrOMoIRyiig9422lMEoXTjWLhn6rqkstPrCBdMCAyppRCVwennYmYZPpGBcRyh0UsKZly_TyEOHUQOKHJmeSZrX-t0Z7clsl6PX7cF-ZZ81USk9ZXGX5R-SVEX_AY1nIyNQbJsbZW0xn9_itKevfz0Aga2DgQ"></script>
+<script src="/themes/custom/rhdc/js/rhdc-set-lang-cookie.js?svuzcl" async></script>
+<script src="/rhdc/system-files/js/js_tCG6BarHJn1nCuGDS1WiZ-DDKRrTCR5_obGE_p__3pE.js?scope=footer&amp;delta=4&amp;language=en&amp;theme=rhdc&amp;include=eJyNkEEOQjEIRC9k7SE8SEMptmh_UUCNt7dfTXThwg0ZZl5IBqWSGniyBjpl52xRWxhw5QrOMoIRyiig9422lMEoXTjWLhn6rqkstPrCBdMCAyppRCVwennYmYZPpGBcRyh0UsKZly_TyEOHUQOKHJmeSZrX-t0Z7clsl6PX7cF-ZZ81USk9ZXGX5R-SVEX_AY1nIyNQbJsbZW0xn9_itKevfz0Aga2DgQ"></script>
+<script src="/modules/contrib/webrh/@cpelements/pfe-navigation/dist/pfe-navigation.min.js" type="module"></script>
+
+    <script src="/ux/webdms/js/scripts.min.js" defer></script>
+<script src="/ux/webdms/js/vendors/jquery.waypoints.min.js" defer></script>
+<script src="/ux/webdms/js/projects/topic-article.min.js" defer></script>
+<script src="/ux/dx-web/js/projects/rh-navigation-secondary.min.js" defer></script>
+<script src="/ux/webdms/js/projects/osh-stack.min.js" defer></script>
+
+  </body>
+</html>

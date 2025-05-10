@@ -11,51 +11,52 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 import { InfiniteScrollTech } from "@/Components/InfiniteScrollTech"
+import { getImageUrl } from "@/lib/imageUtils"
 
 const technologies = [
   {
     name: "New Relic",
-    logo: "https://newrelic.com/themes/custom/erno/assets/mediakit/new_relic_logo_vertical.svg",
+    logo: getImageUrl("/images/logos/performance/new-relic-logo.svg"),
   },
   {
     name: "Datadog",
-    logo: "https://imgix.datadoghq.com/img/about/presskit/logo-v/dd_vertical_purple.png",
+    logo: getImageUrl("/images/logos/performance/datadog-logo.png"),
   },
   {
     name: "Prometheus",
-    logo: "https://raw.githubusercontent.com/cncf/artwork/master/projects/prometheus/icon/color/prometheus-icon-color.svg",
+    logo: getImageUrl("/images/logos/performance/prometheus-logo.svg"),
   },
   {
     name: "Grafana",
-    logo: "https://grafana.com/static/img/logos/grafana_logo_swirl_fullcolor.svg",
+    logo: getImageUrl("/images/logos/performance/grafana-logo.svg"),
   },
   {
     name: "Apache JMeter",
-    logo: "https://jmeter.apache.org/images/logo.svg",
+    logo: getImageUrl("/images/logos/performance/jmeter-logo.svg"),
   },
   {
     name: "Gatling",
-    logo: "https://gatling.io/wp-content/uploads/2019/04/logo-gatling-transparent@15x.svg",
+    logo: getImageUrl("/images/logos/performance/gatling-logo.svg"),
   },
   {
     name: "Elastic APM",
-    logo: "https://static-www.elastic.co/v3/assets/bltefdd0b53724fa2ce/blt05047fdbe3b9c333/5d0823c3d8ff351753cbc99f/logo-elastic-outlined-black.svg",
+    logo: getImageUrl("/images/logos/performance/elastic-logo.svg"),
   },
   {
     name: "Dynatrace",
-    logo: "https://assets.dynatrace.com/content/dam/dynatrace/misc/dynatrace_web.png",
+    logo: getImageUrl("/images/logos/performance/dynatrace-logo.png"),
   },
   {
     name: "Lighthouse",
-    logo: "https://developers.google.com/web/tools/lighthouse/images/lighthouse-logo.svg",
+    logo: getImageUrl("/images/logos/performance/lighthouse-logo.svg"),
   },
   {
     name: "WebPageTest",
-    logo: "https://www.webpagetest.org/images/wpt-logo.png",
+    logo: getImageUrl("/images/logos/performance/webpagetest-logo.png"),
   },
   {
     name: "Redis",
-    logo: "https://redis.io/images/redis-white.png",
+    logo: getImageUrl("/images/logos/performance/redis-logo.png"),
   },
 ]
 

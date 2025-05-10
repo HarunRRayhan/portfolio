@@ -1,4 +1,5 @@
 import { InputHTMLAttributes } from 'react';
+import { getImageUrl } from "../lib/imageUtils"
 
 export default function Checkbox({
     className = '',

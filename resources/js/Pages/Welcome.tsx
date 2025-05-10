@@ -1,5 +1,6 @@
 import { PageProps } from '@/types';
 import { Head, Link } from '@inertiajs/react';
+import { getImageUrl } from "@/lib/imageUtils";
 
 export default function Welcome({
     auth,

@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from "framer-motion"
+import { getImageUrl } from "../lib/imageUtils"
 
 interface Technology {
   name: string
@@ -50,7 +51,7 @@ export function InfiniteScrollTech({ technologies, backgroundColor = "#F8F9FA" }
               >
                 <div className="flex flex-col items-center gap-2">
                   <img
-                    src={tech.logo || "/placeholder.svg"}
+                    src={getImageUrl(tech.logo || "/placeholder.svg")}
                     alt={`${tech.name} logo`}
                     width={64}
                     height={64}

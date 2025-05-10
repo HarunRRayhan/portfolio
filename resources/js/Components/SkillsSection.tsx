@@ -2,6 +2,8 @@
 
 import { motion } from 'framer-motion'
 import { Code2, Cloud, Lightbulb } from 'lucide-react'
+import { Image } from './Image'
+import { getImageUrl } from "../lib/imageUtils"
 
 const skills = [
   {
@@ -142,8 +144,8 @@ export function SkillsSection() {
             transition={{ duration: 0.6 }}
             className="flex items-center justify-center"
           >
-            <img
-              src="/images/aws-certifications.png"
+            <Image
+              src={getImageUrl("/images/aws-certifications.png")}
               alt="AWS Certifications"
               className="w-full h-auto max-w-lg hover:scale-105 transition-transform duration-300"
             />
@@ -200,8 +202,8 @@ export function SkillsSection() {
             transition={{ duration: 0.6 }}
             className="flex items-center justify-center"
           >
-            <img
-              src="/images/professional-certifications.png"
+            <Image
+              src={getImageUrl("/images/professional-certifications.png")}
               alt="Professional Certifications - Terraform Associate, Certified Scrum Developer, and Certified Scrum Master"
               className="w-full h-auto max-w-[250px] hover:scale-105 transition-transform duration-300"
             />

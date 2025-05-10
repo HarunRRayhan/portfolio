@@ -7,6 +7,7 @@ import { Calendar } from "lucide-react"
 import { Button } from "@/Components/ui/button"
 import { Card, CardContent } from "@/Components/ui/card"
 import { Link, Head } from '@inertiajs/react'
+import { getImageUrl } from "@/lib/imageUtils"
 
 export default function Book() {
   return (

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+      <style>
+        .st0{fill:#343434;}
+        .st1{fill:#FFFFFF;}
+      </style>
+      <rect x="20" y="20" class="st0" width="160" height="160" rx="15" ry="15"/>
+      <circle class="st1" cx="100" cy="100" r="50" fill="none" stroke="#FFFFFF" stroke-width="10"/>
+      <circle class="st1" cx="100" cy="100" r="25" fill="#FFFFFF"/>
+      <rect x="60" y="140" width="80" height="20" rx="5" ry="5" fill="#FFFFFF"/>
+    </svg>

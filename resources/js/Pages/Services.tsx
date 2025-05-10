@@ -6,6 +6,7 @@ import {motion} from "framer-motion"
 import {Menubar} from "@/Components/Menubar"
 import {Footer} from "@/Components/Footer"
 import {Button} from "@/Components/ui/button"
+import {getImageUrl} from "@/lib/imageUtils"
 import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/Components/ui/card/index"
 import {
     ArrowRight,
@@ -134,7 +135,7 @@ const faqs = [
     {
         question: "How do you approach cloud security in your projects?",
         answer:
-            "We take a comprehensive approach to cloud security, incorporating best practices at every level of the stack. This includes implementing robust identity and access management (IAM) policies, encrypting data at rest and in transit, setting up virtual private clouds (VPCs) with proper network segmentation, and utilizing cloud-native security services. We also conduct regular security audits and help implement compliance frameworks like GDPR, HIPAA, and PCI-DSS.",
+            "Security is a foundational aspect of all our cloud projects. We implement a defense-in-depth strategy that includes identity and access management, network security, encryption, monitoring, and compliance. We follow security best practices from major cloud providers and industry standards like CIS and NIST. Our approach includes regular security assessments, automated security testing in CI/CD pipelines, and comprehensive logging and monitoring to detect and respond to potential security incidents.",
     },
     {
         question: "What is Infrastructure as Code (IaC) and why is it important?",

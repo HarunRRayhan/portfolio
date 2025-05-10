@@ -1,4 +1,5 @@
 import React from 'react';
+import { getImageUrl } from "../lib/imageUtils"
 
 interface Props {
   children: React.ReactNode;

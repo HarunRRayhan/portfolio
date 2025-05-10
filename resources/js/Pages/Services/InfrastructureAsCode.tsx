@@ -10,51 +10,53 @@ import { Button } from "@/Components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card/index"
 import { Server, GitBranch, Repeat, ArrowRight, CheckCircle, BarChart, Users, Code, Cloud, Lock } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/Components/ui/accordion"
+import { getImageUrl } from "@/lib/imageUtils"
+import { InfiniteScrollTech } from "@/Components/InfiniteScrollTech"
 
 const technologies = [
   {
     name: "Terraform",
-    logo: "https://www.vectorlogo.zone/logos/terraformio/terraformio-icon.svg",
+    logo: getImageUrl("/images/logos/tech/terraformio-icon.svg"),
   },
   {
     name: "AWS CloudFormation",
-    logo: "/images/logos/aws-cloudformation.svg",
+    logo: getImageUrl("/images/logos/aws-cloudformation.svg"),
   },
   {
     name: "AWS CDK",
-    logo: "/images/logos/aws-cdk.svg",
+    logo: getImageUrl("/images/logos/aws-cdk.svg"),
   },
   {
     name: "Ansible",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/2/24/Ansible_logo.svg",
+    logo: getImageUrl("/images/logos/tech/Ansible_logo.svg"),
   },
   {
     name: "Pulumi",
-    logo: "https://www.pulumi.com/images/logo/logo-on-white.svg",
+    logo: getImageUrl("/images/logos/tech/logo-on-white.svg"),
   },
   {
     name: "Kubernetes",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/3/39/Kubernetes_logo_without_workmark.svg",
+    logo: getImageUrl("/images/logos/tech/Kubernetes_logo_without_workmark.svg"),
   },
   {
     name: "Docker",
-    logo: "https://www.docker.com/wp-content/uploads/2022/03/vertical-logo-monochromatic.png",
+    logo: getImageUrl("/images/logos/tech/vertical-logo-monochromatic.png"),
   },
   {
     name: "GitLab CI",
-    logo: "https://about.gitlab.com/images/press/logo/svg/gitlab-icon-rgb.svg",
+    logo: getImageUrl("/images/logos/tech/gitlab-icon-rgb.svg"),
   },
   {
     name: "GitHub Actions",
-    logo: "https://github.githubassets.com/images/modules/site/features/actions-icon-actions.svg",
+    logo: getImageUrl("/images/logos/tech/actions-icon-actions.svg"),
   },
   {
     name: "Jenkins",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/e/e9/Jenkins_logo.svg",
+    logo: getImageUrl("/images/logos/tech/Jenkins_logo.svg"),
   },
   {
     name: "Azure Resource Manager",
-    logo: "https://azure.microsoft.com/svghandler/resource-manager/?width=300&height=300",
+    logo: getImageUrl("/images/logos/cloud/resource-manager.png"),
   },
 ]
 

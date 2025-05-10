@@ -11,51 +11,52 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 import { InfiniteScrollTech } from "@/Components/InfiniteScrollTech"
+import { getImageUrl } from "@/lib/imageUtils"
 
 const technologies = [
   {
     name: "Jenkins",
-    logo: "https://www.jenkins.io/images/logos/jenkins/jenkins.png",
+    logo: getImageUrl("/images/logos/tech/jenkins.png"),
   },
   {
     name: "GitLab CI",
-    logo: "https://about.gitlab.com/images/press/logo/svg/gitlab-icon-rgb.svg",
+    logo: getImageUrl("/images/logos/tech/gitlab-icon-rgb.svg"),
   },
   {
     name: "GitHub Actions",
-    logo: "https://github.githubassets.com/images/modules/site/features/actions-icon-actions.svg",
+    logo: getImageUrl("/images/logos/tech/actions-icon-actions.svg"),
   },
   {
     name: "CircleCI",
-    logo: "https://d3r49iyjzglexf.cloudfront.net/circleci-logo-stacked-fb-657e221fda1646a7e652c09c9fbfb2b0feb5d710089bb4d8e8c759d37a832694.png",
+    logo: getImageUrl("/images/logos/circleci-logo-stacked-fb-657e221fda1646a7e652c09c9fbfb2b0feb5d710089bb4d8e8c759d37a832694.png"),
   },
   {
     name: "Travis CI",
-    logo: "https://travis-ci.org/images/logos/TravisCI-Full-Color.png",
+    logo: getImageUrl("/images/logos/tech/TravisCI-Full-Color.png"),
   },
   {
     name: "AWS CodePipeline",
-    logo: "https://d1.awsstatic.com/icons/console_codepipeline_icon.0c5de384dc60b71dae9d780b0c572d5deb9e3f0a.png",
+    logo: getImageUrl("/images/logos/console_codepipeline_icon.0c5de384dc60b71dae9d780b0c572d5deb9e3f0a.png"),
   },
   {
     name: "Azure DevOps",
-    logo: "https://azure.microsoft.com/svghandler/devops/?width=300&height=300",
+    logo: getImageUrl("/images/logos/cloud/devops.png"),
   },
   {
     name: "Docker",
-    logo: "https://www.docker.com/sites/default/files/d8/2019-07/vertical-logo-monochromatic.png",
+    logo: getImageUrl("/images/logos/tech/vertical-logo-monochromatic.png"),
   },
   {
     name: "Kubernetes",
-    logo: "https://kubernetes.io/images/favicon.png",
+    logo: getImageUrl("/images/logos/tech/favicon.png"),
   },
   {
     name: "Ansible",
-    logo: "https://www.ansible.com/hubfs/2016_Images/Assets/Ansible-Mark-Large-RGB-Mango.png",
+    logo: getImageUrl("/images/logos/tech/Ansible-Mark-Large-RGB-Mango.png"),
   },
   {
     name: "Terraform",
-    logo: "https://www.terraform.io/img/logo-hashicorp.svg",
+    logo: getImageUrl("/images/logos/tech/logo-hashicorp.svg"),
   },
 ]
 
