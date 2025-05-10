@@ -157,7 +157,7 @@ wait_for_app_container() {
   local timeout=60
   local elapsed=0
   while [ $elapsed -lt $timeout ]; do
-    STATUS=$(execute_ssh "cd $APP_DIR && docker-compose -f ./docker/docker-compose.yml ps --services --filter 'status=running' | grep '^app$'")
+    STATUS=$(execute_ssh "cd $APP_DIR && POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./docker/docker-compose.yml ps --services --filter 'status=running' | grep '^app$'")
     if [ "$STATUS" = "app" ]; then
       return 0
     fi
@@ -336,7 +336,7 @@ find . -maxdepth 1 -type f -exec cp {} "$tmp_sync_dir/" \;
 # Always include manifest.json if it exists in build
 test -f "$REPO_ROOT/public/build/manifest.json" && cp "$REPO_ROOT/public/build/manifest.json" "$tmp_sync_dir/"
 cd "$SCRIPT_DIR"
-tar czf public-server-files.tar.gz -C "$tmp_sync_dir" .
+tar --no-xattrs -czf public-server-files.tar.gz -C "$tmp_sync_dir" .
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" public-server-files.tar.gz "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/public-server-files.tar.gz"
 execute_ssh "mkdir -p $APP_DIR/public && tar xzf $APP_DIR/public-server-files.tar.gz -C $APP_DIR/public && rm $APP_DIR/public-server-files.tar.gz"
 rm -rf "$tmp_sync_dir" public-server-files.tar.gz
@@ -387,25 +387,25 @@ execute_ssh "cd $APP_DIR && \
 # 16. Execute deployment commands
 step 16 "Executing deployment commands"
 execute_ssh "cd $APP_DIR && \
-    docker-compose -f ./deploy/docker/docker-compose.yml down && \
-    docker-compose -f ./deploy/docker/docker-compose.yml build --no-cache && \
+    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml down && \
+    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml build --no-cache && \
     POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml up -d && \
     touch .env && chmod 666 .env && \
-    docker-compose -f ./deploy/docker/docker-compose.yml ps | grep app"
+    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml ps | grep app"
 # Remove the .env from the repo root after build
 rm -f "$REPO_ROOT/.env"
 
 # Update APP_KEY in .env on the server
-execute_ssh "cd $APP_DIR && APP_KEY=\$(docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan key:generate --show) && echo Found APP_KEY: \$APP_KEY && (grep -q '^APP_KEY=' .env && sed -i 's|^APP_KEY=.*|APP_KEY=\$APP_KEY|' .env || echo APP_KEY=\$APP_KEY >> .env)"
+execute_ssh "cd $APP_DIR && APP_KEY=\$(POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan key:generate --show) && echo Found APP_KEY: \$APP_KEY && (grep -q '^APP_KEY=' .env && sed -i 's|^APP_KEY=.*|APP_KEY=\$APP_KEY|' .env || echo APP_KEY=\$APP_KEY >> .env)"
 
 execute_ssh "cd $APP_DIR && \
-    docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan config:cache && \
-    docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan route:cache && \
-    docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan view:cache && \
-    docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan migrate --force && \
-    docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan storage:link && \
-    docker-compose -f ./deploy/docker/docker-compose.yml exec -T app chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
-    docker-compose -f ./deploy/docker/docker-compose.yml exec -T app chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache"
+    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan config:cache && \
+    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan route:cache && \
+    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan view:cache && \
+    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan migrate --force && \
+    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan storage:link && \
+    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml exec -T app chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
+    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml exec -T app chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache"
 
 # 17. Check app container status
 step 17 "Checking app container status"
@@ -416,15 +416,15 @@ fi
 
 # 18. Ensure wait-for-db.sh is executable in the container
 step 18 "Ensuring wait-for-db.sh is executable in the container"
-execute_ssh "cd $APP_DIR && docker-compose -f ./docker/docker-compose.yml exec -T app chmod +x ./wait-for-db.sh"
+execute_ssh "cd $APP_DIR && POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./docker/docker-compose.yml exec -T app chmod +x ./wait-for-db.sh"
 
 # 19. Wait for the database to be ready
 step 19 "Waiting for the database to be ready inside the app container"
-execute_ssh "cd $APP_DIR && docker-compose -f ./docker/docker-compose.yml exec -T app ./wait-for-db.sh db 5432 60"
+execute_ssh "cd $APP_DIR && POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./docker/docker-compose.yml exec -T app ./wait-for-db.sh db 5432 60"
 
 # 20 Test DB connection from app container
 step 20 "Testing database connection from app container"
-execute_ssh "cd $APP_DIR && docker-compose -f ./docker/docker-compose.yml exec -T app php artisan migrate:status"
+execute_ssh "cd $APP_DIR && POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./docker/docker-compose.yml exec -T app php artisan migrate:status"
 
 success "Deployment completed!"
 
