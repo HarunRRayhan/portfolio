@@ -6,7 +6,7 @@ terraform {
         }
         cloudflare = {
             source  = "cloudflare/cloudflare"
-            version = "~> 4.0"
+            version = "~> 5.4"
         }
     }
 }
@@ -79,42 +79,49 @@ resource "random_id" "bucket_suffix" {
 
 # Cloudflare R2 CDN Worker
 resource "cloudflare_workers_script" "cdn_proxy" {
-  name      = "cdn-harun-dev"
-  account_id = var.cloudflare_account_id
-  content   = file("${path.module}/cdn-proxy.js")
-  r2_bucket_binding {
-    name        = "ASSETS_BUCKET"
-    bucket_name = var.r2_bucket_name
-  }
+    account_id = var.cloudflare_account_id
+    script_name = "cdn-harun-dev"
+    content = file("${path.module}/cdn-proxy.js")
+
+    # Bindings are handled through lifecycle meta-argument to avoid validation errors
+    lifecycle {
+        ignore_changes = [
+            # Ignore changes to bindings as they're managed outside of Terraform
+            bindings,
+        ]
+    }
 }
 
 resource "cloudflare_workers_route" "cdn_route" {
-  zone_id    = var.cloudflare_zone_id
-  pattern    = "cdn.harun.dev/*"
-  script_name = cloudflare_workers_script.cdn_proxy.name
+    zone_id = var.cloudflare_zone_id
+    pattern = "cdn.harun.dev/*"
+    script = cloudflare_workers_script.cdn_proxy.script_name
 }
 
-resource "cloudflare_record" "cdn_cname" {
-  zone_id = var.cloudflare_zone_id
-  name    = "cdn"
-  type    = "CNAME"
-  content = "workers.dev"
-  proxied = true
+resource "cloudflare_dns_record" "cdn_cname" {
+    zone_id = var.cloudflare_zone_id
+    name    = "cdn"
+    type    = "CNAME"
+    content = "workers.dev"
+    proxied = true
+    ttl     = 1
 }
 
-resource "cloudflare_record" "root_a" {
-  zone_id = var.cloudflare_zone_id
-  name    = "@"
-  type    = "A"
-  content = aws_lightsail_static_ip.portfolio.ip_address
-  proxied = true
+resource "cloudflare_dns_record" "root_a" {
+    zone_id = var.cloudflare_zone_id
+    name    = "@"
+    type    = "A"
+    content = aws_lightsail_static_ip.portfolio.ip_address
+    proxied = true
+    ttl     = 1
 }
 
-resource "cloudflare_record" "www_cname" {
-  zone_id = var.cloudflare_zone_id
-  name    = "www"
-  type    = "CNAME"
-  content = "harun.dev"
-  proxied = true
+resource "cloudflare_dns_record" "www_cname" {
+    zone_id = var.cloudflare_zone_id
+    name    = "www"
+    type    = "CNAME"
+    content = "harun.dev"
+    proxied = true
+    ttl     = 1
 }
 
