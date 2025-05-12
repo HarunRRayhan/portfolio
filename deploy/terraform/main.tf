@@ -79,23 +79,23 @@ resource "random_id" "bucket_suffix" {
 
 # Cloudflare R2 CDN Worker
 resource "cloudflare_workers_script" "cdn_proxy" {
-    account_id = var.cloudflare_account_id
+    account_id  = var.cloudflare_account_id
     script_name = "cdn-harun-dev"
     content = file("${path.module}/cdn-proxy.js")
 
-    # Bindings are handled through lifecycle meta-argument to avoid validation errors
-    lifecycle {
-        ignore_changes = [
-            # Ignore changes to bindings as they're managed outside of Terraform
-            bindings,
-        ]
-    }
+    bindings = [
+        {
+            name        = "ASSETS_BUCKET"
+            bucket_name = var.r2_bucket_name
+            type        = "r2_bucket"
+        }
+    ]
 }
 
 resource "cloudflare_workers_route" "cdn_route" {
     zone_id = var.cloudflare_zone_id
     pattern = "cdn.harun.dev/*"
-    script = cloudflare_workers_script.cdn_proxy.script_name
+    script  = cloudflare_workers_script.cdn_proxy.script_name
 }
 
 resource "cloudflare_dns_record" "cdn_cname" {
