@@ -157,7 +157,8 @@ wait_for_app_container() {
   local timeout=60
   local elapsed=0
   while [ $elapsed -lt $timeout ]; do
-    STATUS=$(execute_ssh "cd $APP_DIR && POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD MIN_APP_INSTANCES=$MIN_APP_INSTANCES MAX_APP_INSTANCES=$MAX_APP_INSTANCES APP_CPU_LIMIT=$APP_CPU_LIMIT APP_MEMORY_LIMIT=$APP_MEMORY_LIMIT NGINX_CPU_LIMIT=$NGINX_CPU_LIMIT NGINX_MEMORY_LIMIT=$NGINX_MEMORY_LIMIT DB_CPU_LIMIT=$DB_CPU_LIMIT DB_MEMORY_LIMIT=$DB_MEMORY_LIMIT MAX_APP_CPU_LIMIT=$MAX_APP_CPU_LIMIT MAX_APP_MEMORY_LIMIT=$MAX_APP_MEMORY_LIMIT MAX_NGINX_CPU_LIMIT=$MAX_NGINX_CPU_LIMIT MAX_NGINX_MEMORY_LIMIT=$MAX_NGINX_MEMORY_LIMIT MAX_DB_CPU_LIMIT=$MAX_DB_CPU_LIMIT MAX_DB_MEMORY_LIMIT=$MAX_DB_MEMORY_LIMIT docker-compose -f ./docker/docker-compose.yml ps --services --filter 'status=running' | grep '^app$'")
+    DOCKER_COMPOSE_CMD=$(docker_compose_run "./docker/docker-compose.yml" "ps --services --filter 'status=running' | grep '^app$'")
+    STATUS=$(execute_ssh "cd $APP_DIR && $DOCKER_COMPOSE_CMD")
     if [ "$STATUS" = "app" ]; then
       return 0
     fi
@@ -166,6 +167,49 @@ wait_for_app_container() {
   done
   echo "App container did not start within $timeout seconds." >&2
   return 1
+}
+
+#-------------------------------------------------------------------------------
+# Helper Functions
+#-------------------------------------------------------------------------------
+# Function to generate Docker environment variables string
+get_docker_env_vars() {
+  echo "POSTGRES_DB=$POSTGRES_DB \
+  POSTGRES_USER=$POSTGRES_USER \
+  POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
+  MIN_APP_INSTANCES=$MIN_APP_INSTANCES \
+  MAX_APP_INSTANCES=$MAX_APP_INSTANCES \
+  APP_CPU_LIMIT=$APP_CPU_LIMIT \
+  APP_MEMORY_LIMIT=$APP_MEMORY_LIMIT \
+  NGINX_CPU_LIMIT=$NGINX_CPU_LIMIT \
+  NGINX_MEMORY_LIMIT=$NGINX_MEMORY_LIMIT \
+  DB_CPU_LIMIT=$DB_CPU_LIMIT \
+  DB_MEMORY_LIMIT=$DB_MEMORY_LIMIT \
+  MAX_APP_CPU_LIMIT=$MAX_APP_CPU_LIMIT \
+  MAX_APP_MEMORY_LIMIT=$MAX_APP_MEMORY_LIMIT \
+  MAX_NGINX_CPU_LIMIT=$MAX_NGINX_CPU_LIMIT \
+  MAX_NGINX_MEMORY_LIMIT=$MAX_NGINX_MEMORY_LIMIT \
+  MAX_DB_CPU_LIMIT=$MAX_DB_CPU_LIMIT \
+  MAX_DB_MEMORY_LIMIT=$MAX_DB_MEMORY_LIMIT"
+}
+
+# Execute Docker Compose command with proper environment variables
+docker_compose_exec() {
+  local compose_file="$1"
+  local service="$2"
+  local command="$3"
+  local docker_env_vars=$(get_docker_env_vars)
+  
+  echo "$docker_env_vars docker-compose -f $compose_file exec -T $service $command"
+}
+
+# Run Docker Compose command with proper environment variables
+docker_compose_run() {
+  local compose_file="$1"
+  local command="$2"
+  local docker_env_vars=$(get_docker_env_vars)
+  
+  echo "$docker_env_vars docker-compose -f $compose_file $command"
 }
 
 # 1. Start
@@ -345,7 +389,8 @@ success "Remaining public files uploaded to server."
 
 # 12. Set up docker env on the server & start containers
 step 12 "Setting up docker environment on server & starting containers"
-execute_ssh "mkdir -p $APP_DIR/deploy/docker $APP_DIR/bootstrap/cache $APP_DIR/storage $APP_DIR/storage/logs $APP_DIR/storage/framework/sessions $APP_DIR/storage/framework/views $APP_DIR/storage/framework/cache"
+execute_ssh "mkdir -p $APP_DIR/deploy/docker $APP_DIR/bootstrap/cache $APP_DIR/storage $APP_DIR/storage/logs $APP_DIR/storage/framework/sessions $APP_DIR/storage/framework/views $APP_DIR/storage/framework/cache $APP_DIR/storage/framework/cache/data"
+# Don't try to chmod directly - we'll handle permissions through Docker
 # Ensure nginx.conf is a file, not a directory
 execute_ssh "if [ -d $APP_DIR/deploy/docker/nginx.conf ]; then rm -rf $APP_DIR/deploy/docker/nginx.conf; fi"
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/nginx.conf" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/docker/nginx.conf"
@@ -386,26 +431,45 @@ execute_ssh "cd $APP_DIR && \
 
 # 16. Execute deployment commands
 step 16 "Executing deployment commands"
+# Create a multi-line command with proper Docker environment variables
+DOCKER_COMPOSE_FILE="./deploy/docker/docker-compose.yml"
+DOCKER_DOWN_CMD=$(docker_compose_run "$DOCKER_COMPOSE_FILE" "down")
+DOCKER_BUILD_CMD=$(docker_compose_run "$DOCKER_COMPOSE_FILE" "build --no-cache")
+DOCKER_UP_CMD=$(docker_compose_run "$DOCKER_COMPOSE_FILE" "up -d")
+DOCKER_PS_CMD=$(docker_compose_run "$DOCKER_COMPOSE_FILE" "ps | grep app")
+
+# Execute the commands in sequence
 execute_ssh "cd $APP_DIR && \
-    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD MIN_APP_INSTANCES=$MIN_APP_INSTANCES MAX_APP_INSTANCES=$MAX_APP_INSTANCES APP_CPU_LIMIT=$APP_CPU_LIMIT APP_MEMORY_LIMIT=$APP_MEMORY_LIMIT NGINX_CPU_LIMIT=$NGINX_CPU_LIMIT NGINX_MEMORY_LIMIT=$NGINX_MEMORY_LIMIT DB_CPU_LIMIT=$DB_CPU_LIMIT DB_MEMORY_LIMIT=$DB_MEMORY_LIMIT MAX_APP_CPU_LIMIT=$MAX_APP_CPU_LIMIT MAX_APP_MEMORY_LIMIT=$MAX_APP_MEMORY_LIMIT MAX_NGINX_CPU_LIMIT=$MAX_NGINX_CPU_LIMIT MAX_NGINX_MEMORY_LIMIT=$MAX_NGINX_MEMORY_LIMIT MAX_DB_CPU_LIMIT=$MAX_DB_CPU_LIMIT MAX_DB_MEMORY_LIMIT=$MAX_DB_MEMORY_LIMIT docker-compose -f ./deploy/docker/docker-compose.yml down && \
-    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD MIN_APP_INSTANCES=$MIN_APP_INSTANCES MAX_APP_INSTANCES=$MAX_APP_INSTANCES APP_CPU_LIMIT=$APP_CPU_LIMIT APP_MEMORY_LIMIT=$APP_MEMORY_LIMIT NGINX_CPU_LIMIT=$NGINX_CPU_LIMIT NGINX_MEMORY_LIMIT=$NGINX_MEMORY_LIMIT DB_CPU_LIMIT=$DB_CPU_LIMIT DB_MEMORY_LIMIT=$DB_MEMORY_LIMIT MAX_APP_CPU_LIMIT=$MAX_APP_CPU_LIMIT MAX_APP_MEMORY_LIMIT=$MAX_APP_MEMORY_LIMIT MAX_NGINX_CPU_LIMIT=$MAX_NGINX_CPU_LIMIT MAX_NGINX_MEMORY_LIMIT=$MAX_NGINX_MEMORY_LIMIT MAX_DB_CPU_LIMIT=$MAX_DB_CPU_LIMIT MAX_DB_MEMORY_LIMIT=$MAX_DB_MEMORY_LIMIT docker-compose -f ./deploy/docker/docker-compose.yml build --no-cache && \
-    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD MIN_APP_INSTANCES=$MIN_APP_INSTANCES MAX_APP_INSTANCES=$MAX_APP_INSTANCES APP_CPU_LIMIT=$APP_CPU_LIMIT APP_MEMORY_LIMIT=$APP_MEMORY_LIMIT NGINX_CPU_LIMIT=$NGINX_CPU_LIMIT NGINX_MEMORY_LIMIT=$NGINX_MEMORY_LIMIT DB_CPU_LIMIT=$DB_CPU_LIMIT DB_MEMORY_LIMIT=$DB_MEMORY_LIMIT MAX_APP_CPU_LIMIT=$MAX_APP_CPU_LIMIT MAX_APP_MEMORY_LIMIT=$MAX_APP_MEMORY_LIMIT MAX_NGINX_CPU_LIMIT=$MAX_NGINX_CPU_LIMIT MAX_NGINX_MEMORY_LIMIT=$MAX_NGINX_MEMORY_LIMIT MAX_DB_CPU_LIMIT=$MAX_DB_CPU_LIMIT MAX_DB_MEMORY_LIMIT=$MAX_DB_MEMORY_LIMIT docker-compose -f ./deploy/docker/docker-compose.yml up -d && \
-    touch .env && chmod 666 .env && \
-    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD MIN_APP_INSTANCES=$MIN_APP_INSTANCES MAX_APP_INSTANCES=$MAX_APP_INSTANCES APP_CPU_LIMIT=$APP_CPU_LIMIT APP_MEMORY_LIMIT=$APP_MEMORY_LIMIT NGINX_CPU_LIMIT=$NGINX_CPU_LIMIT NGINX_MEMORY_LIMIT=$NGINX_MEMORY_LIMIT DB_CPU_LIMIT=$DB_CPU_LIMIT DB_MEMORY_LIMIT=$DB_MEMORY_LIMIT MAX_APP_CPU_LIMIT=$MAX_APP_CPU_LIMIT MAX_APP_MEMORY_LIMIT=$MAX_APP_MEMORY_LIMIT MAX_NGINX_CPU_LIMIT=$MAX_NGINX_CPU_LIMIT MAX_NGINX_MEMORY_LIMIT=$MAX_NGINX_MEMORY_LIMIT MAX_DB_CPU_LIMIT=$MAX_DB_CPU_LIMIT MAX_DB_MEMORY_LIMIT=$MAX_DB_MEMORY_LIMIT docker-compose -f ./deploy/docker/docker-compose.yml ps | grep app"
+    $DOCKER_DOWN_CMD && \
+    $DOCKER_BUILD_CMD && \
+    $DOCKER_UP_CMD && \
+    $DOCKER_PS_CMD"
 # Remove the .env from the repo root after build
 rm -f "$REPO_ROOT/.env"
 
 # Update APP_KEY in .env on the server
-execute_ssh "cd $APP_DIR && APP_KEY=\$(POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD MIN_APP_INSTANCES=$MIN_APP_INSTANCES MAX_APP_INSTANCES=$MAX_APP_INSTANCES APP_CPU_LIMIT=$APP_CPU_LIMIT APP_MEMORY_LIMIT=$APP_MEMORY_LIMIT NGINX_CPU_LIMIT=$NGINX_CPU_LIMIT NGINX_MEMORY_LIMIT=$NGINX_MEMORY_LIMIT DB_CPU_LIMIT=$DB_CPU_LIMIT DB_MEMORY_LIMIT=$DB_MEMORY_LIMIT MAX_APP_CPU_LIMIT=$MAX_APP_CPU_LIMIT MAX_APP_MEMORY_LIMIT=$MAX_APP_MEMORY_LIMIT MAX_NGINX_CPU_LIMIT=$MAX_NGINX_CPU_LIMIT MAX_NGINX_MEMORY_LIMIT=$MAX_NGINX_MEMORY_LIMIT MAX_DB_CPU_LIMIT=$MAX_DB_CPU_LIMIT MAX_DB_MEMORY_LIMIT=$MAX_DB_MEMORY_LIMIT docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan key:generate --show) && echo Found APP_KEY: \$APP_KEY && (grep -q '^APP_KEY=' .env && sed -i 's|^APP_KEY=.*|APP_KEY=\$APP_KEY|' .env || echo APP_KEY=\$APP_KEY >> .env)"
+# Generate Laravel application key
+DOCKER_KEY_CMD=$(docker_compose_exec "./docker/docker-compose.yml" "app" "php artisan key:generate --show")
+execute_ssh "cd $APP_DIR && APP_KEY=\$(${DOCKER_KEY_CMD}) && \
+    echo Found APP_KEY: \$APP_KEY && \
+    (grep -q '^APP_KEY=' .env && sed -i 's|^APP_KEY=.*|APP_KEY=\$APP_KEY|' .env || echo APP_KEY=\$APP_KEY >> .env)"
 
-execute_ssh "cd $APP_DIR && \
-    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD MIN_APP_INSTANCES=$MIN_APP_INSTANCES MAX_APP_INSTANCES=$MAX_APP_INSTANCES APP_CPU_LIMIT=$APP_CPU_LIMIT APP_MEMORY_LIMIT=$APP_MEMORY_LIMIT NGINX_CPU_LIMIT=$NGINX_CPU_LIMIT NGINX_MEMORY_LIMIT=$NGINX_MEMORY_LIMIT DB_CPU_LIMIT=$DB_CPU_LIMIT DB_MEMORY_LIMIT=$DB_MEMORY_LIMIT MAX_APP_CPU_LIMIT=$MAX_APP_CPU_LIMIT MAX_APP_MEMORY_LIMIT=$MAX_APP_MEMORY_LIMIT MAX_NGINX_CPU_LIMIT=$MAX_NGINX_CPU_LIMIT MAX_NGINX_MEMORY_LIMIT=$MAX_NGINX_MEMORY_LIMIT MAX_DB_CPU_LIMIT=$MAX_DB_CPU_LIMIT MAX_DB_MEMORY_LIMIT=$MAX_DB_MEMORY_LIMIT docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan config:cache && \
-    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD MIN_APP_INSTANCES=$MIN_APP_INSTANCES MAX_APP_INSTANCES=$MAX_APP_INSTANCES APP_CPU_LIMIT=$APP_CPU_LIMIT APP_MEMORY_LIMIT=$APP_MEMORY_LIMIT NGINX_CPU_LIMIT=$NGINX_CPU_LIMIT NGINX_MEMORY_LIMIT=$NGINX_MEMORY_LIMIT DB_CPU_LIMIT=$DB_CPU_LIMIT DB_MEMORY_LIMIT=$DB_MEMORY_LIMIT MAX_APP_CPU_LIMIT=$MAX_APP_CPU_LIMIT MAX_APP_MEMORY_LIMIT=$MAX_APP_MEMORY_LIMIT MAX_NGINX_CPU_LIMIT=$MAX_NGINX_CPU_LIMIT MAX_NGINX_MEMORY_LIMIT=$MAX_NGINX_MEMORY_LIMIT MAX_DB_CPU_LIMIT=$MAX_DB_CPU_LIMIT MAX_DB_MEMORY_LIMIT=$MAX_DB_MEMORY_LIMIT docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan route:cache && \
-    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD MIN_APP_INSTANCES=$MIN_APP_INSTANCES MAX_APP_INSTANCES=$MAX_APP_INSTANCES APP_CPU_LIMIT=$APP_CPU_LIMIT APP_MEMORY_LIMIT=$APP_MEMORY_LIMIT NGINX_CPU_LIMIT=$NGINX_CPU_LIMIT NGINX_MEMORY_LIMIT=$NGINX_MEMORY_LIMIT DB_CPU_LIMIT=$DB_CPU_LIMIT DB_MEMORY_LIMIT=$DB_MEMORY_LIMIT MAX_APP_CPU_LIMIT=$MAX_APP_CPU_LIMIT MAX_APP_MEMORY_LIMIT=$MAX_APP_MEMORY_LIMIT MAX_NGINX_CPU_LIMIT=$MAX_NGINX_CPU_LIMIT MAX_NGINX_MEMORY_LIMIT=$MAX_NGINX_MEMORY_LIMIT MAX_DB_CPU_LIMIT=$MAX_DB_CPU_LIMIT MAX_DB_MEMORY_LIMIT=$MAX_DB_MEMORY_LIMIT docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan view:cache && \
-    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD MIN_APP_INSTANCES=$MIN_APP_INSTANCES MAX_APP_INSTANCES=$MAX_APP_INSTANCES APP_CPU_LIMIT=$APP_CPU_LIMIT APP_MEMORY_LIMIT=$APP_MEMORY_LIMIT NGINX_CPU_LIMIT=$NGINX_CPU_LIMIT NGINX_MEMORY_LIMIT=$NGINX_MEMORY_LIMIT DB_CPU_LIMIT=$DB_CPU_LIMIT DB_MEMORY_LIMIT=$DB_MEMORY_LIMIT MAX_APP_CPU_LIMIT=$MAX_APP_CPU_LIMIT MAX_APP_MEMORY_LIMIT=$MAX_APP_MEMORY_LIMIT MAX_NGINX_CPU_LIMIT=$MAX_NGINX_CPU_LIMIT MAX_NGINX_MEMORY_LIMIT=$MAX_NGINX_MEMORY_LIMIT MAX_DB_CPU_LIMIT=$MAX_DB_CPU_LIMIT MAX_DB_MEMORY_LIMIT=$MAX_DB_MEMORY_LIMIT docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan migrate --force && \
-    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD MIN_APP_INSTANCES=$MIN_APP_INSTANCES MAX_APP_INSTANCES=$MAX_APP_INSTANCES APP_CPU_LIMIT=$APP_CPU_LIMIT APP_MEMORY_LIMIT=$APP_MEMORY_LIMIT NGINX_CPU_LIMIT=$NGINX_CPU_LIMIT NGINX_MEMORY_LIMIT=$NGINX_MEMORY_LIMIT DB_CPU_LIMIT=$DB_CPU_LIMIT DB_MEMORY_LIMIT=$DB_MEMORY_LIMIT MAX_APP_CPU_LIMIT=$MAX_APP_CPU_LIMIT MAX_APP_MEMORY_LIMIT=$MAX_APP_MEMORY_LIMIT MAX_NGINX_CPU_LIMIT=$MAX_NGINX_CPU_LIMIT MAX_NGINX_MEMORY_LIMIT=$MAX_NGINX_MEMORY_LIMIT MAX_DB_CPU_LIMIT=$MAX_DB_CPU_LIMIT MAX_DB_MEMORY_LIMIT=$MAX_DB_MEMORY_LIMIT docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan storage:link && \
-    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD MIN_APP_INSTANCES=$MIN_APP_INSTANCES MAX_APP_INSTANCES=$MAX_APP_INSTANCES APP_CPU_LIMIT=$APP_CPU_LIMIT APP_MEMORY_LIMIT=$APP_MEMORY_LIMIT NGINX_CPU_LIMIT=$NGINX_CPU_LIMIT NGINX_MEMORY_LIMIT=$NGINX_MEMORY_LIMIT DB_CPU_LIMIT=$DB_CPU_LIMIT DB_MEMORY_LIMIT=$DB_MEMORY_LIMIT MAX_APP_CPU_LIMIT=$MAX_APP_CPU_LIMIT MAX_APP_MEMORY_LIMIT=$MAX_APP_MEMORY_LIMIT MAX_NGINX_CPU_LIMIT=$MAX_NGINX_CPU_LIMIT MAX_NGINX_MEMORY_LIMIT=$MAX_NGINX_MEMORY_LIMIT MAX_DB_CPU_LIMIT=$MAX_DB_CPU_LIMIT MAX_DB_MEMORY_LIMIT=$MAX_DB_MEMORY_LIMIT docker-compose -f ./deploy/docker/docker-compose.yml exec -T app chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
-    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD MIN_APP_INSTANCES=$MIN_APP_INSTANCES MAX_APP_INSTANCES=$MAX_APP_INSTANCES APP_CPU_LIMIT=$APP_CPU_LIMIT APP_MEMORY_LIMIT=$APP_MEMORY_LIMIT NGINX_CPU_LIMIT=$NGINX_CPU_LIMIT NGINX_MEMORY_LIMIT=$NGINX_MEMORY_LIMIT DB_CPU_LIMIT=$DB_CPU_LIMIT DB_MEMORY_LIMIT=$DB_MEMORY_LIMIT MAX_APP_CPU_LIMIT=$MAX_APP_CPU_LIMIT MAX_APP_MEMORY_LIMIT=$MAX_APP_MEMORY_LIMIT MAX_NGINX_CPU_LIMIT=$MAX_NGINX_CPU_LIMIT MAX_NGINX_MEMORY_LIMIT=$MAX_NGINX_MEMORY_LIMIT MAX_DB_CPU_LIMIT=$MAX_DB_CPU_LIMIT MAX_DB_MEMORY_LIMIT=$MAX_DB_MEMORY_LIMIT docker-compose -f ./deploy/docker/docker-compose.yml exec -T app chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache"
+# Run Laravel artisan commands for optimization and setup
+DOCKER_COMPOSE_FILE="./deploy/docker/docker-compose.yml"
+
+# Create command variables for each artisan command
+CONFIG_CACHE_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "app" "php artisan config:cache")
+ROUTE_CACHE_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "app" "php artisan route:cache")
+VIEW_CACHE_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "app" "php artisan view:cache")
+MIGRATE_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "app" "php artisan migrate --force")
+STORAGE_LINK_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "app" "php artisan storage:link")
+
+# Fix permissions for Laravel cache directories - using Docker to handle permissions with a single command
+execute_ssh "cd $APP_DIR && $(docker_compose_run "$DOCKER_COMPOSE_FILE" "exec -T app sh -c 'mkdir -p /var/www/html/bootstrap/cache /var/www/html/storage/framework/cache /var/www/html/storage/framework/cache/data /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/logs && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache'")"
+
+# Execute artisan commands as a single command to avoid syntax issues
+COMBINED_ARTISAN_CMD="cd $APP_DIR && $CONFIG_CACHE_CMD && $ROUTE_CACHE_CMD && $VIEW_CACHE_CMD && $MIGRATE_CMD && $STORAGE_LINK_CMD"
+execute_ssh "$COMBINED_ARTISAN_CMD"
 
 # 17. Check app container status
 step 17 "Checking app container status"
@@ -416,15 +480,27 @@ fi
 
 # 18. Ensure wait-for-db.sh is executable in the container
 step 18 "Ensuring wait-for-db.sh is executable in the container"
-execute_ssh "cd $APP_DIR && POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD MIN_APP_INSTANCES=$MIN_APP_INSTANCES MAX_APP_INSTANCES=$MAX_APP_INSTANCES APP_CPU_LIMIT=$APP_CPU_LIMIT APP_MEMORY_LIMIT=$APP_MEMORY_LIMIT NGINX_CPU_LIMIT=$NGINX_CPU_LIMIT NGINX_MEMORY_LIMIT=$NGINX_MEMORY_LIMIT DB_CPU_LIMIT=$DB_CPU_LIMIT DB_MEMORY_LIMIT=$DB_MEMORY_LIMIT MAX_APP_CPU_LIMIT=$MAX_APP_CPU_LIMIT MAX_APP_MEMORY_LIMIT=$MAX_APP_MEMORY_LIMIT MAX_NGINX_CPU_LIMIT=$MAX_NGINX_CPU_LIMIT MAX_NGINX_MEMORY_LIMIT=$MAX_NGINX_MEMORY_LIMIT MAX_DB_CPU_LIMIT=$MAX_DB_CPU_LIMIT MAX_DB_MEMORY_LIMIT=$MAX_DB_MEMORY_LIMIT docker-compose -f ./docker/docker-compose.yml exec -T app chmod +x ./wait-for-db.sh"
+# Make wait-for-db.sh executable
+DOCKER_CHMOD_CMD=$(docker_compose_exec "./docker/docker-compose.yml" "app" "chmod +x ./wait-for-db.sh")
+execute_ssh "cd $APP_DIR && $DOCKER_CHMOD_CMD"
+
+# Ensure proper cache directory permissions - using a single command to avoid syntax issues
+execute_ssh "cd $APP_DIR && $(docker_compose_run "./docker/docker-compose.yml" "exec -T app sh -c 'php artisan cache:clear && php artisan config:clear && php artisan view:clear && php artisan route:clear'")"
 
 # 19. Wait for the database to be ready
 step 19 "Waiting for the database to be ready inside the app container"
-execute_ssh "cd $APP_DIR && POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD MIN_APP_INSTANCES=$MIN_APP_INSTANCES MAX_APP_INSTANCES=$MAX_APP_INSTANCES APP_CPU_LIMIT=$APP_CPU_LIMIT APP_MEMORY_LIMIT=$APP_MEMORY_LIMIT NGINX_CPU_LIMIT=$NGINX_CPU_LIMIT NGINX_MEMORY_LIMIT=$NGINX_MEMORY_LIMIT DB_CPU_LIMIT=$DB_CPU_LIMIT DB_MEMORY_LIMIT=$DB_MEMORY_LIMIT MAX_APP_CPU_LIMIT=$MAX_APP_CPU_LIMIT MAX_APP_MEMORY_LIMIT=$MAX_APP_MEMORY_LIMIT MAX_NGINX_CPU_LIMIT=$MAX_NGINX_CPU_LIMIT MAX_NGINX_MEMORY_LIMIT=$MAX_NGINX_MEMORY_LIMIT MAX_DB_CPU_LIMIT=$MAX_DB_CPU_LIMIT MAX_DB_MEMORY_LIMIT=$MAX_DB_MEMORY_LIMIT docker-compose -f ./docker/docker-compose.yml exec -T app ./wait-for-db.sh db 5432 60"
+# Wait for database to be ready
+DOCKER_WAIT_DB_CMD=$(docker_compose_exec "./docker/docker-compose.yml" "app" "./wait-for-db.sh db 5432 60")
+execute_ssh "cd $APP_DIR && $DOCKER_WAIT_DB_CMD"
+
+# Fix Laravel storage permissions using a single command to avoid syntax issues
+execute_ssh "cd $APP_DIR && $(docker_compose_run "./docker/docker-compose.yml" "exec -T app sh -c 'mkdir -p /var/www/html/storage/framework/cache/data && chmod -R 777 /var/www/html/storage/framework/cache && chown -R www-data:www-data /var/www/html/storage/framework/cache'")"
 
 # 20 Test DB connection from app container
 step 20 "Testing database connection from app container"
-execute_ssh "cd $APP_DIR && POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD MIN_APP_INSTANCES=$MIN_APP_INSTANCES MAX_APP_INSTANCES=$MAX_APP_INSTANCES APP_CPU_LIMIT=$APP_CPU_LIMIT APP_MEMORY_LIMIT=$APP_MEMORY_LIMIT NGINX_CPU_LIMIT=$NGINX_CPU_LIMIT NGINX_MEMORY_LIMIT=$NGINX_MEMORY_LIMIT DB_CPU_LIMIT=$DB_CPU_LIMIT DB_MEMORY_LIMIT=$DB_MEMORY_LIMIT MAX_APP_CPU_LIMIT=$MAX_APP_CPU_LIMIT MAX_APP_MEMORY_LIMIT=$MAX_APP_MEMORY_LIMIT MAX_NGINX_CPU_LIMIT=$MAX_NGINX_CPU_LIMIT MAX_NGINX_MEMORY_LIMIT=$MAX_NGINX_MEMORY_LIMIT MAX_DB_CPU_LIMIT=$MAX_DB_CPU_LIMIT MAX_DB_MEMORY_LIMIT=$MAX_DB_MEMORY_LIMIT docker-compose -f ./docker/docker-compose.yml exec -T app php artisan migrate:status"
+# Test database connection
+DOCKER_MIGRATE_STATUS_CMD=$(docker_compose_exec "./docker/docker-compose.yml" "app" "php artisan migrate:status")
+execute_ssh "cd $APP_DIR && $DOCKER_MIGRATE_STATUS_CMD"
 
 success "Deployment completed!"
 
