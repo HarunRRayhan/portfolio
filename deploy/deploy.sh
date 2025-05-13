@@ -236,20 +236,30 @@ step 2 "Initializing server with required directories and Docker"
 execute_ssh "sudo mkdir -p $APP_DIR"
 execute_ssh "sudo chown -R ubuntu:ubuntu $APP_DIR || true"
 
-# Check if Docker is installed, install if not
-execute_ssh "if ! command -v docker &> /dev/null; then
-  echo 'Docker not found, installing...'
-  sudo apt-get update
-  sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-  sudo add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/ubuntu \$(lsb_release -cs) stable\"
-  sudo apt-get update
-  sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-  sudo systemctl enable docker
-  sudo systemctl start docker
-  sudo usermod -aG docker ubuntu
-  echo 'Docker installed successfully'
-fi"
+# Install Docker if not already installed
+if ! execute_ssh "command -v docker &> /dev/null"; then
+  echo "Docker not found, installing..."
+  execute_ssh "sudo apt-get update && \
+    sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common && \
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - && \
+    sudo add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/ubuntu \$(lsb_release -cs) stable\" && \
+    sudo apt-get update && \
+    sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin && \
+    sudo systemctl enable docker && \
+    sudo systemctl start docker"
+  echo "Docker installed successfully"
+  
+  # Wait for Docker to be fully initialized
+  echo "Waiting for Docker to be fully initialized..."
+  for i in {1..30}; do
+    if execute_ssh "sudo docker ps &>/dev/null"; then
+      echo "Docker is now ready."
+      break
+    fi
+    echo "Waiting for Docker to be ready... ($i/30)"
+    sleep 5
+  done
+fi
 
 # 3. Ensure ubuntu user is in the docker group for Docker access
 step 3 "Ensuring ubuntu user is in the docker group"
