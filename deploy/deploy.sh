@@ -41,11 +41,7 @@ fi
 
 echo "[DEBUG] SSH_KEY resolved to: $SSH_KEY"
 
-# Colors for output
-# Removed color formatting as requested
-GREEN=''
-RED=''
-NC=''
+# Colors have been completely removed
 
 # Signature and start time
 SCRIPT_START_TIME=$(date +%s)
@@ -533,11 +529,11 @@ fi
 
 # 18. Ensure wait-for-db.sh is executable in the container
 step 18 "Ensuring wait-for-db.sh is executable in the container"
-echo -e "\n[\033[1;36m++++++++++++++++++++++++++++++++++++++++++++++\n+++   STEP 18: Ensuring wait-for-db.sh is executable in the container   +++\n++++++++++++++++++++++++++++++++++++++++++++++\033[0m\n"
+echo -e "\n+++++++++++++++++++++++++++++++++++++++++++++++\n+++   STEP 18: Ensuring wait-for-db.sh is executable in the container   +++\n++++++++++++++++++++++++++++++++++++++++++++++\n"
 execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'chmod +x ./wait-for-db.sh && php artisan cache:clear'"
 
 # 18.1. Ensure proper Laravel cache configuration
-echo -e "\n[\033[1;36m++++++++++++++++++++++++++++++++++++++++++++++\n+++   STEP 18.1: Ensuring proper Laravel cache configuration   +++\n++++++++++++++++++++++++++++++++++++++++++++++\033[0m\n"
+echo -e "\n+++++++++++++++++++++++++++++++++++++++++++++++\n+++   STEP 18.1: Ensuring proper Laravel cache configuration   +++\n++++++++++++++++++++++++++++++++++++++++++++++\n"
 
 # Create all required Laravel cache directories with proper permissions
 execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'mkdir -p /var/www/html/storage/framework/cache/data /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/logs /var/www/html/bootstrap/cache && chmod -R 777 /var/www/html/storage && chmod -R 777 /var/www/html/bootstrap/cache && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache'"
@@ -571,30 +567,10 @@ execute_ssh "cd $APP_DIR && $DOCKER_MIGRATE_STATUS_CMD"
 
 success "Deployment completed!"
 
-# 21. Configure Cloudflare Worker R2 Bucket Binding
-step 21 "Configuring Cloudflare Worker R2 Bucket Binding"
+# 21. Skip Cloudflare Worker R2 Bucket Binding (already done by Terraform)
+step 21 "Skipping Cloudflare Worker R2 Bucket Binding (already done by Terraform)"
 
-if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ] || [ -z "$R2_BUCKET_NAME" ]; then
-  echo "To enable Cloudflare Worker R2 bucket binding, add the following to your .env.deploy file:"
-  echo "CLOUDFLARE_API_TOKEN=your_api_token"
-  echo "CLOUDFLARE_ACCOUNT_ID=your_account_id"
-  echo "R2_BUCKET_NAME=your_bucket_name"
-else
-  echo "Configuring Cloudflare Worker R2 bucket binding for worker 'cdn-harun-dev'"
-
-  # Configure the R2 bucket binding for the Cloudflare Worker
-  BINDING_RESULT=$(curl -s -X PUT \
-    "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/cdn-harun-dev/bindings" \
-    -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-    -H "Content-Type: application/json" \
-    --data "{\"bindings\":[{\"name\":\"ASSETS_BUCKET\",\"type\":\"r2_bucket\",\"bucket_name\":\"$R2_BUCKET_NAME\"}]}")
-
-  if [[ $(echo "$BINDING_RESULT" | grep -c '"success":true') -gt 0 ]]; then
-    echo "Cloudflare Worker R2 bucket binding configured successfully!"
-  else
-    echo "Failed to configure Cloudflare Worker R2 bucket binding. Response: $BINDING_RESULT"
-  fi
-fi
+echo "Skipping Cloudflare Worker R2 bucket binding as it's already configured by Terraform during infrastructure creation."
 
 # 22. Purge CDN Cache (Cloudflare)
 step 22 "Purging CDN Cache (Cloudflare)"
@@ -614,7 +590,7 @@ else
       --data '{"purge_everything":true}')
 
     if [[ $(echo "$RESULT" | grep -c '"success":true') -gt 0 ]]; then
-      echo "Cloudflare cache purged successfully!"
+      echo "Cloudflare cache purged successfully! Response: $RESULT"
     else
       echo "Failed to purge Cloudflare cache. Response: $RESULT"
     fi
