@@ -537,14 +537,79 @@ execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | 
 echo -e "\n+++++++++++++++++++++++++++++++++++++++++++++++\n+++   STEP 18.1: Ensuring proper Laravel cache configuration   +++\n++++++++++++++++++++++++++++++++++++++++++++++\n"
 
 # Create all required Laravel cache directories with proper permissions and add .gitkeep files to ensure they exist
-execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'mkdir -p /var/www/html/storage/framework/cache/data /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/logs /var/www/html/bootstrap/cache && touch /var/www/html/storage/framework/cache/data/.gitkeep /var/www/html/storage/framework/sessions/.gitkeep /var/www/html/storage/framework/views/.gitkeep /var/www/html/bootstrap/cache/.gitkeep && chmod -R 777 /var/www/html/storage && chmod -R 777 /var/www/html/bootstrap/cache && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache'"
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c '\
+    # Create all required Laravel directory structure\
+    mkdir -p /var/www/html/storage/app/public \
+    /var/www/html/storage/framework/cache \
+    /var/www/html/storage/framework/cache/data \
+    /var/www/html/storage/framework/sessions \
+    /var/www/html/storage/framework/testing \
+    /var/www/html/storage/framework/views \
+    /var/www/html/storage/logs \
+    /var/www/html/bootstrap/cache && \
+    \
+    # Add .gitkeep files to ensure directories exist and are tracked\
+    touch /var/www/html/storage/framework/cache/.gitkeep \
+    /var/www/html/storage/framework/cache/data/.gitkeep \
+    /var/www/html/storage/framework/sessions/.gitkeep \
+    /var/www/html/storage/framework/testing/.gitkeep \
+    /var/www/html/storage/framework/views/.gitkeep \
+    /var/www/html/storage/logs/.gitkeep \
+    /var/www/html/bootstrap/cache/.gitkeep && \
+    \
+    # Set proper permissions\
+    chmod -R 777 /var/www/html/storage && \
+    chmod -R 777 /var/www/html/bootstrap/cache && \
+    chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
+    \
+    # Ensure cache driver is set to file in the .env file\
+    grep -q "CACHE_DRIVER=file" /var/www/html/.env || sed -i "s/CACHE_DRIVER=.*/CACHE_DRIVER=file/" /var/www/html/.env'"
+
+# The view.php configuration file is now part of the git repository
+# No need to upload it separately as it will be included during git clone/pull
 
 # Ensure cache driver is set to file
 execute_ssh "cd $APP_DIR && sudo sed -i 's/CACHE_DRIVER=.*/CACHE_DRIVER=file/' .env"
 
+# Copy view.php from local repository to server and then to Docker container
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/config/view.php" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/config/view.php"
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'mkdir -p /var/www/html/config' && \
+sudo docker cp ./config/view.php \$(sudo docker ps -qf 'name=app' | head -n 1):/var/www/html/config/view.php && \
+sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'chown www-data:www-data /var/www/html/config/view.php && chmod 644 /var/www/html/config/view.php'"
+
+# Create all required cache directories with proper permissions
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'mkdir -p /var/www/html/storage/framework/views /var/www/html/storage/framework/cache/data /var/www/html/storage/framework/sessions /var/www/html/bootstrap/cache && \
+chmod -R 777 /var/www/html/storage && \
+chmod -R 777 /var/www/html/bootstrap/cache && \
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache'"
+
+# Ensure the VIEW_COMPILED_PATH is correctly set in the environment
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'export VIEW_COMPILED_PATH=/var/www/html/storage/framework/views && echo VIEW_COMPILED_PATH is set to /var/www/html/storage/framework/views'"
+
+# Clear all caches
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'php artisan config:clear && \
+php artisan view:clear'"
+
 # Verify cache directory structure and permissions
-execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'ls -la /var/www/html/storage/framework/cache && ls -la /var/www/html/storage/framework/cache/data && ls -la /var/www/html/bootstrap/cache'"
-execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'php artisan config:clear && php artisan view:clear && php artisan route:clear && php artisan optimize:clear'"
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'ls -la /var/www/html/storage/framework/cache && ls -la /var/www/html/storage/framework/cache/data && ls -la /var/www/html/storage/framework/views && ls -la /var/www/html/bootstrap/cache && ls -la /var/www/html/config/view.php'"
+
+# Double-check that all cache directories exist with proper permissions
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'mkdir -p /var/www/html/storage/framework/cache/data /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/logs /var/www/html/bootstrap/cache && \
+chmod -R 777 /var/www/html/storage && \
+chmod -R 777 /var/www/html/bootstrap/cache && \
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache'"
+
+# Verify the VIEW_COMPILED_PATH is set in the .env file
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'grep VIEW_COMPILED_PATH /var/www/html/.env'"
+
+# Clear all caches and then rebuild them
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'php artisan config:clear && \
+php artisan view:clear && \
+php artisan route:clear && \
+php artisan optimize:clear && \
+php artisan config:cache && \
+php artisan route:cache && \
+php artisan view:cache'"
 
 # 19. Wait for the database to be ready
 step 19 "Waiting for the database to be ready inside the app container"
