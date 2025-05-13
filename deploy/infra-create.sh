@@ -123,10 +123,32 @@ if [ -z "$R2_BUCKET_NAME" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
   exit 1
 fi
 
-# 1. Start
-step 1 "Running terraform apply -auto-approve"
+# 1. Run terraform apply
+step 1 "Running terraform apply"
 cd "$SCRIPT_DIR/terraform"
-echo "[DEBUG] Running: terraform apply -auto-approve -var=\"r2_bucket_name=$R2_BUCKET_NAME\" -var=\"cloudflare_account_id=$CLOUDFLARE_ACCOUNT_ID\""
+
+# Extract S3 backend bucket and AWS credentials from .env.deploy and terraform.tfvars
+TF_S3_BACKEND_BUCKET=$(grep '^TF_S3_BACKEND_BUCKET=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
+AWS_ACCESS_KEY=$(grep '^aws_access_key' "$SCRIPT_DIR/terraform/terraform.tfvars" | cut -d '=' -f2- | tr -d ' "')
+AWS_SECRET_KEY=$(grep '^aws_secret_key' "$SCRIPT_DIR/terraform/terraform.tfvars" | cut -d '=' -f2- | tr -d ' "')
+AWS_REGION=$(grep '^aws_region' "$SCRIPT_DIR/terraform/terraform.tfvars" | cut -d '=' -f2- | tr -d ' "')
+
+echo "[INFO] Using Terraform S3 backend bucket: $TF_S3_BACKEND_BUCKET"
+echo "[INFO] Using AWS region: $AWS_REGION"
+
+# Initialize Terraform with S3 backend configuration and AWS credentials
+terraform init \
+  -backend-config="bucket=${TF_S3_BACKEND_BUCKET}" \
+  -backend-config="region=${AWS_REGION}" \
+  -backend-config="access_key=${AWS_ACCESS_KEY}" \
+  -backend-config="secret_key=${AWS_SECRET_KEY}"
+INIT_STATUS=$?
+if [ $INIT_STATUS -ne 0 ]; then
+  echo "[ERROR] Terraform init failed with status $INIT_STATUS" >&2
+  exit $INIT_STATUS
+fi
+
+echo "[DEBUG] Running: terraform apply -auto-approve -var="r2_bucket_name=$R2_BUCKET_NAME" -var="cloudflare_account_id=$CLOUDFLARE_ACCOUNT_ID""
 terraform apply -auto-approve \
   -var="r2_bucket_name=$R2_BUCKET_NAME" \
   -var="cloudflare_account_id=$CLOUDFLARE_ACCOUNT_ID"

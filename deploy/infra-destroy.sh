@@ -65,14 +65,27 @@ step 1 "Extracting environment variables"
 R2_BUCKET_NAME=$(grep '^R2_BUCKET_NAME=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
 CLOUDFLARE_ACCOUNT_ID=$(grep '^CLOUDFLARE_ACCOUNT_ID=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
 CLOUDFLARE_API_TOKEN=$(grep '^CLOUDFLARE_API_TOKEN=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
+TF_S3_BACKEND_BUCKET=$(grep '^TF_S3_BACKEND_BUCKET=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
 
 echo "[DEBUG] R2_BUCKET_NAME: '$R2_BUCKET_NAME'"
 echo "[DEBUG] CLOUDFLARE_ACCOUNT_ID: '$CLOUDFLARE_ACCOUNT_ID'"
+echo "[DEBUG] TF_S3_BACKEND_BUCKET: '$TF_S3_BACKEND_BUCKET'"
 end_step
 
 # Run terraform destroy
 step 2 "Running terraform destroy"
 cd "$SCRIPT_DIR/terraform"
+
+# Initialize Terraform with S3 backend configuration
+echo "[INFO] Using Terraform S3 backend bucket: $TF_S3_BACKEND_BUCKET"
+terraform init \
+  -backend-config="bucket=$TF_S3_BACKEND_BUCKET"
+INIT_STATUS=$?
+if [ $INIT_STATUS -ne 0 ]; then
+  error "Terraform init failed with status $INIT_STATUS"
+  exit $INIT_STATUS
+fi
+
 terraform destroy -auto-approve \
   -var="r2_bucket_name=$R2_BUCKET_NAME" \
   -var="cloudflare_account_id=$CLOUDFLARE_ACCOUNT_ID"
