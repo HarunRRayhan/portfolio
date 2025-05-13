@@ -42,15 +42,16 @@ fi
 echo "[DEBUG] SSH_KEY resolved to: $SSH_KEY"
 
 # Colors for output
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-NC='\033[0m'
+# Removed color formatting as requested
+GREEN=''
+RED=''
+NC=''
 
 # Signature and start time
 SCRIPT_START_TIME=$(date +%s)
-echo -e "\n\033[1;35m==============================================="
+echo -e "\n==============================================="
 echo -e "   🚀 Harun's Portfolio Deployment Script 🚀"
-echo -e "===============================================\033[0m\n"
+echo -e "===============================================\n"
 echo "Started at: $(date)"
 
 # Remove associative array, use indexed array for step times
@@ -60,27 +61,27 @@ STEP_TIMES=()
 step() {
   STEP_NUM=$1
   STEP_NAME="$2"
-  echo -e "\n\033[1;36m++++++++++++++++++++++++++++++++++++++++++++++"
+  echo -e "\n+++++++++++++++++++++++++++++++++++++++++++++++"
   printf '+++   STEP %d: %s   +++\n' "$STEP_NUM" "$STEP_NAME"
-  echo -e "++++++++++++++++++++++++++++++++++++++++++++++\033[0m\n"
+  echo -e "++++++++++++++++++++++++++++++++++++++++++++++\n"
   STEP_START_TIME=$(date +%s)
 }
 
 # Helper: Print success info to terminal only
 success() {
-  echo -e "\033[0;32m$1\033[0m"
+  echo -e "$1"
   STEP_END_TIME=$(date +%s)
   STEP_DURATION=$((STEP_END_TIME - STEP_START_TIME))
-  echo -e "\033[0;33mStep took $STEP_DURATION seconds.\033[0m\n"
+  echo -e "Step took $STEP_DURATION seconds.\n"
   STEP_TIMES+=("$STEP_DURATION")
 }
 
 # Helper: Print error info to terminal only
 fail() {
-  echo -e "\033[0;31m$1\033[0m"
+  echo -e "$1"
   STEP_END_TIME=$(date +%s)
   STEP_DURATION=$((STEP_END_TIME - STEP_START_TIME))
-  echo -e "\033[0;33mStep took $STEP_DURATION seconds.\033[0m\n"
+  echo -e "Step took $STEP_DURATION seconds.\n"
   STEP_TIMES+=("$STEP_DURATION")
 }
 
@@ -88,9 +89,9 @@ fail() {
 print_total_time() {
   SCRIPT_END_TIME=$(date +%s)
   TOTAL_DURATION=$((SCRIPT_END_TIME - SCRIPT_START_TIME))
-  echo -e "\n\033[1;35m==============================================="
+  echo -e "\n==============================================="
   echo -e "   🎉 Deployment completed in $TOTAL_DURATION seconds! 🎉"
-  echo -e "===============================================\033[0m\n"
+  echo -e "===============================================\n"
   for i in $(seq 1 ${#STEP_TIMES[@]}); do
     echo "Step $i took: ${STEP_TIMES[$((i-1))]:-N/A} seconds"
   done
@@ -215,7 +216,7 @@ docker_compose_exec() {
   local service="$2"
   local command="$3"
   local docker_env_vars=$(get_docker_env_vars)
-  
+
   echo "$docker_env_vars docker-compose -f $compose_file exec -T $service $command"
 }
 
@@ -224,7 +225,7 @@ docker_compose_run() {
   local compose_file="$1"
   local command="$2"
   local docker_env_vars=$(get_docker_env_vars)
-  
+
   echo "$docker_env_vars docker-compose -f $compose_file $command"
 }
 
@@ -232,9 +233,27 @@ docker_compose_run() {
 step 1 "Starting deployment"
 echo "[DEBUG] SSH_KEY resolved to: $SSH_KEY"
 
-# 2. Fix permissions on the server before anything else
-step 2 "Fixing permissions on server"
+# 2. Initialize server with required directories and Docker
+step 2 "Initializing server with required directories and Docker"
+
+# Create required directories if they don't exist
+execute_ssh "sudo mkdir -p $APP_DIR"
 execute_ssh "sudo chown -R ubuntu:ubuntu $APP_DIR || true"
+
+# Check if Docker is installed, install if not
+execute_ssh "if ! command -v docker &> /dev/null; then
+  echo 'Docker not found, installing...'
+  sudo apt-get update
+  sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  sudo add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/ubuntu \$(lsb_release -cs) stable\"
+  sudo apt-get update
+  sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+  sudo systemctl enable docker
+  sudo systemctl start docker
+  sudo usermod -aG docker ubuntu
+  echo 'Docker installed successfully'
+fi"
 
 # 3. Ensure ubuntu user is in the docker group for Docker access
 step 3 "Ensuring ubuntu user is in the docker group"
@@ -562,14 +581,14 @@ if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ] || [ -z "$R
   echo "R2_BUCKET_NAME=your_bucket_name"
 else
   echo "Configuring Cloudflare Worker R2 bucket binding for worker 'cdn-harun-dev'"
-  
+
   # Configure the R2 bucket binding for the Cloudflare Worker
   BINDING_RESULT=$(curl -s -X PUT \
     "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/cdn-harun-dev/bindings" \
     -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
     -H "Content-Type: application/json" \
     --data "{\"bindings\":[{\"name\":\"ASSETS_BUCKET\",\"type\":\"r2_bucket\",\"bucket_name\":\"$R2_BUCKET_NAME\"}]}")
-  
+
   if [[ $(echo "$BINDING_RESULT" | grep -c '"success":true') -gt 0 ]]; then
     echo "Cloudflare Worker R2 bucket binding configured successfully!"
   else
@@ -593,7 +612,7 @@ else
       -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
       -H "Content-Type: application/json" \
       --data '{"purge_everything":true}')
-    
+
     if [[ $(echo "$RESULT" | grep -c '"success":true') -gt 0 ]]; then
       echo "Cloudflare cache purged successfully!"
     else
@@ -607,7 +626,7 @@ else
       -H "X-Auth-Key: $CLOUDFLARE_API_KEY" \
       -H "Content-Type: application/json" \
       --data '{"purge_everything":true}')
-    
+
     if [[ $(echo "$RESULT" | grep -c '"success":true') -gt 0 ]]; then
       echo "Cloudflare cache purged successfully!"
     else

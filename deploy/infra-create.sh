@@ -16,18 +16,10 @@ fi
 LOG_FILE="$LOG_DIR/infra-create.log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
-# Colors for output
-GREEN='\033[0;32m'
-CYAN='\033[1;36m'
-MAGENTA='\033[1;35m'
-YELLOW='\033[0;33m'
-RED='\033[0;31m'
-NC='\033[0m'
-
 SCRIPT_START_TIME=$(date +%s)
-echo -e "\n${MAGENTA}==============================================="
+echo -e "\n==============================================="
 echo -e "   🚀 Harun's Portfolio Infra Provision Script 🚀"
-echo -e "===============================================${NC}\n"
+echo -e "===============================================\n"
 echo "Started at: $(date)"
 
 STEP_TIMES=()
@@ -35,34 +27,34 @@ STEP_TIMES=()
 step() {
   STEP_NUM=$1
   STEP_NAME="$2"
-  echo -e "\n${CYAN}++++++++++++++++++++++++++++++++++++++++++++++"
+  echo -e "\n++++++++++++++++++++++++++++++++++++++++++++++"
   printf '+++   STEP %d: %s   +++\n' "$STEP_NUM" "$STEP_NAME"
-  echo -e "++++++++++++++++++++++++++++++++++++++++++++++${NC}\n"
+  echo -e "++++++++++++++++++++++++++++++++++++++++++++++\n"
   STEP_START_TIME=$(date +%s)
 }
 
 success() {
-  echo -e "${GREEN}$1${NC}"
+  echo "$1"
   STEP_END_TIME=$(date +%s)
   STEP_DURATION=$((STEP_END_TIME - STEP_START_TIME))
-  echo -e "${YELLOW}Step took $STEP_DURATION seconds.${NC}\n"
+  echo "Step took $STEP_DURATION seconds.\n"
   STEP_TIMES+=("$STEP_DURATION")
 }
 
 fail() {
-  echo -e "${RED}$1${NC}"
+  echo "$1"
   STEP_END_TIME=$(date +%s)
   STEP_DURATION=$((STEP_END_TIME - STEP_START_TIME))
-  echo -e "${YELLOW}Step took $STEP_DURATION seconds.${NC}\n"
+  echo "Step took $STEP_DURATION seconds.\n"
   STEP_TIMES+=("$STEP_DURATION")
 }
 
 print_total_time() {
   SCRIPT_END_TIME=$(date +%s)
   TOTAL_DURATION=$((SCRIPT_END_TIME - SCRIPT_START_TIME))
-  echo -e "\n${MAGENTA}==============================================="
+  echo -e "\n==============================================="
   echo -e "   🎉 Infrastructure provisioned in $TOTAL_DURATION seconds! 🎉"
-  echo -e "===============================================${NC}\n"
+  echo -e "===============================================\n"
   for i in $(seq 1 ${#STEP_TIMES[@]}); do
     echo "Step $i took: ${STEP_TIMES[$((i-1))]:-N/A} seconds"
   done
@@ -70,85 +62,96 @@ print_total_time() {
 
 update_env_deploy() {
     local ip="$1"
-    sed -i '' "s/^PUBLIC_IP=.*/PUBLIC_IP=$ip/" "$SCRIPT_DIR/.env.deploy"
-}
-
-update_portfolio_key() {
-    local key="$1"
-    echo -e "$key" > "$SCRIPT_DIR/portfolio-key.pem"
-    chmod 600 "$SCRIPT_DIR/portfolio-key.pem"
+    if [ -f "$SCRIPT_DIR/.env.deploy" ]; then
+        if grep -q '^PUBLIC_IP=' "$SCRIPT_DIR/.env.deploy"; then
+            sed -i '' "s|^PUBLIC_IP=.*|PUBLIC_IP=$ip|" "$SCRIPT_DIR/.env.deploy"
+        else
+            echo "PUBLIC_IP=$ip" >> "$SCRIPT_DIR/.env.deploy"
+        fi
+    else
+        echo "PUBLIC_IP=$ip" > "$SCRIPT_DIR/.env.deploy"
+    fi
 }
 
 update_env_asset_urls() {
-    local vite_url="$1"
+    local vite_asset_base_url="$1"
     local asset_url="$2"
-    if grep -q '^VITE_ASSET_BASE_URL=' "$SCRIPT_DIR/.env.deploy"; then
-        sed -i '' "s|^VITE_ASSET_BASE_URL=.*|VITE_ASSET_BASE_URL=$vite_url|" "$SCRIPT_DIR/.env.deploy"
+    if [ -f "$SCRIPT_DIR/.env.deploy" ]; then
+        if grep -q '^VITE_ASSET_BASE_URL=' "$SCRIPT_DIR/.env.deploy"; then
+            sed -i '' "s|^VITE_ASSET_BASE_URL=.*|VITE_ASSET_BASE_URL=$vite_asset_base_url|" "$SCRIPT_DIR/.env.deploy"
+        else
+            echo "VITE_ASSET_BASE_URL=$vite_asset_base_url" >> "$SCRIPT_DIR/.env.deploy"
+        fi
+        if grep -q '^ASSET_URL=' "$SCRIPT_DIR/.env.deploy"; then
+            sed -i '' "s|^ASSET_URL=.*|ASSET_URL=$asset_url|" "$SCRIPT_DIR/.env.deploy"
+        else
+            echo "ASSET_URL=$asset_url" >> "$SCRIPT_DIR/.env.deploy"
+        fi
     else
-        echo "VITE_ASSET_BASE_URL=$vite_url" >> "$SCRIPT_DIR/.env.deploy"
-    fi
-    if grep -q '^ASSET_URL=' "$SCRIPT_DIR/.env.deploy"; then
-        sed -i '' "s|^ASSET_URL=.*|ASSET_URL=$asset_url|" "$SCRIPT_DIR/.env.deploy"
-    else
+        echo "VITE_ASSET_BASE_URL=$vite_asset_base_url" > "$SCRIPT_DIR/.env.deploy"
         echo "ASSET_URL=$asset_url" >> "$SCRIPT_DIR/.env.deploy"
     fi
 }
 
-wait_for_ssh() {
-    local ip="$1"
-    local key_file="$2"
-    local user="ubuntu"
-    echo -e "${YELLOW}[INFO] Waiting for SSH to become available at $ip...${NC}"
-    sleep 120
-    while ! ssh -o StrictHostKeyChecking=no -i "$key_file" -o ConnectTimeout=10 $user@$ip 'echo SSH is up' 2>/dev/null; do
-        echo -e "${YELLOW}[WARN] SSH not available yet. Retrying in 60 seconds...${NC}"
-        sleep 60
-    done
-    echo -e "${GREEN}[INFO] SSH is now available.${NC}"
+update_portfolio_key() {
+    local private_key="$1"
+    echo "$private_key" > "$SCRIPT_DIR/portfolio-key.pem"
+    chmod 600 "$SCRIPT_DIR/portfolio-key.pem"
 }
 
-# Extract R2 and Cloudflare variables for Terraform
-R2_BUCKET_NAME=$(grep '^R2_BUCKET_NAME=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
-CLOUDFLARE_ACCOUNT_ID=$(grep '^CLOUDFLARE_ACCOUNT_ID=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
-CLOUDFLARE_ZONE_ID=$(grep '^CLOUDFLARE_ZONE_ID=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
-CLOUDFLARE_API_TOKEN=$(grep '^CLOUDFLARE_API_TOKEN=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
+wait_for_ssh() {
+    local ip="$1"
+    local key="$2"
+    local max_attempts=30
+    local attempt=1
+    
+    echo "Waiting for SSH to become available on $ip..."
+    while [ $attempt -le $max_attempts ]; do
+        if ssh -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=5 -i "$key" ubuntu@$ip echo "SSH is available"; then
+            return 0
+        fi
+        echo "Attempt $attempt/$max_attempts: SSH not yet available, waiting..."
+        sleep 10
+        attempt=$((attempt + 1))
+    done
+    
+    echo "SSH did not become available after $max_attempts attempts."
+    return 1
+}
+
+# 1. Apply Terraform
+step 1 "Applying Terraform"
+cd "$SCRIPT_DIR/terraform"
+
+# Load required variables from .env.deploy
+if [ -f "$SCRIPT_DIR/.env.deploy" ]; then
+    R2_BUCKET_NAME=$(grep '^R2_BUCKET_NAME=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
+    CLOUDFLARE_ACCOUNT_ID=$(grep '^CLOUDFLARE_ACCOUNT_ID=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
+    TF_S3_BACKEND_BUCKET=$(grep '^TF_S3_BACKEND_BUCKET=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
+fi
+
+if [ -z "$R2_BUCKET_NAME" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+    echo "Error: R2_BUCKET_NAME and CLOUDFLARE_ACCOUNT_ID must be set in .env.deploy"
+    exit 1
+fi
 
 echo "[DEBUG] R2_BUCKET_NAME: '$R2_BUCKET_NAME'"
 echo "[DEBUG] CLOUDFLARE_ACCOUNT_ID: '$CLOUDFLARE_ACCOUNT_ID'"
-echo "[DEBUG] CLOUDFLARE_ZONE_ID: '$CLOUDFLARE_ZONE_ID'"
-echo "[DEBUG] CLOUDFLARE_API_TOKEN: '$CLOUDFLARE_API_TOKEN'"
+echo "[DEBUG] TF_S3_BACKEND_BUCKET: '$TF_S3_BACKEND_BUCKET'"
 
-if [ -z "$R2_BUCKET_NAME" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
-  echo "[ERROR] R2_BUCKET_NAME or CLOUDFLARE_ACCOUNT_ID is empty. Check your .env.deploy file."
-  exit 1
-fi
-
-# 1. Run terraform apply
-step 1 "Running terraform apply"
-cd "$SCRIPT_DIR/terraform"
-
-# Extract S3 backend bucket and AWS credentials from .env.deploy and terraform.tfvars
-TF_S3_BACKEND_BUCKET=$(grep '^TF_S3_BACKEND_BUCKET=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
-AWS_ACCESS_KEY=$(grep '^aws_access_key' "$SCRIPT_DIR/terraform/terraform.tfvars" | cut -d '=' -f2- | tr -d ' "')
-AWS_SECRET_KEY=$(grep '^aws_secret_key' "$SCRIPT_DIR/terraform/terraform.tfvars" | cut -d '=' -f2- | tr -d ' "')
-AWS_REGION=$(grep '^aws_region' "$SCRIPT_DIR/terraform/terraform.tfvars" | cut -d '=' -f2- | tr -d ' "')
-
+# Initialize Terraform with S3 backend configuration
 echo "[INFO] Using Terraform S3 backend bucket: $TF_S3_BACKEND_BUCKET"
-echo "[INFO] Using AWS region: $AWS_REGION"
-
-# Initialize Terraform with S3 backend configuration and AWS credentials
-terraform init \
-  -backend-config="bucket=${TF_S3_BACKEND_BUCKET}" \
-  -backend-config="region=${AWS_REGION}" \
-  -backend-config="access_key=${AWS_ACCESS_KEY}" \
-  -backend-config="secret_key=${AWS_SECRET_KEY}"
+terraform init -reconfigure \
+  -backend-config="bucket=$TF_S3_BACKEND_BUCKET" \
+  -backend-config="region=us-east-1" \
+  -backend-config="key=terraform.tfstate"
 INIT_STATUS=$?
 if [ $INIT_STATUS -ne 0 ]; then
   echo "[ERROR] Terraform init failed with status $INIT_STATUS" >&2
   exit $INIT_STATUS
 fi
 
-echo "[DEBUG] Running: terraform apply -auto-approve -var="r2_bucket_name=$R2_BUCKET_NAME" -var="cloudflare_account_id=$CLOUDFLARE_ACCOUNT_ID""
+echo "[INFO] Running terraform apply with r2_bucket_name=$R2_BUCKET_NAME, cloudflare_account_id=$CLOUDFLARE_ACCOUNT_ID"
 terraform apply -auto-approve \
   -var="r2_bucket_name=$R2_BUCKET_NAME" \
   -var="cloudflare_account_id=$CLOUDFLARE_ACCOUNT_ID"

@@ -16,18 +16,10 @@ fi
 LOG_FILE="$LOG_DIR/infra-destroy.log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
-# Colors for output
-GREEN='\033[0;32m'
-CYAN='\033[1;36m'
-MAGENTA='\033[1;35m'
-YELLOW='\033[0;33m'
-RED='\033[0;31m'
-NC='\033[0m'
-
 SCRIPT_START_TIME=$(date +%s)
-echo -e "\n${MAGENTA}==============================================="
+echo -e "\n==============================================="
 echo -e "   🧹 Harun's Portfolio Infra Destruction Script 🧹"
-echo -e "===============================================${NC}\n"
+echo -e "===============================================\n"
 echo "Started at: $(date)"
 
 STEP_TIMES=()
@@ -35,22 +27,22 @@ STEP_TIMES=()
 step() {
   STEP_NUM=$1
   STEP_NAME="$2"
-  echo -e "\n${CYAN}++++++++++++++++++++++++++++++++++++++++++++++"
+  echo -e "\n++++++++++++++++++++++++++++++++++++++++++++++"
   printf '+++   STEP %d: %s   +++\n' "$STEP_NUM" "$STEP_NAME"
-  echo -e "++++++++++++++++++++++++++++++++++++++++++++++${NC}\n"
+  echo -e "++++++++++++++++++++++++++++++++++++++++++++++\n"
   STEP_START_TIME=$(date +%s)
 }
 
 success() {
-  echo -e "${GREEN}$1${NC}"
+  echo "$1"
 }
 
 warning() {
-  echo -e "${YELLOW}$1${NC}"
+  echo "$1"
 }
 
 error() {
-  echo -e "${RED}$1${NC}" >&2
+  echo "$1" >&2
 }
 
 end_step() {
@@ -78,8 +70,10 @@ cd "$SCRIPT_DIR/terraform"
 
 # Initialize Terraform with S3 backend configuration
 echo "[INFO] Using Terraform S3 backend bucket: $TF_S3_BACKEND_BUCKET"
-terraform init \
-  -backend-config="bucket=$TF_S3_BACKEND_BUCKET"
+terraform init -reconfigure \
+  -backend-config="bucket=$TF_S3_BACKEND_BUCKET" \
+  -backend-config="region=us-east-1" \
+  -backend-config="key=terraform.tfstate"
 INIT_STATUS=$?
 if [ $INIT_STATUS -ne 0 ]; then
   error "Terraform init failed with status $INIT_STATUS"
@@ -102,9 +96,9 @@ end_step
 SCRIPT_END_TIME=$(date +%s)
 TOTAL_DURATION=$((SCRIPT_END_TIME - SCRIPT_START_TIME))
 
-echo -e "\n${MAGENTA}==============================================="
+echo -e "\n==============================================="
 echo -e "   🎉 Infrastructure destroyed in $TOTAL_DURATION seconds! 🎉"
-echo -e "===============================================${NC}\n"
+echo -e "===============================================\n"
 
 # Print step durations
 for i in "${!STEP_TIMES[@]}"; do
