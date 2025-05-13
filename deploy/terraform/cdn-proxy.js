@@ -14,4 +14,4 @@ async function handleRequest(event) {
   headers.set('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
   headers.set('Access-Control-Allow-Headers', '*');
   return new Response(object.body, { headers });
-} 
+}

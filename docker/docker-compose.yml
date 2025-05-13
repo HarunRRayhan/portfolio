@@ -23,6 +23,24 @@ services:
       db:
         condition: service_healthy
     restart: unless-stopped
+    deploy:
+      replicas: ${MIN_APP_INSTANCES:-1}
+      mode: replicated
+      update_config:
+        parallelism: 1
+        order: start-first
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+      placement:
+        max_replicas_per_node: ${MAX_APP_INSTANCES:-2}
+      resources:
+        limits:
+          cpus: ${MAX_APP_CPU_LIMIT:-0.8}
+          memory: ${MAX_APP_MEMORY_LIMIT:-400M}
+        reservations:
+          cpus: ${APP_CPU_LIMIT:-0.6}
+          memory: ${APP_MEMORY_LIMIT:-300M}
     networks:
       - app-network
 
@@ -37,6 +55,14 @@ services:
       - "443:443"
     depends_on:
       - app
+    deploy:
+      resources:
+        limits:
+          cpus: ${MAX_NGINX_CPU_LIMIT:-0.5}
+          memory: ${MAX_NGINX_MEMORY_LIMIT:-200M}
+        reservations:
+          cpus: ${NGINX_CPU_LIMIT:-0.3}
+          memory: ${NGINX_MEMORY_LIMIT:-150M}
     networks:
       - app-network
 
@@ -49,6 +75,14 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: ${MAX_DB_CPU_LIMIT:-1.0}
+          memory: ${MAX_DB_MEMORY_LIMIT:-600M}
+        reservations:
+          cpus: ${DB_CPU_LIMIT:-0.8}
+          memory: ${DB_MEMORY_LIMIT:-450M}
     networks:
       - app-network
     healthcheck:

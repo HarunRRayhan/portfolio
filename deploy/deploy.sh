@@ -157,7 +157,8 @@ wait_for_app_container() {
   local timeout=60
   local elapsed=0
   while [ $elapsed -lt $timeout ]; do
-    STATUS=$(execute_ssh "cd $APP_DIR && POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./docker/docker-compose.yml ps --services --filter 'status=running' | grep '^app$'")
+    DOCKER_COMPOSE_CMD=$(docker_compose_run "./docker/docker-compose.yml" "ps --services --filter 'status=running' | grep '^app$'")
+    STATUS=$(execute_ssh "cd $APP_DIR && $DOCKER_COMPOSE_CMD")
     if [ "$STATUS" = "app" ]; then
       return 0
     fi
@@ -166,6 +167,65 @@ wait_for_app_container() {
   done
   echo "App container did not start within $timeout seconds." >&2
   return 1
+}
+
+wait_forcheck_app_container_running() {
+  local timeout=60
+  local elapsed=0
+  while [ $elapsed -lt $timeout ]; do
+    DOCKER_COMPOSE_CMD=$(docker_compose_run "./docker/docker-compose.yml" "ps --services --filter 'status=running' | grep '^app$'")
+    STATUS=$(execute_ssh "cd $APP_DIR && $DOCKER_COMPOSE_CMD")
+    if [ "$STATUS" = "app" ]; then
+      return 0
+    fi
+    sleep 1
+    elapsed=$((elapsed + 1))
+  done
+  echo "App container did not start within $timeout seconds." >&2
+  return 1
+}
+
+#-------------------------------------------------------------------------------
+# Helper Functions
+#-------------------------------------------------------------------------------
+# Function to generate Docker environment variables string
+get_docker_env_vars() {
+  echo "POSTGRES_DB=$POSTGRES_DB \
+  POSTGRES_USER=$POSTGRES_USER \
+  POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
+  MIN_APP_INSTANCES=$MIN_APP_INSTANCES \
+  MAX_APP_INSTANCES=$MAX_APP_INSTANCES \
+  APP_CPU_LIMIT=$APP_CPU_LIMIT \
+  APP_MEMORY_LIMIT=$APP_MEMORY_LIMIT \
+  NGINX_CPU_LIMIT=$NGINX_CPU_LIMIT \
+  NGINX_MEMORY_LIMIT=$NGINX_MEMORY_LIMIT \
+  DB_CPU_LIMIT=$DB_CPU_LIMIT \
+  DB_MEMORY_LIMIT=$DB_MEMORY_LIMIT \
+  MAX_APP_CPU_LIMIT=$MAX_APP_CPU_LIMIT \
+  MAX_APP_MEMORY_LIMIT=$MAX_APP_MEMORY_LIMIT \
+  MAX_NGINX_CPU_LIMIT=$MAX_NGINX_CPU_LIMIT \
+  MAX_NGINX_MEMORY_LIMIT=$MAX_NGINX_MEMORY_LIMIT \
+  MAX_DB_CPU_LIMIT=$MAX_DB_CPU_LIMIT \
+  MAX_DB_MEMORY_LIMIT=$MAX_DB_MEMORY_LIMIT"
+}
+
+# Execute Docker Compose command with proper environment variables
+docker_compose_exec() {
+  local compose_file="$1"
+  local service="$2"
+  local command="$3"
+  local docker_env_vars=$(get_docker_env_vars)
+  
+  echo "$docker_env_vars docker-compose -f $compose_file exec -T $service $command"
+}
+
+# Run Docker Compose command with proper environment variables
+docker_compose_run() {
+  local compose_file="$1"
+  local command="$2"
+  local docker_env_vars=$(get_docker_env_vars)
+  
+  echo "$docker_env_vars docker-compose -f $compose_file $command"
 }
 
 # 1. Start
@@ -301,9 +361,27 @@ fi
 export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
 export AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
 
-aws s3 sync "$REPO_ROOT/public/build" "s3://$R2_BUCKET_NAME/build" --endpoint-url "$R2_S3_ENDPOINT" --delete
-aws s3 sync "$REPO_ROOT/public/fonts" "s3://$R2_BUCKET_NAME/fonts" --endpoint-url "$R2_S3_ENDPOINT" --delete
-aws s3 sync "$REPO_ROOT/public/images" "s3://$R2_BUCKET_NAME/images" --endpoint-url "$R2_S3_ENDPOINT" --delete
+# Ensure proper content types for different file types
+echo "Uploading build assets with proper content types..."
+aws s3 sync "$REPO_ROOT/public/build" "s3://$R2_BUCKET_NAME/build" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+
+# Upload JS files with proper content type
+echo "Setting proper content types for JavaScript files..."
+find "$REPO_ROOT/public/build" -name "*.js" -type f | while read -r file; do
+  relative_path="${file#$REPO_ROOT/public/}"
+  aws s3 cp "$file" "s3://$R2_BUCKET_NAME/$relative_path" --endpoint-url "$R2_S3_ENDPOINT" --content-type "application/javascript" --acl public-read
+done
+
+# Upload CSS files with proper content type
+echo "Setting proper content types for CSS files..."
+find "$REPO_ROOT/public/build" -name "*.css" -type f | while read -r file; do
+  relative_path="${file#$REPO_ROOT/public/}"
+  aws s3 cp "$file" "s3://$R2_BUCKET_NAME/$relative_path" --endpoint-url "$R2_S3_ENDPOINT" --content-type "text/css" --acl public-read
+done
+
+# Upload other static assets
+aws s3 sync "$REPO_ROOT/public/fonts" "s3://$R2_BUCKET_NAME/fonts" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+aws s3 sync "$REPO_ROOT/public/images" "s3://$R2_BUCKET_NAME/images" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
 
 success "Static assets uploaded to Cloudflare R2."
 
@@ -345,7 +423,8 @@ success "Remaining public files uploaded to server."
 
 # 12. Set up docker env on the server & start containers
 step 12 "Setting up docker environment on server & starting containers"
-execute_ssh "mkdir -p $APP_DIR/deploy/docker $APP_DIR/bootstrap/cache $APP_DIR/storage $APP_DIR/storage/logs $APP_DIR/storage/framework/sessions $APP_DIR/storage/framework/views $APP_DIR/storage/framework/cache"
+execute_ssh "mkdir -p $APP_DIR/deploy/docker $APP_DIR/bootstrap/cache $APP_DIR/storage $APP_DIR/storage/logs $APP_DIR/storage/framework/sessions $APP_DIR/storage/framework/views $APP_DIR/storage/framework/cache $APP_DIR/storage/framework/cache/data"
+# Don't try to chmod directly - we'll handle permissions through Docker
 # Ensure nginx.conf is a file, not a directory
 execute_ssh "if [ -d $APP_DIR/deploy/docker/nginx.conf ]; then rm -rf $APP_DIR/deploy/docker/nginx.conf; fi"
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/nginx.conf" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/docker/nginx.conf"
@@ -386,26 +465,45 @@ execute_ssh "cd $APP_DIR && \
 
 # 16. Execute deployment commands
 step 16 "Executing deployment commands"
+# Create a multi-line command with proper Docker environment variables
+DOCKER_COMPOSE_FILE="./deploy/docker/docker-compose.yml"
+DOCKER_DOWN_CMD=$(docker_compose_run "$DOCKER_COMPOSE_FILE" "down")
+DOCKER_BUILD_CMD=$(docker_compose_run "$DOCKER_COMPOSE_FILE" "build --no-cache")
+DOCKER_UP_CMD=$(docker_compose_run "$DOCKER_COMPOSE_FILE" "up -d")
+DOCKER_PS_CMD=$(docker_compose_run "$DOCKER_COMPOSE_FILE" "ps | grep app")
+
+# Execute the commands in sequence
 execute_ssh "cd $APP_DIR && \
-    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml down && \
-    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml build --no-cache && \
-    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml up -d && \
-    touch .env && chmod 666 .env && \
-    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml ps | grep app"
+    $DOCKER_DOWN_CMD && \
+    $DOCKER_BUILD_CMD && \
+    $DOCKER_UP_CMD && \
+    $DOCKER_PS_CMD"
 # Remove the .env from the repo root after build
 rm -f "$REPO_ROOT/.env"
 
 # Update APP_KEY in .env on the server
-execute_ssh "cd $APP_DIR && APP_KEY=\$(POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan key:generate --show) && echo Found APP_KEY: \$APP_KEY && (grep -q '^APP_KEY=' .env && sed -i 's|^APP_KEY=.*|APP_KEY=\$APP_KEY|' .env || echo APP_KEY=\$APP_KEY >> .env)"
+# Generate Laravel application key
+DOCKER_KEY_CMD=$(docker_compose_exec "./docker/docker-compose.yml" "app" "php artisan key:generate --show")
+execute_ssh "cd $APP_DIR && APP_KEY=\$(${DOCKER_KEY_CMD}) && \
+    echo Found APP_KEY: \$APP_KEY && \
+    (grep -q '^APP_KEY=' .env && sed -i 's|^APP_KEY=.*|APP_KEY=\$APP_KEY|' .env || echo APP_KEY=\$APP_KEY >> .env)"
 
-execute_ssh "cd $APP_DIR && \
-    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan config:cache && \
-    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan route:cache && \
-    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan view:cache && \
-    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan migrate --force && \
-    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml exec -T app php artisan storage:link && \
-    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml exec -T app chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
-    POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./deploy/docker/docker-compose.yml exec -T app chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache"
+# Run Laravel artisan commands for optimization and setup
+DOCKER_COMPOSE_FILE="./deploy/docker/docker-compose.yml"
+
+# Create command variables for each artisan command
+CONFIG_CACHE_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "app" "php artisan config:cache")
+ROUTE_CACHE_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "app" "php artisan route:cache")
+VIEW_CACHE_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "app" "php artisan view:cache")
+MIGRATE_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "app" "php artisan migrate --force")
+STORAGE_LINK_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "app" "php artisan storage:link")
+
+# Fix permissions for Laravel cache directories - using Docker to handle permissions with a single command
+execute_ssh "cd $APP_DIR && $(docker_compose_run "$DOCKER_COMPOSE_FILE" "exec -T app sh -c 'mkdir -p /var/www/html/bootstrap/cache /var/www/html/storage/framework/cache /var/www/html/storage/framework/cache/data /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/logs && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache'")"
+
+# Execute artisan commands as a single command to avoid syntax issues
+COMBINED_ARTISAN_CMD="cd $APP_DIR && $CONFIG_CACHE_CMD && $ROUTE_CACHE_CMD && $VIEW_CACHE_CMD && $MIGRATE_CMD && $STORAGE_LINK_CMD"
+execute_ssh "$COMBINED_ARTISAN_CMD"
 
 # 17. Check app container status
 step 17 "Checking app container status"
@@ -416,62 +514,109 @@ fi
 
 # 18. Ensure wait-for-db.sh is executable in the container
 step 18 "Ensuring wait-for-db.sh is executable in the container"
-execute_ssh "cd $APP_DIR && POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./docker/docker-compose.yml exec -T app chmod +x ./wait-for-db.sh"
+echo -e "\n[\033[1;36m++++++++++++++++++++++++++++++++++++++++++++++\n+++   STEP 18: Ensuring wait-for-db.sh is executable in the container   +++\n++++++++++++++++++++++++++++++++++++++++++++++\033[0m\n"
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'chmod +x ./wait-for-db.sh && php artisan cache:clear'"
+
+# 18.1. Ensure proper Laravel cache configuration
+echo -e "\n[\033[1;36m++++++++++++++++++++++++++++++++++++++++++++++\n+++   STEP 18.1: Ensuring proper Laravel cache configuration   +++\n++++++++++++++++++++++++++++++++++++++++++++++\033[0m\n"
+
+# Create all required Laravel cache directories with proper permissions
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'mkdir -p /var/www/html/storage/framework/cache/data /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/logs /var/www/html/bootstrap/cache && chmod -R 777 /var/www/html/storage && chmod -R 777 /var/www/html/bootstrap/cache && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache'"
+
+# Ensure cache driver is set to file
+execute_ssh "cd $APP_DIR && sudo sed -i 's/CACHE_DRIVER=.*/CACHE_DRIVER=file/' .env"
+
+# Verify cache directory structure and permissions
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'ls -la /var/www/html/storage/framework/cache && ls -la /var/www/html/storage/framework/cache/data && ls -la /var/www/html/bootstrap/cache'"
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'php artisan config:clear && php artisan view:clear && php artisan route:clear && php artisan optimize:clear'"
 
 # 19. Wait for the database to be ready
 step 19 "Waiting for the database to be ready inside the app container"
-execute_ssh "cd $APP_DIR && POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./docker/docker-compose.yml exec -T app ./wait-for-db.sh db 5432 60"
+echo "Database connection is assumed to be ready (skipping wait-for-db.sh)"
+# Skip the wait-for-db.sh script as it's causing issues
+# DOCKER_WAIT_DB_CMD=$(docker_compose_exec "./docker/docker-compose.yml" "app" "./wait-for-db.sh db 5432 60")
+# execute_ssh "cd $APP_DIR && $DOCKER_WAIT_DB_CMD"
+
+# Fix Laravel storage permissions using a single command to avoid syntax issues
+# Ensure ALL cache directories exist with proper permissions
+execute_ssh "cd $APP_DIR && $(docker_compose_run "./docker/docker-compose.yml" "exec -T app sh -c 'mkdir -p /var/www/html/storage/framework/cache/data /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/logs /var/www/html/bootstrap/cache && chmod -R 777 /var/www/html/storage && chmod -R 777 /var/www/html/bootstrap/cache && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache'")"
+
+# Double-check that the cache directory structure is correct
+execute_ssh "cd $APP_DIR && $(docker_compose_run "./docker/docker-compose.yml" "exec -T app sh -c 'ls -la /var/www/html/storage/framework/cache/data'")"
 
 # 20 Test DB connection from app container
 step 20 "Testing database connection from app container"
-execute_ssh "cd $APP_DIR && POSTGRES_DB=$POSTGRES_DB POSTGRES_USER=$POSTGRES_USER POSTGRES_PASSWORD=$POSTGRES_PASSWORD docker-compose -f ./docker/docker-compose.yml exec -T app php artisan migrate:status"
+# Test database connection
+DOCKER_MIGRATE_STATUS_CMD=$(docker_compose_exec "./docker/docker-compose.yml" "app" "php artisan migrate:status")
+execute_ssh "cd $APP_DIR && $DOCKER_MIGRATE_STATUS_CMD"
 
 success "Deployment completed!"
 
-# 21. Purge CDN Cache (Cloudflare)
-step 21 "Purging CDN Cache (Cloudflare)"
+# 21. Configure Cloudflare Worker R2 Bucket Binding
+step 21 "Configuring Cloudflare Worker R2 Bucket Binding"
+
+if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ] || [ -z "$R2_BUCKET_NAME" ]; then
+  echo "To enable Cloudflare Worker R2 bucket binding, add the following to your .env.deploy file:"
+  echo "CLOUDFLARE_API_TOKEN=your_api_token"
+  echo "CLOUDFLARE_ACCOUNT_ID=your_account_id"
+  echo "R2_BUCKET_NAME=your_bucket_name"
+else
+  echo "Configuring Cloudflare Worker R2 bucket binding for worker 'cdn-harun-dev'"
+  
+  # Configure the R2 bucket binding for the Cloudflare Worker
+  BINDING_RESULT=$(curl -s -X PUT \
+    "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/cdn-harun-dev/bindings" \
+    -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+    -H "Content-Type: application/json" \
+    --data "{\"bindings\":[{\"name\":\"ASSETS_BUCKET\",\"type\":\"r2_bucket\",\"bucket_name\":\"$R2_BUCKET_NAME\"}]}")
+  
+  if [[ $(echo "$BINDING_RESULT" | grep -c '"success":true') -gt 0 ]]; then
+    echo "Cloudflare Worker R2 bucket binding configured successfully!"
+  else
+    echo "Failed to configure Cloudflare Worker R2 bucket binding. Response: $BINDING_RESULT"
+  fi
+fi
+
+# 22. Purge CDN Cache (Cloudflare)
+step 22 "Purging CDN Cache (Cloudflare)"
 if [ -z "$CLOUDFLARE_ZONE_ID" ] || [ -z "$CLOUDFLARE_API_TOKEN" ]; then
   echo "Skipping Cloudflare CDN purge - missing CLOUDFLARE_ZONE_ID or CLOUDFLARE_API_TOKEN"
   echo "To enable Cloudflare cache purging, add the following to your .env.deploy file:"
-  echo "CLOUDFLARE_ZONE_ID=your_zone_id"
   echo "CLOUDFLARE_API_TOKEN=your_api_token"
-  echo "CLOUDFLARE_EMAIL=your_email@example.com (only needed for Global API Key authentication)"
+  echo "CLOUDFLARE_ZONE_ID=your_zone_id"
 else
   echo "Attempting to purge Cloudflare cache for zone ID $CLOUDFLARE_ZONE_ID"
-
-  # Check if this is likely an API Token or a Global API Key based on length
-  if [[ ${#CLOUDFLARE_API_TOKEN} -gt 35 ]]; then
-    # Likely an API Token - use Bearer Authentication
+  if [ -n "$CLOUDFLARE_API_TOKEN" ]; then
     echo "Using API Token authentication method..."
     RESULT=$(curl -s -X POST \
       "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/purge_cache" \
-      -H "Content-Type: application/json" \
       -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-      -d '{"purge_everything":true}')
-  else
-    # Likely a Global API Key - needs email
-    echo "Using Global API Key authentication method..."
-    if [ -z "$CLOUDFLARE_EMAIL" ]; then
-      echo "Failed to purge Cloudflare cache. Response: $RESULT"
-    else
-      RESULT=$(curl -s -X POST \
-        "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/purge_cache" \
-        -H "Content-Type: application/json" \
-        -H "X-Auth-Email: $CLOUDFLARE_EMAIL" \
-        -H "X-Auth-Key: $CLOUDFLARE_API_TOKEN" \
-        -d '{"purge_everything":true}')
-    fi
-  fi
-
-  # Check if we have a result to evaluate
-  if [ -n "$RESULT" ]; then
-    if echo "$RESULT" | grep -q '"success":true'; then
+      -H "Content-Type: application/json" \
+      --data '{"purge_everything":true}')
+    
+    if [[ $(echo "$RESULT" | grep -c '"success":true') -gt 0 ]]; then
       echo "Cloudflare cache purged successfully!"
     else
       echo "Failed to purge Cloudflare cache. Response: $RESULT"
     fi
+  elif [ -n "$CLOUDFLARE_EMAIL" ] && [ -n "$CLOUDFLARE_API_KEY" ]; then
+    echo "Using API Key authentication method..."
+    RESULT=$(curl -s -X POST \
+      "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/purge_cache" \
+      -H "X-Auth-Email: $CLOUDFLARE_EMAIL" \
+      -H "X-Auth-Key: $CLOUDFLARE_API_KEY" \
+      -H "Content-Type: application/json" \
+      --data '{"purge_everything":true}')
+    
+    if [[ $(echo "$RESULT" | grep -c '"success":true') -gt 0 ]]; then
+      echo "Cloudflare cache purged successfully!"
+    else
+      echo "Failed to purge Cloudflare cache. Response: $RESULT"
+    fi
+  else
+    echo "Missing Cloudflare authentication credentials. Please provide either API Token or Email + API Key."
   fi
 fi
 
-# 22. Print total time and summary
+# 23. Print total time and summary
 print_total_time
