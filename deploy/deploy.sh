@@ -511,7 +511,8 @@ CONFIG_CACHE_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "app" "php artisan
 ROUTE_CACHE_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "app" "php artisan route:cache")
 VIEW_CACHE_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "app" "php artisan view:cache")
 MIGRATE_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "app" "php artisan migrate --force")
-STORAGE_LINK_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "app" "php artisan storage:link")
+# Check if storage link already exists before creating it
+STORAGE_LINK_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "app" "sh -c \"if [ ! -L /var/www/html/public/storage ]; then php artisan storage:link; else echo 'Storage link already exists, skipping creation'; fi\"")
 
 # Fix permissions for Laravel cache directories - using Docker to handle permissions with a single command
 execute_ssh "cd $APP_DIR && $(docker_compose_run "$DOCKER_COMPOSE_FILE" "exec -T app sh -c 'mkdir -p /var/www/html/bootstrap/cache /var/www/html/storage/framework/cache /var/www/html/storage/framework/cache/data /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/logs && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache'")"
@@ -535,8 +536,8 @@ execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | 
 # 18.1. Ensure proper Laravel cache configuration
 echo -e "\n+++++++++++++++++++++++++++++++++++++++++++++++\n+++   STEP 18.1: Ensuring proper Laravel cache configuration   +++\n++++++++++++++++++++++++++++++++++++++++++++++\n"
 
-# Create all required Laravel cache directories with proper permissions
-execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'mkdir -p /var/www/html/storage/framework/cache/data /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/logs /var/www/html/bootstrap/cache && chmod -R 777 /var/www/html/storage && chmod -R 777 /var/www/html/bootstrap/cache && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache'"
+# Create all required Laravel cache directories with proper permissions and add .gitkeep files to ensure they exist
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'mkdir -p /var/www/html/storage/framework/cache/data /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/logs /var/www/html/bootstrap/cache && touch /var/www/html/storage/framework/cache/data/.gitkeep /var/www/html/storage/framework/sessions/.gitkeep /var/www/html/storage/framework/views/.gitkeep /var/www/html/bootstrap/cache/.gitkeep && chmod -R 777 /var/www/html/storage && chmod -R 777 /var/www/html/bootstrap/cache && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache'"
 
 # Ensure cache driver is set to file
 execute_ssh "cd $APP_DIR && sudo sed -i 's/CACHE_DRIVER=.*/CACHE_DRIVER=file/' .env"
@@ -589,8 +590,10 @@ else
       -H "Content-Type: application/json" \
       --data '{"purge_everything":true}')
 
-    if [[ $(echo "$RESULT" | grep -c '"success":true') -gt 0 ]]; then
-      echo "Cloudflare cache purged successfully! Response: $RESULT"
+    # Parse JSON properly to check for success
+    SUCCESS=$(echo "$RESULT" | grep -o '"success":[^,}]*' | cut -d ':' -f2 | tr -d ' ')
+    if [[ "$SUCCESS" == "true" ]]; then
+      echo "Cloudflare cache purged successfully!"
     else
       echo "Failed to purge Cloudflare cache. Response: $RESULT"
     fi
@@ -603,7 +606,9 @@ else
       -H "Content-Type: application/json" \
       --data '{"purge_everything":true}')
 
-    if [[ $(echo "$RESULT" | grep -c '"success":true') -gt 0 ]]; then
+    # Parse JSON properly to check for success
+    SUCCESS=$(echo "$RESULT" | grep -o '"success":[^,}]*' | cut -d ':' -f2 | tr -d ' ')
+    if [[ "$SUCCESS" == "true" ]]; then
       echo "Cloudflare cache purged successfully!"
     else
       echo "Failed to purge Cloudflare cache. Response: $RESULT"
