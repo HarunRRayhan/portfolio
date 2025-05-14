@@ -9,13 +9,18 @@ terraform {
             version = "~> 5.4"
         }
     }
+
+    backend "s3" {
+        key          = "terraform.tfstate"
+        use_lockfile = true
+        # The bucket name will be provided via -backend-config
+    }
 }
 
 provider "aws" {
     region     = var.aws_region
     access_key = var.aws_access_key
     secret_key = var.aws_secret_key
-    # profile = "haruns-portfolio-hrwprod"
 }
 
 provider "cloudflare" {

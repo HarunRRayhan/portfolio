@@ -39,3 +39,5 @@ deploy/*.zip
 deploy/*.log
 deploy/**/*.log
 deploy/terraform-outputs.json
+deploy/build/*
+deploy/*_old.*

@@ -41,16 +41,13 @@ fi
 
 echo "[DEBUG] SSH_KEY resolved to: $SSH_KEY"
 
-# Colors for output
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-NC='\033[0m'
+# Colors have been completely removed
 
 # Signature and start time
 SCRIPT_START_TIME=$(date +%s)
-echo -e "\n\033[1;35m==============================================="
+echo -e "\n==============================================="
 echo -e "   🚀 Harun's Portfolio Deployment Script 🚀"
-echo -e "===============================================\033[0m\n"
+echo -e "===============================================\n"
 echo "Started at: $(date)"
 
 # Remove associative array, use indexed array for step times
@@ -60,27 +57,27 @@ STEP_TIMES=()
 step() {
   STEP_NUM=$1
   STEP_NAME="$2"
-  echo -e "\n\033[1;36m++++++++++++++++++++++++++++++++++++++++++++++"
+  echo -e "\n+++++++++++++++++++++++++++++++++++++++++++++++"
   printf '+++   STEP %d: %s   +++\n' "$STEP_NUM" "$STEP_NAME"
-  echo -e "++++++++++++++++++++++++++++++++++++++++++++++\033[0m\n"
+  echo -e "++++++++++++++++++++++++++++++++++++++++++++++\n"
   STEP_START_TIME=$(date +%s)
 }
 
 # Helper: Print success info to terminal only
 success() {
-  echo -e "\033[0;32m$1\033[0m"
+  echo -e "$1"
   STEP_END_TIME=$(date +%s)
   STEP_DURATION=$((STEP_END_TIME - STEP_START_TIME))
-  echo -e "\033[0;33mStep took $STEP_DURATION seconds.\033[0m\n"
+  echo -e "Step took $STEP_DURATION seconds.\n"
   STEP_TIMES+=("$STEP_DURATION")
 }
 
 # Helper: Print error info to terminal only
 fail() {
-  echo -e "\033[0;31m$1\033[0m"
+  echo -e "$1"
   STEP_END_TIME=$(date +%s)
   STEP_DURATION=$((STEP_END_TIME - STEP_START_TIME))
-  echo -e "\033[0;33mStep took $STEP_DURATION seconds.\033[0m\n"
+  echo -e "Step took $STEP_DURATION seconds.\n"
   STEP_TIMES+=("$STEP_DURATION")
 }
 
@@ -88,9 +85,9 @@ fail() {
 print_total_time() {
   SCRIPT_END_TIME=$(date +%s)
   TOTAL_DURATION=$((SCRIPT_END_TIME - SCRIPT_START_TIME))
-  echo -e "\n\033[1;35m==============================================="
+  echo -e "\n==============================================="
   echo -e "   🎉 Deployment completed in $TOTAL_DURATION seconds! 🎉"
-  echo -e "===============================================\033[0m\n"
+  echo -e "===============================================\n"
   for i in $(seq 1 ${#STEP_TIMES[@]}); do
     echo "Step $i took: ${STEP_TIMES[$((i-1))]:-N/A} seconds"
   done
@@ -215,7 +212,7 @@ docker_compose_exec() {
   local service="$2"
   local command="$3"
   local docker_env_vars=$(get_docker_env_vars)
-  
+
   echo "$docker_env_vars docker-compose -f $compose_file exec -T $service $command"
 }
 
@@ -224,7 +221,7 @@ docker_compose_run() {
   local compose_file="$1"
   local command="$2"
   local docker_env_vars=$(get_docker_env_vars)
-  
+
   echo "$docker_env_vars docker-compose -f $compose_file $command"
 }
 
@@ -232,9 +229,54 @@ docker_compose_run() {
 step 1 "Starting deployment"
 echo "[DEBUG] SSH_KEY resolved to: $SSH_KEY"
 
-# 2. Fix permissions on the server before anything else
-step 2 "Fixing permissions on server"
+# 2. Initialize server with required directories and Docker
+step 2 "Initializing server with required directories and Docker"
+
+# Create required directories if they don't exist
+execute_ssh "sudo mkdir -p $APP_DIR"
 execute_ssh "sudo chown -R ubuntu:ubuntu $APP_DIR || true"
+
+# Install Docker if not already installed
+if ! execute_ssh "command -v docker &> /dev/null"; then
+  echo "Docker not found, installing..."
+  
+  # Wait for any existing apt/dpkg processes to finish
+  echo "Checking for existing package manager processes..."
+  max_attempts=30
+  attempt=1
+  while execute_ssh "pgrep -f apt-get >/dev/null 2>&1 || pgrep -f dpkg >/dev/null 2>&1 || lsof /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || lsof /var/lib/apt/lists/lock >/dev/null 2>&1 || lsof /var/lib/dpkg/lock >/dev/null 2>&1 || [ -f /var/lib/apt/lists/lock ] || [ -f /var/lib/dpkg/lock ] || [ -f /var/lib/dpkg/lock-frontend ]"; do
+    echo "Waiting for other package manager processes to finish... (attempt $attempt of $max_attempts)"
+    if [ "$attempt" -ge "$max_attempts" ]; then
+      echo "Maximum attempts reached. Trying to proceed anyway..."
+      execute_ssh "sudo rm -f /var/lib/apt/lists/lock /var/lib/dpkg/lock /var/lib/dpkg/lock-frontend"
+      break
+    fi
+    attempt=$((attempt+1))
+    sleep 20
+  done
+  
+  echo "Package manager is available now. Installing Docker..."
+  execute_ssh "sudo apt-get update && \
+    sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common && \
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - && \
+    sudo add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/ubuntu \$(lsb_release -cs) stable\" && \
+    sudo apt-get update && \
+    sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin && \
+    sudo systemctl enable docker && \
+    sudo systemctl start docker"
+  echo "Docker installed successfully"
+  
+  # Wait for Docker to be fully initialized
+  echo "Waiting for Docker to be fully initialized..."
+  for i in {1..30}; do
+    if execute_ssh "sudo docker ps &>/dev/null"; then
+      echo "Docker is now ready."
+      break
+    fi
+    echo "Waiting for Docker to be ready... ($i/30)"
+    sleep 5
+  done
+fi
 
 # 3. Ensure ubuntu user is in the docker group for Docker access
 step 3 "Ensuring ubuntu user is in the docker group"
@@ -496,7 +538,8 @@ CONFIG_CACHE_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "app" "php artisan
 ROUTE_CACHE_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "app" "php artisan route:cache")
 VIEW_CACHE_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "app" "php artisan view:cache")
 MIGRATE_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "app" "php artisan migrate --force")
-STORAGE_LINK_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "app" "php artisan storage:link")
+# Check if storage link already exists before creating it
+STORAGE_LINK_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "app" "sh -c \"if [ ! -L /var/www/html/public/storage ]; then php artisan storage:link; else echo 'Storage link already exists, skipping creation'; fi\"")
 
 # Fix permissions for Laravel cache directories - using Docker to handle permissions with a single command
 execute_ssh "cd $APP_DIR && $(docker_compose_run "$DOCKER_COMPOSE_FILE" "exec -T app sh -c 'mkdir -p /var/www/html/bootstrap/cache /var/www/html/storage/framework/cache /var/www/html/storage/framework/cache/data /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/logs && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache'")"
@@ -514,21 +557,108 @@ fi
 
 # 18. Ensure wait-for-db.sh is executable in the container
 step 18 "Ensuring wait-for-db.sh is executable in the container"
-echo -e "\n[\033[1;36m++++++++++++++++++++++++++++++++++++++++++++++\n+++   STEP 18: Ensuring wait-for-db.sh is executable in the container   +++\n++++++++++++++++++++++++++++++++++++++++++++++\033[0m\n"
+echo -e "\n+++++++++++++++++++++++++++++++++++++++++++++++\n+++   STEP 18: Ensuring wait-for-db.sh is executable in the container   +++\n++++++++++++++++++++++++++++++++++++++++++++++\n"
 execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'chmod +x ./wait-for-db.sh && php artisan cache:clear'"
 
 # 18.1. Ensure proper Laravel cache configuration
-echo -e "\n[\033[1;36m++++++++++++++++++++++++++++++++++++++++++++++\n+++   STEP 18.1: Ensuring proper Laravel cache configuration   +++\n++++++++++++++++++++++++++++++++++++++++++++++\033[0m\n"
+echo -e "\n+++++++++++++++++++++++++++++++++++++++++++++++\n+++   STEP 18.1: Ensuring proper Laravel cache configuration   +++\n++++++++++++++++++++++++++++++++++++++++++++++\n"
 
-# Create all required Laravel cache directories with proper permissions
-execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'mkdir -p /var/www/html/storage/framework/cache/data /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/logs /var/www/html/bootstrap/cache && chmod -R 777 /var/www/html/storage && chmod -R 777 /var/www/html/bootstrap/cache && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache'"
+# Create all required Laravel cache directories with proper permissions and add .gitkeep files to ensure they exist
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c '\
+    # Create all required Laravel directory structure\
+    mkdir -p /var/www/html/storage/app/public \
+    /var/www/html/storage/framework/cache \
+    /var/www/html/storage/framework/cache/data \
+    /var/www/html/storage/framework/sessions \
+    /var/www/html/storage/framework/testing \
+    /var/www/html/storage/framework/views \
+    /var/www/html/storage/logs \
+    /var/www/html/bootstrap/cache && \
+    \
+    # Add .gitkeep files to ensure directories exist and are tracked\
+    touch /var/www/html/storage/framework/cache/.gitkeep \
+    /var/www/html/storage/framework/cache/data/.gitkeep \
+    /var/www/html/storage/framework/sessions/.gitkeep \
+    /var/www/html/storage/framework/testing/.gitkeep \
+    /var/www/html/storage/framework/views/.gitkeep \
+    /var/www/html/storage/logs/.gitkeep \
+    /var/www/html/bootstrap/cache/.gitkeep && \
+    \
+    # Set proper permissions\
+    chmod -R 777 /var/www/html/storage && \
+    chmod -R 777 /var/www/html/bootstrap/cache && \
+    chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
+    \
+    # Ensure cache driver is set to file in the .env file\
+    grep -q "CACHE_DRIVER=file" /var/www/html/.env || sed -i "s/CACHE_DRIVER=.*/CACHE_DRIVER=file/" /var/www/html/.env'"
+
+# The view.php configuration file is now part of the git repository
+# No need to upload it separately as it will be included during git clone/pull
 
 # Ensure cache driver is set to file
 execute_ssh "cd $APP_DIR && sudo sed -i 's/CACHE_DRIVER=.*/CACHE_DRIVER=file/' .env"
 
+# Copy view.php from local repository to server and then to Docker container
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/config/view.php" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/config/view.php"
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'mkdir -p /var/www/html/config' && \
+sudo docker cp ./config/view.php \$(sudo docker ps -qf 'name=app' | head -n 1):/var/www/html/config/view.php && \
+sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'chown www-data:www-data /var/www/html/config/view.php && chmod 644 /var/www/html/config/view.php'"
+
+# Create all required cache directories with proper permissions and ensure they exist
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'mkdir -p /var/www/html/storage/framework/views /var/www/html/storage/framework/cache/data /var/www/html/storage/framework/sessions /var/www/html/bootstrap/cache && \
+chmod -R 777 /var/www/html/storage && \
+chmod -R 777 /var/www/html/bootstrap/cache && \
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
+touch /var/www/html/storage/framework/views/.gitignore && \
+touch /var/www/html/storage/framework/cache/data/.gitignore && \
+touch /var/www/html/storage/framework/sessions/.gitignore'"
+
+# Ensure the VIEW_COMPILED_PATH is correctly set in the environment
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'export VIEW_COMPILED_PATH=/var/www/html/storage/framework/views && echo VIEW_COMPILED_PATH is set to /var/www/html/storage/framework/views'"
+
+# Clear all caches
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'php artisan config:clear && \
+php artisan view:clear'"
+
 # Verify cache directory structure and permissions
-execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'ls -la /var/www/html/storage/framework/cache && ls -la /var/www/html/storage/framework/cache/data && ls -la /var/www/html/bootstrap/cache'"
-execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'php artisan config:clear && php artisan view:clear && php artisan route:clear && php artisan optimize:clear'"
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'ls -la /var/www/html/storage/framework/cache && ls -la /var/www/html/storage/framework/cache/data && ls -la /var/www/html/storage/framework/views && ls -la /var/www/html/bootstrap/cache && ls -la /var/www/html/config/view.php'"
+
+# Double-check that all cache directories exist with proper permissions
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'mkdir -p /var/www/html/storage/framework/cache/data /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/logs /var/www/html/bootstrap/cache'"
+
+# Set proper permissions for cache directories
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'chmod -R 777 /var/www/html/storage'"
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'chmod -R 777 /var/www/html/bootstrap/cache'"
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache'"
+
+# Copy view.php config file
+execute_ssh "cd $APP_DIR && sudo docker cp ./config/view.php \$(sudo docker ps -qf 'name=app' | head -n 1):/var/www/html/config/view.php"
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'chown www-data:www-data /var/www/html/config/view.php && chmod 644 /var/www/html/config/view.php'"
+
+# Clear all caches first
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'php artisan cache:clear && \
+php artisan config:clear && \
+php artisan view:clear && \
+php artisan route:clear && \
+php artisan optimize:clear'"
+
+# Verify cache directories exist and have correct permissions before rebuilding caches
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'mkdir -p /var/www/html/storage/framework/{sessions,views,cache,cache/data} && \
+chmod -R 777 /var/www/html/storage/framework && \
+chown -R www-data:www-data /var/www/html/storage/framework && \
+echo Re-verified cache directories before rebuilding caches'"
+
+# Touch .gitignore files to ensure directories are kept in git
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'touch /var/www/html/storage/framework/views/.gitignore && \
+touch /var/www/html/storage/framework/cache/.gitignore && \
+touch /var/www/html/storage/framework/cache/data/.gitignore && \
+touch /var/www/html/storage/framework/sessions/.gitignore'"
+
+# Rebuild caches
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'php artisan config:cache && \
+php artisan route:cache && \
+php artisan view:cache && \
+echo Successfully rebuilt all caches'"
 
 # 19. Wait for the database to be ready
 step 19 "Waiting for the database to be ready inside the app container"
@@ -552,30 +682,10 @@ execute_ssh "cd $APP_DIR && $DOCKER_MIGRATE_STATUS_CMD"
 
 success "Deployment completed!"
 
-# 21. Configure Cloudflare Worker R2 Bucket Binding
-step 21 "Configuring Cloudflare Worker R2 Bucket Binding"
+# 21. Skip Cloudflare Worker R2 Bucket Binding (already done by Terraform)
+step 21 "Skipping Cloudflare Worker R2 Bucket Binding (already done by Terraform)"
 
-if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ] || [ -z "$R2_BUCKET_NAME" ]; then
-  echo "To enable Cloudflare Worker R2 bucket binding, add the following to your .env.deploy file:"
-  echo "CLOUDFLARE_API_TOKEN=your_api_token"
-  echo "CLOUDFLARE_ACCOUNT_ID=your_account_id"
-  echo "R2_BUCKET_NAME=your_bucket_name"
-else
-  echo "Configuring Cloudflare Worker R2 bucket binding for worker 'cdn-harun-dev'"
-  
-  # Configure the R2 bucket binding for the Cloudflare Worker
-  BINDING_RESULT=$(curl -s -X PUT \
-    "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/cdn-harun-dev/bindings" \
-    -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-    -H "Content-Type: application/json" \
-    --data "{\"bindings\":[{\"name\":\"ASSETS_BUCKET\",\"type\":\"r2_bucket\",\"bucket_name\":\"$R2_BUCKET_NAME\"}]}")
-  
-  if [[ $(echo "$BINDING_RESULT" | grep -c '"success":true') -gt 0 ]]; then
-    echo "Cloudflare Worker R2 bucket binding configured successfully!"
-  else
-    echo "Failed to configure Cloudflare Worker R2 bucket binding. Response: $BINDING_RESULT"
-  fi
-fi
+echo "Skipping Cloudflare Worker R2 bucket binding as it's already configured by Terraform during infrastructure creation."
 
 # 22. Purge CDN Cache (Cloudflare)
 step 22 "Purging CDN Cache (Cloudflare)"
@@ -593,8 +703,10 @@ else
       -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
       -H "Content-Type: application/json" \
       --data '{"purge_everything":true}')
-    
-    if [[ $(echo "$RESULT" | grep -c '"success":true') -gt 0 ]]; then
+
+    # Parse JSON properly to check for success
+    SUCCESS=$(echo "$RESULT" | grep -o '"success":[^,}]*' | cut -d ':' -f2 | tr -d ' ')
+    if [[ "$SUCCESS" == "true" ]]; then
       echo "Cloudflare cache purged successfully!"
     else
       echo "Failed to purge Cloudflare cache. Response: $RESULT"
@@ -607,8 +719,10 @@ else
       -H "X-Auth-Key: $CLOUDFLARE_API_KEY" \
       -H "Content-Type: application/json" \
       --data '{"purge_everything":true}')
-    
-    if [[ $(echo "$RESULT" | grep -c '"success":true') -gt 0 ]]; then
+
+    # Parse JSON properly to check for success
+    SUCCESS=$(echo "$RESULT" | grep -o '"success":[^,}]*' | cut -d ':' -f2 | tr -d ' ')
+    if [[ "$SUCCESS" == "true" ]]; then
       echo "Cloudflare cache purged successfully!"
     else
       echo "Failed to purge Cloudflare cache. Response: $RESULT"
