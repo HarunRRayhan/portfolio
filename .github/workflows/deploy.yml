@@ -162,33 +162,66 @@ jobs:
           DEPLOYMENT_ENV: ${{ github.event.inputs.environment || 'production' }}
           BRANCH_NAME: ${{ github.ref_name }}
         run: |
-          # Install AWS CLI
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          unzip awscliv2.zip
-          sudo ./aws/install
+          # Use existing AWS CLI or update if needed
+          echo "Setting up AWS CLI..."
+          if aws --version &>/dev/null; then
+            echo "AWS CLI is already installed. Using existing installation."
+          else
+            echo "Installing AWS CLI..."
+            curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip -q awscliv2.zip
+            sudo ./aws/install --update
+          fi
 
           # Set AWS credentials
           export AWS_ACCESS_KEY_ID="${R2_ACCESS_KEY_ID}"
           export AWS_SECRET_ACCESS_KEY="${R2_SECRET_ACCESS_KEY}"
 
+          # Function to handle errors and reduce output verbosity
+          upload_to_s3() {
+            local source=$1
+            local dest=$2
+            local content_type=$3
+          local options="--endpoint-url \"${R2_S3_ENDPOINT}\" --acl public-read --no-progress"
+          
+            if [ ! -z "$content_type" ]; then
+              options="$options --content-type \"$content_type\""
+            fi
+            
+          echo "Uploading $source to $dest"
+          if eval "aws s3 sync $source $dest $options --delete" &>/dev/null; then
+              echo "✅ Successfully uploaded $source to $dest"
+              return 0
+            else
+              echo "❌ Failed to upload $source to $dest"
+              return 1
+            fi
+          }
+          
+          # Upload build assets with reduced verbosity
+          echo "Uploading static assets to Cloudflare R2..."
+          
           # Upload build assets
-          aws s3 sync ./public/build "s3://${R2_BUCKET_NAME}/build" --endpoint-url "${R2_S3_ENDPOINT}" --delete --acl public-read
-
-          # Upload JS files with proper content type
+          upload_to_s3 "./public/build" "s3://${R2_BUCKET_NAME}/build" || exit 1
+          
+          # Set content types for JS and CSS files
+          echo "Setting content types for JS files..."
           find ./public/build -name "*.js" -type f | while read -r file; do
             relative_path="${file#./public/}"
-            aws s3 cp "$file" "s3://${R2_BUCKET_NAME}/${relative_path}" --endpoint-url "${R2_S3_ENDPOINT}" --content-type "application/javascript" --acl public-read
+            aws s3 cp "$file" "s3://${R2_BUCKET_NAME}/${relative_path}" --endpoint-url "${R2_S3_ENDPOINT}" --content-type "application/javascript" --acl public-read --no-progress &>/dev/null
           done
-
-          # Upload CSS files with proper content type
+          
+          echo "Setting content types for CSS files..."
           find ./public/build -name "*.css" -type f | while read -r file; do
             relative_path="${file#./public/}"
-            aws s3 cp "$file" "s3://${R2_BUCKET_NAME}/${relative_path}" --endpoint-url "${R2_S3_ENDPOINT}" --content-type "text/css" --acl public-read
+            aws s3 cp "$file" "s3://${R2_BUCKET_NAME}/${relative_path}" --endpoint-url "${R2_S3_ENDPOINT}" --content-type "text/css" --acl public-read --no-progress &>/dev/null
           done
-
+          
           # Upload other static assets
-          aws s3 sync ./public/fonts "s3://${R2_BUCKET_NAME}/fonts" --endpoint-url "${R2_S3_ENDPOINT}" --delete --acl public-read
-          aws s3 sync ./public/images "s3://${R2_BUCKET_NAME}/images" --endpoint-url "${R2_S3_ENDPOINT}" --delete --acl public-read
+          upload_to_s3 "./public/fonts" "s3://${R2_BUCKET_NAME}/fonts" || exit 1
+          upload_to_s3 "./public/images" "s3://${R2_BUCKET_NAME}/images" || exit 1
+          
+          echo "✅ All static assets uploaded successfully"
 
           # Create deployment info file
           echo "DEPLOYMENT_ENV=${DEPLOYMENT_ENV}" > deployment_info.txt
@@ -202,18 +235,28 @@ jobs:
           scp deployment_info.txt ${REMOTE_USER}@${REMOTE_HOST}:${APP_DIR}/deployment_info.txt
 
           # Run the zero-downtime deployment script with environment variables
-          ssh ${REMOTE_USER}@${REMOTE_HOST} "export DEPLOYMENT_ENV=${DEPLOYMENT_ENV} && \
-                                             export BRANCH_NAME=${BRANCH_NAME} && \
-                                             export POSTGRES_DB=${POSTGRES_DB} && \
-                                             export POSTGRES_USER=${POSTGRES_USER} && \
-                                             export POSTGRES_PASSWORD=${POSTGRES_PASSWORD} && \
-                                             export R2_BUCKET_NAME=${R2_BUCKET_NAME} && \
-                                             export R2_S3_ENDPOINT=${R2_S3_ENDPOINT} && \
-                                             export R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID} && \
-                                             export R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY} && \
-                                             export CLOUDFLARE_ZONE_ID=${CLOUDFLARE_ZONE_ID} && \
-                                             export CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN} && \
-                                             bash -s" < ./deploy/cicd/github-deploy.sh
+          echo "Starting zero-downtime deployment on remote server..."
+          
+          # Prepare environment variables for remote execution
+          ENV_VARS="DEPLOYMENT_ENV=${DEPLOYMENT_ENV} \
+                   BRANCH_NAME=${BRANCH_NAME} \
+                   POSTGRES_DB=${POSTGRES_DB} \
+                   POSTGRES_USER=${POSTGRES_USER} \
+                   POSTGRES_PASSWORD=${POSTGRES_PASSWORD} \
+                   R2_BUCKET_NAME=${R2_BUCKET_NAME} \
+                   R2_S3_ENDPOINT=${R2_S3_ENDPOINT} \
+                   R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID} \
+                   R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY} \
+                   CLOUDFLARE_ZONE_ID=${CLOUDFLARE_ZONE_ID} \
+                   CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}"
+          
+          # Execute deployment script with reduced output
+          if ssh ${REMOTE_USER}@${REMOTE_HOST} "export $ENV_VARS && bash -s" < ./deploy/cicd/github-deploy.sh; then
+            echo "✅ Remote deployment completed successfully"
+          else
+            echo "❌ Remote deployment failed. Check server logs for details."
+            exit 1
+          fi
 
       - name: Purge Cloudflare Cache
         if: success()
@@ -221,10 +264,19 @@ jobs:
           CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
-          curl -X POST "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
+          echo "Purging Cloudflare cache..."
+          RESULT=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
             -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
             -H "Content-Type: application/json" \
-            --data '{"purge_everything":true}'
+            --data '{"purge_everything":true}')
+          
+          # Check if the purge was successful
+          if echo "$RESULT" | grep -q '"success":true'; then
+            echo "✅ Cloudflare cache purged successfully"
+          else
+            echo "⚠️ Cloudflare cache purge may have failed. Response: $RESULT"
+            # Don't fail the build for this step
+          fi
 
       # Removed GitHub deployment status actions as they're causing errors
 
