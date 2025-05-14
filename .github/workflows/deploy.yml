@@ -1,0 +1,171 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, features/cicd ]
+  pull_request:
+    types: [closed]
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - development
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    # Only run on PR merge or direct push to main/master/development
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    
+    permissions:
+      contents: read
+      deployments: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Setup SSH key
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add host to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -t rsa ${{ secrets.REMOTE_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to server
+        env:
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          APP_DIR: ${{ secrets.APP_DIR }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          R2_S3_ENDPOINT: ${{ secrets.R2_S3_ENDPOINT }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          DEPLOYMENT_ENV: ${{ github.event.inputs.environment || 'production' }}
+          BRANCH_NAME: ${{ github.ref_name }}
+        run: |
+          # Install AWS CLI
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
+
+          # Set AWS credentials
+          export AWS_ACCESS_KEY_ID="${R2_ACCESS_KEY_ID}"
+          export AWS_SECRET_ACCESS_KEY="${R2_SECRET_ACCESS_KEY}"
+
+          # Upload build assets
+          aws s3 sync ./public/build "s3://${R2_BUCKET_NAME}/build" --endpoint-url "${R2_S3_ENDPOINT}" --delete --acl public-read
+
+          # Upload JS files with proper content type
+          find ./public/build -name "*.js" -type f | while read -r file; do
+            relative_path="${file#./public/}"
+            aws s3 cp "$file" "s3://${R2_BUCKET_NAME}/${relative_path}" --endpoint-url "${R2_S3_ENDPOINT}" --content-type "application/javascript" --acl public-read
+          done
+
+          # Upload CSS files with proper content type
+          find ./public/build -name "*.css" -type f | while read -r file; do
+            relative_path="${file#./public/}"
+            aws s3 cp "$file" "s3://${R2_BUCKET_NAME}/${relative_path}" --endpoint-url "${R2_S3_ENDPOINT}" --content-type "text/css" --acl public-read
+          done
+
+          # Upload other static assets
+          aws s3 sync ./public/fonts "s3://${R2_BUCKET_NAME}/fonts" --endpoint-url "${R2_S3_ENDPOINT}" --delete --acl public-read
+          aws s3 sync ./public/images "s3://${R2_BUCKET_NAME}/images" --endpoint-url "${R2_S3_ENDPOINT}" --delete --acl public-read
+
+          # Create deployment info file
+          echo "DEPLOYMENT_ENV=${DEPLOYMENT_ENV}" > deployment_info.txt
+          echo "BRANCH_NAME=${BRANCH_NAME}" >> deployment_info.txt
+          echo "GITHUB_SHA=${GITHUB_SHA}" >> deployment_info.txt
+          echo "GITHUB_RUN_ID=${GITHUB_RUN_ID}" >> deployment_info.txt
+          echo "GITHUB_ACTOR=${GITHUB_ACTOR}" >> deployment_info.txt
+          echo "DEPLOY_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> deployment_info.txt
+
+          # Copy deployment info to server
+          scp deployment_info.txt ${REMOTE_USER}@${REMOTE_HOST}:${APP_DIR}/deployment_info.txt
+
+          # Run the zero-downtime deployment script with environment variables
+          ssh ${REMOTE_USER}@${REMOTE_HOST} "export DEPLOYMENT_ENV=${DEPLOYMENT_ENV} && \
+                                             export BRANCH_NAME=${BRANCH_NAME} && \
+                                             export POSTGRES_DB=${POSTGRES_DB} && \
+                                             export POSTGRES_USER=${POSTGRES_USER} && \
+                                             export POSTGRES_PASSWORD=${POSTGRES_PASSWORD} && \
+                                             export R2_BUCKET_NAME=${R2_BUCKET_NAME} && \
+                                             export R2_S3_ENDPOINT=${R2_S3_ENDPOINT} && \
+                                             export R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID} && \
+                                             export R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY} && \
+                                             export CLOUDFLARE_ZONE_ID=${CLOUDFLARE_ZONE_ID} && \
+                                             export CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN} && \
+                                             bash -s" < ./deploy/github-deploy.sh
+
+      - name: Purge Cloudflare Cache
+        if: success()
+        env:
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          curl -X POST "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}'
+
+      - name: Create Deployment
+        id: deployment
+        uses: chrnorm/deployment-action@v2
+        with:
+          token: "${{ github.token }}"
+          environment: ${{ github.event.inputs.environment || 'production' }}
+          description: "Deployment from branch ${{ github.ref_name }}"
+          
+      - name: Update Deployment Status
+        if: always()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: "${{ github.token }}"
+          state: ${{ job.status == 'success' && 'success' || 'failure' }}
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+          environment-url: ${{ secrets.APP_URL || 'https://harun.dev' }}
+          
+      - name: Notify Deployment Status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "🎉 Deployment completed successfully!"
+            echo "Environment: ${{ github.event.inputs.environment || 'production' }}"
+            echo "Branch: ${{ github.ref_name }}"
+            echo "Commit: ${{ github.sha }}"
+          else
+            echo "❌ Deployment failed!"
+            echo "Environment: ${{ github.event.inputs.environment || 'production' }}"
+            echo "Branch: ${{ github.ref_name }}"
+            echo "Commit: ${{ github.sha }}"
+          fi
