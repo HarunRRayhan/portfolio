@@ -28,11 +28,29 @@ fi
 LOG_FILE="$LOG_DIR/ci-deploy.log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
-# Load environment variables
-if [ -f "$DEPLOY_DIR/.env.deploy" ]; then
-  set -a
-  . "$DEPLOY_DIR/.env.deploy"
-  set +a
+# Load environment variables - check multiple possible locations
+ENV_FILES=(
+  "$ENV_FILE_PATH" # First check if passed from github-deploy.sh
+  "$APP_DIR/.env.deploy"
+  "$APP_DIR/docker/.env.deploy"
+  "/tmp/.env.deploy"
+  "$DEPLOY_DIR/.env.deploy"
+)
+
+ENV_FILE_FOUND=false
+for env_file in "${ENV_FILES[@]}"; do
+  if [ -f "$env_file" ]; then
+    echo "Loading environment variables from $env_file"
+    set -a
+    . "$env_file"
+    set +a
+    ENV_FILE_FOUND=true
+    break
+  fi
+done
+
+if [ "$ENV_FILE_FOUND" = false ]; then
+  echo "Warning: No environment file found. Using environment variables passed directly."
 fi
 
 # Validate required environment variables

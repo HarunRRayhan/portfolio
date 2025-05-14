@@ -78,7 +78,18 @@ sudo chown -R $(whoami):$(whoami) "${APP_DIR}" 2>/dev/null || true
 
 # 4. Create environment-specific configuration
 echo "Step 4: Creating environment-specific configuration"
-ENV_FILE="${DEPLOY_DIR}/.env.${DEPLOYMENT_ENV}"
+ENV_FILE="${APP_DIR}/.env.${DEPLOYMENT_ENV}"
+
+# Make sure we can write to the environment file location
+touch "$ENV_FILE" 2>/dev/null || {
+  echo "Warning: Cannot write to $ENV_FILE, using alternate location"
+  ENV_FILE="${APP_DIR}/docker/.env.${DEPLOYMENT_ENV}"
+  # Try docker directory
+  touch "$ENV_FILE" 2>/dev/null || {
+    echo "Warning: Cannot write to $ENV_FILE either, using /tmp"
+    ENV_FILE="/tmp/.env.${DEPLOYMENT_ENV}"
+  }
+}
 
 # Create or update environment-specific .env file
 cat > "$ENV_FILE" << EOF
@@ -119,10 +130,38 @@ MAX_DB_MEMORY_LIMIT=600M
 EOF
 
 # Copy environment file to .env.deploy for the deployment script
-cp "$ENV_FILE" "${DEPLOY_DIR}/.env.deploy"
+# Make sure we can write to the destination
+DEPLOY_ENV_FILE="${APP_DIR}/.env.deploy"
+touch "$DEPLOY_ENV_FILE" 2>/dev/null || {
+  echo "Warning: Cannot write to $DEPLOY_ENV_FILE, using alternate location"
+  DEPLOY_ENV_FILE="${APP_DIR}/docker/.env.deploy"
+  # Try docker directory
+  touch "$DEPLOY_ENV_FILE" 2>/dev/null || {
+    echo "Warning: Cannot write to $DEPLOY_ENV_FILE either, using /tmp"
+    DEPLOY_ENV_FILE="/tmp/.env.deploy"
+  }
+}
+
+# Copy the environment file
+cp "$ENV_FILE" "$DEPLOY_ENV_FILE"
 
 # 5. Run the CI deployment script
 echo "Step 5: Running CI deployment script"
+# Pass the environment file location to the CI script
+export ENV_FILE_PATH="$DEPLOY_ENV_FILE"
+
+# Run the CI deployment script with environment variables
+DEPLOYMENT_ENV="$DEPLOYMENT_ENV" \
+BRANCH_NAME="$BRANCH_NAME" \
+POSTGRES_DB="$POSTGRES_DB" \
+POSTGRES_USER="$POSTGRES_USER" \
+POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
+R2_BUCKET_NAME="$R2_BUCKET_NAME" \
+R2_S3_ENDPOINT="$R2_S3_ENDPOINT" \
+R2_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID" \
+R2_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY" \
+CLOUDFLARE_ZONE_ID="$CLOUDFLARE_ZONE_ID" \
+CLOUDFLARE_API_TOKEN="$CLOUDFLARE_API_TOKEN" \
 "${DEPLOY_DIR}/cicd/ci-deploy.sh"
 
 # Check if the deployment was successful
