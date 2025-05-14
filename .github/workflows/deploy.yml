@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main, features/cicd ]
   pull_request:
-    types: [closed]
+    types: [ closed ]
     branches: [ main ]
   workflow_dispatch:
     inputs:
@@ -22,16 +22,18 @@ jobs:
     runs-on: ubuntu-latest
     # Only run on PR merge or direct push to main/master/development
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
-    
+
     permissions:
       contents: read
       deployments: write
+      id-token: write
+      secrets: read
 
     steps:
       - name: Validate required secrets
         run: |
           missing_secrets=""
-          
+
           # Check for required secrets
           [[ -z "${{ secrets.REMOTE_HOST }}" ]] && missing_secrets="$missing_secrets REMOTE_HOST"
           [[ -z "${{ secrets.REMOTE_USER }}" ]] && missing_secrets="$missing_secrets REMOTE_USER"
@@ -46,7 +48,7 @@ jobs:
           [[ -z "${{ secrets.POSTGRES_DB }}" ]] && missing_secrets="$missing_secrets POSTGRES_DB"
           [[ -z "${{ secrets.POSTGRES_USER }}" ]] && missing_secrets="$missing_secrets POSTGRES_USER"
           [[ -z "${{ secrets.POSTGRES_PASSWORD }}" ]] && missing_secrets="$missing_secrets POSTGRES_PASSWORD"
-          
+
           if [[ ! -z "$missing_secrets" ]]; then
             echo "::error::Missing required secrets:$missing_secrets"
             exit 1
@@ -78,7 +80,7 @@ jobs:
         uses: webfactory/ssh-agent@v0.7.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-          
+
       - name: Verify SSH key setup
         run: |
           if ! ssh-add -l &>/dev/null; then
@@ -96,7 +98,7 @@ jobs:
       - name: Validate required secrets
         run: |
           missing_secrets=""
-          
+
           # Check for required secrets
           [[ -z "${{ secrets.REMOTE_HOST }}" ]] && missing_secrets="$missing_secrets REMOTE_HOST"
           [[ -z "${{ secrets.REMOTE_USER }}" ]] && missing_secrets="$missing_secrets REMOTE_USER"
@@ -111,14 +113,14 @@ jobs:
           [[ -z "${{ secrets.POSTGRES_DB }}" ]] && missing_secrets="$missing_secrets POSTGRES_DB"
           [[ -z "${{ secrets.POSTGRES_USER }}" ]] && missing_secrets="$missing_secrets POSTGRES_USER"
           [[ -z "${{ secrets.POSTGRES_PASSWORD }}" ]] && missing_secrets="$missing_secrets POSTGRES_PASSWORD"
-          
+
           if [[ ! -z "$missing_secrets" ]]; then
             echo "::error::Missing required secrets:$missing_secrets"
             exit 1
           else
             echo "All required secrets are present."
           fi
-      
+
       - name: Deploy to server
         env:
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
@@ -207,7 +209,7 @@ jobs:
           token: "${{ github.token }}"
           environment: ${{ github.event.inputs.environment || 'production' }}
           description: "Deployment from branch ${{ github.ref_name }}"
-          
+
       - name: Update Deployment Status
         if: always()
         uses: chrnorm/deployment-status@v2
@@ -216,7 +218,7 @@ jobs:
           state: ${{ job.status == 'success' && 'success' || 'failure' }}
           deployment-id: ${{ steps.deployment.outputs.deployment_id }}
           environment-url: ${{ secrets.APP_URL || 'https://harun.dev' }}
-          
+
       - name: Notify Deployment Status
         if: always()
         run: |
