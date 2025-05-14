@@ -13,11 +13,7 @@ APP_DIR="${APP_DIR:-/opt/portfolio}"
 DOCKER_DIR="${APP_DIR}/docker"
 CI_DIR="${DOCKER_DIR}/ci"
 
-# Environment variables
-DEPLOYMENT_ENV="${DEPLOYMENT_ENV:-production}"
-BRANCH_NAME="${BRANCH_NAME:-main}"
-
-# Validate required environment variables
+# Validate required environment variables first, before any other operations
 echo "Validating required environment variables..."
 REQUIRED_VARS=("POSTGRES_DB" "POSTGRES_USER" "POSTGRES_PASSWORD" "R2_BUCKET_NAME" "R2_S3_ENDPOINT" "R2_ACCESS_KEY_ID" "R2_SECRET_ACCESS_KEY" "CLOUDFLARE_ZONE_ID" "CLOUDFLARE_API_TOKEN")
 MISSING_VARS=""
@@ -35,6 +31,10 @@ if [ ! -z "$MISSING_VARS" ]; then
 fi
 
 echo "All required environment variables are present."
+
+# Environment variables
+DEPLOYMENT_ENV="${DEPLOYMENT_ENV:-production}"
+BRANCH_NAME="${BRANCH_NAME:-main}"
 
 # Set up logging
 LOG_DIR="${DEPLOY_DIR}/log"
