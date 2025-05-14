@@ -2,10 +2,10 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, features/cicd ]
+    branches: [ main, master, development, features/cicd ]
   pull_request:
     types: [ closed ]
-    branches: [ main ]
+    branches: [ main, master ]
   workflow_dispatch:
     inputs:
       environment:
@@ -17,40 +17,64 @@ on:
           - production
           - development
 
+# Environment variables available to all jobs
+env:
+  # Default environment
+  ENVIRONMENT: ${{ github.event.inputs.environment || 'production' }}
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    # Only run on PR merge or direct push to main/master/development
+    # Only run on PR merge or direct push to main
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    environment: ${{ github.event.inputs.environment || 'production' }}
 
     permissions:
       contents: read
       deployments: write
-      id-token: write
-      secrets: read
 
     steps:
       - name: Validate required secrets
         run: |
+          echo "Checking for required secrets in environment: ${{ env.ENVIRONMENT }}"
+          
+          # Use a more robust approach to check for secrets
+          # This will help identify which secrets are missing without failing immediately
           missing_secrets=""
-
-          # Check for required secrets
-          [[ -z "${{ secrets.REMOTE_HOST }}" ]] && missing_secrets="$missing_secrets REMOTE_HOST"
-          [[ -z "${{ secrets.REMOTE_USER }}" ]] && missing_secrets="$missing_secrets REMOTE_USER"
-          [[ -z "${{ secrets.APP_DIR }}" ]] && missing_secrets="$missing_secrets APP_DIR"
-          [[ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]] && missing_secrets="$missing_secrets SSH_PRIVATE_KEY"
-          [[ -z "${{ secrets.R2_BUCKET_NAME }}" ]] && missing_secrets="$missing_secrets R2_BUCKET_NAME"
-          [[ -z "${{ secrets.R2_S3_ENDPOINT }}" ]] && missing_secrets="$missing_secrets R2_S3_ENDPOINT"
-          [[ -z "${{ secrets.R2_ACCESS_KEY_ID }}" ]] && missing_secrets="$missing_secrets R2_ACCESS_KEY_ID"
-          [[ -z "${{ secrets.R2_SECRET_ACCESS_KEY }}" ]] && missing_secrets="$missing_secrets R2_SECRET_ACCESS_KEY"
-          [[ -z "${{ secrets.CLOUDFLARE_ZONE_ID }}" ]] && missing_secrets="$missing_secrets CLOUDFLARE_ZONE_ID"
-          [[ -z "${{ secrets.CLOUDFLARE_API_TOKEN }}" ]] && missing_secrets="$missing_secrets CLOUDFLARE_API_TOKEN"
-          [[ -z "${{ secrets.POSTGRES_DB }}" ]] && missing_secrets="$missing_secrets POSTGRES_DB"
-          [[ -z "${{ secrets.POSTGRES_USER }}" ]] && missing_secrets="$missing_secrets POSTGRES_USER"
-          [[ -z "${{ secrets.POSTGRES_PASSWORD }}" ]] && missing_secrets="$missing_secrets POSTGRES_PASSWORD"
-
-          if [[ ! -z "$missing_secrets" ]]; then
+          
+          # Function to check if a secret exists
+          check_secret() {
+            local secret_name=$1
+            local secret_value=$2
+            
+            if [ -z "$secret_value" ]; then
+              echo "⚠️ Missing secret: $secret_name"
+              return 1
+            else
+              echo "✅ Found secret: $secret_name"
+              return 0
+            fi
+          }
+          
+          # Check each required secret
+          check_secret "REMOTE_HOST" "${{ secrets.REMOTE_HOST }}" || missing_secrets="$missing_secrets REMOTE_HOST"
+          check_secret "REMOTE_USER" "${{ secrets.REMOTE_USER }}" || missing_secrets="$missing_secrets REMOTE_USER"
+          check_secret "APP_DIR" "${{ secrets.APP_DIR }}" || missing_secrets="$missing_secrets APP_DIR"
+          check_secret "SSH_PRIVATE_KEY" "${{ secrets.SSH_PRIVATE_KEY }}" || missing_secrets="$missing_secrets SSH_PRIVATE_KEY"
+          check_secret "R2_BUCKET_NAME" "${{ secrets.R2_BUCKET_NAME }}" || missing_secrets="$missing_secrets R2_BUCKET_NAME"
+          check_secret "R2_S3_ENDPOINT" "${{ secrets.R2_S3_ENDPOINT }}" || missing_secrets="$missing_secrets R2_S3_ENDPOINT"
+          check_secret "R2_ACCESS_KEY_ID" "${{ secrets.R2_ACCESS_KEY_ID }}" || missing_secrets="$missing_secrets R2_ACCESS_KEY_ID"
+          check_secret "R2_SECRET_ACCESS_KEY" "${{ secrets.R2_SECRET_ACCESS_KEY }}" || missing_secrets="$missing_secrets R2_SECRET_ACCESS_KEY"
+          check_secret "CLOUDFLARE_ZONE_ID" "${{ secrets.CLOUDFLARE_ZONE_ID }}" || missing_secrets="$missing_secrets CLOUDFLARE_ZONE_ID"
+          check_secret "CLOUDFLARE_API_TOKEN" "${{ secrets.CLOUDFLARE_API_TOKEN }}" || missing_secrets="$missing_secrets CLOUDFLARE_API_TOKEN"
+          check_secret "POSTGRES_DB" "${{ secrets.POSTGRES_DB }}" || missing_secrets="$missing_secrets POSTGRES_DB"
+          check_secret "POSTGRES_USER" "${{ secrets.POSTGRES_USER }}" || missing_secrets="$missing_secrets POSTGRES_USER"
+          check_secret "POSTGRES_PASSWORD" "${{ secrets.POSTGRES_PASSWORD }}" || missing_secrets="$missing_secrets POSTGRES_PASSWORD"
+          
+          if [ ! -z "$missing_secrets" ]; then
             echo "::error::Missing required secrets:$missing_secrets"
+            echo "Please add these secrets to the repository settings or environment."
+            echo "Go to Settings > Secrets and variables > Actions > New repository secret"
             exit 1
           else
             echo "All required secrets are present."
@@ -202,22 +226,7 @@ jobs:
             -H "Content-Type: application/json" \
             --data '{"purge_everything":true}'
 
-      - name: Create Deployment
-        id: deployment
-        uses: chrnorm/deployment-action@v2
-        with:
-          token: "${{ github.token }}"
-          environment: ${{ github.event.inputs.environment || 'production' }}
-          description: "Deployment from branch ${{ github.ref_name }}"
-
-      - name: Update Deployment Status
-        if: always()
-        uses: chrnorm/deployment-status@v2
-        with:
-          token: "${{ github.token }}"
-          state: ${{ job.status == 'success' && 'success' || 'failure' }}
-          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
-          environment-url: ${{ secrets.APP_URL || 'https://harun.dev' }}
+      # Removed GitHub deployment status actions as they're causing errors
 
       - name: Notify Deployment Status
         if: always()
