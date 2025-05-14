@@ -239,6 +239,23 @@ execute_ssh "sudo chown -R ubuntu:ubuntu $APP_DIR || true"
 # Install Docker if not already installed
 if ! execute_ssh "command -v docker &> /dev/null"; then
   echo "Docker not found, installing..."
+  
+  # Wait for any existing apt/dpkg processes to finish
+  echo "Checking for existing package manager processes..."
+  max_attempts=30
+  attempt=1
+  while execute_ssh "pgrep -f apt-get >/dev/null 2>&1 || pgrep -f dpkg >/dev/null 2>&1 || lsof /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || lsof /var/lib/apt/lists/lock >/dev/null 2>&1 || lsof /var/lib/dpkg/lock >/dev/null 2>&1 || [ -f /var/lib/apt/lists/lock ] || [ -f /var/lib/dpkg/lock ] || [ -f /var/lib/dpkg/lock-frontend ]"; do
+    echo "Waiting for other package manager processes to finish... (attempt $attempt of $max_attempts)"
+    if [ "$attempt" -ge "$max_attempts" ]; then
+      echo "Maximum attempts reached. Trying to proceed anyway..."
+      execute_ssh "sudo rm -f /var/lib/apt/lists/lock /var/lib/dpkg/lock /var/lib/dpkg/lock-frontend"
+      break
+    fi
+    attempt=$((attempt+1))
+    sleep 20
+  done
+  
+  echo "Package manager is available now. Installing Docker..."
   execute_ssh "sudo apt-get update && \
     sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common && \
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - && \
@@ -587,11 +604,14 @@ execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | 
 sudo docker cp ./config/view.php \$(sudo docker ps -qf 'name=app' | head -n 1):/var/www/html/config/view.php && \
 sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'chown www-data:www-data /var/www/html/config/view.php && chmod 644 /var/www/html/config/view.php'"
 
-# Create all required cache directories with proper permissions
+# Create all required cache directories with proper permissions and ensure they exist
 execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'mkdir -p /var/www/html/storage/framework/views /var/www/html/storage/framework/cache/data /var/www/html/storage/framework/sessions /var/www/html/bootstrap/cache && \
 chmod -R 777 /var/www/html/storage && \
 chmod -R 777 /var/www/html/bootstrap/cache && \
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache'"
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
+touch /var/www/html/storage/framework/views/.gitignore && \
+touch /var/www/html/storage/framework/cache/data/.gitignore && \
+touch /var/www/html/storage/framework/sessions/.gitignore'"
 
 # Ensure the VIEW_COMPILED_PATH is correctly set in the environment
 execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'export VIEW_COMPILED_PATH=/var/www/html/storage/framework/views && echo VIEW_COMPILED_PATH is set to /var/www/html/storage/framework/views'"
@@ -604,22 +624,41 @@ php artisan view:clear'"
 execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'ls -la /var/www/html/storage/framework/cache && ls -la /var/www/html/storage/framework/cache/data && ls -la /var/www/html/storage/framework/views && ls -la /var/www/html/bootstrap/cache && ls -la /var/www/html/config/view.php'"
 
 # Double-check that all cache directories exist with proper permissions
-execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'mkdir -p /var/www/html/storage/framework/cache/data /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/logs /var/www/html/bootstrap/cache && \
-chmod -R 777 /var/www/html/storage && \
-chmod -R 777 /var/www/html/bootstrap/cache && \
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache'"
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'mkdir -p /var/www/html/storage/framework/cache/data /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/logs /var/www/html/bootstrap/cache'"
 
-# Verify the VIEW_COMPILED_PATH is set in the .env file
-execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'grep VIEW_COMPILED_PATH /var/www/html/.env'"
+# Set proper permissions for cache directories
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'chmod -R 777 /var/www/html/storage'"
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'chmod -R 777 /var/www/html/bootstrap/cache'"
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache'"
 
-# Clear all caches and then rebuild them
-execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'php artisan config:clear && \
+# Copy view.php config file
+execute_ssh "cd $APP_DIR && sudo docker cp ./config/view.php \$(sudo docker ps -qf 'name=app' | head -n 1):/var/www/html/config/view.php"
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'chown www-data:www-data /var/www/html/config/view.php && chmod 644 /var/www/html/config/view.php'"
+
+# Clear all caches first
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'php artisan cache:clear && \
+php artisan config:clear && \
 php artisan view:clear && \
 php artisan route:clear && \
-php artisan optimize:clear && \
-php artisan config:cache && \
+php artisan optimize:clear'"
+
+# Verify cache directories exist and have correct permissions before rebuilding caches
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'mkdir -p /var/www/html/storage/framework/{sessions,views,cache,cache/data} && \
+chmod -R 777 /var/www/html/storage/framework && \
+chown -R www-data:www-data /var/www/html/storage/framework && \
+echo Re-verified cache directories before rebuilding caches'"
+
+# Touch .gitignore files to ensure directories are kept in git
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'touch /var/www/html/storage/framework/views/.gitignore && \
+touch /var/www/html/storage/framework/cache/.gitignore && \
+touch /var/www/html/storage/framework/cache/data/.gitignore && \
+touch /var/www/html/storage/framework/sessions/.gitignore'"
+
+# Rebuild caches
+execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'php artisan config:cache && \
 php artisan route:cache && \
-php artisan view:cache'"
+php artisan view:cache && \
+echo Successfully rebuilt all caches'"
 
 # 19. Wait for the database to be ready
 step 19 "Waiting for the database to be ready inside the app container"
