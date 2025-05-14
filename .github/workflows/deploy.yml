@@ -182,18 +182,18 @@ jobs:
             local source=$1
             local dest=$2
             local content_type=$3
-          local options="--endpoint-url \"${R2_S3_ENDPOINT}\" --acl public-read --no-progress"
-          
+            local options="--endpoint-url \"${R2_S3_ENDPOINT}\" --acl public-read --no-progress --size-only"
+            
             if [ ! -z "$content_type" ]; then
               options="$options --content-type \"$content_type\""
             fi
             
-          echo "Uploading $source to $dest"
-          if eval "aws s3 sync $source $dest $options --delete" &>/dev/null; then
-              echo "✅ Successfully uploaded $source to $dest"
+            echo "Uploading $source to $dest (only if missing or updated)"
+            if eval "aws s3 sync $source $dest $options --delete" &>/dev/null; then
+              echo "✅ Successfully synced $source to $dest"
               return 0
             else
-              echo "❌ Failed to upload $source to $dest"
+              echo "❌ Failed to sync $source to $dest"
               return 1
             fi
           }
@@ -208,13 +208,23 @@ jobs:
           echo "Setting content types for JS files..."
           find ./public/build -name "*.js" -type f | while read -r file; do
             relative_path="${file#./public/}"
-            aws s3 cp "$file" "s3://${R2_BUCKET_NAME}/${relative_path}" --endpoint-url "${R2_S3_ENDPOINT}" --content-type "application/javascript" --acl public-read --no-progress &>/dev/null
+            # Check if file exists and needs updating (using size comparison)
+            if ! aws s3 ls "s3://${R2_BUCKET_NAME}/${relative_path}" --endpoint-url "${R2_S3_ENDPOINT}" &>/dev/null || \
+               [ $(stat -c%s "$file") != $(aws s3api head-object --bucket "${R2_BUCKET_NAME}" --key "${relative_path}" --endpoint-url "${R2_S3_ENDPOINT}" --query 'ContentLength' --output text 2>/dev/null || echo 0) ]; then
+              echo "Updating JS file: ${relative_path}"
+              aws s3 cp "$file" "s3://${R2_BUCKET_NAME}/${relative_path}" --endpoint-url "${R2_S3_ENDPOINT}" --content-type "application/javascript" --acl public-read --no-progress &>/dev/null
+            fi
           done
           
           echo "Setting content types for CSS files..."
           find ./public/build -name "*.css" -type f | while read -r file; do
             relative_path="${file#./public/}"
-            aws s3 cp "$file" "s3://${R2_BUCKET_NAME}/${relative_path}" --endpoint-url "${R2_S3_ENDPOINT}" --content-type "text/css" --acl public-read --no-progress &>/dev/null
+            # Check if file exists and needs updating (using size comparison)
+            if ! aws s3 ls "s3://${R2_BUCKET_NAME}/${relative_path}" --endpoint-url "${R2_S3_ENDPOINT}" &>/dev/null || \
+               [ $(stat -c%s "$file") != $(aws s3api head-object --bucket "${R2_BUCKET_NAME}" --key "${relative_path}" --endpoint-url "${R2_S3_ENDPOINT}" --query 'ContentLength' --output text 2>/dev/null || echo 0) ]; then
+              echo "Updating CSS file: ${relative_path}"
+              aws s3 cp "$file" "s3://${R2_BUCKET_NAME}/${relative_path}" --endpoint-url "${R2_S3_ENDPOINT}" --content-type "text/css" --acl public-read --no-progress &>/dev/null
+            fi
           done
           
           # Upload other static assets

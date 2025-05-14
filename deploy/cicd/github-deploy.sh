@@ -37,8 +37,12 @@ DEPLOYMENT_ENV="${DEPLOYMENT_ENV:-production}"
 BRANCH_NAME="${BRANCH_NAME:-main}"
 
 # Set up logging
-LOG_DIR="${DEPLOY_DIR}/log"
-mkdir -p "$LOG_DIR"
+LOG_DIR="${APP_DIR}/logs"
+# Create log directory if it doesn't exist and ensure we have permission
+mkdir -p "$LOG_DIR" 2>/dev/null || {
+  echo "Warning: Cannot create log directory at $LOG_DIR, using /tmp for logs instead"
+  LOG_DIR="/tmp"
+}
 LOG_FILE="$LOG_DIR/github-deploy-${DEPLOYMENT_ENV}.log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
@@ -52,7 +56,7 @@ echo "Branch: $BRANCH_NAME"
 # 1. Ensure all required directories exist
 echo "Step 1: Ensuring required directories exist"
 mkdir -p "${DOCKER_DIR}/ci"
-mkdir -p "${DEPLOY_DIR}/log"
+mkdir -p "${APP_DIR}/logs" 2>/dev/null || echo "Note: Using temporary directory for logs instead"
 
 # 2. Clone or update the repository
 echo "Step 2: Updating repository"

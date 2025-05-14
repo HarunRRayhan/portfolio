@@ -15,11 +15,15 @@ DOCKER_DIR="${APP_DIR}/docker"
 CI_DIR="${DOCKER_DIR}/ci"
 
 # Set up logging
-LOG_DIR="$DEPLOY_DIR/log"
-mkdir -p "$LOG_DIR"
+LOG_DIR="${APP_DIR}/logs"
+# Create log directory if it doesn't exist and ensure we have permission
+mkdir -p "$LOG_DIR" 2>/dev/null || {
+  echo "Warning: Cannot create log directory at $LOG_DIR, using /tmp for logs instead"
+  LOG_DIR="/tmp"
+}
 # Archive previous ci-deploy.log if it exists
 if [ -f "$LOG_DIR/ci-deploy.log" ]; then
-  mv "$LOG_DIR/ci-deploy.log" "$LOG_DIR/ci-deploy-$(date '+%Y%m%d-%H%M%S').log"
+  mv "$LOG_DIR/ci-deploy.log" "$LOG_DIR/ci-deploy-$(date '+%Y%m%d-%H%M%S').log" 2>/dev/null || true
 fi
 LOG_FILE="$LOG_DIR/ci-deploy.log"
 exec > >(tee -a "$LOG_FILE") 2>&1
