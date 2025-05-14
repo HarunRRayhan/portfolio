@@ -241,6 +241,16 @@ jobs:
           echo "GITHUB_ACTOR=${GITHUB_ACTOR}" >> deployment_info.txt
           echo "DEPLOY_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> deployment_info.txt
 
+          # Create deployment directory on the server if it doesn't exist
+          ssh ${REMOTE_USER}@${REMOTE_HOST} "mkdir -p ${APP_DIR}/deploy/cicd"
+          
+          # Copy deployment scripts to the server
+          echo "Copying deployment scripts to server..."
+          scp -r ./deploy/cicd/* ${REMOTE_USER}@${REMOTE_HOST}:${APP_DIR}/deploy/cicd/
+          
+          # Make scripts executable on the server
+          ssh ${REMOTE_USER}@${REMOTE_HOST} "chmod +x ${APP_DIR}/deploy/cicd/*.sh"
+          
           # Copy deployment info to server
           scp deployment_info.txt ${REMOTE_USER}@${REMOTE_HOST}:${APP_DIR}/deployment_info.txt
 
@@ -260,8 +270,8 @@ jobs:
                    CLOUDFLARE_ZONE_ID=${CLOUDFLARE_ZONE_ID} \
                    CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}"
           
-          # Execute deployment script with reduced output
-          if ssh ${REMOTE_USER}@${REMOTE_HOST} "export $ENV_VARS && bash -s" < ./deploy/cicd/github-deploy.sh; then
+          # Execute deployment script directly on the server instead of piping it
+          if ssh ${REMOTE_USER}@${REMOTE_HOST} "export $ENV_VARS && cd ${APP_DIR} && ./deploy/cicd/github-deploy.sh"; then
             echo "✅ Remote deployment completed successfully"
           else
             echo "❌ Remote deployment failed. Check server logs for details."

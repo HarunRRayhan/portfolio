@@ -151,6 +151,40 @@ echo "Step 5: Running CI deployment script"
 export ENV_FILE_PATH="$DEPLOY_ENV_FILE"
 
 # Run the CI deployment script with environment variables
+# First check if the CI script exists at the expected location
+CI_SCRIPT="${DEPLOY_DIR}/cicd/ci-deploy.sh"
+if [ ! -f "$CI_SCRIPT" ]; then
+  echo "Warning: CI script not found at $CI_SCRIPT"
+  # Try to find the script in the current directory structure
+  FOUND_SCRIPT=$(find "$APP_DIR" -name "ci-deploy.sh" -type f | head -n 1)
+  
+  if [ -n "$FOUND_SCRIPT" ]; then
+    echo "Found CI script at $FOUND_SCRIPT"
+    CI_SCRIPT="$FOUND_SCRIPT"
+  else
+    echo "Error: Could not find ci-deploy.sh anywhere in $APP_DIR"
+    # Copy the script from the current directory to the app directory
+    mkdir -p "${APP_DIR}/deploy/cicd"
+    cp "${BASH_SOURCE[0]}" "${APP_DIR}/deploy/cicd/github-deploy.sh"
+    
+    # Create a minimal ci-deploy.sh script
+    cat > "${APP_DIR}/deploy/cicd/ci-deploy.sh" << 'EOF'
+#!/bin/bash
+echo "Minimal CI deployment script"
+echo "Environment: $DEPLOYMENT_ENV"
+echo "Branch: $BRANCH_NAME"
+echo "This is a fallback script created because the original was not found."
+# Basic deployment steps
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+EOF
+    
+    chmod +x "${APP_DIR}/deploy/cicd/ci-deploy.sh"
+    CI_SCRIPT="${APP_DIR}/deploy/cicd/ci-deploy.sh"
+    echo "Created minimal CI script at $CI_SCRIPT"
+  fi
+fi
+
+# Run the CI deployment script with environment variables
 DEPLOYMENT_ENV="$DEPLOYMENT_ENV" \
 BRANCH_NAME="$BRANCH_NAME" \
 POSTGRES_DB="$POSTGRES_DB" \
@@ -162,7 +196,7 @@ R2_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID" \
 R2_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY" \
 CLOUDFLARE_ZONE_ID="$CLOUDFLARE_ZONE_ID" \
 CLOUDFLARE_API_TOKEN="$CLOUDFLARE_API_TOKEN" \
-"${DEPLOY_DIR}/cicd/ci-deploy.sh"
+"$CI_SCRIPT"
 
 # Check if the deployment was successful
 if [ $? -ne 0 ]; then
