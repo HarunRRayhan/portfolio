@@ -48,15 +48,51 @@ jobs:
           NODE_ENV: production
 
       - name: Setup SSH key
+        id: ssh-setup
         uses: webfactory/ssh-agent@v0.7.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          
+      - name: Verify SSH key setup
+        run: |
+          if ! ssh-add -l &>/dev/null; then
+            echo "::error::SSH key was not added correctly. Please check your SSH_PRIVATE_KEY secret."
+            exit 1
+          else
+            echo "SSH key successfully added."
+          fi
 
       - name: Add host to known_hosts
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan -t rsa ${{ secrets.REMOTE_HOST }} >> ~/.ssh/known_hosts
 
+      - name: Validate required secrets
+        run: |
+          missing_secrets=""
+          
+          # Check for required secrets
+          [[ -z "${{ secrets.REMOTE_HOST }}" ]] && missing_secrets="$missing_secrets REMOTE_HOST"
+          [[ -z "${{ secrets.REMOTE_USER }}" ]] && missing_secrets="$missing_secrets REMOTE_USER"
+          [[ -z "${{ secrets.APP_DIR }}" ]] && missing_secrets="$missing_secrets APP_DIR"
+          [[ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]] && missing_secrets="$missing_secrets SSH_PRIVATE_KEY"
+          [[ -z "${{ secrets.R2_BUCKET_NAME }}" ]] && missing_secrets="$missing_secrets R2_BUCKET_NAME"
+          [[ -z "${{ secrets.R2_S3_ENDPOINT }}" ]] && missing_secrets="$missing_secrets R2_S3_ENDPOINT"
+          [[ -z "${{ secrets.R2_ACCESS_KEY_ID }}" ]] && missing_secrets="$missing_secrets R2_ACCESS_KEY_ID"
+          [[ -z "${{ secrets.R2_SECRET_ACCESS_KEY }}" ]] && missing_secrets="$missing_secrets R2_SECRET_ACCESS_KEY"
+          [[ -z "${{ secrets.CLOUDFLARE_ZONE_ID }}" ]] && missing_secrets="$missing_secrets CLOUDFLARE_ZONE_ID"
+          [[ -z "${{ secrets.CLOUDFLARE_API_TOKEN }}" ]] && missing_secrets="$missing_secrets CLOUDFLARE_API_TOKEN"
+          [[ -z "${{ secrets.POSTGRES_DB }}" ]] && missing_secrets="$missing_secrets POSTGRES_DB"
+          [[ -z "${{ secrets.POSTGRES_USER }}" ]] && missing_secrets="$missing_secrets POSTGRES_USER"
+          [[ -z "${{ secrets.POSTGRES_PASSWORD }}" ]] && missing_secrets="$missing_secrets POSTGRES_PASSWORD"
+          
+          if [[ ! -z "$missing_secrets" ]]; then
+            echo "::error::Missing required secrets:$missing_secrets"
+            exit 1
+          else
+            echo "All required secrets are present."
+          fi
+      
       - name: Deploy to server
         env:
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
@@ -125,7 +161,7 @@ jobs:
                                              export R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY} && \
                                              export CLOUDFLARE_ZONE_ID=${CLOUDFLARE_ZONE_ID} && \
                                              export CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN} && \
-                                             bash -s" < ./deploy/github-deploy.sh
+                                             bash -s" < ./deploy/cicd/github-deploy.sh
 
       - name: Purge Cloudflare Cache
         if: success()

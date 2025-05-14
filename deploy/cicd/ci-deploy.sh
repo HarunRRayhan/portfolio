@@ -8,13 +8,14 @@ set -o pipefail
 
 # Get absolute path to script directory
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+DEPLOY_DIR="$(dirname "$SCRIPT_DIR")"
+REPO_ROOT="$(dirname "$DEPLOY_DIR")"
 APP_DIR="${APP_DIR:-/opt/portfolio}"
 DOCKER_DIR="${APP_DIR}/docker"
 CI_DIR="${DOCKER_DIR}/ci"
 
 # Set up logging
-LOG_DIR="$SCRIPT_DIR/log"
+LOG_DIR="$DEPLOY_DIR/log"
 mkdir -p "$LOG_DIR"
 # Archive previous ci-deploy.log if it exists
 if [ -f "$LOG_DIR/ci-deploy.log" ]; then
@@ -24,11 +25,30 @@ LOG_FILE="$LOG_DIR/ci-deploy.log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
 # Load environment variables
-if [ -f "$SCRIPT_DIR/.env.deploy" ]; then
+if [ -f "$DEPLOY_DIR/.env.deploy" ]; then
   set -a
-  . "$SCRIPT_DIR/.env.deploy"
+  . "$DEPLOY_DIR/.env.deploy"
   set +a
 fi
+
+# Validate required environment variables
+echo "Validating required environment variables..."
+REQUIRED_VARS=("REMOTE_HOST" "REMOTE_USER" "SSH_KEY" "POSTGRES_DB" "POSTGRES_USER" "POSTGRES_PASSWORD" "R2_BUCKET_NAME" "R2_S3_ENDPOINT" "R2_ACCESS_KEY_ID" "R2_SECRET_ACCESS_KEY" "CLOUDFLARE_ZONE_ID" "CLOUDFLARE_API_TOKEN")
+MISSING_VARS=""
+
+for var in "${REQUIRED_VARS[@]}"; do
+  if [ -z "${!var}" ]; then
+    MISSING_VARS="$MISSING_VARS $var"
+  fi
+done
+
+if [ ! -z "$MISSING_VARS" ]; then
+  echo "ERROR: Missing required environment variables:$MISSING_VARS"
+  echo "Please ensure all required environment variables are set in the .env.deploy file or passed as environment variables."
+  exit 1
+fi
+
+echo "All required environment variables are present."
 
 # Signature and start time
 SCRIPT_START_TIME=$(date +%s)

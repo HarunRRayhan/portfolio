@@ -7,14 +7,34 @@ set -e
 set -o pipefail
 
 # Get absolute path to script directory
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+DEPLOY_DIR="$(dirname "$SCRIPT_DIR")"
 APP_DIR="${APP_DIR:-/opt/portfolio}"
 DOCKER_DIR="${APP_DIR}/docker"
-DEPLOY_DIR="${APP_DIR}/deploy"
 CI_DIR="${DOCKER_DIR}/ci"
 
 # Environment variables
 DEPLOYMENT_ENV="${DEPLOYMENT_ENV:-production}"
 BRANCH_NAME="${BRANCH_NAME:-main}"
+
+# Validate required environment variables
+echo "Validating required environment variables..."
+REQUIRED_VARS=("POSTGRES_DB" "POSTGRES_USER" "POSTGRES_PASSWORD" "R2_BUCKET_NAME" "R2_S3_ENDPOINT" "R2_ACCESS_KEY_ID" "R2_SECRET_ACCESS_KEY" "CLOUDFLARE_ZONE_ID" "CLOUDFLARE_API_TOKEN")
+MISSING_VARS=""
+
+for var in "${REQUIRED_VARS[@]}"; do
+  if [ -z "${!var}" ]; then
+    MISSING_VARS="$MISSING_VARS $var"
+  fi
+done
+
+if [ ! -z "$MISSING_VARS" ]; then
+  echo "ERROR: Missing required environment variables:$MISSING_VARS"
+  echo "Please ensure all required environment variables are set in the GitHub repository secrets."
+  exit 1
+fi
+
+echo "All required environment variables are present."
 
 # Set up logging
 LOG_DIR="${DEPLOY_DIR}/log"
@@ -46,7 +66,7 @@ git pull origin $BRANCH_NAME
 # 3. Ensure all CI scripts are executable
 echo "Step 3: Making CI scripts executable"
 chmod +x "${DOCKER_DIR}/ci/"*.sh 2>/dev/null || true
-chmod +x "${DEPLOY_DIR}/ci-deploy.sh" 2>/dev/null || true
+chmod +x "${DEPLOY_DIR}/cicd/ci-deploy.sh" 2>/dev/null || true
 
 # Ensure proper ownership of files
 echo "Ensuring proper ownership of files"
@@ -99,7 +119,7 @@ cp "$ENV_FILE" "${DEPLOY_DIR}/.env.deploy"
 
 # 5. Run the CI deployment script
 echo "Step 5: Running CI deployment script"
-"${DEPLOY_DIR}/ci-deploy.sh"
+"${DEPLOY_DIR}/cicd/ci-deploy.sh"
 
 # Check if the deployment was successful
 if [ $? -ne 0 ]; then
