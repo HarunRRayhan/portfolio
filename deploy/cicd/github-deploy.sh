@@ -62,10 +62,20 @@ mkdir -p "${APP_DIR}/logs" 2>/dev/null || echo "Note: Using temporary directory 
 echo "Step 2: Updating repository"
 cd "$APP_DIR"
 
+# Handle any local changes
+if git status --porcelain | grep -q .; then
+  echo "Local changes detected, stashing them..."
+  git stash save "Auto-stashed during deployment $(date)"
+fi
+
 # Checkout the specific branch
 git fetch origin
-git checkout $BRANCH_NAME
-git pull origin $BRANCH_NAME
+
+# Force checkout to avoid conflicts with local changes
+git checkout -f $BRANCH_NAME
+
+# Force pull to overwrite any local changes
+git reset --hard origin/$BRANCH_NAME
 
 # 3. Ensure all CI scripts are executable
 echo "Step 3: Making CI scripts executable"

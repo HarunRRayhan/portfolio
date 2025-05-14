@@ -244,6 +244,14 @@ jobs:
           # Create deployment directory on the server if it doesn't exist
           ssh ${REMOTE_USER}@${REMOTE_HOST} "mkdir -p ${APP_DIR}/deploy/cicd"
           
+          # Handle local changes on the server by backing them up
+          echo "Handling potential local changes on server..."
+          ssh ${REMOTE_USER}@${REMOTE_HOST} "cd ${APP_DIR} && if [ -d deploy/cicd ]; then 
+            mkdir -p deploy/cicd-backup-$(date +%Y%m%d%H%M%S) 
+            cp -r deploy/cicd/* deploy/cicd-backup-$(date +%Y%m%d%H%M%S)/ 2>/dev/null || true
+            echo 'Backed up existing deployment scripts'
+          fi"
+          
           # Copy deployment scripts to the server
           echo "Copying deployment scripts to server..."
           scp -r ./deploy/cicd/* ${REMOTE_USER}@${REMOTE_HOST}:${APP_DIR}/deploy/cicd/
