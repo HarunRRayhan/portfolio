@@ -376,18 +376,21 @@ DOCKER_COMPOSE_FILE="${APP_DIR}/docker/docker-compose-new.yml"
 
 # Ensure the Docker Compose file exists
 echo "Ensuring Docker Compose file exists at $DOCKER_COMPOSE_FILE"
-execute_ssh "if [ ! -f \"$DOCKER_COMPOSE_FILE\" ]; then
-  mkdir -p $(dirname \"$DOCKER_COMPOSE_FILE\")
-  cat > \"$DOCKER_COMPOSE_FILE\" << 'EOF'
+
+# Create the Docker Compose file directly on the server
+execute_ssh "mkdir -p \"$(dirname $DOCKER_COMPOSE_FILE)\""
+
+# Create a simple Docker Compose file with a single command
+execute_ssh "cat > $DOCKER_COMPOSE_FILE << 'EOFMARKER'
 version: '3.8'
 
 services:
-  app_${TIMESTAMP}:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
-    image: portfolio:${TIMESTAMP}
-    container_name: portfolio-app-${TIMESTAMP}
+    image: portfolio:latest
+    container_name: portfolio-app
     restart: unless-stopped
     networks:
       - portfolio-network
@@ -395,15 +398,14 @@ services:
 networks:
   portfolio-network:
     driver: bridge
-EOF
-fi"
+EOFMARKER"
 
 # Build the new container
 DOCKER_BUILD_CMD=$(docker_compose_run "$DOCKER_COMPOSE_FILE" "build --no-cache")
 execute_ssh "cd $APP_DIR && $DOCKER_BUILD_CMD"
 
 # Start the new container
-DOCKER_UP_CMD=$(docker_compose_run "${DOCKER_DIR}/docker-compose-new.yml" "up -d")
+DOCKER_UP_CMD=$(docker_compose_run "$DOCKER_COMPOSE_FILE" "up -d")
 execute_ssh "cd $APP_DIR && $DOCKER_UP_CMD"
 
 # Check if the new container started successfully
