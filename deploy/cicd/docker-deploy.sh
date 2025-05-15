@@ -73,13 +73,7 @@ services:
       - DB_PASSWORD=\${POSTGRES_PASSWORD:-laravel}
       - VIEW_COMPILED_PATH=/app/storage/framework/views
     restart: unless-stopped
-    networks:
-      - app-network
     command: bash -c "mkdir -p /app/storage/framework/{sessions,views,cache,cache/data} && chmod -R 777 /app/storage && supervisord"
-
-networks:
-  app-network:
-    driver: bridge
 EOF"
 
 # Find Docker command
@@ -100,7 +94,29 @@ echo "Using Docker command: $DOCKER_CMD"
 
 # Start the container
 echo "Starting Docker container..."
-execute_ssh "cd ${APP_DIR} && ${DOCKER_CMD} compose -f ${DOCKER_COMPOSE_FILE} up -d || docker-compose -f ${DOCKER_COMPOSE_FILE} up -d"
+execute_ssh "cd ${APP_DIR} && ${DOCKER_CMD} run -d --name portfolio-app-${TIMESTAMP} \
+  -p 8080:80 \
+  -v ${APP_DIR}:/app \
+  -e WEB_DOCUMENT_ROOT=/app/public \
+  -e WEB_DOCUMENT_INDEX=index.php \
+  -e PHP_DISPLAY_ERRORS=1 \
+  -e PHP_MEMORY_LIMIT=512M \
+  -e PHP_MAX_EXECUTION_TIME=300 \
+  -e PHP_POST_MAX_SIZE=50M \
+  -e PHP_UPLOAD_MAX_FILESIZE=50M \
+  -e APP_ENV=production \
+  -e APP_DEBUG=true \
+  -e APP_URL=http://localhost:8080 \
+  -e DB_CONNECTION=pgsql \
+  -e DB_HOST=db \
+  -e DB_PORT=5432 \
+  -e DB_DATABASE=\${POSTGRES_DB:-laravel} \
+  -e DB_USERNAME=\${POSTGRES_USER:-laravel} \
+  -e DB_PASSWORD=\${POSTGRES_PASSWORD:-laravel} \
+  -e VIEW_COMPILED_PATH=/app/storage/framework/views \
+  --restart unless-stopped \
+  webdevops/php-nginx:8.2-alpine \
+  bash -c 'mkdir -p /app/storage/framework/{sessions,views,cache,cache/data} && chmod -R 777 /app/storage && supervisord'"
 
 # Check if container is running
 echo "Verifying container is running..."
