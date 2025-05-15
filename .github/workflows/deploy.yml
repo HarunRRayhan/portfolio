@@ -297,16 +297,20 @@ jobs:
           
           # Try to create /opt/deploy with sudo if possible, otherwise use a different approach
           echo "Attempting to create /opt/deploy directory with proper permissions..."
-          ssh ${REMOTE_USER}@${REMOTE_HOST} "sudo mkdir -p /opt/deploy && sudo chown -R ${REMOTE_USER}:${REMOTE_USER} /opt/deploy" || {
+          ssh ${REMOTE_USER}@${REMOTE_HOST} "sudo mkdir -p /opt/deploy/docker && sudo chown -R ${REMOTE_USER}:${REMOTE_USER} /opt/deploy" || {
             echo "Could not create /opt/deploy with sudo, trying alternative approach..."
             # Create a directory in the user's home directory instead
-            ssh ${REMOTE_USER}@${REMOTE_HOST} "mkdir -p ~/opt_deploy"
+            ssh ${REMOTE_USER}@${REMOTE_HOST} "mkdir -p ~/opt_deploy/docker"
             
             # Update environment variables to use this directory instead
             ENV_VARS="${ENV_VARS} OPT_DEPLOY_DIR=~/opt_deploy"
             
             echo "Will use ~/opt_deploy instead of /opt/deploy"
           }
+          
+          # Ensure all required directories exist in APP_DIR
+          echo "Creating all required directories in ${APP_DIR}..."
+          ssh ${REMOTE_USER}@${REMOTE_HOST} "mkdir -p ${APP_DIR}/docker ${APP_DIR}/deploy/cicd ${APP_DIR}/docker/ci"
           
           # Execute deployment script directly on the server instead of piping it
           if ssh ${REMOTE_USER}@${REMOTE_HOST} "export $ENV_VARS && cd ${APP_DIR} && ./deploy/cicd/github-deploy.sh"; then

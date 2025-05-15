@@ -324,7 +324,7 @@ OPT_DEPLOY_DIR=${OPT_DEPLOY_DIR:-/opt/deploy}
 if [ "$OPT_DEPLOY_DIR" != "/opt/deploy" ]; then
   echo "Using alternative deploy directory: $OPT_DEPLOY_DIR"
   # Create the directory if it doesn't exist
-  execute_ssh "mkdir -p $OPT_DEPLOY_DIR"
+  execute_ssh "mkdir -p $OPT_DEPLOY_DIR/docker"
   
   # Create a symlink from APP_DIR/deploy to OPT_DEPLOY_DIR if they're different
   if [ "${APP_DIR}/deploy" != "$OPT_DEPLOY_DIR" ]; then
@@ -335,9 +335,15 @@ else
   # Try to ensure /opt/deploy directory exists or create a symlink
   if [ ! -d "/opt/deploy" ]; then
     echo "Attempting to create /opt/deploy directory..."
-    execute_ssh "sudo mkdir -p /opt/deploy && sudo chown -R $(whoami):$(whoami) /opt/deploy 2>/dev/null || (mkdir -p ~/opt_deploy && ln -sf ~/opt_deploy /opt/deploy 2>/dev/null || echo 'Warning: Could not create /opt/deploy directory')"
+    execute_ssh "sudo mkdir -p /opt/deploy/docker && sudo chown -R $(whoami):$(whoami) /opt/deploy 2>/dev/null || (mkdir -p ~/opt_deploy/docker && ln -sf ~/opt_deploy /opt/deploy 2>/dev/null || echo 'Warning: Could not create /opt/deploy directory')"
+  else
+    # Ensure the docker directory exists inside /opt/deploy
+    execute_ssh "mkdir -p /opt/deploy/docker"
   fi
 fi
+
+# Ensure the Docker directory exists in the APP_DIR
+execute_ssh "mkdir -p ${APP_DIR}/docker"
 
 # Ensure docker directory exists
 mkdir -p "${DOCKER_DIR}"
@@ -365,8 +371,35 @@ networks:
 EOF
 fi
 
+# Define the Docker Compose file path
+DOCKER_COMPOSE_FILE="${APP_DIR}/docker/docker-compose-new.yml"
+
+# Ensure the Docker Compose file exists
+echo "Ensuring Docker Compose file exists at $DOCKER_COMPOSE_FILE"
+execute_ssh "if [ ! -f \"$DOCKER_COMPOSE_FILE\" ]; then
+  mkdir -p $(dirname \"$DOCKER_COMPOSE_FILE\")
+  cat > \"$DOCKER_COMPOSE_FILE\" << 'EOF'
+version: '3.8'
+
+services:
+  app_${TIMESTAMP}:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: portfolio:${TIMESTAMP}
+    container_name: portfolio-app-${TIMESTAMP}
+    restart: unless-stopped
+    networks:
+      - portfolio-network
+
+networks:
+  portfolio-network:
+    driver: bridge
+EOF
+fi"
+
 # Build the new container
-DOCKER_BUILD_CMD=$(docker_compose_run "${DOCKER_DIR}/docker-compose-new.yml" "build --no-cache")
+DOCKER_BUILD_CMD=$(docker_compose_run "$DOCKER_COMPOSE_FILE" "build --no-cache")
 execute_ssh "cd $APP_DIR && $DOCKER_BUILD_CMD"
 
 # Start the new container
