@@ -2,31 +2,22 @@ version: '3.8'
 
 services:
   app:
-    image: nginx:alpine
+    image: webdevops/php-nginx:8.2-alpine
     container_name: portfolio-app-${TIMESTAMP}
     restart: unless-stopped
     volumes:
-      - ${APP_DIR}:/var/www/html
-      - ${APP_DIR}/docker/ci/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ${APP_DIR}:/app
     ports:
       - "8080:80"
     networks:
       - portfolio-network
-  
-  php:
-    image: bitnami/laravel:latest
-    container_name: portfolio-php-${TIMESTAMP}
-    restart: unless-stopped
-    volumes:
-      - ${APP_DIR}:/app
-    networks:
-      - portfolio-network
     environment:
-      - DB_HOST=db
-      - DB_PORT=3306
-      - DB_USERNAME=laravel
-      - DB_DATABASE=laravel
-      - DB_PASSWORD=laravel
+      - WEB_DOCUMENT_ROOT=/app/public
+      - PHP_DISPLAY_ERRORS=1
+      - PHP_MEMORY_LIMIT=512M
+      - PHP_MAX_EXECUTION_TIME=300
+      - PHP_POST_MAX_SIZE=50M
+      - PHP_UPLOAD_MAX_FILESIZE=50M
 
 networks:
   portfolio-network:
