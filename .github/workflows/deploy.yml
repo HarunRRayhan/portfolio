@@ -340,8 +340,12 @@ jobs:
             echo 'Docker is installed and available in PATH'
           fi"
           
-          # Execute deployment script directly on the server instead of piping it
-          if ssh ${REMOTE_USER}@${REMOTE_HOST} "export $ENV_VARS && cd ${APP_DIR} && ./deploy/cicd/github-deploy.sh"; then
+          # Copy our new Docker deployment script to the server
+          scp -r ${GITHUB_WORKSPACE}/deploy/cicd/docker-deploy.sh ${REMOTE_USER}@${REMOTE_HOST}:${APP_DIR}/deploy/cicd/
+          ssh ${REMOTE_USER}@${REMOTE_HOST} "chmod +x ${APP_DIR}/deploy/cicd/docker-deploy.sh"
+          
+          # Execute our new Docker deployment script directly on the server
+          if ssh ${REMOTE_USER}@${REMOTE_HOST} "export $ENV_VARS && cd ${APP_DIR} && ./deploy/cicd/docker-deploy.sh"; then
             echo "✅ Remote deployment completed successfully"
           else
             echo "❌ Remote deployment failed. Check server logs for details."
