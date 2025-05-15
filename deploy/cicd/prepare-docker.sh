@@ -79,24 +79,16 @@ services:
       - portfolio-network
   
   php:
-    image: php:8.2-fpm-alpine
+    build:
+      context: ${APP_DIR}/docker/ci
+      dockerfile: Dockerfile.php
     container_name: portfolio-php-${TIMESTAMP}
     restart: unless-stopped
     volumes:
       - ${APP_DIR}:/var/www/html
+      - ${APP_DIR}/docker/ci/entrypoint.sh:/entrypoint.sh
     networks:
       - portfolio-network
-    command: >
-      sh -c "cd /var/www/html && 
-             apk add --no-cache git unzip libzip-dev zip libpng-dev icu-dev && 
-             docker-php-ext-install pdo pdo_mysql zip gd intl && 
-             curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && 
-             echo 'Installing Composer dependencies...' && 
-             composer install --no-dev --optimize-autoloader --no-interaction && 
-             echo 'Composer dependencies installed successfully' && 
-             mkdir -p /var/www/html/storage/framework/{sessions,views,cache,cache/data} && 
-             chmod -R 777 /var/www/html/storage && 
-             php-fpm"
 
 networks:
   portfolio-network:
