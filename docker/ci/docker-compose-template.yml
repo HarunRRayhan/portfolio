@@ -13,11 +13,18 @@ services:
       - portfolio-network
     environment:
       - WEB_DOCUMENT_ROOT=/app/public
+      - WEB_DOCUMENT_INDEX=index.php
       - PHP_DISPLAY_ERRORS=1
       - PHP_MEMORY_LIMIT=512M
       - PHP_MAX_EXECUTION_TIME=300
       - PHP_POST_MAX_SIZE=50M
       - PHP_UPLOAD_MAX_FILESIZE=50M
+      - FPM_PROCESS_MAX=100
+      - FPM_PM_MAX_CHILDREN=20
+      - FPM_PM_START_SERVERS=2
+      - FPM_PM_MIN_SPARE_SERVERS=1
+      - FPM_PM_MAX_SPARE_SERVERS=3
+    command: bash -c "mkdir -p /app/storage/framework/{sessions,views,cache,cache/data} && chmod -R 777 /app/storage && supervisord"
 
 networks:
   portfolio-network:
