@@ -13,6 +13,26 @@ APP_DIR="$(dirname "$DEPLOY_DIR")"
 DOCKER_DIR="${APP_DIR}/docker"
 CI_DIR="${DOCKER_DIR}/ci"
 
+# Define Docker command with full path to ensure it's found
+DOCKER_CMD="/usr/bin/docker"
+# Check if docker exists at the default location
+if [ ! -f "$DOCKER_CMD" ]; then
+  # Try to find docker in common locations
+  if [ -f /usr/local/bin/docker ]; then
+    DOCKER_CMD='/usr/local/bin/docker'
+  elif [ -f /bin/docker ]; then
+    DOCKER_CMD='/bin/docker'
+  elif command -v docker >/dev/null 2>&1; then
+    DOCKER_CMD='docker'
+  else
+    echo 'Error: Docker command not found. Please ensure Docker is installed.'
+    exit 1
+  fi
+fi
+
+# Export the Docker command for other scripts
+export DOCKER_CMD
+
 # Create timestamp for deployment
 TIMESTAMP=$(date +%Y%m%d%H%M%S)
 

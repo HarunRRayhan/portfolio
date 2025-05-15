@@ -297,7 +297,12 @@ EOF
     docker_env_vars="$docker_env_vars OPT_DEPLOY_DIR=$OPT_DEPLOY_DIR"
   fi
   
-  echo "$docker_env_vars docker-compose -f $compose_file $command"
+  # Use docker-compose or docker compose based on what's available
+  if command -v docker-compose >/dev/null 2>&1; then
+    echo "$docker_env_vars docker-compose -f $compose_file $command"
+  else
+    echo "$docker_env_vars $DOCKER_CMD compose -f $compose_file $command"
+  fi
 }
 
 # Function to execute Docker Compose command with proper environment variables
@@ -314,7 +319,12 @@ docker_compose_exec() {
     docker_compose_run "$compose_file" "version"
   fi
   
-  echo "$docker_env_vars docker-compose -f $compose_file exec -T $service $command"
+  # Use docker-compose or docker compose based on what's available
+  if command -v docker-compose >/dev/null 2>&1; then
+    echo "$docker_env_vars docker-compose -f $compose_file exec -T $service $command"
+  else
+    echo "$docker_env_vars $DOCKER_CMD compose -f $compose_file exec -T $service $command"
+  fi
 }
 
 # Determine which deploy directory to use
@@ -469,13 +479,30 @@ execute_ssh "cd $APP_DIR && $DOCKER_UP_CMD"
 APP_CONTAINER_NAME="portfolio-app-${TIMESTAMP}"
 PHP_CONTAINER_NAME="portfolio-php-${TIMESTAMP}"
 
+# Define Docker command with full path to ensure it's found
+DOCKER_CMD="/usr/bin/docker"
+# Check if docker exists at the default location
+execute_ssh "if [ ! -f $DOCKER_CMD ]; then
+  # Try to find docker in common locations
+  if [ -f /usr/local/bin/docker ]; then
+    DOCKER_CMD='/usr/local/bin/docker'
+  elif [ -f /bin/docker ]; then
+    DOCKER_CMD='/bin/docker'
+  elif command -v docker >/dev/null 2>&1; then
+    DOCKER_CMD='docker'
+  else
+    echo 'Error: Docker command not found. Please ensure Docker is installed.'
+    exit 1
+  fi
+fi"
+
 # Check if containers are running
-APP_CONTAINER_CHECK=$(execute_ssh "cd $APP_DIR && docker ps -q -f name=$APP_CONTAINER_NAME")
-PHP_CONTAINER_CHECK=$(execute_ssh "cd $APP_DIR && docker ps -q -f name=$PHP_CONTAINER_NAME")
+APP_CONTAINER_CHECK=$(execute_ssh "cd $APP_DIR && $DOCKER_CMD ps -q -f name=$APP_CONTAINER_NAME")
+PHP_CONTAINER_CHECK=$(execute_ssh "cd $APP_DIR && $DOCKER_CMD ps -q -f name=$PHP_CONTAINER_NAME")
 
 if [ -z "$APP_CONTAINER_CHECK" ]; then
   fail "Nginx container failed to start. Rolling back..."
-  execute_ssh "cd $APP_DIR && ${CI_DIR}/rollback.sh 2>/dev/null || docker-compose -f $DOCKER_COMPOSE_FILE down"
+  execute_ssh "cd $APP_DIR && ${CI_DIR}/rollback.sh 2>/dev/null || docker-compose -f $DOCKER_COMPOSE_FILE down || $DOCKER_CMD compose -f $DOCKER_COMPOSE_FILE down"
   exit 1
 fi
 
@@ -528,13 +555,13 @@ PHP_CONTAINER_CHECK=$(execute_ssh "cd $APP_DIR && docker ps -q -f name=$PHP_CONT
 
 if [ -z "$APP_CONTAINER_CHECK" ]; then
   fail "Nginx container is not running. Deployment failed."
-  execute_ssh "cd $APP_DIR && docker-compose -f $DOCKER_COMPOSE_FILE down"
+  execute_ssh "cd $APP_DIR && docker-compose -f $DOCKER_COMPOSE_FILE down || $DOCKER_CMD compose -f $DOCKER_COMPOSE_FILE down"
   exit 1
 fi
 
 if [ -z "$PHP_CONTAINER_CHECK" ]; then
   fail "PHP container is not running. Deployment failed."
-  execute_ssh "cd $APP_DIR && docker-compose -f $DOCKER_COMPOSE_FILE down"
+  execute_ssh "cd $APP_DIR && docker-compose -f $DOCKER_COMPOSE_FILE down || $DOCKER_CMD compose -f $DOCKER_COMPOSE_FILE down"
   exit 1
 fi
 
@@ -569,11 +596,11 @@ success "New deployment verified successfully"
 step 5 "Cleaning up old containers"
 
 # Find and remove old containers with similar names but different timestamps
-OLD_CONTAINERS=$(execute_ssh "docker ps -a --format '{{.Names}}' | grep -v '$APP_CONTAINER_NAME\|$PHP_CONTAINER_NAME' | grep 'portfolio-app\|portfolio-php'")
+OLD_CONTAINERS=$(execute_ssh "$DOCKER_CMD ps -a --format '{{.Names}}' | grep -v '$APP_CONTAINER_NAME\|$PHP_CONTAINER_NAME' | grep 'portfolio-app\|portfolio-php'")
 if [ ! -z "$OLD_CONTAINERS" ]; then
   echo "Found old containers to clean up: $OLD_CONTAINERS"
   for container in $OLD_CONTAINERS; do
-    execute_ssh "docker rm -f $container 2>/dev/null || true"
+    execute_ssh "$DOCKER_CMD rm -f $container 2>/dev/null || true"
   done
   echo "Old containers cleaned up"
 else

@@ -317,6 +317,23 @@ jobs:
           echo "Creating all required directories in ${APP_DIR}..."
           ssh ${REMOTE_USER}@${REMOTE_HOST} "mkdir -p ${APP_DIR}/docker ${APP_DIR}/deploy/cicd ${APP_DIR}/docker/ci"
           
+          # Verify Docker is installed and available
+          echo "Verifying Docker installation on the server..."
+          ssh ${REMOTE_USER}@${REMOTE_HOST} "if ! command -v docker &> /dev/null; then
+            echo 'Docker not found in PATH. Checking common locations...'
+            if [ -f /usr/bin/docker ]; then
+              echo 'Docker found at /usr/bin/docker'
+              export PATH=\"$PATH:/usr/bin\"
+            elif [ -f /usr/local/bin/docker ]; then
+              echo 'Docker found at /usr/local/bin/docker'
+              export PATH=\"$PATH:/usr/local/bin\"
+            else
+              echo 'WARNING: Docker not found. Please ensure Docker is installed on the server.'
+            fi
+          else
+            echo 'Docker is installed and available in PATH'
+          fi"
+          
           # Execute deployment script directly on the server instead of piping it
           if ssh ${REMOTE_USER}@${REMOTE_HOST} "export $ENV_VARS && cd ${APP_DIR} && ./deploy/cicd/github-deploy.sh"; then
             echo "✅ Remote deployment completed successfully"
