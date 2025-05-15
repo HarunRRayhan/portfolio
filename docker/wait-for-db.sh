@@ -1,21 +1,27 @@
-#!/bin/sh
+#!/bin/bash
 
-# Usage: ./wait-for-db.sh host port [timeout]
-# Example: ./wait-for-db.sh db 5432 60
+# Script to wait for the database to be ready
+# Usage: ./wait-for-db.sh [host] [port] [timeout]
 
-HOST="$1"
-PORT="$2"
+set -e
+
+HOST="${1:-db}"
+PORT="${2:-5432}"
 TIMEOUT="${3:-60}"
 
-START_TIME=$(date +%s)
+echo "Waiting for database at $HOST:$PORT to be ready (timeout: ${TIMEOUT}s)..."
 
-while :; do
-  nc -z "$HOST" "$PORT" 2>/dev/null && echo "Database is up!" && exit 0
-  NOW=$(date +%s)
-  if [ $((NOW - START_TIME)) -ge "$TIMEOUT" ]; then
-    echo "Timed out waiting for $HOST:$PORT after $TIMEOUT seconds" >&2
-    exit 1
+start_time=$(date +%s)
+end_time=$((start_time + TIMEOUT))
+
+while [ $(date +%s) -lt $end_time ]; do
+  if nc -z "$HOST" "$PORT" > /dev/null 2>&1; then
+    echo "Database is ready!"
+    exit 0
   fi
-  echo "Waiting for $HOST:$PORT..."
-  sleep 2
-done 
+  echo "Database is not ready yet, waiting..."
+  sleep 1
+done
+
+echo "Timed out waiting for database at $HOST:$PORT"
+exit 1

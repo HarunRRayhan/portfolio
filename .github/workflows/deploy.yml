@@ -268,8 +268,13 @@ jobs:
           echo "Copying deployment scripts to server..."
           scp -r ./deploy/cicd/* ${REMOTE_USER}@${REMOTE_HOST}:${APP_DIR}/deploy/cicd/
           
+          # Copy Docker scripts to the server
+          echo "Copying Docker scripts to server..."
+          ssh ${REMOTE_USER}@${REMOTE_HOST} "mkdir -p ${APP_DIR}/docker"
+          scp -r ./docker/wait-for-db.sh ${REMOTE_USER}@${REMOTE_HOST}:${APP_DIR}/docker/
+          
           # Make scripts executable on the server
-          ssh ${REMOTE_USER}@${REMOTE_HOST} "chmod +x ${APP_DIR}/deploy/cicd/*.sh"
+          ssh ${REMOTE_USER}@${REMOTE_HOST} "chmod +x ${APP_DIR}/deploy/cicd/*.sh ${APP_DIR}/docker/*.sh 2>/dev/null || true"
           
           # Copy deployment info to server
           scp deployment_info.txt ${REMOTE_USER}@${REMOTE_HOST}:${APP_DIR}/deployment_info.txt
