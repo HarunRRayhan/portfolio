@@ -39,29 +39,6 @@ echo "Creating required directories..."
 execute_ssh "mkdir -p ${APP_DIR}/docker/ci ${APP_DIR}/storage/framework/{sessions,views,cache,cache/data}"
 execute_ssh "chmod -R 777 ${APP_DIR}/storage"
 
-# Check if we need to rebuild the Docker image or use an existing one
-echo "Checking for existing Docker image..."
-IMAGE_EXISTS=$(execute_ssh "${DOCKER_CMD:-docker} images -q portfolio-app:latest 2>/dev/null")
-REBUILD_NEEDED="false"
-
-# Check if source code has changed since last build
-if [ -n "$IMAGE_EXISTS" ]; then
-  echo "Found existing Docker image. Using existing image without rebuilding."
-else
-  echo "No existing Docker image found. Building new image..."
-  REBUILD_NEEDED="true"
-fi
-
-# Build Docker image if needed
-if [ "$REBUILD_NEEDED" = "true" ]; then
-  echo "Building Docker image using the production Dockerfile..."
-  execute_ssh "cd ${APP_DIR} && ${DOCKER_CMD:-docker} build -t portfolio-app:latest -f docker/Dockerfile ."
-  if [ $? -ne 0 ]; then
-    echo "Failed to build Docker image. Aborting deployment."
-    exit 1
-  fi
-fi
-
 # Create Docker Compose file
 echo "Creating Docker Compose file..."
 DOCKER_COMPOSE_FILE="${APP_DIR}/docker/docker-compose.yml"
@@ -71,39 +48,34 @@ version: '3.8'
 
 services:
   app:
-    image: portfolio-app:latest
+    image: webdevops/php-nginx:8.2-alpine
     container_name: portfolio-app-${TIMESTAMP}
     volumes:
-      - ${APP_DIR}/.env:/var/www/html/.env
-      - ${APP_DIR}/storage:/var/www/html/storage
+      - ${APP_DIR}:/app
+    ports:
+      - \"8080:80\"
     environment:
+      - WEB_DOCUMENT_ROOT=/app/public
+      - WEB_DOCUMENT_INDEX=index.php
+      - PHP_DISPLAY_ERRORS=1
+      - PHP_MEMORY_LIMIT=512M
+      - PHP_MAX_EXECUTION_TIME=300
+      - PHP_POST_MAX_SIZE=50M
+      - PHP_UPLOAD_MAX_FILESIZE=50M
       - APP_ENV=production
-      - APP_DEBUG=false
-      - APP_URL=https://harun.dev
+      - APP_DEBUG=true
+      - APP_URL=http://localhost:8080
       - DB_CONNECTION=pgsql
       - DB_HOST=db
       - DB_PORT=5432
       - DB_DATABASE=\${POSTGRES_DB:-laravel}
       - DB_USERNAME=\${POSTGRES_USER:-laravel}
       - DB_PASSWORD=\${POSTGRES_PASSWORD:-laravel}
-      - VIEW_COMPILED_PATH=/var/www/html/storage/framework/views
+      - VIEW_COMPILED_PATH=/app/storage/framework/views
     restart: unless-stopped
     networks:
       - app-network
-
-  nginx:
-    image: nginx:1.25-alpine
-    container_name: portfolio-nginx-${TIMESTAMP}
-    volumes:
-      - ${APP_DIR}/docker/ci/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - ${APP_DIR}/public:/var/www/html/public:ro
-    ports:
-      - \"8080:80\"
-    depends_on:
-      - app
-    restart: unless-stopped
-    networks:
-      - app-network
+    command: bash -c "mkdir -p /app/storage/framework/{sessions,views,cache,cache/data} && chmod -R 777 /app/storage && supervisord"
 
 networks:
   app-network:
@@ -142,30 +114,25 @@ fi
 rollback_deployment() {
   echo "⚠️ Rolling back deployment due to: $1"
   
-  # Stop and remove the current containers
-  execute_ssh "${DOCKER_CMD} rm -f portfolio-app-${TIMESTAMP} portfolio-nginx-${TIMESTAMP} 2>/dev/null || true"
+  # Stop and remove the current container
+  execute_ssh "${DOCKER_CMD} rm -f portfolio-app-${TIMESTAMP} 2>/dev/null || true"
   
-  # Find the most recent previous app container timestamp
-  PREVIOUS_TIMESTAMP=$(execute_ssh "${DOCKER_CMD} ps -a --format '{{.Names}}' | grep 'portfolio-app-' | grep -v 'portfolio-app-${TIMESTAMP}' | sort -r | head -n 1 | sed 's/portfolio-app-//'")
+  # Find the most recent previous app container
+  PREVIOUS_CONTAINER=$(execute_ssh "${DOCKER_CMD} ps -a --format '{{.Names}}' | grep 'portfolio-app-' | grep -v 'portfolio-app-${TIMESTAMP}' | sort -r | head -n 1")
   
-  if [ -n "$PREVIOUS_TIMESTAMP" ]; then
-    echo "Found previous deployment with timestamp: $PREVIOUS_TIMESTAMP. Restarting it..."
+  if [ -n "$PREVIOUS_CONTAINER" ]; then
+    echo "Found previous container: $PREVIOUS_CONTAINER. Restarting it..."
     
-    # Start both app and nginx containers from previous deployment
-    execute_ssh "${DOCKER_CMD} start portfolio-app-$PREVIOUS_TIMESTAMP portfolio-nginx-$PREVIOUS_TIMESTAMP || true"
+    # Start the previous container
+    execute_ssh "${DOCKER_CMD} start $PREVIOUS_CONTAINER || true"
     
-    # Check if previous containers started successfully
-    PREV_APP_CHECK=$(execute_ssh "${DOCKER_CMD} ps -q -f name=portfolio-app-$PREVIOUS_TIMESTAMP")
-    PREV_NGINX_CHECK=$(execute_ssh "${DOCKER_CMD} ps -q -f name=portfolio-nginx-$PREVIOUS_TIMESTAMP")
+    # Check if previous container started successfully
+    PREV_CONTAINER_CHECK=$(execute_ssh "${DOCKER_CMD} ps -q -f name=$PREVIOUS_CONTAINER")
     
-    if [ -n "$PREV_APP_CHECK" ] && [ -n "$PREV_NGINX_CHECK" ]; then
-      echo "✅ Rollback successful. Previous containers are now running."
-    elif [ -n "$PREV_APP_CHECK" ]; then
-      echo "⚠️ Partial rollback: App container is running, but Nginx container failed to start."
-    elif [ -n "$PREV_NGINX_CHECK" ]; then
-      echo "⚠️ Partial rollback: Nginx container is running, but App container failed to start."
+    if [ -n "$PREV_CONTAINER_CHECK" ]; then
+      echo "✅ Rollback successful. Previous container is now running."
     else
-      echo "❌ Failed to restart previous containers. Manual intervention required."
+      echo "❌ Failed to restart previous container. Manual intervention required."
     fi
   else
     echo "❌ No previous containers found for rollback. Manual intervention required."
@@ -174,17 +141,12 @@ rollback_deployment() {
   exit 1
 }
 
-# Check if both containers are running
-echo "Checking if both app and nginx containers are running..."
-APP_CONTAINER_CHECK=$(execute_ssh "${DOCKER_CMD} ps -q -f name=portfolio-app-${TIMESTAMP}")
-NGINX_CONTAINER_CHECK=$(execute_ssh "${DOCKER_CMD} ps -q -f name=portfolio-nginx-${TIMESTAMP}")
+# Check if container is running
+echo "Checking if container is running..."
+CONTAINER_CHECK=$(execute_ssh "${DOCKER_CMD} ps -q -f name=portfolio-app-${TIMESTAMP}")
 
-if [ -z "$APP_CONTAINER_CHECK" ]; then
-  rollback_deployment "App container failed to start or crashed"
-fi
-
-if [ -z "$NGINX_CONTAINER_CHECK" ]; then
-  rollback_deployment "Nginx container failed to start or crashed"
+if [ -z "$CONTAINER_CHECK" ]; then
+  rollback_deployment "Container failed to start or crashed"
 fi
 
 # Check if web server is responding
@@ -204,10 +166,8 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
   else
     echo "Web server returned: $SERVER_CHECK. Waiting 10 seconds before retry..."
     # Check container logs to help with debugging
-    echo "App container logs:"
-    execute_ssh "${DOCKER_CMD} logs --tail 20 portfolio-app-${TIMESTAMP}"
-    echo "Nginx container logs:"
-    execute_ssh "${DOCKER_CMD} logs --tail 20 portfolio-nginx-${TIMESTAMP}"
+    echo "Container logs:"
+    execute_ssh "${DOCKER_CMD} logs --tail 30 portfolio-app-${TIMESTAMP}"
     sleep 10
     RETRY_COUNT=$((RETRY_COUNT + 1))
   fi
@@ -217,16 +177,17 @@ if [ "$SERVER_UP" != "true" ]; then
   rollback_deployment "Web server is not responding properly after multiple attempts"
 fi
 
-# Clean up old containers
+# Clean up old containers (keep the most recent 2 for potential rollback)
 echo "Cleaning up old containers..."
-OLD_CONTAINERS=$(execute_ssh "${DOCKER_CMD} ps -a --format '{{.Names}}' | grep -v 'portfolio-app-${TIMESTAMP}' | grep 'portfolio-app'")
+OLD_CONTAINERS=$(execute_ssh "${DOCKER_CMD} ps -a --format '{{.Names}}' | grep 'portfolio-app-' | grep -v 'portfolio-app-${TIMESTAMP}' | sort -r | tail -n +3")
 if [ ! -z "$OLD_CONTAINERS" ]; then
   for container in $OLD_CONTAINERS; do
+    echo "Removing old container: $container"
     execute_ssh "${DOCKER_CMD} rm -f $container 2>/dev/null || true"
   done
   echo "Old containers cleaned up"
 else
-  echo "No old containers found to clean up"
+  echo "No old containers to clean up (keeping the 2 most recent for potential rollback)"
 fi
 
 echo "✅ Deployment completed successfully!"
