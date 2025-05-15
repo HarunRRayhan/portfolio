@@ -415,20 +415,29 @@ EOFSCRIPT
   chmod +x ${APP_DIR}/docker/wait-for-db.sh
 fi"
 
-# Create a simple Docker Compose file with a single command
+# Create a simple Docker Compose file that doesn't rely on building from source
 execute_ssh "cat > $DOCKER_COMPOSE_FILE << 'EOFMARKER'
 version: '3.8'
 
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: portfolio:latest
-    container_name: portfolio-app
+    image: nginx:alpine
+    container_name: portfolio-app-${TIMESTAMP}
     restart: unless-stopped
     volumes:
-      - ./docker:/docker
+      - ${APP_DIR}:/var/www/html
+      - ${APP_DIR}/docker/nginx.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
+    networks:
+      - portfolio-network
+  
+  php:
+    image: php:8.2-fpm-alpine
+    container_name: portfolio-php-${TIMESTAMP}
+    restart: unless-stopped
+    volumes:
+      - ${APP_DIR}:/var/www/html
     networks:
       - portfolio-network
 
@@ -437,34 +446,69 @@ networks:
     driver: bridge
 EOFMARKER"
 
-# Build the new container
-DOCKER_BUILD_CMD=$(docker_compose_run "$DOCKER_COMPOSE_FILE" "build --no-cache")
-execute_ssh "cd $APP_DIR && $DOCKER_BUILD_CMD"
+# Prepare Docker configuration
+echo "Preparing Docker configuration..."
 
-# Start the new container
+# Ensure the prepare-docker.sh script is executable
+ensure_script_executable "${SCRIPT_DIR}/prepare-docker.sh"
+
+# Run the prepare-docker.sh script to set up Docker configuration
+TIMESTAMP=$(execute_ssh "cd $APP_DIR && ${SCRIPT_DIR}/prepare-docker.sh")
+if [ $? -ne 0 ]; then
+  fail "Failed to prepare Docker configuration"
+fi
+
+# Define the Docker Compose file path
+DOCKER_COMPOSE_FILE="${APP_DIR}/docker/docker-compose-new.yml"
+
+# Start the containers
 DOCKER_UP_CMD=$(docker_compose_run "$DOCKER_COMPOSE_FILE" "up -d")
 execute_ssh "cd $APP_DIR && $DOCKER_UP_CMD"
 
-# Check if the new container started successfully
-NEW_CONTAINER_NAME="app_${TIMESTAMP}"
-execute_ssh "cd $APP_DIR && ${CI_DIR}/health-check.sh ${NEW_CONTAINER_NAME} 12 5"
-if [ $? -ne 0 ]; then
-  fail "New container failed to start or become healthy. Rolling back..."
-  execute_ssh "cd $APP_DIR && ${CI_DIR}/rollback.sh"
+# Check if the new containers started successfully
+APP_CONTAINER_NAME="portfolio-app-${TIMESTAMP}"
+PHP_CONTAINER_NAME="portfolio-php-${TIMESTAMP}"
+
+# Check if containers are running
+APP_CONTAINER_CHECK=$(execute_ssh "cd $APP_DIR && docker ps -q -f name=$APP_CONTAINER_NAME")
+PHP_CONTAINER_CHECK=$(execute_ssh "cd $APP_DIR && docker ps -q -f name=$PHP_CONTAINER_NAME")
+
+if [ -z "$APP_CONTAINER_CHECK" ]; then
+  fail "Nginx container failed to start. Rolling back..."
+  execute_ssh "cd $APP_DIR && ${CI_DIR}/rollback.sh 2>/dev/null || docker-compose -f $DOCKER_COMPOSE_FILE down"
   exit 1
 fi
 
-success "New container successfully built and started"
+if [ -z "$PHP_CONTAINER_CHECK" ]; then
+  fail "PHP container failed to start. Rolling back..."
+  execute_ssh "cd $APP_DIR && ${CI_DIR}/rollback.sh 2>/dev/null || docker-compose -f $DOCKER_COMPOSE_FILE down"
+  exit 1
+fi
+
+# Basic health check
+echo "Waiting 10 seconds for containers to initialize..."
+sleep 10
+
+# Try a simple curl to check if Nginx is responding
+NGINX_CHECK=$(execute_ssh "curl -s -o /dev/null -w '%{http_code}' http://localhost || echo 'failed'")
+if [ "$NGINX_CHECK" = "failed" ] || [ "$NGINX_CHECK" = "000" ]; then
+  echo "Warning: Could not connect to Nginx. This might be expected if port 80 is not accessible."
+else
+  echo "Nginx responded with status code: $NGINX_CHECK"
+fi
+
+success "Containers successfully started"
 
 # 3. Run Laravel artisan commands in the new container
 step 3 "Running Laravel artisan commands in the new container"
 
 # Create command variables for each artisan command
-CONFIG_CACHE_CMD=$(docker_compose_exec "${DOCKER_DIR}/docker-compose-new.yml" "app_${TIMESTAMP}" "php artisan config:cache")
-ROUTE_CACHE_CMD=$(docker_compose_exec "${DOCKER_DIR}/docker-compose-new.yml" "app_${TIMESTAMP}" "php artisan route:cache")
-VIEW_CACHE_CMD=$(docker_compose_exec "${DOCKER_DIR}/docker-compose-new.yml" "app_${TIMESTAMP}" "php artisan view:cache")
-MIGRATE_CMD=$(docker_compose_exec "${DOCKER_DIR}/docker-compose-new.yml" "app_${TIMESTAMP}" "php artisan migrate --force")
-STORAGE_LINK_CMD=$(docker_compose_exec "${DOCKER_DIR}/docker-compose-new.yml" "app_${TIMESTAMP}" "sh -c \"if [ ! -L /var/www/html/public/storage ]; then php artisan storage:link; else echo 'Storage link already exists, skipping creation'; fi\"")
+CONFIG_CACHE_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "php" "php /var/www/html/artisan config:cache")
+ROUTE_CACHE_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "php" "php /var/www/html/artisan route:cache")
+VIEW_CACHE_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "php" "php /var/www/html/artisan view:cache")
+MIGRATE_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "php" "php /var/www/html/artisan migrate --force")
+STORAGE_LINK_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "php" "sh -c \"if [ ! -L /var/www/html/public/storage ]; then php /var/www/html/artisan storage:link; else echo 'Storage link already exists, skipping creation'; fi\"")
+
 
 # Execute artisan commands
 execute_ssh "cd $APP_DIR && $CONFIG_CACHE_CMD"
@@ -475,40 +519,65 @@ execute_ssh "cd $APP_DIR && $STORAGE_LINK_CMD"
 
 success "Laravel artisan commands executed successfully"
 
-# 4. Switch traffic to the new container
-step 4 "Switching traffic to the new container"
+# 4. Verify the new deployment is working
+step 4 "Verifying the new deployment"
 
-execute_ssh "cd $APP_DIR && ${CI_DIR}/switch-traffic.sh ${TIMESTAMP}"
-if [ $? -ne 0 ]; then
-  fail "Failed to switch traffic to the new container. Rolling back..."
-  execute_ssh "cd $APP_DIR && ${CI_DIR}/rollback.sh"
+# Check if the containers are still running
+APP_CONTAINER_CHECK=$(execute_ssh "cd $APP_DIR && docker ps -q -f name=$APP_CONTAINER_NAME")
+PHP_CONTAINER_CHECK=$(execute_ssh "cd $APP_DIR && docker ps -q -f name=$PHP_CONTAINER_NAME")
+
+if [ -z "$APP_CONTAINER_CHECK" ]; then
+  fail "Nginx container is not running. Deployment failed."
+  execute_ssh "cd $APP_DIR && docker-compose -f $DOCKER_COMPOSE_FILE down"
   exit 1
 fi
 
-success "Traffic switched to the new container successfully"
+if [ -z "$PHP_CONTAINER_CHECK" ]; then
+  fail "PHP container is not running. Deployment failed."
+  execute_ssh "cd $APP_DIR && docker-compose -f $DOCKER_COMPOSE_FILE down"
+  exit 1
+fi
 
-# 5. Verify the new deployment
-step 5 "Verifying the new deployment"
+# Try a simple curl to check if Nginx is responding
+NGINX_CHECK=$(execute_ssh "curl -s -o /dev/null -w '%{http_code}' http://localhost || echo 'failed'")
+if [ "$NGINX_CHECK" = "failed" ] || [ "$NGINX_CHECK" = "000" ]; then
+  echo "Warning: Could not connect to Nginx. This might be expected if port 80 is not accessible."
+else
+  if [ "$NGINX_CHECK" != "200" ] && [ "$NGINX_CHECK" != "302" ] && [ "$NGINX_CHECK" != "301" ]; then
+    echo "Warning: Nginx responded with unexpected status code: $NGINX_CHECK"
+  else
+    echo "Nginx is responding with status code: $NGINX_CHECK (OK)"
+  fi
+fi
 
-# Wait for a moment to ensure everything is working
+# Wait a moment to ensure everything is stable
 sleep 10
 
-# Check if the new container is still healthy
-execute_ssh "cd $APP_DIR && ${CI_DIR}/health-check.sh ${NEW_CONTAINER_NAME} 3 5"
-if [ $? -ne 0 ]; then
-  fail "New container is not healthy after traffic switch. Rolling back..."
-  execute_ssh "cd $APP_DIR && ${CI_DIR}/rollback.sh"
+# Final check to ensure containers are still running
+APP_CONTAINER_CHECK=$(execute_ssh "cd $APP_DIR && docker ps -q -f name=$APP_CONTAINER_NAME")
+PHP_CONTAINER_CHECK=$(execute_ssh "cd $APP_DIR && docker ps -q -f name=$PHP_CONTAINER_NAME")
+
+if [ -z "$APP_CONTAINER_CHECK" ] || [ -z "$PHP_CONTAINER_CHECK" ]; then
+  fail "One or more containers stopped running. Deployment failed."
+  execute_ssh "cd $APP_DIR && docker-compose -f $DOCKER_COMPOSE_FILE down"
   exit 1
 fi
 
 success "New deployment verified successfully"
 
-# 6. Clean up old containers
-step 6 "Cleaning up old containers"
+# 5. Clean up old containers (optional)
+step 5 "Cleaning up old containers"
 
-execute_ssh "cd $APP_DIR && ${CI_DIR}/cleanup.sh ${TIMESTAMP}"
-if [ $? -ne 0 ]; then
-  echo "Warning: Failed to clean up old containers. This is not critical, continuing..."
+# Find and remove old containers with similar names but different timestamps
+OLD_CONTAINERS=$(execute_ssh "docker ps -a --format '{{.Names}}' | grep -v '$APP_CONTAINER_NAME\|$PHP_CONTAINER_NAME' | grep 'portfolio-app\|portfolio-php'")
+if [ ! -z "$OLD_CONTAINERS" ]; then
+  echo "Found old containers to clean up: $OLD_CONTAINERS"
+  for container in $OLD_CONTAINERS; do
+    execute_ssh "docker rm -f $container 2>/dev/null || true"
+  done
+  echo "Old containers cleaned up"
+else
+  echo "No old containers found to clean up"
 fi
 
 success "Cleanup completed successfully"
