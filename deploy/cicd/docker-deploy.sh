@@ -97,6 +97,8 @@ echo "Checking if web server is responding..."
 NGINX_CHECK=$(execute_ssh "curl -s -o /dev/null -w '%{http_code}' http://localhost:8080 || echo 'failed'")
 if [ "$NGINX_CHECK" = "failed" ] || [ "$NGINX_CHECK" = "000" ]; then
   echo "Warning: Could not connect to web server. This might be expected if port 8080 is not accessible."
+  # Don't fail the deployment if we can't connect - the container is still running
+  echo "Container is running, continuing deployment..."
 else
   echo "Web server responded with status code: $NGINX_CHECK"
 fi
