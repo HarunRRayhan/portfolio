@@ -134,6 +134,7 @@ execute_ssh() {
   # If we're running in GitHub Actions or already on the server, execute locally
   if [ "$GITHUB_ACTIONS" == "true" ] || [ "$(hostname)" == "$REMOTE_HOST" ]; then
     # Execute the command locally
+    echo "Executing locally: $1"
     eval "$1"
   else
     # Execute via SSH
@@ -150,17 +151,34 @@ execute_ssh() {
 # Function to check if a script exists and make it executable
 ensure_script_executable() {
   local script_path="$1"
-  if [ ! -f "$script_path" ]; then
-    echo "Error: Script not found at $script_path"
+  local script_name=$(basename "$script_path")
+  
+  if [ -f "$script_path" ]; then
+    chmod +x "$script_path"
+    return 0
+  else
+    # Check if the script exists in the deploy/cicd directory
+    if [ -f "${SCRIPT_DIR}/${script_name}" ]; then
+      echo "Found ${script_name} in ${SCRIPT_DIR}, copying to $(dirname "$script_path")"
+      mkdir -p "$(dirname "$script_path")"
+      cp "${SCRIPT_DIR}/${script_name}" "$script_path"
+      chmod +x "$script_path"
+      return 0
+    fi
+    echo "Error: Script not found at $script_path or ${SCRIPT_DIR}/${script_name}"
     return 1
   fi
-  
-  chmod +x "$script_path"
-  return 0
 }
 
 # 1. Prepare for deployment
 step 1 "Preparing for deployment"
+
+# Ensure required directories exist
+echo "Ensuring required directories exist..."
+mkdir -p "${APP_DIR}/docker/ci"
+mkdir -p "${APP_DIR}/deploy"
+mkdir -p "${APP_DIR}/deploy/cicd"
+mkdir -p "${APP_DIR}/deploy/log"
 
 # Ensure all CI scripts are executable
 ensure_script_executable "${CI_DIR}/prepare-deployment.sh" || fail "Failed to make prepare-deployment.sh executable"
@@ -170,9 +188,36 @@ ensure_script_executable "${CI_DIR}/cleanup.sh" || fail "Failed to make cleanup.
 ensure_script_executable "${CI_DIR}/rollback.sh" || fail "Failed to make rollback.sh executable"
 
 # Prepare deployment by creating necessary configuration files
-TIMESTAMP=$(${CI_DIR}/prepare-deployment.sh)
-if [ $? -ne 0 ]; then
-  fail "Failed to prepare deployment"
+echo "Running prepare-deployment script..."
+
+# Check if the prepare-deployment.sh script exists in CI_DIR
+if [ -f "${CI_DIR}/prepare-deployment.sh" ] && [ -x "${CI_DIR}/prepare-deployment.sh" ]; then
+  TIMESTAMP=$(${CI_DIR}/prepare-deployment.sh)
+  if [ $? -ne 0 ]; then
+    fail "Failed to prepare deployment using CI_DIR script"
+  fi
+# Check if our new prepare-deployment.sh script exists in the SCRIPT_DIR
+elif [ -f "${SCRIPT_DIR}/prepare-deployment.sh" ]; then
+  # Make it executable
+  chmod +x "${SCRIPT_DIR}/prepare-deployment.sh"
+  # Copy it to CI_DIR
+  mkdir -p "${CI_DIR}"
+  cp "${SCRIPT_DIR}/prepare-deployment.sh" "${CI_DIR}/"
+  # Run it
+  TIMESTAMP=$(${CI_DIR}/prepare-deployment.sh)
+  if [ $? -ne 0 ]; then
+    fail "Failed to prepare deployment using copied script"
+  fi
+else
+  # Create a timestamp manually
+  TIMESTAMP=$(date '+%Y%m%d%H%M%S')
+  echo "No prepare-deployment.sh script found, using manual timestamp: $TIMESTAMP"
+  
+  # Create necessary directories
+  mkdir -p "${APP_DIR}/docker/ci"
+  mkdir -p "${APP_DIR}/deploy"
+  mkdir -p "${APP_DIR}/deploy/cicd"
+  mkdir -p "${APP_DIR}/deploy/log"
 fi
 
 echo "Deployment prepared with timestamp: $TIMESTAMP"
