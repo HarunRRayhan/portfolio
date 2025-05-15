@@ -109,6 +109,6 @@ echo "Docker configuration prepared successfully"
 echo "Docker Compose file: $DOCKER_COMPOSE_FILE"
 echo "Timestamp: $TIMESTAMP"
 
-# Output the timestamp for the calling script
-echo "${TIMESTAMP}"
+# Save the timestamp to a file for the calling script
+echo "${TIMESTAMP}" > "${DOCKER_DIR}/timestamp.txt"
 exit 0
