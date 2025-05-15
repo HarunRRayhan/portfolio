@@ -131,7 +131,20 @@ print_total_time() {
 
 # Function to execute SSH commands
 execute_ssh() {
-  ssh -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REMOTE_USER@$REMOTE_HOST" "$1"
+  # If we're running in GitHub Actions or already on the server, execute locally
+  if [ "$GITHUB_ACTIONS" == "true" ] || [ "$(hostname)" == "$REMOTE_HOST" ]; then
+    # Execute the command locally
+    eval "$1"
+  else
+    # Execute via SSH
+    if [ -z "$SSH_KEY" ]; then
+      # No SSH key specified, use agent forwarding
+      ssh -o StrictHostKeyChecking=no "$REMOTE_USER@$REMOTE_HOST" "$1"
+    else
+      # Use the specified SSH key
+      ssh -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REMOTE_USER@$REMOTE_HOST" "$1"
+    fi
+  fi
 }
 
 # Function to check if a script exists and make it executable
