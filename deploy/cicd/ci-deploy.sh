@@ -506,16 +506,29 @@ APP_CONTAINER_CHECK=$(execute_ssh "cd $APP_DIR && $DOCKER_CMD ps -q -f name=$APP
 PHP_CONTAINER_CHECK=$(execute_ssh "cd $APP_DIR && $DOCKER_CMD ps -q -f name=$PHP_CONTAINER_NAME")
 
 # Install Composer dependencies directly on the server before starting containers
-echo "Checking for Composer on the server..."
-COMPOSER_CHECK=$(execute_ssh "command -v composer || echo not-found")
+echo "Installing Composer and dependencies..."
 
-if [ "$COMPOSER_CHECK" = "not-found" ]; then
-  echo "Installing Composer on the server..."
-  execute_ssh "cd $APP_DIR && curl -sS https://getcomposer.org/installer | php && sudo mv composer.phar /usr/local/bin/composer"
+# Download and install Composer locally in the project directory
+execute_ssh "cd $APP_DIR && curl -sS https://getcomposer.org/installer | php"
+if [ $? -ne 0 ]; then
+  echo "Failed to download Composer. Checking if PHP is available..."
+  PHP_CHECK=$(execute_ssh "command -v php || echo not-found")
+  if [ "$PHP_CHECK" = "not-found" ]; then
+    echo "PHP not found on the server. Installing PHP..."
+    execute_ssh "sudo apt-get update && sudo apt-get install -y php-cli php-zip php-mbstring php-xml unzip"
+  fi
+  
+  # Try again after installing PHP
+  execute_ssh "cd $APP_DIR && curl -sS https://getcomposer.org/installer | php"
+  if [ $? -ne 0 ]; then
+    fail "Failed to install Composer. Please check server logs."
+    exit 1
+  fi
 fi
 
+# Install dependencies using the local composer.phar
 echo "Installing Composer dependencies..."
-execute_ssh "cd $APP_DIR && composer install --no-dev --optimize-autoloader --no-interaction"
+execute_ssh "cd $APP_DIR && php composer.phar install --no-dev --optimize-autoloader --no-interaction"
 
 # Create Laravel storage directories with proper permissions
 echo "Setting up Laravel storage directories..."

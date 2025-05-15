@@ -14,16 +14,19 @@ services:
       - portfolio-network
   
   php:
-    build:
-      context: ${APP_DIR}/docker/ci
-      dockerfile: Dockerfile.php
+    image: bitnami/laravel:latest
     container_name: portfolio-php-${TIMESTAMP}
     restart: unless-stopped
     volumes:
-      - ${APP_DIR}:/var/www/html
-      - ${APP_DIR}/docker/ci/entrypoint.sh:/entrypoint.sh
+      - ${APP_DIR}:/app
     networks:
       - portfolio-network
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_USERNAME=laravel
+      - DB_DATABASE=laravel
+      - DB_PASSWORD=laravel
 
 networks:
   portfolio-network:
