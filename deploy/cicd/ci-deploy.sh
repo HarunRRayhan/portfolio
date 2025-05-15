@@ -462,14 +462,16 @@ echo "Preparing Docker configuration..."
 # Ensure the prepare-docker.sh script is executable
 ensure_script_executable "${SCRIPT_DIR}/prepare-docker.sh"
 
+# Generate a timestamp directly in this script
+TIMESTAMP=$(date +%Y%m%d%H%M%S)
+# Pass the timestamp to the docker-compose file via environment variable
+export TIMESTAMP
+
 # Run the prepare-docker.sh script to set up Docker configuration
-execute_ssh "cd $APP_DIR && ${SCRIPT_DIR}/prepare-docker.sh"
+execute_ssh "cd $APP_DIR && TIMESTAMP=$TIMESTAMP ${SCRIPT_DIR}/prepare-docker.sh"
 if [ $? -ne 0 ]; then
   fail "Failed to prepare Docker configuration"
 fi
-
-# Get the timestamp from the prepare-docker.sh script's output file
-TIMESTAMP=$(execute_ssh "cat ${APP_DIR}/docker/timestamp.txt 2>/dev/null || date +%Y%m%d%H%M%S")
 
 # Define the Docker Compose file path
 DOCKER_COMPOSE_FILE="${APP_DIR}/docker/docker-compose-new.yml"

@@ -33,8 +33,8 @@ fi
 # Export the Docker command for other scripts
 export DOCKER_CMD
 
-# Create timestamp for deployment
-TIMESTAMP=$(date +%Y%m%d%H%M%S)
+# Use timestamp from environment variable or create a new one
+TIMESTAMP=${TIMESTAMP:-$(date +%Y%m%d%H%M%S)}
 
 # Ensure required directories exist
 echo "Ensuring required directories exist..."
@@ -109,6 +109,5 @@ echo "Docker configuration prepared successfully"
 echo "Docker Compose file: $DOCKER_COMPOSE_FILE"
 echo "Timestamp: $TIMESTAMP"
 
-# Save the timestamp to a file for the calling script
-echo "${TIMESTAMP}" > "${DOCKER_DIR}/timestamp.txt"
+# No need to save timestamp to file anymore as we're using environment variables
 exit 0
