@@ -253,6 +253,36 @@ docker_compose_run() {
   local command="$2"
   local docker_env_vars=$(get_docker_env_vars)
   
+  # Check if the compose file exists
+  if [ ! -f "$compose_file" ]; then
+    echo "Warning: Docker Compose file not found at $compose_file"
+    
+    # Check if we need to create the docker directory
+    local docker_dir=$(dirname "$compose_file")
+    mkdir -p "$docker_dir"
+    
+    # Create a minimal docker-compose file
+    echo "Creating minimal docker-compose file at $compose_file"
+    cat > "$compose_file" << EOF
+version: '3.8'
+
+services:
+  app_${TIMESTAMP}:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: portfolio:${TIMESTAMP}
+    container_name: portfolio-app-${TIMESTAMP}
+    restart: unless-stopped
+    networks:
+      - portfolio-network
+
+networks:
+  portfolio-network:
+    driver: bridge
+EOF
+  fi
+  
   echo "$docker_env_vars docker-compose -f $compose_file $command"
 }
 
@@ -262,6 +292,13 @@ docker_compose_exec() {
   local service="$2"
   local command="$3"
   local docker_env_vars=$(get_docker_env_vars)
+  
+  # Check if the compose file exists
+  if [ ! -f "$compose_file" ]; then
+    echo "Warning: Docker Compose file not found at $compose_file"
+    # Use the docker_compose_run function to create the file if it doesn't exist
+    docker_compose_run "$compose_file" "version"
+  fi
   
   echo "$docker_env_vars docker-compose -f $compose_file exec -T $service $command"
 }
