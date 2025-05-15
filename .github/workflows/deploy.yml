@@ -319,61 +319,6 @@ jobs:
           
           # Copy Docker CI files
           echo "Copying Docker CI files..."
-          mkdir -p ${GITHUB_WORKSPACE}/docker/ci
-          
-          # Create the PHP Dockerfile if it doesn't exist
-          if [ ! -f ${GITHUB_WORKSPACE}/docker/ci/Dockerfile.php ]; then
-            cat > ${GITHUB_WORKSPACE}/docker/ci/Dockerfile.php << 'EOF'
-FROM php:8.2-fpm-alpine
-
-# Install system dependencies
-RUN apk add --no-cache \
-    git \
-    curl \
-    libpng-dev \
-    libzip-dev \
-    zip \
-    unzip \
-    icu-dev
-
-# Install PHP extensions
-RUN docker-php-ext-install pdo pdo_mysql zip gd intl opcache
-
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Set working directory
-WORKDIR /var/www/html
-
-# Set entrypoint
-CMD ["php-fpm"]
-EOF
-          fi
-          
-          # Create the entrypoint script if it doesn't exist
-          if [ ! -f ${GITHUB_WORKSPACE}/docker/ci/entrypoint.sh ]; then
-            cat > ${GITHUB_WORKSPACE}/docker/ci/entrypoint.sh << 'EOF'
-#!/bin/sh
-set -e
-
-# Create Laravel storage directories
-mkdir -p /var/www/html/storage/framework/{sessions,views,cache,cache/data}
-chmod -R 777 /var/www/html/storage
-
-# Install Composer dependencies if they don't exist
-if [ ! -f /var/www/html/vendor/autoload.php ]; then
-    echo "Installing Composer dependencies..."
-    cd /var/www/html
-    composer install --no-dev --optimize-autoloader --no-interaction
-    echo "Composer dependencies installed successfully"
-fi
-
-# First argument is the command to run
-exec "$@"
-EOF
-            chmod +x ${GITHUB_WORKSPACE}/docker/ci/entrypoint.sh
-          fi
-          
           # Copy all Docker CI files to the server
           scp -r ${GITHUB_WORKSPACE}/docker/ci/* ${REMOTE_USER}@${REMOTE_HOST}:${APP_DIR}/docker/ci/
           ssh ${REMOTE_USER}@${REMOTE_HOST} "chmod +x ${APP_DIR}/docker/ci/entrypoint.sh ${APP_DIR}/docker/ci/wait-for-db.sh"
