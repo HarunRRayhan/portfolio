@@ -505,6 +505,28 @@ fi"
 APP_CONTAINER_CHECK=$(execute_ssh "cd $APP_DIR && $DOCKER_CMD ps -q -f name=$APP_CONTAINER_NAME")
 PHP_CONTAINER_CHECK=$(execute_ssh "cd $APP_DIR && $DOCKER_CMD ps -q -f name=$PHP_CONTAINER_NAME")
 
+# Wait for the vendor directory to be available (composer install to complete)
+echo "Waiting for vendor directory to be available..."
+VENDOR_WAIT_TIMEOUT=300 # 5 minutes timeout
+VENDOR_WAIT_START=$(date +%s)
+VENDOR_READY=false
+
+while [ $(date +%s) -lt $((VENDOR_WAIT_START + VENDOR_WAIT_TIMEOUT)) ]; do
+  VENDOR_CHECK=$(execute_ssh "cd $APP_DIR && $DOCKER_CMD exec $PHP_CONTAINER_NAME sh -c 'test -f /var/www/html/vendor/autoload.php && echo ready || echo not-ready'")
+  if [ "$VENDOR_CHECK" = "ready" ]; then
+    VENDOR_READY=true
+    echo "Vendor directory is ready!"
+    break
+  fi
+  echo "Waiting for vendor directory... ($(($(($(date +%s) - VENDOR_WAIT_START)))) seconds elapsed)"
+  sleep 10
+done
+
+if [ "$VENDOR_READY" != "true" ]; then
+  fail "Timed out waiting for vendor directory to be ready. Check container logs for details."
+  exit 1
+fi
+
 if [ -z "$APP_CONTAINER_CHECK" ]; then
   fail "Nginx container failed to start. Rolling back..."
   execute_ssh "cd $APP_DIR && ${CI_DIR}/rollback.sh 2>/dev/null || docker-compose -f $DOCKER_COMPOSE_FILE down || $DOCKER_CMD compose -f $DOCKER_COMPOSE_FILE down"
