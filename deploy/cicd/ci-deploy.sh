@@ -490,9 +490,9 @@ echo "Waiting 10 seconds for containers to initialize..."
 sleep 10
 
 # Try a simple curl to check if Nginx is responding
-NGINX_CHECK=$(execute_ssh "curl -s -o /dev/null -w '%{http_code}' http://localhost || echo 'failed'")
+NGINX_CHECK=$(execute_ssh "curl -s -o /dev/null -w '%{http_code}' http://localhost:8080 || echo 'failed'")
 if [ "$NGINX_CHECK" = "failed" ] || [ "$NGINX_CHECK" = "000" ]; then
-  echo "Warning: Could not connect to Nginx. This might be expected if port 80 is not accessible."
+  echo "Warning: Could not connect to Nginx. This might be expected if port 8080 is not accessible."
 else
   echo "Nginx responded with status code: $NGINX_CHECK"
 fi
@@ -539,9 +539,9 @@ if [ -z "$PHP_CONTAINER_CHECK" ]; then
 fi
 
 # Try a simple curl to check if Nginx is responding
-NGINX_CHECK=$(execute_ssh "curl -s -o /dev/null -w '%{http_code}' http://localhost || echo 'failed'")
+NGINX_CHECK=$(execute_ssh "curl -s -o /dev/null -w '%{http_code}' http://localhost:8080 || echo 'failed'")
 if [ "$NGINX_CHECK" = "failed" ] || [ "$NGINX_CHECK" = "000" ]; then
-  echo "Warning: Could not connect to Nginx. This might be expected if port 80 is not accessible."
+  echo "Warning: Could not connect to Nginx. This might be expected if port 8080 is not accessible."
 else
   if [ "$NGINX_CHECK" != "200" ] && [ "$NGINX_CHECK" != "302" ] && [ "$NGINX_CHECK" != "301" ]; then
     echo "Warning: Nginx responded with unexpected status code: $NGINX_CHECK"

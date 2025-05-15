@@ -54,7 +54,7 @@ services:
       - ${APP_DIR}:/var/www/html
       - ${CI_DIR}/nginx.conf:/etc/nginx/conf.d/default.conf
     ports:
-      - "80:80"
+      - "8080:80"
     networks:
       - portfolio-network
   
