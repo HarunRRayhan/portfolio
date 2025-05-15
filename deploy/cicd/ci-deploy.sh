@@ -131,19 +131,23 @@ print_total_time() {
 
 # Function to execute SSH commands
 execute_ssh() {
+  # Prepare a command that ensures /opt/deploy exists before executing the actual command
+  local original_cmd="$1"
+  local prepare_cmd="mkdir -p /opt/deploy 2>/dev/null || true; if [ ! -d '/opt/deploy' ]; then ln -sf ${APP_DIR}/deploy /opt/deploy 2>/dev/null || true; fi; $original_cmd"
+  
   # If we're running in GitHub Actions or already on the server, execute locally
   if [ "$GITHUB_ACTIONS" == "true" ] || [ "$(hostname)" == "$REMOTE_HOST" ]; then
     # Execute the command locally
-    echo "Executing locally: $1"
-    eval "$1"
+    echo "Executing locally: $original_cmd"
+    eval "$prepare_cmd"
   else
     # Execute via SSH
     if [ -z "$SSH_KEY" ]; then
       # No SSH key specified, use agent forwarding
-      ssh -o StrictHostKeyChecking=no "$REMOTE_USER@$REMOTE_HOST" "$1"
+      ssh -o StrictHostKeyChecking=no "$REMOTE_USER@$REMOTE_HOST" "$prepare_cmd"
     else
       # Use the specified SSH key
-      ssh -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REMOTE_USER@$REMOTE_HOST" "$1"
+      ssh -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REMOTE_USER@$REMOTE_HOST" "$prepare_cmd"
     fi
   fi
 }
@@ -310,6 +314,32 @@ docker_compose_exec() {
 if [ ! -d "/opt/deploy" ]; then
   echo "Creating symlink for /opt/deploy to ${APP_DIR}/deploy"
   execute_ssh "ln -sf ${APP_DIR}/deploy /opt/deploy 2>/dev/null || true"
+fi
+
+# Ensure docker directory exists
+mkdir -p "${DOCKER_DIR}"
+
+# Create docker-compose-new.yml if it doesn't exist
+if [ ! -f "${DOCKER_DIR}/docker-compose-new.yml" ]; then
+  echo "Creating docker-compose-new.yml file..."
+  cat > "${DOCKER_DIR}/docker-compose-new.yml" << EOF
+version: '3.8'
+
+services:
+  app_${TIMESTAMP}:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: portfolio:${TIMESTAMP}
+    container_name: portfolio-app-${TIMESTAMP}
+    restart: unless-stopped
+    networks:
+      - portfolio-network
+
+networks:
+  portfolio-network:
+    driver: bridge
+EOF
 fi
 
 # Build the new container

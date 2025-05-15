@@ -291,6 +291,16 @@ jobs:
                    CLOUDFLARE_ZONE_ID=${CLOUDFLARE_ZONE_ID} \
                    CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}"
           
+          # Create required directories on the server before running the deployment script
+          echo "Creating required directories on the server..."
+          ssh ${REMOTE_USER}@${REMOTE_HOST} "mkdir -p ${APP_DIR}/deploy/cicd ${APP_DIR}/docker/ci /opt/deploy"
+          
+          # Create symlink from /opt/deploy to APP_DIR/deploy if they're different
+          if [ "${APP_DIR}/deploy" != "/opt/deploy" ]; then
+            echo "Creating symlink from /opt/deploy to ${APP_DIR}/deploy"
+            ssh ${REMOTE_USER}@${REMOTE_HOST} "ln -sf ${APP_DIR}/deploy /opt/deploy 2>/dev/null || true"
+          fi
+          
           # Execute deployment script directly on the server instead of piping it
           if ssh ${REMOTE_USER}@${REMOTE_HOST} "export $ENV_VARS && cd ${APP_DIR} && ./deploy/cicd/github-deploy.sh"; then
             echo "✅ Remote deployment completed successfully"

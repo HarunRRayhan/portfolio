@@ -17,6 +17,16 @@ echo "Ensuring required directories exist..."
 mkdir -p "${DOCKER_DIR}/ci"
 mkdir -p "${DEPLOY_DIR}/log"
 
+# Ensure /opt/deploy directory exists
+echo "Ensuring /opt/deploy directory exists..."
+mkdir -p "/opt/deploy" 2>/dev/null || echo "Warning: Could not create /opt/deploy directory"
+
+# Create symlink if needed
+if [ "${DEPLOY_DIR}" != "/opt/deploy" ]; then
+  echo "Creating symlink from /opt/deploy to ${DEPLOY_DIR}"
+  ln -sf "${DEPLOY_DIR}" "/opt/deploy" 2>/dev/null || echo "Warning: Could not create symlink"
+fi
+
 # Check if the original prepare-deployment.sh exists
 if [ -f "${CI_DIR}/prepare-deployment.sh" ]; then
   echo "Using prepare-deployment.sh from ${CI_DIR}"
