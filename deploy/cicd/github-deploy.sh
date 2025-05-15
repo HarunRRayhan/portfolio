@@ -195,6 +195,7 @@ EOF
 fi
 
 # Run the CI deployment script with environment variables
+GITHUB_ACTIONS=true \
 DEPLOYMENT_ENV="$DEPLOYMENT_ENV" \
 BRANCH_NAME="$BRANCH_NAME" \
 POSTGRES_DB="$POSTGRES_DB" \

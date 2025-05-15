@@ -55,9 +55,23 @@ fi
 
 # Validate required environment variables
 echo "Validating required environment variables..."
-REQUIRED_VARS=("REMOTE_HOST" "REMOTE_USER" "SSH_KEY" "POSTGRES_DB" "POSTGRES_USER" "POSTGRES_PASSWORD" "R2_BUCKET_NAME" "R2_S3_ENDPOINT" "R2_ACCESS_KEY_ID" "R2_SECRET_ACCESS_KEY" "CLOUDFLARE_ZONE_ID" "CLOUDFLARE_API_TOKEN")
-MISSING_VARS=""
 
+# Determine if we're running in GitHub Actions or locally
+if [ "$GITHUB_ACTIONS" == "true" ]; then
+  echo "Running in GitHub Actions environment"
+  # In GitHub Actions, we don't need SSH variables for the CI script
+  REQUIRED_VARS=("POSTGRES_DB" "POSTGRES_USER" "POSTGRES_PASSWORD" "R2_BUCKET_NAME" "R2_S3_ENDPOINT" "R2_ACCESS_KEY_ID" "R2_SECRET_ACCESS_KEY" "CLOUDFLARE_ZONE_ID" "CLOUDFLARE_API_TOKEN")
+else
+  # For local execution, we need all variables
+  REQUIRED_VARS=("POSTGRES_DB" "POSTGRES_USER" "POSTGRES_PASSWORD" "R2_BUCKET_NAME" "R2_S3_ENDPOINT" "R2_ACCESS_KEY_ID" "R2_SECRET_ACCESS_KEY" "CLOUDFLARE_ZONE_ID" "CLOUDFLARE_API_TOKEN")
+  
+  # Only check for SSH variables if we're not already on the server
+  if [ "$(hostname)" != "$REMOTE_HOST" ]; then
+    REQUIRED_VARS+=("REMOTE_HOST" "REMOTE_USER" "SSH_KEY")
+  fi
+fi
+
+MISSING_VARS=""
 for var in "${REQUIRED_VARS[@]}"; do
   if [ -z "${!var}" ]; then
     MISSING_VARS="$MISSING_VARS $var"

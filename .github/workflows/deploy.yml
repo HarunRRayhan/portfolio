@@ -266,7 +266,8 @@ jobs:
           echo "Starting zero-downtime deployment on remote server..."
           
           # Prepare environment variables for remote execution
-          ENV_VARS="DEPLOYMENT_ENV=${DEPLOYMENT_ENV} \
+          ENV_VARS="GITHUB_ACTIONS=true \
+                   DEPLOYMENT_ENV=${DEPLOYMENT_ENV} \
                    BRANCH_NAME=${BRANCH_NAME} \
                    POSTGRES_DB=${POSTGRES_DB} \
                    POSTGRES_USER=${POSTGRES_USER} \
