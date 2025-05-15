@@ -281,6 +281,8 @@ services:
     image: portfolio:${TIMESTAMP}
     container_name: portfolio-app-${TIMESTAMP}
     restart: unless-stopped
+    volumes:
+      - ${APP_DIR}/deploy:${OPT_DEPLOY_DIR:-/opt/deploy}
     networks:
       - portfolio-network
 
@@ -288,6 +290,11 @@ networks:
   portfolio-network:
     driver: bridge
 EOF
+  fi
+  
+  # Add OPT_DEPLOY_DIR to environment variables if it's set
+  if [ -n "$OPT_DEPLOY_DIR" ] && [ "$OPT_DEPLOY_DIR" != "/opt/deploy" ]; then
+    docker_env_vars="$docker_env_vars OPT_DEPLOY_DIR=$OPT_DEPLOY_DIR"
   fi
   
   echo "$docker_env_vars docker-compose -f $compose_file $command"
@@ -310,10 +317,26 @@ docker_compose_exec() {
   echo "$docker_env_vars docker-compose -f $compose_file exec -T $service $command"
 }
 
-# Ensure /opt/deploy directory exists or create a symlink
-if [ ! -d "/opt/deploy" ]; then
-  echo "Creating symlink for /opt/deploy to ${APP_DIR}/deploy"
-  execute_ssh "ln -sf ${APP_DIR}/deploy /opt/deploy 2>/dev/null || true"
+# Determine which deploy directory to use
+OPT_DEPLOY_DIR=${OPT_DEPLOY_DIR:-/opt/deploy}
+
+# Check if we're using an alternative directory
+if [ "$OPT_DEPLOY_DIR" != "/opt/deploy" ]; then
+  echo "Using alternative deploy directory: $OPT_DEPLOY_DIR"
+  # Create the directory if it doesn't exist
+  execute_ssh "mkdir -p $OPT_DEPLOY_DIR"
+  
+  # Create a symlink from APP_DIR/deploy to OPT_DEPLOY_DIR if they're different
+  if [ "${APP_DIR}/deploy" != "$OPT_DEPLOY_DIR" ]; then
+    echo "Creating symlink from $OPT_DEPLOY_DIR to ${APP_DIR}/deploy"
+    execute_ssh "ln -sf ${APP_DIR}/deploy $OPT_DEPLOY_DIR 2>/dev/null || true"
+  fi
+else
+  # Try to ensure /opt/deploy directory exists or create a symlink
+  if [ ! -d "/opt/deploy" ]; then
+    echo "Attempting to create /opt/deploy directory..."
+    execute_ssh "sudo mkdir -p /opt/deploy && sudo chown -R $(whoami):$(whoami) /opt/deploy 2>/dev/null || (mkdir -p ~/opt_deploy && ln -sf ~/opt_deploy /opt/deploy 2>/dev/null || echo 'Warning: Could not create /opt/deploy directory')"
+  fi
 fi
 
 # Ensure docker directory exists
