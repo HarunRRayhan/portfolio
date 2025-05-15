@@ -180,6 +180,9 @@ mkdir -p "${APP_DIR}/deploy"
 mkdir -p "${APP_DIR}/deploy/cicd"
 mkdir -p "${APP_DIR}/deploy/log"
 
+# Also create /opt/deploy directory which seems to be required
+mkdir -p "/opt/deploy" 2>/dev/null || echo "Note: Could not create /opt/deploy directory, but will continue anyway"
+
 # Ensure all CI scripts are executable
 ensure_script_executable "${CI_DIR}/prepare-deployment.sh" || fail "Failed to make prepare-deployment.sh executable"
 ensure_script_executable "${CI_DIR}/health-check.sh" || fail "Failed to make health-check.sh executable"
@@ -302,6 +305,12 @@ docker_compose_exec() {
   
   echo "$docker_env_vars docker-compose -f $compose_file exec -T $service $command"
 }
+
+# Ensure /opt/deploy directory exists or create a symlink
+if [ ! -d "/opt/deploy" ]; then
+  echo "Creating symlink for /opt/deploy to ${APP_DIR}/deploy"
+  execute_ssh "ln -sf ${APP_DIR}/deploy /opt/deploy 2>/dev/null || true"
+fi
 
 # Build the new container
 DOCKER_BUILD_CMD=$(docker_compose_run "${DOCKER_DIR}/docker-compose-new.yml" "build --no-cache")
