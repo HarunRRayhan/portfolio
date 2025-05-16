@@ -10,7 +10,7 @@ SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 DEPLOY_DIR="$(dirname "$SCRIPT_DIR")"
 REPO_ROOT="$(dirname "$DEPLOY_DIR")"
 APP_DIR="${APP_DIR:-/opt/portfolio}"
-PORT=8080
+PORT=80
 
 # Create timestamp for deployment
 TIMESTAMP=$(date +%Y%m%d%H%M%S)
@@ -66,11 +66,19 @@ if [ -n "$PORT_CHECK" ]; then
   done
 fi
 
+# Copy our custom Nginx configuration
+log "Copying custom Nginx configuration..."
+execute_ssh "mkdir -p ${APP_DIR}/docker/ci"
+execute_ssh "cat > ${APP_DIR}/docker/ci/production-nginx.conf << 'EOL'
+$(cat ${SCRIPT_DIR}/production-nginx.conf)
+EOL"
+
 # Start the new container
 log "Starting new container: ${CONTAINER_NAME}..."
 execute_ssh "${DOCKER_CMD} run -d --name ${CONTAINER_NAME} \
   -p ${PORT}:80 \
   -v ${APP_DIR}:/app \
+  -v ${APP_DIR}/docker/ci/production-nginx.conf:/opt/docker/etc/nginx/vhost.conf \
   -e WEB_DOCUMENT_ROOT=/app/public \
   -e WEB_DOCUMENT_INDEX=index.php \
   -e PHP_DISPLAY_ERRORS=1 \
@@ -80,7 +88,7 @@ execute_ssh "${DOCKER_CMD} run -d --name ${CONTAINER_NAME} \
   -e PHP_UPLOAD_MAX_FILESIZE=50M \
   -e APP_ENV=production \
   -e APP_DEBUG=true \
-  -e APP_URL=http://localhost:${PORT} \
+  -e APP_URL=https://harun.dev \
   -e DB_CONNECTION=pgsql \
   -e DB_HOST=db \
   -e DB_PORT=5432 \

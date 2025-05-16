@@ -341,8 +341,9 @@ jobs:
           fi"
           
           # Copy our new Docker deployment script to the server
-          # Copy our direct deployment script to the server
+          # Copy our deployment scripts and configuration to the server
           scp -r ${GITHUB_WORKSPACE}/deploy/cicd/direct-deploy.sh ${REMOTE_USER}@${REMOTE_HOST}:${APP_DIR}/deploy/cicd/
+          scp -r ${GITHUB_WORKSPACE}/deploy/cicd/production-nginx.conf ${REMOTE_USER}@${REMOTE_HOST}:${APP_DIR}/deploy/cicd/
           ssh ${REMOTE_USER}@${REMOTE_HOST} "chmod +x ${APP_DIR}/deploy/cicd/direct-deploy.sh"
           
           # Execute our direct deployment script on the server
