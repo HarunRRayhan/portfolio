@@ -80,7 +80,6 @@ execute_ssh "${DOCKER_CMD} run -d --name ${CONTAINER_NAME} \
   -p 80:80 \
   -v ${APP_DIR}:/var/www/html \
   -e WEB_DOCUMENT_ROOT=/var/www/html/public \
-  # Environment variables are loaded from the .env file on the server \
   --restart unless-stopped \
   webdevops/php-nginx:8.2-alpine"
 
