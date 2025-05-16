@@ -16,7 +16,7 @@ CI_DIR="${DOCKER_DIR}/ci"
 NGINX_PROXY_PORT=8080
 APP_PORT_BLUE=9000
 APP_PORT_GREEN=9001
-HEALTH_CHECK_PATH="/health.php"
+HEALTH_CHECK_PATH="/health.txt"
 HEALTH_CHECK_TIMEOUT=60
 HEALTH_CHECK_INTERVAL=5
 
@@ -172,7 +172,7 @@ execute_ssh "${DOCKER_CMD} run -d --name ${NEW_CONTAINER} \
   -e VIEW_COMPILED_PATH=/app/storage/framework/views \
   --restart unless-stopped \
   webdevops/php-nginx:8.2-alpine \
-  bash -c 'mkdir -p /app/storage/framework/{sessions,views,cache,cache/data} && chmod -R 777 /app/storage && echo "<?php echo \"OK\"; ?>" > /app/public/health.php && supervisord'"
+  bash -c 'mkdir -p /app/storage/framework/{sessions,views,cache,cache/data} && chmod -R 777 /app/storage && echo "OK" > /app/public/health.txt && supervisord'"
 
 # Wait for container to start and initialize
 log "Waiting for container to start and initialize..."
