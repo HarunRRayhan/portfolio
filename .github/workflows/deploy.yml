@@ -343,8 +343,11 @@ jobs:
           # Copy our new Docker deployment script to the server
           # Copy our deployment scripts and configuration to the server
           scp -r ${GITHUB_WORKSPACE}/deploy/cicd/direct-deploy.sh ${REMOTE_USER}@${REMOTE_HOST}:${APP_DIR}/deploy/cicd/
-          scp -r ${GITHUB_WORKSPACE}/deploy/cicd/production-nginx.conf ${REMOTE_USER}@${REMOTE_HOST}:${APP_DIR}/deploy/cicd/
-          ssh ${REMOTE_USER}@${REMOTE_HOST} "chmod +x ${APP_DIR}/deploy/cicd/direct-deploy.sh"
+          scp -r ${GITHUB_WORKSPACE}/deploy/cicd/setup-nginx-proxy.sh ${REMOTE_USER}@${REMOTE_HOST}:${APP_DIR}/deploy/cicd/
+          ssh ${REMOTE_USER}@${REMOTE_HOST} "chmod +x ${APP_DIR}/deploy/cicd/direct-deploy.sh ${APP_DIR}/deploy/cicd/setup-nginx-proxy.sh"
+          
+          # Set up Nginx proxy to forward traffic from port 80 to 8080
+          ssh ${REMOTE_USER}@${REMOTE_HOST} "sudo ${APP_DIR}/deploy/cicd/setup-nginx-proxy.sh"
           
           # Execute our direct deployment script on the server
           # This script uses the simplest possible approach for reliable deployment

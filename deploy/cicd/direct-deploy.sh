@@ -10,7 +10,7 @@ SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 DEPLOY_DIR="$(dirname "$SCRIPT_DIR")"
 REPO_ROOT="$(dirname "$DEPLOY_DIR")"
 APP_DIR="${APP_DIR:-/opt/portfolio}"
-PORT=80
+PORT=8080
 
 # Create timestamp for deployment
 TIMESTAMP=$(date +%Y%m%d%H%M%S)
@@ -66,13 +66,11 @@ if [ -n "$PORT_CHECK" ]; then
   done
 fi
 
-# Start the new container using the original production Dockerfile
+# Start the new container using a pre-built image
 log "Starting new container: ${CONTAINER_NAME}..."
-execute_ssh "cd ${APP_DIR} && ${DOCKER_CMD} build -t portfolio-app:latest -f docker/Dockerfile ."
 execute_ssh "${DOCKER_CMD} run -d --name ${CONTAINER_NAME} \
   -p ${PORT}:80 \
-  -v ${APP_DIR}/.env:/var/www/html/.env \
-  -v ${APP_DIR}/storage:/var/www/html/storage \
+  -v ${APP_DIR}:/var/www/html \
   -e APP_ENV=production \
   -e APP_DEBUG=true \
   -e APP_URL=https://harun.dev \
@@ -84,7 +82,7 @@ execute_ssh "${DOCKER_CMD} run -d --name ${CONTAINER_NAME} \
   -e DB_PASSWORD=${POSTGRES_PASSWORD:-laravel} \
   -e VIEW_COMPILED_PATH=/var/www/html/storage/framework/views \
   --restart unless-stopped \
-  portfolio-app:latest"
+  webdevops/php-nginx:8.2-alpine"
 
 # Wait for container to start
 log "Waiting for container to start..."
