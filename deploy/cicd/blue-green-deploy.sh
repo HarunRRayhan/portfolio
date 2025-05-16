@@ -110,15 +110,42 @@ server {
 }
 EOF"
 
-# Start Nginx proxy if not already running
-PROXY_CONTAINER=$(execute_ssh "${DOCKER_CMD} ps --filter 'name=portfolio-nginx-proxy' --filter 'status=running' --format '{{.ID}}'")
-if [ -z "$PROXY_CONTAINER" ]; then
-  log "Starting Nginx proxy container..."
-  execute_ssh "${DOCKER_CMD} run -d --name portfolio-nginx-proxy \
-    -p ${NGINX_PROXY_PORT}:80 \
-    -v ${APP_DIR}/docker/ci/nginx-proxy.conf:/etc/nginx/conf.d/default.conf:ro \
-    --restart unless-stopped \
-    nginx:1.25-alpine"
+# Check for and handle existing Nginx proxy container
+PROXY_CONTAINER=$(execute_ssh "${DOCKER_CMD} ps -a --filter 'name=portfolio-nginx-proxy' --format '{{.ID}}'")
+if [ -n "$PROXY_CONTAINER" ]; then
+  log "Found existing Nginx proxy container. Removing it..."
+  execute_ssh "${DOCKER_CMD} rm -f portfolio-nginx-proxy || true"
+fi
+
+# Start Nginx proxy container
+log "Starting Nginx proxy container..."
+execute_ssh "${DOCKER_CMD} run -d --name portfolio-nginx-proxy \
+  -p ${NGINX_PROXY_PORT}:80 \
+  -v ${APP_DIR}/docker/ci/nginx-proxy.conf:/etc/nginx/conf.d/default.conf:ro \
+  --restart unless-stopped \
+  nginx:1.25-alpine"
+
+# Check for and handle existing containers for the new environment
+log "Checking for existing containers in the $NEW_ENV environment..."
+EXISTING_CONTAINERS=$(execute_ssh "${DOCKER_CMD} ps -a --filter 'name=portfolio-app-${NEW_ENV}' --format '{{.Names}}'")
+if [ -n "$EXISTING_CONTAINERS" ]; then
+  log "Found existing containers in the $NEW_ENV environment. Removing them..."
+  for container in $EXISTING_CONTAINERS; do
+    log "Removing container: $container"
+    execute_ssh "${DOCKER_CMD} rm -f $container || true"
+  done
+fi
+
+# Check for and handle port conflicts
+log "Checking for port conflicts..."
+PORT_CONFLICT=$(execute_ssh "${DOCKER_CMD} ps --format '{{.Ports}}' | grep -E '${NEW_PORT}->|:${NEW_PORT}/' || true")
+if [ -n "$PORT_CONFLICT" ]; then
+  log "Found containers using port ${NEW_PORT}. Stopping them..."
+  CONFLICT_CONTAINERS=$(execute_ssh "${DOCKER_CMD} ps --format '{{.Names}} {{.Ports}}' | grep -E '${NEW_PORT}->|:${NEW_PORT}/' | awk '{print \$1}' || true")
+  for container in $CONFLICT_CONTAINERS; do
+    log "Stopping container using conflicting port: $container"
+    execute_ssh "${DOCKER_CMD} rm -f $container || true"
+  done
 fi
 
 # Start the new environment container
