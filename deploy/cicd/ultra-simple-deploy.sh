@@ -9,6 +9,14 @@ set -e
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 DEPLOY_DIR="$(dirname "$SCRIPT_DIR")"
 REPO_ROOT="$(dirname "$DEPLOY_DIR")"
+
+# Load environment variables
+if [ -f "$DEPLOY_DIR/.env.deploy" ]; then
+  set -a
+  . "$DEPLOY_DIR/.env.deploy"
+  set +a
+fi
+
 APP_DIR="${APP_DIR:-/opt/portfolio}"
 
 # Function to execute commands via SSH if needed
@@ -26,10 +34,13 @@ log() {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
 }
 
-# Ensure required directories exist
-log "Creating required directories..."
+# Ensure required directories exist with proper permissions
+log "Creating required directories with proper permissions..."
 execute_ssh "mkdir -p ${APP_DIR}/storage/framework/{sessions,views,cache,cache/data}"
-execute_ssh "chmod -R 777 ${APP_DIR}/storage"
+execute_ssh "sudo chown -R www-data:www-data ${APP_DIR}/storage"
+execute_ssh "sudo chmod -R 775 ${APP_DIR}/storage"
+execute_ssh "sudo find ${APP_DIR}/storage -type d -exec chmod 775 {} \;"
+execute_ssh "sudo find ${APP_DIR}/storage -type f -exec chmod 664 {} \;"
 
 # Find Docker command
 log "Locating Docker command..."
@@ -69,21 +80,17 @@ execute_ssh "${DOCKER_CMD} run -d --name ${CONTAINER_NAME} \
   -p 80:80 \
   -v ${APP_DIR}:/var/www/html \
   -e WEB_DOCUMENT_ROOT=/var/www/html/public \
-  -e APP_ENV=production \
-  -e APP_DEBUG=true \
-  -e APP_URL=https://harun.dev \
-  -e DB_CONNECTION=pgsql \
-  -e DB_HOST=db \
-  -e DB_PORT=5432 \
-  -e DB_DATABASE=${POSTGRES_DB:-laravel} \
-  -e DB_USERNAME=${POSTGRES_USER:-laravel} \
-  -e DB_PASSWORD=${POSTGRES_PASSWORD:-laravel} \
+  # Environment variables are loaded from the .env file on the server \
   --restart unless-stopped \
   webdevops/php-nginx:8.2-alpine"
 
 # Wait for container to start
 log "Waiting for container to start..."
 sleep 5
+
+# Fix permissions inside the container
+log "Fixing permissions inside the container..."
+execute_ssh "${DOCKER_CMD} exec ${CONTAINER_NAME} sh -c 'mkdir -p /var/www/html/storage/framework/{sessions,views,cache,cache/data} && chown -R www-data:www-data /var/www/html/storage && chmod -R 775 /var/www/html/storage && find /var/www/html/storage -type d -exec chmod 775 {} \; && find /var/www/html/storage -type f -exec chmod 664 {} \;'"
 
 # Verify container is running
 CONTAINER_CHECK=$(execute_ssh "${DOCKER_CMD} ps -q -f name=${CONTAINER_NAME}")

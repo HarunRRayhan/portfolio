@@ -131,15 +131,7 @@ docker run -d --name ${CONTAINER_NAME} \
   -e PHP_MAX_EXECUTION_TIME=300 \
   -e PHP_POST_MAX_SIZE=50M \
   -e PHP_UPLOAD_MAX_FILESIZE=50M \
-  -e APP_ENV=production \
-  -e APP_DEBUG=true \
-  -e APP_URL=https://harun.dev \
-  -e DB_CONNECTION=pgsql \
-  -e DB_HOST=db \
-  -e DB_PORT=5432 \
-  -e DB_DATABASE=portfolio \
-  -e DB_USERNAME=portfolio \
-  -e DB_PASSWORD=CO601jkELC5h0pDlqVNbSQ== \
+  # Environment variables are loaded from the .env file on the server \
   --restart unless-stopped \
   webdevops/php-nginx:8.2-alpine
 

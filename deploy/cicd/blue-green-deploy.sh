@@ -160,15 +160,7 @@ execute_ssh "${DOCKER_CMD} run -d --name ${NEW_CONTAINER} \
   -e PHP_MAX_EXECUTION_TIME=300 \
   -e PHP_POST_MAX_SIZE=50M \
   -e PHP_UPLOAD_MAX_FILESIZE=50M \
-  -e APP_ENV=production \
-  -e APP_DEBUG=true \
-  -e APP_URL=http://localhost:${NGINX_PROXY_PORT} \
-  -e DB_CONNECTION=pgsql \
-  -e DB_HOST=db \
-  -e DB_PORT=5432 \
-  -e DB_DATABASE=${POSTGRES_DB:-laravel} \
-  -e DB_USERNAME=${POSTGRES_USER:-laravel} \
-  -e DB_PASSWORD=${POSTGRES_PASSWORD:-laravel} \
+  # Environment variables are loaded from the .env file on the server \
   -e VIEW_COMPILED_PATH=/app/storage/framework/views \
   --restart unless-stopped \
   webdevops/php-nginx:8.2-alpine \

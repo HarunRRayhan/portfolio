@@ -51,134 +51,49 @@ sudo find /opt/portfolio -type f -exec chmod 644 {} \;
 sudo chmod -R 777 /opt/portfolio/storage
 sudo chmod -R 777 /opt/portfolio/bootstrap/cache
 
-# Create a proper .env file
-echo -e "\n=== CREATING PROPER .ENV FILE ==="
-cat > /opt/portfolio/.env << 'ENVFILE'
-APP_NAME="Harun R Rayhan"
-APP_ENV=production
-APP_KEY=base64:yUwtWgRbG5jszbGwJhcERDfBkDPpECD+IURBjl8uAW0=
-APP_DEBUG=true
-APP_URL=https://harun.dev
-
-LOG_CHANNEL=stack
-LOG_DEPRECATIONS_CHANNEL=null
-LOG_LEVEL=debug
-
-DB_CONNECTION=pgsql
-DB_HOST=db
-DB_PORT=5432
-DB_DATABASE=portfolio
-DB_USERNAME=portfolio
-DB_PASSWORD=CO601jkELC5h0pDlqVNbSQ==
-
-BROADCAST_DRIVER=log
-CACHE_DRIVER=file
-FILESYSTEM_DISK=local
-QUEUE_CONNECTION=sync
-SESSION_DRIVER=file
-SESSION_LIFETIME=120
-
-MEMCACHED_HOST=127.0.0.1
-
-REDIS_HOST=127.0.0.1
-REDIS_PASSWORD=null
-REDIS_PORT=6379
-
-MAIL_MAILER=smtp
-MAIL_HOST=mailpit
-MAIL_PORT=1025
-MAIL_USERNAME=null
-MAIL_PASSWORD=null
-MAIL_ENCRYPTION=null
-MAIL_FROM_ADDRESS="hello@example.com"
-MAIL_FROM_NAME="${APP_NAME}"
-
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
-AWS_DEFAULT_REGION=us-east-1
-AWS_BUCKET=
-AWS_USE_PATH_STYLE_ENDPOINT=false
-
-PUSHER_APP_ID=
-PUSHER_APP_KEY=
-PUSHER_APP_SECRET=
-PUSHER_HOST=
-PUSHER_PORT=443
-PUSHER_SCHEME=https
-PUSHER_APP_CLUSTER=mt1
-
-VITE_PUSHER_APP_KEY="${PUSHER_APP_KEY}"
-VITE_PUSHER_HOST="${PUSHER_HOST}"
-VITE_PUSHER_PORT="${PUSHER_PORT}"
-VITE_PUSHER_SCHEME="${PUSHER_SCHEME}"
-VITE_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
-
-ASSET_URL=https://cdn.harun.dev
-VITE_ASSET_BASE_URL=https://cdn.harun.dev
-ENVFILE
-
-# Fix storage directory structure
-echo -e "\n=== FIXING STORAGE DIRECTORY STRUCTURE ==="
-mkdir -p /opt/portfolio/storage/framework/{sessions,views,cache,cache/data}
-mkdir -p /opt/portfolio/storage/logs
-touch /opt/portfolio/storage/logs/laravel.log
-chmod -R 777 /opt/portfolio/storage
-
-# Run Laravel artisan commands inside the container
-echo -e "\n=== RUNNING LARAVEL ARTISAN COMMANDS ==="
-echo "Clearing cache..."
-docker exec $RUNNING_CONTAINER php /var/www/html/artisan cache:clear
-docker exec $RUNNING_CONTAINER php /var/www/html/artisan config:clear
-docker exec $RUNNING_CONTAINER php /var/www/html/artisan view:clear
-docker exec $RUNNING_CONTAINER php /var/www/html/artisan route:clear
-
-echo "Optimizing application..."
-docker exec $RUNNING_CONTAINER php /var/www/html/artisan optimize:clear
-docker exec $RUNNING_CONTAINER php /var/www/html/artisan optimize
-
-# Check Laravel logs for errors
-echo -e "\n=== CHECKING LARAVEL LOGS ==="
-if [ -f /opt/portfolio/storage/logs/laravel.log ]; then
-  echo "Last 20 lines of Laravel log:"
-  tail -n 20 /opt/portfolio/storage/logs/laravel.log
+# Check if .env file exists, if not create a basic one from .env.example
+echo -e "\n=== CHECKING .ENV FILE ==="
+if [ ! -f "/opt/portfolio/.env" ]; then
+  echo "No .env file found. Creating one from .env.example..."
+  if [ -f "/opt/portfolio/.env.example" ]; then
+    cp /opt/portfolio/.env.example /opt/portfolio/.env
+    echo "Created .env file from .env.example"
+  else
+    echo "No .env.example file found. Please create an .env file manually."
+  fi
 else
-  echo "Laravel log file not found."
+  echo ".env file already exists"
 fi
 
-# Create a simple test PHP file to verify PHP is working
+# Clear Laravel caches
+echo -e "\n=== CLEARING LARAVEL CACHES ==="
+docker exec $RUNNING_CONTAINER php artisan cache:clear
+docker exec $RUNNING_CONTAINER php artisan config:clear
+docker exec $RUNNING_CONTAINER php artisan route:clear
+docker exec $RUNNING_CONTAINER php artisan view:clear
+
+# Regenerate Laravel caches
+echo -e "\n=== REGENERATING LARAVEL CACHES ==="
+docker exec $RUNNING_CONTAINER php artisan config:cache
+docker exec $RUNNING_CONTAINER php artisan route:cache
+docker exec $RUNNING_CONTAINER php artisan view:cache
+
+# Create a test PHP file
 echo -e "\n=== CREATING TEST PHP FILE ==="
-cat > /opt/portfolio/public/test.php << 'PHPFILE'
+cat > /opt/portfolio/public/test.php << 'PHP'
 <?php
 phpinfo();
-PHPFILE
-chmod 644 /opt/portfolio/public/test.php
+PHP
 
-# Create a simple index.php file as a fallback
-echo -e "\n=== CREATING FALLBACK INDEX.PHP ==="
-cat > /opt/portfolio/public/index-fallback.php << 'INDEXFILE'
-<?php
-echo "Harun R Rayhan's Portfolio - Fallback Page";
-echo "<br><br>";
-echo "If you're seeing this page, the main Laravel application is experiencing issues.";
-echo "<br>";
-echo "Please check the server logs for more information.";
-INDEXFILE
-chmod 644 /opt/portfolio/public/index-fallback.php
-
-# Restart the container
-echo -e "\n=== RESTARTING CONTAINER ==="
-docker restart $RUNNING_CONTAINER
-echo "Container restarted."
-
-# Wait for container to initialize
-echo "Waiting for container to initialize..."
-sleep 10
+# Create a health check file
+echo -e "\n=== CREATING HEALTH CHECK FILE ==="
+echo "OK" > /opt/portfolio/public/health.txt
 
 # Test the application
 echo -e "\n=== TESTING APPLICATION ==="
 echo "Testing main application..."
 HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:80/)
-echo "HTTP status for main application: $HTTP_STATUS"
+echo "HTTP status: $HTTP_STATUS"
 
 echo "Testing PHP test file..."
 PHP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:80/test.php)
