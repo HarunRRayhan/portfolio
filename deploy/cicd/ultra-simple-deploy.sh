@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Direct Docker Deployment Script for Laravel Portfolio
-# This script uses the simplest possible approach to deploy the application
+# Ultra Simple Docker Deployment Script for Laravel Portfolio
+# This script uses the absolute simplest approach to deploy the application
 
 set -e
 
@@ -10,11 +10,6 @@ SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 DEPLOY_DIR="$(dirname "$SCRIPT_DIR")"
 REPO_ROOT="$(dirname "$DEPLOY_DIR")"
 APP_DIR="${APP_DIR:-/opt/portfolio}"
-PORT=80
-
-# Create timestamp for deployment
-TIMESTAMP=$(date +%Y%m%d%H%M%S)
-CONTAINER_NAME="portfolio-app-${TIMESTAMP}"
 
 # Function to execute commands via SSH if needed
 execute_ssh() {
@@ -53,24 +48,27 @@ if [ "$DOCKER_CMD" = "not-found" ]; then
 fi
 log "Using Docker command: $DOCKER_CMD"
 
-# Stop and remove any container using the same port
-log "Checking for containers using port ${PORT}..."
-PORT_CHECK=$(execute_ssh "netstat -tuln | grep :${PORT} || true")
-if [ -n "$PORT_CHECK" ]; then
-  log "Port ${PORT} is in use. Stopping containers using this port..."
-  OLD_CONTAINERS=$(execute_ssh "${DOCKER_CMD} ps -a --format '{{.Names}}' | grep 'portfolio-app-'")
+# Stop all existing portfolio containers
+log "Stopping all existing portfolio containers..."
+OLD_CONTAINERS=$(execute_ssh "${DOCKER_CMD} ps -a --format '{{.Names}}' | grep 'portfolio-app-' || true")
+if [ -n "$OLD_CONTAINERS" ]; then
   for container in $OLD_CONTAINERS; do
-    log "Stopping container: $container"
-    execute_ssh "${DOCKER_CMD} stop $container || true"
-    execute_ssh "${DOCKER_CMD} rm $container || true"
+    log "Stopping and removing container: $container"
+    execute_ssh "${DOCKER_CMD} stop $container 2>/dev/null || true"
+    execute_ssh "${DOCKER_CMD} rm $container 2>/dev/null || true"
   done
 fi
 
-# Start the new container using a pre-built image
+# Create timestamp for deployment
+TIMESTAMP=$(date +%Y%m%d%H%M%S)
+CONTAINER_NAME="portfolio-app-${TIMESTAMP}"
+
+# Start the new container using a simple pre-built image
 log "Starting new container: ${CONTAINER_NAME}..."
 execute_ssh "${DOCKER_CMD} run -d --name ${CONTAINER_NAME} \
-  -p ${PORT}:80 \
+  -p 8080:80 \
   -v ${APP_DIR}:/var/www/html \
+  -e WEB_DOCUMENT_ROOT=/var/www/html/public \
   -e APP_ENV=production \
   -e APP_DEBUG=true \
   -e APP_URL=https://harun.dev \
@@ -80,13 +78,12 @@ execute_ssh "${DOCKER_CMD} run -d --name ${CONTAINER_NAME} \
   -e DB_DATABASE=${POSTGRES_DB:-laravel} \
   -e DB_USERNAME=${POSTGRES_USER:-laravel} \
   -e DB_PASSWORD=${POSTGRES_PASSWORD:-laravel} \
-  -e VIEW_COMPILED_PATH=/var/www/html/storage/framework/views \
   --restart unless-stopped \
   webdevops/php-nginx:8.2-alpine"
 
 # Wait for container to start
 log "Waiting for container to start..."
-sleep 10
+sleep 5
 
 # Verify container is running
 CONTAINER_CHECK=$(execute_ssh "${DOCKER_CMD} ps -q -f name=${CONTAINER_NAME}")
@@ -99,19 +96,12 @@ else
   log "Container is running successfully."
 fi
 
-# Clean up old containers (keep the most recent 3 for potential rollback)
-log "Cleaning up old containers..."
-OLD_CONTAINERS=$(execute_ssh "${DOCKER_CMD} ps -a --format '{{.Names}}' | grep 'portfolio-app-' | grep -v ${CONTAINER_NAME} | sort -r | tail -n +4")
-if [ ! -z "$OLD_CONTAINERS" ]; then
-  for container in $OLD_CONTAINERS; do
-    log "Removing old container: $container"
-    execute_ssh "${DOCKER_CMD} rm -f $container 2>/dev/null || true"
-  done
-  log "Old containers cleaned up"
-else
-  log "No old containers to clean up"
-fi
+# Set up a simple port forwarding using socat
+log "Setting up port forwarding from port 80 to 8080..."
+execute_ssh "sudo pkill socat || true"
+execute_ssh "sudo nohup socat TCP-LISTEN:80,fork TCP:localhost:8080 > /dev/null 2>&1 &"
 
 log "✅ Deployment completed successfully!"
-log "Container is running at http://localhost:${PORT}"
+log "Container is running at http://localhost:8080"
+log "Traffic from port 80 is being forwarded to port 8080"
 exit 0

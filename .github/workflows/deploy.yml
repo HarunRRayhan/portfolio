@@ -341,17 +341,19 @@ jobs:
           fi"
           
           # Copy our new Docker deployment script to the server
-          # Copy our deployment scripts and configuration to the server
-          scp -r ${GITHUB_WORKSPACE}/deploy/cicd/direct-deploy.sh ${REMOTE_USER}@${REMOTE_HOST}:${APP_DIR}/deploy/cicd/
-          scp -r ${GITHUB_WORKSPACE}/deploy/cicd/setup-nginx-proxy.sh ${REMOTE_USER}@${REMOTE_HOST}:${APP_DIR}/deploy/cicd/
-          ssh ${REMOTE_USER}@${REMOTE_HOST} "chmod +x ${APP_DIR}/deploy/cicd/direct-deploy.sh ${APP_DIR}/deploy/cicd/setup-nginx-proxy.sh"
+          # Copy our ultra-simple deployment script to the server
+          scp -r ${GITHUB_WORKSPACE}/deploy/cicd/ultra-simple-deploy.sh ${REMOTE_USER}@${REMOTE_HOST}:${APP_DIR}/deploy/cicd/
+          ssh ${REMOTE_USER}@${REMOTE_HOST} "chmod +x ${APP_DIR}/deploy/cicd/ultra-simple-deploy.sh"
           
-          # Set up Nginx proxy to forward traffic from port 80 to 8080
-          ssh ${REMOTE_USER}@${REMOTE_HOST} "sudo ${APP_DIR}/deploy/cicd/setup-nginx-proxy.sh"
+          # Make sure ports are free before deployment
+          ssh ${REMOTE_USER}@${REMOTE_HOST} "sudo lsof -ti:80,8080 | xargs -r sudo kill -9 || true"
           
-          # Execute our direct deployment script on the server
-          # This script uses the simplest possible approach for reliable deployment
-          ssh ${REMOTE_USER}@${REMOTE_HOST} "export $ENV_VARS && cd ${APP_DIR} && ./deploy/cicd/direct-deploy.sh"
+          # Install socat if not already installed
+          ssh ${REMOTE_USER}@${REMOTE_HOST} "sudo apt-get update && sudo apt-get install -y socat || true"
+          
+          # Execute our ultra-simple deployment script on the server
+          # This script uses the absolute simplest approach for reliable deployment
+          ssh ${REMOTE_USER}@${REMOTE_HOST} "export $ENV_VARS && cd ${APP_DIR} && ./deploy/cicd/ultra-simple-deploy.sh"
           
           # Check if the container is actually running
           CONTAINER_CHECK=$(ssh ${REMOTE_USER}@${REMOTE_HOST} "if command -v docker &> /dev/null; then docker ps | grep portfolio-app | wc -l; elif [ -f /usr/bin/docker ]; then /usr/bin/docker ps | grep portfolio-app | wc -l; elif [ -f /usr/local/bin/docker ]; then /usr/local/bin/docker ps | grep portfolio-app | wc -l; else echo 0; fi")
