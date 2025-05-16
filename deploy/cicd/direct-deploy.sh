@@ -66,26 +66,13 @@ if [ -n "$PORT_CHECK" ]; then
   done
 fi
 
-# Copy our custom Nginx configuration
-log "Copying custom Nginx configuration..."
-execute_ssh "mkdir -p ${APP_DIR}/docker/ci"
-execute_ssh "cat > ${APP_DIR}/docker/ci/production-nginx.conf << 'EOL'
-$(cat ${SCRIPT_DIR}/production-nginx.conf)
-EOL"
-
-# Start the new container
+# Start the new container using the original production Dockerfile
 log "Starting new container: ${CONTAINER_NAME}..."
+execute_ssh "cd ${APP_DIR} && ${DOCKER_CMD} build -t portfolio-app:latest -f docker/Dockerfile ."
 execute_ssh "${DOCKER_CMD} run -d --name ${CONTAINER_NAME} \
   -p ${PORT}:80 \
-  -v ${APP_DIR}:/app \
-  -v ${APP_DIR}/docker/ci/production-nginx.conf:/opt/docker/etc/nginx/vhost.conf \
-  -e WEB_DOCUMENT_ROOT=/app/public \
-  -e WEB_DOCUMENT_INDEX=index.php \
-  -e PHP_DISPLAY_ERRORS=1 \
-  -e PHP_MEMORY_LIMIT=512M \
-  -e PHP_MAX_EXECUTION_TIME=300 \
-  -e PHP_POST_MAX_SIZE=50M \
-  -e PHP_UPLOAD_MAX_FILESIZE=50M \
+  -v ${APP_DIR}/.env:/var/www/html/.env \
+  -v ${APP_DIR}/storage:/var/www/html/storage \
   -e APP_ENV=production \
   -e APP_DEBUG=true \
   -e APP_URL=https://harun.dev \
@@ -95,9 +82,9 @@ execute_ssh "${DOCKER_CMD} run -d --name ${CONTAINER_NAME} \
   -e DB_DATABASE=${POSTGRES_DB:-laravel} \
   -e DB_USERNAME=${POSTGRES_USER:-laravel} \
   -e DB_PASSWORD=${POSTGRES_PASSWORD:-laravel} \
-  -e VIEW_COMPILED_PATH=/app/storage/framework/views \
+  -e VIEW_COMPILED_PATH=/var/www/html/storage/framework/views \
   --restart unless-stopped \
-  webdevops/php-nginx:8.2-alpine"
+  portfolio-app:latest"
 
 # Wait for container to start
 log "Waiting for container to start..."
