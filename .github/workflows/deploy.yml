@@ -341,13 +341,13 @@ jobs:
           fi"
           
           # Copy our new Docker deployment script to the server
-          # Copy our simplified deployment script to the server
-          scp -r ${GITHUB_WORKSPACE}/deploy/cicd/simple-deploy.sh ${REMOTE_USER}@${REMOTE_HOST}:${APP_DIR}/deploy/cicd/
-          ssh ${REMOTE_USER}@${REMOTE_HOST} "chmod +x ${APP_DIR}/deploy/cicd/simple-deploy.sh"
+          # Copy our direct deployment script to the server
+          scp -r ${GITHUB_WORKSPACE}/deploy/cicd/direct-deploy.sh ${REMOTE_USER}@${REMOTE_HOST}:${APP_DIR}/deploy/cicd/
+          ssh ${REMOTE_USER}@${REMOTE_HOST} "chmod +x ${APP_DIR}/deploy/cicd/direct-deploy.sh"
           
-          # Execute our simplified deployment script directly on the server
-          # This script implements zero-downtime deployment with proper health checks
-          ssh ${REMOTE_USER}@${REMOTE_HOST} "export $ENV_VARS && cd ${APP_DIR} && ./deploy/cicd/simple-deploy.sh"
+          # Execute our direct deployment script on the server
+          # This script uses the simplest possible approach for reliable deployment
+          ssh ${REMOTE_USER}@${REMOTE_HOST} "export $ENV_VARS && cd ${APP_DIR} && ./deploy/cicd/direct-deploy.sh"
           
           # Check if the container is actually running
           CONTAINER_CHECK=$(ssh ${REMOTE_USER}@${REMOTE_HOST} "if command -v docker &> /dev/null; then docker ps | grep portfolio-app | wc -l; elif [ -f /usr/bin/docker ]; then /usr/bin/docker ps | grep portfolio-app | wc -l; elif [ -f /usr/local/bin/docker ]; then /usr/local/bin/docker ps | grep portfolio-app | wc -l; else echo 0; fi")
