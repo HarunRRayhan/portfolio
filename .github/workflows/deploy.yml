@@ -341,13 +341,14 @@ jobs:
           fi"
           
           # Copy our new Docker deployment script to the server
+          # Copy both deployment scripts to the server
           scp -r ${GITHUB_WORKSPACE}/deploy/cicd/docker-deploy.sh ${REMOTE_USER}@${REMOTE_HOST}:${APP_DIR}/deploy/cicd/
-          ssh ${REMOTE_USER}@${REMOTE_HOST} "chmod +x ${APP_DIR}/deploy/cicd/docker-deploy.sh"
+          scp -r ${GITHUB_WORKSPACE}/deploy/cicd/blue-green-deploy.sh ${REMOTE_USER}@${REMOTE_HOST}:${APP_DIR}/deploy/cicd/
+          ssh ${REMOTE_USER}@${REMOTE_HOST} "chmod +x ${APP_DIR}/deploy/cicd/docker-deploy.sh ${APP_DIR}/deploy/cicd/blue-green-deploy.sh"
           
-          # Execute our new Docker deployment script directly on the server
-          # We'll run it without checking the exit code since the container might be running successfully
-          # even if the script returns a non-zero exit code
-          ssh ${REMOTE_USER}@${REMOTE_HOST} "export $ENV_VARS && cd ${APP_DIR} && ./deploy/cicd/docker-deploy.sh || true"
+          # Execute our blue-green deployment script directly on the server
+          # This script implements zero-downtime deployment with proper health checks
+          ssh ${REMOTE_USER}@${REMOTE_HOST} "export $ENV_VARS && cd ${APP_DIR} && ./deploy/cicd/blue-green-deploy.sh"
           
           # Check if the container is actually running
           CONTAINER_CHECK=$(ssh ${REMOTE_USER}@${REMOTE_HOST} "if command -v docker &> /dev/null; then docker ps | grep portfolio-app | wc -l; elif [ -f /usr/bin/docker ]; then /usr/bin/docker ps | grep portfolio-app | wc -l; elif [ -f /usr/local/bin/docker ]; then /usr/local/bin/docker ps | grep portfolio-app | wc -l; else echo 0; fi")
