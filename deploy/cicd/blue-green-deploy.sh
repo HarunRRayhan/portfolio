@@ -16,7 +16,7 @@ CI_DIR="${DOCKER_DIR}/ci"
 NGINX_PROXY_PORT=8080
 APP_PORT_BLUE=9000
 APP_PORT_GREEN=9001
-HEALTH_CHECK_PATH="/health"
+HEALTH_CHECK_PATH="/health.php"
 HEALTH_CHECK_TIMEOUT=60
 HEALTH_CHECK_INTERVAL=5
 
@@ -100,11 +100,6 @@ server {
     listen 80;
     server_name localhost;
 
-    location /health {
-        return 200 'OK';
-        add_header Content-Type text/plain;
-    }
-
     location / {
         proxy_pass http://127.0.0.1:${NEW_PORT};
         proxy_set_header Host \$host;
@@ -150,11 +145,11 @@ execute_ssh "${DOCKER_CMD} run -d --name ${NEW_CONTAINER} \
   -e VIEW_COMPILED_PATH=/app/storage/framework/views \
   --restart unless-stopped \
   webdevops/php-nginx:8.2-alpine \
-  bash -c 'mkdir -p /app/storage/framework/{sessions,views,cache,cache/data} && chmod -R 777 /app/storage && supervisord'"
+  bash -c 'mkdir -p /app/storage/framework/{sessions,views,cache,cache/data} && chmod -R 777 /app/storage && echo "<?php echo \"OK\"; ?>" > /app/public/health.php && supervisord'"
 
-# Wait for container to start
-log "Waiting for container to start..."
-sleep 10
+# Wait for container to start and initialize
+log "Waiting for container to start and initialize..."
+sleep 30
 
 # Check if new container is running
 NEW_CONTAINER_CHECK=$(execute_ssh "${DOCKER_CMD} ps -q -f name=${NEW_CONTAINER}")
@@ -172,7 +167,9 @@ HEALTH_CHECK_SUCCESS=false
 
 while [ $(date +%s) -lt $HEALTH_CHECK_END_TIME ]; do
   log "Checking health of new container... ($(( $(date +%s) - HEALTH_CHECK_START_TIME ))s elapsed)"
-  HEALTH_STATUS=$(execute_ssh "curl -s -o /dev/null -w '%{http_code}' http://localhost:${NEW_PORT}${HEALTH_CHECK_PATH} || echo 'failed'")
+  HEALTH_STATUS=$(execute_ssh "curl -s -i http://localhost:${NEW_PORT}${HEALTH_CHECK_PATH} | head -n 1 | cut -d' ' -f2 || echo 'failed'")
+  log "Debug: Full response from health check:"
+  execute_ssh "curl -s -i http://localhost:${NEW_PORT}${HEALTH_CHECK_PATH}"
   
   if [ "$HEALTH_STATUS" = "200" ] || [ "$HEALTH_STATUS" = "302" ] || [ "$HEALTH_STATUS" = "301" ]; then
     log "✅ Health check passed with status code: $HEALTH_STATUS"
@@ -197,11 +194,6 @@ execute_ssh "cat > ${APP_DIR}/docker/ci/nginx-proxy.conf << EOF
 server {
     listen 80;
     server_name localhost;
-
-    location /health {
-        return 200 'OK';
-        add_header Content-Type text/plain;
-    }
 
     location / {
         proxy_pass http://127.0.0.1:${NEW_PORT};
