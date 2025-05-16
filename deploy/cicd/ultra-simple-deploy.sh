@@ -66,7 +66,7 @@ CONTAINER_NAME="portfolio-app-${TIMESTAMP}"
 # Start the new container using a simple pre-built image
 log "Starting new container: ${CONTAINER_NAME}..."
 execute_ssh "${DOCKER_CMD} run -d --name ${CONTAINER_NAME} \
-  -p 8080:80 \
+  -p 80:80 \
   -v ${APP_DIR}:/var/www/html \
   -e WEB_DOCUMENT_ROOT=/var/www/html/public \
   -e APP_ENV=production \
@@ -96,12 +96,10 @@ else
   log "Container is running successfully."
 fi
 
-# Set up a simple port forwarding using socat
-log "Setting up port forwarding from port 80 to 8080..."
-execute_ssh "sudo pkill socat || true"
-execute_ssh "sudo nohup socat TCP-LISTEN:80,fork TCP:localhost:8080 > /dev/null 2>&1 &"
+# Run the container directly on port 80 instead of port forwarding
+log "Container will listen directly on port 80 instead of using port forwarding..."
+# We'll handle this by changing the port mapping in the docker run command
 
 log "✅ Deployment completed successfully!"
-log "Container is running at http://localhost:8080"
-log "Traffic from port 80 is being forwarded to port 8080"
+log "Container is running at http://localhost:80"
 exit 0
