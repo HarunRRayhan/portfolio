@@ -202,14 +202,22 @@ jobs:
             local source=$1
             local dest=$2
             local content_type=$3
-            local options="--endpoint-url \"${R2_S3_ENDPOINT}\" --acl public-read --no-progress --size-only"
+            local options="--endpoint-url \"${R2_S3_ENDPOINT}\" --acl public-read"
             
             if [ ! -z "$content_type" ]; then
               options="$options --content-type \"$content_type\""
             fi
             
-            echo "Uploading $source to $dest (only if missing or updated)"
-            if eval "aws s3 sync $source $dest $options --delete" &>/dev/null; then
+            echo "Uploading $source to $dest"
+            # First check if the directory exists
+            if [ ! -d "$source" ]; then
+              echo "⚠️ Source directory $source does not exist or is not a directory"
+              return 1
+            fi
+            
+            # Run the command with verbose output to debug issues
+            echo "Running: aws s3 sync $source $dest $options"
+            if aws s3 sync $source $dest $options --debug; then
               echo "✅ Successfully synced $source to $dest"
               return 0
             else
