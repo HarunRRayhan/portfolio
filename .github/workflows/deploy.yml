@@ -202,7 +202,21 @@ jobs:
             local source=$1
             local dest=$2
             local content_type=$3
-            local options="--endpoint-url \"${R2_S3_ENDPOINT}\" --acl public-read"
+            
+            # Validate the endpoint URL
+            if [ -z "${R2_S3_ENDPOINT}" ]; then
+              echo "⚠️ R2_S3_ENDPOINT is empty or not set"
+              return 1
+            fi
+            
+            # Ensure the endpoint URL has a scheme (http:// or https://)
+            local endpoint_url="${R2_S3_ENDPOINT}"
+            if [[ ! "$endpoint_url" =~ ^https?:// ]]; then
+              endpoint_url="https://${endpoint_url}"
+              echo "Added https:// prefix to endpoint URL: $endpoint_url"
+            fi
+            
+            local options="--endpoint-url \"$endpoint_url\" --acl public-read"
             
             if [ ! -z "$content_type" ]; then
               options="$options --content-type \"$content_type\""
