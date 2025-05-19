@@ -1,0 +1,109 @@
+version: '3.8'
+
+services:
+  app-blue:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    volumes:
+      - ./storage:/var/www/html/storage
+    environment:
+      - APP_ENV=${ENV}
+      - APP_DEBUG=false
+      - APP_URL=https://${DOMAIN}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - ASSET_URL=${ASSET_URL}
+      - VITE_ASSET_BASE_URL=${VITE_ASSET_BASE_URL}
+      - APP_KEY=${APP_KEY}
+    labels:
+      - "traefik.enable=false"
+      - "traefik.http.routers.app-blue.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.app-blue.entrypoints=websecure"
+      - "traefik.http.routers.app-blue.tls.certresolver=letsencrypt"
+      - "traefik.http.services.app-blue.loadbalancer.server.port=80"
+    networks:
+      - app-network
+
+  app-green:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    volumes:
+      - ./storage:/var/www/html/storage
+    environment:
+      - APP_ENV=${ENV}
+      - APP_DEBUG=false
+      - APP_URL=https://${DOMAIN}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - ASSET_URL=${ASSET_URL}
+      - VITE_ASSET_BASE_URL=${VITE_ASSET_BASE_URL}
+      - APP_KEY=${APP_KEY}
+    labels:
+      - "traefik.enable=false"
+      - "traefik.http.routers.app-green.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.app-green.entrypoints=websecure"
+      - "traefik.http.routers.app-green.tls.certresolver=letsencrypt"
+      - "traefik.http.services.app-green.loadbalancer.server.port=80"
+    networks:
+      - app-network
+
+  traefik:
+    container_name: portfolio-traefik
+    image: traefik:v2.10
+    restart: unless-stopped
+    command:
+      - "--api.insecure=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=${EMAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      # Redirect HTTP to HTTPS
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "traefik-certificates:/letsencrypt"
+    networks:
+      - app-network
+
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${DB_DATABASE}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+volumes:
+  postgres-data:
+  traefik-certificates:
+
+networks:
+  app-network:
+    driver: bridge
