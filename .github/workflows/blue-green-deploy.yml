@@ -100,12 +100,22 @@ jobs:
           environment: ${{ env.ENVIRONMENT }}
           initial_status: "in_progress"
 
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          log-public-key: true
+      
+      - name: Add server to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -t rsa ${{ secrets.REMOTE_HOST }} >> ~/.ssh/known_hosts
+      
       - name: Deploy to Server
         id: deploy
         env:
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
-          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           APP_DIR: ${{ secrets.APP_DIR }}
           # Database credentials
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
@@ -129,11 +139,6 @@ jobs:
           GITHUB_ACTIONS: "true"
           DEPLOY_TIMESTAMP: ${{ env.DEPLOY_TIMESTAMP }}
         run: |
-          # Set up SSH key
-          mkdir -p ~/.ssh
-          echo "$SSH_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H $REMOTE_HOST >> ~/.ssh/known_hosts
           
           # Create a temporary .env file for deployment
           cat > .env.deploy << EOF
@@ -173,17 +178,17 @@ jobs:
           
           # Copy deployment files to the server
           echo "Copying deployment files to server..."
-          scp -r deploy/* $REMOTE_USER@$REMOTE_HOST:$APP_DIR/
-          scp -r public/build $REMOTE_USER@$REMOTE_HOST:$APP_DIR/public/
-          scp .env.deploy $REMOTE_USER@$REMOTE_HOST:$APP_DIR/.env.deploy
+          scp -o StrictHostKeyChecking=no -r deploy/* $REMOTE_USER@$REMOTE_HOST:$APP_DIR/
+          scp -o StrictHostKeyChecking=no -r public/build $REMOTE_USER@$REMOTE_HOST:$APP_DIR/public/
+          scp -o StrictHostKeyChecking=no .env.deploy $REMOTE_USER@$REMOTE_HOST:$APP_DIR/.env.deploy
           
           # Execute blue-green deployment script
           echo "Executing blue-green deployment script..."
-          ssh $REMOTE_USER@$REMOTE_HOST "cd $APP_DIR && chmod +x ./cicd/blue-green-deploy.sh && ./cicd/blue-green-deploy.sh"
+          ssh -o StrictHostKeyChecking=no $REMOTE_USER@$REMOTE_HOST "cd $APP_DIR && chmod +x ./cicd/blue-green-deploy.sh && ./cicd/blue-green-deploy.sh"
           
           # Verify deployment
           echo "Verifying deployment..."
-          CONTAINER_CHECK=$(ssh $REMOTE_USER@$REMOTE_HOST "if [ -f /bin/docker ]; then /bin/docker ps | grep portfolio-app | wc -l; elif [ -f /usr/bin/docker ]; then /usr/bin/docker ps | grep portfolio-app | wc -l; elif [ -f /usr/local/bin/docker ]; then /usr/local/bin/docker ps | grep portfolio-app | wc -l; else echo 0; fi")
+          CONTAINER_CHECK=$(ssh -o StrictHostKeyChecking=no $REMOTE_USER@$REMOTE_HOST "if [ -f /bin/docker ]; then /bin/docker ps | grep portfolio-app | wc -l; elif [ -f /usr/bin/docker ]; then /usr/bin/docker ps | grep portfolio-app | wc -l; elif [ -f /usr/local/bin/docker ]; then /usr/local/bin/docker ps | grep portfolio-app | wc -l; else echo 0; fi")
           if [ "$CONTAINER_CHECK" -gt "0" ]; then
             echo "✅ Container is running - deployment successful!"
             echo "::set-output name=status::success"
