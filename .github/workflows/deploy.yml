@@ -1,0 +1,272 @@
+name: Blue-Green CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, development, features/cicd ]
+  pull_request:
+    types: [ closed ]
+    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - development
+
+env:
+  ENVIRONMENT: ${{ github.event.inputs.environment || 'production' }}
+  DEPLOY_TIMESTAMP: ${{ github.run_id }}
+  BLUE_PORT: 8080
+  GREEN_PORT: 8081
+  PRODUCTION_PORT: 80
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    environment: ${{ github.event.inputs.environment || 'production' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Install SSH key
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "SSH connection successful"
+            mkdir -p ${{ secrets.APP_DIR }}/public/build
+
+      - name: Deploy to server
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "app,bootstrap,config,database,lang,public,resources,routes,storage,tests,vendor,artisan,composer.json,composer.lock,package.json,package-lock.json,vite.config.js,tailwind.config.js,postcss.config.js"
+          target: "${{ secrets.APP_DIR }}"
+          strip_components: 0
+
+      - name: Deploy built assets
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "public/build/*"
+          target: "${{ secrets.APP_DIR }}/public/build"
+          strip_components: 2
+
+      - name: Execute Blue-Green Deployment
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Create timestamp for unique container name
+            TIMESTAMP=$(date +%Y%m%d%H%M%S)
+            
+            # Create Laravel .env file
+            cat > ${{ secrets.APP_DIR }}/.env << EOF
+            APP_NAME="${{ secrets.APP_NAME }}"
+            APP_ENV=${{ env.ENVIRONMENT }}
+            APP_KEY=${{ secrets.APP_KEY }}
+            APP_DEBUG=${{ env.ENVIRONMENT == 'production' && 'false' || 'true' }}
+            APP_URL=${{ secrets.APP_URL }}
+            
+            LOG_CHANNEL=stack
+            LOG_DEPRECATIONS_CHANNEL=null
+            LOG_LEVEL=debug
+            
+            DB_CONNECTION=pgsql
+            DB_HOST=localhost
+            DB_PORT=5432
+            DB_DATABASE=${{ secrets.POSTGRES_DB }}
+            DB_USERNAME=${{ secrets.POSTGRES_USER }}
+            DB_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            
+            SESSION_DRIVER=file
+            SESSION_LIFETIME=120
+            
+            CACHE_DRIVER=file
+            QUEUE_CONNECTION=sync
+            
+            ASSET_URL=https://cdn.harun.dev
+            EOF
+            
+            # Set up directories and permissions
+            mkdir -p ${{ secrets.APP_DIR }}/storage/logs
+            mkdir -p ${{ secrets.APP_DIR }}/storage/framework/{sessions,views,cache,cache/data}
+            mkdir -p ${{ secrets.APP_DIR }}/bootstrap/cache
+            chmod -R 777 ${{ secrets.APP_DIR }}/storage ${{ secrets.APP_DIR }}/bootstrap/cache
+            touch ${{ secrets.APP_DIR }}/storage/logs/laravel.log
+            chmod 666 ${{ secrets.APP_DIR }}/storage/logs/laravel.log
+            
+            # Determine which environment (blue or green) is currently active
+            ACTIVE_COLOR=$(docker ps --filter "name=portfolio-app-" --format "{{.Names}}" | grep -o "blue\|green" || echo "none")
+            
+            if [ "$ACTIVE_COLOR" == "none" ]; then
+                echo "No active environment found. Starting with blue."
+                ACTIVE_COLOR="none"
+                NEW_COLOR="blue"
+                NEW_PORT=${{ env.BLUE_PORT }}
+            elif [ "$ACTIVE_COLOR" == "blue" ]; then
+                echo "Blue environment is active. Deploying to green."
+                NEW_COLOR="green"
+                NEW_PORT=${{ env.GREEN_PORT }}
+            else
+                echo "Green environment is active. Deploying to blue."
+                NEW_COLOR="blue"
+                NEW_PORT=${{ env.BLUE_PORT }}
+            fi
+            
+            echo "Deploying to $NEW_COLOR environment on port $NEW_PORT"
+            
+            # Create a unique container name
+            NEW_CONTAINER="portfolio-app-${NEW_COLOR}-${TIMESTAMP}"
+            
+            # Start new container for the inactive environment
+            echo "Starting new container: ${NEW_CONTAINER}..."
+            docker run -d --name ${NEW_CONTAINER} \
+              -p ${NEW_PORT}:80 \
+              -v ${{ secrets.APP_DIR }}:/var/www/html \
+              -e WEB_DOCUMENT_ROOT=/var/www/html/public \
+              -e PHP_MAX_EXECUTION_TIME=300 \
+              -e PHP_POST_MAX_SIZE=50M \
+              -e PHP_UPLOAD_MAX_FILESIZE=50M \
+              -e DB_CONNECTION=pgsql \
+              -e DB_HOST=localhost \
+              -e DB_PORT=5432 \
+              -e DB_DATABASE=${{ secrets.POSTGRES_DB }} \
+              -e DB_USERNAME=${{ secrets.POSTGRES_USER }} \
+              -e DB_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
+              --restart unless-stopped \
+              webdevops/php-nginx:8.2-alpine
+            
+            # Wait for container to start
+            echo "Waiting for container to start..."
+            sleep 5
+            
+            # Fix permissions inside container
+            echo "Fixing permissions inside container..."
+            docker exec ${NEW_CONTAINER} sh -c 'chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache'
+            
+            # Clear Laravel cache
+            echo "Clearing Laravel cache..."
+            docker exec ${NEW_CONTAINER} sh -c 'cd /var/www/html && php artisan view:clear && php artisan route:clear && php artisan config:clear' || echo "Failed to clear cache"
+            
+            # Run migrations
+            echo "Running migrations..."
+            docker exec ${NEW_CONTAINER} sh -c 'cd /var/www/html && php artisan migrate --force' || echo "Failed to run migrations"
+            
+            # Health check
+            echo "Performing health check..."
+            HEALTH_CHECK_MAX_RETRIES=5
+            HEALTH_CHECK_RETRY_INTERVAL=5
+            HEALTH_CHECK_SUCCESS=false
+            
+            for i in $(seq 1 $HEALTH_CHECK_MAX_RETRIES); do
+                HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${NEW_PORT} || echo "Connection failed")
+                
+                if [[ "$HTTP_STATUS" == "200" || "$HTTP_STATUS" == "302" || "$HTTP_STATUS" == "301" ]]; then
+                    echo "✅ Health check passed! New environment is healthy."
+                    HEALTH_CHECK_SUCCESS=true
+                    break
+                else
+                    echo "⚠️ Health check attempt $i failed with status $HTTP_STATUS. Retrying in ${HEALTH_CHECK_RETRY_INTERVAL}s..."
+                    
+                    if [ $i -eq $HEALTH_CHECK_MAX_RETRIES ]; then
+                        echo "❌ Health check failed after $HEALTH_CHECK_MAX_RETRIES attempts. Aborting deployment."
+                        docker stop ${NEW_CONTAINER}
+                        docker rm ${NEW_CONTAINER}
+                        exit 1
+                    fi
+                    
+                    sleep $HEALTH_CHECK_RETRY_INTERVAL
+                fi
+            done
+            
+            if [ "$HEALTH_CHECK_SUCCESS" = true ]; then
+                # Set up Nginx to route traffic to the new environment
+                echo "Updating Nginx configuration..."
+                
+                # Create Nginx configuration
+                cat > /etc/nginx/sites-available/portfolio << EOF
+                server {
+                    listen 80;
+                    server_name _;
+                    
+                    location / {
+                        proxy_pass http://localhost:${NEW_PORT};
+                        proxy_set_header Host \$host;
+                        proxy_set_header X-Real-IP \$remote_addr;
+                        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                        proxy_set_header X-Forwarded-Proto \$scheme;
+                    }
+                }
+                EOF
+                
+                # Enable site if not already enabled
+                if [ ! -f /etc/nginx/sites-enabled/portfolio ]; then
+                    ln -s /etc/nginx/sites-available/portfolio /etc/nginx/sites-enabled/
+                fi
+                
+                # Test Nginx configuration
+                nginx -t
+                
+                # Reload Nginx
+                systemctl reload nginx
+                
+                echo "Traffic now routed to the new ${NEW_COLOR} environment."
+                
+                # Stop and remove the old container if it exists
+                if [ "$ACTIVE_COLOR" != "none" ]; then
+                    OLD_CONTAINER=$(docker ps --filter "name=portfolio-app-${ACTIVE_COLOR}" --format "{{.Names}}")
+                    
+                    if [ ! -z "$OLD_CONTAINER" ]; then
+                        echo "Stopping old ${ACTIVE_COLOR} container: ${OLD_CONTAINER}..."
+                        docker stop ${OLD_CONTAINER}
+                        docker rm ${OLD_CONTAINER}
+                    fi
+                fi
+                
+                echo "Blue-green deployment completed successfully!"
+                echo "Active environment: ${NEW_COLOR}"
+                echo "Container name: ${NEW_CONTAINER}"
+                exit 0
+            else
+                echo "Deployment failed. Keeping the previous environment active."
+                exit 1
+            fi
+
+      - name: Purge Cloudflare Cache
+        if: success()
+        env:
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          echo "Purging Cloudflare cache..."
+          curl -s -X POST "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}'
