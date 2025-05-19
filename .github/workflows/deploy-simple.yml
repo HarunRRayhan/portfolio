@@ -1,0 +1,168 @@
+name: Simple Deployment
+
+on:
+  push:
+    branches: [ main, master, development, features/cicd ]
+  pull_request:
+    types: [ closed ]
+    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - development
+
+env:
+  ENVIRONMENT: ${{ github.event.inputs.environment || 'production' }}
+  DEPLOY_TIMESTAMP: ${{ github.run_id }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    environment: ${{ github.event.inputs.environment || 'production' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Set up SSH
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: ${{ secrets.REMOTE_HOST }}
+          if_key_exists: replace
+
+      - name: Add to known_hosts
+        run: ssh-keyscan -H ${{ secrets.REMOTE_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to server
+        env:
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          APP_DIR: ${{ secrets.APP_DIR }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          APP_NAME: ${{ secrets.APP_NAME }}
+          APP_ENV: ${{ env.ENVIRONMENT }}
+          APP_KEY: ${{ secrets.APP_KEY }}
+          APP_DEBUG: ${{ env.ENVIRONMENT == 'production' && 'false' || 'true' }}
+          APP_URL: ${{ secrets.APP_URL }}
+        run: |
+          # Create deployment timestamp
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          
+          # Create .env file for Laravel
+          cat > .env << EOF
+          APP_NAME="${APP_NAME}"
+          APP_ENV=${APP_ENV}
+          APP_KEY=${APP_KEY}
+          APP_DEBUG=${APP_DEBUG}
+          APP_URL=${APP_URL}
+          
+          LOG_CHANNEL=stack
+          LOG_DEPRECATIONS_CHANNEL=null
+          LOG_LEVEL=debug
+          
+          DB_CONNECTION=pgsql
+          DB_HOST=localhost
+          DB_PORT=5432
+          DB_DATABASE=${POSTGRES_DB}
+          DB_USERNAME=${POSTGRES_USER}
+          DB_PASSWORD=${POSTGRES_PASSWORD}
+          
+          SESSION_DRIVER=file
+          SESSION_LIFETIME=120
+          
+          CACHE_DRIVER=file
+          QUEUE_CONNECTION=sync
+          
+          ASSET_URL=https://cdn.harun.dev
+          EOF
+          
+          # Create deployment directory
+          ssh ${REMOTE_USER}@${REMOTE_HOST} "mkdir -p ${APP_DIR}"
+          
+          # Copy files to server
+          echo "Copying files to server..."
+          rsync -avz --exclude 'node_modules' --exclude '.git' ./ ${REMOTE_USER}@${REMOTE_HOST}:${APP_DIR}/
+          
+          # Create container name
+          CONTAINER_NAME="portfolio-app-${TIMESTAMP}"
+          
+          # Deploy using Docker
+          echo "Deploying with Docker..."
+          ssh ${REMOTE_USER}@${REMOTE_HOST} "cd ${APP_DIR} && \
+            # Stop existing containers
+            docker ps -q --filter name=portfolio-app | xargs -r docker stop && \
+            docker ps -aq --filter name=portfolio-app | xargs -r docker rm && \
+            
+            # Ensure storage directories exist with proper permissions
+            mkdir -p ${APP_DIR}/storage/logs && \
+            mkdir -p ${APP_DIR}/storage/framework/{sessions,views,cache,cache/data} && \
+            mkdir -p ${APP_DIR}/bootstrap/cache && \
+            chmod -R 777 ${APP_DIR}/storage ${APP_DIR}/bootstrap/cache && \
+            
+            # Start new container
+            docker run -d --name ${CONTAINER_NAME} \
+              -p 80:80 \
+              -v ${APP_DIR}:/var/www/html \
+              -e WEB_DOCUMENT_ROOT=/var/www/html/public \
+              -e PHP_MAX_EXECUTION_TIME=300 \
+              -e PHP_POST_MAX_SIZE=50M \
+              -e PHP_UPLOAD_MAX_FILESIZE=50M \
+              -e DB_CONNECTION=pgsql \
+              -e DB_HOST=localhost \
+              -e DB_PORT=5432 \
+              -e DB_DATABASE=${POSTGRES_DB} \
+              -e DB_USERNAME=${POSTGRES_USER} \
+              -e DB_PASSWORD=${POSTGRES_PASSWORD} \
+              --restart unless-stopped \
+              --network=host \
+              webdevops/php-nginx:8.2-alpine && \
+            
+            # Clear Laravel cache
+            docker exec ${CONTAINER_NAME} sh -c 'cd /var/www/html && php artisan view:clear && php artisan route:clear && php artisan config:clear' || true && \
+            
+            # Run migrations
+            docker exec ${CONTAINER_NAME} sh -c 'cd /var/www/html && php artisan migrate --force' || true"
+          
+          # Verify deployment
+          echo "Verifying deployment..."
+          CONTAINER_CHECK=$(ssh ${REMOTE_USER}@${REMOTE_HOST} "docker ps | grep ${CONTAINER_NAME} | wc -l")
+          if [ "$CONTAINER_CHECK" -gt "0" ]; then
+            echo "✅ Container is running - deployment successful!"
+          else
+            echo "❌ Container is not running - deployment failed."
+            exit 1
+          fi
+
+      - name: Purge Cloudflare Cache
+        if: success()
+        env:
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          echo "Purging Cloudflare cache..."
+          curl -s -X POST "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}'
