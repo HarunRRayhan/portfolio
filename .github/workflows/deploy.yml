@@ -22,7 +22,7 @@ env:
   # Default environment
   ENVIRONMENT: ${{ github.event.inputs.environment || 'production' }}
   # Deployment timestamp for unique container names
-  DEPLOY_TIMESTAMP: ${{ format('{0:yyyyMMddHHmmss}', github.event.repository.pushed_at) }}
+  DEPLOY_TIMESTAMP: ${{ github.run_id }}
 
 jobs:
   build-and-deploy:
