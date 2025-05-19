@@ -240,14 +240,20 @@ jobs:
               return 1
             fi
             
+            # Print the endpoint URL for debugging
+            echo "Original R2_S3_ENDPOINT: ${R2_S3_ENDPOINT}"
+            
             # Ensure the endpoint URL has a scheme (http:// or https://)
-            local endpoint_url="${R2_S3_ENDPOINT}"
-            if [[ ! "$endpoint_url" =~ ^https?:// ]]; then
-              endpoint_url="https://${endpoint_url}"
-              echo "Added https:// prefix to endpoint URL: $endpoint_url"
+            # Use a different variable name to avoid issues with quotes
+            ENDPOINT="${R2_S3_ENDPOINT}"
+            if [[ ! "$ENDPOINT" =~ ^https?:// ]]; then
+              ENDPOINT="https://$ENDPOINT"
+              echo "Added https:// prefix to endpoint URL: $ENDPOINT"
             fi
             
-            local options="--endpoint-url \"$endpoint_url\" --acl public-read"
+            # Use the modified endpoint URL directly in the aws command
+            echo "Using endpoint URL: $ENDPOINT"
+            local options="--endpoint-url $ENDPOINT --acl public-read"
             
             if [ ! -z "$content_type" ]; then
               options="$options --content-type \"$content_type\""
@@ -261,8 +267,13 @@ jobs:
             fi
             
             # Run the command with verbose output to debug issues
-            echo "Running: aws s3 sync $source $dest $options"
-            if aws s3 sync $source $dest $options --debug; then
+            echo "Running AWS S3 sync command..."
+            echo "Source: $source"
+            echo "Destination: $dest"
+            echo "Options: $options"
+            
+            # Execute the AWS command directly without eval or complex quoting
+            if aws s3 sync "$source" "$dest" --endpoint-url "$ENDPOINT" --acl public-read --debug; then
               echo "✅ Successfully synced $source to $dest"
               return 0
             else
