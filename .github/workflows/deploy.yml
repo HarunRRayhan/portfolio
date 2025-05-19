@@ -56,25 +56,41 @@ jobs:
             echo "SSH connection successful"
             mkdir -p ${{ secrets.APP_DIR }}/public/build
 
-      - name: Deploy to server
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          host: ${{ secrets.REMOTE_HOST }}
-          username: ${{ secrets.REMOTE_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "app,bootstrap,config,database,lang,public,resources,routes,storage,tests,vendor,artisan,composer.json,composer.lock,package.json,package-lock.json,vite.config.js,tailwind.config.js,postcss.config.js"
-          target: "${{ secrets.APP_DIR }}"
-          strip_components: 0
+      - name: Create deployment package
+        run: |
+          # Create a deployment package excluding unnecessary files
+          tar --exclude=".git" --exclude="node_modules" --exclude=".github" -czf deployment.tar.gz .
+          
+          # List the contents of the archive for debugging
+          echo "Deployment package created. Contents:"
+          tar -tvf deployment.tar.gz | head -20
 
-      - name: Deploy built assets
+      - name: Upload deployment package
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "public/build/*"
-          target: "${{ secrets.APP_DIR }}/public/build"
-          strip_components: 2
+          source: "deployment.tar.gz"
+          target: "/tmp"
+          strip_components: 0
+          
+      - name: Extract deployment package
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # Create app directory if it doesn't exist
+            mkdir -p ${{ secrets.APP_DIR }}
+            
+            # Extract the deployment package
+            echo "Extracting deployment package..."
+            tar -xzf /tmp/deployment.tar.gz -C ${{ secrets.APP_DIR }}
+            
+            # Remove the temporary archive
+            rm /tmp/deployment.tar.gz
 
       - name: Execute Blue-Green Deployment
         uses: appleboy/ssh-action@v1.0.0
@@ -114,16 +130,17 @@ jobs:
             ASSET_URL=https://cdn.harun.dev
             EOF
             
-            # Set up directories and permissions
-            mkdir -p ${{ secrets.APP_DIR }}/storage/logs
-            mkdir -p ${{ secrets.APP_DIR }}/storage/framework/{sessions,views,cache,cache/data}
-            mkdir -p ${{ secrets.APP_DIR }}/bootstrap/cache
-            chmod -R 777 ${{ secrets.APP_DIR }}/storage ${{ secrets.APP_DIR }}/bootstrap/cache
-            touch ${{ secrets.APP_DIR }}/storage/logs/laravel.log
-            chmod 666 ${{ secrets.APP_DIR }}/storage/logs/laravel.log
+            # Set up directories and permissions with sudo if needed
+            sudo mkdir -p ${{ secrets.APP_DIR }}/storage/logs
+            sudo mkdir -p ${{ secrets.APP_DIR }}/storage/framework/{sessions,views,cache,cache/data}
+            sudo mkdir -p ${{ secrets.APP_DIR }}/bootstrap/cache
+            sudo chmod -R 777 ${{ secrets.APP_DIR }}/storage ${{ secrets.APP_DIR }}/bootstrap/cache
+            sudo touch ${{ secrets.APP_DIR }}/storage/logs/laravel.log
+            sudo chmod 666 ${{ secrets.APP_DIR }}/storage/logs/laravel.log
+            sudo chown -R ${{ secrets.REMOTE_USER }}:${{ secrets.REMOTE_USER }} ${{ secrets.APP_DIR }}
             
             # Determine which environment (blue or green) is currently active
-            ACTIVE_COLOR=$(docker ps --filter "name=portfolio-app-" --format "{{.Names}}" | grep -o "blue\|green" || echo "none")
+            ACTIVE_COLOR=$(sudo docker ps --filter "name=portfolio-app-" --format "{{.Names}}" | grep -o "blue\|green" || echo "none")
             
             if [ "$ACTIVE_COLOR" == "none" ]; then
                 echo "No active environment found. Starting with blue."
@@ -147,7 +164,7 @@ jobs:
             
             # Start new container for the inactive environment
             echo "Starting new container: ${NEW_CONTAINER}..."
-            docker run -d --name ${NEW_CONTAINER} \
+            sudo docker run -d --name ${NEW_CONTAINER} \
               -p ${NEW_PORT}:80 \
               -v ${{ secrets.APP_DIR }}:/var/www/html \
               -e WEB_DOCUMENT_ROOT=/var/www/html/public \
@@ -169,15 +186,15 @@ jobs:
             
             # Fix permissions inside container
             echo "Fixing permissions inside container..."
-            docker exec ${NEW_CONTAINER} sh -c 'chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache'
+            sudo docker exec ${NEW_CONTAINER} sh -c 'chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache'
             
             # Clear Laravel cache
             echo "Clearing Laravel cache..."
-            docker exec ${NEW_CONTAINER} sh -c 'cd /var/www/html && php artisan view:clear && php artisan route:clear && php artisan config:clear' || echo "Failed to clear cache"
+            sudo docker exec ${NEW_CONTAINER} sh -c 'cd /var/www/html && php artisan view:clear && php artisan route:clear && php artisan config:clear' || echo "Failed to clear cache"
             
             # Run migrations
             echo "Running migrations..."
-            docker exec ${NEW_CONTAINER} sh -c 'cd /var/www/html && php artisan migrate --force' || echo "Failed to run migrations"
+            sudo docker exec ${NEW_CONTAINER} sh -c 'cd /var/www/html && php artisan migrate --force' || echo "Failed to run migrations"
             
             # Health check
             echo "Performing health check..."
@@ -197,8 +214,8 @@ jobs:
                     
                     if [ $i -eq $HEALTH_CHECK_MAX_RETRIES ]; then
                         echo "❌ Health check failed after $HEALTH_CHECK_MAX_RETRIES attempts. Aborting deployment."
-                        docker stop ${NEW_CONTAINER}
-                        docker rm ${NEW_CONTAINER}
+                        sudo docker stop ${NEW_CONTAINER}
+                        sudo docker rm ${NEW_CONTAINER}
                         exit 1
                     fi
                     
@@ -241,12 +258,12 @@ jobs:
                 
                 # Stop and remove the old container if it exists
                 if [ "$ACTIVE_COLOR" != "none" ]; then
-                    OLD_CONTAINER=$(docker ps --filter "name=portfolio-app-${ACTIVE_COLOR}" --format "{{.Names}}")
+                    OLD_CONTAINER=$(sudo docker ps --filter "name=portfolio-app-${ACTIVE_COLOR}" --format "{{.Names}}")
                     
                     if [ ! -z "$OLD_CONTAINER" ]; then
                         echo "Stopping old ${ACTIVE_COLOR} container: ${OLD_CONTAINER}..."
-                        docker stop ${OLD_CONTAINER}
-                        docker rm ${OLD_CONTAINER}
+                        sudo docker stop ${OLD_CONTAINER}
+                        sudo docker rm ${OLD_CONTAINER}
                     fi
                 fi
                 
