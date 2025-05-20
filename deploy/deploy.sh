@@ -19,7 +19,7 @@ REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # Define utility functions
 fail() {
-    echo "[ERROR] $1" >&2
+    echo "❌ ERROR: $1" >&2
     exit 1
 }
 
@@ -67,103 +67,148 @@ SSH_KEY="$SCRIPT_DIR/portfolio-key.pem"
 
 # Check if SSH key exists
 if [ ! -f "$SSH_KEY" ]; then
-  fail "SSH key file not found at $SSH_KEY."
+    fail "SSH key not found at $SSH_KEY. Please place your private key there."
 fi
 
-# Ensure SSH key has correct permissions
+# Fix SSH key permissions
 chmod 600 "$SSH_KEY"
 
-# Parse command line arguments for additional environment variables
-ADDITIONAL_ENV_VARS=()
-for arg in "$@"; do
-  if [[ $arg == *=* ]]; then
-    ADDITIONAL_ENV_VARS+=("$arg")
-  fi
-done
-
-# Function to execute SSH commands
-execute_ssh() {
-  ssh -i "$SSH_KEY" "$SSH_USER@$SSH_HOST" "$1"
+# Function to run a command on the remote server
+ssh_run() {
+    ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$SSH_USER@$SSH_HOST" "$@"
 }
 
-# Function to start a deployment step
+# Function to copy files to the remote server
+scp_copy() {
+    local source="$1"
+    local dest="$2"
+    scp -i "$SSH_KEY" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$source" "$SSH_USER@$SSH_HOST:$dest"
+}
+
+# Function to copy directories to the remote server
+scp_dir_copy() {
+    local source="$1"
+    local dest="$2"
+    scp -i "$SSH_KEY" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r "$source" "$SSH_USER@$SSH_HOST:$dest"
+}
+
+# Traefik-specific blue-green deployment functions
+get_active_env() {
+    local active_env=""
+    active_env=$(ssh_run "docker ps --filter 'label=environment=blue' --format '{{.Names}}' | grep -c app-blue || echo 0")
+    
+    if [ "$active_env" -gt 0 ]; then
+        echo "blue"
+    else
+        active_env=$(ssh_run "docker ps --filter 'label=environment=green' --format '{{.Names}}' | grep -c app-green || echo 0")
+        if [ "$active_env" -gt 0 ]; then
+            echo "green"
+        else
+            echo "blue"  # Default to blue if no environment is running
+        fi
+    fi
+}
+
+get_inactive_env() {
+    local active_env="$1"
+    if [ "$active_env" = "blue" ]; then
+        echo "green"
+    else
+        echo "blue"
+    fi
+}
+
+check_traefik_health() {
+    local env="$1"
+    local max_attempts=10
+    local attempt=1
+    local wait_time=5
+    
+    echo "Performing health check for $env environment..."
+    
+    while [ $attempt -le $max_attempts ]; do
+        echo "Health check attempt $attempt of $max_attempts..."
+        
+        # Check if container is running
+        local container_status
+        container_status=$(ssh_run "docker ps --filter name=app-$env --format '{{.Status}}' | grep -c 'Up' || echo 0")
+        
+        if [ "$container_status" -ge "1" ]; then
+            echo "Container for $env environment is running."
+            
+            # Check if app is responding through curl
+            local http_status
+            http_status=$(ssh_run "curl -s -o /dev/null -w '%{http_code}' http://localhost || echo 'failed'")
+            
+            if [ "$http_status" = "200" ] || [ "$http_status" = "204" ] || [ "$http_status" = "301" ] || [ "$http_status" = "302" ]; then
+                echo "Health check passed: $env environment is responding with HTTP $http_status"
+                return 0
+            else
+                echo "Health check failed: environment responded with HTTP $http_status"
+            fi
+        else
+            echo "Container for $env environment is not running properly."
+        fi
+        
+        attempt=$((attempt + 1))
+        sleep $wait_time
+    done
+    
+    echo "Health check failed after $max_attempts attempts."
+    return 1
+}
+
+# Function to begin recording time
+start_time=$(date +%s)
+STEP_START_TIME=$start_time
+STEP_NUM=0
+STEP_TIMES=()
+
+# Function to mark the beginning of a step
 step() {
   STEP_NUM=$((STEP_NUM + 1))
-  STEP_DESC="$1"
-  STEP_START=$(date +%s)
-  echo ""
-  echo "++++++++++++++++++++++++++++++++++++++++++++++++"
-  echo "+++   STEP $STEP_NUM: $STEP_DESC   +++"
-  echo "++++++++++++++++++++++++++++++++++++++++++++++++"
-  echo ""
+  echo -e "\n=== STEP $STEP_NUM: $1 ==="
+  STEP_START_TIME=$(date +%s)
 }
 
-# Function to end a deployment step and print time taken
+# Function to mark the end of a step
 end_step() {
-  STEP_END=$(date +%s)
-  STEP_DURATION=$((STEP_END - STEP_START))
-  if [ $STEP_DURATION -gt 5 ]; then
-    echo "Step took $STEP_DURATION seconds."
-    echo ""
-  fi
+  local end_time=$(date +%s)
+  local duration=$((end_time - STEP_START_TIME))
+  STEP_TIMES+=("$duration")
+  echo "Step completed in $duration seconds."
 }
 
-# Function to print total deployment time
+# Function to print the total time
 print_total_time() {
-  DEPLOY_END=$(date +%s)
-  DEPLOY_DURATION=$((DEPLOY_END - DEPLOY_START))
-  MINUTES=$((DEPLOY_DURATION / 60))
-  SECONDS=$((DEPLOY_DURATION % 60))
+  local end_time=$(date +%s)
+  local total_duration=$((end_time - start_time))
+  echo -e "\n=== DEPLOYMENT COMPLETED IN $total_duration SECONDS ==="
   
-  echo ""
-  echo "++++++++++++++++++++++++++++++++++++++++++++++++"
-  echo "+++   DEPLOYMENT COMPLETED SUCCESSFULLY   +++"
-  echo "++++++++++++++++++++++++++++++++++++++++++++++++"
-  echo ""
-  echo "Total deployment time: $MINUTES minutes and $SECONDS seconds"
-  echo "Deployment log saved to: $LOG_FILE"
-  echo ""
-  echo "Your application is now live at: https://${DOMAIN:-$SSH_HOST}"
-  echo ""
+  for i in "${!STEP_TIMES[@]}"; do
+    local step_num=$((i + 1))
+    echo "Step $step_num took ${STEP_TIMES[$i]} seconds"
+  done
 }
 
-# Initialize step counter and start time
-STEP_NUM=0
-DEPLOY_START=$(date +%s)
-
-# 1. Check if we can connect to the server
-step "Checking SSH connection to server"
-if ! ssh -i "$SSH_KEY" -o ConnectTimeout=10 -o BatchMode=yes -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" "echo 'SSH connection successful'"; then
-  fail "Cannot connect to server. Please check your SSH credentials and server status."
-fi
-end_step
-
-# 2. Check if required tools are installed locally
-step "Checking required tools"
-for cmd in git rsync curl aws; do
-  if ! command -v $cmd &> /dev/null; then
-    fail "Required command '$cmd' not found. Please install it and try again."
+# Process additional key=value pairs from command line arguments
+additional_env_pairs=()
+for arg in "$@"; do
+  if [[ $arg == *=* ]]; then
+    additional_env_pairs+=("$arg")
   fi
 done
-end_step
 
-# 3. Prepare local environment
-step "Preparing local environment"
-# Create a temporary directory for build artifacts
-BUILD_DIR="$SCRIPT_DIR/build"
-mkdir -p "$BUILD_DIR"
+# Parse the key-value pairs for APP_DEBUG
+for pair in "${additional_env_pairs[@]}"; do
+  key="${pair%%=*}"
+  value="${pair#*=}"
+  if [[ "$key" == "APP_DEBUG" ]]; then
+    APP_DEBUG="$value"
+  fi
+done
 
-# Ensure we're in the repository root
-cd "$REPO_ROOT"
-
-# Check if the repository is clean
-if [ -n "$(git status --porcelain)" ]; then
-  echo "Warning: Git repository has uncommitted changes. These will not be deployed."
-  echo "Consider committing your changes before deploying."
-fi
-end_step
-
-# 4. Build assets locally if needed
+# 1. Build assets locally
 step "Building assets locally"
 if [ -f "$REPO_ROOT/package.json" ]; then
   if [ "${SKIP_NPM_BUILD:-false}" != "true" ]; then
@@ -174,169 +219,174 @@ if [ -f "$REPO_ROOT/package.json" ]; then
       fail "npm is required but not installed. Please install npm and try again."
     fi
     
-    # Install dependencies if node_modules doesn't exist or if forced
-    if [ ! -d "$REPO_ROOT/node_modules" ] || [ "${FORCE_NPM_INSTALL:-false}" == "true" ]; then
+    # Check if node_modules exists
+    if [ ! -d "$REPO_ROOT/node_modules" ]; then
       echo "Installing npm dependencies..."
-      npm ci || npm install
+      cd "$REPO_ROOT" && npm install
     fi
     
     # Build assets
-    npm run build
+    echo "Running npm run build..."
+    cd "$REPO_ROOT" && npm run build
+    
+    if [ $? -ne 0 ]; then
+      fail "npm build failed. See error messages above."
+    fi
   else
-    echo "Skipping npm build as SKIP_NPM_BUILD=true"
+    echo "Skipping npm build (SKIP_NPM_BUILD is true)"
   fi
 else
   echo "No package.json found, skipping asset build."
 fi
 end_step
 
-# 5. Upload static assets to CDN if configured
-step "Uploading static assets to CDN"
-if [ -n "$R2_BUCKET_NAME" ] && [ -n "$R2_ACCESS_KEY_ID" ] && [ -n "$R2_SECRET_ACCESS_KEY" ] && [ -n "$R2_S3_ENDPOINT" ]; then
-  echo "Uploading static assets to Cloudflare R2..."
-  
-  # Configure AWS CLI for Cloudflare R2
-  export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
-  export AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
-  export AWS_ENDPOINT_URL="$R2_S3_ENDPOINT"
-  
-  # Upload build directory to R2
-  if [ -d "$REPO_ROOT/public/build" ]; then
-    echo "Uploading build assets..."
-    aws s3 sync "$REPO_ROOT/public/build" "s3://$R2_BUCKET_NAME/build" --endpoint-url "$R2_S3_ENDPOINT"
-    
-    # Set proper content types for CSS files
-    echo "Setting proper content types for CSS files..."
-    find "$REPO_ROOT/public/build" -name "*.css" | while read -r css_file; do
-      relative_path=${css_file#"$REPO_ROOT/public/"}
-      aws s3 cp "s3://$R2_BUCKET_NAME/$relative_path" "s3://$R2_BUCKET_NAME/$relative_path" \
-        --endpoint-url "$R2_S3_ENDPOINT" \
-        --content-type "text/css" \
-        --metadata-directive REPLACE
-    done
-    
-    echo "Static assets uploaded to Cloudflare R2."
-  else
-    echo "No build directory found at $REPO_ROOT/public/build. Skipping asset upload."
-  fi
-else
-  echo "Skipping CDN upload - R2 credentials not configured."
-  echo "To enable CDN uploads, add the following to your .env.deploy file:"
-  echo "R2_BUCKET_NAME=your_bucket_name"
-  echo "R2_ACCESS_KEY_ID=your_access_key"
-  echo "R2_SECRET_ACCESS_KEY=your_secret_key"
-  echo "R2_S3_ENDPOINT=https://xxxx.r2.cloudflarestorage.com"
-fi
+# 2. Create build directory
+step "Creating build directory"
+BUILD_DIR="$SCRIPT_DIR/build"
+rm -rf "$BUILD_DIR"
+mkdir -p "$BUILD_DIR"
 end_step
 
-# 6. Generate .env file for the server
-step "Generating .env file for server"
+# 3. Generate .env file
+step "Generating .env file"
 ENV_FILE="$BUILD_DIR/.env"
 
-# Start with .env.example as base if it exists
-if [ -f "$REPO_ROOT/.env.example" ]; then
-  cp "$REPO_ROOT/.env.example" "$ENV_FILE"
-else
-  touch "$ENV_FILE"
+# Start with a base .env file
+BASE_ENV_FILE="$REPO_ROOT/.env.example"
+if [ ! -f "$BASE_ENV_FILE" ]; then
+  BASE_ENV_FILE="$REPO_ROOT/.env"
+  if [ ! -f "$BASE_ENV_FILE" ]; then
+    fail "No .env.example or .env file found in the repository root."
+  fi
 fi
 
-# Merge with .env.appprod if it exists
+# Copy the base .env file to the build directory
+cp "$BASE_ENV_FILE" "$ENV_FILE"
+
+# Apply .env.appprod if it exists
 if [ -f "$SCRIPT_DIR/.env.appprod" ]; then
+  echo "Applying .env.appprod..."
   while IFS= read -r line; do
-    if [[ $line == *=* ]] && [[ ! $line =~ ^\s*# ]]; then
-      key=$(echo "$line" | cut -d= -f1)
-      # Replace or append the line
-      if grep -q "^$key=" "$ENV_FILE"; then
-        sed -i.bak "s|^$key=.*|$line|" "$ENV_FILE" && rm "$ENV_FILE.bak"
-      else
-        echo "$line" >> "$ENV_FILE"
-      fi
+    if [[ $line == \#* ]] || [[ -z $line ]]; then
+      continue
+    fi
+    key=$(echo "$line" | cut -d= -f1)
+    # Escape special characters in the key for use in sed
+    escaped_key=$(echo "$key" | sed 's/[\/&]/\\&/g')
+    # Check if the key exists in the .env file
+    if grep -q "^$escaped_key=" "$ENV_FILE"; then
+      # Replace the existing value
+      sed -i '' "s/^$escaped_key=.*/$line/" "$ENV_FILE"
+    else
+      # Add the new key-value pair
+      echo "$line" >> "$ENV_FILE"
     fi
   done < "$SCRIPT_DIR/.env.appprod"
 fi
 
-# Merge with .env.deploy if it exists
+# Apply .env.deploy if it exists and the key is not in our exclusion list
 if [ -f "$SCRIPT_DIR/.env.deploy" ]; then
+  echo "Applying .env.deploy..."
+  # Keys to exclude from .env.deploy
+  exclude_keys=(
+    "SSH_USER"
+    "SSH_HOST"
+    "APP_DIR"
+    "GIT_REPO"
+    "GIT_BRANCH"
+    "SKIP_NPM_BUILD"
+    "REMOTE_FILES"
+    "CLOUDFLARE_API_TOKEN"
+    "CLOUDFLARE_ZONE_ID"
+    "CLOUDFLARE_ACCOUNT_ID"
+    "CLOUDFLARE_EMAIL"
+    "CLOUDFLARE_API_KEY"
+    "AWS_ACCESS_KEY_ID"
+    "AWS_SECRET_ACCESS_KEY"
+    "AWS_REGION"
+    "R2_BUCKET_NAME"
+    "ARTIFACT_UPLOAD_KEY"
+    "ARTIFACT_UPLOAD_SECRET"
+    "REMOTE_USER"
+    "REMOTE_HOST"
+  )
+  
   while IFS= read -r line; do
-    if [[ $line == *=* ]] && [[ ! $line =~ ^\s*# ]]; then
-      key=$(echo "$line" | cut -d= -f1)
-      # Only include app-related variables, not deployment config
-      if [[ ! $key =~ ^(SSH_|REMOTE_|APP_DIR|GIT_) ]]; then
-        # Replace or append the line
-        if grep -q "^$key=" "$ENV_FILE"; then
-          sed -i.bak "s|^$key=.*|$line|" "$ENV_FILE" && rm "$ENV_FILE.bak"
-        else
-          echo "$line" >> "$ENV_FILE"
-        fi
-      fi
+    if [[ $line == \#* ]] || [[ -z $line ]]; then
+      continue
+    fi
+    key=$(echo "$line" | cut -d= -f1)
+    
+    # Skip if the key is in the exclusion list
+    if [[ " ${exclude_keys[*]} " == *" $key "* ]]; then
+      continue
+    fi
+    
+    # Escape special characters in the key for use in sed
+    escaped_key=$(echo "$key" | sed 's/[\/&]/\\&/g')
+    # Check if the key exists in the .env file
+    if grep -q "^$escaped_key=" "$ENV_FILE"; then
+      # Replace the existing value
+      sed -i '' "s/^$escaped_key=.*/$line/" "$ENV_FILE"
+    else
+      # Add the new key-value pair
+      echo "$line" >> "$ENV_FILE"
     fi
   done < "$SCRIPT_DIR/.env.deploy"
 fi
 
-# Add any additional environment variables from command line
-for var in "${ADDITIONAL_ENV_VARS[@]}"; do
-  key=$(echo "$var" | cut -d= -f1)
-  # Replace or append the variable
-  if grep -q "^$key=" "$ENV_FILE"; then
-    sed -i.bak "s|^$key=.*|$var|" "$ENV_FILE" && rm "$ENV_FILE.bak"
-  else
-    echo "$var" >> "$ENV_FILE"
-  fi
-done
-
-# Ensure APP_ENV is set to production
-if ! grep -q "^APP_ENV=" "$ENV_FILE"; then
-  echo "APP_ENV=production" >> "$ENV_FILE"
-else
-  sed -i.bak "s|^APP_ENV=.*|APP_ENV=production|" "$ENV_FILE" && rm "$ENV_FILE.bak"
-fi
-
-# Ensure APP_DEBUG is set to false for security
-if ! grep -q "^APP_DEBUG=" "$ENV_FILE"; then
-  echo "APP_DEBUG=false" >> "$ENV_FILE"
-else
-  sed -i.bak "s|^APP_DEBUG=.*|APP_DEBUG=false|" "$ENV_FILE" && rm "$ENV_FILE.bak"
-fi
-
-# Set APP_URL if DOMAIN is provided
-if [ -n "$DOMAIN" ]; then
-  if ! grep -q "^APP_URL=" "$ENV_FILE"; then
-    echo "APP_URL=https://$DOMAIN" >> "$ENV_FILE"
-  else
-    sed -i.bak "s|^APP_URL=.*|APP_URL=https://$DOMAIN|" "$ENV_FILE" && rm "$ENV_FILE.bak"
-  fi
+# Apply additional key=value pairs from command line arguments
+if [ ${#additional_env_pairs[@]} -gt 0 ]; then
+  echo "Applying command line arguments..."
+  for pair in "${additional_env_pairs[@]}"; do
+    key="${pair%%=*}"
+    value="${pair#*=}"
+    # Escape special characters in the key and value for use in sed
+    escaped_key=$(echo "$key" | sed 's/[\/&]/\\&/g')
+    escaped_value=$(echo "$value" | sed 's/[\/&]/\\&/g')
+    # Check if the key exists in the .env file
+    if grep -q "^$escaped_key=" "$ENV_FILE"; then
+      # Replace the existing value
+      sed -i '' "s/^$escaped_key=.*/$escaped_key=$escaped_value/" "$ENV_FILE"
+    else
+      # Add the new key-value pair
+      echo "$key=$value" >> "$ENV_FILE"
+    fi
+  done
 fi
 
 echo ".env file generated at $ENV_FILE"
 end_step
 
+# Download and upload remote files
+SCP_REMOTE_FILES=()
+if [ ${#REMOTE_FILES[@]} -gt 0 ]; then
+  step "Downloading and uploading remote files"
+  for remote_file in "${REMOTE_FILES[@]}"; do
+    IFS=':' read -r url destination <<< "$remote_file"
+    filename=$(basename "$url")
+    temp_file="/tmp/$filename"
+    
+    echo "Downloading $url to $temp_file..."
+    curl -s -o "$temp_file" "$url"
+    
+    # If destination starts with '/', it's an absolute path, otherwise it's relative to APP_DIR
+    if [[ "$destination" == /* ]]; then
+      SCP_REMOTE_FILES+=("$temp_file:$destination")
+    else
+      SCP_REMOTE_FILES+=("$temp_file:$APP_DIR/$destination")
+    fi
+  done
+fi
+
 # 7. Generate deployment script for the server
 step "Generating deployment script for server"
 DEPLOY_SCRIPT="$BUILD_DIR/server-deploy.sh"
-
-cat > "$DEPLOY_SCRIPT" << 'EOL'
+cat > "$DEPLOY_SCRIPT" << 'EOF'
 #!/bin/bash
+
 set -e
 set -o pipefail
-
-# This script is generated automatically by the deployment process
-# It will be executed on the server to complete the deployment
-
-# Get the directory of this script
-SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-APP_DIR="$(dirname "$SCRIPT_DIR")"
-
-# Load environment variables
-if [ -f "$APP_DIR/.env" ]; then
-  set -a
-  source "$APP_DIR/.env"
-  set +a
-fi
-
-# Function to log with timestamp
-log() {
-  echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
-}
 
 # Function to handle failures
 fail() {
@@ -344,177 +394,148 @@ fail() {
   exit 1
 }
 
-# Run Laravel commands
-log "Running composer install..."
-cd "$APP_DIR"
-composer install --no-dev --optimize-autoloader --no-interaction
+# Ensure the storage directory structure is correct
+mkdir -p storage/app/public \
+         storage/framework/cache/data \
+         storage/framework/sessions \
+         storage/framework/views \
+         storage/logs \
+         bootstrap/cache
 
-log "Running database migrations..."
-php artisan migrate --force
+# Fix permissions
+chmod -R 755 storage bootstrap/cache
 
-log "Optimizing Laravel..."
-php artisan optimize
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+# Run composer dump-autoload to optimize autoloader
+if command -v composer &> /dev/null; then
+  composer dump-autoload --optimize
+else
+  echo "Composer not found, skipping autoload optimization."
+fi
 
-log "Creating storage symlink..."
-php artisan storage:link
+# Run Laravel-specific optimization commands if artisan exists
+if [ -f "artisan" ]; then
+  php artisan optimize:clear
+  php artisan config:cache
+  php artisan route:cache
+  php artisan view:cache
+else
+  echo "Artisan not found, skipping Laravel optimizations."
+fi
 
-log "Setting proper permissions..."
-find storage bootstrap/cache -type d -exec chmod 775 {} \;
-find storage bootstrap/cache -type f -exec chmod 664 {} \;
-chown -R www-data:www-data storage bootstrap/cache
+# Create storage link if it doesn't exist
+if [ -f "artisan" ] && [ ! -L "public/storage" ]; then
+  php artisan storage:link
+fi
 
-log "Deployment completed successfully!"
-EOL
-
+echo "Server-side deployment script completed successfully!"
+EOF
 chmod +x "$DEPLOY_SCRIPT"
-echo "Server deployment script generated at $DEPLOY_SCRIPT"
 end_step
 
-# 8. Generate health check file
-step "Generating health check file"
-HEALTH_FILE="$BUILD_DIR/health.txt"
-echo "OK - $(date)" > "$HEALTH_FILE"
-echo "Health check file generated at $HEALTH_FILE"
+# 4. Establish SSH connection
+step "Establishing SSH connection"
+echo "Checking SSH connection to $SSH_USER@$SSH_HOST..."
+if ! ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 "$SSH_USER@$SSH_HOST" "echo 'SSH connection successful'"; then
+  fail "Failed to establish SSH connection to $SSH_HOST. Please check your SSH credentials and server status."
+fi
 end_step
 
-# 9. Clone or update the git repository on the server
-step "Cloning or updating the git repository on the server"
-# Clean up the local git repository to avoid pushing unwanted files
-echo "Cleaning git repository..."
-git clean -xdf -e node_modules -e vendor -e .env -e storage -e deploy
-
-# Stash any local changes
-echo "Stashing any local changes..."
-git stash
-
-# Make sure we're on the correct branch
-echo "Your branch is up to date with 'origin/$GIT_BRANCH'."
-git checkout "$GIT_BRANCH"
-
-# Pull the latest changes
-echo "From $GIT_REPO"
-echo " * branch            $GIT_BRANCH -> FETCH_HEAD"
-git pull origin "$GIT_BRANCH"
+# 5. Check if directory exists, create if it doesn't
+step "Checking and creating application directory"
+ssh_run "mkdir -p $APP_DIR"
 end_step
 
-# 10. Ensure host storage directory structure and permissions
-step "Ensuring host storage directory structure and permissions"
-# Create necessary directories on the server
-execute_ssh "mkdir -p $APP_DIR/storage/app/public $APP_DIR/storage/framework/cache $APP_DIR/storage/framework/sessions $APP_DIR/storage/framework/views $APP_DIR/storage/logs $APP_DIR/bootstrap/cache"
-
-# Set proper permissions
-execute_ssh "chmod -R 775 $APP_DIR/storage $APP_DIR/bootstrap/cache"
-end_step
-
-# 11. Upload remaining public files to server
-step "Uploading remaining public files to server"
-# Create a tar of the public directory excluding build directory if it's being served from CDN
-if [ -n "$R2_BUCKET_NAME" ]; then
-  echo "Creating tar of public directory excluding build directory..."
-  tar -czf "$BUILD_DIR/public.tar.gz" -C "$REPO_ROOT" --exclude="public/build" public
+# 6. Clone or pull repository
+step "Cloning or pulling repository"
+REPO_EXISTS=$(ssh_run "if [ -d $APP_DIR/.git ]; then echo 'yes'; else echo 'no'; fi")
+if [ "$REPO_EXISTS" = "yes" ]; then
+  echo "Repository exists, pulling latest changes..."
+  ssh_run "cd $APP_DIR && git fetch && git checkout $GIT_BRANCH && git pull origin $GIT_BRANCH"
 else
-  echo "Creating tar of public directory..."
-  tar -czf "$BUILD_DIR/public.tar.gz" -C "$REPO_ROOT" public
-fi
-
-# Upload the tar to the server
-scp -i "$SSH_KEY" "$BUILD_DIR/public.tar.gz" "$SSH_USER@$SSH_HOST:$APP_DIR/"
-
-# Extract the tar on the server
-execute_ssh "cd $APP_DIR && tar -xzf public.tar.gz && rm public.tar.gz"
-
-echo "Remaining public files uploaded to server."
-end_step
-
-# 12. Setting up docker environment on server & starting containers
-step "Setting up docker environment on server & starting containers"
-# Create necessary directories on the server
-execute_ssh "mkdir -p $APP_DIR/deploy $APP_DIR/docker"
-
-# Copy deployment scripts to server
-log "Copying deployment script to the server..."
-ssh -i "$SSH_KEY" "$SSH_USER@$SSH_HOST" "mkdir -p $APP_DIR/deploy"
-scp -i "$SSH_KEY" "$SCRIPT_DIR/blue-green-ssl-deploy.sh" "$SSH_USER@$SSH_HOST:$APP_DIR/deploy/"
-scp -i "$SSH_KEY" "$SCRIPT_DIR/docker-compose-template.yml" "$SSH_USER@$SSH_HOST:$APP_DIR/deploy/"
-ssh -i "$SSH_KEY" "$SSH_USER@$SSH_HOST" "chmod +x $APP_DIR/deploy/blue-green-ssl-deploy.sh"
-
-# Copy environment files to the server
-log "Copying environment files to the server..."
-scp -i "$SSH_KEY" "$ENV_FILE" "$SSH_USER@$SSH_HOST:$APP_DIR/.env"
-
-# Copy Docker configuration files if they exist
-if [ -d "$REPO_ROOT/docker" ]; then
-  log "Copying Docker configuration files..."
-  scp -i "$SSH_KEY" -r "$REPO_ROOT/docker" "$SSH_USER@$SSH_HOST:$APP_DIR/"
+  echo "Repository doesn't exist, cloning..."
+  ssh_run "cd $(dirname "$APP_DIR") && git clone --branch $GIT_BRANCH $GIT_REPO $(basename "$APP_DIR")"
 fi
 end_step
 
-# 13. Copying .env file
-step "Copying .env file"
-# Already done in step 12
-end_step
+# Transfer application files to the server
+step "Transferring application files"
+echo "Copying .env file to the server..."
+scp_copy "$ENV_FILE" "$APP_DIR/.env"
 
-# 14. Ensuring SSL certificate and key exist on server
-step "Ensuring SSL certificate and key exist on server"
-# SSL certificates will be handled by Let's Encrypt via Traefik
-end_step
+echo "Copying deployment script to the server..."
+scp_copy "$DEPLOY_SCRIPT" "$APP_DIR/deploy.sh"
+ssh_run "chmod +x $APP_DIR/deploy.sh"
 
-# 15. Ensuring Laravel cache and storage directories exist and are writable
-step "Ensuring Laravel cache and storage directories exist and are writable"
-# Already done in step 10
-end_step
+# Copy docker directory to the server
+echo "Copying Docker configuration to the server..."
+ssh_run "mkdir -p $APP_DIR/docker"
+scp_dir_copy "$REPO_ROOT/docker/." "$APP_DIR/docker/"
 
-# 16. Executing deployment commands
-step "Executing deployment commands"
-# Execute the blue-green deployment script on the server
-log "Using blue-green deployment strategy with Let's Encrypt SSL"
-log "Creating necessary directories on the server..."
-execute_ssh "mkdir -p $APP_DIR/docker"
-
-log "Copying deployment script to the server..."
-scp -i "$SSH_KEY" "$SCRIPT_DIR/blue-green-ssl-deploy.sh" "$SSH_USER@$SSH_HOST:$APP_DIR/deploy/"
-execute_ssh "chmod +x $APP_DIR/deploy/blue-green-ssl-deploy.sh"
-
-log "Copying environment files to the server..."
-scp -i "$SSH_KEY" "$ENV_FILE" "$SSH_USER@$SSH_HOST:$APP_DIR/.env"
-
-log "Copying Docker configuration files..."
-if [ -d "$REPO_ROOT/docker" ]; then
-  scp -i "$SSH_KEY" -r "$REPO_ROOT/docker" "$SSH_USER@$SSH_HOST:$APP_DIR/"
+# Upload remote files if any
+if [ ${#SCP_REMOTE_FILES[@]} -gt 0 ]; then
+  echo "Uploading remote files..."
+  for remote_file in "${SCP_REMOTE_FILES[@]}"; do
+    IFS=':' read -r source destination <<< "$remote_file"
+    echo "Copying $source to $destination..."
+    scp_copy "$source" "$destination"
+  done
 fi
-
-log "Executing blue-green deployment script on the server..."
-DOMAIN=${DOMAIN:-"harun.dev"}
-EMAIL=${EMAIL:-"contact@harun.dev"}
-execute_ssh "cd $APP_DIR && ./deploy/blue-green-ssl-deploy.sh --domain=$DOMAIN --email=$EMAIL"
 end_step
 
-# 17. Verify deployment
-step "Verifying deployment"
-# Check if the site is accessible
-if [ -n "$DOMAIN" ]; then
-  echo "Checking if site is accessible at https://$DOMAIN..."
-  if curl -s -o /dev/null -w "%{http_code}" "https://$DOMAIN"; then
-    echo "✅ Site is accessible at https://$DOMAIN"
-  else
-    echo "⚠️ Site may not be accessible yet. This could be due to DNS propagation or other issues."
-    echo "Please check manually in a few minutes."
-  fi
+# Deploy with Traefik
+step "Deploying with Traefik"
+
+# Get the current active environment
+echo "Checking active environment..."
+ACTIVE_ENV=$(get_active_env)
+INACTIVE_ENV=$(get_inactive_env "$ACTIVE_ENV")
+echo "Current active environment: $ACTIVE_ENV"
+echo "Target deployment environment: $INACTIVE_ENV"
+
+# Deploy docker-compose.yml with Traefik configuration
+echo "Deploying with Traefik in blue-green deployment mode..."
+
+# Start the inactive environment
+echo "Starting $INACTIVE_ENV environment..."
+ssh_run "cd $APP_DIR && docker-compose -f docker/docker-compose.yml up -d app-$INACTIVE_ENV db traefik"
+
+# Run Laravel commands in the new container
+echo "Running Laravel commands in the new container..."
+ssh_run "docker exec app-$INACTIVE_ENV php artisan config:cache"
+ssh_run "docker exec app-$INACTIVE_ENV php artisan route:cache"
+ssh_run "docker exec app-$INACTIVE_ENV php artisan view:cache"
+
+# Check health of the new environment
+if check_traefik_health "$INACTIVE_ENV"; then
+    echo "New $INACTIVE_ENV environment is healthy!"
+    
+    # Stop the old environment if it exists
+    if [ "$ACTIVE_ENV" != "$INACTIVE_ENV" ]; then
+        echo "Stopping old $ACTIVE_ENV environment..."
+        ssh_run "cd $APP_DIR && docker-compose -f docker/docker-compose.yml stop app-$ACTIVE_ENV"
+    fi
+    
+    echo "Deployment successful! Traffic is now routed to the $INACTIVE_ENV environment."
 else
-  echo "No domain specified, skipping site accessibility check."
+    echo "Health check failed for the new environment. Keeping the old environment active."
+    echo "Check logs: ssh $SSH_USER@$SSH_HOST 'docker logs app-$INACTIVE_ENV'"
+    fail "Deployment failed due to health check failure."
 fi
 end_step
 
-# 18. Clean up
-step "Cleaning up"
-echo "Cleaning up local build directory..."
-rm -rf "$BUILD_DIR"
+# Final health check
+step "Final Health Check"
+HEALTH_CHECK_RESULT=$(ssh_run "curl -s -o /dev/null -w '%{http_code}' http://localhost || echo 'failed'")
+if [[ "$HEALTH_CHECK_RESULT" =~ ^(200|204|301|302)$ ]]; then
+  echo "✅ Health check passed! Application is running with status code $HEALTH_CHECK_RESULT."
+else
+  echo "❌ Health check failed with status $HEALTH_CHECK_RESULT! Application may not be running properly."
+  echo "Check the logs on the server:"
+  echo "  ssh $SSH_USER@$SSH_HOST 'docker logs \$(docker ps --filter \"name=app-$INACTIVE_ENV\" --format \"{{.Names}}\" | head -1)'"
+fi
 end_step
 
-# 19. Purge CDN Cache (Cloudflare)
+# 11. Purge CDN Cache (Cloudflare)
 step "Purging CDN Cache (Cloudflare)"
 if [ -z "$CLOUDFLARE_ZONE_ID" ] || [ -z "$CLOUDFLARE_API_TOKEN" ]; then
   echo "Skipping Cloudflare CDN purge - missing CLOUDFLARE_ZONE_ID or CLOUDFLARE_API_TOKEN"
@@ -558,6 +579,23 @@ else
     echo "Missing Cloudflare authentication credentials. Please provide either API Token or Email + API Key."
   fi
 fi
+end_step
+
+# Debugging functions for SSH if needed
+debug_traefik() {
+  echo "====== Debugging Traefik ======"
+  ssh_run "docker ps | grep traefik || echo 'Traefik container not found!'"
+  ssh_run "docker logs \$(docker ps --filter 'name=traefik' --format '{{.Names}}' | head -1) 2>&1 | tail -50"
+  ssh_run "docker inspect \$(docker ps --filter 'name=traefik' --format '{{.Names}}' | head -1) | grep -A 10 'PortBindings'"
+  
+  echo "====== Checking app containers ======"
+  ssh_run "docker ps | grep 'app-'"
+  ssh_run "docker logs \$(docker ps --filter 'name=app-' --format '{{.Names}}' | head -1) 2>&1 | tail -50"
+  
+  echo "====== Checking basic connectivity ======"
+  ssh_run "curl -I http://localhost 2>&1 || echo 'Failed to connect to localhost:80'"
+  ssh_run "curl -I https://localhost 2>&1 || echo 'Failed to connect to localhost:443'"
+}
 
 # Print total time and summary
 print_total_time
