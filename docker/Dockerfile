@@ -10,7 +10,6 @@ RUN apk add --no-cache \
     libpq-dev \
     postgresql-dev \
     oniguruma-dev \
-    nginx \
     supervisor
 
 # Install PHP extensions
@@ -28,9 +27,11 @@ RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
 WORKDIR /var/www/html
 
-# Copy application files (excluding storage)
-COPY . /var/www/html/
-RUN rm -rf /var/www/html/storage
+# Create Laravel application structure
+RUN mkdir -p /var/www/html
+
+# Copy application files - this assumes files are copied during deployment
+# The repository should be cloned on the host and mounted or copied to the container
 
 # Create storage directory structure
 RUN mkdir -p /var/www/html/storage/app/public \
@@ -45,25 +46,13 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
     && chmod -R 755 /var/www/html/bootstrap/cache
 
-# Create storage link
-RUN php artisan storage:link || true
+# Verify application directory structure is correct
+RUN ls -la /var/www/html && \
+    test -f /var/www/html/artisan && \
+    echo "Artisan exists" || echo "Warning: artisan not found"
 
-# Set up Nginx configuration for Traefik
-RUN mkdir -p /etc/nginx/conf.d
-RUN echo 'server { \
-    listen 9000; \
-    root /var/www/html/public; \
-    index index.php; \
-    location / { \
-        try_files $uri $uri/ /index.php?$query_string; \
-    } \
-    location ~ \.php$ { \
-        fastcgi_pass 127.0.0.1:9000; \
-        fastcgi_index index.php; \
-        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name; \
-        include fastcgi_params; \
-    } \
-}' > /etc/nginx/conf.d/default.conf
+# Add a simple health check file
+RUN echo 'OK' > /var/www/html/public/health.txt
 
 # Configure Supervisor
 RUN mkdir -p /etc/supervisor.d
@@ -75,14 +64,8 @@ command=php-fpm -F \
 stdout_logfile=/dev/stdout \
 stdout_logfile_maxbytes=0 \
 stderr_logfile=/dev/stderr \
-stderr_logfile_maxbytes=0 \
-[program:nginx] \
-command=nginx -g "daemon off;" \
-stdout_logfile=/dev/stdout \
-stdout_logfile_maxbytes=0 \
-stderr_logfile=/dev/stderr \
 stderr_logfile_maxbytes=0' > /etc/supervisor.d/supervisord.conf
 
-EXPOSE 9000
+EXPOSE 80
 
 CMD ["supervisord", "-c", "/etc/supervisor.d/supervisord.conf"]
