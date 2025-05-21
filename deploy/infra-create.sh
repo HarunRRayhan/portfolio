@@ -119,25 +119,48 @@ wait_for_ssh() {
     return 1
 }
 
+# After loading .env.deploy, export all relevant variables
+if [ -f "$SCRIPT_DIR/.env.deploy" ]; then
+  while IFS='=' read -r key value; do
+    # Only export non-empty, non-commented variables
+    if [[ ! "$key" =~ ^# ]] && [[ -n "$key" ]] && [[ -n "$value" ]]; then
+      export "$key"="${value//\"/}"
+    fi
+  done < <(grep -v '^#' "$SCRIPT_DIR/.env.deploy" | grep '=')
+fi
+# Now all variables are exported for terraform commands
+
+# Extract and export all required variables from .env.deploy
+for var in aws_region aws_access_key aws_secret_key aws_lightsail_blueprint_id aws_lightsail_bundle_id cloudflare_api_token cloudflare_zone_id domain_name db_password r2_bucket_name cloudflare_account_id; do
+  value=$(grep -E "^${var}=" "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"' || true)
+  if [ -n "$value" ]; then
+    export $var="$value"
+  fi
+  value_uc=$(grep -E "^$(echo $var | awk '{print toupper($0)}')=" "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"' || true)
+  if [ -z "$value" ] && [ -n "$value_uc" ]; then
+    export $var="$value_uc"
+  fi
+  unset value value_uc
+done
+
+# Map required Terraform variables to .env.deploy variable names with TF_VAR_ prefix
+export TF_VAR_aws_region="us-east-1"
+export TF_VAR_aws_access_key="$AWS_ACCESS_KEY_ID"
+export TF_VAR_aws_secret_key="$AWS_SECRET_ACCESS_KEY"
+export TF_VAR_aws_lightsail_blueprint_id="ubuntu_22_04"
+export TF_VAR_aws_lightsail_bundle_id="micro_3_0"
+export TF_VAR_cloudflare_api_token="$CLOUDFLARE_API_TOKEN"
+export TF_VAR_cloudflare_zone_id="$CLOUDFLARE_ZONE_ID"
+export TF_VAR_domain_name="harun.dev"
+export TF_VAR_db_password="$POSTGRES_PASSWORD"
+export TF_VAR_r2_bucket_name="$R2_BUCKET_NAME"
+export TF_VAR_cloudflare_account_id="$CLOUDFLARE_ACCOUNT_ID"
+
+# No need to build TF_VAR_ARGS, just run terraform apply -auto-approve
+
 # 1. Apply Terraform
 step 1 "Applying Terraform"
 cd "$SCRIPT_DIR/terraform"
-
-# Load required variables from .env.deploy
-if [ -f "$SCRIPT_DIR/.env.deploy" ]; then
-    R2_BUCKET_NAME=$(grep '^R2_BUCKET_NAME=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
-    CLOUDFLARE_ACCOUNT_ID=$(grep '^CLOUDFLARE_ACCOUNT_ID=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
-    TF_S3_BACKEND_BUCKET=$(grep '^TF_S3_BACKEND_BUCKET=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
-fi
-
-if [ -z "$R2_BUCKET_NAME" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
-    echo "Error: R2_BUCKET_NAME and CLOUDFLARE_ACCOUNT_ID must be set in .env.deploy"
-    exit 1
-fi
-
-echo "[DEBUG] R2_BUCKET_NAME: '$R2_BUCKET_NAME'"
-echo "[DEBUG] CLOUDFLARE_ACCOUNT_ID: '$CLOUDFLARE_ACCOUNT_ID'"
-echo "[DEBUG] TF_S3_BACKEND_BUCKET: '$TF_S3_BACKEND_BUCKET'"
 
 # Initialize Terraform with S3 backend configuration
 echo "[INFO] Using Terraform S3 backend bucket: $TF_S3_BACKEND_BUCKET"
@@ -151,10 +174,8 @@ if [ $INIT_STATUS -ne 0 ]; then
   exit $INIT_STATUS
 fi
 
-echo "[INFO] Running terraform apply with r2_bucket_name=$R2_BUCKET_NAME, cloudflare_account_id=$CLOUDFLARE_ACCOUNT_ID"
-terraform apply -auto-approve \
-  -var="r2_bucket_name=$R2_BUCKET_NAME" \
-  -var="cloudflare_account_id=$CLOUDFLARE_ACCOUNT_ID"
+echo "[INFO] Running terraform apply with r2_bucket_name=$R2_BUCKET_NAME, cloudflare_account_id=$CLOUDFLARE_ACCOUNT_ID, cloudflare_api_token=$CLOUDFLARE_API_TOKEN, aws_access_key_id=$AWS_ACCESS_KEY_ID, aws_secret_access_key=$AWS_SECRET_ACCESS_KEY, tf_s3_backend_bucket=$TF_S3_BACKEND_BUCKET"
+terraform apply -auto-approve
 APPLY_STATUS=$?
 if [ $APPLY_STATUS -ne 0 ]; then
   echo "[ERROR] Terraform apply failed with status $APPLY_STATUS" >&2
