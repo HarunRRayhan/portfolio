@@ -194,8 +194,6 @@ get_docker_env_vars() {
   MAX_APP_INSTANCES=$MAX_APP_INSTANCES \
   APP_CPU_LIMIT=$APP_CPU_LIMIT \
   APP_MEMORY_LIMIT=$APP_MEMORY_LIMIT \
-  NGINX_CPU_LIMIT=$NGINX_CPU_LIMIT \
-  NGINX_MEMORY_LIMIT=$NGINX_MEMORY_LIMIT \
   DB_CPU_LIMIT=$DB_CPU_LIMIT \
   DB_MEMORY_LIMIT=$DB_MEMORY_LIMIT \
   MAX_APP_CPU_LIMIT=$MAX_APP_CPU_LIMIT \
@@ -222,7 +220,7 @@ docker_compose_run() {
   local command="$2"
   local docker_env_vars=$(get_docker_env_vars)
 
-  echo "$docker_env_vars docker-compose -f $compose_file $command"
+  echo "$docker_env_vars docker-compose -f $compose_file --env-file ./docker/.env $command"
 }
 
 # 1. Start
@@ -466,10 +464,8 @@ success "Remaining public files uploaded to server."
 # 12. Set up docker env on the server & start containers
 step 12 "Setting up docker environment on server & starting containers"
 execute_ssh "mkdir -p $APP_DIR/deploy/docker $APP_DIR/bootstrap/cache $APP_DIR/storage $APP_DIR/storage/logs $APP_DIR/storage/framework/sessions $APP_DIR/storage/framework/views $APP_DIR/storage/framework/cache $APP_DIR/storage/framework/cache/data"
-# Don't try to chmod directly - we'll handle permissions through Docker
-# Ensure nginx.conf is a file, not a directory
-execute_ssh "if [ -d $APP_DIR/deploy/docker/nginx.conf ]; then rm -rf $APP_DIR/deploy/docker/nginx.conf; fi"
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/nginx.conf" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/docker/nginx.conf"
+# Remove nginx.conf logic, add traefik config if needed
+# scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/nginx.conf" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/docker/nginx.conf"
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/docker-compose.yml" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/docker/docker-compose.yml"
 # Ensure Dockerfile and wait-for-db.sh are present
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/Dockerfile" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/docker/Dockerfile"
@@ -480,6 +476,8 @@ step 13 "Copying .env file"
 # Remove any existing .env on the server before copying
 execute_ssh "rm -f $APP_DIR/.env"
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/.env" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/.env"
+# Also copy .env.deploy to .env in the docker directory for Compose variable substitution
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/.env.deploy" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/.env"
 
 # Ensure manifest.json is present before Docker build
 execute_ssh "mkdir -p $APP_DIR/public/build"
@@ -487,7 +485,7 @@ scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/public/build/manifest.
 
 # 14. Generate SSL cert and key on the server if not present
 step 14 "Ensuring SSL certificate and key exist on server"
-SSL_PATH="/etc/nginx/ssl"
+SSL_PATH="/opt/portfolio/ssl"
 SSL_CRT="$SSL_PATH/harun.dev.crt"
 SSL_KEY="$SSL_PATH/harun.dev.key"
 execute_ssh "sudo mkdir -p $SSL_PATH && \
@@ -497,6 +495,12 @@ execute_ssh "sudo mkdir -p $SSL_PATH && \
       -subj '/CN=harun.dev'; \
     sudo chmod 600 $SSL_CRT $SSL_KEY && sudo chown root:root $SSL_CRT $SSL_KEY; \
   fi"
+
+# Traefik debug/test/log one-off commands
+step 99 "Debug Traefik status and logs"
+execute_ssh "cd $APP_DIR && docker-compose -f ./deploy/docker/docker-compose.yml logs traefik"
+execute_ssh "cd $APP_DIR && docker-compose -f ./deploy/docker/docker-compose.yml exec traefik traefik version"
+execute_ssh "cd $APP_DIR && docker-compose -f ./deploy/docker/docker-compose.yml ps"
 
 # 15. Ensure required Laravel cache and storage directories exist and are writable by www-data
 step 15 "Ensuring Laravel cache and storage directories exist and are writable"
@@ -734,3 +738,11 @@ fi
 
 # 23. Print total time and summary
 print_total_time
+
+# When running docker compose logs or ps, check app-blue, app-green, db, and traefik
+ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $REMOTE_USER@$PUBLIC_IP 'cd /opt/portfolio && docker compose up -d'
+
+# 16.5. Fix storage/cache directory existence and permissions for blue/green
+step 16.5 "Fixing storage/cache directory existence and permissions for blue/green containers"
+execute_ssh "sudo mkdir -p /opt/portfolio/storage/framework/cache /opt/portfolio/storage/framework/views /opt/portfolio/storage/framework/sessions /opt/portfolio/storage/framework/cache/data /opt/portfolio/storage/logs /opt/portfolio/bootstrap/cache && sudo chown -R 82:82 /opt/portfolio/storage /opt/portfolio/bootstrap/cache && sudo chmod -R 775 /opt/portfolio/storage /opt/portfolio/bootstrap/cache"
+execute_ssh 'for cname in $(docker ps --format "{{.Names}}" | grep -E "app-(blue|green)"); do docker exec $cname mkdir -p /var/www/html/storage/framework/cache /var/www/html/storage/framework/views /var/www/html/storage/framework/sessions /var/www/html/storage/framework/cache/data /var/www/html/storage/logs /var/www/html/bootstrap/cache; docker exec $cname chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache; docker exec $cname chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache; docker exec $cname php artisan config:clear; docker exec $cname php artisan cache:clear; docker exec $cname php artisan view:clear; docker exec $cname php artisan config:cache; docker exec $cname php artisan view:cache; done'

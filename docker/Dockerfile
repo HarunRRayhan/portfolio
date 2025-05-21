@@ -31,14 +31,11 @@ RUN apk add --no-cache postgresql-libs postgresql-dev libzip openssl \
 
 WORKDIR /var/www/html
 
+COPY public ./public
+RUN mkdir -p /var/www/html/public && echo 'OK' > /var/www/html/public/health.txt
+
 # Only copy manifest.json from public/build
 COPY public/build/manifest.json ./public/build/manifest.json
-
-# Copy all other public files except build, fonts, images
-COPY public/*.php ./public/
-COPY public/*.txt ./public/
-COPY public/*.ico ./public/
-COPY public/.htaccess ./public/
 
 # Copy other necessary files
 COPY composer.json ./
@@ -54,7 +51,7 @@ COPY .env ./
 COPY ../docker/wait-for-db.sh ./wait-for-db.sh
 
 # Ensure required directories exist
-RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public/build /var/www/html/resources/views \
+RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public /var/www/html/public/build /var/www/html/resources/views \
     && touch /var/www/html/resources/views/.placeholder
 
 # Set permissions
@@ -74,6 +71,11 @@ RUN php artisan config:clear \
     && php artisan config:cache \
     && php artisan route:clear \
     && php artisan route:cache
+
+# Ensure required Laravel directories exist and are writable
+RUN mkdir -p /var/www/html/storage/framework/views /var/www/html/bootstrap/cache \
+    && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 EXPOSE 9000
 
