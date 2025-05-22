@@ -101,4 +101,9 @@ COPY --from=php-fpm /var/www/html/database /var/www/html/database
 COPY --from=php-fpm /var/www/html/app /var/www/html/app
 COPY --from=php-fpm /var/www/html/artisan /var/www/html/artisan
 
-# Copy custom Nginx config (to be specified in compose) 
+# Copy custom Nginx config (to be specified in compose)
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+
+EXPOSE 80 
