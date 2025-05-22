@@ -1,0 +1,19 @@
+http:
+  services:
+    web-blue:
+      loadBalancer:
+        servers:
+          - url: "http://nginx_blue:80"
+        passHostHeader: true
+    web-green:
+      loadBalancer:
+        servers:
+          - url: "http://nginx_green:80"
+        passHostHeader: true
+    web-main:
+      weighted:
+        services:
+          - name: web-blue
+            weight: 100
+          - name: web-green
+            weight: 0 

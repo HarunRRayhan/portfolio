@@ -23,7 +23,7 @@ RUN wget https://getcomposer.org/composer-stable.phar -O composer.phar \
     && rm composer.phar
 
 # Production image
-FROM php:8.2-fpm-alpine
+FROM php:8.2-fpm-alpine AS php-fpm
 
 # Install runtime and build dependencies only
 RUN apk add --no-cache postgresql-libs postgresql-dev libzip openssl \
@@ -79,4 +79,20 @@ RUN mkdir -p /var/www/html/storage/framework/views /var/www/html/bootstrap/cache
 
 EXPOSE 9000
 
-CMD ["php-fpm"] 
+CMD ["php-fpm"]
+
+# Nginx image for blue/green
+FROM nginx:alpine AS nginx-app
+
+# Copy built Laravel app from PHP image
+COPY --from=php-fpm /var/www/html/public /var/www/html/public
+COPY --from=php-fpm /var/www/html/vendor /var/www/html/vendor
+COPY --from=php-fpm /var/www/html/bootstrap /var/www/html/bootstrap
+COPY --from=php-fpm /var/www/html/config /var/www/html/config
+COPY --from=php-fpm /var/www/html/resources /var/www/html/resources
+COPY --from=php-fpm /var/www/html/routes /var/www/html/routes
+COPY --from=php-fpm /var/www/html/database /var/www/html/database
+COPY --from=php-fpm /var/www/html/app /var/www/html/app
+COPY --from=php-fpm /var/www/html/artisan /var/www/html/artisan
+
+# Copy custom Nginx config (to be specified in compose) 

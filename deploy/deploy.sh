@@ -34,10 +34,11 @@ if [ -f "$SCRIPT_DIR/.env.deploy" ]; then
   set +a
 fi
 
-# Ensure SSH_KEY is relative to the deploy directory
+# Always resolve SSH_KEY to absolute path after loading .env.deploy
 if [ -n "$SSH_KEY" ] && [[ "$SSH_KEY" != /* ]]; then
   SSH_KEY="$SCRIPT_DIR/$SSH_KEY"
 fi
+export SSH_KEY
 
 echo "[DEBUG] SSH_KEY resolved to: $SSH_KEY"
 
@@ -471,8 +472,16 @@ scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/docker-compose.
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/Dockerfile" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/docker/Dockerfile"
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/wait-for-db.sh" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/docker/wait-for-db.sh"
 
-# 13. Copy .env file
-step 13 "Copying .env file"
+# 13. Upload Nginx and Traefik config files for blue-green
+step 13 "Uploading Nginx and Traefik config files for blue-green deployment"
+execute_ssh "mkdir -p $APP_DIR/deploy/docker/nginx"
+execute_ssh "rm -rf $APP_DIR/deploy/docker/nginx/blue.conf $APP_DIR/deploy/docker/nginx/green.conf $APP_DIR/deploy/docker/traefik-dynamic.yml"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/nginx/blue.conf" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/docker/nginx/blue.conf"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/nginx/green.conf" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/docker/nginx/green.conf"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/traefik-dynamic.yml" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/docker/traefik-dynamic.yml"
+
+# 14. Copy .env file
+step 14 "Copying .env file"
 # Remove any existing .env on the server before copying
 execute_ssh "rm -f $APP_DIR/.env"
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/.env" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/.env"
@@ -483,8 +492,8 @@ scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/.env.deploy" "$REMOTE
 execute_ssh "mkdir -p $APP_DIR/public/build"
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/public/build/manifest.json" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/public/build/manifest.json"
 
-# 14. Generate SSL cert and key on the server if not present
-step 14 "Ensuring SSL certificate and key exist on server"
+# 15. Generate SSL cert and key on the server if not present
+step 15 "Ensuring SSL certificate and key exist on server"
 SSL_PATH="/opt/portfolio/ssl"
 SSL_CRT="$SSL_PATH/harun.dev.crt"
 SSL_KEY="$SSL_PATH/harun.dev.key"
@@ -502,15 +511,15 @@ execute_ssh "cd $APP_DIR && docker-compose -f ./deploy/docker/docker-compose.yml
 execute_ssh "cd $APP_DIR && docker-compose -f ./deploy/docker/docker-compose.yml exec traefik traefik version"
 execute_ssh "cd $APP_DIR && docker-compose -f ./deploy/docker/docker-compose.yml ps"
 
-# 15. Ensure required Laravel cache and storage directories exist and are writable by www-data
-step 15 "Ensuring Laravel cache and storage directories exist and are writable"
+# 16. Ensure required Laravel cache and storage directories exist and are writable by www-data
+step 16 "Ensuring Laravel cache and storage directories exist and are writable"
 execute_ssh "cd $APP_DIR && \
   mkdir -p storage/framework/views storage/framework/cache storage/logs bootstrap/cache && \
   sudo chown -R www-data:www-data storage bootstrap/cache && \
   sudo chmod -R 775 storage bootstrap/cache"
 
-# 16. Execute deployment commands
-step 16 "Executing deployment commands"
+# 17. Execute deployment commands
+step 17 "Executing deployment commands"
 # Create a multi-line command with proper Docker environment variables
 DOCKER_COMPOSE_FILE="./deploy/docker/docker-compose.yml"
 DOCKER_DOWN_CMD=$(docker_compose_run "$DOCKER_COMPOSE_FILE" "down")
@@ -552,20 +561,20 @@ execute_ssh "cd $APP_DIR && $(docker_compose_run "$DOCKER_COMPOSE_FILE" "exec -T
 COMBINED_ARTISAN_CMD="cd $APP_DIR && $CONFIG_CACHE_CMD && $ROUTE_CACHE_CMD && $VIEW_CACHE_CMD && $MIGRATE_CMD && $STORAGE_LINK_CMD"
 execute_ssh "$COMBINED_ARTISAN_CMD"
 
-# 17. Check app container status
-step 17 "Checking app container status"
+# 18. Check app container status
+step 18 "Checking app container status"
 if ! wait_for_app_container; then
   fail "App container did not start in time. Aborting deploy."
   exit 1
 fi
 
-# 18. Ensure wait-for-db.sh is executable in the container
-step 18 "Ensuring wait-for-db.sh is executable in the container"
-echo -e "\n+++++++++++++++++++++++++++++++++++++++++++++++\n+++   STEP 18: Ensuring wait-for-db.sh is executable in the container   +++\n++++++++++++++++++++++++++++++++++++++++++++++\n"
+# 19. Ensure wait-for-db.sh is executable in the container
+step 19 "Ensuring wait-for-db.sh is executable in the container"
+echo -e "\n+++++++++++++++++++++++++++++++++++++++++++++++\n+++   STEP 19: Ensuring wait-for-db.sh is executable in the container   +++\n++++++++++++++++++++++++++++++++++++++++++++++\n"
 execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c 'chmod +x ./wait-for-db.sh && php artisan cache:clear'"
 
-# 18.1. Ensure proper Laravel cache configuration
-echo -e "\n+++++++++++++++++++++++++++++++++++++++++++++++\n+++   STEP 18.1: Ensuring proper Laravel cache configuration   +++\n++++++++++++++++++++++++++++++++++++++++++++++\n"
+# 19.1. Ensure proper Laravel cache configuration
+echo -e "\n+++++++++++++++++++++++++++++++++++++++++++++++\n+++   STEP 19.1: Ensuring proper Laravel cache configuration   +++\n++++++++++++++++++++++++++++++++++++++++++++++\n"
 
 # Create all required Laravel cache directories with proper permissions and add .gitkeep files to ensure they exist
 execute_ssh "cd $APP_DIR && sudo docker exec \$(sudo docker ps -qf 'name=app' | head -n 1) sh -c '\
@@ -664,8 +673,8 @@ php artisan route:cache && \
 php artisan view:cache && \
 echo Successfully rebuilt all caches'"
 
-# 19. Wait for the database to be ready
-step 19 "Waiting for the database to be ready inside the app container"
+# 20. Wait for the database to be ready
+step 20 "Waiting for the database to be ready inside the app container"
 echo "Database connection is assumed to be ready (skipping wait-for-db.sh)"
 # Skip the wait-for-db.sh script as it's causing issues
 # DOCKER_WAIT_DB_CMD=$(docker_compose_exec "./docker/docker-compose.yml" "app" "./wait-for-db.sh db 5432 60")
@@ -678,21 +687,21 @@ execute_ssh "cd $APP_DIR && $(docker_compose_run "./docker/docker-compose.yml" "
 # Double-check that the cache directory structure is correct
 execute_ssh "cd $APP_DIR && $(docker_compose_run "./docker/docker-compose.yml" "exec -T app sh -c 'ls -la /var/www/html/storage/framework/cache/data'")"
 
-# 20 Test DB connection from app container
-step 20 "Testing database connection from app container"
+# 21 Test DB connection from app container
+step 21 "Testing database connection from app container"
 # Test database connection
 DOCKER_MIGRATE_STATUS_CMD=$(docker_compose_exec "./docker/docker-compose.yml" "app" "php artisan migrate:status")
 execute_ssh "cd $APP_DIR && $DOCKER_MIGRATE_STATUS_CMD"
 
 success "Deployment completed!"
 
-# 21. Skip Cloudflare Worker R2 Bucket Binding (already done by Terraform)
-step 21 "Skipping Cloudflare Worker R2 Bucket Binding (already done by Terraform)"
+# 22. Skip Cloudflare Worker R2 Bucket Binding (already done by Terraform)
+step 22 "Skipping Cloudflare Worker R2 Bucket Binding (already done by Terraform)"
 
 echo "Skipping Cloudflare Worker R2 bucket binding as it's already configured by Terraform during infrastructure creation."
 
-# 22. Purge CDN Cache (Cloudflare)
-step 22 "Purging CDN Cache (Cloudflare)"
+# 23. Purge CDN Cache (Cloudflare)
+step 23 "Purging CDN Cache (Cloudflare)"
 if [ -z "$CLOUDFLARE_ZONE_ID" ] || [ -z "$CLOUDFLARE_API_TOKEN" ]; then
   echo "Skipping Cloudflare CDN purge - missing CLOUDFLARE_ZONE_ID or CLOUDFLARE_API_TOKEN"
   echo "To enable Cloudflare cache purging, add the following to your .env.deploy file:"
@@ -736,13 +745,53 @@ else
   fi
 fi
 
-# 23. Print total time and summary
+# 24. Print total time and summary
 print_total_time
 
 # When running docker compose logs or ps, check app-blue, app-green, db, and traefik
 ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $REMOTE_USER@$PUBLIC_IP 'cd /opt/portfolio && docker compose up -d'
 
-# 16.5. Fix storage/cache directory existence and permissions for blue/green
-step 16.5 "Fixing storage/cache directory existence and permissions for blue/green containers"
-execute_ssh "sudo mkdir -p /opt/portfolio/storage/framework/cache /opt/portfolio/storage/framework/views /opt/portfolio/storage/framework/sessions /opt/portfolio/storage/framework/cache/data /opt/portfolio/storage/logs /opt/portfolio/bootstrap/cache && sudo chown -R 82:82 /opt/portfolio/storage /opt/portfolio/bootstrap/cache && sudo chmod -R 775 /opt/portfolio/storage /opt/portfolio/bootstrap/cache"
-execute_ssh 'for cname in $(docker ps --format "{{.Names}}" | grep -E "app-(blue|green)"); do docker exec $cname mkdir -p /var/www/html/storage/framework/cache /var/www/html/storage/framework/views /var/www/html/storage/framework/sessions /var/www/html/storage/framework/cache/data /var/www/html/storage/logs /var/www/html/bootstrap/cache; docker exec $cname chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache; docker exec $cname chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache; docker exec $cname php artisan config:clear; docker exec $cname php artisan cache:clear; docker exec $cname php artisan view:clear; docker exec $cname php artisan config:cache; docker exec $cname php artisan view:cache; done'
+# 16.5. Blue-Green Deployment Steps (Traefik + Nginx + PHP-FPM)
+step 16.5 "Blue-Green Deployment: Bring up green, migrate, flip weights, reload Traefik, (optionally) remove blue"
+
+# Paths for blue-green
+DYNAMIC_FILE="$REPO_ROOT/docker/traefik-dynamic.yml"
+COMPOSE_FILE="$REPO_ROOT/docker/docker-compose.yml"
+NGINX_GREEN="nginx_green"
+PHP_GREEN="php_green"
+NGINX_BLUE="nginx_blue"
+PHP_BLUE="php_blue"
+TRAEFIK="traefik"
+
+# 1. Bring up green stack
+success "[BG-1/5] Bringing up green (nginx_green, php_green)..."
+execute_ssh "cd $APP_DIR && docker compose -f $COMPOSE_FILE up -d $NGINX_GREEN $PHP_GREEN"
+
+# 2. Run migrations on green
+success "[BG-2/5] Running migrations on green..."
+execute_ssh "cd $APP_DIR && docker compose -f $COMPOSE_FILE exec -T $PHP_GREEN php artisan migrate --force"
+
+# 3. Flip weights: blue 0, green 100
+success "[BG-3/5] Flipping weights: blue 0, green 100..."
+# Download, edit, and upload traefik-dynamic.yml
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/traefik-dynamic.yml" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/traefik-dynamic.yml.bak"
+ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $REMOTE_USER@$REMOTE_HOST "sed -i.bak -e 's/weight: 100/weight: 0/g' -e 's/weight: 0/weight: 100/g' $APP_DIR/traefik-dynamic.yml.bak && mv $APP_DIR/traefik-dynamic.yml.bak $APP_DIR/docker/traefik-dynamic.yml"
+
+# 4. Reload Traefik
+success "[BG-4/5] Reloading Traefik..."
+execute_ssh "cd $APP_DIR && docker compose -f $COMPOSE_FILE restart $TRAEFIK"
+
+# 5. Optionally remove blue after verification
+if [[ "$REMOVE_BLUE" == "1" || "$1" == "--remove-blue" ]]; then
+  success "[BG-5/5] Removing blue stack..."
+  execute_ssh "cd $APP_DIR && docker compose -f $COMPOSE_FILE stop $NGINX_BLUE $PHP_BLUE"
+  execute_ssh "cd $APP_DIR && docker compose -f $COMPOSE_FILE rm -f $NGINX_BLUE $PHP_BLUE"
+else
+  success "[BG-5/5] Blue stack kept for quick rollback. To remove, rerun with REMOVE_BLUE=1 or --remove-blue."
+fi
+
+success "Blue-Green deployment complete!"
+echo "To rollback:"
+echo "  1. Edit $DYNAMIC_FILE on server to set web-blue weight to 100 and web-green to 0."
+echo "  2. docker compose -f $COMPOSE_FILE restart $TRAEFIK on server."
+echo "  3. (Optional) Remove green: docker compose -f $COMPOSE_FILE stop $NGINX_GREEN $PHP_GREEN && docker compose -f $COMPOSE_FILE rm -f $NGINX_GREEN $PHP_GREEN"

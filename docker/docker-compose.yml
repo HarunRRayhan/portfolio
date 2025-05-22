@@ -1,98 +1,80 @@
 services:
-  app-blue:
+  php_blue:
     build:
-      context: /opt/portfolio
-      dockerfile: deploy/docker/Dockerfile
-      args:
-        - NODE_ENV=production
-    volumes:
-      - /opt/portfolio/.env:/var/www/html/.env
-      - /opt/portfolio/storage:/var/www/html/storage
-    environment:
-      - APP_ENV=production
-      - APP_DEBUG=false
-      - APP_URL=${APP_URL}
-      - DB_CONNECTION=pgsql
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_DATABASE=${POSTGRES_DB}
-      - DB_USERNAME=${POSTGRES_USER}
-      - DB_PASSWORD=${POSTGRES_PASSWORD}
-      - VIEW_COMPILED_PATH=/var/www/html/storage/framework/views
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: unless-stopped
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: php-fpm
+    container_name: php_blue
     networks:
-      - app-network
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.app-blue.rule=Host(`harun.dev`) && PathPrefix(`/blue`)"
-      - "traefik.http.routers.app-blue.entrypoints=websecure"
-      - "traefik.http.routers.app-blue.tls=true"
-      - "traefik.http.routers.app-blue.tls.certresolver=default"
-      - "traefik.http.services.app-blue.loadbalancer.server.port=9000"
-      - "traefik.http.routers.app-http.rule=Host(`harun.dev`) || Host(`www.harun.dev`)"
-      - "traefik.http.routers.app-http.entrypoints=web"
-      - "traefik.http.routers.app-http.middlewares=redirect-to-https"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - internal
 
-  app-green:
+  php_green:
     build:
-      context: /opt/portfolio
-      dockerfile: deploy/docker/Dockerfile
-      args:
-        - NODE_ENV=production
-    volumes:
-      - /opt/portfolio/.env:/var/www/html/.env
-      - /opt/portfolio/storage:/var/www/html/storage
-    environment:
-      - APP_ENV=production
-      - APP_DEBUG=false
-      - APP_URL=${APP_URL}
-      - DB_CONNECTION=pgsql
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_DATABASE=${POSTGRES_DB}
-      - DB_USERNAME=${POSTGRES_USER}
-      - DB_PASSWORD=${POSTGRES_PASSWORD}
-      - VIEW_COMPILED_PATH=/var/www/html/storage/framework/views
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: unless-stopped
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: php-fpm
+    container_name: php_green
     networks:
-      - app-network
+      - internal
+
+  nginx_blue:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: nginx-app
+    container_name: nginx_blue
+    volumes:
+      - ./nginx/blue.conf:/etc/nginx/nginx.conf:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.app-green.rule=Host(`harun.dev`) && PathPrefix(`/green`)"
-      - "traefik.http.routers.app-green.entrypoints=websecure"
-      - "traefik.http.routers.app-green.tls=true"
-      - "traefik.http.routers.app-green.tls.certresolver=default"
-      - "traefik.http.services.app-green.loadbalancer.server.port=9000"
+      - "traefik.http.routers.web-main.rule=Host(`harun.dev`) || Host(`www.harun.dev`)"
+      - "traefik.http.routers.web-main.entrypoints=websecure"
+      - "traefik.http.routers.web-main.tls.certresolver=le"
+      - "traefik.http.routers.web-main.service=web-main@file"
+    depends_on:
+      - php_blue
+    networks:
+      - web
+      - internal
+
+  nginx_green:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: nginx-app
+    container_name: nginx_green
+    volumes:
+      - ./nginx/green.conf:/etc/nginx/nginx.conf:ro
+    labels:
+      - "traefik.enable=true"
+    depends_on:
+      - php_green
+    networks:
+      - web
+      - internal
 
   traefik:
     image: traefik:v2.11
     command:
-      - --api.insecure=true
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
+      - --providers.file.filename=/etc/traefik/traefik-dynamic.yml
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
-      - --certificatesresolvers.default.acme.httpchallenge=true
-      - --certificatesresolvers.default.acme.httpchallenge.entrypoint=web
-      - --certificatesresolvers.default.acme.email=${TRAEFIK_ACME_EMAIL}
-      - --certificatesresolvers.default.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.le.acme.tlschallenge=true
+      - --certificatesresolvers.le.acme.email=me@harun.dev
+      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
     ports:
       - "80:80"
       - "443:443"
-      - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /opt/portfolio/ssl:/letsencrypt
+      - ./traefik-dynamic.yml:/etc/traefik/traefik-dynamic.yml
+      - ./letsencrypt:/letsencrypt
+    labels:
+      - "traefik.enable=true"
     networks:
-      - app-network
-    restart: unless-stopped
+      - web
 
   db:
     image: postgres:15-alpine
@@ -114,6 +96,10 @@ services:
 networks:
   app-network:
     driver: bridge
+  web:
+    external: false
+  internal:
+    external: false
 
 volumes:
   postgres_data: 
