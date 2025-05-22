@@ -108,7 +108,7 @@ resource "cloudflare_dns_record" "cdn_cname" {
     name    = "cdn"
     type    = "CNAME"
     content = "workers.dev"
-    proxied = true
+    proxied = false
     ttl     = 1
 }
 
