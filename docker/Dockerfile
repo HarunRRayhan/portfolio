@@ -82,7 +82,7 @@ EXPOSE 9000
 CMD ["php-fpm"]
 
 # Nginx image for blue/green
-FROM nginx:alpine AS nginx-app
+FROM nginx:1.27.5-alpine AS nginx-app
 
 # Copy built Laravel app from PHP image
 COPY --from=php-fpm /var/www/html/public /var/www/html/public
