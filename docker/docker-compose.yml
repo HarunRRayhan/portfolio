@@ -32,6 +32,10 @@ services:
       - "traefik.http.routers.app-blue.tls=true"
       - "traefik.http.routers.app-blue.tls.certresolver=default"
       - "traefik.http.services.app-blue.loadbalancer.server.port=9000"
+      - "traefik.http.routers.app-http.rule=Host(`harun.dev`) || Host(`www.harun.dev`)"
+      - "traefik.http.routers.app-http.entrypoints=web"
+      - "traefik.http.routers.app-http.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
 
   app-green:
     build:
@@ -75,7 +79,8 @@ services:
       - --providers.docker.exposedbydefault=false
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
-      - --certificatesresolvers.default.acme.tlschallenge=true
+      - --certificatesresolvers.default.acme.httpchallenge=true
+      - --certificatesresolvers.default.acme.httpchallenge.entrypoint=web
       - --certificatesresolvers.default.acme.email=${TRAEFIK_ACME_EMAIL}
       - --certificatesresolvers.default.acme.storage=/letsencrypt/acme.json
     ports:
