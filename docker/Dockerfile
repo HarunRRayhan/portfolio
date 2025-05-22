@@ -49,9 +49,11 @@ COPY --from=builder /app/routes ./routes
 COPY --from=builder /app/artisan ./
 COPY .env ./
 COPY ../docker/wait-for-db.sh ./wait-for-db.sh
+COPY docker/entrypoint.sh /entrypoint.sh
 
 # Ensure required directories exist
-RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public /var/www/html/public/build /var/www/html/resources/views \
+RUN mkdir -p /var/www/html/storage/framework/{cache,sessions,views,testing,logs,cache/data} \
+    /var/www/html/bootstrap/cache \
     && touch /var/www/html/resources/views/.placeholder
 
 # Set permissions
@@ -73,15 +75,13 @@ RUN php artisan config:clear \
     && php artisan route:cache
 
 # Ensure required Laravel directories exist and are writable
-RUN mkdir -p /var/www/html/storage/framework/views \
-    /var/www/html/storage/framework/cache \
-    /var/www/html/storage/framework/sessions \
-    /var/www/html/storage/framework/testing \
-    /var/www/html/storage/framework/logs \
-    /var/www/html/storage/framework/cache/data \
+RUN mkdir -p /var/www/html/storage/framework/{cache,sessions,views,testing,logs,cache/data} \
     /var/www/html/bootstrap/cache \
     && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
 
 EXPOSE 9000
 
