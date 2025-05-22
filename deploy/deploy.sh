@@ -119,7 +119,7 @@ clone_or_update_repo() {
         fi; \
         git clone --branch $GIT_BRANCH $GIT_REPO $APP_DIR; \
     else \
-        cd $APP_DIR && git fetch origin && git checkout $GIT_BRANCH && git pull origin $GIT_BRANCH; \
+        cd $APP_DIR && git reset --hard HEAD && git clean -fd && git fetch origin && git checkout $GIT_BRANCH && git pull origin $GIT_BRANCH; \
     fi"
 }
 

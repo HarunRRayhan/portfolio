@@ -29,10 +29,6 @@ services:
       - ./nginx/blue.conf:/etc/nginx/nginx.conf:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-main.rule=Host(`harun.dev`) || Host(`www.harun.dev`)"
-      - "traefik.http.routers.web-main.entrypoints=websecure"
-      - "traefik.http.routers.web-main.tls.certresolver=le"
-      - "traefik.http.routers.web-main.service=web-main@file"
     depends_on:
       - php_blue
     networks:
@@ -75,6 +71,7 @@ services:
       - ./letsencrypt:/letsencrypt
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=web"
     networks:
       - web
 

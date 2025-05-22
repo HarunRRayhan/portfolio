@@ -1,4 +1,13 @@
 http:
+  routers:
+    web-main:
+      rule: "Host(`harun.dev`) || Host(`www.harun.dev`)"
+      entryPoints:
+        - web
+        - websecure
+      service: web-main
+      tls:
+        certResolver: le
   services:
     web-blue:
       loadBalancer:
