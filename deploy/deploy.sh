@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# Prevent multiple simultaneous runs
+LOCKFILE="/tmp/$(basename "$0").lock"
+if [ -f "$LOCKFILE" ] && ps -p $(cat $LOCKFILE) > /dev/null; then
+  echo "$(basename "$0") is still running."
+  exit 1
+else
+  echo $$ > "$LOCKFILE"
+  trap "rm -f $LOCKFILE" EXIT
+fi
+
 set -e
 set -o pipefail
 
@@ -222,6 +232,12 @@ docker_compose_run() {
   local docker_env_vars=$(get_docker_env_vars)
 
   echo "$docker_env_vars docker-compose -f $compose_file --env-file ./docker/.env $command"
+}
+
+# Helper to check if a container is running
+is_container_running() {
+  local name="$1"
+  docker ps --format '{{.Names}}' | grep -q "^${name}$"
 }
 
 # 1. Start

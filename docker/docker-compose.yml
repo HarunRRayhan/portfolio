@@ -7,6 +7,7 @@ services:
     container_name: php_blue
     networks:
       - internal
+      - app-network
 
   php_green:
     build:
@@ -16,6 +17,7 @@ services:
     container_name: php_green
     networks:
       - internal
+      - app-network
 
   nginx_blue:
     build:
