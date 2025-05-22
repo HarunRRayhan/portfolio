@@ -108,7 +108,7 @@ resource "cloudflare_dns_record" "cdn_cname" {
     name    = "cdn"
     type    = "CNAME"
     content = "workers.dev"
-    proxied = false
+    proxied = true
     ttl     = 1
 }
 
@@ -117,7 +117,7 @@ resource "cloudflare_dns_record" "root_a" {
     name    = "@"
     type    = "A"
     content = aws_lightsail_static_ip.portfolio.ip_address
-    proxied = true
+    proxied = false
     ttl     = 1
 }
 
