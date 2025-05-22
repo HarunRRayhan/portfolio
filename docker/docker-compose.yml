@@ -1,7 +1,7 @@
 services:
   php_blue:
     build:
-      context: ..
+      context: ../..
       dockerfile: docker/Dockerfile
       target: php-fpm
     container_name: php_blue
@@ -11,7 +11,7 @@ services:
 
   php_green:
     build:
-      context: ..
+      context: ../..
       dockerfile: docker/Dockerfile
       target: php-fpm
     container_name: php_green
@@ -21,7 +21,7 @@ services:
 
   nginx_blue:
     build:
-      context: ..
+      context: ../..
       dockerfile: docker/Dockerfile
       target: nginx-app
     container_name: nginx_blue
@@ -37,7 +37,7 @@ services:
 
   nginx_green:
     build:
-      context: ..
+      context: ../..
       dockerfile: docker/Dockerfile
       target: nginx-app
     container_name: nginx_green
@@ -59,7 +59,8 @@ services:
       - --providers.file.filename=/etc/traefik/traefik-dynamic.yml
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
-      - --certificatesresolvers.le.acme.tlschallenge=true
+      - --certificatesresolvers.le.acme.httpchallenge=true
+      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
       - --certificatesresolvers.le.acme.email=me@harun.dev
       - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
     ports:
