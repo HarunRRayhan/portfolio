@@ -9,4 +9,4 @@ mkdir -p storage bootstrap/cache
 # No chown for nginx
 chmod -R 775 storage bootstrap/cache
 
-exec "$@" 
+exec nginx -g 'daemon off;' 

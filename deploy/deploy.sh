@@ -489,7 +489,7 @@ scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/Dockerfile" "$R
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/wait-for-db.sh" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/docker/wait-for-db.sh"
 
 # Set permissions for Nginx directories (use nginx:nginx)
-execute_ssh "cd $APP_DIR && sudo chown -R nginx:nginx public bootstrap storage || true && sudo chmod -R 755 public bootstrap storage || true"
+# execute_ssh "cd $APP_DIR && sudo chown -R nginx:nginx public bootstrap storage || true && sudo chmod -R 755 public bootstrap storage || true"
 
 # 13. Upload Nginx and Traefik config files for blue-green
 step 13 "Uploading Nginx and Traefik config files for blue-green deployment"
@@ -818,3 +818,6 @@ echo "To rollback:"
 echo "  1. Edit $DYNAMIC_FILE on server to set web-blue weight to 100 and web-green to 0."
 echo "  2. docker compose -f $COMPOSE_FILE restart $TRAEFIK on server."
 echo "  3. (Optional) Remove green: docker compose -f $COMPOSE_FILE stop $NGINX_GREEN $PHP_GREEN && docker compose -f $COMPOSE_FILE rm -f $NGINX_GREEN $PHP_GREEN"
+
+# Always upload the latest entrypoint-nginx.sh before building
+scp -i "$SSH_KEY" -o StrictHostKeyChecking=no docker/entrypoint-nginx.sh $REMOTE_USER@$REMOTE_HOST:/opt/portfolio/deploy/docker/entrypoint-nginx.sh
