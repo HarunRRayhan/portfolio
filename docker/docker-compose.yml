@@ -25,6 +25,8 @@ services:
       dockerfile: docker/Dockerfile
       target: nginx-app
     container_name: nginx_blue
+    environment:
+      - CONTAINER_ROLE=nginx
     volumes:
       - ./nginx/blue.conf:/etc/nginx/nginx.conf:ro
     labels:
@@ -41,6 +43,8 @@ services:
       dockerfile: docker/Dockerfile
       target: nginx-app
     container_name: nginx_green
+    environment:
+      - CONTAINER_ROLE=nginx
     volumes:
       - ./nginx/green.conf:/etc/nginx/nginx.conf:ro
     labels:

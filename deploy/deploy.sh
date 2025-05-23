@@ -488,6 +488,9 @@ scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/docker-compose.
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/Dockerfile" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/docker/Dockerfile"
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/wait-for-db.sh" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/docker/wait-for-db.sh"
 
+# Set permissions for Nginx directories (use nginx:nginx)
+execute_ssh "cd $APP_DIR && sudo chown -R nginx:nginx public bootstrap storage || true && sudo chmod -R 755 public bootstrap storage || true"
+
 # 13. Upload Nginx and Traefik config files for blue-green
 step 13 "Uploading Nginx and Traefik config files for blue-green deployment"
 execute_ssh "mkdir -p $APP_DIR/deploy/docker/nginx"
@@ -508,8 +511,12 @@ scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/.env.deploy" "$REMOTE
 execute_ssh "mkdir -p $APP_DIR/public/build"
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/public/build/manifest.json" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/public/build/manifest.json"
 
-# 15. Generate SSL cert and key on the server if not present
-step 15 "Ensuring SSL certificate and key exist on server"
+# 15. Generate .env.db for the db service
+step 15 "Generating .env.db for db service"
+execute_ssh "cd $APP_DIR && grep -E '^(POSTGRES_DB|POSTGRES_USER|POSTGRES_PASSWORD)=' .env > ./deploy/docker/.env.db && chmod 600 ./deploy/docker/.env.db"
+
+# 16. Generate SSL cert and key on the server if not present
+step 16 "Ensuring SSL certificate and key exist on server"
 SSL_PATH="/opt/portfolio/ssl"
 SSL_CRT="$SSL_PATH/harun.dev.crt"
 SSL_KEY="$SSL_PATH/harun.dev.key"

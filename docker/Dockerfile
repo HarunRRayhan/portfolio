@@ -49,7 +49,7 @@ COPY --from=builder /app/routes ./routes
 COPY --from=builder /app/artisan ./
 COPY .env ./
 COPY ../docker/wait-for-db.sh ./wait-for-db.sh
-COPY docker/entrypoint.sh /entrypoint.sh
+COPY docker/entrypoint-php.sh /entrypoint-php.sh
 
 # Ensure required directories exist
 RUN mkdir -p /var/www/html/storage/framework/{cache,sessions,views,testing,logs,cache/data} \
@@ -80,8 +80,8 @@ RUN mkdir -p /var/www/html/storage/framework/{cache,sessions,views,testing,logs,
     && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+RUN chmod +x /entrypoint-php.sh
+ENTRYPOINT ["/entrypoint-php.sh"]
 
 EXPOSE 9000
 
@@ -102,8 +102,11 @@ COPY --from=php-fpm /var/www/html/app /var/www/html/app
 COPY --from=php-fpm /var/www/html/artisan /var/www/html/artisan
 
 # Copy custom Nginx config (to be specified in compose)
-COPY docker/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+COPY docker/entrypoint-nginx.sh /entrypoint-nginx.sh
+RUN chmod +x /entrypoint-nginx.sh
+USER root
+RUN find /var/www/html -exec chown nginx:nginx {} +
+USER nginx
+ENTRYPOINT ["/entrypoint-nginx.sh"]
 
 EXPOSE 80 
