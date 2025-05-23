@@ -100,16 +100,16 @@ COPY --from=php-fpm /var/www/html/routes /var/www/html/routes
 COPY --from=php-fpm /var/www/html/database /var/www/html/database
 COPY --from=php-fpm /var/www/html/app /var/www/html/app
 COPY --from=php-fpm /var/www/html/artisan /var/www/html/artisan
+COPY --from=php-fpm /var/www/html/storage /var/www/html/storage
+COPY --from=php-fpm /var/www/html/bootstrap/cache /var/www/html/bootstrap/cache
 
 USER root
 RUN find /var/www/html -exec chown nginx:nginx {} +
 RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache
-USER nginx
-WORKDIR /var/www/html
-
-# Copy custom Nginx config (to be specified in compose)
 COPY docker/entrypoint-nginx.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+USER nginx
+WORKDIR /var/www/html
 ENTRYPOINT ["/entrypoint.sh"]
 
 EXPOSE 80 
