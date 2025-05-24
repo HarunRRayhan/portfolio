@@ -5,6 +5,12 @@ http:
       entryPoints:
         - web
       service: web-blue
+    web-main-secure:
+      rule: "Host(`harun.dev`) || Host(`www.harun.dev`)"
+      entryPoints:
+        - websecure
+      service: web-blue
+      tls: true
   services:
     web-blue:
       loadBalancer:
