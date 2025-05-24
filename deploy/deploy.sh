@@ -314,10 +314,86 @@ if [ ! -f "$REPO_ROOT/resources/views/placeholder.blade.php" ]; then
   echo "{{-- Placeholder view to satisfy Laravel --}}" > "$REPO_ROOT/resources/views/placeholder.blade.php"
 fi
 
-# 6-8. Skip frontend build and asset upload for now (can be done separately)
-step 6 "Skipping frontend build and asset upload (assuming already done)"
-echo "Frontend build and R2 upload skipped. Run separately if needed."
-success "Skipped frontend build steps."
+# 6. Build frontend locally
+step 6 "Building frontend locally"
+cd "$REPO_ROOT"
+
+# Empty out public/build/assets if it exists
+if [ -d "public/build/assets" ]; then
+  echo "[INFO] Emptying public/build/assets before build..."
+  rm -rf public/build/assets/*
+fi
+
+# Backup existing .env file if it exists
+if [ -f "$REPO_ROOT/.env" ]; then
+  echo "[INFO] Backing up existing .env file..."
+  cp "$REPO_ROOT/.env" "$REPO_ROOT/.env.backup"
+fi
+
+# Copy .env.deploy to .env for the build process (use .env.deploy instead of .env.appprod)
+cp "$SCRIPT_DIR/.env.deploy" "$REPO_ROOT/.env"
+
+npm ci && npm run build
+BUILD_STATUS=$?
+
+# Restore the original .env file if backup exists
+if [ -f "$REPO_ROOT/.env.backup" ]; then
+  echo "[INFO] Restoring original .env file..."
+  cp "$REPO_ROOT/.env.backup" "$REPO_ROOT/.env"
+  rm "$REPO_ROOT/.env.backup"
+else
+  # Remove the .env file if no backup existed
+  rm -f "$REPO_ROOT/.env"
+fi
+
+cd "$SCRIPT_DIR"
+if [ $BUILD_STATUS -ne 0 ]; then
+  echo "Frontend build failed. Aborting deploy."
+  exit 1
+fi
+success "Frontend built successfully."
+
+# 7. Upload static assets to Cloudflare R2
+step 7 "Uploading static assets to Cloudflare R2"
+if [ -z "$R2_BUCKET_NAME" ] || [ -z "$R2_S3_ENDPOINT" ] || [ -z "$R2_ACCESS_KEY_ID" ] || [ -z "$R2_SECRET_ACCESS_KEY" ]; then
+  echo "R2_BUCKET_NAME, R2_S3_ENDPOINT, R2_ACCESS_KEY_ID, or R2_SECRET_ACCESS_KEY not set. Aborting."
+  exit 1
+fi
+
+export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
+export AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
+
+# Ensure proper content types for different file types
+echo "Uploading build assets with proper content types..."
+aws s3 sync "$REPO_ROOT/public/build" "s3://$R2_BUCKET_NAME/build" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+
+# Upload JS files with proper content type
+echo "Setting proper content types for JavaScript files..."
+find "$REPO_ROOT/public/build" -name "*.js" -type f | while read -r file; do
+  relative_path="${file#$REPO_ROOT/public/}"
+  aws s3 cp "$file" "s3://$R2_BUCKET_NAME/$relative_path" --endpoint-url "$R2_S3_ENDPOINT" --content-type "application/javascript" --acl public-read
+done
+
+# Upload CSS files with proper content type
+echo "Setting proper content types for CSS files..."
+find "$REPO_ROOT/public/build" -name "*.css" -type f | while read -r file; do
+  relative_path="${file#$REPO_ROOT/public/}"
+  aws s3 cp "$file" "s3://$R2_BUCKET_NAME/$relative_path" --endpoint-url "$R2_S3_ENDPOINT" --content-type "text/css" --acl public-read
+done
+
+# Upload other static assets
+aws s3 sync "$REPO_ROOT/public/fonts" "s3://$R2_BUCKET_NAME/fonts" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+aws s3 sync "$REPO_ROOT/public/images" "s3://$R2_BUCKET_NAME/images" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+
+success "Static assets uploaded to Cloudflare R2."
+
+# 8. Ensure resources/views exists with a real Blade placeholder for Laravel
+step 8 "Ensuring resources/views exists with placeholder"
+mkdir -p "$REPO_ROOT/resources/views"
+if [ ! -f "$REPO_ROOT/resources/views/placeholder.blade.php" ]; then
+  echo "{{-- Placeholder view to satisfy Laravel --}}" > "$REPO_ROOT/resources/views/placeholder.blade.php"
+fi
+success "Laravel views directory prepared."
 
 # 9. Clone or update repo on server
 step 9 "Cloning or updating repository on server"
@@ -412,21 +488,15 @@ execute_ssh "sudo mkdir -p $SSL_PATH && \
     sudo chmod 600 $SSL_CRT $SSL_KEY && sudo chown root:root $SSL_CRT $SSL_KEY; \
   fi"
 
-# Traefik debug/test/log one-off commands
-step 99 "Debug Traefik status and logs"
-execute_ssh "cd $APP_DIR && docker-compose -f ./docker/docker-compose.yml logs traefik"
-execute_ssh "cd $APP_DIR && docker-compose -f ./docker/docker-compose.yml exec traefik traefik version"
-execute_ssh "cd $APP_DIR && docker-compose -f ./docker/docker-compose.yml ps"
-
-# 16. Ensure required Laravel cache and storage directories exist and are writable by www-data
-step 16 "Ensuring Laravel cache and storage directories exist and are writable"
+# 19. Ensure required Laravel cache and storage directories exist and are writable by www-data
+step 19 "Ensuring Laravel cache and storage directories exist and are writable"
 execute_ssh "cd $APP_DIR && \
   mkdir -p storage/framework/views storage/framework/cache storage/logs bootstrap/cache && \
   sudo chown -R www-data:www-data storage bootstrap/cache && \
   sudo chmod -R 775 storage bootstrap/cache"
 
-# 17. Execute deployment commands
-step 17 "Executing deployment commands"
+# 20. Execute deployment commands
+step 20 "Executing deployment commands"
 # Create a multi-line command with proper Docker environment variables
 DOCKER_COMPOSE_FILE="./docker/docker-compose.yml"
 
@@ -459,18 +529,18 @@ execute_ssh "cd $APP_DIR && \
     docker compose -f $DOCKER_COMPOSE_FILE exec -T php_blue php artisan migrate --force && \
     docker compose -f $DOCKER_COMPOSE_FILE exec -T php_blue sh -c 'if [ ! -L /var/www/html/public/storage ]; then php artisan storage:link; else echo Storage link already exists, skipping creation; fi'"
 
-# 18. Check container status
-step 18 "Checking blue-green container status"
+# 21. Check container status
+step 21 "Checking blue-green container status"
 execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml ps"
 echo "Waiting for containers to be ready..."
 sleep 10
 
-# 19. Ensure wait-for-db.sh is executable in the container
-step 19 "Ensuring wait-for-db.sh is executable in the container"
+# 22. Ensure wait-for-db.sh is executable in the container
+step 22 "Ensuring wait-for-db.sh is executable in the container"
 execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_blue sh -c 'chmod +x ./wait-for-db.sh && php artisan cache:clear'"
 
-# 19.1. Ensure proper Laravel cache configuration
-step 19.1 "Ensuring proper Laravel cache configuration"
+# 23. Ensure proper Laravel cache configuration
+step 23 "Ensuring proper Laravel cache configuration"
 
 # Create all required Laravel cache directories with proper permissions and add .gitkeep files to ensure they exist
 execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_blue sh -c '
@@ -504,19 +574,19 @@ execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T 
 # Laravel setup is now handled by the entrypoint scripts
 echo "Laravel cache and storage setup is handled by the PHP container entrypoint script."
 
-# 20. Wait for the database to be ready and test connection
-step 20 "Testing database connection from php_blue container"
+# 24. Wait for the database to be ready and test connection
+step 24 "Testing database connection from php_blue container"
 execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_blue php artisan migrate:status"
 
 success "Deployment completed!"
 
-# 22. Skip Cloudflare Worker R2 Bucket Binding (already done by Terraform)
-step 22 "Skipping Cloudflare Worker R2 Bucket Binding (already done by Terraform)"
+# 25. Skip Cloudflare Worker R2 Bucket Binding (already done by Terraform)
+step 25 "Skipping Cloudflare Worker R2 Bucket Binding (already done by Terraform)"
 
 echo "Skipping Cloudflare Worker R2 bucket binding as it's already configured by Terraform during infrastructure creation."
 
-# 23. Purge CDN Cache (Cloudflare)
-step 23 "Purging CDN Cache (Cloudflare)"
+# 26. Purge CDN Cache (Cloudflare)
+step 26 "Purging CDN Cache (Cloudflare)"
 if [ -z "$CLOUDFLARE_ZONE_ID" ] || [ -z "$CLOUDFLARE_API_TOKEN" ]; then
   echo "Skipping Cloudflare CDN purge - missing CLOUDFLARE_ZONE_ID or CLOUDFLARE_API_TOKEN"
   echo "To enable Cloudflare cache purging, add the following to your .env.deploy file:"
@@ -560,11 +630,11 @@ else
   fi
 fi
 
-# 24. Print total time and summary
+# 27. Print total time and summary
 print_total_time
 
 # Final verification
-step 21 "Final verification and testing"
+step 27 "Final verification and testing"
 execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml ps"
 echo ""
 echo "🔗 Your site should be available at:"
