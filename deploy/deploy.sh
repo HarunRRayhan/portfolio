@@ -480,24 +480,27 @@ success "Remaining public files uploaded to server."
 
 # 12. Set up docker env on the server & start containers
 step 12 "Setting up docker environment on server & starting containers"
-execute_ssh "mkdir -p $APP_DIR/deploy/docker $APP_DIR/bootstrap/cache $APP_DIR/storage $APP_DIR/storage/logs $APP_DIR/storage/framework/sessions $APP_DIR/storage/framework/views $APP_DIR/storage/framework/cache $APP_DIR/storage/framework/cache/data"
-# Remove nginx.conf logic, add traefik config if needed
-# scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/nginx.conf" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/docker/nginx.conf"
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/docker-compose.yml" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/docker/docker-compose.yml"
-# Ensure Dockerfile and wait-for-db.sh are present
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/Dockerfile" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/docker/Dockerfile"
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/wait-for-db.sh" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/docker/wait-for-db.sh"
+execute_ssh "mkdir -p $APP_DIR/docker $APP_DIR/docker/nginx $APP_DIR/bootstrap/cache $APP_DIR/storage $APP_DIR/storage/logs $APP_DIR/storage/framework/sessions $APP_DIR/storage/framework/views $APP_DIR/storage/framework/cache $APP_DIR/storage/framework/cache/data"
+
+# Copy docker files directly to /opt/portfolio/docker, not to /opt/portfolio/deploy/docker
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/docker-compose.yml" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/docker-compose.yml"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/Dockerfile" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/Dockerfile"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/wait-for-db.sh" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/wait-for-db.sh"
 
 # Set permissions for Nginx directories (use nginx:nginx)
 # execute_ssh "cd $APP_DIR && sudo chown -R nginx:nginx public bootstrap storage || true && sudo chmod -R 755 public bootstrap storage || true"
 
 # 13. Upload Nginx and Traefik config files for blue-green
 step 13 "Uploading Nginx and Traefik config files for blue-green deployment"
-execute_ssh "mkdir -p $APP_DIR/deploy/docker/nginx"
-execute_ssh "rm -rf $APP_DIR/deploy/docker/nginx/blue.conf $APP_DIR/deploy/docker/nginx/green.conf $APP_DIR/deploy/docker/traefik-dynamic.yml"
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/nginx/blue.conf" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/docker/nginx/blue.conf"
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/nginx/green.conf" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/docker/nginx/green.conf"
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/traefik-dynamic.yml" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/docker/traefik-dynamic.yml"
+execute_ssh "mkdir -p $APP_DIR/docker/nginx"
+execute_ssh "rm -rf $APP_DIR/docker/nginx/blue.conf $APP_DIR/docker/nginx/green.conf $APP_DIR/docker/traefik-dynamic.yml"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/nginx/blue.conf" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/nginx/blue.conf"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/nginx/green.conf" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/nginx/green.conf"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/traefik-dynamic.yml" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/traefik-dynamic.yml"
+
+# Verify config files exist
+step 13.1 "Verifying configuration files were uploaded correctly"
+execute_ssh "ls -la $APP_DIR/docker/nginx/blue.conf $APP_DIR/docker/nginx/green.conf $APP_DIR/docker/traefik-dynamic.yml && echo 'Confirmed: All config files exist in correct locations'"
 
 # 14. Copy .env file
 step 14 "Copying .env file"
@@ -513,7 +516,11 @@ scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/public/build/manifest.
 
 # 15. Generate .env.db for the db service
 step 15 "Generating .env.db for db service"
-execute_ssh "cd $APP_DIR && grep -E '^(POSTGRES_DB|POSTGRES_USER|POSTGRES_PASSWORD)=' .env > ./deploy/docker/.env.db && chmod 600 ./deploy/docker/.env.db"
+execute_ssh "cd $APP_DIR && grep -E '^(POSTGRES_DB|POSTGRES_USER|POSTGRES_PASSWORD)=' .env > ./docker/.env.db && chmod 600 ./docker/.env.db"
+
+# Create a debug step to verify file creation
+step 15.1 "Verifying .env.db was created in the correct location"
+execute_ssh "ls -la $APP_DIR/docker/.env.db && echo 'Confirmed: .env.db exists in correct location'"
 
 # 16. Generate SSL cert and key on the server if not present
 step 16 "Ensuring SSL certificate and key exist on server"
@@ -530,9 +537,9 @@ execute_ssh "sudo mkdir -p $SSL_PATH && \
 
 # Traefik debug/test/log one-off commands
 step 99 "Debug Traefik status and logs"
-execute_ssh "cd $APP_DIR && docker-compose -f ./deploy/docker/docker-compose.yml logs traefik"
-execute_ssh "cd $APP_DIR && docker-compose -f ./deploy/docker/docker-compose.yml exec traefik traefik version"
-execute_ssh "cd $APP_DIR && docker-compose -f ./deploy/docker/docker-compose.yml ps"
+execute_ssh "cd $APP_DIR && docker-compose -f ./docker/docker-compose.yml logs traefik"
+execute_ssh "cd $APP_DIR && docker-compose -f ./docker/docker-compose.yml exec traefik traefik version"
+execute_ssh "cd $APP_DIR && docker-compose -f ./docker/docker-compose.yml ps"
 
 # 16. Ensure required Laravel cache and storage directories exist and are writable by www-data
 step 16 "Ensuring Laravel cache and storage directories exist and are writable"
@@ -544,7 +551,7 @@ execute_ssh "cd $APP_DIR && \
 # 17. Execute deployment commands
 step 17 "Executing deployment commands"
 # Create a multi-line command with proper Docker environment variables
-DOCKER_COMPOSE_FILE="./deploy/docker/docker-compose.yml"
+DOCKER_COMPOSE_FILE="./docker/docker-compose.yml"
 DOCKER_DOWN_CMD=$(docker_compose_run "$DOCKER_COMPOSE_FILE" "down")
 DOCKER_BUILD_CMD=$(docker_compose_run "$DOCKER_COMPOSE_FILE" "build --no-cache")
 DOCKER_UP_CMD=$(docker_compose_run "$DOCKER_COMPOSE_FILE" "up -d")
@@ -567,7 +574,7 @@ execute_ssh "cd $APP_DIR && APP_KEY=\$(${DOCKER_KEY_CMD}) && \
     (grep -q '^APP_KEY=' .env && sed -i 's|^APP_KEY=.*|APP_KEY=\$APP_KEY|' .env || echo APP_KEY=\$APP_KEY >> .env)"
 
 # Run Laravel artisan commands for optimization and setup
-DOCKER_COMPOSE_FILE="./deploy/docker/docker-compose.yml"
+DOCKER_COMPOSE_FILE="./docker/docker-compose.yml"
 
 # Create command variables for each artisan command
 CONFIG_CACHE_CMD=$(docker_compose_exec "$DOCKER_COMPOSE_FILE" "app" "php artisan config:cache")
@@ -777,9 +784,9 @@ ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $REMOTE_USER@$PUBLIC_IP 'cd /opt/p
 # 16.5. Blue-Green Deployment Steps (Traefik + Nginx + PHP-FPM)
 step 16.5 "Blue-Green Deployment: Bring up green, migrate, flip weights, reload Traefik, (optionally) remove blue"
 
-# Paths for blue-green
-DYNAMIC_FILE="$REPO_ROOT/docker/traefik-dynamic.yml"
-COMPOSE_FILE="$REPO_ROOT/docker/docker-compose.yml"
+# Paths for blue-green - update to use correct paths
+DYNAMIC_FILE="$APP_DIR/docker/traefik-dynamic.yml"
+COMPOSE_FILE="./docker/docker-compose.yml"
 NGINX_GREEN="nginx_green"
 PHP_GREEN="php_green"
 NGINX_BLUE="nginx_blue"
@@ -797,8 +804,9 @@ execute_ssh "cd $APP_DIR && docker compose -f $COMPOSE_FILE exec -T $PHP_GREEN p
 # 3. Flip weights: blue 0, green 100
 success "[BG-3/5] Flipping weights: blue 0, green 100..."
 # Download, edit, and upload traefik-dynamic.yml
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/traefik-dynamic.yml" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/traefik-dynamic.yml.bak"
-ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no $REMOTE_USER@$REMOTE_HOST "sed -i.bak -e 's/weight: 100/weight: 0/g' -e 's/weight: 0/weight: 100/g' $APP_DIR/traefik-dynamic.yml.bak && mv $APP_DIR/traefik-dynamic.yml.bak $APP_DIR/docker/traefik-dynamic.yml"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/traefik-dynamic.yml" "$APP_DIR/docker/traefik-dynamic.yml.bak"
+sed -i.bak -e 's/weight: 100/weight: 0/g' -e 's/weight: 0/weight: 100/g' "$APP_DIR/docker/traefik-dynamic.yml.bak"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$APP_DIR/docker/traefik-dynamic.yml.bak" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/traefik-dynamic.yml"
 
 # 4. Reload Traefik
 success "[BG-4/5] Reloading Traefik..."
