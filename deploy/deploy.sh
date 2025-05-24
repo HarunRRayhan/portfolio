@@ -44,6 +44,44 @@ if [ -f "$SCRIPT_DIR/.env.deploy" ]; then
   set +a
 fi
 
+# Function to download environment files from S3
+download_env_files_from_s3() {
+  echo "Downloading environment files from S3..."
+  
+  # Set AWS credentials from .env.deploy if available
+  if [ -n "$AWS_ACCESS_KEY_ID" ] && [ -n "$AWS_SECRET_ACCESS_KEY" ]; then
+    export AWS_ACCESS_KEY_ID
+    export AWS_SECRET_ACCESS_KEY
+  fi
+  
+  if [ -z "$CONFIG_BUCKET_NAME" ]; then
+    echo "CONFIG_BUCKET_NAME not set, skipping S3 download"
+    return 1
+  fi
+  
+  # Download app environment file
+  echo "Downloading app environment file from S3..."
+  if aws s3 cp "s3://$CONFIG_BUCKET_NAME/secrets/envs/app/.env" "$SCRIPT_DIR/.env.appprod.s3" 2>/dev/null; then
+    echo "Successfully downloaded app environment file from S3"
+    mv "$SCRIPT_DIR/.env.appprod.s3" "$SCRIPT_DIR/.env.appprod"
+  else
+    echo "Failed to download app environment file from S3, using local file if available"
+  fi
+  
+  # Download docker environment file
+  echo "Downloading docker environment file from S3..."
+  if aws s3 cp "s3://$CONFIG_BUCKET_NAME/secrets/envs/docker/.env" "$SCRIPT_DIR/.env.deploy.s3" 2>/dev/null; then
+    echo "Successfully downloaded docker environment file from S3"
+    mv "$SCRIPT_DIR/.env.deploy.s3" "$SCRIPT_DIR/.env.deploy"
+    # Reload environment variables after downloading updated .env.deploy
+    set -a
+    . "$SCRIPT_DIR/.env.deploy"
+    set +a
+  else
+    echo "Failed to download docker environment file from S3, using local file if available"
+  fi
+}
+
 # Always resolve SSH_KEY to absolute path after loading .env.deploy
 if [ -n "$SSH_KEY" ] && [[ "$SSH_KEY" != /* ]]; then
   SSH_KEY="$SCRIPT_DIR/$SSH_KEY"
@@ -244,8 +282,13 @@ is_container_running() {
 step 1 "Starting deployment"
 echo "[DEBUG] SSH_KEY resolved to: $SSH_KEY"
 
-# 2. Initialize server with required directories and Docker
-step 2 "Initializing server with required directories and Docker"
+# 2. Download environment files from S3
+step 2 "Downloading environment files from S3"
+download_env_files_from_s3
+success "Environment files downloaded from S3"
+
+# 3. Initialize server with required directories and Docker
+step 3 "Initializing server with required directories and Docker"
 
 # Create required directories if they don't exist
 execute_ssh "sudo mkdir -p $APP_DIR"
@@ -293,12 +336,12 @@ if ! execute_ssh "command -v docker &> /dev/null"; then
   done
 fi
 
-# 3. Ensure ubuntu user is in the docker group for Docker access
-step 3 "Ensuring ubuntu user is in the docker group"
+# 4. Ensure ubuntu user is in the docker group for Docker access
+step 4 "Ensuring ubuntu user is in the docker group"
 execute_ssh "sudo usermod -aG docker ubuntu"
 
-# 4. Use existing .env.appprod file as main app .env
-step 4 "Using existing .env.appprod file as main app .env"
+# 5. Use existing .env.appprod file as main app .env
+step 5 "Using existing .env.appprod file as main app .env"
 if [ -f "$SCRIPT_DIR/.env.appprod" ]; then
     cp "$SCRIPT_DIR/.env.appprod" "$REPO_ROOT/.env"
     echo "Using .env.appprod file for main application configuration"
@@ -307,15 +350,15 @@ else
     cp "$REPO_ROOT/.env.example" "$REPO_ROOT/.env"
 fi
 
-# 5. Ensure resources/views exists with a real Blade placeholder for Laravel
-step 5 "Ensuring resources/views exists with placeholder"
+# 6. Ensure resources/views exists with a real Blade placeholder for Laravel
+step 6 "Ensuring resources/views exists with placeholder"
 mkdir -p "$REPO_ROOT/resources/views"
 if [ ! -f "$REPO_ROOT/resources/views/placeholder.blade.php" ]; then
   echo "{{-- Placeholder view to satisfy Laravel --}}" > "$REPO_ROOT/resources/views/placeholder.blade.php"
 fi
 
-# 6. Check Node.js version before build
-step 6 "Checking Node.js version"
+# 7. Check Node.js version before build
+step 7 "Checking Node.js version"
 
 # Configuration - can be overridden via environment variables
 MIN_NODE_VERSION=${MIN_NODE_VERSION:-18}
@@ -405,8 +448,8 @@ fi
 
 success "Node.js version check passed: $(node -v)"
 
-# 7. Build frontend locally
-step 7 "Building frontend locally"
+# 8. Build frontend locally
+step 8 "Building frontend locally"
 cd "$REPO_ROOT"
 
 # Empty out public/build/assets if it exists
@@ -444,8 +487,8 @@ if [ $BUILD_STATUS -ne 0 ]; then
 fi
 success "Frontend built successfully."
 
-# 8. Upload static assets to Cloudflare R2
-step 8 "Uploading static assets to Cloudflare R2"
+# 9. Upload static assets to Cloudflare R2
+step 9 "Uploading static assets to Cloudflare R2"
 if [ -z "$R2_BUCKET_NAME" ] || [ -z "$R2_S3_ENDPOINT" ] || [ -z "$R2_ACCESS_KEY_ID" ] || [ -z "$R2_SECRET_ACCESS_KEY" ]; then
   echo "R2_BUCKET_NAME, R2_S3_ENDPOINT, R2_ACCESS_KEY_ID, or R2_SECRET_ACCESS_KEY not set. Aborting."
   exit 1
@@ -478,23 +521,23 @@ aws s3 sync "$REPO_ROOT/public/images" "s3://$R2_BUCKET_NAME/images" --endpoint-
 
 success "Static assets uploaded to Cloudflare R2."
 
-# 9. Ensure resources/views exists with a real Blade placeholder for Laravel
-step 9 "Ensuring resources/views exists with placeholder"
+# 10. Ensure resources/views exists with a real Blade placeholder for Laravel
+step 10 "Ensuring resources/views exists with placeholder"
 mkdir -p "$REPO_ROOT/resources/views"
 if [ ! -f "$REPO_ROOT/resources/views/placeholder.blade.php" ]; then
   echo "{{-- Placeholder view to satisfy Laravel --}}" > "$REPO_ROOT/resources/views/placeholder.blade.php"
 fi
 success "Laravel views directory prepared."
 
-# 10. Clone or update repo on server
-step 10 "Cloning or updating repository on server"
+# 11. Clone or update repo on server
+step 11 "Cloning or updating repository on server"
 clone_or_update_repo
 
 # Check for required Docker context files after clone
 execute_ssh "if [ ! -f $APP_DIR/docker/Dockerfile ] || [ ! -f $APP_DIR/docker/wait-for-db.sh ]; then echo '[ERROR] Required Docker context files missing after git clone. Ensure docker/Dockerfile and docker/wait-for-db.sh are committed to the repo.' >&2; exit 1; fi"
 
-# 11. Ensure host storage directory has correct structure and permissions (after clone)
-step 11 "Ensuring host storage directory structure and permissions"
+# 12. Ensure host storage directory has correct structure and permissions (after clone)
+step 12 "Ensuring host storage directory structure and permissions"
 HOST_STORAGE_DIR="/opt/portfolio/storage"
 execute_ssh "if [ -d '$HOST_STORAGE_DIR' ]; then \
   mkdir -p '$HOST_STORAGE_DIR/framework/views' '$HOST_STORAGE_DIR/framework/cache' '$HOST_STORAGE_DIR/logs'; \
@@ -504,8 +547,8 @@ else \
   echo '[WARN] Host storage directory $HOST_STORAGE_DIR does not exist!'; \
 fi"
 
-# 12. Upload remaining public files to server (excluding build, fonts, images)
-step 12 "Uploading remaining public files to server"
+# 13. Upload remaining public files to server (excluding build, fonts, images)
+step 13 "Uploading remaining public files to server"
 # Only upload files in public/ that are not in build, fonts, images
 tmp_sync_dir="$SCRIPT_DIR/public-server-sync"
 rm -rf "$tmp_sync_dir"
@@ -522,8 +565,8 @@ rm -rf "$tmp_sync_dir" public-server-files.tar.gz
 
 success "Remaining public files uploaded to server."
 
-# 13. Set up docker env on the server & start containers
-step 13 "Setting up docker environment on server & starting containers"
+# 14. Set up docker env on the server & start containers
+step 14 "Setting up docker environment on server & starting containers"
 execute_ssh "mkdir -p $APP_DIR/docker $APP_DIR/docker/nginx $APP_DIR/bootstrap/cache $APP_DIR/storage $APP_DIR/storage/logs $APP_DIR/storage/framework/sessions $APP_DIR/storage/framework/views $APP_DIR/storage/framework/cache $APP_DIR/storage/framework/cache/data"
 
 # Copy docker files directly to /opt/portfolio/docker, not to /opt/portfolio/deploy/docker
@@ -534,8 +577,8 @@ scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/wait-for-db.sh"
 # Set permissions for Nginx directories (use nginx:nginx)
 # execute_ssh "cd $APP_DIR && sudo chown -R nginx:nginx public bootstrap storage || true && sudo chmod -R 755 public bootstrap storage || true"
 
-# 14. Upload Nginx and Traefik config files for blue-green
-step 14 "Uploading Nginx and Traefik config files for blue-green deployment"
+# 15. Upload Nginx and Traefik config files for blue-green
+step 15 "Uploading Nginx and Traefik config files for blue-green deployment"
 execute_ssh "mkdir -p $APP_DIR/docker/nginx"
 execute_ssh "rm -rf $APP_DIR/docker/nginx/blue.conf $APP_DIR/docker/nginx/green.conf $APP_DIR/docker/traefik-dynamic.yml"
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/nginx/blue.conf" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/nginx/blue.conf"
@@ -543,34 +586,54 @@ scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/nginx/green.con
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/traefik-dynamic.yml" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/traefik-dynamic.yml"
 
 # Verify config files exist
-step 15 "Verifying configuration files were uploaded correctly"
+step 16 "Verifying configuration files were uploaded correctly"
 execute_ssh "ls -la $APP_DIR/docker/nginx/blue.conf $APP_DIR/docker/nginx/green.conf $APP_DIR/docker/traefik-dynamic.yml && echo 'Confirmed: All config files exist in correct locations'"
 
-# 16. Copy existing .env.appprod file
-step 16 "Copying existing .env.appprod file"
+# 17. Copy existing .env.appprod file
+step 17 "Downloading and setting up environment files on server"
 # Remove any existing .env on the server before copying
-execute_ssh "rm -f $APP_DIR/.env"
+execute_ssh "rm -f $APP_DIR/.env $APP_DIR/docker/.env"
 
-# Copy the existing .env.appprod file which already has the correct Laravel configuration
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/.env.appprod" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/.env"
+# Set up AWS credentials on server for downloading environment files
+execute_ssh "mkdir -p ~/.aws"
+execute_ssh "cat > ~/.aws/credentials << EOF
+[default]
+aws_access_key_id = $AWS_ACCESS_KEY_ID
+aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
+region = us-east-1
+EOF"
 
-# Also copy .env.deploy to .env in the docker directory for Compose variable substitution
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/.env.deploy" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/.env"
+execute_ssh "cat > ~/.aws/config << EOF
+[default]
+region = us-east-1
+output = json
+EOF"
+
+# Download app environment file from S3
+echo "Downloading app environment file from S3 to server..."
+execute_ssh "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY aws s3 cp 's3://$CONFIG_BUCKET_NAME/secrets/envs/app/.env' '$APP_DIR/.env' || { echo 'Failed to download app .env from S3, using fallback'; exit 1; }"
+
+# Download docker environment file from S3
+echo "Downloading docker environment file from S3 to server..."
+execute_ssh "mkdir -p $APP_DIR/docker && AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY aws s3 cp 's3://$CONFIG_BUCKET_NAME/secrets/envs/docker/.env' '$APP_DIR/docker/.env' || { echo 'Failed to download docker .env from S3, using fallback'; exit 1; }"
+
+# Verify files were downloaded
+execute_ssh "ls -la $APP_DIR/.env $APP_DIR/docker/.env && echo 'Environment files downloaded successfully from S3'"
 
 # Ensure manifest.json is present before Docker build
 execute_ssh "mkdir -p $APP_DIR/public/build"
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/public/build/manifest.json" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/public/build/manifest.json"
 
-# 17. Generate .env.db for the db service
-step 17 "Generating .env.db for db service"
+# 18. Generate .env.db for the db service
+step 18 "Generating .env.db for db service"
 execute_ssh "cd $APP_DIR && grep -E '^(POSTGRES_DB|POSTGRES_USER|POSTGRES_PASSWORD)=' docker/.env > ./docker/.env.db && chmod 600 ./docker/.env.db"
 
 # Create a debug step to verify file creation
-step 18 "Verifying .env.db was created in the correct location"
+step 19 "Verifying .env.db was created in the correct location"
 execute_ssh "ls -la $APP_DIR/docker/.env.db && echo 'Confirmed: .env.db exists in correct location'"
 
-# 19. Manage SSL certificates with Let's Encrypt and S3 storage
-step 19 "Managing SSL certificates with Let's Encrypt and S3 storage"
+# 20. Manage SSL certificates with Let's Encrypt and S3 storage
+step 20 "Managing SSL certificates with Let's Encrypt and S3 storage"
 
 # Upload SSL management files to server
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/ssl-manager.sh" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/ssl-manager.sh"
@@ -643,15 +706,15 @@ execute_ssh "sudo systemctl status ssl-renewal.timer --no-pager"
 
 success "SSL certificate management completed with automatic backup and renewal"
 
-# 20. Ensure required Laravel cache and storage directories exist and are writable by www-data
-step 20 "Ensuring Laravel cache and storage directories exist and are writable"
+# 21. Ensure required Laravel cache and storage directories exist and are writable by www-data
+step 21 "Ensuring Laravel cache and storage directories exist and are writable"
 execute_ssh "cd $APP_DIR && \
   mkdir -p storage/framework/views storage/framework/cache storage/logs bootstrap/cache && \
   sudo chown -R www-data:www-data storage bootstrap/cache && \
   sudo chmod -R 775 storage bootstrap/cache"
 
-# 21. Execute deployment commands
-step 21 "Executing deployment commands"
+# 22. Execute deployment commands
+step 22 "Executing deployment commands"
 # Create a multi-line command with proper Docker environment variables
 DOCKER_COMPOSE_FILE="./docker/docker-compose.yml"
 
@@ -684,18 +747,18 @@ execute_ssh "cd $APP_DIR && \
     docker compose -f $DOCKER_COMPOSE_FILE exec -T php_blue php artisan migrate --force && \
     docker compose -f $DOCKER_COMPOSE_FILE exec -T php_blue sh -c 'if [ ! -L /var/www/html/public/storage ]; then php artisan storage:link; else echo Storage link already exists, skipping creation; fi'"
 
-# 22. Check container status
-step 22 "Checking blue-green container status"
+# 23. Check container status
+step 23 "Checking blue-green container status"
 execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml ps"
 echo "Waiting for containers to be ready..."
 sleep 10
 
-# 23. Ensure wait-for-db.sh is executable in the container
-step 23 "Ensuring wait-for-db.sh is executable in the container"
+# 24. Ensure wait-for-db.sh is executable in the container
+step 24 "Ensuring wait-for-db.sh is executable in the container"
 execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_blue sh -c 'chmod +x ./wait-for-db.sh && php artisan cache:clear'"
 
-# 24. Ensure proper Laravel cache configuration
-step 24 "Ensuring proper Laravel cache configuration"
+# 25. Ensure proper Laravel cache configuration
+step 25 "Ensuring proper Laravel cache configuration"
 
 # Create all required Laravel cache directories with proper permissions and add .gitkeep files to ensure they exist
 execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_blue sh -c '
@@ -729,19 +792,19 @@ execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T 
 # Laravel setup is now handled by the entrypoint scripts
 echo "Laravel cache and storage setup is handled by the PHP container entrypoint script."
 
-# 25. Wait for the database to be ready and test connection
-step 25 "Testing database connection from php_blue container"
+# 26. Wait for the database to be ready and test connection
+step 26 "Testing database connection from php_blue container"
 execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_blue php artisan migrate:status"
 
 success "Deployment completed!"
 
-# 26. Skip Cloudflare Worker R2 Bucket Binding (already done by Terraform)
-step 26 "Skipping Cloudflare Worker R2 Bucket Binding (already done by Terraform)"
+# 27. Skip Cloudflare Worker R2 Bucket Binding (already done by Terraform)
+step 27 "Skipping Cloudflare Worker R2 Bucket Binding (already done by Terraform)"
 
 echo "Skipping Cloudflare Worker R2 bucket binding as it's already configured by Terraform during infrastructure creation."
 
-# 27. Purge CDN Cache (Cloudflare)
-step 27 "Purging CDN Cache (Cloudflare)"
+# 28. Purge CDN Cache (Cloudflare)
+step 28 "Purging CDN Cache (Cloudflare)"
 if [ -z "$CLOUDFLARE_ZONE_ID" ] || [ -z "$CLOUDFLARE_API_TOKEN" ]; then
   echo "Skipping Cloudflare CDN purge - missing CLOUDFLARE_ZONE_ID or CLOUDFLARE_API_TOKEN"
   echo "To enable Cloudflare cache purging, add the following to your .env.deploy file:"
@@ -785,11 +848,11 @@ else
   fi
 fi
 
-# 28. Print total time and summary
+# 29. Print total time and summary
 print_total_time
 
 # Final verification
-step 28 "Final verification and testing"
+step 29 "Final verification and testing"
 execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml ps"
 echo ""
 echo "🔗 Your site should be available at:"
