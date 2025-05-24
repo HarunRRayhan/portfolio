@@ -1,7 +1,7 @@
 services:
   php_blue:
     build:
-      context: ../..
+      context: .
       dockerfile: docker/Dockerfile
       target: php-fpm
     container_name: php_blue
@@ -11,7 +11,7 @@ services:
 
   php_green:
     build:
-      context: ../..
+      context: .
       dockerfile: docker/Dockerfile
       target: php-fpm
     container_name: php_green
@@ -21,7 +21,7 @@ services:
 
   nginx_blue:
     build:
-      context: ../..
+      context: .
       dockerfile: docker/Dockerfile
       target: nginx-app
     container_name: nginx_blue
@@ -39,7 +39,7 @@ services:
 
   nginx_green:
     build:
-      context: ../..
+      context: .
       dockerfile: docker/Dockerfile
       target: nginx-app
     container_name: nginx_green

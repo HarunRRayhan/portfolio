@@ -48,7 +48,7 @@ COPY --from=builder /app/resources ./resources
 COPY --from=builder /app/routes ./routes
 COPY --from=builder /app/artisan ./
 COPY .env ./
-COPY ../docker/wait-for-db.sh ./wait-for-db.sh
+COPY docker/wait-for-db.sh ./wait-for-db.sh
 COPY docker/entrypoint-php.sh /entrypoint-php.sh
 
 # Ensure required directories exist
@@ -103,14 +103,17 @@ COPY --from=php-fpm /var/www/html/artisan /var/www/html/artisan
 COPY --from=php-fpm /var/www/html/storage /var/www/html/storage
 COPY --from=php-fpm /var/www/html/bootstrap/cache /var/www/html/bootstrap/cache
 
+# Copy entrypoint script
 COPY docker/entrypoint-nginx.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
-RUN cat /entrypoint.sh
-USER root
-RUN find /var/www/html -exec chown nginx:nginx {} +
-RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache
-USER nginx
-WORKDIR /var/www/html
-ENTRYPOINT ["/entrypoint.sh"]
 
+# Ensure required directories exist and set proper permissions
+RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chown -R nginx:nginx /var/www/html \
+    && chmod -R 755 /var/www/html
+
+WORKDIR /var/www/html
+USER nginx
+
+ENTRYPOINT ["/entrypoint.sh"]
 EXPOSE 80 
