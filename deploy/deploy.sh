@@ -297,13 +297,13 @@ fi
 step 3 "Ensuring ubuntu user is in the docker group"
 execute_ssh "sudo usermod -aG docker ubuntu"
 
-# 4. Use existing .env.deploy file
-step 4 "Using existing .env.deploy file"
-if [ -f "$SCRIPT_DIR/.env.deploy" ]; then
-    cp "$SCRIPT_DIR/.env.deploy" "$REPO_ROOT/.env"
-    echo "Using .env.deploy file for deployment"
+# 4. Use existing .env.appprod file as main app .env
+step 4 "Using existing .env.appprod file as main app .env"
+if [ -f "$SCRIPT_DIR/.env.appprod" ]; then
+    cp "$SCRIPT_DIR/.env.appprod" "$REPO_ROOT/.env"
+    echo "Using .env.appprod file for main application configuration"
 else
-    echo "Warning: .env.deploy not found, using .env.example"
+    echo "Warning: .env.appprod not found, using .env.example"
     cp "$REPO_ROOT/.env.example" "$REPO_ROOT/.env"
 fi
 
@@ -317,52 +317,90 @@ fi
 # 6. Check Node.js version before build
 step 6 "Checking Node.js version"
 
-# Check if nvm is installed
+# Configuration - can be overridden via environment variables
+MIN_NODE_VERSION=${MIN_NODE_VERSION:-18}
+PREFERRED_NODE_VERSION=${PREFERRED_NODE_VERSION:-"lts"}
+NVM_VERSION=${NVM_VERSION:-"latest"}
+
+# Helper function to source nvm
+source_nvm() {
+  local nvm_locations=(
+    "$HOME/.nvm/nvm.sh"
+    "$NVM_DIR/nvm.sh"
+    "/usr/local/opt/nvm/nvm.sh"
+    "/opt/homebrew/opt/nvm/nvm.sh"
+    "/usr/share/nvm/nvm.sh"
+  )
+  
+  for location in "${nvm_locations[@]}"; do
+    if [ -s "$location" ]; then
+      echo "Sourcing nvm from: $location"
+      . "$location"
+      return 0
+    fi
+  done
+  return 1
+}
+
+# Check if nvm is available
 if ! command -v nvm &> /dev/null; then
   echo "nvm not found, attempting to source from common locations..."
-
-  # Try to source nvm from common locations
-  if [ -s "$HOME/.nvm/nvm.sh" ]; then
-    . "$HOME/.nvm/nvm.sh"
-  elif [ -s "$NVM_DIR/nvm.sh" ]; then
-    . "$NVM_DIR/nvm.sh"
-  elif [ -s "/usr/local/opt/nvm/nvm.sh" ]; then
-    . "/usr/local/opt/nvm/nvm.sh"
-  fi
-
-  # Check again after sourcing
-  if ! command -v nvm &> /dev/null; then
-    echo "Installing nvm..."
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-
+  
+  if ! source_nvm; then
+    echo "nvm not found in standard locations. Installing nvm..."
+    
+    # Get latest nvm version if not specified
+    if [ "$NVM_VERSION" = "latest" ]; then
+      NVM_INSTALL_URL="https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh"
+    else
+      NVM_INSTALL_URL="https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh"
+    fi
+    
+    curl -o- "$NVM_INSTALL_URL" | bash
+    
     # Source nvm after installation
     export NVM_DIR="$HOME/.nvm"
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    source_nvm || {
+      echo "Failed to source nvm after installation"
+      exit 1
+    }
   fi
 fi
 
-# Check Node.js version
-NODE_VERSION=$(node -v 2>/dev/null | sed 's/v//;s/\..*//' || echo "0")
-if [ "$NODE_VERSION" -lt 18 ]; then
-  echo "Node.js >= 18 is required. Current: $(node -v 2>/dev/null || echo 'not installed')"
+# Get current Node.js version
+get_node_major_version() {
+  node -v 2>/dev/null | sed 's/v//;s/\..*//' || echo "0"
+}
 
+CURRENT_NODE_VERSION=$(get_node_major_version)
+echo "Current Node.js version: $(node -v 2>/dev/null || echo 'not installed')"
+echo "Required minimum version: ${MIN_NODE_VERSION}"
+
+# Check if current version meets requirements
+if [ "$CURRENT_NODE_VERSION" -lt "$MIN_NODE_VERSION" ]; then
+  echo "Node.js >= ${MIN_NODE_VERSION} is required."
+  
   if command -v nvm &> /dev/null; then
-    echo "Attempting to switch to Node.js LTS using nvm..."
-    nvm install --lts
-    nvm use --lts
-
-    # Check version again after nvm use
-    NODE_VERSION=$(node -v | sed 's/v//;s/\..*//')
-    if [ "$NODE_VERSION" -lt 18 ]; then
-      fail "Failed to switch to Node.js >= 18 using nvm. Please install Node.js >= 18 manually."
+    echo "Attempting to install/switch to Node.js ${PREFERRED_NODE_VERSION} using nvm..."
+    
+    # Install and use the preferred version
+    nvm install "$PREFERRED_NODE_VERSION"
+    nvm use "$PREFERRED_NODE_VERSION"
+    
+    # Verify the installation
+    NEW_NODE_VERSION=$(get_node_major_version)
+    if [ "$NEW_NODE_VERSION" -lt "$MIN_NODE_VERSION" ]; then
+      fail "Failed to install Node.js >= ${MIN_NODE_VERSION} using nvm. Current: $(node -v)"
       exit 1
     else
-      echo "Successfully switched to Node.js $(node -v) using nvm."
+      echo "Successfully switched to Node.js $(node -v)"
     fi
   else
-    fail "nvm is not available after installation attempt. Please install Node.js >= 18 manually."
+    fail "nvm is not available. Please install Node.js >= ${MIN_NODE_VERSION} manually."
     exit 1
   fi
+else
+  echo "Node.js version check passed: $(node -v)"
 fi
 
 success "Node.js version check passed: $(node -v)"
@@ -383,8 +421,8 @@ if [ -f "$REPO_ROOT/.env" ]; then
   cp "$REPO_ROOT/.env" "$REPO_ROOT/.env.backup"
 fi
 
-# Copy .env.deploy to .env for the build process (use .env.deploy instead of .env.appprod)
-cp "$SCRIPT_DIR/.env.deploy" "$REPO_ROOT/.env"
+# Copy .env.appprod to .env for the build process
+cp "$SCRIPT_DIR/.env.appprod" "$REPO_ROOT/.env"
 
 npm ci && npm run build
 BUILD_STATUS=$?
