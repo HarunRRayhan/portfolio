@@ -563,24 +563,54 @@ scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/public/build/manifest.
 
 # 17. Generate .env.db for the db service
 step 17 "Generating .env.db for db service"
-execute_ssh "cd $APP_DIR && grep -E '^(POSTGRES_DB|POSTGRES_USER|POSTGRES_PASSWORD)=' .env > ./docker/.env.db && chmod 600 ./docker/.env.db"
+execute_ssh "cd $APP_DIR && grep -E '^(POSTGRES_DB|POSTGRES_USER|POSTGRES_PASSWORD)=' docker/.env > ./docker/.env.db && chmod 600 ./docker/.env.db"
 
 # Create a debug step to verify file creation
 step 18 "Verifying .env.db was created in the correct location"
 execute_ssh "ls -la $APP_DIR/docker/.env.db && echo 'Confirmed: .env.db exists in correct location'"
 
-# 19. Generate SSL cert and key on the server if not present
-step 19 "Ensuring SSL certificate and key exist on server"
-SSL_PATH="/opt/portfolio/ssl"
-SSL_CRT="$SSL_PATH/harun.dev.crt"
-SSL_KEY="$SSL_PATH/harun.dev.key"
-execute_ssh "sudo mkdir -p $SSL_PATH && \
-  if [ ! -f $SSL_CRT ] || [ ! -f $SSL_KEY ]; then \
-    sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-      -keyout $SSL_KEY -out $SSL_CRT \
-      -subj '/CN=harun.dev'; \
-    sudo chmod 600 $SSL_CRT $SSL_KEY && sudo chown root:root $SSL_CRT $SSL_KEY; \
-  fi"
+# 19. Manage SSL certificates with Let's Encrypt and S3 storage
+step 19 "Managing SSL certificates with Let's Encrypt and S3 storage"
+
+# Upload SSL management files to server
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/ssl-manager.sh" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/ssl-manager.sh"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/ssl-renewal.service" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/ssl-renewal.service"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/ssl-renewal.timer" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/ssl-renewal.timer"
+
+execute_ssh "chmod +x $APP_DIR/deploy/ssl-manager.sh"
+
+# Install AWS CLI if not present
+if ! execute_ssh "command -v aws &> /dev/null"; then
+  echo "Installing AWS CLI..."
+  execute_ssh "curl 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip' && \
+    sudo apt-get update && sudo apt-get install -y unzip && \
+    unzip awscliv2.zip && \
+    sudo ./aws/install && \
+    rm -rf awscliv2.zip aws"
+fi
+
+# Set up AWS credentials for SSL management
+execute_ssh "mkdir -p ~/.aws"
+execute_ssh "cat > ~/.aws/credentials << EOF
+[default]
+aws_access_key_id = $AWS_ACCESS_KEY_ID
+aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
+region = us-east-1
+EOF"
+
+execute_ssh "cat > ~/.aws/config << EOF
+[default]
+region = us-east-1
+output = json
+EOF"
+
+# Create Traefik letsencrypt directory
+execute_ssh "mkdir -p $APP_DIR/docker/letsencrypt"
+
+# Run SSL certificate management
+execute_ssh "cd $APP_DIR/deploy && DOMAIN=harun.dev ./ssl-manager.sh manage"
+
+success "SSL certificate management completed"
 
 # 20. Ensure required Laravel cache and storage directories exist and are writable by www-data
 step 20 "Ensuring Laravel cache and storage directories exist and are writable"

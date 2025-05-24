@@ -10,7 +10,12 @@ http:
       entryPoints:
         - websecure
       service: web-blue
-      tls: true
+      tls:
+        certResolver: le
+        domains:
+          - main: "harun.dev"
+            sans:
+              - "www.harun.dev"
   services:
     web-blue:
       loadBalancer:
