@@ -10,10 +10,30 @@ set -o pipefail
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # Load environment variables
-if [ -f "$SCRIPT_DIR/.env.deploy" ]; then
+if [ -f "$SCRIPT_DIR/../docker/.env" ]; then
+  set -a
+  . "$SCRIPT_DIR/../docker/.env"
+  set +a
+elif [ -f "$SCRIPT_DIR/.env.deploy" ]; then
   set -a
   . "$SCRIPT_DIR/.env.deploy"
   set +a
+fi
+
+# Ensure required environment variables are set
+if [ -z "$CONFIG_BUCKET_NAME" ]; then
+    error "CONFIG_BUCKET_NAME environment variable is not set"
+    exit 1
+fi
+
+if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
+    error "AWS credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY) are not set"
+    exit 1
+fi
+
+# Unset AWS_PROFILE when using explicit credentials to avoid conflicts
+if [ -n "$AWS_ACCESS_KEY_ID" ] && [ -n "$AWS_SECRET_ACCESS_KEY" ]; then
+    unset AWS_PROFILE
 fi
 
 # Configuration
@@ -173,11 +193,20 @@ upload_certificate_to_s3() {
     log "Uploading certificate files to S3..."
     
     if [ -f "$CERT_FILE" ] && [ -f "$KEY_FILE" ]; then
+        # Copy files to temp location with proper permissions for upload
+        sudo cp "$CERT_FILE" "/tmp/cert.pem" && sudo chown $(whoami):$(whoami) "/tmp/cert.pem"
+        sudo cp "$KEY_FILE" "/tmp/privkey.pem" && sudo chown $(whoami):$(whoami) "/tmp/privkey.pem"
+        sudo cp "$CHAIN_FILE" "/tmp/chain.pem" && sudo chown $(whoami):$(whoami) "/tmp/chain.pem"
+        sudo cp "$FULLCHAIN_FILE" "/tmp/fullchain.pem" && sudo chown $(whoami):$(whoami) "/tmp/fullchain.pem"
+        
         # Upload certificate files to S3
-        aws s3 cp "$CERT_FILE" "$S3_CERT_PATH/cert.pem"
-        aws s3 cp "$KEY_FILE" "$S3_CERT_PATH/privkey.pem"
-        aws s3 cp "$CHAIN_FILE" "$S3_CERT_PATH/chain.pem"
-        aws s3 cp "$FULLCHAIN_FILE" "$S3_CERT_PATH/fullchain.pem"
+        aws s3 cp "/tmp/cert.pem" "$S3_CERT_PATH/cert.pem"
+        aws s3 cp "/tmp/privkey.pem" "$S3_CERT_PATH/privkey.pem"
+        aws s3 cp "/tmp/chain.pem" "$S3_CERT_PATH/chain.pem"
+        aws s3 cp "/tmp/fullchain.pem" "$S3_CERT_PATH/fullchain.pem"
+        
+        # Clean up temp files
+        rm -f "/tmp/cert.pem" "/tmp/privkey.pem" "/tmp/chain.pem" "/tmp/fullchain.pem"
         
         # Upload metadata
         echo "{\"domain\":\"$DOMAIN\",\"generated\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"expires\":\"$(openssl x509 -in "$CERT_FILE" -noout -enddate | cut -d= -f2)\"}" | aws s3 cp - "$S3_CERT_PATH/metadata.json"
@@ -494,6 +523,34 @@ case "${1:-manage}" in
     "upload")
         upload_acme_to_s3 && upload_certificate_to_s3
         ;;
+    "backup")
+        log "Starting complete SSL certificate backup to S3..."
+        
+        # First upload any extracted certificates
+        upload_certificate_to_s3
+        
+        # Then backup the Traefik ACME file with proper permissions
+        if [ -f "$ACME_FILE" ]; then
+            log "Backing up Traefik ACME data..."
+            sudo cp "$ACME_FILE" "/tmp/acme.json"
+            sudo chown $(whoami):$(whoami) "/tmp/acme.json"
+            
+            if aws s3 cp "/tmp/acme.json" "s3://$S3_BUCKET/$S3_PREFIX/traefik-acme.json"; then
+                success "Traefik ACME data backed up to S3"
+            else
+                error "Failed to backup Traefik ACME data to S3"
+            fi
+            
+            rm -f "/tmp/acme.json"
+        else
+            warning "Traefik ACME file not found: $ACME_FILE"
+        fi
+        
+        # Upload metadata
+        echo "{\"domain\":\"$DOMAIN\",\"backup_time\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"backup_type\":\"complete\"}" | aws s3 cp - "s3://$S3_BUCKET/$S3_PREFIX/$DOMAIN/backup-metadata.json"
+        
+        success "Complete SSL certificate backup completed"
+        ;;
     "generate")
         trigger_certificate_generation && generate_certificate && upload_acme_to_s3 && upload_certificate_to_s3
         ;;
@@ -507,13 +564,14 @@ case "${1:-manage}" in
         setup_auto_renewal
         ;;
     *)
-        echo "Usage: $0 {manage|renew|download|upload|generate|extract|fallback|setup-renewal}"
+        echo "Usage: $0 {manage|renew|download|upload|backup|generate|extract|fallback|setup-renewal}"
         echo ""
         echo "Commands:"
         echo "  manage        - Full certificate management (default)"
         echo "  renew         - Renew certificate if needed"
         echo "  download      - Download certificate/ACME data from S3"
         echo "  upload        - Upload certificate/ACME data to S3"
+        echo "  backup        - Complete backup of all SSL data to S3"
         echo "  generate      - Generate new certificate via Traefik"
         echo "  extract       - Extract certificates from Traefik ACME data"
         echo "  fallback      - Create self-signed fallback certificate"

@@ -1,5 +1,5 @@
 [Unit]
-Description=SSL Certificate Renewal Service
+Description=SSL Certificate Renewal and Backup Service
 After=network.target
 
 [Service]
@@ -7,7 +7,8 @@ Type=oneshot
 User=root
 WorkingDirectory=/opt/portfolio/deploy
 Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-ExecStart=/opt/portfolio/deploy/ssl-manager.sh renew
+EnvironmentFile=/opt/portfolio/docker/.env
+ExecStart=/bin/bash -c '/opt/portfolio/deploy/ssl-manager.sh renew && /opt/portfolio/deploy/ssl-manager.sh backup'
 StandardOutput=journal
 StandardError=journal
 

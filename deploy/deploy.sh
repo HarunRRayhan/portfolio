@@ -607,10 +607,41 @@ EOF"
 # Create Traefik letsencrypt directory
 execute_ssh "mkdir -p $APP_DIR/docker/letsencrypt"
 
-# Run SSL certificate management
-execute_ssh "cd $APP_DIR/deploy && DOMAIN=harun.dev ./ssl-manager.sh manage"
+# Run SSL certificate management with automatic backup
+echo "Running SSL certificate management with automatic S3 backup..."
+execute_ssh "cd $APP_DIR/deploy && \
+  AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+  AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+  CONFIG_BUCKET_NAME=$CONFIG_BUCKET_NAME \
+  DOMAIN=harun.dev \
+  ./ssl-manager.sh manage"
 
-success "SSL certificate management completed"
+# Wait for certificate generation and then backup to S3
+echo "Waiting for SSL certificate generation to complete..."
+sleep 30
+
+# Backup SSL certificates to S3 automatically using the new backup command
+echo "Backing up SSL certificates to S3..."
+execute_ssh "cd $APP_DIR/deploy && \
+  AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+  AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+  CONFIG_BUCKET_NAME=$CONFIG_BUCKET_NAME \
+  DOMAIN=harun.dev \
+  ./ssl-manager.sh backup"
+
+# Set up automatic SSL renewal system
+echo "Setting up automatic SSL renewal system..."
+execute_ssh "cd $APP_DIR/deploy && \
+  sudo cp ssl-renewal.service /etc/systemd/system/ && \
+  sudo cp ssl-renewal.timer /etc/systemd/system/ && \
+  sudo systemctl daemon-reload && \
+  sudo systemctl enable ssl-renewal.timer && \
+  sudo systemctl start ssl-renewal.timer"
+
+# Verify SSL renewal timer is active
+execute_ssh "sudo systemctl status ssl-renewal.timer --no-pager"
+
+success "SSL certificate management completed with automatic backup and renewal"
 
 # 20. Ensure required Laravel cache and storage directories exist and are writable by www-data
 step 20 "Ensuring Laravel cache and storage directories exist and are writable"
