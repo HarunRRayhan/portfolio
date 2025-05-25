@@ -2,7 +2,7 @@
 
 set -e
 set -o pipefail
-set -x  # Enable shell tracing for debugging
+# Removed set -x to reduce verbose logging
 
 # Get absolute path to script directory
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
