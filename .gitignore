@@ -34,6 +34,7 @@ deploy/**/terraform.tfstate.backup
 deploy/**/terraform.tfstate.*.backup
 deploy/**/terraform.tfvars
 deploy/**/.env
+docker/.env.db
 deploy/**/.env.*
 deploy/*.zip
 deploy/*.log
@@ -41,3 +42,11 @@ deploy/**/*.log
 deploy/terraform-outputs.json
 deploy/build/*
 deploy/*_old.*
+deploy/test*
+deploy/*test
+deploy/debug*
+deploy/*debug
+deploy/.env
+deploy/.env.**
+!deploy/.env.example
+!deploy/.env.*.example

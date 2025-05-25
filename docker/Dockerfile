@@ -23,7 +23,7 @@ RUN wget https://getcomposer.org/composer-stable.phar -O composer.phar \
     && rm composer.phar
 
 # Production image
-FROM php:8.2-fpm-alpine
+FROM php:8.2-fpm-alpine AS php-fpm
 
 # Install runtime and build dependencies only
 RUN apk add --no-cache postgresql-libs postgresql-dev libzip openssl \
@@ -31,14 +31,11 @@ RUN apk add --no-cache postgresql-libs postgresql-dev libzip openssl \
 
 WORKDIR /var/www/html
 
+COPY public ./public
+RUN mkdir -p /var/www/html/public && echo 'OK' > /var/www/html/public/health.txt
+
 # Only copy manifest.json from public/build
 COPY public/build/manifest.json ./public/build/manifest.json
-
-# Copy all other public files except build, fonts, images
-COPY public/*.php ./public/
-COPY public/*.txt ./public/
-COPY public/*.ico ./public/
-COPY public/.htaccess ./public/
 
 # Copy other necessary files
 COPY composer.json ./
@@ -51,10 +48,12 @@ COPY --from=builder /app/resources ./resources
 COPY --from=builder /app/routes ./routes
 COPY --from=builder /app/artisan ./
 COPY .env ./
-COPY ../docker/wait-for-db.sh ./wait-for-db.sh
+COPY docker/wait-for-db.sh ./wait-for-db.sh
+COPY docker/entrypoint-php.sh /entrypoint-php.sh
 
 # Ensure required directories exist
-RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public/build /var/www/html/resources/views \
+RUN mkdir -p /var/www/html/storage/framework/{cache,sessions,views,testing,logs,cache/data} \
+    /var/www/html/bootstrap/cache \
     && touch /var/www/html/resources/views/.placeholder
 
 # Set permissions
@@ -75,6 +74,46 @@ RUN php artisan config:clear \
     && php artisan route:clear \
     && php artisan route:cache
 
+# Ensure required Laravel directories exist and are writable
+RUN mkdir -p /var/www/html/storage/framework/{cache,sessions,views,testing,logs,cache/data} \
+    /var/www/html/bootstrap/cache \
+    && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+RUN chmod +x /entrypoint-php.sh
+ENTRYPOINT ["/entrypoint-php.sh"]
+
 EXPOSE 9000
 
-CMD ["php-fpm"] 
+CMD ["php-fpm"]
+
+# Nginx image for blue/green
+FROM nginx:1.27.5-alpine AS nginx-app
+
+# Copy built Laravel app from PHP image
+COPY --from=php-fpm /var/www/html/public /var/www/html/public
+COPY --from=php-fpm /var/www/html/vendor /var/www/html/vendor
+COPY --from=php-fpm /var/www/html/bootstrap /var/www/html/bootstrap
+COPY --from=php-fpm /var/www/html/config /var/www/html/config
+COPY --from=php-fpm /var/www/html/resources /var/www/html/resources
+COPY --from=php-fpm /var/www/html/routes /var/www/html/routes
+COPY --from=php-fpm /var/www/html/database /var/www/html/database
+COPY --from=php-fpm /var/www/html/app /var/www/html/app
+COPY --from=php-fpm /var/www/html/artisan /var/www/html/artisan
+COPY --from=php-fpm /var/www/html/storage /var/www/html/storage
+COPY --from=php-fpm /var/www/html/bootstrap/cache /var/www/html/bootstrap/cache
+
+# Copy entrypoint script
+COPY docker/entrypoint-nginx.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Ensure required directories exist and set proper permissions
+RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chown -R nginx:nginx /var/www/html \
+    && chmod -R 755 /var/www/html
+
+WORKDIR /var/www/html
+USER nginx
+
+ENTRYPOINT ["/entrypoint.sh"]
+EXPOSE 80 

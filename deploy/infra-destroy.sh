@@ -2,6 +2,7 @@
 
 set -e
 set -o pipefail
+# Removed set -x to reduce verbose logging
 
 # Get absolute path to script directory
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
@@ -52,17 +53,89 @@ end_step() {
   warning "Step took $STEP_DURATION seconds."
 }
 
+# Function to download .env.deploy from S3
+download_env_deploy_from_s3() {
+  echo "Downloading .env.deploy from S3..."
+  
+  # First, try to load basic AWS credentials from local .env.deploy if it exists
+  if [ -f "$SCRIPT_DIR/.env.deploy" ]; then
+    AWS_ACCESS_KEY_ID=$(grep '^AWS_ACCESS_KEY_ID=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"' || true)
+    AWS_SECRET_ACCESS_KEY=$(grep '^AWS_SECRET_ACCESS_KEY=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"' || true)
+    CONFIG_BUCKET_NAME=$(grep '^CONFIG_BUCKET_NAME=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"' || true)
+  fi
+  
+  if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$CONFIG_BUCKET_NAME" ]; then
+    echo "Missing AWS credentials or CONFIG_BUCKET_NAME, using local .env.deploy file"
+    return 1
+  fi
+  
+  export AWS_ACCESS_KEY_ID
+  export AWS_SECRET_ACCESS_KEY
+  
+  # Download .env.deploy from S3
+  if aws s3 cp "s3://$CONFIG_BUCKET_NAME/secrets/envs/docker/.env" "$SCRIPT_DIR/.env.deploy.s3" 2>/dev/null; then
+    echo "Successfully downloaded .env.deploy from S3"
+    mv "$SCRIPT_DIR/.env.deploy.s3" "$SCRIPT_DIR/.env.deploy"
+    return 0
+  else
+    echo "Failed to download .env.deploy from S3, using local file if available"
+    return 1
+  fi
+}
+
+# 0. Download .env.deploy from S3
+step 0 "Downloading .env.deploy from S3"
+download_env_deploy_from_s3
+end_step
+
 # Extract variables from .env.deploy
 step 1 "Extracting environment variables"
 R2_BUCKET_NAME=$(grep '^R2_BUCKET_NAME=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
 CLOUDFLARE_ACCOUNT_ID=$(grep '^CLOUDFLARE_ACCOUNT_ID=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
 CLOUDFLARE_API_TOKEN=$(grep '^CLOUDFLARE_API_TOKEN=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
 TF_S3_BACKEND_BUCKET=$(grep '^TF_S3_BACKEND_BUCKET=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
+AWS_ACCESS_KEY_ID=$(grep '^AWS_ACCESS_KEY_ID=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
+AWS_SECRET_ACCESS_KEY=$(grep '^AWS_SECRET_ACCESS_KEY=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
+
+# After loading .env.deploy, export all relevant variables
+if [ -f "$SCRIPT_DIR/.env.deploy" ]; then
+  while IFS='=' read -r key value; do
+    # Only export non-empty, non-commented variables
+    if [[ ! "$key" =~ ^# ]] && [[ -n "$key" ]] && [[ -n "$value" ]]; then
+      export "$key"="${value//\"/}"
+    fi
+  done < <(grep -v '^#' "$SCRIPT_DIR/.env.deploy" | grep '=')
+fi
+# Now all variables are exported for terraform commands
+
+export AWS_ACCESS_KEY_ID
+export AWS_SECRET_ACCESS_KEY
+export R2_BUCKET_NAME
+export CLOUDFLARE_ACCOUNT_ID
+export TF_S3_BACKEND_BUCKET
+export CLOUDFLARE_API_TOKEN
 
 echo "[DEBUG] R2_BUCKET_NAME: '$R2_BUCKET_NAME'"
 echo "[DEBUG] CLOUDFLARE_ACCOUNT_ID: '$CLOUDFLARE_ACCOUNT_ID'"
 echo "[DEBUG] TF_S3_BACKEND_BUCKET: '$TF_S3_BACKEND_BUCKET'"
 end_step
+
+echo "[DEBUG] Completed step 1, proceeding to step 2..."  # Debug after step 1
+
+# Map required Terraform variables to .env.deploy variable names with TF_VAR_ prefix
+export TF_VAR_aws_region="us-east-1"
+export TF_VAR_aws_access_key="$AWS_ACCESS_KEY_ID"
+export TF_VAR_aws_secret_key="$AWS_SECRET_ACCESS_KEY"
+export TF_VAR_aws_lightsail_blueprint_id="ubuntu_22_04"
+export TF_VAR_aws_lightsail_bundle_id="micro_3_0"
+export TF_VAR_cloudflare_api_token="$CLOUDFLARE_API_TOKEN"
+export TF_VAR_cloudflare_zone_id="$CLOUDFLARE_ZONE_ID"
+export TF_VAR_domain_name="harun.dev"
+export TF_VAR_db_password="$POSTGRES_PASSWORD"
+export TF_VAR_r2_bucket_name="$R2_BUCKET_NAME"
+export TF_VAR_cloudflare_account_id="$CLOUDFLARE_ACCOUNT_ID"
+
+# No need to build TF_VAR_ARGS, just run terraform destroy -auto-approve
 
 # Run terraform destroy
 step 2 "Running terraform destroy"
@@ -80,9 +153,7 @@ if [ $INIT_STATUS -ne 0 ]; then
   exit $INIT_STATUS
 fi
 
-terraform destroy -auto-approve \
-  -var="r2_bucket_name=$R2_BUCKET_NAME" \
-  -var="cloudflare_account_id=$CLOUDFLARE_ACCOUNT_ID"
+terraform destroy -auto-approve
 
 DESTROY_STATUS=$?
 if [ $DESTROY_STATUS -ne 0 ]; then

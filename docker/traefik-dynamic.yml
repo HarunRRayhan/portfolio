@@ -1,0 +1,29 @@
+http:
+  routers:
+    web-main:
+      rule: "Host(`harun.dev`) || Host(`www.harun.dev`)"
+      entryPoints:
+        - web
+      service: web-blue
+    web-main-secure:
+      rule: "Host(`harun.dev`) || Host(`www.harun.dev`)"
+      entryPoints:
+        - websecure
+      service: web-blue
+      tls:
+        certResolver: le
+        domains:
+          - main: "harun.dev"
+            sans:
+              - "www.harun.dev"
+  services:
+    web-blue:
+      loadBalancer:
+        servers:
+          - url: "http://nginx_blue:80"
+        passHostHeader: true
+    web-green:
+      loadBalancer:
+        servers:
+          - url: "http://nginx_green:80"
+        passHostHeader: true 
