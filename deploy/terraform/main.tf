@@ -130,3 +130,19 @@ resource "cloudflare_dns_record" "www_cname" {
     ttl     = 1
 }
 
+# Redirect www.harun.dev to harun.dev using Cloudflare Page Rules
+resource "cloudflare_page_rule" "redirect_www" {
+    zone_id  = var.cloudflare_zone_id
+    target   = "www.harun.dev/*"
+    priority = 1
+
+    actions = {
+        forwarding_url = {
+            url         = "https://harun.dev/$1"
+            status_code = 301
+        }
+    }
+}
+
+
+
