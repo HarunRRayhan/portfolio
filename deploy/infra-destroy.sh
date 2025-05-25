@@ -53,6 +53,41 @@ end_step() {
   warning "Step took $STEP_DURATION seconds."
 }
 
+# Function to download .env.deploy from S3
+download_env_deploy_from_s3() {
+  echo "Downloading .env.deploy from S3..."
+  
+  # First, try to load basic AWS credentials from local .env.deploy if it exists
+  if [ -f "$SCRIPT_DIR/.env.deploy" ]; then
+    AWS_ACCESS_KEY_ID=$(grep '^AWS_ACCESS_KEY_ID=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"' || true)
+    AWS_SECRET_ACCESS_KEY=$(grep '^AWS_SECRET_ACCESS_KEY=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"' || true)
+    CONFIG_BUCKET_NAME=$(grep '^CONFIG_BUCKET_NAME=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"' || true)
+  fi
+  
+  if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$CONFIG_BUCKET_NAME" ]; then
+    echo "Missing AWS credentials or CONFIG_BUCKET_NAME, using local .env.deploy file"
+    return 1
+  fi
+  
+  export AWS_ACCESS_KEY_ID
+  export AWS_SECRET_ACCESS_KEY
+  
+  # Download .env.deploy from S3
+  if aws s3 cp "s3://$CONFIG_BUCKET_NAME/secrets/envs/docker/.env" "$SCRIPT_DIR/.env.deploy.s3" 2>/dev/null; then
+    echo "Successfully downloaded .env.deploy from S3"
+    mv "$SCRIPT_DIR/.env.deploy.s3" "$SCRIPT_DIR/.env.deploy"
+    return 0
+  else
+    echo "Failed to download .env.deploy from S3, using local file if available"
+    return 1
+  fi
+}
+
+# 0. Download .env.deploy from S3
+step 0 "Downloading .env.deploy from S3"
+download_env_deploy_from_s3
+end_step
+
 # Extract variables from .env.deploy
 step 1 "Extracting environment variables"
 R2_BUCKET_NAME=$(grep '^R2_BUCKET_NAME=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')

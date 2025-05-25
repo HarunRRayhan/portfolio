@@ -60,6 +60,65 @@ print_total_time() {
   done
 }
 
+# Function to download .env.deploy from S3
+download_env_deploy_from_s3() {
+  echo "Downloading .env.deploy from S3..."
+  
+  # First, try to load basic AWS credentials from local .env.deploy if it exists
+  if [ -f "$SCRIPT_DIR/.env.deploy" ]; then
+    AWS_ACCESS_KEY_ID=$(grep '^AWS_ACCESS_KEY_ID=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"' || true)
+    AWS_SECRET_ACCESS_KEY=$(grep '^AWS_SECRET_ACCESS_KEY=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"' || true)
+    CONFIG_BUCKET_NAME=$(grep '^CONFIG_BUCKET_NAME=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"' || true)
+  fi
+  
+  if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$CONFIG_BUCKET_NAME" ]; then
+    echo "Missing AWS credentials or CONFIG_BUCKET_NAME, using local .env.deploy file"
+    return 1
+  fi
+  
+  export AWS_ACCESS_KEY_ID
+  export AWS_SECRET_ACCESS_KEY
+  
+  # Download .env.deploy from S3
+  if aws s3 cp "s3://$CONFIG_BUCKET_NAME/secrets/envs/docker/.env" "$SCRIPT_DIR/.env.deploy.s3" 2>/dev/null; then
+    echo "Successfully downloaded .env.deploy from S3"
+    mv "$SCRIPT_DIR/.env.deploy.s3" "$SCRIPT_DIR/.env.deploy"
+    return 0
+  else
+    echo "Failed to download .env.deploy from S3, using local file if available"
+    return 1
+  fi
+}
+
+# Function to upload .env.deploy and SSH key to S3
+upload_files_to_s3() {
+  local public_ip="$1"
+  echo "Uploading updated .env.deploy and SSH key to S3..."
+  
+  if [ -z "$CONFIG_BUCKET_NAME" ]; then
+    echo "CONFIG_BUCKET_NAME not set, skipping S3 upload"
+    return 1
+  fi
+  
+  # Upload updated .env.deploy
+  if aws s3 cp "$SCRIPT_DIR/.env.deploy" "s3://$CONFIG_BUCKET_NAME/secrets/envs/docker/.env" 2>/dev/null; then
+    echo "Successfully uploaded updated .env.deploy to S3"
+  else
+    echo "Failed to upload .env.deploy to S3"
+  fi
+  
+  # Upload SSH key
+  if [ -f "$SCRIPT_DIR/portfolio-key.pem" ]; then
+    if aws s3 cp "$SCRIPT_DIR/portfolio-key.pem" "s3://$CONFIG_BUCKET_NAME/key/ssh/portfolio-key.pem" 2>/dev/null; then
+      echo "Successfully uploaded SSH key to S3"
+    else
+      echo "Failed to upload SSH key to S3"
+    fi
+  else
+    echo "SSH key file not found, skipping upload"
+  fi
+}
+
 update_env_deploy() {
     local ip="$1"
     if [ -f "$SCRIPT_DIR/.env.deploy" ]; then
@@ -118,6 +177,11 @@ wait_for_ssh() {
     echo "SSH did not become available after $max_attempts attempts."
     return 1
 }
+
+# 0. Download .env.deploy from S3
+step 0 "Downloading .env.deploy from S3"
+download_env_deploy_from_s3
+success ".env.deploy downloaded from S3 (or using local fallback)"
 
 # After loading .env.deploy, export all relevant variables
 if [ -f "$SCRIPT_DIR/.env.deploy" ]; then
@@ -219,5 +283,10 @@ success "portfolio-key.pem updated."
 step 5 "Waiting for SSH to become available"
 wait_for_ssh "$PUBLIC_IP" "$SCRIPT_DIR/portfolio-key.pem"
 success "SSH is available."
+
+# 6. Upload updated files to S3
+step 6 "Uploading updated .env.deploy and SSH key to S3"
+upload_files_to_s3 "$PUBLIC_IP"
+success "Files uploaded to S3."
 
 print_total_time

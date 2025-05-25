@@ -37,6 +37,49 @@ fi
 LOG_FILE="$LOG_DIR/deploy.log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
+# Function to download .env.deploy and SSH key from S3
+download_deploy_files_from_s3() {
+  echo "Downloading .env.deploy and SSH key from S3..."
+  
+  # First, try to load basic AWS credentials from local .env.deploy if it exists
+  if [ -f "$SCRIPT_DIR/.env.deploy" ]; then
+    AWS_ACCESS_KEY_ID=$(grep '^AWS_ACCESS_KEY_ID=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"' || true)
+    AWS_SECRET_ACCESS_KEY=$(grep '^AWS_SECRET_ACCESS_KEY=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"' || true)
+    CONFIG_BUCKET_NAME=$(grep '^CONFIG_BUCKET_NAME=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"' || true)
+  fi
+  
+  if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$CONFIG_BUCKET_NAME" ]; then
+    echo "Missing AWS credentials or CONFIG_BUCKET_NAME, using local files"
+    return 1
+  fi
+  
+  export AWS_ACCESS_KEY_ID
+  export AWS_SECRET_ACCESS_KEY
+  
+  # Download .env.deploy from S3
+  if aws s3 cp "s3://$CONFIG_BUCKET_NAME/secrets/envs/docker/.env" "$SCRIPT_DIR/.env.deploy.s3" 2>/dev/null; then
+    echo "Successfully downloaded .env.deploy from S3"
+    mv "$SCRIPT_DIR/.env.deploy.s3" "$SCRIPT_DIR/.env.deploy"
+  else
+    echo "Failed to download .env.deploy from S3, using local file if available"
+  fi
+  
+  # Download SSH key from S3
+  if aws s3 cp "s3://$CONFIG_BUCKET_NAME/key/ssh/portfolio-key.pem" "$SCRIPT_DIR/portfolio-key.pem.s3" 2>/dev/null; then
+    echo "Successfully downloaded SSH key from S3"
+    mv "$SCRIPT_DIR/portfolio-key.pem.s3" "$SCRIPT_DIR/portfolio-key.pem"
+    chmod 600 "$SCRIPT_DIR/portfolio-key.pem"
+  else
+    echo "Failed to download SSH key from S3, using local file if available"
+  fi
+}
+
+# Download deployment files from S3 before loading environment variables
+echo -e "\n==============================================="
+echo -e "   📥 Downloading deployment files from S3 📥"
+echo -e "===============================================\n"
+download_deploy_files_from_s3
+
 # Load environment variables
 if [ -f "$SCRIPT_DIR/.env.deploy" ]; then
   set -a
@@ -68,11 +111,30 @@ download_env_files_from_s3() {
     echo "Failed to download app environment file from S3, using local file if available"
   fi
   
-  # Download docker environment file
+  # Download docker environment file but preserve local PUBLIC_IP
   echo "Downloading docker environment file from S3..."
   if aws s3 cp "s3://$CONFIG_BUCKET_NAME/secrets/envs/docker/.env" "$SCRIPT_DIR/.env.deploy.s3" 2>/dev/null; then
     echo "Successfully downloaded docker environment file from S3"
+    
+    # Preserve the current PUBLIC_IP from local .env.deploy
+    if [ -f "$SCRIPT_DIR/.env.deploy" ]; then
+      LOCAL_PUBLIC_IP=$(grep '^PUBLIC_IP=' "$SCRIPT_DIR/.env.deploy" | cut -d '=' -f2- | tr -d '"')
+      echo "Preserving local PUBLIC_IP: $LOCAL_PUBLIC_IP"
+    fi
+    
+    # Replace the .env.deploy file
     mv "$SCRIPT_DIR/.env.deploy.s3" "$SCRIPT_DIR/.env.deploy"
+    
+    # Restore the local PUBLIC_IP if it was found
+    if [ -n "$LOCAL_PUBLIC_IP" ]; then
+      if grep -q '^PUBLIC_IP=' "$SCRIPT_DIR/.env.deploy"; then
+        sed -i '' "s|^PUBLIC_IP=.*|PUBLIC_IP=$LOCAL_PUBLIC_IP|" "$SCRIPT_DIR/.env.deploy"
+      else
+        echo "PUBLIC_IP=$LOCAL_PUBLIC_IP" >> "$SCRIPT_DIR/.env.deploy"
+      fi
+      echo "Restored PUBLIC_IP to: $LOCAL_PUBLIC_IP"
+    fi
+    
     # Reload environment variables after downloading updated .env.deploy
     set -a
     . "$SCRIPT_DIR/.env.deploy"
@@ -594,6 +656,16 @@ step 17 "Downloading and setting up environment files on server"
 # Remove any existing .env on the server before copying
 execute_ssh "rm -f $APP_DIR/.env $APP_DIR/docker/.env"
 
+# Install AWS CLI if not present
+if ! execute_ssh "command -v aws &> /dev/null"; then
+  echo "Installing AWS CLI..."
+  execute_ssh "curl 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip' && \
+    sudo apt-get update && sudo apt-get install -y unzip && \
+    unzip awscliv2.zip && \
+    sudo ./aws/install && \
+    rm -rf awscliv2.zip aws"
+fi
+
 # Set up AWS credentials on server for downloading environment files
 execute_ssh "mkdir -p ~/.aws"
 execute_ssh "cat > ~/.aws/credentials << EOF
@@ -611,18 +683,26 @@ EOF"
 
 # Download app environment file from S3
 echo "Downloading app environment file from S3 to server..."
-execute_ssh "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY aws s3 cp 's3://$CONFIG_BUCKET_NAME/secrets/envs/app/.env' '$APP_DIR/.env' || { echo 'Failed to download app .env from S3, using fallback'; exit 1; }"
+if ! execute_ssh "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY aws s3 cp 's3://$CONFIG_BUCKET_NAME/secrets/envs/app/.env' '$APP_DIR/.env'"; then
+  echo "Failed to download app .env from S3, using local fallback"
+  scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/.env.appprod" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/.env"
+fi
 
 # Download docker environment file from S3
 echo "Downloading docker environment file from S3 to server..."
-execute_ssh "mkdir -p $APP_DIR/docker && AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY aws s3 cp 's3://$CONFIG_BUCKET_NAME/secrets/envs/docker/.env' '$APP_DIR/docker/.env' || { echo 'Failed to download docker .env from S3, using fallback'; exit 1; }"
+if ! execute_ssh "mkdir -p $APP_DIR/docker && AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY aws s3 cp 's3://$CONFIG_BUCKET_NAME/secrets/envs/docker/.env' '$APP_DIR/docker/.env'"; then
+  echo "Failed to download docker .env from S3, using local fallback"
+  scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/.env.deploy" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/.env"
+fi
 
-# Verify files were downloaded
-execute_ssh "ls -la $APP_DIR/.env $APP_DIR/docker/.env && echo 'Environment files downloaded successfully from S3'"
+# Verify files exist
+execute_ssh "ls -la $APP_DIR/.env $APP_DIR/docker/.env && echo 'Environment files set up successfully'"
 
 # Ensure manifest.json is present before Docker build
 execute_ssh "mkdir -p $APP_DIR/public/build"
 scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/public/build/manifest.json" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/public/build/manifest.json"
+
+success "Environment files downloaded and set up on server"
 
 # 18. Generate .env.db for the db service
 step 18 "Generating .env.db for db service"
