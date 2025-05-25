@@ -447,65 +447,78 @@ source_nvm() {
   return 1
 }
 
-# Check if nvm is available
-if ! command -v nvm &> /dev/null; then
-  echo "nvm not found, attempting to source from common locations..."
-  
-  if ! source_nvm; then
-    echo "nvm not found in standard locations. Installing nvm..."
-    
-    # Get latest nvm version if not specified
-    if [ "$NVM_VERSION" = "latest" ]; then
-      NVM_INSTALL_URL="https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh"
-    else
-      NVM_INSTALL_URL="https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh"
-    fi
-    
-    curl -o- "$NVM_INSTALL_URL" | bash
-    
-    # Source nvm after installation
-    export NVM_DIR="$HOME/.nvm"
-    source_nvm || {
-      echo "Failed to source nvm after installation"
-      exit 1
-    }
+# Automated Node.js version management
+ensure_node_version() {
+  # Get current Node.js version
+  get_node_major_version() {
+    node -v 2>/dev/null | sed 's/v//;s/\..*//' || echo "0"
+  }
+
+  CURRENT_NODE_VERSION=$(get_node_major_version)
+  echo "Current Node.js version: $(node -v 2>/dev/null || echo 'not installed')"
+  echo "Required minimum version: ${MIN_NODE_VERSION}"
+
+  # If current version is sufficient, we're done
+  if [ "$CURRENT_NODE_VERSION" -ge "$MIN_NODE_VERSION" ]; then
+    echo "Node.js version check passed: $(node -v)"
+    return 0
   fi
-fi
 
-# Get current Node.js version
-get_node_major_version() {
-  node -v 2>/dev/null | sed 's/v//;s/\..*//' || echo "0"
-}
+  echo "Node.js >= ${MIN_NODE_VERSION} is required. Current version is insufficient."
 
-CURRENT_NODE_VERSION=$(get_node_major_version)
-echo "Current Node.js version: $(node -v 2>/dev/null || echo 'not installed')"
-echo "Required minimum version: ${MIN_NODE_VERSION}"
+  # Try to source nvm if not available
+  if ! command -v nvm &> /dev/null; then
+    echo "nvm not found, attempting to source from common locations..."
+    
+    if ! source_nvm; then
+      echo "nvm not found in standard locations. Installing nvm..."
+      
+      # Get latest nvm version if not specified
+      if [ "$NVM_VERSION" = "latest" ]; then
+        NVM_INSTALL_URL="https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh"
+      else
+        NVM_INSTALL_URL="https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh"
+      fi
+      
+      # Install nvm silently
+      curl -o- "$NVM_INSTALL_URL" | bash >/dev/null 2>&1
+      
+      # Source nvm after installation
+      export NVM_DIR="$HOME/.nvm"
+      if ! source_nvm; then
+        echo "Failed to source nvm after installation"
+        return 1
+      fi
+    fi
+  fi
 
-# Check if current version meets requirements
-if [ "$CURRENT_NODE_VERSION" -lt "$MIN_NODE_VERSION" ]; then
-  echo "Node.js >= ${MIN_NODE_VERSION} is required."
-  
+  # Now try to install and use the required Node.js version
   if command -v nvm &> /dev/null; then
-    echo "Attempting to install/switch to Node.js ${PREFERRED_NODE_VERSION} using nvm..."
+    echo "Installing Node.js ${PREFERRED_NODE_VERSION} using nvm..."
     
     # Install and use the preferred version
-    nvm install "$PREFERRED_NODE_VERSION"
-    nvm use "$PREFERRED_NODE_VERSION"
+    nvm install "$PREFERRED_NODE_VERSION" >/dev/null 2>&1
+    nvm use "$PREFERRED_NODE_VERSION" >/dev/null 2>&1
     
     # Verify the installation
     NEW_NODE_VERSION=$(get_node_major_version)
     if [ "$NEW_NODE_VERSION" -lt "$MIN_NODE_VERSION" ]; then
-      fail "Failed to install Node.js >= ${MIN_NODE_VERSION} using nvm. Current: $(node -v)"
-      exit 1
+      echo "Failed to install Node.js >= ${MIN_NODE_VERSION} using nvm. Current: $(node -v)"
+      return 1
     else
-      echo "Successfully switched to Node.js $(node -v)"
+      echo "Successfully installed and switched to Node.js $(node -v)"
+      return 0
     fi
   else
-    fail "nvm is not available. Please install Node.js >= ${MIN_NODE_VERSION} manually."
-    exit 1
+    echo "nvm is not available. Cannot automatically install Node.js >= ${MIN_NODE_VERSION}."
+    return 1
   fi
-else
-  echo "Node.js version check passed: $(node -v)"
+}
+
+# Run automated Node.js version management
+if ! ensure_node_version; then
+  fail "Failed to ensure Node.js >= ${MIN_NODE_VERSION}. Please install it manually."
+  exit 1
 fi
 
 success "Node.js version check passed: $(node -v)"
