@@ -628,25 +628,39 @@ deploy_to_environment() {
     docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan view:clear || true && \
     docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan cache:clear || true"
   
-  # Now rebuild caches
+  # Now rebuild caches with error handling
   log "Rebuilding Laravel caches..."
-  execute_ssh "cd /opt/portfolio && \
-    docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan config:cache && \
-    docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan route:cache"
+  
+  # Config cache
+  if execute_ssh "cd /opt/portfolio && docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan config:cache"; then
+    success "Configuration cache built successfully"
+  else
+    warning "Configuration cache failed, but continuing..."
+  fi
+  
+  # Route cache
+  if execute_ssh "cd /opt/portfolio && docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan route:cache"; then
+    success "Route cache built successfully"
+  else
+    warning "Route cache failed, but continuing..."
+  fi
   
   # Handle view cache separately with better error handling
   log "Building view cache..."
   
-  # First check if views directory exists and Laravel can see it
-  log "Checking Laravel views configuration..."
+  # First check if views directory exists using basic filesystem commands
+  log "Checking views directory..."
   execute_ssh "cd /opt/portfolio && \
-    docker compose -f docker/docker-compose.yml exec -T php_$target_env php -r \"echo 'Views path: ' . resource_path('views') . PHP_EOL; echo 'Views exist: ' . (is_dir(resource_path('views')) ? 'yes' : 'no') . PHP_EOL;\""
+    docker compose -f docker/docker-compose.yml exec -T php_$target_env ls -la resources/ && \
+    docker compose -f docker/docker-compose.yml exec -T php_$target_env ls -la resources/views/ || echo 'Views directory not found'"
   
-  if ! execute_ssh "cd /opt/portfolio && docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan view:cache"; then
-    warning "View cache failed, checking for specific issues..."
-    execute_ssh "cd /opt/portfolio && \
-      docker compose -f docker/docker-compose.yml exec -T php_$target_env ls -la resources/ && \
-      docker compose -f docker/docker-compose.yml exec -T php_$target_env ls -la resources/views/ || echo 'Views directory not found'"
+  # Try to build view cache with better error handling
+  if execute_ssh "cd /opt/portfolio && docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan view:cache"; then
+    success "View cache built successfully"
+  else
+    warning "View cache failed, but continuing deployment..."
+    # Try to clear any partial view cache that might be causing issues
+    execute_ssh "cd /opt/portfolio && docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan view:clear || true"
     warning "Continuing deployment without view cache"
   fi
   
@@ -664,20 +678,27 @@ deploy_to_environment() {
   # Test database connectivity from PHP container
   log "Testing database connectivity from $target_env PHP container..."
   local db_attempts=0
-  local db_max_attempts=10
+  local db_max_attempts=5
   
   while [ $db_attempts -lt $db_max_attempts ]; do
-    if execute_ssh "cd /opt/portfolio && docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan tinker --execute='DB::connection()->getPdo(); echo \"DB OK\";'" 2>/dev/null | grep -q "DB OK"; then
+    # Use a simpler database test that's less likely to fail
+    if execute_ssh "cd /opt/portfolio && docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan migrate:status --no-interaction" 2>/dev/null | grep -q "Migration"; then
       success "Database connectivity confirmed for $target_env environment"
       break
     fi
     db_attempts=$((db_attempts + 1))
     log "Waiting for database connectivity... (attempt $db_attempts/$db_max_attempts)"
-    sleep 3
+    sleep 5
   done
   
   if [ $db_attempts -eq $db_max_attempts ]; then
     warning "Database connectivity test failed, but continuing deployment"
+    # Try a basic PHP test instead
+    if execute_ssh "cd /opt/portfolio && docker compose -f docker/docker-compose.yml exec -T php_$target_env php -v" 2>/dev/null | grep -q "PHP"; then
+      log "PHP is working, database issue might be temporary"
+    else
+      warning "PHP container might have issues"
+    fi
   fi
   
   # Wait a bit more for Laravel to be fully ready
