@@ -183,6 +183,22 @@ jobs:
           echo "Warning: Cloudflare credentials not found, skipping cache purge"
         fi
 
+    - name: Sync Repository to Server
+      run: |
+        echo "Syncing repository to server..."
+        PUBLIC_IP=$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)
+        
+        # Ensure server repository is on the correct branch and up to date
+        ssh -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no ubuntu@$PUBLIC_IP << EOF
+          cd /opt/portfolio
+          git config --global --add safe.directory /opt/portfolio
+          sudo chown -R ubuntu:ubuntu .
+          git fetch origin
+          git checkout ${{ github.ref_name }} || git checkout -b ${{ github.ref_name }} origin/${{ github.ref_name }}
+          git reset --hard ${{ github.sha }}
+          echo "Repository synced to commit ${{ github.sha }} on branch ${{ github.ref_name }}"
+        EOF
+
     - name: Execute Blue-Green Deployment
       id: deploy
       run: |

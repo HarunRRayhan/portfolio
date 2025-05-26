@@ -300,7 +300,7 @@ test_environment_health() {
   while [ $basic_attempts -lt $basic_max_attempts ]; do
     local basic_status=$(execute_ssh "docker compose -f /opt/portfolio/docker/docker-compose.yml exec -T nginx_$env curl -s -o /dev/null -w '%{http_code}' http://localhost:80/ 2>/dev/null" || echo "000")
     
-    if [[ "$basic_status" =~ ^[2-3][0-9][0-9]$ ]]; then
+    if [[ "$basic_status" == "200" || "$basic_status" == "301" || "$basic_status" == "302" || "$basic_status" == "304" ]]; then
       log "Basic nginx connectivity confirmed for $env environment (HTTP $basic_status)"
       break
     fi
@@ -393,8 +393,14 @@ deploy_to_environment() {
   local target_env="$1"
   log "Deploying to $target_env environment..."
   
-  # Pull latest code
-  execute_ssh "cd /opt/portfolio && git fetch origin && git reset --hard origin/\$(git rev-parse --abbrev-ref HEAD)"
+  # Repository should already be synced by GitHub Actions, just verify
+  log "Verifying repository state..."
+  execute_ssh "cd /opt/portfolio && \
+    git config --global --add safe.directory /opt/portfolio && \
+    CURRENT_BRANCH=\$(git rev-parse --abbrev-ref HEAD) && \
+    CURRENT_COMMIT=\$(git rev-parse HEAD) && \
+    echo \"Repository is on branch: \$CURRENT_BRANCH\" && \
+    echo \"Current commit: \$CURRENT_COMMIT\""
   
   # Download latest environment files if AWS credentials are available
   if [[ -n "$AWS_ACCESS_KEY_ID" && -n "$AWS_SECRET_ACCESS_KEY" && -n "$CONFIG_BUCKET_NAME" ]]; then
@@ -452,14 +458,60 @@ deploy_to_environment() {
   
   # Run Laravel setup commands
   log "Running Laravel setup on $target_env environment..."
+  
+  # First, ensure proper permissions and directories exist
+  log "Setting up Laravel directories and permissions..."
+  execute_ssh "cd /opt/portfolio && \
+    docker compose -f docker/docker-compose.yml exec -T php_$target_env sh -c 'mkdir -p storage/framework/cache storage/framework/sessions storage/framework/testing storage/framework/views storage/logs bootstrap/cache' && \
+    docker compose -f docker/docker-compose.yml exec -T php_$target_env sh -c 'chown -R www-data:www-data storage bootstrap/cache' && \
+    docker compose -f docker/docker-compose.yml exec -T php_$target_env sh -c 'chmod -R 775 storage bootstrap/cache'"
+  
+  # Verify .env file exists in container
+  log "Verifying environment configuration..."
+  execute_ssh "cd /opt/portfolio && \
+    docker compose -f docker/docker-compose.yml exec -T php_$target_env sh -c 'if [ ! -f .env ]; then echo \"ERROR: .env file not found in container\"; exit 1; fi' && \
+    docker compose -f docker/docker-compose.yml exec -T php_$target_env sh -c 'echo \"Environment file exists and is readable\"'"
+  
+  # Clear any existing caches first (with error handling)
+  log "Clearing existing Laravel caches..."
+  execute_ssh "cd /opt/portfolio && \
+    docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan config:clear || true && \
+    docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan route:clear || true && \
+    docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan view:clear || true && \
+    docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan cache:clear || true"
+  
+  # Now rebuild caches
+  log "Rebuilding Laravel caches..."
   execute_ssh "cd /opt/portfolio && \
     docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan config:cache && \
-    docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan route:cache && \
-    docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan view:cache && \
+    docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan route:cache"
+  
+  # Handle view cache separately with better error handling
+  log "Building view cache..."
+  
+  # First check if views directory exists and Laravel can see it
+  log "Checking Laravel views configuration..."
+  execute_ssh "cd /opt/portfolio && \
+    docker compose -f docker/docker-compose.yml exec -T php_$target_env php -r \"echo 'Views path: ' . resource_path('views') . PHP_EOL; echo 'Views exist: ' . (is_dir(resource_path('views')) ? 'yes' : 'no') . PHP_EOL;\""
+  
+  if ! execute_ssh "cd /opt/portfolio && docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan view:cache"; then
+    warning "View cache failed, checking for specific issues..."
+    execute_ssh "cd /opt/portfolio && \
+      docker compose -f docker/docker-compose.yml exec -T php_$target_env ls -la resources/ && \
+      docker compose -f docker/docker-compose.yml exec -T php_$target_env ls -la resources/views/ || echo 'Views directory not found'"
+    warning "Continuing deployment without view cache"
+  fi
+  
+  # Run migrations
+  log "Running database migrations..."
+  execute_ssh "cd /opt/portfolio && \
     docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan migrate --force"
   
-  # Create storage link if it doesn't exist
-  execute_ssh "cd /opt/portfolio && docker compose -f docker/docker-compose.yml exec -T php_$target_env sh -c 'if [ ! -L /var/www/html/public/storage ]; then php artisan storage:link; fi'"
+  # Create storage link (always recreate to ensure it's correct)
+  log "Creating storage link..."
+  execute_ssh "cd /opt/portfolio && \
+    docker compose -f docker/docker-compose.yml exec -T php_$target_env sh -c 'rm -f /var/www/html/public/storage' && \
+    docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan storage:link"
   
   # Test database connectivity from PHP container
   log "Testing database connectivity from $target_env PHP container..."
