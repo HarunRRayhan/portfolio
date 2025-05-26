@@ -88,6 +88,101 @@ jobs:
           echo "Directories created successfully"
         EOF
 
+    - name: Build Frontend Assets
+      run: |
+        echo "Building frontend assets..."
+        
+        # Backup existing .env file if it exists
+        if [ -f ".env" ]; then
+          echo "Backing up existing .env file..."
+          cp .env .env.backup
+        fi
+
+        # Copy .env.appprod to .env for the build process
+        if [ -f "deploy/.env.appprod" ]; then
+          cp deploy/.env.appprod .env
+        else
+          echo "Warning: .env.appprod not found, using .env.example"
+          cp .env.example .env
+        fi
+
+        # Install dependencies and build
+        npm ci
+        npm run build
+
+        # Restore the original .env file if backup exists
+        if [ -f ".env.backup" ]; then
+          echo "Restoring original .env file..."
+          cp .env.backup .env
+          rm .env.backup
+        else
+          # Remove the .env file if no backup existed
+          rm -f .env
+        fi
+
+        echo "Frontend assets built successfully"
+
+    - name: Upload Assets to Cloudflare R2
+      run: |
+        echo "Uploading static assets to Cloudflare R2..."
+        
+        # Load R2 configuration from .env.deploy
+        R2_BUCKET_NAME=$(grep '^R2_BUCKET_NAME=' deploy/.env.deploy | cut -d '=' -f2)
+        R2_S3_ENDPOINT=$(grep '^R2_S3_ENDPOINT=' deploy/.env.deploy | cut -d '=' -f2)
+        R2_ACCESS_KEY_ID=$(grep '^R2_ACCESS_KEY_ID=' deploy/.env.deploy | cut -d '=' -f2)
+        R2_SECRET_ACCESS_KEY=$(grep '^R2_SECRET_ACCESS_KEY=' deploy/.env.deploy | cut -d '=' -f2)
+        
+        if [ -z "$R2_BUCKET_NAME" ] || [ -z "$R2_S3_ENDPOINT" ] || [ -z "$R2_ACCESS_KEY_ID" ] || [ -z "$R2_SECRET_ACCESS_KEY" ]; then
+          echo "Error: R2 configuration missing. Required: R2_BUCKET_NAME, R2_S3_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY"
+          exit 1
+        fi
+
+        # Set R2 credentials
+        export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
+        export AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
+
+        # Upload build assets with proper content types
+        echo "Uploading build assets with proper content types..."
+        aws s3 sync public/build "s3://$R2_BUCKET_NAME/build" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+
+        # Upload JS files with proper content type
+        echo "Setting proper content types for JavaScript files..."
+        find public/build -name "*.js" -type f | while read -r file; do
+          relative_path="${file#public/}"
+          aws s3 cp "$file" "s3://$R2_BUCKET_NAME/$relative_path" --endpoint-url "$R2_S3_ENDPOINT" --content-type "application/javascript" --acl public-read
+        done
+
+        # Upload CSS files with proper content type
+        echo "Setting proper content types for CSS files..."
+        find public/build -name "*.css" -type f | while read -r file; do
+          relative_path="${file#public/}"
+          aws s3 cp "$file" "s3://$R2_BUCKET_NAME/$relative_path" --endpoint-url "$R2_S3_ENDPOINT" --content-type "text/css" --acl public-read
+        done
+
+        # Upload other static assets
+        aws s3 sync public/fonts "s3://$R2_BUCKET_NAME/fonts" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+        aws s3 sync public/images "s3://$R2_BUCKET_NAME/images" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+
+        echo "Static assets uploaded to Cloudflare R2"
+
+    - name: Purge Cloudflare Cache
+      run: |
+        echo "Purging Cloudflare cache..."
+        
+        # Load Cloudflare configuration from .env.deploy
+        CLOUDFLARE_ZONE_ID=$(grep '^CLOUDFLARE_ZONE_ID=' deploy/.env.deploy | cut -d '=' -f2)
+        CLOUDFLARE_API_TOKEN=$(grep '^CLOUDFLARE_API_TOKEN=' deploy/.env.deploy | cut -d '=' -f2)
+        
+        if [[ -n "$CLOUDFLARE_ZONE_ID" && -n "$CLOUDFLARE_API_TOKEN" ]]; then
+          curl -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/purge_cache" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}'
+          echo "CDN cache purged"
+        else
+          echo "Warning: Cloudflare credentials not found, skipping cache purge"
+        fi
+
     - name: Execute Blue-Green Deployment
       id: deploy
       run: |
@@ -101,11 +196,6 @@ jobs:
         elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
           echo "🎯 Triggered manually"
         fi
-
-        # Set environment variables for deployment
-        export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
-        export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-        export CONFIG_BUCKET_NAME="${{ secrets.CONFIG_BUCKET_NAME }}"
 
         # Get server IP
         PUBLIC_IP=$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)
@@ -218,15 +308,17 @@ jobs:
         echo "- [Traefik Dashboard](http://$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2):8080)" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### 📋 Features" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ NPM build and asset compilation" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Cloudflare R2 asset upload" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Smart environment detection" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Zero-downtime blue-green deployment" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Comprehensive health checks" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Automatic rollback on failure" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Environment rotation for next cycle" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ NPM build and asset compilation (GitHub Actions)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Cloudflare R2 asset upload (GitHub Actions)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ CDN cache purging (GitHub Actions)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Smart environment detection (Server)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Zero-downtime blue-green deployment (Server)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Comprehensive health checks (Server)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Automatic rollback on failure (Server)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Environment rotation for next cycle (Server)" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### ⚡ Performance" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ Node.js dependency caching" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ Deployment configuration caching" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ Optimized file transfers" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Separated build and deployment phases" >> $GITHUB_STEP_SUMMARY

@@ -5,7 +5,7 @@ This directory contains all CI/CD related scripts for the blue-green zero-downti
 ## Scripts
 
 ### 🚀 `blue-green-deploy.sh`
-Standalone blue-green deployment script that can be used for both manual and automated deployments.
+Standalone blue-green deployment script that can be used for both manual and automated deployments. The script automatically detects whether it's running locally (with Node.js build capabilities) or on the server (deployment only).
 
 **Usage:**
 ```bash
@@ -16,6 +16,12 @@ Standalone blue-green deployment script that can be used for both manual and aut
 ./blue-green-deploy.sh blue
 ./blue-green-deploy.sh green
 ```
+
+**Features:**
+- **Smart Context Detection**: Automatically detects if running locally or on server
+- **Local Mode**: Builds assets, uploads to R2, purges CDN cache
+- **Server Mode**: Focuses on container deployment and traffic switching
+- **Environment Detection**: Automatically determines target environment
 
 ### 📊 `status.sh`
 Deployment status monitoring script that provides real-time information about the current deployment state.
@@ -57,6 +63,23 @@ Comprehensive documentation for the blue-green deployment system including:
 - Health checks
 - Troubleshooting
 - Security considerations
+
+## Architecture
+
+The deployment system uses a **two-phase approach**:
+
+### Phase 1: GitHub Actions (Local Build)
+- **Asset Building**: Node.js 20 environment builds frontend assets
+- **R2 Upload**: Static assets uploaded to Cloudflare R2 with proper content types
+- **CDN Purge**: Cloudflare cache purged for immediate updates
+- **Script Upload**: Deployment scripts uploaded to server
+
+### Phase 2: Server Deployment
+- **Environment Detection**: Determines current active environment (blue/green)
+- **Container Deployment**: Builds and starts target environment containers
+- **Health Checks**: Comprehensive testing before traffic switch
+- **Traffic Switching**: Zero-downtime switch via Traefik
+- **Environment Rotation**: Automatic rotation for next deployment cycle
 
 ## Integration
 

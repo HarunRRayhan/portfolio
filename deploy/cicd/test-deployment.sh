@@ -97,7 +97,8 @@ if [[ "$NODE_VERSION" -ge 18 ]]; then
     exit 1
   fi
 else
-  echo -e "${YELLOW}⚠️ Skipping build test due to Node.js version (will work in GitHub Actions)${NC}"
+  echo -e "${YELLOW}⚠️ Skipping build test due to Node.js version${NC}"
+  echo -e "${BLUE}ℹ️ GitHub Actions will handle building with Node.js 20${NC}"
 fi
 
 # Test 6: Check AWS CLI

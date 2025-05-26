@@ -564,23 +564,37 @@ main() {
   
   log "Environment validation passed"
   
-  # Step 1: Build frontend assets locally
-  if ! build_frontend_assets; then
-    error "Failed to build frontend assets"
-    exit 1
+  # Check if we're running locally or on the server
+  # If we're on the server (in /opt/portfolio), skip local build steps
+  if [[ "$SCRIPT_DIR" == *"/opt/portfolio/"* ]]; then
+    log "Running on server - skipping local build steps"
+    local skip_local_build=true
+  else
+    log "Running locally - performing build steps"
+    local skip_local_build=false
   fi
   
-  # Step 2: Upload assets to R2
-  if ! upload_assets_to_r2; then
-    error "Failed to upload assets to R2"
-    exit 1
+  # Step 1: Build frontend assets locally (only if running locally)
+  if [[ "$skip_local_build" == "false" ]]; then
+    if ! build_frontend_assets; then
+      error "Failed to build frontend assets"
+      exit 1
+    fi
+    
+    # Step 2: Upload assets to R2 (only if running locally)
+    if ! upload_assets_to_r2; then
+      error "Failed to upload assets to R2"
+      exit 1
+    fi
+  else
+    log "Skipping frontend build and R2 upload (running on server)"
   fi
   
-  # Step 3: Get current environment
+  # Get current environment
   local current_env=$(get_current_environment)
   log "Current active environment: $current_env"
   
-  # Step 4: Determine target environment
+  # Determine target environment
   if [[ -z "$target_env" ]]; then
     target_env=$(get_target_environment "$current_env")
   fi
@@ -592,7 +606,7 @@ main() {
     exit 1
   fi
   
-  # Step 5: Check if target environment has containers running
+  # Check if target environment has containers running
   if check_containers_running "$target_env"; then
     warning "$target_env environment has containers running, switching to opposite environment"
     if [[ "$target_env" == "green" ]]; then
@@ -603,45 +617,45 @@ main() {
     log "New target environment: $target_env"
   fi
   
-  # Step 6: Deploy to target environment
+  # Deploy to target environment
   if ! deploy_to_environment "$target_env"; then
     error "Failed to deploy to $target_env environment"
     exit 1
   fi
   
-  # Step 7: Test target environment health
+  # Test target environment health
   if ! test_environment_health "$target_env"; then
     error "Health check failed for $target_env environment"
     rollback "$current_env" "$target_env"
     exit 1
   fi
   
-  # Step 8: Switch traffic to target environment
+  # Switch traffic to target environment
   if ! switch_traffic "$target_env"; then
     error "Failed to switch traffic to $target_env environment"
     rollback "$current_env" "$target_env"
     exit 1
   fi
   
-  # Step 9: Verify deployment
+  # Verify deployment
   verify_deployment
   
-  # Step 10: Wait a bit to ensure everything is stable
+  # Wait a bit to ensure everything is stable
   log "Waiting for deployment to stabilize..."
   sleep 30
   
-  # Step 11: Test target environment health again after traffic switch
+  # Test target environment health again after traffic switch
   if ! test_environment_health "$target_env"; then
     error "Health check failed for $target_env environment after traffic switch"
     rollback "$current_env" "$target_env"
     exit 1
   fi
   
-  # Step 12: Cleanup old environment (but don't remove containers yet)
+  # Cleanup old environment (but don't remove containers yet)
   log "Stopping old $current_env environment containers (keeping for potential rollback)..."
   execute_ssh "cd /opt/portfolio && docker compose -f docker/docker-compose.yml stop php_$current_env nginx_$current_env"
   
-  # Step 13: Final verification
+  # Final verification
   log "Performing final verification..."
   sleep 15
   if ! test_environment_health "$target_env"; then
@@ -650,17 +664,21 @@ main() {
     exit 1
   fi
   
-  # Step 14: Now safe to remove old containers
+  # Now safe to remove old containers
   cleanup_old_environment "$current_env"
   
-  # Step 15: Rotate environments if needed (move green to blue for next cycle)
+  # Rotate environments if needed (move green to blue for next cycle)
   if [[ "$target_env" == "green" ]]; then
     log "Preparing for next deployment cycle..."
     rotate_environments "$target_env"
   fi
   
-  # Step 16: Purge CDN cache
-  purge_cdn_cache
+  # Purge CDN cache (only if running locally)
+  if [[ "$skip_local_build" == "false" ]]; then
+    purge_cdn_cache
+  else
+    log "Skipping CDN cache purge (running on server)"
+  fi
   
   success "🎉 Blue-Green deployment completed successfully!"
   success "Active environment: $target_env"
