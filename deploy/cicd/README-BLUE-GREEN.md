@@ -12,6 +12,7 @@ Our enhanced implementation includes:
 - **NPM Build Integration**: Builds and uploads assets as part of deployment
 - **Environment Rotation**: Automatically rotates green deployments to blue for next cycle
 - **Comprehensive Health Checks**: Multi-layer validation before traffic switching
+- **Multiple Trigger Support**: Supports push, pull request merges, and manual triggers
 
 ## Architecture
 
@@ -31,6 +32,51 @@ Internet → Traefik (Load Balancer) → Blue/Green Environments
 - **Database**: Shared PostgreSQL database between both environments
 - **Cloudflare R2**: CDN storage for static assets (CSS, JS, images, fonts)
 - **GitHub Actions**: Automated CI/CD pipeline for deployments
+
+## Deployment Triggers
+
+The deployment system supports multiple trigger types:
+
+### 1. Automatic Deployment (GitHub Actions)
+
+The deployment is triggered automatically on:
+- **Push Events**: Direct pushes to `main` or `features/cicd-v2` branches
+- **Pull Request Merges**: When pull requests are merged into `main` branch
+- **Manual Dispatch**: Manual workflow trigger via GitHub UI
+
+### 2. Manual Deployment
+
+You can also deploy manually using the standalone script:
+
+```bash
+# Auto-deploy (smart target selection)
+./deploy/cicd/blue-green-deploy.sh
+
+# Deploy to specific environment
+./deploy/cicd/blue-green-deploy.sh blue
+./deploy/cicd/blue-green-deploy.sh green
+```
+
+### Trigger Configuration
+
+The GitHub Actions workflow uses the following trigger configuration:
+
+```yaml
+on:
+  push:
+    branches: [ main, features/cicd-v2 ]
+  pull_request:
+    branches: [ main ]
+    types: [ closed ]  # Only triggers when PR is closed (merged or closed without merge)
+  workflow_dispatch:   # Manual trigger
+```
+
+**Important**: The workflow includes a condition to only run deployments when:
+- It's a direct push to specified branches, OR
+- It's a merged pull request (not just closed), OR
+- It's manually triggered
+
+This prevents deployments from running on closed-but-not-merged pull requests.
 
 ## Enhanced Deployment Process
 
@@ -359,6 +405,7 @@ docker compose -f docker/docker-compose.yml exec -T nginx_blue curl -f http://lo
 5. **Testing**: Test deployments in staging environment first
 6. **Environment Rotation**: Let the system handle green→blue rotation automatically
 7. **Rollback Planning**: Always have a rollback strategy ready
+8. **PR Workflow**: Use pull requests for code review before deployment
 
 ## Advanced Features
 
@@ -383,6 +430,14 @@ Multiple validation layers ensure deployment success:
 - Health validation before traffic switch
 - Post-switch stability verification
 - Final validation before cleanup
+
+### Multi-Trigger Support
+
+The system supports various deployment triggers:
+- **Direct Push**: Immediate deployment on push to main branches
+- **PR Merge**: Deployment after code review and merge
+- **Manual Trigger**: On-demand deployment via GitHub UI
+- **Conditional Logic**: Only deploys on actual merges, not closed PRs
 
 ## Support
 

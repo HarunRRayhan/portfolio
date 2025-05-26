@@ -217,9 +217,13 @@ upload_assets_to_r2() {
   aws s3 sync "$REPO_ROOT/public/fonts" "s3://$R2_BUCKET_NAME/fonts" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
   aws s3 sync "$REPO_ROOT/public/images" "s3://$R2_BUCKET_NAME/images" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
 
-  # Restore original AWS credentials
-  export AWS_ACCESS_KEY_ID="$CONFIG_AWS_ACCESS_KEY_ID"
-  export AWS_SECRET_ACCESS_KEY="$CONFIG_AWS_SECRET_ACCESS_KEY"
+  # Restore original AWS credentials if they were set
+  if [ -n "$CONFIG_AWS_ACCESS_KEY_ID" ]; then
+    export AWS_ACCESS_KEY_ID="$CONFIG_AWS_ACCESS_KEY_ID"
+  fi
+  if [ -n "$CONFIG_AWS_SECRET_ACCESS_KEY" ]; then
+    export AWS_SECRET_ACCESS_KEY="$CONFIG_AWS_SECRET_ACCESS_KEY"
+  fi
 
   success "Static assets uploaded to Cloudflare R2"
   return 0
@@ -526,11 +530,39 @@ main() {
   
   log "🚀 Starting Blue-Green Zero-Downtime Deployment"
   
+  # Debug information
+  log "Script directory: $SCRIPT_DIR"
+  log "Deploy directory: $DEPLOY_DIR"
+  log "Repository root: $REPO_ROOT"
+  log "SSH key path: $SSH_KEY"
+  
   # Validate SSH key
   if [[ ! -f "$SSH_KEY" ]]; then
     error "SSH key not found: $SSH_KEY"
+    # List files in deploy directory for debugging
+    log "Files in deploy directory:"
+    ls -la "$DEPLOY_DIR" || true
     exit 1
   fi
+  
+  # Validate environment files
+  if [[ ! -f "$DEPLOY_DIR/.env.deploy" ]]; then
+    error ".env.deploy not found: $DEPLOY_DIR/.env.deploy"
+    exit 1
+  fi
+  
+  # Validate required environment variables
+  if [[ -z "$PUBLIC_IP" ]]; then
+    error "PUBLIC_IP not set in environment"
+    exit 1
+  fi
+  
+  if [[ -z "$REMOTE_USER" ]]; then
+    error "REMOTE_USER not set in environment"
+    exit 1
+  fi
+  
+  log "Environment validation passed"
   
   # Step 1: Build frontend assets locally
   if ! build_frontend_assets; then

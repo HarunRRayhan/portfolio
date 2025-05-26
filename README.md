@@ -66,8 +66,11 @@ This project uses a **blue-green zero-downtime deployment** strategy with GitHub
 ### Automatic Deployment
 
 Deployments are triggered automatically on:
-- Push to `main` or `features/deploy-with-traefik` branches
-- Manual workflow dispatch
+- **Push Events**: Direct pushes to `main` or `features/deploy-with-traefik` branches
+- **Pull Request Merges**: When pull requests are merged into `main` branch
+- **Manual Dispatch**: Manual workflow trigger via GitHub UI
+
+The system includes intelligent logic to only deploy on actual PR merges, not just closed pull requests.
 
 ### Manual Deployment
 
@@ -92,6 +95,7 @@ You can also deploy manually using the deployment scripts:
 - **Container Orchestration**: Docker Compose
 - **SSL/TLS**: Automatic Let's Encrypt certificates
 - **CDN**: Cloudflare
+- **Triggers**: Push, PR merge, and manual dispatch
 
 For detailed deployment documentation, see [deploy/cicd/README-BLUE-GREEN.md](deploy/cicd/README-BLUE-GREEN.md).
 

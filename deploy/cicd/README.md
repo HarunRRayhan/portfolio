@@ -33,6 +33,22 @@ Deployment status monitoring script that provides real-time information about th
 - Recent deployment information
 - Quick command references
 
+### 🧪 `test-deployment.sh`
+Pre-deployment validation script that checks if the deployment setup is correct.
+
+**Usage:**
+```bash
+./test-deployment.sh
+```
+
+**Features:**
+- Validates required files exist
+- Checks script permissions
+- Verifies Node.js version (with GitHub Actions compatibility)
+- Tests npm dependencies and build process
+- Validates environment configuration
+- Checks GitHub Actions workflow
+
 ### 📚 `README-BLUE-GREEN.md`
 Comprehensive documentation for the blue-green deployment system including:
 - Architecture overview
@@ -51,8 +67,24 @@ These scripts are integrated with:
 
 ## Quick Start
 
-1. **Check Status**: `./status.sh`
-2. **Deploy**: `./blue-green-deploy.sh`
-3. **Monitor**: Check Traefik dashboard at `http://your-server:8080`
+1. **Test Setup**: `./test-deployment.sh`
+2. **Check Status**: `./status.sh`
+3. **Deploy**: `./blue-green-deploy.sh`
+4. **Monitor**: Check Traefik dashboard at `http://your-server:8080`
+
+## Performance Optimizations
+
+The GitHub Actions workflow includes several caching mechanisms:
+- **Node.js Dependencies**: Cached using `actions/cache` with npm cache
+- **Deployment Configuration**: Cached deployment files from S3
+- **Optimized Transfers**: Efficient file upload and directory preparation
+
+## Troubleshooting
+
+If deployment fails:
+1. Run `./test-deployment.sh` to validate setup
+2. Check `./status.sh` for current state
+3. Review GitHub Actions logs
+4. Verify server connectivity and permissions
 
 For detailed documentation, see [README-BLUE-GREEN.md](README-BLUE-GREEN.md). 
