@@ -3,9 +3,6 @@ name: Blue-Green Zero-Downtime Deployment
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
-    types: [ closed ]
   workflow_dispatch:
     inputs:
       force_deploy:
@@ -23,12 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     # Only run deployment if:
-    # 1. It's a direct push to main/features branches, OR
-    # 2. It's a merged pull request to main, OR
-    # 3. It's manually triggered
+    # 1. It's a direct push to main branch, OR
+    # 2. It's manually triggered
     if: |
       github.event_name == 'push' ||
-      (github.event_name == 'pull_request' && github.event.pull_request.merged == true) ||
       github.event_name == 'workflow_dispatch'
 
     steps:
@@ -297,8 +292,6 @@ jobs:
         # Determine trigger type for logging
         if [[ "${{ github.event_name }}" == "push" ]]; then
           echo "🚀 Triggered by push to ${{ github.ref_name }}"
-        elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          echo "🔀 Triggered by PR #${{ github.event.pull_request.number }} merge to ${{ github.event.pull_request.base.ref }}"
         elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
           echo "🎯 Triggered manually"
         fi
@@ -455,9 +448,6 @@ jobs:
         echo "- **Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
         if [[ "${{ github.event_name }}" == "push" ]]; then
           echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-        elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          echo "- **PR:** #${{ github.event.pull_request.number }} (${{ github.event.pull_request.title }})" >> $GITHUB_STEP_SUMMARY
-          echo "- **Merged to:** ${{ github.event.pull_request.base.ref }}" >> $GITHUB_STEP_SUMMARY
         fi
         echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
