@@ -10,6 +10,7 @@ Our enhanced implementation includes:
 - **Smart Environment Detection**: Automatically determines current active environment
 - **Intelligent Target Selection**: Chooses the best environment for deployment
 - **NPM Build Integration**: Builds and uploads assets as part of deployment
+- **Asset Backup & Rollback**: Automatic backup and restoration of static assets
 - **Environment Rotation**: Automatically rotates green deployments to blue for next cycle
 - **Comprehensive Health Checks**: Multi-layer validation before traffic switching
 - **Multiple Trigger Support**: Supports push, pull request merges, and manual triggers
@@ -82,9 +83,10 @@ This prevents deployments from running on closed-but-not-merged pull requests.
 
 ### 1. Pre-Deployment Phase
 1. **NPM Build**: Compiles frontend assets locally
-2. **Asset Upload**: Uploads built assets to Cloudflare R2 with proper content types
-3. **Environment Detection**: Determines current active environment via Traefik API
-4. **Smart Target Selection**: Chooses deployment target based on container status
+2. **Asset Backup**: Creates timestamped backup of current assets in R2
+3. **Asset Upload**: Uploads built assets to Cloudflare R2 with proper content types
+4. **Environment Detection**: Determines current active environment via Traefik API
+5. **Smart Target Selection**: Chooses deployment target based on container status
 
 ### 2. Deployment Phase
 1. **Code Sync**: Updates repository on server
@@ -101,6 +103,12 @@ This prevents deployments from running on closed-but-not-merged pull requests.
 1. **Cleanup**: Removes old environment containers
 2. **Environment Rotation**: Moves green to blue for next deployment cycle
 3. **CDN Purge**: Clears Cloudflare cache
+4. **Asset Backup Cleanup**: Removes successful deployment backup from R2
+
+### 5. Rollback Phase (On Failure)
+1. **Asset Rollback**: Restores previous assets from backup
+2. **Container Rollback**: Switches traffic back to previous environment
+3. **Backup Preservation**: Keeps backup for manual investigation
 
 ## Files Structure
 
@@ -168,6 +176,56 @@ This ensures:
 - Blue is always the "stable" environment
 - Green is used for new deployments
 - Next deployment cycle starts fresh
+
+## Asset Backup & Rollback Strategy
+
+To prevent asset-related issues during rollbacks, the deployment system implements a comprehensive asset backup strategy:
+
+### Backup Process
+
+1. **Pre-Deployment Backup**: Before uploading new assets, creates a timestamped backup
+   ```
+   s3://bucket/backup_20241126_143022/build/
+   s3://bucket/backup_20241126_143022/fonts/
+   s3://bucket/backup_20241126_143022/images/
+   ```
+
+2. **Backup Tracking**: Stores backup identifier in `deploy/.asset_backup_id` for reference
+
+3. **Asset Upload**: Uploads new assets with `--delete` flag (replacing old assets)
+
+### Rollback Process
+
+On deployment failure:
+
+1. **Automatic Asset Rollback**: Restores assets from backup using sync with `--delete`
+2. **Container Rollback**: Switches traffic back to previous environment
+3. **Backup Preservation**: Keeps backup for manual investigation
+
+On deployment success:
+
+1. **Backup Cleanup**: Removes backup from R2 to save storage costs
+2. **Tracking Cleanup**: Removes local backup identifier file
+
+### Benefits
+
+- **Zero Asset Downtime**: Previous assets remain available during rollback
+- **Consistent State**: Assets and containers are rolled back together
+- **Storage Efficiency**: Successful deployment backups are automatically cleaned up
+- **Manual Recovery**: Failed deployment backups are preserved for investigation
+
+### Manual Asset Operations
+
+```bash
+# Check current backup status
+cat deploy/.asset_backup_id
+
+# Manual asset rollback (if needed)
+./deploy/cicd/blue-green-deploy.sh --rollback-assets
+
+# Manual backup cleanup
+aws s3 rm s3://bucket/backup_20241126_143022 --recursive
+```
 
 ## Configuration
 

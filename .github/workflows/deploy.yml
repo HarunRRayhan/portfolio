@@ -122,6 +122,55 @@ jobs:
 
         echo "Frontend assets built successfully"
 
+    - name: Backup Current Assets
+      run: |
+        echo "Backing up current assets before deployment..."
+        
+        # Load R2 configuration from .env.deploy
+        R2_BUCKET_NAME=$(grep '^R2_BUCKET_NAME=' deploy/.env.deploy | cut -d '=' -f2)
+        R2_S3_ENDPOINT=$(grep '^R2_S3_ENDPOINT=' deploy/.env.deploy | cut -d '=' -f2)
+        R2_ACCESS_KEY_ID=$(grep '^R2_ACCESS_KEY_ID=' deploy/.env.deploy | cut -d '=' -f2)
+        R2_SECRET_ACCESS_KEY=$(grep '^R2_SECRET_ACCESS_KEY=' deploy/.env.deploy | cut -d '=' -f2)
+        
+        if [ -z "$R2_BUCKET_NAME" ] || [ -z "$R2_S3_ENDPOINT" ] || [ -z "$R2_ACCESS_KEY_ID" ] || [ -z "$R2_SECRET_ACCESS_KEY" ]; then
+          echo "Warning: R2 configuration missing, skipping asset backup"
+          exit 0
+        fi
+
+        # Set R2 credentials
+        export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
+        export AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
+
+        # Generate backup timestamp
+        BACKUP_TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+        BACKUP_PREFIX="backup_${BACKUP_TIMESTAMP}"
+        
+        # Store backup info for later use
+        echo "$BACKUP_PREFIX" > deploy/.asset_backup_id
+        
+        echo "Creating asset backup with prefix: $BACKUP_PREFIX"
+        
+        # Check if current assets exist before backing up
+        ASSETS_EXIST=$(aws s3 ls "s3://$R2_BUCKET_NAME/build/" --endpoint-url "$R2_S3_ENDPOINT" 2>/dev/null | wc -l || echo "0")
+        
+        if [[ "$ASSETS_EXIST" -gt "0" ]]; then
+          # Backup build assets
+          echo "Backing up build assets..."
+          aws s3 sync "s3://$R2_BUCKET_NAME/build" "s3://$R2_BUCKET_NAME/${BACKUP_PREFIX}/build" --endpoint-url "$R2_S3_ENDPOINT" --quiet
+          
+          # Backup fonts
+          echo "Backing up fonts..."
+          aws s3 sync "s3://$R2_BUCKET_NAME/fonts" "s3://$R2_BUCKET_NAME/${BACKUP_PREFIX}/fonts" --endpoint-url "$R2_S3_ENDPOINT" --quiet
+          
+          # Backup images
+          echo "Backing up images..."
+          aws s3 sync "s3://$R2_BUCKET_NAME/images" "s3://$R2_BUCKET_NAME/${BACKUP_PREFIX}/images" --endpoint-url "$R2_S3_ENDPOINT" --quiet
+          
+          echo "✅ Assets backed up to: $BACKUP_PREFIX"
+        else
+          echo "No existing assets found to backup"
+        fi
+
     - name: Upload Assets to Cloudflare R2
       run: |
         echo "Uploading static assets to Cloudflare R2..."
@@ -182,6 +231,43 @@ jobs:
         else
           echo "Warning: Cloudflare credentials not found, skipping cache purge"
         fi
+
+    - name: Cleanup Asset Backup
+      if: success()
+      run: |
+        echo "Cleaning up asset backup after successful deployment..."
+        
+        # Check if backup ID exists
+        if [ ! -f "deploy/.asset_backup_id" ]; then
+          echo "No asset backup to cleanup"
+          exit 0
+        fi
+        
+        # Load R2 configuration from .env.deploy
+        R2_BUCKET_NAME=$(grep '^R2_BUCKET_NAME=' deploy/.env.deploy | cut -d '=' -f2)
+        R2_S3_ENDPOINT=$(grep '^R2_S3_ENDPOINT=' deploy/.env.deploy | cut -d '=' -f2)
+        R2_ACCESS_KEY_ID=$(grep '^R2_ACCESS_KEY_ID=' deploy/.env.deploy | cut -d '=' -f2)
+        R2_SECRET_ACCESS_KEY=$(grep '^R2_SECRET_ACCESS_KEY=' deploy/.env.deploy | cut -d '=' -f2)
+        
+        if [ -z "$R2_BUCKET_NAME" ] || [ -z "$R2_S3_ENDPOINT" ] || [ -z "$R2_ACCESS_KEY_ID" ] || [ -z "$R2_SECRET_ACCESS_KEY" ]; then
+          echo "Warning: R2 configuration missing, skipping backup cleanup"
+          exit 0
+        fi
+        
+        BACKUP_PREFIX=$(cat deploy/.asset_backup_id)
+        echo "Cleaning up backup: $BACKUP_PREFIX"
+
+        # Set R2 credentials
+        export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
+        export AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
+
+        # Remove backup from R2
+        aws s3 rm "s3://$R2_BUCKET_NAME/${BACKUP_PREFIX}" --endpoint-url "$R2_S3_ENDPOINT" --recursive --quiet
+        
+        # Remove local backup ID file
+        rm -f deploy/.asset_backup_id
+        
+        echo "✅ Asset backup cleaned up: $BACKUP_PREFIX"
 
     - name: Sync Repository to Server
       run: |
@@ -264,6 +350,56 @@ jobs:
         
         echo "Deployment verification completed"
 
+    - name: Rollback Assets on Failure
+      if: failure()
+      run: |
+        echo "🚨 Rolling back assets due to deployment failure..."
+        
+        # Check if backup ID exists
+        if [ ! -f "deploy/.asset_backup_id" ]; then
+          echo "No asset backup found to rollback"
+          exit 0
+        fi
+        
+        # Load R2 configuration from .env.deploy
+        R2_BUCKET_NAME=$(grep '^R2_BUCKET_NAME=' deploy/.env.deploy | cut -d '=' -f2)
+        R2_S3_ENDPOINT=$(grep '^R2_S3_ENDPOINT=' deploy/.env.deploy | cut -d '=' -f2)
+        R2_ACCESS_KEY_ID=$(grep '^R2_ACCESS_KEY_ID=' deploy/.env.deploy | cut -d '=' -f2)
+        R2_SECRET_ACCESS_KEY=$(grep '^R2_SECRET_ACCESS_KEY=' deploy/.env.deploy | cut -d '=' -f2)
+        
+        if [ -z "$R2_BUCKET_NAME" ] || [ -z "$R2_S3_ENDPOINT" ] || [ -z "$R2_ACCESS_KEY_ID" ] || [ -z "$R2_SECRET_ACCESS_KEY" ]; then
+          echo "Warning: R2 configuration missing, skipping asset rollback"
+          exit 0
+        fi
+        
+        BACKUP_PREFIX=$(cat deploy/.asset_backup_id)
+        echo "Rolling back assets from backup: $BACKUP_PREFIX"
+
+        # Set R2 credentials
+        export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
+        export AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
+
+        # Check if backup exists
+        BACKUP_EXISTS=$(aws s3 ls "s3://$R2_BUCKET_NAME/${BACKUP_PREFIX}/" --endpoint-url "$R2_S3_ENDPOINT" 2>/dev/null | wc -l || echo "0")
+        
+        if [[ "$BACKUP_EXISTS" -gt "0" ]]; then
+          # Restore build assets
+          echo "Restoring build assets from backup..."
+          aws s3 sync "s3://$R2_BUCKET_NAME/${BACKUP_PREFIX}/build" "s3://$R2_BUCKET_NAME/build" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+          
+          # Restore fonts
+          echo "Restoring fonts from backup..."
+          aws s3 sync "s3://$R2_BUCKET_NAME/${BACKUP_PREFIX}/fonts" "s3://$R2_BUCKET_NAME/fonts" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+          
+          # Restore images
+          echo "Restoring images from backup..."
+          aws s3 sync "s3://$R2_BUCKET_NAME/${BACKUP_PREFIX}/images" "s3://$R2_BUCKET_NAME/images" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+          
+          echo "✅ Assets restored from backup: $BACKUP_PREFIX"
+        else
+          echo "⚠️ Backup not found: $BACKUP_PREFIX"
+        fi
+
     - name: Rollback on failure
       if: failure()
       run: |
@@ -325,13 +461,15 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### 📋 Features" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ NPM build and asset compilation (GitHub Actions)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Asset backup before deployment (GitHub Actions)" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ Cloudflare R2 asset upload (GitHub Actions)" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ CDN cache purging (GitHub Actions)" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ Smart environment detection (Server)" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ Zero-downtime blue-green deployment (Server)" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ Comprehensive health checks (Server)" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Automatic rollback on failure (Server)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Automatic rollback on failure (Server + Assets)" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ Environment rotation for next cycle (Server)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Asset backup cleanup on success (GitHub Actions)" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### ⚡ Performance" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ Node.js dependency caching" >> $GITHUB_STEP_SUMMARY

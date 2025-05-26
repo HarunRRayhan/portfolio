@@ -182,6 +182,60 @@ build_frontend_assets() {
   return 0
 }
 
+# Function to backup current assets before deployment
+backup_current_assets() {
+  log "Backing up current assets before deployment..."
+  
+  if [ -z "$R2_BUCKET_NAME" ] || [ -z "$R2_S3_ENDPOINT" ] || [ -z "$R2_ACCESS_KEY_ID" ] || [ -z "$R2_SECRET_ACCESS_KEY" ]; then
+    warning "R2 configuration missing, skipping asset backup"
+    return 0
+  fi
+
+  # Set R2 credentials
+  export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
+  export AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
+
+  # Generate backup timestamp
+  local backup_timestamp=$(date +%Y%m%d_%H%M%S)
+  local backup_prefix="backup_${backup_timestamp}"
+  
+  # Store backup info for later use
+  echo "$backup_prefix" > "$DEPLOY_DIR/.asset_backup_id"
+  
+  log "Creating asset backup with prefix: $backup_prefix"
+  
+  # Check if current assets exist before backing up
+  local assets_exist=$(aws s3 ls "s3://$R2_BUCKET_NAME/build/" --endpoint-url "$R2_S3_ENDPOINT" 2>/dev/null | wc -l || echo "0")
+  
+  if [[ "$assets_exist" -gt "0" ]]; then
+    # Backup build assets
+    log "Backing up build assets..."
+    aws s3 sync "s3://$R2_BUCKET_NAME/build" "s3://$R2_BUCKET_NAME/${backup_prefix}/build" --endpoint-url "$R2_S3_ENDPOINT" --quiet
+    
+    # Backup fonts
+    log "Backing up fonts..."
+    aws s3 sync "s3://$R2_BUCKET_NAME/fonts" "s3://$R2_BUCKET_NAME/${backup_prefix}/fonts" --endpoint-url "$R2_S3_ENDPOINT" --quiet
+    
+    # Backup images
+    log "Backing up images..."
+    aws s3 sync "s3://$R2_BUCKET_NAME/images" "s3://$R2_BUCKET_NAME/${backup_prefix}/images" --endpoint-url "$R2_S3_ENDPOINT" --quiet
+    
+    success "Assets backed up to: $backup_prefix"
+  else
+    log "No existing assets found to backup"
+  fi
+  
+  # Restore original AWS credentials if they were set
+  if [ -n "$CONFIG_AWS_ACCESS_KEY_ID" ]; then
+    export AWS_ACCESS_KEY_ID="$CONFIG_AWS_ACCESS_KEY_ID"
+  fi
+  if [ -n "$CONFIG_AWS_SECRET_ACCESS_KEY" ]; then
+    export AWS_SECRET_ACCESS_KEY="$CONFIG_AWS_SECRET_ACCESS_KEY"
+  fi
+  
+  return 0
+}
+
 # Function to upload static assets to Cloudflare R2
 upload_assets_to_r2() {
   log "Uploading static assets to Cloudflare R2..."
@@ -226,6 +280,100 @@ upload_assets_to_r2() {
   fi
 
   success "Static assets uploaded to Cloudflare R2"
+  return 0
+}
+
+# Function to rollback assets from backup
+rollback_assets() {
+  log "Rolling back assets from backup..."
+  
+  if [ -z "$R2_BUCKET_NAME" ] || [ -z "$R2_S3_ENDPOINT" ] || [ -z "$R2_ACCESS_KEY_ID" ] || [ -z "$R2_SECRET_ACCESS_KEY" ]; then
+    warning "R2 configuration missing, skipping asset rollback"
+    return 0
+  fi
+
+  # Check if backup ID exists
+  if [ ! -f "$DEPLOY_DIR/.asset_backup_id" ]; then
+    warning "No asset backup ID found, cannot rollback assets"
+    return 0
+  fi
+  
+  local backup_prefix=$(cat "$DEPLOY_DIR/.asset_backup_id")
+  log "Rolling back assets from backup: $backup_prefix"
+
+  # Set R2 credentials
+  export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
+  export AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
+
+  # Check if backup exists
+  local backup_exists=$(aws s3 ls "s3://$R2_BUCKET_NAME/${backup_prefix}/" --endpoint-url "$R2_S3_ENDPOINT" 2>/dev/null | wc -l || echo "0")
+  
+  if [[ "$backup_exists" -gt "0" ]]; then
+    # Restore build assets
+    log "Restoring build assets from backup..."
+    aws s3 sync "s3://$R2_BUCKET_NAME/${backup_prefix}/build" "s3://$R2_BUCKET_NAME/build" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+    
+    # Restore fonts
+    log "Restoring fonts from backup..."
+    aws s3 sync "s3://$R2_BUCKET_NAME/${backup_prefix}/fonts" "s3://$R2_BUCKET_NAME/fonts" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+    
+    # Restore images
+    log "Restoring images from backup..."
+    aws s3 sync "s3://$R2_BUCKET_NAME/${backup_prefix}/images" "s3://$R2_BUCKET_NAME/images" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+    
+    success "Assets restored from backup: $backup_prefix"
+  else
+    warning "Backup not found: $backup_prefix"
+  fi
+  
+  # Restore original AWS credentials if they were set
+  if [ -n "$CONFIG_AWS_ACCESS_KEY_ID" ]; then
+    export AWS_ACCESS_KEY_ID="$CONFIG_AWS_ACCESS_KEY_ID"
+  fi
+  if [ -n "$CONFIG_AWS_SECRET_ACCESS_KEY" ]; then
+    export AWS_SECRET_ACCESS_KEY="$CONFIG_AWS_SECRET_ACCESS_KEY"
+  fi
+  
+  return 0
+}
+
+# Function to cleanup successful deployment backup
+cleanup_asset_backup() {
+  log "Cleaning up asset backup after successful deployment..."
+  
+  if [ -z "$R2_BUCKET_NAME" ] || [ -z "$R2_S3_ENDPOINT" ] || [ -z "$R2_ACCESS_KEY_ID" ] || [ -z "$R2_SECRET_ACCESS_KEY" ]; then
+    warning "R2 configuration missing, skipping backup cleanup"
+    return 0
+  fi
+
+  # Check if backup ID exists
+  if [ ! -f "$DEPLOY_DIR/.asset_backup_id" ]; then
+    log "No asset backup to cleanup"
+    return 0
+  fi
+  
+  local backup_prefix=$(cat "$DEPLOY_DIR/.asset_backup_id")
+  log "Cleaning up backup: $backup_prefix"
+
+  # Set R2 credentials
+  export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
+  export AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
+
+  # Remove backup from R2
+  aws s3 rm "s3://$R2_BUCKET_NAME/${backup_prefix}" --endpoint-url "$R2_S3_ENDPOINT" --recursive --quiet
+  
+  # Remove local backup ID file
+  rm -f "$DEPLOY_DIR/.asset_backup_id"
+  
+  # Restore original AWS credentials if they were set
+  if [ -n "$CONFIG_AWS_ACCESS_KEY_ID" ]; then
+    export AWS_ACCESS_KEY_ID="$CONFIG_AWS_ACCESS_KEY_ID"
+  fi
+  if [ -n "$CONFIG_AWS_SECRET_ACCESS_KEY" ]; then
+    export AWS_SECRET_ACCESS_KEY="$CONFIG_AWS_SECRET_ACCESS_KEY"
+  fi
+  
+  success "Asset backup cleaned up: $backup_prefix"
   return 0
 }
 
@@ -560,6 +708,12 @@ rollback() {
   
   error "Deployment failed, rolling back to $current_env environment"
   
+  # Rollback assets first (only if running locally)
+  if [[ "$SCRIPT_DIR" != *"/opt/portfolio/"* ]]; then
+    log "Rolling back assets to previous version..."
+    rollback_assets
+  fi
+  
   # Revert Traefik configuration using a safer approach
   execute_ssh "cd /opt/portfolio && sed -i \"s/service: web-$failed_env/service: web-$current_env/g\" docker/traefik-dynamic.yml"
   
@@ -719,9 +873,14 @@ main() {
       exit 1
     fi
     
-    # Step 2: Upload assets to R2 (only if running locally)
+    # Step 2: Backup current assets before uploading new ones
+    backup_current_assets
+    
+    # Step 3: Upload assets to R2 (only if running locally)
     if ! upload_assets_to_r2; then
       error "Failed to upload assets to R2"
+      # Rollback assets on upload failure
+      rollback_assets
       exit 1
     fi
   else
@@ -814,6 +973,9 @@ main() {
   # Purge CDN cache (only if running locally)
   if [[ "$skip_local_build" == "false" ]]; then
     purge_cdn_cache
+    
+    # Cleanup asset backup after successful deployment
+    cleanup_asset_backup
   else
     log "Skipping CDN cache purge (running on server)"
   fi
