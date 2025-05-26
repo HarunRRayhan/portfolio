@@ -40,18 +40,29 @@ warning() {
 }
 
 # Load environment variables
-if [ -f "$DEPLOY_DIR/.env.deploy" ]; then
+ENV_FILE="$DEPLOY_DIR/.env.deploy"
+# If running on server, look for env file in app directory
+if [[ "$PWD" == *"/opt/portfolio"* ]] || [[ "$HOME" == "/home/ubuntu" ]]; then
+  ENV_FILE="/opt/portfolio/deploy/.env.deploy"
+fi
+
+if [ -f "$ENV_FILE" ]; then
   set -a
-  . "$DEPLOY_DIR/.env.deploy"
+  . "$ENV_FILE"
   set +a
 else
-  error "Environment file not found: $DEPLOY_DIR/.env.deploy"
+  error "Environment file not found: $ENV_FILE"
   exit 1
 fi
 
 # Always resolve SSH_KEY to absolute path after loading .env.deploy
 if [ -n "$SSH_KEY" ] && [[ "$SSH_KEY" != /* ]]; then
-  SSH_KEY="$DEPLOY_DIR/$SSH_KEY"
+  # If running on server, look for SSH key in app directory
+  if [[ "$PWD" == *"/opt/portfolio"* ]] || [[ "$HOME" == "/home/ubuntu" ]]; then
+    SSH_KEY="/opt/portfolio/deploy/$SSH_KEY"
+  else
+    SSH_KEY="$DEPLOY_DIR/$SSH_KEY"
+  fi
 fi
 export SSH_KEY
 
@@ -91,9 +102,12 @@ execute_ssh() {
   local max_retries=3
   local retry_count=0
   
+  # Strip any color codes from the command to prevent parsing issues
+  command=$(echo "$command" | sed 's/\x1b\[[0-9;]*m//g')
+  
   while [ $retry_count -lt $max_retries ]; do
     # Use bash -c to properly handle complex commands and avoid color code issues
-    if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i "$SSH_KEY" "$REMOTE_USER@$PUBLIC_IP" "bash -c '$command'"; then
+    if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i "$SSH_KEY" "$REMOTE_USER@$PUBLIC_IP" "$command"; then
       return 0
     else
       retry_count=$((retry_count + 1))
@@ -308,8 +322,6 @@ restore_assets_from_backup() {
 
 # Function to detect current active environment via Traefik
 detect_active_environment() {
-  log "Detecting current active environment..."
-  
   # Try to get Traefik configuration
   local traefik_config=$(execute_ssh "cd $APP_DIR && curl -s http://localhost:8080/api/http/services 2>/dev/null || echo 'failed'")
   
@@ -390,7 +402,7 @@ deploy_to_environment() {
   execute_ssh "cd $APP_DIR && docker cp routes/web.php php_$target_env:/var/www/html/routes/web.php"
   
   # Ensure storage directories exist and have proper permissions
-  execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$target_env mkdir -p /var/www/html/storage/framework/{cache,sessions,views,testing}"
+  execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$target_env sh -c 'mkdir -p /var/www/html/storage/framework/cache /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/framework/testing'"
   execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$target_env chown -R www-data:www-data /var/www/html/storage"
   execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$target_env chmod -R 775 /var/www/html/storage"
   
@@ -444,6 +456,10 @@ switch_traffic() {
   # Update Traefik dynamic configuration
   execute_ssh "cd $APP_DIR && sed -i \"s/service: web-blue/service: web-${target_env}/g; s/service: web-green/service: web-${target_env}/g\" docker/traefik-dynamic.yml"
   
+  # Restart Traefik to pick up the new configuration
+  execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml restart traefik"
+  sleep 5
+  
   # Wait for traffic switch to take effect and verify
   while [ $attempt -le $max_attempts ]; do
     sleep 2
@@ -485,6 +501,19 @@ perform_environment_rotation() {
   # Wait for containers to be ready
   sleep 10
   
+  # Copy routes file into current environment container and ensure storage directories
+  execute_ssh "cd $APP_DIR && docker cp routes/web.php php_$current_env:/var/www/html/routes/web.php"
+  
+  # Ensure storage directories exist and have proper permissions
+  execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$current_env sh -c 'mkdir -p /var/www/html/storage/framework/cache /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/framework/testing'"
+  execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$current_env chown -R www-data:www-data /var/www/html/storage"
+  execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$current_env chmod -R 775 /var/www/html/storage"
+  
+  execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$current_env php artisan cache:clear"
+  execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$current_env php artisan route:clear"
+  execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$current_env php artisan config:clear"
+  execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$current_env php artisan route:cache"
+  
   # Switch traffic to the new current environment
   switch_traffic "$current_env"
   
@@ -514,6 +543,12 @@ rollback_deployment() {
   
   # Copy routes file into current environment container and clear caches
   execute_ssh "cd $APP_DIR && docker cp routes/web.php php_$current_env:/var/www/html/routes/web.php"
+  
+  # Ensure storage directories exist and have proper permissions
+  execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$current_env sh -c 'mkdir -p /var/www/html/storage/framework/cache /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/framework/testing'"
+  execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$current_env chown -R www-data:www-data /var/www/html/storage"
+  execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$current_env chmod -R 775 /var/www/html/storage"
+  
   execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$current_env php artisan cache:clear"
   execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$current_env php artisan route:clear"
   execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$current_env php artisan config:clear"
@@ -521,6 +556,10 @@ rollback_deployment() {
   
   # Revert Traefik configuration
   execute_ssh "cd $APP_DIR && sed -i \"s/service: web-${failed_env}/service: web-${current_env}/g\" docker/traefik-dynamic.yml"
+  
+  # Restart Traefik to pick up the reverted configuration
+  execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml restart traefik"
+  sleep 5
   
   # Purge CDN cache to ensure restored assets are served
   purge_cdn_cache
@@ -564,27 +603,53 @@ purge_cdn_cache() {
 main() {
   log "Starting blue-green deployment..."
   
-  # Check Node.js version (local only)
-  if ! ensure_node_version; then
-    exit 1
+  local context=$(detect_execution_context)
+  
+  if [ "$context" = "local" ]; then
+    # Local execution: build assets and upload to R2
+    log "Running on local machine - building and uploading assets..."
+    
+    # Check Node.js version
+    if ! ensure_node_version; then
+      exit 1
+    fi
+    
+    # Backup current assets before deployment
+    if ! backup_current_assets; then
+      warning "Failed to backup current assets, continuing deployment..."
+    fi
+    
+    # Build frontend assets
+    if ! build_frontend_assets; then
+      exit 1
+    fi
+    
+    # Upload assets to R2
+    if ! upload_assets_to_r2; then
+      exit 1
+    fi
+    
+    log "Assets built and uploaded successfully. Now executing deployment on server..."
+    
+    # Copy updated manifest.json to server
+    scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/public/build/manifest.json" "$REMOTE_USER@$PUBLIC_IP:$APP_DIR/public/build/manifest.json"
+    
+    # Execute the same script on the server
+    scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$0" "$REMOTE_USER@$PUBLIC_IP:/tmp/blue-green-deploy.sh"
+    execute_ssh "chmod +x /tmp/blue-green-deploy.sh && cd $APP_DIR && /tmp/blue-green-deploy.sh"
+    
+    success "Blue-green deployment completed successfully!"
+    log "🔗 Site: https://harun.dev"
+    log "🔧 Traefik dashboard: http://$PUBLIC_IP:8080"
+    
+    return 0
   fi
   
-  # Backup current assets before deployment (local only)
-  if ! backup_current_assets; then
-    warning "Failed to backup current assets, continuing deployment..."
-  fi
-  
-  # Build frontend assets (local only)
-  if ! build_frontend_assets; then
-    exit 1
-  fi
-  
-  # Upload assets to R2 (local only)
-  if ! upload_assets_to_r2; then
-    exit 1
-  fi
+  # Server execution: deploy containers only
+  log "Running on server - deploying containers..."
   
   # Detect current active environment
+  log "Detecting current active environment..."
   local current_env=$(detect_active_environment)
   log "Current active environment: $current_env"
   
