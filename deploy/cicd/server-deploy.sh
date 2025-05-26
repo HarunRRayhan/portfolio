@@ -81,8 +81,8 @@ detect_active_environment() {
   fi
   
   # Fallback: check container status
-  local blue_status=$(docker compose -f docker/docker-compose.yml ps nginx_blue --format '{{.State}}' 2>/dev/null || echo 'not_running')
-  local green_status=$(docker compose -f docker/docker-compose.yml ps nginx_green --format '{{.State}}' 2>/dev/null || echo 'not_running')
+  local blue_status=$(docker compose -f $APP_DIR/docker/docker-compose.yml ps nginx_blue --format '{{.State}}' 2>/dev/null || echo 'not_running')
+  local green_status=$(docker compose -f $APP_DIR/docker/docker-compose.yml ps nginx_green --format '{{.State}}' 2>/dev/null || echo 'not_running')
   
   if [[ "$blue_status" == "running" ]] && [[ "$green_status" != "running" ]]; then
     echo "blue"
@@ -131,25 +131,25 @@ deploy_to_environment() {
   sync_repository
   
   # Build and start containers for target environment
-  docker compose -f docker/docker-compose.yml build php_$target_env nginx_$target_env
-  docker compose -f docker/docker-compose.yml up -d php_$target_env nginx_$target_env
+  docker compose -f $APP_DIR/docker/docker-compose.yml build php_$target_env nginx_$target_env
+  docker compose -f $APP_DIR/docker/docker-compose.yml up -d php_$target_env nginx_$target_env
   
   # Wait for containers to be ready
   log "Waiting for $target_env containers to be ready..."
   sleep 10
   
   # Copy routes file into container and clear caches
-  docker cp routes/web.php php_$target_env:/var/www/html/routes/web.php
+  docker cp $APP_DIR/routes/web.php php_$target_env:/var/www/html/routes/web.php
   
   # Ensure storage directories exist and have proper permissions
-  docker compose -f docker/docker-compose.yml exec -T php_$target_env sh -c 'mkdir -p /var/www/html/storage/framework/cache /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/framework/testing'
-  docker compose -f docker/docker-compose.yml exec -T php_$target_env chown -R www-data:www-data /var/www/html/storage
-  docker compose -f docker/docker-compose.yml exec -T php_$target_env chmod -R 775 /var/www/html/storage
+  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$target_env sh -c 'mkdir -p /var/www/html/storage/framework/cache /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/framework/testing'
+  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$target_env chown -R www-data:www-data /var/www/html/storage
+  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$target_env chmod -R 775 /var/www/html/storage
   
-  docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan cache:clear
-  docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan route:clear
-  docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan config:clear
-  docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan route:cache
+  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$target_env php artisan cache:clear
+  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$target_env php artisan route:clear
+  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$target_env php artisan config:clear
+  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$target_env php artisan route:cache
   
   success "$target_env environment deployed successfully"
 }
@@ -164,11 +164,11 @@ perform_health_checks() {
   
   while [ $attempt -le $max_attempts ]; do
     # Test basic nginx connectivity
-    local nginx_status=$(docker compose -f docker/docker-compose.yml exec -T nginx_$target_env curl -s -o /dev/null -w '%{http_code}' http://localhost:80/ 2>/dev/null || echo '000')
+    local nginx_status=$(docker compose -f $APP_DIR/docker/docker-compose.yml exec -T nginx_$target_env curl -s -o /dev/null -w '%{http_code}' http://localhost:80/ 2>/dev/null || echo '000')
     
     if [[ "$nginx_status" =~ ^[2-3][0-9][0-9]$ ]]; then
       # Test health endpoint
-      local health_status=$(docker compose -f docker/docker-compose.yml exec -T nginx_$target_env curl -s -o /dev/null -w '%{http_code}' http://localhost:80/health 2>/dev/null || echo '000')
+      local health_status=$(docker compose -f $APP_DIR/docker/docker-compose.yml exec -T nginx_$target_env curl -s -o /dev/null -w '%{http_code}' http://localhost:80/health 2>/dev/null || echo '000')
       
       if [ "$health_status" = "200" ]; then
         success "Health checks passed for $target_env environment"
@@ -202,7 +202,7 @@ perform_site_verification() {
       
       if [ "$health_status" = "200" ]; then
         # Get asset filenames from the server's manifest file
-        local manifest_content=$(cat public/build/manifest.json 2>/dev/null || echo '{}')
+        local manifest_content=$(cat $APP_DIR/public/build/manifest.json 2>/dev/null || echo '{}')
         
         if [ "$manifest_content" != "{}" ]; then
           # Extract CSS and JS filenames from manifest
@@ -255,10 +255,10 @@ switch_traffic() {
   log "Switching traffic to $target_env environment..."
   
   # Update Traefik dynamic configuration
-  sed -i "s/service: web-blue/service: web-${target_env}/g; s/service: web-green/service: web-${target_env}/g" docker/traefik-dynamic.yml
+  sed -i "s/service: web-blue/service: web-${target_env}/g; s/service: web-green/service: web-${target_env}/g" $APP_DIR/docker/traefik-dynamic.yml
   
   # Restart Traefik to pick up the new configuration
-  docker compose -f docker/docker-compose.yml restart traefik
+  docker compose -f $APP_DIR/docker/docker-compose.yml restart traefik
   sleep 5
   
   # Wait for traffic switch to take effect and verify
@@ -293,34 +293,34 @@ perform_environment_rotation() {
   docker tag docker-nginx_$target_env docker-nginx_$current_env
   
   # Stop and remove old current environment containers
-  docker compose -f docker/docker-compose.yml stop php_$current_env nginx_$current_env || true
-  docker compose -f docker/docker-compose.yml rm -f php_$current_env nginx_$current_env || true
+  docker compose -f $APP_DIR/docker/docker-compose.yml stop php_$current_env nginx_$current_env || true
+  docker compose -f $APP_DIR/docker/docker-compose.yml rm -f php_$current_env nginx_$current_env || true
   
   # Start new current environment containers
-  docker compose -f docker/docker-compose.yml up -d php_$current_env nginx_$current_env
+  docker compose -f $APP_DIR/docker/docker-compose.yml up -d php_$current_env nginx_$current_env
   
   # Wait for containers to be ready
   sleep 10
   
   # Copy routes file into current environment container and ensure storage directories
-  docker cp routes/web.php php_$current_env:/var/www/html/routes/web.php
+  docker cp $APP_DIR/routes/web.php php_$current_env:/var/www/html/routes/web.php
   
   # Ensure storage directories exist and have proper permissions
-  docker compose -f docker/docker-compose.yml exec -T php_$current_env sh -c 'mkdir -p /var/www/html/storage/framework/cache /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/framework/testing'
-  docker compose -f docker/docker-compose.yml exec -T php_$current_env chown -R www-data:www-data /var/www/html/storage
-  docker compose -f docker/docker-compose.yml exec -T php_$current_env chmod -R 775 /var/www/html/storage
+  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$current_env sh -c 'mkdir -p /var/www/html/storage/framework/cache /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/framework/testing'
+  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$current_env chown -R www-data:www-data /var/www/html/storage
+  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$current_env chmod -R 775 /var/www/html/storage
   
-  docker compose -f docker/docker-compose.yml exec -T php_$current_env php artisan cache:clear
-  docker compose -f docker/docker-compose.yml exec -T php_$current_env php artisan route:clear
-  docker compose -f docker/docker-compose.yml exec -T php_$current_env php artisan config:clear
-  docker compose -f docker/docker-compose.yml exec -T php_$current_env php artisan route:cache
+  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$current_env php artisan cache:clear
+  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$current_env php artisan route:clear
+  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$current_env php artisan config:clear
+  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$current_env php artisan route:cache
   
   # Switch traffic to the new current environment
   switch_traffic "$current_env"
   
   # Clean up old target environment
-  docker compose -f docker/docker-compose.yml stop php_$target_env nginx_$target_env || true
-  docker compose -f docker/docker-compose.yml rm -f php_$target_env nginx_$target_env || true
+  docker compose -f $APP_DIR/docker/docker-compose.yml stop php_$target_env nginx_$target_env || true
+  docker compose -f $APP_DIR/docker/docker-compose.yml rm -f php_$target_env nginx_$target_env || true
   
   success "Environment rotation completed: $target_env -> $current_env"
 }
@@ -333,37 +333,37 @@ rollback_deployment() {
   error "Deployment failed, initiating rollback..."
   
   # Stop failed environment containers
-  docker compose -f docker/docker-compose.yml stop php_$failed_env nginx_$failed_env || true
-  docker compose -f docker/docker-compose.yml rm -f php_$failed_env nginx_$failed_env || true
+  docker compose -f $APP_DIR/docker/docker-compose.yml stop php_$failed_env nginx_$failed_env || true
+  docker compose -f $APP_DIR/docker/docker-compose.yml rm -f php_$failed_env nginx_$failed_env || true
   
   # Ensure current environment is running
-  docker compose -f docker/docker-compose.yml up -d php_$current_env nginx_$current_env
+  docker compose -f $APP_DIR/docker/docker-compose.yml up -d php_$current_env nginx_$current_env
   
   # Copy routes file into current environment container and clear caches
-  docker cp routes/web.php php_$current_env:/var/www/html/routes/web.php
+  docker cp $APP_DIR/routes/web.php php_$current_env:/var/www/html/routes/web.php
   
   # Ensure storage directories exist and have proper permissions
-  docker compose -f docker/docker-compose.yml exec -T php_$current_env sh -c 'mkdir -p /var/www/html/storage/framework/cache /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/framework/testing'
-  docker compose -f docker/docker-compose.yml exec -T php_$current_env chown -R www-data:www-data /var/www/html/storage
-  docker compose -f docker/docker-compose.yml exec -T php_$current_env chmod -R 775 /var/www/html/storage
+  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$current_env sh -c 'mkdir -p /var/www/html/storage/framework/cache /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/framework/testing'
+  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$current_env chown -R www-data:www-data /var/www/html/storage
+  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$current_env chmod -R 775 /var/www/html/storage
   
-  docker compose -f docker/docker-compose.yml exec -T php_$current_env php artisan cache:clear
-  docker compose -f docker/docker-compose.yml exec -T php_$current_env php artisan route:clear
-  docker compose -f docker/docker-compose.yml exec -T php_$current_env php artisan config:clear
-  docker compose -f docker/docker-compose.yml exec -T php_$current_env php artisan route:cache
+  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$current_env php artisan cache:clear
+  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$current_env php artisan route:clear
+  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$current_env php artisan config:clear
+  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$current_env php artisan route:cache
   
   # Revert Traefik configuration
-  sed -i "s/service: web-${failed_env}/service: web-${current_env}/g" docker/traefik-dynamic.yml
+  sed -i "s/service: web-${failed_env}/service: web-${current_env}/g" $APP_DIR/docker/traefik-dynamic.yml
   
   # Restart Traefik to pick up the reverted configuration
-  docker compose -f docker/docker-compose.yml restart traefik
+  docker compose -f $APP_DIR/docker/docker-compose.yml restart traefik
   sleep 5
   
   # Wait for rollback to take effect
   sleep 10
   
   # Verify rollback health
-  local rollback_health=$(docker compose -f docker/docker-compose.yml exec -T nginx_$current_env curl -s -o /dev/null -w '%{http_code}' http://localhost:80/health 2>/dev/null || echo '000')
+  local rollback_health=$(docker compose -f $APP_DIR/docker/docker-compose.yml exec -T nginx_$current_env curl -s -o /dev/null -w '%{http_code}' http://localhost:80/health 2>/dev/null || echo '000')
   
   if [ "$rollback_health" = "200" ]; then
     success "Rollback completed successfully. Traffic restored to $current_env environment."
@@ -386,7 +386,7 @@ main() {
     log "No environment currently running, starting with green as baseline"
     current_env="green"
     # Ensure green environment is running
-    docker compose -f docker/docker-compose.yml up -d php_green nginx_green
+    docker compose -f $APP_DIR/docker/docker-compose.yml up -d php_green nginx_green
     sleep 10
   fi
   
