@@ -12,6 +12,7 @@ This project utilizes a variety of modern technologies for both the backend and 
 - **Frontend:** React.js
 - **Interactivity:** Inertia.js to seamlessly connect the backend and frontend.
 - **UI Components:** shadcn/ui for beautifully designed UI components.
+- **Email Service:** Resend for reliable email delivery
 
 ## Installation Instructions
 
