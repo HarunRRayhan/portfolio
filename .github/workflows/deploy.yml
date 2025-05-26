@@ -395,9 +395,17 @@ jobs:
           aws s3 sync "s3://$R2_BUCKET_NAME/${BACKUP_PREFIX}/images" "s3://$R2_BUCKET_NAME/images" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
 
           echo "✅ Assets restored from backup: $BACKUP_PREFIX"
+
+          # Clean up backup after rollback
+          echo "Cleaning up backup after rollback..."
+          aws s3 rm "s3://$R2_BUCKET_NAME/${BACKUP_PREFIX}" --endpoint-url "$R2_S3_ENDPOINT" --recursive --quiet
+          echo "✅ Backup cleaned up after rollback: $BACKUP_PREFIX"
         else
           echo "⚠️ Backup not found: $BACKUP_PREFIX"
         fi
+
+        # Remove local backup ID file
+        rm -f deploy/.asset_backup_id
 
     - name: Rollback on failure
       if: failure()
