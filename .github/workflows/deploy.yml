@@ -285,6 +285,10 @@ jobs:
           echo "Repository synced to commit ${{ github.sha }} on branch ${{ github.ref_name }}"
         EOF
 
+        # Upload the built manifest to ensure server has the correct asset references
+        echo "Uploading built manifest to server..."
+        scp -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no public/build/manifest.json ubuntu@$PUBLIC_IP:/opt/portfolio/public/build/manifest.json
+
     - name: Execute Blue-Green Deployment
       id: deploy
       run: |
