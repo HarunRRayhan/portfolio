@@ -139,6 +139,12 @@ download_env_files_from_s3() {
     set -a
     . "$SCRIPT_DIR/.env.deploy"
     set +a
+    
+    # Re-resolve SSH_KEY to absolute path after reload
+    if [ -n "$SSH_KEY" ] && [[ "$SSH_KEY" != /* ]]; then
+      SSH_KEY="$SCRIPT_DIR/$SSH_KEY"
+    fi
+    export SSH_KEY
   else
     echo "Failed to download docker environment file from S3, using local file if available"
   fi
@@ -206,7 +212,10 @@ print_total_time() {
 
 # Function to execute SSH commands
 execute_ssh() {
-    ssh -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REMOTE_USER@$REMOTE_HOST" "$1"
+    echo "[DEBUG] execute_ssh: SSH_KEY=$SSH_KEY, PUBLIC_IP=$PUBLIC_IP, REMOTE_USER=$REMOTE_USER"
+    echo "[DEBUG] execute_ssh: SSH key file exists: $(test -f "$SSH_KEY" && echo 'yes' || echo 'no')"
+    echo "[DEBUG] execute_ssh: SSH key permissions: $(ls -la "$SSH_KEY" 2>/dev/null | awk '{print $1}' || echo 'file not found')"
+    ssh -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REMOTE_USER@$PUBLIC_IP" "$1"
 }
 
 # Function to clone or update the git repository on the server
@@ -634,7 +643,7 @@ find . -maxdepth 1 -type f -exec cp {} "$tmp_sync_dir/" \;
 test -f "$REPO_ROOT/public/build/manifest.json" && cp "$REPO_ROOT/public/build/manifest.json" "$tmp_sync_dir/"
 cd "$SCRIPT_DIR"
 tar --no-xattrs -czf public-server-files.tar.gz -C "$tmp_sync_dir" .
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" public-server-files.tar.gz "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/public-server-files.tar.gz"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" public-server-files.tar.gz "$REMOTE_USER@$PUBLIC_IP:$APP_DIR/public-server-files.tar.gz"
 execute_ssh "mkdir -p $APP_DIR/public && tar xzf $APP_DIR/public-server-files.tar.gz -C $APP_DIR/public && rm $APP_DIR/public-server-files.tar.gz"
 rm -rf "$tmp_sync_dir" public-server-files.tar.gz
 
@@ -645,9 +654,9 @@ step 14 "Setting up docker environment on server & starting containers"
 execute_ssh "mkdir -p $APP_DIR/docker $APP_DIR/docker/nginx $APP_DIR/bootstrap/cache $APP_DIR/storage $APP_DIR/storage/logs $APP_DIR/storage/framework/sessions $APP_DIR/storage/framework/views $APP_DIR/storage/framework/cache $APP_DIR/storage/framework/cache/data"
 
 # Copy docker files directly to /opt/portfolio/docker, not to /opt/portfolio/deploy/docker
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/docker-compose.yml" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/docker-compose.yml"
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/Dockerfile" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/Dockerfile"
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/wait-for-db.sh" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/wait-for-db.sh"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/docker-compose.yml" "$REMOTE_USER@$PUBLIC_IP:$APP_DIR/docker/docker-compose.yml"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/Dockerfile" "$REMOTE_USER@$PUBLIC_IP:$APP_DIR/docker/Dockerfile"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/wait-for-db.sh" "$REMOTE_USER@$PUBLIC_IP:$APP_DIR/docker/wait-for-db.sh"
 
 # Set permissions for Nginx directories (use nginx:nginx)
 # execute_ssh "cd $APP_DIR && sudo chown -R nginx:nginx public bootstrap storage || true && sudo chmod -R 755 public bootstrap storage || true"
@@ -656,9 +665,9 @@ scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/wait-for-db.sh"
 step 15 "Uploading Nginx and Traefik config files for blue-green deployment"
 execute_ssh "mkdir -p $APP_DIR/docker/nginx"
 execute_ssh "rm -rf $APP_DIR/docker/nginx/blue.conf $APP_DIR/docker/nginx/green.conf $APP_DIR/docker/traefik-dynamic.yml"
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/nginx/blue.conf" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/nginx/blue.conf"
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/nginx/green.conf" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/nginx/green.conf"
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/traefik-dynamic.yml" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/traefik-dynamic.yml"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/nginx/blue.conf" "$REMOTE_USER@$PUBLIC_IP:$APP_DIR/docker/nginx/blue.conf"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/nginx/green.conf" "$REMOTE_USER@$PUBLIC_IP:$APP_DIR/docker/nginx/green.conf"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/docker/traefik-dynamic.yml" "$REMOTE_USER@$PUBLIC_IP:$APP_DIR/docker/traefik-dynamic.yml"
 
 # Verify config files exist
 step 16 "Verifying configuration files were uploaded correctly"
@@ -698,14 +707,14 @@ EOF"
 echo "Downloading app environment file from S3 to server..."
 if ! execute_ssh "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY aws s3 cp 's3://$CONFIG_BUCKET_NAME/secrets/envs/app/.env' '$APP_DIR/.env'"; then
   echo "Failed to download app .env from S3, using local fallback"
-  scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/.env.appprod" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/.env"
+  scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/.env.appprod" "$REMOTE_USER@$PUBLIC_IP:$APP_DIR/.env"
 fi
 
 # Download docker environment file from S3
 echo "Downloading docker environment file from S3 to server..."
 if ! execute_ssh "mkdir -p $APP_DIR/docker && AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY aws s3 cp 's3://$CONFIG_BUCKET_NAME/secrets/envs/docker/.env' '$APP_DIR/docker/.env'"; then
   echo "Failed to download docker .env from S3, using local fallback"
-  scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/.env.deploy" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/docker/.env"
+  scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/.env.deploy" "$REMOTE_USER@$PUBLIC_IP:$APP_DIR/docker/.env"
 fi
 
 # Verify files exist
@@ -713,7 +722,7 @@ execute_ssh "ls -la $APP_DIR/.env $APP_DIR/docker/.env && echo 'Environment file
 
 # Ensure manifest.json is present before Docker build
 execute_ssh "mkdir -p $APP_DIR/public/build"
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/public/build/manifest.json" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/public/build/manifest.json"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$REPO_ROOT/public/build/manifest.json" "$REMOTE_USER@$PUBLIC_IP:$APP_DIR/public/build/manifest.json"
 
 success "Environment files downloaded and set up on server"
 
@@ -729,9 +738,9 @@ execute_ssh "ls -la $APP_DIR/docker/.env.db && echo 'Confirmed: .env.db exists i
 step 20 "Managing SSL certificates with Let's Encrypt and S3 storage"
 
 # Upload SSL management files to server
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/ssl-manager.sh" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/ssl-manager.sh"
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/ssl-renewal.service" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/ssl-renewal.service"
-scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/ssl-renewal.timer" "$REMOTE_USER@$REMOTE_HOST:$APP_DIR/deploy/ssl-renewal.timer"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/ssl-manager.sh" "$REMOTE_USER@$PUBLIC_IP:$APP_DIR/deploy/ssl-manager.sh"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/ssl-renewal.service" "$REMOTE_USER@$PUBLIC_IP:$APP_DIR/deploy/ssl-renewal.service"
+scp -o StrictHostKeyChecking=no -i "$SSH_KEY" "$SCRIPT_DIR/ssl-renewal.timer" "$REMOTE_USER@$PUBLIC_IP:$APP_DIR/deploy/ssl-renewal.timer"
 
 execute_ssh "chmod +x $APP_DIR/deploy/ssl-manager.sh"
 

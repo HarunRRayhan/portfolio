@@ -62,17 +62,12 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/bootstrap/cache \
     && chmod -R 755 /var/www/html/public/build
 
-# Debug: list resources and config before artisan commands
+# Debug: list resources and config
 RUN ls -l /var/www/html/resources && ls -l /var/www/html/resources/views && ls -l /var/www/html/config
 
-# Create storage link
-RUN php artisan storage:link
-
-# Clear and cache configuration
-RUN php artisan config:clear \
-    && php artisan config:cache \
-    && php artisan route:clear \
-    && php artisan route:cache
+# Note: Laravel commands (storage:link, config:cache, route:cache, view:cache) 
+# are now handled by the deployment script after container startup
+# to ensure proper database connectivity and environment configuration
 
 # Ensure required Laravel directories exist and are writable
 RUN mkdir -p /var/www/html/storage/framework/{cache,sessions,views,testing,logs,cache/data} \

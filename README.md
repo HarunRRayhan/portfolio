@@ -1,5 +1,7 @@
 # Portfolio
 
+[![Deploy](https://github.com/HarunRRayhan/portfolio/actions/workflows/deploy.yml/badge.svg)](https://github.com/HarunRRayhan/portfolio/actions/workflows/deploy.yml)
+
 The portfolio site of Harun R. Rayhan, showcasing skills, experience, and projects.
 
 ## Technologies Used
@@ -56,6 +58,46 @@ To set up the project locally, please follow these steps:
 ## Usage
 
 This portfolio showcases Harun R. Rayhan's services as a DevOps Engineer, Cloud Engineer, and AWS Expert, reflecting his expertise and experience in software engineering.
+
+## Deployment
+
+This project uses a **blue-green zero-downtime deployment** strategy with GitHub Actions for CI/CD.
+
+### Automatic Deployment
+
+Deployments are triggered automatically on:
+- **Push Events**: Direct pushes to `main` or `features/deploy-with-traefik` branches
+- **Pull Request Merges**: When pull requests are merged into `main` branch
+- **Manual Dispatch**: Manual workflow trigger via GitHub UI
+
+The system includes intelligent logic to only deploy on actual PR merges, not just closed pull requests.
+
+### Manual Deployment
+
+You can also deploy manually using the deployment scripts:
+
+```bash
+# Check current deployment status
+./deploy/cicd/status.sh
+
+# Deploy to opposite environment (automatic detection)
+./deploy/cicd/blue-green-deploy.sh
+
+# Deploy to specific environment
+./deploy/cicd/blue-green-deploy.sh blue
+./deploy/cicd/blue-green-deploy.sh green
+```
+
+### Infrastructure
+
+- **Production URL**: https://harun.dev
+- **Deployment Strategy**: Blue-Green with Traefik load balancer
+- **Container Orchestration**: Docker Compose
+- **SSL/TLS**: Automatic Let's Encrypt certificates
+- **CDN**: Cloudflare
+- **Triggers**: Push, PR merge, and manual dispatch
+
+For detailed deployment documentation, see [deploy/cicd/README-BLUE-GREEN.md](deploy/cicd/README-BLUE-GREEN.md).
 
 ## Contributing
 
