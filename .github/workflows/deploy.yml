@@ -303,28 +303,23 @@ jobs:
         PUBLIC_IP=$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)
         echo "Deploying to server: $PUBLIC_IP"
 
-        # Upload the blue-green deployment script
-        echo "Uploading deployment script..."
-        scp -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no deploy/cicd/blue-green-deploy.sh ubuntu@$PUBLIC_IP:/opt/portfolio/deploy/cicd/
+        # Upload the server-only deployment script
+        echo "Uploading server deployment script..."
+        scp -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no deploy/cicd/server-deploy.sh ubuntu@$PUBLIC_IP:/opt/portfolio/deploy/cicd/
         
         # Upload status script as well
         echo "Uploading status script..."
         scp -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no deploy/cicd/status.sh ubuntu@$PUBLIC_IP:/opt/portfolio/deploy/cicd/
 
-        # Execute the blue-green deployment on the server
-        echo "Executing deployment on server..."
+        # Execute the server-only deployment on the server
+        echo "Executing server deployment..."
         ssh -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no ubuntu@$PUBLIC_IP << 'EOF'
           cd /opt/portfolio/deploy/cicd
-          chmod +x blue-green-deploy.sh status.sh
+          chmod +x server-deploy.sh status.sh
 
-          # Set environment variables for the deployment script
-          export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
-          export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-          export CONFIG_BUCKET_NAME="${{ secrets.CONFIG_BUCKET_NAME }}"
-
-          # Execute blue-green deployment (script will auto-detect target environment)
-          echo "Starting blue-green deployment..."
-          ./blue-green-deploy.sh
+          # Execute server-only deployment (assets already handled by GitHub Actions)
+          echo "Starting server-only blue-green deployment..."
+          ./server-deploy.sh
         EOF
 
     - name: Verify deployment
