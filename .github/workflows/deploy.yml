@@ -2,7 +2,7 @@ name: Blue-Green Zero-Downtime Deployment
 
 on:
   push:
-    branches: [ main, features/cicd-v2 ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
     types: [ closed ]
@@ -69,7 +69,7 @@ jobs:
         aws s3 cp s3://${{ secrets.CONFIG_BUCKET_NAME }}/secrets/envs/app/.env deploy/.env.appprod
         aws s3 cp s3://${{ secrets.CONFIG_BUCKET_NAME }}/key/ssh/portfolio-key.pem deploy/portfolio-key.pem
         chmod 600 deploy/portfolio-key.pem
-        
+
         # Verify files were downloaded
         echo "Verifying downloaded files..."
         ls -la deploy/
@@ -79,7 +79,7 @@ jobs:
       run: |
         echo "Preparing server directories..."
         PUBLIC_IP=$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)
-        
+
         # Create necessary directories on server
         ssh -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no ubuntu@$PUBLIC_IP << 'EOF'
           echo "Creating deployment directories..."
@@ -91,7 +91,7 @@ jobs:
     - name: Build Frontend Assets
       run: |
         echo "Building frontend assets..."
-        
+
         # Backup existing .env file if it exists
         if [ -f ".env" ]; then
           echo "Backing up existing .env file..."
@@ -125,13 +125,13 @@ jobs:
     - name: Backup Current Assets
       run: |
         echo "Backing up current assets before deployment..."
-        
+
         # Load R2 configuration from .env.deploy
         R2_BUCKET_NAME=$(grep '^R2_BUCKET_NAME=' deploy/.env.deploy | cut -d '=' -f2)
         R2_S3_ENDPOINT=$(grep '^R2_S3_ENDPOINT=' deploy/.env.deploy | cut -d '=' -f2)
         R2_ACCESS_KEY_ID=$(grep '^R2_ACCESS_KEY_ID=' deploy/.env.deploy | cut -d '=' -f2)
         R2_SECRET_ACCESS_KEY=$(grep '^R2_SECRET_ACCESS_KEY=' deploy/.env.deploy | cut -d '=' -f2)
-        
+
         if [ -z "$R2_BUCKET_NAME" ] || [ -z "$R2_S3_ENDPOINT" ] || [ -z "$R2_ACCESS_KEY_ID" ] || [ -z "$R2_SECRET_ACCESS_KEY" ]; then
           echo "Warning: R2 configuration missing, skipping asset backup"
           exit 0
@@ -144,28 +144,28 @@ jobs:
         # Generate backup timestamp
         BACKUP_TIMESTAMP=$(date +%Y%m%d_%H%M%S)
         BACKUP_PREFIX="backup_${BACKUP_TIMESTAMP}"
-        
+
         # Store backup info for later use
         echo "$BACKUP_PREFIX" > deploy/.asset_backup_id
-        
+
         echo "Creating asset backup with prefix: $BACKUP_PREFIX"
-        
+
         # Check if current assets exist before backing up
         ASSETS_EXIST=$(aws s3 ls "s3://$R2_BUCKET_NAME/build/" --endpoint-url "$R2_S3_ENDPOINT" 2>/dev/null | wc -l || echo "0")
-        
+
         if [[ "$ASSETS_EXIST" -gt "0" ]]; then
           # Backup build assets
           echo "Backing up build assets..."
           aws s3 sync "s3://$R2_BUCKET_NAME/build" "s3://$R2_BUCKET_NAME/${BACKUP_PREFIX}/build" --endpoint-url "$R2_S3_ENDPOINT" --quiet
-          
+
           # Backup fonts
           echo "Backing up fonts..."
           aws s3 sync "s3://$R2_BUCKET_NAME/fonts" "s3://$R2_BUCKET_NAME/${BACKUP_PREFIX}/fonts" --endpoint-url "$R2_S3_ENDPOINT" --quiet
-          
+
           # Backup images
           echo "Backing up images..."
           aws s3 sync "s3://$R2_BUCKET_NAME/images" "s3://$R2_BUCKET_NAME/${BACKUP_PREFIX}/images" --endpoint-url "$R2_S3_ENDPOINT" --quiet
-          
+
           echo "✅ Assets backed up to: $BACKUP_PREFIX"
         else
           echo "No existing assets found to backup"
@@ -174,13 +174,13 @@ jobs:
     - name: Upload Assets to Cloudflare R2
       run: |
         echo "Uploading static assets to Cloudflare R2..."
-        
+
         # Load R2 configuration from .env.deploy
         R2_BUCKET_NAME=$(grep '^R2_BUCKET_NAME=' deploy/.env.deploy | cut -d '=' -f2)
         R2_S3_ENDPOINT=$(grep '^R2_S3_ENDPOINT=' deploy/.env.deploy | cut -d '=' -f2)
         R2_ACCESS_KEY_ID=$(grep '^R2_ACCESS_KEY_ID=' deploy/.env.deploy | cut -d '=' -f2)
         R2_SECRET_ACCESS_KEY=$(grep '^R2_SECRET_ACCESS_KEY=' deploy/.env.deploy | cut -d '=' -f2)
-        
+
         if [ -z "$R2_BUCKET_NAME" ] || [ -z "$R2_S3_ENDPOINT" ] || [ -z "$R2_ACCESS_KEY_ID" ] || [ -z "$R2_SECRET_ACCESS_KEY" ]; then
           echo "Error: R2 configuration missing. Required: R2_BUCKET_NAME, R2_S3_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY"
           exit 1
@@ -217,11 +217,11 @@ jobs:
     - name: Purge Cloudflare Cache
       run: |
         echo "Purging Cloudflare cache..."
-        
+
         # Load Cloudflare configuration from .env.deploy
         CLOUDFLARE_ZONE_ID=$(grep '^CLOUDFLARE_ZONE_ID=' deploy/.env.deploy | cut -d '=' -f2)
         CLOUDFLARE_API_TOKEN=$(grep '^CLOUDFLARE_API_TOKEN=' deploy/.env.deploy | cut -d '=' -f2)
-        
+
         if [[ -n "$CLOUDFLARE_ZONE_ID" && -n "$CLOUDFLARE_API_TOKEN" ]]; then
           curl -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/purge_cache" \
             -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
@@ -236,24 +236,24 @@ jobs:
       if: success()
       run: |
         echo "Cleaning up asset backup after successful deployment..."
-        
+
         # Check if backup ID exists
         if [ ! -f "deploy/.asset_backup_id" ]; then
           echo "No asset backup to cleanup"
           exit 0
         fi
-        
+
         # Load R2 configuration from .env.deploy
         R2_BUCKET_NAME=$(grep '^R2_BUCKET_NAME=' deploy/.env.deploy | cut -d '=' -f2)
         R2_S3_ENDPOINT=$(grep '^R2_S3_ENDPOINT=' deploy/.env.deploy | cut -d '=' -f2)
         R2_ACCESS_KEY_ID=$(grep '^R2_ACCESS_KEY_ID=' deploy/.env.deploy | cut -d '=' -f2)
         R2_SECRET_ACCESS_KEY=$(grep '^R2_SECRET_ACCESS_KEY=' deploy/.env.deploy | cut -d '=' -f2)
-        
+
         if [ -z "$R2_BUCKET_NAME" ] || [ -z "$R2_S3_ENDPOINT" ] || [ -z "$R2_ACCESS_KEY_ID" ] || [ -z "$R2_SECRET_ACCESS_KEY" ]; then
           echo "Warning: R2 configuration missing, skipping backup cleanup"
           exit 0
         fi
-        
+
         BACKUP_PREFIX=$(cat deploy/.asset_backup_id)
         echo "Cleaning up backup: $BACKUP_PREFIX"
 
@@ -263,17 +263,17 @@ jobs:
 
         # Remove backup from R2
         aws s3 rm "s3://$R2_BUCKET_NAME/${BACKUP_PREFIX}" --endpoint-url "$R2_S3_ENDPOINT" --recursive --quiet
-        
+
         # Remove local backup ID file
         rm -f deploy/.asset_backup_id
-        
+
         echo "✅ Asset backup cleaned up: $BACKUP_PREFIX"
 
     - name: Sync Repository to Server
       run: |
         echo "Syncing repository to server..."
         PUBLIC_IP=$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)
-        
+
         # Ensure server repository is on the correct branch and up to date
         ssh -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no ubuntu@$PUBLIC_IP << EOF
           cd /opt/portfolio
@@ -293,7 +293,7 @@ jobs:
       id: deploy
       run: |
         echo "Executing blue-green deployment with enhanced script"
-        
+
         # Determine trigger type for logging
         if [[ "${{ github.event_name }}" == "push" ]]; then
           echo "🚀 Triggered by push to ${{ github.ref_name }}"
@@ -310,7 +310,7 @@ jobs:
         # Upload the server-only deployment script
         echo "Uploading server deployment script..."
         scp -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no deploy/cicd/server-deploy.sh ubuntu@$PUBLIC_IP:/opt/portfolio/deploy/cicd/
-        
+
         # Upload status script as well
         echo "Uploading status script..."
         scp -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no deploy/cicd/status.sh ubuntu@$PUBLIC_IP:/opt/portfolio/deploy/cicd/
@@ -331,7 +331,7 @@ jobs:
       run: |
         echo "Verifying deployment..."
         PUBLIC_IP=$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)
-        
+
         # Test public endpoints
         echo "Testing HTTP endpoint..."
         if curl -f -s --max-time 30 "http://$PUBLIC_IP" > /dev/null; then
@@ -339,38 +339,38 @@ jobs:
         else
           echo "⚠️ HTTP endpoint test failed"
         fi
-        
+
         echo "Testing HTTPS endpoint..."
         if curl -f -s --max-time 30 "https://harun.dev" > /dev/null; then
           echo "✅ HTTPS endpoint is responding"
         else
           echo "⚠️ HTTPS endpoint test failed"
         fi
-        
+
         echo "Deployment verification completed"
 
     - name: Rollback Assets on Failure
       if: failure()
       run: |
         echo "🚨 Rolling back assets due to deployment failure..."
-        
+
         # Check if backup ID exists
         if [ ! -f "deploy/.asset_backup_id" ]; then
           echo "No asset backup found to rollback"
           exit 0
         fi
-        
+
         # Load R2 configuration from .env.deploy
         R2_BUCKET_NAME=$(grep '^R2_BUCKET_NAME=' deploy/.env.deploy | cut -d '=' -f2)
         R2_S3_ENDPOINT=$(grep '^R2_S3_ENDPOINT=' deploy/.env.deploy | cut -d '=' -f2)
         R2_ACCESS_KEY_ID=$(grep '^R2_ACCESS_KEY_ID=' deploy/.env.deploy | cut -d '=' -f2)
         R2_SECRET_ACCESS_KEY=$(grep '^R2_SECRET_ACCESS_KEY=' deploy/.env.deploy | cut -d '=' -f2)
-        
+
         if [ -z "$R2_BUCKET_NAME" ] || [ -z "$R2_S3_ENDPOINT" ] || [ -z "$R2_ACCESS_KEY_ID" ] || [ -z "$R2_SECRET_ACCESS_KEY" ]; then
           echo "Warning: R2 configuration missing, skipping asset rollback"
           exit 0
         fi
-        
+
         BACKUP_PREFIX=$(cat deploy/.asset_backup_id)
         echo "Rolling back assets from backup: $BACKUP_PREFIX"
 
@@ -380,20 +380,20 @@ jobs:
 
         # Check if backup exists
         BACKUP_EXISTS=$(aws s3 ls "s3://$R2_BUCKET_NAME/${BACKUP_PREFIX}/" --endpoint-url "$R2_S3_ENDPOINT" 2>/dev/null | wc -l || echo "0")
-        
+
         if [[ "$BACKUP_EXISTS" -gt "0" ]]; then
           # Restore build assets
           echo "Restoring build assets from backup..."
           aws s3 sync "s3://$R2_BUCKET_NAME/${BACKUP_PREFIX}/build" "s3://$R2_BUCKET_NAME/build" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
-          
+
           # Restore fonts
           echo "Restoring fonts from backup..."
           aws s3 sync "s3://$R2_BUCKET_NAME/${BACKUP_PREFIX}/fonts" "s3://$R2_BUCKET_NAME/fonts" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
-          
+
           # Restore images
           echo "Restoring images from backup..."
           aws s3 sync "s3://$R2_BUCKET_NAME/${BACKUP_PREFIX}/images" "s3://$R2_BUCKET_NAME/images" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
-          
+
           echo "✅ Assets restored from backup: $BACKUP_PREFIX"
         else
           echo "⚠️ Backup not found: $BACKUP_PREFIX"
@@ -409,10 +409,10 @@ jobs:
           cd /opt/portfolio
 
           echo "Determining current environment for rollback..."
-          
+
           # Get current active environment from Traefik
           CURRENT_SERVICE=$(curl -s http://localhost:8080/api/rawdata 2>/dev/null | jq -r '.http.services | to_entries[] | select(.value.loadBalancer.servers[0].url | contains("nginx_")) | .key' | head -1 2>/dev/null || echo "")
-          
+
           if [[ "$CURRENT_SERVICE" == "web-blue" ]]; then
             ROLLBACK_ENV="green"
             CURRENT_ENV="blue"
