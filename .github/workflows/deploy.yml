@@ -1,0 +1,141 @@
+name: Blue-Green Zero-Downtime Deployment
+
+on:
+  push:
+    branches: [ main, features/cicd-v2 ]
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force deployment even if no changes detected'
+        required: false
+        default: 'false'
+        type: boolean
+
+env:
+  DEPLOYMENT_TIMEOUT: 1800  # 30 minutes
+
+jobs:
+  deploy:
+    name: Blue-Green Deployment
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Setup AWS CLI
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Download deployment configuration
+      run: |
+        # Download deployment files from S3
+        aws s3 cp s3://${{ secrets.CONFIG_BUCKET_NAME }}/secrets/envs/docker/.env deploy/.env.deploy
+        aws s3 cp s3://${{ secrets.CONFIG_BUCKET_NAME }}/secrets/envs/app/.env deploy/.env.appprod
+        aws s3 cp s3://${{ secrets.CONFIG_BUCKET_NAME }}/key/ssh/portfolio-key.pem deploy/portfolio-key.pem
+        chmod 600 deploy/portfolio-key.pem
+
+    - name: Execute Blue-Green Deployment
+      id: deploy
+      run: |
+        echo "Executing blue-green deployment with enhanced script"
+
+        # Set environment variables for deployment
+        export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+        export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+        export CONFIG_BUCKET_NAME="${{ secrets.CONFIG_BUCKET_NAME }}"
+
+        # Copy the blue-green deployment script to the server and execute it
+        PUBLIC_IP=$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)
+
+        # Upload the blue-green deployment script
+        scp -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no deploy/cicd/blue-green-deploy.sh ubuntu@$PUBLIC_IP:/opt/portfolio/deploy/cicd/
+
+        # Execute the blue-green deployment on the server
+        ssh -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no ubuntu@$PUBLIC_IP << EOF
+          mkdir -p /opt/portfolio/deploy/cicd
+          cd /opt/portfolio/deploy/cicd
+          chmod +x blue-green-deploy.sh
+
+          # Set environment variables for the deployment script
+          export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+          export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          export CONFIG_BUCKET_NAME="${{ secrets.CONFIG_BUCKET_NAME }}"
+
+          # Execute blue-green deployment (script will auto-detect target environment)
+          ./blue-green-deploy.sh
+        EOF
+
+    - name: Rollback on failure
+      if: failure()
+      run: |
+        echo "🚨 Deployment failed, attempting rollback..."
+        PUBLIC_IP=$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)
+
+        ssh -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no ubuntu@$PUBLIC_IP << EOF
+          cd /opt/portfolio
+
+          echo "Determining current environment for rollback..."
+          
+          # Get current active environment from Traefik
+          CURRENT_SERVICE=\$(curl -s http://localhost:8080/api/rawdata 2>/dev/null | jq -r '.http.services | to_entries[] | select(.value.loadBalancer.servers[0].url | contains("nginx_")) | .key' | head -1 2>/dev/null || echo "")
+          
+          if [[ "\$CURRENT_SERVICE" == "web-blue" ]]; then
+            ROLLBACK_ENV="green"
+            CURRENT_ENV="blue"
+          elif [[ "\$CURRENT_SERVICE" == "web-green" ]]; then
+            ROLLBACK_ENV="blue"
+            CURRENT_ENV="green"
+          else
+            # Default rollback strategy
+            ROLLBACK_ENV="blue"
+            CURRENT_ENV="green"
+          fi
+
+          echo "Rolling back from \$CURRENT_ENV to \$ROLLBACK_ENV environment"
+
+          # Revert Traefik configuration to rollback environment
+          sed -i "s/service: web-\$CURRENT_ENV/service: web-\$ROLLBACK_ENV/g" docker/traefik-dynamic.yml
+
+          # Ensure rollback environment is running
+          docker compose -f docker/docker-compose.yml up -d php_\$ROLLBACK_ENV nginx_\$ROLLBACK_ENV
+
+          # Stop failed current environment
+          docker compose -f docker/docker-compose.yml stop php_\$CURRENT_ENV nginx_\$CURRENT_ENV
+
+          echo "Rollback completed - traffic restored to \$ROLLBACK_ENV environment"
+        EOF
+
+    - name: Deployment summary
+      if: always()
+      run: |
+        echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🔗 Links" >> $GITHUB_STEP_SUMMARY
+        echo "- [Production Site](https://harun.dev)" >> $GITHUB_STEP_SUMMARY
+        echo "- [Traefik Dashboard](http://$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2):8080)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📋 Features" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ NPM build and asset compilation" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Cloudflare R2 asset upload" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Smart environment detection" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Zero-downtime blue-green deployment" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Comprehensive health checks" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Automatic rollback on failure" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Environment rotation for next cycle" >> $GITHUB_STEP_SUMMARY

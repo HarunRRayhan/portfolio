@@ -103,4 +103,22 @@ Route::get('/terms', function () {
     return Inertia::render('Terms');
 })->name('terms');
 
+// Health check endpoint for blue-green deployment
+Route::get('/health', function () {
+    try {
+        // Test database connection silently
+        \DB::connection()->getPdo();
+        
+        return response()->json([
+            'status' => 'ok',
+            'timestamp' => now()->toISOString()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'timestamp' => now()->toISOString()
+        ], 503);
+    }
+})->name('health');
+
 require __DIR__.'/auth.php';
