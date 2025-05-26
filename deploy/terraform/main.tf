@@ -117,7 +117,7 @@ resource "cloudflare_dns_record" "root_a" {
     name    = "@"
     type    = "A"
     content = aws_lightsail_static_ip.portfolio.ip_address
-    proxied = false
+    proxied = true
     ttl     = 1
 }
 
@@ -130,18 +130,32 @@ resource "cloudflare_dns_record" "www_cname" {
     ttl     = 1
 }
 
-# Redirect www.harun.dev to harun.dev using Cloudflare Page Rules
-resource "cloudflare_page_rule" "redirect_www" {
-    zone_id  = var.cloudflare_zone_id
-    target   = "www.harun.dev/*"
-    priority = 1
+# Simple www redirect using Workers
+resource "cloudflare_workers_script" "www_redirect" {
+    account_id  = var.cloudflare_account_id
+    script_name = "www-redirect-harun-dev"
+    content = <<-EOF
+addEventListener('fetch', event => {
+  event.respondWith(handleRequest(event.request))
+})
 
-    actions = {
-        forwarding_url = {
-            url         = "https://harun.dev/$1"
-            status_code = 301
-        }
-    }
+async function handleRequest(request) {
+  const url = new URL(request.url)
+  
+  if (url.hostname === 'www.harun.dev') {
+    const redirectUrl = 'https://harun.dev' + url.pathname + url.search
+    return Response.redirect(redirectUrl, 301)
+  }
+  
+  return fetch(request)
+}
+EOF
+}
+
+resource "cloudflare_workers_route" "www_redirect_route" {
+    zone_id = var.cloudflare_zone_id
+    pattern = "www.harun.dev/*"
+    script  = cloudflare_workers_script.www_redirect.script_name
 }
 
 
