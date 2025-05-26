@@ -92,7 +92,8 @@ execute_ssh() {
   local retry_count=0
   
   while [ $retry_count -lt $max_retries ]; do
-    if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i "$SSH_KEY" "$REMOTE_USER@$PUBLIC_IP" "$command"; then
+    # Use bash -c to properly handle complex commands and avoid color code issues
+    if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i "$SSH_KEY" "$REMOTE_USER@$PUBLIC_IP" "bash -c '$command'"; then
       return 0
     else
       retry_count=$((retry_count + 1))
@@ -181,6 +182,42 @@ build_frontend_assets() {
   return 0
 }
 
+# Function to backup current assets before deployment (local only)
+backup_current_assets() {
+  local context=$(detect_execution_context)
+  if [ "$context" = "server" ]; then
+    log "Skipping asset backup on server"
+    return 0
+  fi
+
+  log "Creating backup of current assets..."
+  
+  # Store current AWS credentials
+  local original_access_key="$AWS_ACCESS_KEY_ID"
+  local original_secret_key="$AWS_SECRET_ACCESS_KEY"
+  
+  # Set R2 credentials
+  export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
+  export AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
+  
+  # Create backup with timestamp
+  local backup_timestamp=$(date +%Y%m%d-%H%M%S)
+  
+  # Backup current build assets
+  aws s3 sync "s3://$R2_BUCKET_NAME/build" "s3://$R2_BUCKET_NAME/backups/$backup_timestamp/build" \
+    --endpoint-url "$R2_S3_ENDPOINT" || warning "Failed to backup build assets"
+  
+  # Store backup timestamp for potential rollback
+  echo "$backup_timestamp" > /tmp/asset_backup_timestamp
+  
+  # Restore original AWS credentials
+  export AWS_ACCESS_KEY_ID="$original_access_key"
+  export AWS_SECRET_ACCESS_KEY="$original_secret_key"
+  
+  success "Asset backup created: $backup_timestamp"
+  return 0
+}
+
 # Function to upload assets to Cloudflare R2 (local only)
 upload_assets_to_r2() {
   local context=$(detect_execution_context)
@@ -230,6 +267,45 @@ upload_assets_to_r2() {
   return 0
 }
 
+# Function to restore assets from backup (local only)
+restore_assets_from_backup() {
+  local context=$(detect_execution_context)
+  if [ "$context" = "server" ]; then
+    log "Skipping asset restoration on server"
+    return 0
+  fi
+
+  if [ ! -f /tmp/asset_backup_timestamp ]; then
+    warning "No asset backup timestamp found, skipping asset restoration"
+    return 0
+  fi
+
+  local backup_timestamp=$(cat /tmp/asset_backup_timestamp)
+  log "Restoring assets from backup: $backup_timestamp"
+  
+  # Store current AWS credentials
+  local original_access_key="$AWS_ACCESS_KEY_ID"
+  local original_secret_key="$AWS_SECRET_ACCESS_KEY"
+  
+  # Set R2 credentials
+  export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
+  export AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
+  
+  # Restore build assets from backup
+  aws s3 sync "s3://$R2_BUCKET_NAME/backups/$backup_timestamp/build" "s3://$R2_BUCKET_NAME/build" \
+    --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+  
+  # Restore original AWS credentials
+  export AWS_ACCESS_KEY_ID="$original_access_key"
+  export AWS_SECRET_ACCESS_KEY="$original_secret_key"
+  
+  # Clean up backup timestamp
+  rm -f /tmp/asset_backup_timestamp
+  
+  success "Assets restored from backup: $backup_timestamp"
+  return 0
+}
+
 # Function to detect current active environment via Traefik
 detect_active_environment() {
   log "Detecting current active environment..."
@@ -259,9 +335,12 @@ detect_active_environment() {
     echo "blue"
   elif [[ "$green_status" == "running" ]] && [[ "$blue_status" != "running" ]]; then
     echo "green"
+  elif [[ "$green_status" == "running" ]] && [[ "$blue_status" == "running" ]]; then
+    # If both are running, check which one is active via Traefik or default to green
+    echo "green"
   else
-    # Default to blue if both or neither are running
-    echo "blue"
+    # If neither are running, start with green as the baseline
+    echo "none"
   fi
 }
 
@@ -309,6 +388,12 @@ deploy_to_environment() {
   
   # Copy routes file into container and clear caches
   execute_ssh "cd $APP_DIR && docker cp routes/web.php php_$target_env:/var/www/html/routes/web.php"
+  
+  # Ensure storage directories exist and have proper permissions
+  execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$target_env mkdir -p /var/www/html/storage/framework/{cache,sessions,views,testing}"
+  execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$target_env chown -R www-data:www-data /var/www/html/storage"
+  execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$target_env chmod -R 775 /var/www/html/storage"
+  
   execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan cache:clear"
   execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan route:clear"
   execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan config:clear"
@@ -364,7 +449,7 @@ switch_traffic() {
     sleep 2
     
     # Check if traffic is being routed to the target environment
-    local public_response=$(curl -s -o /dev/null -w '%{http_code}' "http://$PUBLIC_IP/health" 2>/dev/null || echo '000')
+    local public_response=$(curl -s -o /dev/null -w '%{http_code}' "https://harun.dev/health" 2>/dev/null || echo '000')
     
     if [ "$public_response" = "200" ]; then
       success "Traffic successfully switched to $target_env environment"
@@ -417,6 +502,9 @@ rollback_deployment() {
   
   error "Deployment failed, initiating rollback..."
   
+  # Restore assets from backup first
+  restore_assets_from_backup
+  
   # Stop failed environment containers
   execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml stop php_$failed_env nginx_$failed_env || true"
   execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml rm -f php_$failed_env nginx_$failed_env || true"
@@ -424,10 +512,30 @@ rollback_deployment() {
   # Ensure current environment is running
   execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml up -d php_$current_env nginx_$current_env"
   
+  # Copy routes file into current environment container and clear caches
+  execute_ssh "cd $APP_DIR && docker cp routes/web.php php_$current_env:/var/www/html/routes/web.php"
+  execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$current_env php artisan cache:clear"
+  execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$current_env php artisan route:clear"
+  execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$current_env php artisan config:clear"
+  execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T php_$current_env php artisan route:cache"
+  
   # Revert Traefik configuration
   execute_ssh "cd $APP_DIR && sed -i \"s/service: web-${failed_env}/service: web-${current_env}/g\" docker/traefik-dynamic.yml"
   
-  warning "Rollback completed. Traffic restored to $current_env environment."
+  # Purge CDN cache to ensure restored assets are served
+  purge_cdn_cache
+  
+  # Wait for rollback to take effect
+  sleep 10
+  
+  # Verify rollback health
+  local rollback_health=$(execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T nginx_$current_env curl -s -o /dev/null -w '%{http_code}' http://localhost:80/health 2>/dev/null || echo '000'")
+  
+  if [ "$rollback_health" = "200" ]; then
+    success "Rollback completed successfully. Traffic restored to $current_env environment."
+  else
+    error "Rollback health check failed. Manual intervention may be required."
+  fi
 }
 
 # Function to purge CDN cache
@@ -461,6 +569,11 @@ main() {
     exit 1
   fi
   
+  # Backup current assets before deployment (local only)
+  if ! backup_current_assets; then
+    warning "Failed to backup current assets, continuing deployment..."
+  fi
+  
   # Build frontend assets (local only)
   if ! build_frontend_assets; then
     exit 1
@@ -474,6 +587,15 @@ main() {
   # Detect current active environment
   local current_env=$(detect_active_environment)
   log "Current active environment: $current_env"
+  
+  # Handle case where no environment is running
+  if [ "$current_env" = "none" ]; then
+    log "No environment currently running, starting with green as baseline"
+    current_env="green"
+    # Ensure green environment is running
+    execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml up -d php_green nginx_green"
+    sleep 10
+  fi
   
   # Determine target environment
   local target_env=$(determine_target_environment "$current_env")
