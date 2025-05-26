@@ -445,6 +445,67 @@ perform_health_checks() {
   return 1
 }
 
+# Function to perform comprehensive site verification
+perform_site_verification() {
+  local max_attempts=10
+  local attempt=1
+  
+  log "Performing comprehensive site verification..."
+  
+  while [ $attempt -le $max_attempts ]; do
+    # Test main site
+    local site_status=$(curl -s -o /dev/null -w '%{http_code}' "https://harun.dev" 2>/dev/null || echo '000')
+    
+    if [ "$site_status" = "200" ]; then
+      # Test health endpoint
+      local health_status=$(curl -s -o /dev/null -w '%{http_code}' "https://harun.dev/health" 2>/dev/null || echo '000')
+      
+      if [ "$health_status" = "200" ]; then
+        # Get asset filenames from the server's manifest file
+        local manifest_content=$(execute_ssh "cd $APP_DIR && cat public/build/manifest.json" 2>/dev/null || echo '{}')
+        
+        if [ "$manifest_content" != "{}" ]; then
+          # Extract CSS and JS filenames from manifest
+          local css_file=$(echo "$manifest_content" | grep -o '"assets/app-[^"]*\.css"' | head -1 | tr -d '"')
+          local js_file=$(echo "$manifest_content" | grep -o '"assets/app-[^"]*\.js"' | head -1 | tr -d '"')
+          
+          if [ -n "$css_file" ] && [ -n "$js_file" ]; then
+            # Test actual assets referenced in the server's manifest
+            local css_status=$(curl -s -o /dev/null -w '%{http_code}' "https://cdn.harun.dev/build/$css_file" 2>/dev/null || echo '000')
+            local js_status=$(curl -s -o /dev/null -w '%{http_code}' "https://cdn.harun.dev/build/$js_file" 2>/dev/null || echo '000')
+            
+            if [ "$css_status" = "200" ] && [ "$js_status" = "200" ]; then
+              success "Site verification passed - all components working"
+              log "✅ Main site: $site_status"
+              log "✅ Health endpoint: $health_status" 
+              log "✅ CSS assets ($css_file): $css_status"
+              log "✅ JS assets ($js_file): $js_status"
+              return 0
+            else
+              log "Asset verification failed (CSS $css_file: $css_status, JS $js_file: $js_status)"
+            fi
+          else
+            log "Could not extract asset filenames from server manifest"
+          fi
+        else
+          log "Could not retrieve manifest from server"
+        fi
+      else
+        log "Health endpoint failed: $health_status"
+      fi
+    else
+      log "Main site failed: $site_status"
+    fi
+    
+    log "Site verification attempt $attempt/$max_attempts failed, retrying..."
+    sleep 10
+    attempt=$((attempt + 1))
+  done
+  
+  error "Site verification failed after $max_attempts attempts"
+  return 1
+}
+
 # Function to switch traffic to target environment
 switch_traffic() {
   local target_env="$1"
@@ -577,6 +638,59 @@ rollback_deployment() {
   fi
 }
 
+# Function to verify asset synchronization
+verify_asset_synchronization() {
+  local context=$(detect_execution_context)
+  if [ "$context" = "server" ]; then
+    log "Skipping asset synchronization verification on server"
+    return 0
+  fi
+
+  log "Verifying asset synchronization between manifest and R2..."
+  
+  # Store current AWS credentials
+  local original_access_key="$AWS_ACCESS_KEY_ID"
+  local original_secret_key="$AWS_SECRET_ACCESS_KEY"
+  
+  # Set R2 credentials
+  export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
+  export AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
+  
+  # Check a few key assets from manifest
+  local manifest_file="$REPO_ROOT/public/build/manifest.json"
+  if [ ! -f "$manifest_file" ]; then
+    error "Manifest file not found: $manifest_file"
+    return 1
+  fi
+  
+  # Extract a few asset filenames from manifest
+  local css_file=$(grep -o '"assets/app-[^"]*\.css"' "$manifest_file" | head -1 | tr -d '"')
+  local js_file=$(grep -o '"assets/app-[^"]*\.js"' "$manifest_file" | head -1 | tr -d '"')
+  
+  if [ -n "$css_file" ] && [ -n "$js_file" ]; then
+    # Check if these files exist in R2
+    local css_exists=$(aws s3 ls "s3://$R2_BUCKET_NAME/build/$css_file" --endpoint-url "$R2_S3_ENDPOINT" 2>/dev/null | wc -l)
+    local js_exists=$(aws s3 ls "s3://$R2_BUCKET_NAME/build/$js_file" --endpoint-url "$R2_S3_ENDPOINT" 2>/dev/null | wc -l)
+    
+    if [ "$css_exists" -gt 0 ] && [ "$js_exists" -gt 0 ]; then
+      success "Asset synchronization verified - manifest and R2 are in sync"
+    else
+      error "Asset synchronization failed - manifest references files not in R2"
+      log "CSS file ($css_file) exists in R2: $css_exists"
+      log "JS file ($js_file) exists in R2: $js_exists"
+      return 1
+    fi
+  else
+    warning "Could not extract asset filenames from manifest for verification"
+  fi
+  
+  # Restore original AWS credentials
+  export AWS_ACCESS_KEY_ID="$original_access_key"
+  export AWS_SECRET_ACCESS_KEY="$original_secret_key"
+  
+  return 0
+}
+
 # Function to purge CDN cache
 purge_cdn_cache() {
   if [ -z "$CLOUDFLARE_ZONE_ID" ] || [ -z "$CLOUDFLARE_API_TOKEN" ]; then
@@ -626,6 +740,11 @@ main() {
     
     # Upload assets to R2
     if ! upload_assets_to_r2; then
+      exit 1
+    fi
+    
+    # Verify asset synchronization
+    if ! verify_asset_synchronization; then
       exit 1
     fi
     
@@ -680,6 +799,12 @@ main() {
   
   # Switch traffic to target environment
   if ! switch_traffic "$target_env"; then
+    rollback_deployment "$target_env" "$current_env"
+    exit 1
+  fi
+  
+  # Perform comprehensive site verification
+  if ! perform_site_verification; then
     rollback_deployment "$target_env" "$current_env"
     exit 1
   fi
