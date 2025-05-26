@@ -292,19 +292,64 @@ test_environment_health() {
     return 1
   fi
   
-  # Test health endpoint
+  # First test if nginx is responding to basic requests
+  log "Testing basic nginx connectivity for $env environment..."
+  local basic_attempts=0
+  local basic_max_attempts=10
+  
+  while [ $basic_attempts -lt $basic_max_attempts ]; do
+    local basic_status=$(execute_ssh "docker compose -f /opt/portfolio/docker/docker-compose.yml exec -T nginx_$env curl -s -o /dev/null -w '%{http_code}' http://localhost:80/ 2>/dev/null" || echo "000")
+    
+    if [[ "$basic_status" =~ ^[2-3][0-9][0-9]$ ]]; then
+      log "Basic nginx connectivity confirmed for $env environment (HTTP $basic_status)"
+      break
+    fi
+    
+    basic_attempts=$((basic_attempts + 1))
+    log "Waiting for basic nginx connectivity... (attempt $basic_attempts/$basic_max_attempts)"
+    sleep 3
+  done
+  
+  # Test health endpoint with more detailed debugging
   local attempts=0
   local max_attempts=30
   
   while [ $attempts -lt $max_attempts ]; do
-    if execute_ssh "docker compose -f /opt/portfolio/docker/docker-compose.yml exec -T nginx_$env curl -f -s http://localhost:80/health" > /dev/null 2>&1; then
+    # Check if health endpoint is responding
+    local nginx_status=$(execute_ssh "docker compose -f /opt/portfolio/docker/docker-compose.yml exec -T nginx_$env curl -s -o /dev/null -w '%{http_code}' http://localhost:80/health 2>/dev/null" || echo "000")
+    
+    if [[ "$nginx_status" == "200" ]]; then
       success "$env environment health check passed"
       return 0
+    elif [[ "$nginx_status" == "000" ]]; then
+      log "Health check attempt $attempts/$max_attempts for $env environment... (nginx not responding)"
+    else
+      log "Health check attempt $attempts/$max_attempts for $env environment... (HTTP $nginx_status)"
+      
+      # If we get a non-200 response, let's check what the actual response is
+      if [[ $attempts -eq 5 || $attempts -eq 15 || $attempts -eq 25 ]]; then
+        log "=== Debugging HTTP $nginx_status response ==="
+        execute_ssh "docker compose -f /opt/portfolio/docker/docker-compose.yml exec -T nginx_$env curl -s http://localhost:80/health" || true
+        log "=== End debug response ==="
+      fi
     fi
+    
     attempts=$((attempts + 1))
-    log "Health check attempt $attempts/$max_attempts for $env environment..."
     sleep 2
   done
+  
+  # Final diagnostic attempt
+  log "Health check failed, running diagnostics..."
+  log "=== Nginx logs ==="
+  execute_ssh "docker compose -f /opt/portfolio/docker/docker-compose.yml logs --tail=20 nginx_$env" || true
+  log "=== PHP logs ==="
+  execute_ssh "docker compose -f /opt/portfolio/docker/docker-compose.yml logs --tail=20 php_$env" || true
+  log "=== Container status ==="
+  execute_ssh "docker compose -f /opt/portfolio/docker/docker-compose.yml ps php_$env nginx_$env" || true
+  log "=== Network connectivity test ==="
+  execute_ssh "docker compose -f /opt/portfolio/docker/docker-compose.yml exec -T nginx_$env ping -c 2 php_$env" || true
+  log "=== Direct PHP-FPM test ==="
+  execute_ssh "docker compose -f /opt/portfolio/docker/docker-compose.yml exec -T nginx_$env nc -zv php_$env 9000" || true
   
   error "Health check failed for $env environment after $max_attempts attempts"
   return 1
@@ -315,8 +360,8 @@ switch_traffic() {
   local target_env="$1"
   log "Switching traffic to $target_env environment..."
   
-  # Update Traefik dynamic configuration
-  execute_ssh "cd /opt/portfolio && sed -i 's/service: web-blue/service: web-$target_env/g; s/service: web-green/service: web-$target_env/g' docker/traefik-dynamic.yml"
+  # Update Traefik dynamic configuration using a safer approach
+  execute_ssh "cd /opt/portfolio && sed -i \"s/service: web-blue/service: web-$target_env/g; s/service: web-green/service: web-$target_env/g\" docker/traefik-dynamic.yml"
   
   # Wait for Traefik to pick up the configuration change
   log "Waiting for Traefik to update routing..."
@@ -387,6 +432,24 @@ deploy_to_environment() {
   log "Waiting for $target_env containers to be ready..."
   sleep 30
   
+  # Check if containers are actually running before proceeding
+  local attempts=0
+  local max_attempts=10
+  while [ $attempts -lt $max_attempts ]; do
+    if check_containers_running "$target_env"; then
+      log "$target_env containers are running"
+      break
+    fi
+    attempts=$((attempts + 1))
+    log "Waiting for $target_env containers to start... (attempt $attempts/$max_attempts)"
+    sleep 5
+  done
+  
+  if ! check_containers_running "$target_env"; then
+    error "$target_env containers failed to start properly"
+    return 1
+  fi
+  
   # Run Laravel setup commands
   log "Running Laravel setup on $target_env environment..."
   execute_ssh "cd /opt/portfolio && \
@@ -397,6 +460,29 @@ deploy_to_environment() {
   
   # Create storage link if it doesn't exist
   execute_ssh "cd /opt/portfolio && docker compose -f docker/docker-compose.yml exec -T php_$target_env sh -c 'if [ ! -L /var/www/html/public/storage ]; then php artisan storage:link; fi'"
+  
+  # Test database connectivity from PHP container
+  log "Testing database connectivity from $target_env PHP container..."
+  local db_attempts=0
+  local db_max_attempts=10
+  
+  while [ $db_attempts -lt $db_max_attempts ]; do
+    if execute_ssh "cd /opt/portfolio && docker compose -f docker/docker-compose.yml exec -T php_$target_env php artisan tinker --execute='DB::connection()->getPdo(); echo \"DB OK\";'" 2>/dev/null | grep -q "DB OK"; then
+      success "Database connectivity confirmed for $target_env environment"
+      break
+    fi
+    db_attempts=$((db_attempts + 1))
+    log "Waiting for database connectivity... (attempt $db_attempts/$db_max_attempts)"
+    sleep 3
+  done
+  
+  if [ $db_attempts -eq $db_max_attempts ]; then
+    warning "Database connectivity test failed, but continuing deployment"
+  fi
+  
+  # Wait a bit more for Laravel to be fully ready
+  log "Waiting for Laravel application to be ready..."
+  sleep 15
   
   success "$target_env environment deployed successfully"
 }
@@ -422,8 +508,8 @@ rollback() {
   
   error "Deployment failed, rolling back to $current_env environment"
   
-  # Revert Traefik configuration
-  execute_ssh "cd /opt/portfolio && sed -i 's/service: web-$failed_env/service: web-$current_env/g' docker/traefik-dynamic.yml"
+  # Revert Traefik configuration using a safer approach
+  execute_ssh "cd /opt/portfolio && sed -i \"s/service: web-$failed_env/service: web-$current_env/g\" docker/traefik-dynamic.yml"
   
   # Ensure current environment is running
   execute_ssh "cd /opt/portfolio && docker compose -f docker/docker-compose.yml up -d php_$current_env nginx_$current_env"
