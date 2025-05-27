@@ -122,6 +122,69 @@ execute_ssh() {
   done
 }
 
+# Function to download latest environment files from S3 (server only)
+download_latest_env_files_from_s3() {
+  local context=$(detect_execution_context)
+  if [ "$context" = "local" ]; then
+    log "Skipping S3 environment file download on local machine"
+    return 0
+  fi
+
+  log "Downloading latest environment files from S3..."
+  
+  # Check if AWS credentials are available
+  if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$CONFIG_BUCKET_NAME" ]; then
+    warning "AWS credentials or CONFIG_BUCKET_NAME not available, using existing local files"
+    return 0
+  fi
+  
+  export AWS_ACCESS_KEY_ID
+  export AWS_SECRET_ACCESS_KEY
+  
+  # Install AWS CLI if not present
+  if ! command -v aws &> /dev/null; then
+    log "Installing AWS CLI..."
+    curl 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip'
+    sudo apt-get update && sudo apt-get install -y unzip
+    unzip awscliv2.zip
+    sudo ./aws/install
+    rm -rf awscliv2.zip aws
+  fi
+  
+  # Download app environment file
+  log "Downloading app environment file from S3..."
+  if aws s3 cp "s3://$CONFIG_BUCKET_NAME/secrets/envs/app/.env" "$APP_DIR/.env" 2>/dev/null; then
+    log "Successfully downloaded app environment file from S3"
+  else
+    warning "Failed to download app environment file from S3, using existing file"
+  fi
+  
+  # Download docker environment file
+  log "Downloading docker environment file from S3..."
+  if aws s3 cp "s3://$CONFIG_BUCKET_NAME/secrets/envs/docker/.env" "$APP_DIR/docker/.env" 2>/dev/null; then
+    log "Successfully downloaded docker environment file from S3"
+    
+    # Also update the deploy .env.deploy file
+    cp "$APP_DIR/docker/.env" "$DEPLOY_DIR/.env.deploy"
+    
+    # Reload environment variables after downloading updated .env.deploy
+    set -a
+    . "$DEPLOY_DIR/.env.deploy"
+    set +a
+    
+    log "Environment variables reloaded from updated S3 files"
+  else
+    warning "Failed to download docker environment file from S3, using existing file"
+  fi
+  
+  # Generate .env.db for the db service
+  log "Generating .env.db for db service..."
+  grep -E '^(POSTGRES_DB|POSTGRES_USER|POSTGRES_PASSWORD)=' "$APP_DIR/docker/.env" > "$APP_DIR/docker/.env.db" 2>/dev/null || true
+  chmod 600 "$APP_DIR/docker/.env.db" 2>/dev/null || true
+  
+  success "Environment files updated from S3"
+}
+
 # Function to detect execution context
 detect_execution_context() {
   if [[ "$PWD" == *"/opt/portfolio"* ]] || [[ "$HOME" == "/home/ubuntu" ]]; then
@@ -766,6 +829,9 @@ main() {
   
   # Server execution: deploy containers only
   log "Running on server - deploying containers..."
+  
+  # Download latest environment files from S3
+  download_latest_env_files_from_s3
   
   # Detect current active environment
   log "Detecting current active environment..."
