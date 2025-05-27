@@ -2,7 +2,7 @@ name: Blue-Green Zero-Downtime Deployment
 
 on:
   push:
-    branches: [ main, features/cicd-v4 ]
+    branches: [ main ]
   workflow_dispatch:
     inputs:
       force_deploy:
