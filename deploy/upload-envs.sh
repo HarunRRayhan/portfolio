@@ -48,7 +48,26 @@ echo ""
 # Upload app environment file
 if [ -f "$SCRIPT_DIR/.env.appprod" ]; then
   echo -e "${YELLOW}Uploading app environment file...${NC}"
-  aws s3 cp "$SCRIPT_DIR/.env.appprod" "s3://$CONFIG_BUCKET_NAME/secrets/envs/app/.env"
+
+  BUILD_VERSION="${APP_BUILD_VERSION:-$(git -C "$SCRIPT_DIR" rev-parse HEAD 2>/dev/null || date -u +%Y%m%d%H%M%S)}"
+  DEPLOYMENT_ID="${APP_DEPLOYMENT_ID:-$(date -u +%Y%m%dT%H%M%SZ)}"
+  TEMP_ENV_FILE="$(mktemp)"
+  cp "$SCRIPT_DIR/.env.appprod" "$TEMP_ENV_FILE"
+
+  if grep -q '^APP_BUILD_VERSION=' "$TEMP_ENV_FILE"; then
+    sed -i "s/^APP_BUILD_VERSION=.*/APP_BUILD_VERSION=${BUILD_VERSION}/" "$TEMP_ENV_FILE"
+  else
+    printf '\nAPP_BUILD_VERSION=%s\n' "$BUILD_VERSION" >> "$TEMP_ENV_FILE"
+  fi
+
+  if grep -q '^APP_DEPLOYMENT_ID=' "$TEMP_ENV_FILE"; then
+    sed -i "s/^APP_DEPLOYMENT_ID=.*/APP_DEPLOYMENT_ID=${DEPLOYMENT_ID}/" "$TEMP_ENV_FILE"
+  else
+    printf 'APP_DEPLOYMENT_ID=%s\n' "$DEPLOYMENT_ID" >> "$TEMP_ENV_FILE"
+  fi
+
+  aws s3 cp "$TEMP_ENV_FILE" "s3://$CONFIG_BUCKET_NAME/secrets/envs/app/.env"
+  rm -f "$TEMP_ENV_FILE"
   echo -e "${GREEN}✅ App environment uploaded successfully${NC}"
 else
   echo -e "${RED}❌ .env.appprod file not found${NC}"

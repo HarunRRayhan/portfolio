@@ -105,19 +105,27 @@ Route::get('/terms', function () {
 
 // Health check endpoint for blue-green deployment
 Route::get('/health', function () {
+    $app = config('app');
+
     try {
         // Test database connection silently
         \DB::connection()->getPdo();
         
         return response()->json([
             'status' => 'ok',
+            'build_version' => $app['build_version'] ?? 'local',
+            'deployment_id' => $app['deployment_id'] ?? 'local',
             'timestamp' => now()->toISOString()
-        ]);
+        ])->header('X-App-Version', $app['build_version'] ?? 'local')
+          ->header('X-Deployment-Id', $app['deployment_id'] ?? 'local');
     } catch (\Exception $e) {
         return response()->json([
             'status' => 'error',
+            'build_version' => $app['build_version'] ?? 'local',
+            'deployment_id' => $app['deployment_id'] ?? 'local',
             'timestamp' => now()->toISOString()
-        ], 503);
+        ], 503)->header('X-App-Version', $app['build_version'] ?? 'local')
+          ->header('X-Deployment-Id', $app['deployment_id'] ?? 'local');
     }
 })->name('health');
 

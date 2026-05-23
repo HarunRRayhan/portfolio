@@ -60,6 +60,26 @@ jobs:
           ls -la deploy/
           echo "Latest configuration files downloaded successfully"
 
+      - name: Stamp deployment version
+        run: |
+          VERSION="${GITHUB_SHA}"
+          DEPLOYMENT_ID="${GITHUB_RUN_ID}"
+
+          if grep -q '^APP_BUILD_VERSION=' deploy/.env.appprod; then
+            sed -i "s/^APP_BUILD_VERSION=.*/APP_BUILD_VERSION=${VERSION}/" deploy/.env.appprod
+          else
+            printf '\nAPP_BUILD_VERSION=%s\n' "$VERSION" >> deploy/.env.appprod
+          fi
+
+          if grep -q '^APP_DEPLOYMENT_ID=' deploy/.env.appprod; then
+            sed -i "s/^APP_DEPLOYMENT_ID=.*/APP_DEPLOYMENT_ID=${DEPLOYMENT_ID}/" deploy/.env.appprod
+          else
+            printf 'APP_DEPLOYMENT_ID=%s\n' "$DEPLOYMENT_ID" >> deploy/.env.appprod
+          fi
+
+          echo "Stamped deployment version ${VERSION} and deployment id ${DEPLOYMENT_ID}"
+          aws s3 cp deploy/.env.appprod s3://${{ secrets.CONFIG_BUCKET_NAME }}/secrets/envs/app/.env
+
       - name: Ensure server is running and SSH reachable
         run: |
           echo "Checking server state before deployment..."

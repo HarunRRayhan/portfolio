@@ -29,6 +29,9 @@ FROM php:8.4-fpm-alpine AS php-fpm
 RUN apk add --no-cache postgresql-libs postgresql-dev libzip openssl \
     && docker-php-ext-install pdo pdo_pgsql
 
+# Hide PHP version/header disclosure
+RUN echo "expose_php = Off" > /usr/local/etc/php/conf.d/99-hide-x-powered-by.ini
+
 WORKDIR /var/www/html
 
 COPY public ./public
