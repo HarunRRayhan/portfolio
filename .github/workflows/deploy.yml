@@ -82,6 +82,13 @@ jobs:
             aws lightsail start-instance --instance-name "$INSTANCE_NAME"
           fi
 
+          echo "Ensuring Lightsail public ports are open..."
+          for PORT in 22 80 443 8080; do
+            aws lightsail open-instance-public-ports \
+              --instance-name "$INSTANCE_NAME" \
+              --port-info fromPort=$PORT,toPort=$PORT,protocol=tcp
+          done
+
           echo "Waiting for instance to become reachable over SSH..."
           for attempt in $(seq 1 30); do
             if ssh -i deploy/portfolio-key.pem \
