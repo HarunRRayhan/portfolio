@@ -77,6 +77,14 @@ jobs:
           STATE=$(aws lightsail get-instance-state --instance-name "$INSTANCE_NAME" --query 'state.name' --output text 2>/dev/null || echo "unknown")
           echo "Current Lightsail state: $STATE"
 
+          AWS_PUBLIC_IP=$(aws lightsail get-instance --instance-name "$INSTANCE_NAME" --query 'instance.publicIpAddress' --output text 2>/dev/null || echo "")
+          if [ -n "$AWS_PUBLIC_IP" ] && [ "$AWS_PUBLIC_IP" != "None" ] && [ "$AWS_PUBLIC_IP" != "null" ]; then
+            if [ "$AWS_PUBLIC_IP" != "$PUBLIC_IP" ]; then
+              echo "AWS reports a different public IP: $AWS_PUBLIC_IP (was $PUBLIC_IP from deploy config)"
+            fi
+            PUBLIC_IP="$AWS_PUBLIC_IP"
+          fi
+
           if [ "$STATE" != "running" ]; then
             echo "Instance is not running; starting it now..."
             aws lightsail start-instance --instance-name "$INSTANCE_NAME"
@@ -111,6 +119,13 @@ jobs:
         run: |
           echo "Preparing server directories and uploading latest environment files..."
           PUBLIC_IP=$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)
+          AWS_PUBLIC_IP=$(aws lightsail get-instance --instance-name "$INSTANCE_NAME" --query 'instance.publicIpAddress' --output text 2>/dev/null || echo "")
+          if [ -n "$AWS_PUBLIC_IP" ] && [ "$AWS_PUBLIC_IP" != "None" ] && [ "$AWS_PUBLIC_IP" != "null" ]; then
+            if [ "$AWS_PUBLIC_IP" != "$PUBLIC_IP" ]; then
+              echo "AWS reports a different public IP: $AWS_PUBLIC_IP (was $PUBLIC_IP from deploy config)"
+            fi
+            PUBLIC_IP="$AWS_PUBLIC_IP"
+          fi
           SSH_OPTS="-i deploy/portfolio-key.pem -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=15 -o ConnectionAttempts=3"
 
           # Create necessary directories on server
