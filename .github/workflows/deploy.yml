@@ -127,25 +127,29 @@ jobs:
 
           echo "Waiting for instance to become reachable over SSH..."
           REBOOTED=0
-          for attempt in $(seq 1 30); do
+          SSH_ATTEMPTS=15
+          SSH_SLEEP=5
+          SSH_CONNECT_TIMEOUT=5
+
+          for attempt in $(seq 1 $SSH_ATTEMPTS); do
             if ssh -i deploy/portfolio-key.pem \
               -o StrictHostKeyChecking=no \
               -o BatchMode=yes \
-              -o ConnectTimeout=15 \
+              -o ConnectTimeout=$SSH_CONNECT_TIMEOUT \
               ubuntu@$PUBLIC_IP 'echo SSH ready' >/dev/null 2>&1; then
               echo "SSH is reachable"
               exit 0
             fi
 
-            if [ "$attempt" -eq 5 ] && [ "$REBOOTED" -eq 0 ]; then
+            if [ "$attempt" -eq 3 ] && [ "$REBOOTED" -eq 0 ]; then
               echo "SSH still unreachable after initial checks; rebooting the instance..."
               aws lightsail reboot-instance --instance-name "$INSTANCE_NAME"
               REBOOTED=1
-              sleep 60
+              sleep 45
             fi
 
-            echo "SSH not ready yet (attempt $attempt/30); retrying in 10 seconds..."
-            sleep 10
+            echo "SSH not ready yet (attempt $attempt/$SSH_ATTEMPTS); retrying in ${SSH_SLEEP} seconds..."
+            sleep "$SSH_SLEEP"
           done
 
           echo "Error: server did not become reachable over SSH"
@@ -508,8 +512,19 @@ jobs:
         run: |
           echo "🚨 Deployment failed, attempting rollback..."
           PUBLIC_IP=$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)
+          INSTANCE_NAME=$(grep '^INSTANCE_NAME=' deploy/.env.deploy | cut -d '=' -f2)
+          AWS_PUBLIC_IP=$(aws lightsail get-instance --instance-name "$INSTANCE_NAME" --query 'instance.publicIpAddress' --output text 2>/dev/null || echo "")
+          if [ -n "$AWS_PUBLIC_IP" ] && [ "$AWS_PUBLIC_IP" != "None" ] && [ "$AWS_PUBLIC_IP" != "null" ]; then
+            PUBLIC_IP="$AWS_PUBLIC_IP"
+          fi
 
-          ssh -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no ubuntu@$PUBLIC_IP << 'EOF'
+          SSH_OPTS="-i deploy/portfolio-key.pem -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=5 -o ConnectionAttempts=1"
+          if ! ssh $SSH_OPTS ubuntu@$PUBLIC_IP 'true' >/dev/null 2>&1; then
+            echo "⚠️ Server SSH is still unreachable during rollback; skipping server-side rollback to avoid masking the original failure."
+            exit 0
+          fi
+
+          ssh $SSH_OPTS ubuntu@$PUBLIC_IP << 'EOF'
             cd /opt/portfolio
 
             echo "Determining current environment for rollback..."
