@@ -60,13 +60,54 @@ jobs:
           ls -la deploy/
           echo "Latest configuration files downloaded successfully"
 
+      - name: Ensure server is running and SSH reachable
+        run: |
+          echo "Checking server state before deployment..."
+          PUBLIC_IP=$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)
+          INSTANCE_NAME=$(grep '^INSTANCE_NAME=' deploy/.env.deploy | cut -d '=' -f2)
+
+          if [ -z "$PUBLIC_IP" ] || [ -z "$INSTANCE_NAME" ]; then
+            echo "Error: PUBLIC_IP or INSTANCE_NAME missing from deploy/.env.deploy"
+            exit 1
+          fi
+
+          echo "Lightsail instance: $INSTANCE_NAME"
+          echo "Public IP: $PUBLIC_IP"
+
+          STATE=$(aws lightsail get-instance-state --instance-name "$INSTANCE_NAME" --query 'state.name' --output text 2>/dev/null || echo "unknown")
+          echo "Current Lightsail state: $STATE"
+
+          if [ "$STATE" != "running" ]; then
+            echo "Instance is not running; starting it now..."
+            aws lightsail start-instance --instance-name "$INSTANCE_NAME"
+          fi
+
+          echo "Waiting for instance to become reachable over SSH..."
+          for attempt in $(seq 1 30); do
+            if ssh -i deploy/portfolio-key.pem \
+              -o StrictHostKeyChecking=no \
+              -o BatchMode=yes \
+              -o ConnectTimeout=15 \
+              ubuntu@$PUBLIC_IP 'echo SSH ready' >/dev/null 2>&1; then
+              echo "SSH is reachable"
+              exit 0
+            fi
+
+            echo "SSH not ready yet (attempt $attempt/30); retrying in 10 seconds..."
+            sleep 10
+          done
+
+          echo "Error: server did not become reachable over SSH"
+          exit 1
+
       - name: Prepare server directories and upload environment files
         run: |
           echo "Preparing server directories and uploading latest environment files..."
           PUBLIC_IP=$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)
+          SSH_OPTS="-i deploy/portfolio-key.pem -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=15 -o ConnectionAttempts=3"
 
           # Create necessary directories on server
-          ssh -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no ubuntu@$PUBLIC_IP << 'EOF'
+          ssh $SSH_OPTS ubuntu@$PUBLIC_IP << 'EOF'
             echo "Creating deployment directories..."
             sudo mkdir -p /opt/portfolio/deploy/cicd /opt/portfolio/docker
             sudo chown -R ubuntu:ubuntu /opt/portfolio/deploy /opt/portfolio/docker
@@ -75,12 +116,12 @@ jobs:
 
           # Upload latest environment files to server
           echo "Uploading latest environment files to server..."
-          scp -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no deploy/.env.deploy ubuntu@$PUBLIC_IP:/opt/portfolio/deploy/.env.deploy
-          scp -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no deploy/.env.appprod ubuntu@$PUBLIC_IP:/opt/portfolio/.env
-          scp -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no deploy/.env.deploy ubuntu@$PUBLIC_IP:/opt/portfolio/docker/.env
+          scp $SSH_OPTS deploy/.env.deploy ubuntu@$PUBLIC_IP:/opt/portfolio/deploy/.env.deploy
+          scp $SSH_OPTS deploy/.env.appprod ubuntu@$PUBLIC_IP:/opt/portfolio/.env
+          scp $SSH_OPTS deploy/.env.deploy ubuntu@$PUBLIC_IP:/opt/portfolio/docker/.env
 
           # Verify environment files were uploaded
-          ssh -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no ubuntu@$PUBLIC_IP << 'EOF'
+          ssh $SSH_OPTS ubuntu@$PUBLIC_IP << 'EOF'
             echo "Verifying environment files on server..."
             ls -la /opt/portfolio/.env /opt/portfolio/docker/.env /opt/portfolio/deploy/.env.deploy
             echo "Environment files uploaded successfully"
