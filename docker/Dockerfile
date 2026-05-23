@@ -1,5 +1,5 @@
 # Builder stage
-FROM php:8.3-fpm-alpine AS builder
+FROM php:8.4-fpm-alpine AS builder
 
 # Install build dependencies
 RUN apk add --no-cache $PHPIZE_DEPS postgresql-dev libzip-dev zip unzip git \
@@ -23,7 +23,7 @@ RUN wget https://getcomposer.org/composer-stable.phar -O composer.phar \
     && rm composer.phar
 
 # Production image
-FROM php:8.3-fpm-alpine AS php-fpm
+FROM php:8.4-fpm-alpine AS php-fpm
 
 # Install runtime and build dependencies only
 RUN apk add --no-cache postgresql-libs postgresql-dev libzip openssl \
