@@ -98,6 +98,7 @@ jobs:
           done
 
           echo "Waiting for instance to become reachable over SSH..."
+          REBOOTED=0
           for attempt in $(seq 1 30); do
             if ssh -i deploy/portfolio-key.pem \
               -o StrictHostKeyChecking=no \
@@ -106,6 +107,13 @@ jobs:
               ubuntu@$PUBLIC_IP 'echo SSH ready' >/dev/null 2>&1; then
               echo "SSH is reachable"
               exit 0
+            fi
+
+            if [ "$attempt" -eq 5 ] && [ "$REBOOTED" -eq 0 ]; then
+              echo "SSH still unreachable after initial checks; rebooting the instance..."
+              aws lightsail reboot-instance --instance-name "$INSTANCE_NAME"
+              REBOOTED=1
+              sleep 30
             fi
 
             echo "SSH not ready yet (attempt $attempt/30); retrying in 10 seconds..."
