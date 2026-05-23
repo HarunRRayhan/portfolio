@@ -49,7 +49,7 @@ echo ""
 if [ -f "$SCRIPT_DIR/.env.appprod" ]; then
   echo -e "${YELLOW}Uploading app environment file...${NC}"
 
-  BUILD_VERSION="${APP_BUILD_VERSION:-$(git -C "$SCRIPT_DIR" rev-parse HEAD 2>/dev/null || date -u +%Y%m%d%H%M%S)}"
+  BUILD_VERSION="${APP_BUILD_VERSION:-$(git -C "$SCRIPT_DIR" rev-parse HEAD 2>/dev/null || date -u +%Y%m%d%H%M%S)}-$(date -u +%Y%m%dT%H%M%SZ)"
   DEPLOYMENT_ID="${APP_DEPLOYMENT_ID:-$(date -u +%Y%m%dT%H%M%SZ)}"
   TEMP_ENV_FILE="$(mktemp)"
   cp "$SCRIPT_DIR/.env.appprod" "$TEMP_ENV_FILE"
