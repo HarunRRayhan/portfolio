@@ -10,7 +10,7 @@ export function getImageUrl(path: string): string {
   }
 
   // If we're in production, use the asset base URL
-  if (process.env.NODE_ENV === 'production') {
+  if (import.meta.env.PROD) {
     const assetBaseUrl = import.meta.env.VITE_ASSET_BASE_URL || '';
     
     // If asset base URL is configured, use it

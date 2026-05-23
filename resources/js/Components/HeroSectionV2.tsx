@@ -1,6 +1,7 @@
 import {Button} from "@/Components/ui/button"
 import {motion} from "framer-motion"
-import {Github, Linkedin, Twitter, ArrowRight, Mail} from 'lucide-react'
+import {Github, Linkedin, Twitter, Mail} from '@/lib/icons'
+import {ArrowRight} from 'lucide-react'
 import {Link} from '@inertiajs/react'
 import React, {useState, useEffect, useCallback, useRef} from 'react'
 import {getImageUrl} from "../lib/imageUtils"
