@@ -3,7 +3,7 @@ import { Globe, Mail } from 'lucide-react';
 
 export type Icon = ComponentType<SVGProps<SVGSVGElement>>;
 
-const makeBrandIcon = (pathData: string): Icon => (props) =>
+const makeBrandIcon = (pathData: string): Icon => (props: SVGProps<SVGSVGElement>) =>
   createElement(
     'svg',
     {
