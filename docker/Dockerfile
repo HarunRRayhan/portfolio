@@ -27,6 +27,9 @@ COPY resources ./resources
 COPY routes ./routes
 COPY artisan ./
 
+# Remove any stale cached manifests before rebuilding package discovery
+RUN rm -f bootstrap/cache/*.php
+
 # Rebuild package discovery now that the app source exists
 RUN php artisan package:discover --ansi
 
@@ -108,17 +111,16 @@ COPY --from=php-fpm /var/www/html/routes /var/www/html/routes
 COPY --from=php-fpm /var/www/html/database /var/www/html/database
 COPY --from=php-fpm /var/www/html/app /var/www/html/app
 COPY --from=php-fpm /var/www/html/artisan /var/www/html/artisan
-COPY --from=php-fpm /var/www/html/storage /var/www/html/storage
-COPY --from=php-fpm /var/www/html/bootstrap/cache /var/www/html/bootstrap/cache
+COPY --from=php-fpm --chown=nginx:nginx /var/www/html/storage /var/www/html/storage
+COPY --from=php-fpm --chown=nginx:nginx /var/www/html/bootstrap/cache /var/www/html/bootstrap/cache
 
 # Copy entrypoint script
 COPY docker/entrypoint-nginx.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Ensure required directories exist and set proper permissions
+# Ensure writable runtime directories exist with the right permissions
 RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
-    && chown -R nginx:nginx /var/www/html \
-    && chmod -R 755 /var/www/html
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 WORKDIR /var/www/html
 USER nginx
