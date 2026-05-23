@@ -79,11 +79,17 @@ jobs:
 
           AWS_PUBLIC_IP=$(aws lightsail get-instance --instance-name "$INSTANCE_NAME" --query 'instance.publicIpAddress' --output text 2>/dev/null || echo "")
           if [ -n "$AWS_PUBLIC_IP" ] && [ "$AWS_PUBLIC_IP" != "None" ] && [ "$AWS_PUBLIC_IP" != "null" ]; then
+            echo "AWS reports instance public IP: $AWS_PUBLIC_IP"
             if [ "$AWS_PUBLIC_IP" != "$PUBLIC_IP" ]; then
               echo "AWS reports a different public IP: $AWS_PUBLIC_IP (was $PUBLIC_IP from deploy config)"
             fi
             PUBLIC_IP="$AWS_PUBLIC_IP"
+          else
+            echo "Warning: unable to read AWS-reported public IP; using deploy config IP $PUBLIC_IP"
           fi
+
+          echo "Current Lightsail port states:"
+          aws lightsail get-instance-port-states --instance-name "$INSTANCE_NAME" --output json || true
 
           if [ "$STATE" != "running" ]; then
             echo "Instance is not running; starting it now..."
@@ -96,6 +102,8 @@ jobs:
               --instance-name "$INSTANCE_NAME" \
               --port-info fromPort=$PORT,toPort=$PORT,protocol=tcp
           done
+
+          sleep 15
 
           echo "Waiting for instance to become reachable over SSH..."
           REBOOTED=0
@@ -113,7 +121,7 @@ jobs:
               echo "SSH still unreachable after initial checks; rebooting the instance..."
               aws lightsail reboot-instance --instance-name "$INSTANCE_NAME"
               REBOOTED=1
-              sleep 30
+              sleep 60
             fi
 
             echo "SSH not ready yet (attempt $attempt/30); retrying in 10 seconds..."
