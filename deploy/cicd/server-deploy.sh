@@ -168,13 +168,8 @@ determine_target_environment() {
 
 # Function to sync repository on server
 sync_repository() {
-  log "Syncing repository on server..."
-  
-  git fetch origin && git checkout features/deploy-with-traefik && git pull origin features/deploy-with-traefik
-  
-  # Ensure routes file is up to date by copying from local
-  log "Ensuring routes file is synchronized..."
-  
+  log "Repository already synchronized by GitHub Actions; verifying checkout..."
+  git rev-parse --short HEAD >/dev/null 2>&1 || true
   success "Repository synchronized"
 }
 
@@ -183,9 +178,6 @@ deploy_to_environment() {
   local target_env="$1"
   
   log "Deploying to $target_env environment..."
-  
-  # Sync repository first
-  sync_repository
   
   # Build and start containers for target environment
   docker compose -f $APP_DIR/docker/docker-compose.yml build php_$target_env nginx_$target_env

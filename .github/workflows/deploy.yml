@@ -19,6 +19,7 @@ jobs:
     name: Blue-Green Deployment
     runs-on: ubuntu-latest
     environment: production
+    timeout-minutes: 25
     # Only run deployment if:
     # 1. It's a direct push to main branch, OR
     # 2. It's manually triggered

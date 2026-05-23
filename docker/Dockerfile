@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1.7
+
 # Builder stage
 FROM php:8.4-fpm-alpine AS builder
 
@@ -7,8 +9,16 @@ RUN apk add --no-cache $PHPIZE_DEPS postgresql-dev libzip-dev zip unzip git \
 
 WORKDIR /app
 
-# Copy composer files and source
+# Copy only composer metadata first so dependency installation can be cached
 COPY composer.json composer.lock ./
+
+# Install Composer dependencies without app-source-sensitive scripts
+RUN --mount=type=cache,target=/tmp/composer-cache \
+    wget https://getcomposer.org/composer-stable.phar -O composer.phar \
+    && COMPOSER_CACHE_DIR=/tmp/composer-cache php composer.phar install --no-dev --optimize-autoloader --no-interaction --no-scripts \
+    && rm composer.phar
+
+# Copy application source after vendor install so code-only changes don't invalidate the dependency layer
 COPY app ./app
 COPY bootstrap ./bootstrap
 COPY config ./config
@@ -17,10 +27,8 @@ COPY resources ./resources
 COPY routes ./routes
 COPY artisan ./
 
-# Install Composer
-RUN wget https://getcomposer.org/composer-stable.phar -O composer.phar \
-    && php composer.phar install --no-dev --optimize-autoloader \
-    && rm composer.phar
+# Rebuild package discovery now that the app source exists
+RUN php artisan package:discover --ansi
 
 # Production image
 FROM php:8.4-fpm-alpine AS php-fpm
@@ -34,13 +42,7 @@ RUN echo "expose_php = Off" > /usr/local/etc/php/conf.d/99-hide-x-powered-by.ini
 
 WORKDIR /var/www/html
 
-COPY public ./public
-RUN mkdir -p /var/www/html/public && echo 'OK' > /var/www/html/public/health.txt
-
-# Only copy manifest.json from public/build
-COPY public/build/manifest.json ./public/build/manifest.json
-
-# Copy other necessary files
+# Copy stable application layers first so deploy-specific files don't invalidate the cache early
 COPY composer.json ./
 COPY --from=builder /app/vendor ./vendor
 COPY --from=builder /app/app ./app
@@ -50,9 +52,17 @@ COPY --from=builder /app/database ./database
 COPY --from=builder /app/resources ./resources
 COPY --from=builder /app/routes ./routes
 COPY --from=builder /app/artisan ./
-COPY .env ./
+
+# Copy runtime helpers before the frequently changing deploy assets/env
 COPY docker/wait-for-db.sh ./wait-for-db.sh
 COPY docker/entrypoint-php.sh /entrypoint-php.sh
+
+# Deploy-specific content copied last to preserve cache reuse
+COPY public ./public
+RUN mkdir -p /var/www/html/public && echo 'OK' > /var/www/html/public/health.txt
+COPY public/build/manifest.json ./public/build/manifest.json
+COPY .env ./
+
 
 # Ensure required directories exist
 RUN mkdir -p /var/www/html/storage/framework/{cache,sessions,views,testing,logs,cache/data} \
