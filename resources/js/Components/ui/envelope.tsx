@@ -1,12 +1,13 @@
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
+import type { Variants } from "framer-motion";
 
 interface EnvelopeProps {
     onComplete: () => void;
 }
 
 export const Envelope = ({ onComplete }: EnvelopeProps) => {
-    const containerVariants = {
+    const containerVariants: Variants = {
         initial: { 
             scale: 0.5,
             opacity: 0,
@@ -18,7 +19,7 @@ export const Envelope = ({ onComplete }: EnvelopeProps) => {
             y: 0,
             transition: {
                 duration: 0.5,
-                ease: "easeOut"
+                ease: [0.16, 1, 0.3, 1]
             }
         },
         exit: {
