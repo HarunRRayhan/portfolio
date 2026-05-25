@@ -88,7 +88,7 @@ export function Footer() {
               <div className="text-center">
                 <h4 className="text-white font-semibold mb-4">Resources</h4>
                 <ul className="space-y-2">
-                  <li><a href="https://blog.harun.dev" target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors">Blog</a></li>
+                  <li><Link href="/blog" className="text-white/80 hover:text-white transition-colors">Blog</Link></li>
                   <li><Link href="/" className="text-white/80 hover:text-white transition-colors">Portfolio</Link></li>
                 </ul>
               </div>
