@@ -46,10 +46,11 @@ interface BlogPostPageProps {
 
 export default function BlogPostPage({ publication, post, relatedPosts, canonicalUrl, siteUrl }: BlogPostPageProps) {
   const description = post.brief
-  const coverImageUrl = post.coverImageUrl
-    ? post.coverImageUrl.startsWith('/')
-      ? `${siteUrl}${post.coverImageUrl}`
-      : post.coverImageUrl
+  const coverImageUrl = post.coverImageUrl ?? null
+  const metaImageUrl = coverImageUrl
+    ? coverImageUrl.startsWith('/')
+      ? `${siteUrl}${coverImageUrl}`
+      : coverImageUrl
     : null
 
   const structuredData = {
@@ -68,7 +69,7 @@ export default function BlogPostPage({ publication, post, relatedPosts, canonica
       url: publication.url,
     },
     mainEntityOfPage: canonicalUrl,
-    image: coverImageUrl ? [coverImageUrl] : undefined,
+    image: metaImageUrl ? [metaImageUrl] : undefined,
   }
 
   return (
@@ -81,11 +82,11 @@ export default function BlogPostPage({ publication, post, relatedPosts, canonica
         <meta property="og:description" content={description} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={canonicalUrl} />
-        {coverImageUrl ? <meta property="og:image" content={coverImageUrl} /> : null}
-        <meta name="twitter:card" content={coverImageUrl ? 'summary_large_image' : 'summary'} />
+        {metaImageUrl ? <meta property="og:image" content={metaImageUrl} /> : null}
+        <meta name="twitter:card" content={metaImageUrl ? 'summary_large_image' : 'summary'} />
         <meta name="twitter:title" content={post.title} />
         <meta name="twitter:description" content={description} />
-        {coverImageUrl ? <meta name="twitter:image" content={coverImageUrl} /> : null}
+        {metaImageUrl ? <meta name="twitter:image" content={metaImageUrl} /> : null}
         <link rel="canonical" href={canonicalUrl} />
         <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
       </Head>

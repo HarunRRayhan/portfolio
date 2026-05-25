@@ -94,30 +94,30 @@ It will take some time if this is the first snapshot of the instance, size is an
 </blockquote>
 </li>
 <li><p>You will see a task running like this ↓. Wait for a while to finish. A small snapshot wouldn't take much time.
-<img src="/blog-assets/snapshot-restore-of-lightsail-instance-to-lightsail-ec2/lc_Mz-K0d.svg" alt="Export to Amazon EC2" /></p>
+<img src="/blog-assets/snapshot-restore-of-lightsail-instance-to-lightsail-ec2/lc_Mz-K0d.png" alt="Export to Amazon EC2" /></p>
 </li>
 <li><p>After the copy task is completed, go to <a target="_blank" href="https://us-east-1.console.aws.amazon.com/ec2/v2/home?region=us-east-1#Snapshots:">Snapshots of EC2 Management Console</a>. Choose the correct region. You should see your snapshot there.</p>
 </li>
 <li><p>Select the snapshot and click the <strong>Create image from snapshot</strong> from the <strong>Actions</strong> menu
-<img src="/blog-assets/snapshot-restore-of-lightsail-instance-to-lightsail-ec2/AGSDZSL0V.svg" alt="Snapshots on EC2 Management Console" /></p>
+<img src="/blog-assets/snapshot-restore-of-lightsail-instance-to-lightsail-ec2/AGSDZSL0V.png" alt="Snapshots on EC2 Management Console" /></p>
 </li>
 <li><p>Give the name of the image and click the <strong>Create image</strong> button from the bottom of the page
-<img src="/blog-assets/snapshot-restore-of-lightsail-instance-to-lightsail-ec2/rem3kb_a1.svg" alt="Snapshots on EC2 Management Console" /></p>
+<img src="/blog-assets/snapshot-restore-of-lightsail-instance-to-lightsail-ec2/rem3kb_a1.png" alt="Snapshots on EC2 Management Console" /></p>
 </li>
 <li><p>Now go to <a target="_blank" href="https://us-east-1.console.aws.amazon.com/ec2/v2/home?region=us-east-1#Images:visibility=owned-by-me">AMIs page of EC2 Management Console</a>. Choose the correct region, N. Virginia (us-east-1) in my case. You should see all of your AMIs.</p>
 </li>
 <li><p>Select the AMIs you just created and click the <strong>Lunch Instance from AMI</strong> button in the top right corner.
-<img src="/blog-assets/snapshot-restore-of-lightsail-instance-to-lightsail-ec2/WWWDZ_9xk.svg" alt="CleanShot 2022-05-12 at 19.34.19@2x.png" /></p>
+<img src="/blog-assets/snapshot-restore-of-lightsail-instance-to-lightsail-ec2/WWWDZ_9xk.png" alt="CleanShot 2022-05-12 at 19.34.19@2x.png" /></p>
 </li>
 <li><p>You will see a traditional EC2 Lunch page:
-<img src="/blog-assets/snapshot-restore-of-lightsail-instance-to-lightsail-ec2/wxsZxlGt6.svg" alt="CleanShot 2022-05-12 at 19.44.03@2x.png" />
+<img src="/blog-assets/snapshot-restore-of-lightsail-instance-to-lightsail-ec2/wxsZxlGt6.png" alt="CleanShot 2022-05-12 at 19.44.03@2x.png" />
 (A) Give your instance a name. (B) Choose an instance type, for my case, it's free tier eligible t2.micro. (C) Choose existing key pair or create a new one. You need it to log in via SSH. (D) Check the ports you want to open, in my case I selected all of them. </p>
 </li>
 </ol>
 <p>Now, click the <strong>Lunch instance</strong> button from the right sidebar. Wait for a while to instance state to become <strong><em>Running</em></strong> and Status check <strong><em>2/2 checks passed</em></strong>. </p>
 <ol>
 <li>You will see the EC2 Instances page like this:
-<img src="/blog-assets/snapshot-restore-of-lightsail-instance-to-lightsail-ec2/TMySzalyO.svg" alt="CleanShot 2022-05-12 at 19.56.19@2x.png" />
+<img src="/blog-assets/snapshot-restore-of-lightsail-instance-to-lightsail-ec2/TMySzalyO.png" alt="CleanShot 2022-05-12 at 19.56.19@2x.png" />
 Select the instance. Copy the public IP address and try it in the browser. You should see the same page as Amazon Lightsail instance. </li>
 </ol>
 <blockquote>
