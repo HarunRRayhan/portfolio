@@ -120,7 +120,9 @@ class BlogRepository
 
     public function sourceUrl(string $slug): string
     {
-        return rtrim($this->publication()['url'], '/').'/'.$slug;
+        $sourceUrl = rtrim($this->publication()['url'], '/').'/'.$slug;
+
+        return 'https://web.archive.org/web/*/'.$sourceUrl;
     }
 
     /**

@@ -58,7 +58,7 @@ export function BlogDiscussion({ title, sourceUrl, canonicalUrl }: BlogDiscussio
           rel="noreferrer noopener"
           className="inline-flex items-center justify-center rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-[#7C3AED] hover:text-[#7C3AED]"
         >
-          Open original discussion
+          Open archived discussion
         </a>
       </div>
 
@@ -69,7 +69,7 @@ export function BlogDiscussion({ title, sourceUrl, canonicalUrl }: BlogDiscussio
           <p className="font-medium text-slate-800">Giscus is not configured yet.</p>
           <p className="mt-2">
             New blog comments can be enabled by setting the Giscus environment variables. Until then, readers can
-            follow the original thread for discussion.
+            follow the archived thread for discussion.
           </p>
           <p className="mt-2 text-xs text-slate-500">Article: {title}</p>
           <p className="mt-1 text-xs text-slate-500">Canonical: {canonicalUrl}</p>

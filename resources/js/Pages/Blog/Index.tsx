@@ -165,7 +165,7 @@ export default function BlogIndex({ publication, posts, canonicalUrl }: BlogInde
                   rel="noreferrer noopener"
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-[#7C3AED] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#6D28D9]"
                 >
-                  Open legacy source
+                  Open archived source
                   <ExternalLink className="h-4 w-4" />
                 </a>
               </div>
