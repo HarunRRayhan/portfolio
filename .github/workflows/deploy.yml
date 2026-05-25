@@ -84,7 +84,7 @@ jobs:
       - name: Ensure server is running and SSH reachable
         run: |
           echo "Checking server state before deployment..."
-          PUBLIC_IP=$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)
+          PUBLIC_IP="${PUBLIC_IP:-$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)}"
           INSTANCE_NAME=$(grep '^INSTANCE_NAME=' deploy/.env.deploy | cut -d '=' -f2)
 
           if [ -z "$PUBLIC_IP" ] || [ -z "$INSTANCE_NAME" ]; then
@@ -126,6 +126,28 @@ jobs:
 
           sleep 15
 
+          echo "Refreshing public IP after Lightsail start/checks..."
+          AWS_PUBLIC_IP=$(aws lightsail get-instance --instance-name "$INSTANCE_NAME" --query 'instance.publicIpAddress' --output text 2>/dev/null || echo "")
+          if [ -n "$AWS_PUBLIC_IP" ] && [ "$AWS_PUBLIC_IP" != "None" ] && [ "$AWS_PUBLIC_IP" != "null" ]; then
+            if [ "$AWS_PUBLIC_IP" != "$PUBLIC_IP" ]; then
+              echo "AWS reports a different public IP after refresh: $AWS_PUBLIC_IP (was $PUBLIC_IP from deploy config)"
+            fi
+            PUBLIC_IP="$AWS_PUBLIC_IP"
+          else
+            echo "Warning: unable to refresh AWS public IP; using deploy config IP $PUBLIC_IP"
+          fi
+
+          echo "PUBLIC_IP=$PUBLIC_IP" >> "$GITHUB_ENV"
+
+          if grep -q '^PUBLIC_IP=' deploy/.env.deploy; then
+            sed -i "s/^PUBLIC_IP=.*/PUBLIC_IP=${PUBLIC_IP}/" deploy/.env.deploy
+          else
+            printf '\nPUBLIC_IP=%s\n' "$PUBLIC_IP" >> deploy/.env.deploy
+          fi
+
+          aws s3 cp deploy/.env.deploy s3://${{ secrets.CONFIG_BUCKET_NAME }}/secrets/envs/docker/.env
+          echo "Resolved public IP for this job: $PUBLIC_IP"
+
           echo "Waiting for instance to become reachable over SSH..."
           REBOOTED=0
           SSH_ATTEMPTS=15
@@ -159,15 +181,7 @@ jobs:
       - name: Prepare server directories and upload environment files
         run: |
           echo "Preparing server directories and uploading latest environment files..."
-          PUBLIC_IP=$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)
-          INSTANCE_NAME=$(grep '^INSTANCE_NAME=' deploy/.env.deploy | cut -d '=' -f2)
-          AWS_PUBLIC_IP=$(aws lightsail get-instance --instance-name "$INSTANCE_NAME" --query 'instance.publicIpAddress' --output text 2>/dev/null || echo "")
-          if [ -n "$AWS_PUBLIC_IP" ] && [ "$AWS_PUBLIC_IP" != "None" ] && [ "$AWS_PUBLIC_IP" != "null" ]; then
-            if [ "$AWS_PUBLIC_IP" != "$PUBLIC_IP" ]; then
-              echo "AWS reports a different public IP: $AWS_PUBLIC_IP (was $PUBLIC_IP from deploy config)"
-            fi
-            PUBLIC_IP="$AWS_PUBLIC_IP"
-          fi
+          PUBLIC_IP="${PUBLIC_IP:-$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)}"
           SSH_OPTS="-i deploy/portfolio-key.pem -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=15 -o ConnectionAttempts=3"
 
           # Create necessary directories on server
@@ -375,7 +389,7 @@ jobs:
       - name: Sync Repository to Server
         run: |
           echo "Syncing repository to server..."
-          PUBLIC_IP=$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)
+          PUBLIC_IP="${PUBLIC_IP:-$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)}"
 
           # Ensure server repository is on the correct branch and up to date
           ssh -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no ubuntu@$PUBLIC_IP << EOF
@@ -405,7 +419,7 @@ jobs:
           fi
 
           # Get server IP
-          PUBLIC_IP=$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)
+          PUBLIC_IP="${PUBLIC_IP:-$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)}"
           echo "Deploying to server: $PUBLIC_IP"
 
           # Upload the server-only deployment script
@@ -431,7 +445,7 @@ jobs:
         if: success()
         run: |
           echo "Verifying deployment..."
-          PUBLIC_IP=$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)
+          PUBLIC_IP="${PUBLIC_IP:-$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)}"
 
           # Test public endpoints
           echo "Testing HTTP endpoint..."
@@ -512,7 +526,7 @@ jobs:
         if: failure()
         run: |
           echo "🚨 Deployment failed, attempting rollback..."
-          PUBLIC_IP=$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)
+          PUBLIC_IP="${PUBLIC_IP:-$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)}"
           INSTANCE_NAME=$(grep '^INSTANCE_NAME=' deploy/.env.deploy | cut -d '=' -f2)
           AWS_PUBLIC_IP=$(aws lightsail get-instance --instance-name "$INSTANCE_NAME" --query 'instance.publicIpAddress' --output text 2>/dev/null || echo "")
           if [ -n "$AWS_PUBLIC_IP" ] && [ "$AWS_PUBLIC_IP" != "None" ] && [ "$AWS_PUBLIC_IP" != "null" ]; then
@@ -573,7 +587,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🔗 Links" >> $GITHUB_STEP_SUMMARY
           echo "- [Production Site](https://harun.dev)" >> $GITHUB_STEP_SUMMARY
-          echo "- [Traefik Dashboard](http://$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2):8080)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Traefik Dashboard](http://${PUBLIC_IP:-$(grep '^PUBLIC_IP=' deploy/.env.deploy | cut -d '=' -f2)}:8080)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📋 Features" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ NPM build and asset compilation (GitHub Actions)" >> $GITHUB_STEP_SUMMARY
