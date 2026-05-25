@@ -168,13 +168,8 @@ determine_target_environment() {
 
 # Function to sync repository on server
 sync_repository() {
-  log "Syncing repository on server..."
-  
-  git fetch origin && git checkout features/deploy-with-traefik && git pull origin features/deploy-with-traefik
-  
-  # Ensure routes file is up to date by copying from local
-  log "Ensuring routes file is synchronized..."
-  
+  log "Repository already synchronized by GitHub Actions; verifying checkout..."
+  git rev-parse --short HEAD >/dev/null 2>&1 || true
   success "Repository synchronized"
 }
 
@@ -183,9 +178,6 @@ deploy_to_environment() {
   local target_env="$1"
   
   log "Deploying to $target_env environment..."
-  
-  # Sync repository first
-  sync_repository
   
   # Build and start containers for target environment
   docker compose -f $APP_DIR/docker/docker-compose.yml build php_$target_env nginx_$target_env
@@ -338,48 +330,15 @@ switch_traffic() {
   return 1
 }
 
-# Function to perform environment rotation
-perform_environment_rotation() {
-  local current_env="$1"
-  local target_env="$2"
-  
-  log "Performing environment rotation: $target_env -> $current_env"
-  
-  # Tag current target images as current environment
-  docker tag docker-php_$target_env docker-php_$current_env
-  docker tag docker-nginx_$target_env docker-nginx_$current_env
-  
-  # Stop and remove old current environment containers
-  docker compose -f $APP_DIR/docker/docker-compose.yml stop php_$current_env nginx_$current_env || true
-  docker compose -f $APP_DIR/docker/docker-compose.yml rm -f php_$current_env nginx_$current_env || true
-  
-  # Start new current environment containers
-  docker compose -f $APP_DIR/docker/docker-compose.yml up -d php_$current_env nginx_$current_env
-  
-  # Wait for containers to be ready
-  sleep 10
-  
-  # Copy routes file into current environment container and ensure storage directories
-  docker cp $APP_DIR/routes/web.php php_$current_env:/var/www/html/routes/web.php
-  
-  # Ensure storage directories exist and have proper permissions
-  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$current_env sh -c 'mkdir -p /var/www/html/storage/framework/cache /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/framework/testing'
-  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$current_env chown -R www-data:www-data /var/www/html/storage
-  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$current_env chmod -R 775 /var/www/html/storage
-  
-  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$current_env php artisan cache:clear
-  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$current_env php artisan route:clear
-  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$current_env php artisan config:clear
-  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$current_env php artisan route:cache
-  
-  # Switch traffic to the new current environment
-  switch_traffic "$current_env"
-  
-  # Clean up old target environment
-  docker compose -f $APP_DIR/docker/docker-compose.yml stop php_$target_env nginx_$target_env || true
-  docker compose -f $APP_DIR/docker/docker-compose.yml rm -f php_$target_env nginx_$target_env || true
-  
-  success "Environment rotation completed: $target_env -> $current_env"
+# Function to clean up the inactive environment after a successful deploy
+cleanup_inactive_environment() {
+  local inactive_env="$1"
+
+  log "Cleaning up inactive environment: $inactive_env"
+  docker compose -f $APP_DIR/docker/docker-compose.yml stop php_$inactive_env nginx_$inactive_env || true
+  docker compose -f $APP_DIR/docker/docker-compose.yml rm -f php_$inactive_env nginx_$inactive_env || true
+
+  success "Inactive environment cleaned up: $inactive_env"
 }
 
 # Function to rollback deployment
@@ -478,13 +437,13 @@ main() {
     exit 1
   fi
   
-  # Perform environment rotation
-  if ! perform_environment_rotation "$current_env" "$target_env"; then
-    warning "Environment rotation failed, but deployment is successful"
+  # Clean up the inactive environment after a successful deploy
+  if ! cleanup_inactive_environment "$current_env"; then
+    warning "Inactive environment cleanup failed, but deployment is successful"
   fi
   
   success "Server-only blue-green deployment completed successfully!"
-  log "Site is now running on the rotated environment"
+  log "Site is now running on the deployed environment"
   log "🔗 Site: https://harun.dev"
   log "🔧 Traefik dashboard: http://$PUBLIC_IP:8080"
 }

@@ -54,6 +54,10 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'build_version' => env('APP_BUILD_VERSION', 'local'),
+
+    'deployment_id' => env('APP_DEPLOYMENT_ID', 'local'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
