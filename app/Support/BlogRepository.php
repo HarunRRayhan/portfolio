@@ -85,7 +85,7 @@ class BlogRepository
             'reactionCount' => $post['reactionCount'],
             'responseCount' => $post['responseCount'],
             'replyCount' => $post['replyCount'],
-            'coverImageUrl' => $post['coverImageUrl'] ?? null,
+            'coverImageUrl' => $this->normalizeCoverImageUrl($post['coverImageUrl'] ?? null),
             'tags' => collect($post['tags'] ?? [])
                 ->map(fn (array $tag) => [
                     'name' => $tag['name'],
@@ -238,6 +238,19 @@ class BlogRepository
         $sourceUrl = rtrim((string) $publication['url'], '/').'/'.$slug;
 
         return 'https://web.archive.org/web/*/'.$sourceUrl;
+    }
+
+    private function normalizeCoverImageUrl(?string $url): ?string
+    {
+        if ($url === null || $url === '') {
+            return null;
+        }
+
+        if (str_starts_with($url, '/')) {
+            return rtrim(config('app.url', url('/')), '/').$url;
+        }
+
+        return $url;
     }
 
     private function contentText(string $html): string
