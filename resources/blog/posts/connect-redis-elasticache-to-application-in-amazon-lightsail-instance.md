@@ -137,4 +137,4 @@ You can use the <code>ping</code>, <code>set</code>, and <code>get</code> comman
 <h3 id="heading-connect-to-application">Connect to Application</h3>
 <p>You will get packages for most of the Applications, languages, and Frameworks. Check docs. For Laravel, you just have to configure it in the <code>.env</code> file.  </p>
 <h2 id="heading-conclusion">Conclusion</h2>
-<p>Hope you enjoyed this short article. You can subscribe to my newsletter, and follow me on <a target="_blank" href="https://twitter.com/HarunRRayhan">Twitter</a>, <a target="_blank" href="https://dev.to/harunrrayhan">Dev.to</a>, and <a target="_blank" href="https://hashnode.com/@HarunRRayhan">Hashnode</a>. </p>
+<p>Hope you enjoyed this short article. You can subscribe to my newsletter, and follow me on <a target="_blank" href="https://twitter.com/HarunRRayhan">Twitter</a> and <a target="_blank" href="https://dev.to/harunrrayhan">Dev.to</a>. </p>

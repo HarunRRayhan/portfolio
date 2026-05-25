@@ -126,4 +126,4 @@ sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
 </ol>
 <h2 id="heading-conclusion">Conclusion</h2>
 <p>Hope you enjoyed this article. This is the last article of the Amazon Lightsail series.  You can ask me any Lightsail-related question in the comments or on social media.</p>
-<p>You can subscribe to my newsletter to get blog updates every week. Follow me on <a target="_blank" href="https://twitter.com/HarunRRayhan">Twitter</a>, <a target="_blank" href="https://dev.to/harunrrayhan">Dev.to</a>, and <a target="_blank" href="https://hashnode.com/@HarunRRayhan">Hashnode</a>. </p>
+<p>You can subscribe to my newsletter to get blog updates every week. Follow me on <a target="_blank" href="https://twitter.com/HarunRRayhan">Twitter</a> and <a target="_blank" href="https://dev.to/harunrrayhan">Dev.to</a>. </p>

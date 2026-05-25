@@ -82,7 +82,7 @@ export default function BlogIndex({ publication, posts, canonicalUrl }: BlogInde
                   </div>
                   <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <p className="text-sm text-slate-500">Source</p>
-                    <p className="mt-2 text-xl font-semibold text-slate-950">Imported from Hashnode</p>
+                    <p className="mt-2 text-xl font-semibold text-slate-950">Migrated from a legacy publication</p>
                   </div>
                   <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <p className="text-sm text-slate-500">Canonical</p>
@@ -155,7 +155,7 @@ export default function BlogIndex({ publication, posts, canonicalUrl }: BlogInde
                   <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#7C3AED]">Syndication</p>
                   <h2 className="mt-2 text-2xl font-semibold text-slate-950">One canonical source, many downstream shares</h2>
                   <p className="mt-3 max-w-3xl text-slate-600">
-                    Articles publish here first. After 24 hours they can be shared to daily.dev, Hashnode, DevGuru,
+                    Articles publish here first. After 24 hours they can be shared to daily.dev, DevGuru,
                     Medium, and Hacker News without fragmenting the canonical URL.
                   </p>
                 </div>

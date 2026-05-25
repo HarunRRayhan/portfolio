@@ -84,4 +84,4 @@ I just have one in this region. You should see all of the instances you have in 
 </li>
 </ol>
 <h2 id="heading-conclusion">Conclusion</h2>
-<p>Hope you enjoyed this short article. You can subscribe to my newsletter, and follow me on <a target="_blank" href="https://twitter.com/HarunRRayhan">Twitter</a>, <a target="_blank" href="https://dev.to/harunrrayhan">Dev.to</a>, and <a target="_blank" href="https://hashnode.com/@HarunRRayhan">Hashnode</a>. </p>
+<p>Hope you enjoyed this short article. You can subscribe to my newsletter, and follow me on <a target="_blank" href="https://twitter.com/HarunRRayhan">Twitter</a> and <a target="_blank" href="https://dev.to/harunrrayhan">Dev.to</a>. </p>
