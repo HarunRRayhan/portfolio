@@ -19,7 +19,7 @@ const menuItems = [
   { name: "Home", href: "/" },
   { name: "Services", href: "/services" },
   { name: "Book a Session", href: "/book" },
-  { name: "Blog", href: "https://blog.harun.dev", external: true },
+  { name: "Blog", href: "https://harun.dev/blog", external: true },
   { name: "About", href: "/about" },
   { name: "Contact", href: "/contact" },
 ]
