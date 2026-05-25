@@ -82,7 +82,7 @@ export default function BlogIndex({ publication, posts, canonicalUrl }: BlogInde
                   </div>
                   <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <p className="text-sm text-slate-500">Source</p>
-                    <p className="mt-2 text-xl font-semibold text-slate-950">Hashnode export</p>
+                    <p className="mt-2 text-xl font-semibold text-slate-950">Imported from Hashnode</p>
                   </div>
                   <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <p className="text-sm text-slate-500">Canonical</p>
