@@ -10,7 +10,7 @@ reactionCount: 0
 responseCount: 1
 replyCount: 1
 sourceUrl: "https://web.archive.org/web/*/https://blog.harun.dev/add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail"
-coverImageUrl: "https://cdn.hashnode.com/res/hashnode/image/upload/v1652182542368/i0cqnGMMJ.png"
+coverImageUrl: "/blog-assets/add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail/cover.png"
 tags:
   - name: "AWS"
     slug: "aws"
@@ -37,30 +37,30 @@ In CDN, Lots of small servers run closer to your customer. Content gets cached t
 <h3 id="heading-attach-a-static-ip-to-wordpress-instance">Attach a Static IP to WordPress Instance</h3>
 <ol>
 <li><p>Go to the <strong>Networking</strong> tab  and then click on <strong>Create static IP</strong>
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1652105796032/ZIYg4ZWz8.png" alt="Create static IP on Amazon Lightsail" /></p>
+<img src="/blog-assets/add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail/ZIYg4ZWz8.png" alt="Create static IP on Amazon Lightsail" /></p>
 </li>
 <li><p>(A) Select the WP App instance. (B) Give it a meaningful name and (C) Hit <strong>Create</strong>.
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1652106216696/ZDKxefs2H.png" alt="Create static IP on Amazon Lightsail 2" /></p>
+<img src="/blog-assets/add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail/ZDKxefs2H.png" alt="Create static IP on Amazon Lightsail 2" /></p>
 </li>
 </ol>
 <p>Now we are ready to create our first distributions.</p>
 <h2 id="heading-create-cdn-distribution">Create CDN Distribution</h2>
 <ol>
 <li><p>Go to <a target="_blank" href="https://lightsail.aws.amazon.com/ls/webapp/home/networking">home page</a> of Lightsail. Go to <strong>Network</strong> tab again. This time hit the <strong>Create distribution</strong> button.
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1652106732159/UaCC5eSiv.png" alt="Create CDN Distribution on Amazon Lightsail" /></p>
+<img src="/blog-assets/add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail/UaCC5eSiv.png" alt="Create CDN Distribution on Amazon Lightsail" /></p>
 </li>
 <li><p>Select the WordPress Instance as Origin
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1652106891069/W12TgIi-k.png" alt="Amazon Lightsail CDN Distribution Origin" /></p>
+<img src="/blog-assets/add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail/W12TgIi-k.png" alt="Amazon Lightsail CDN Distribution Origin" /></p>
 </li>
 <li><p>Hit <strong>Yes, apply</strong> to apply the predefined WordPress settings
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1652107873667/piEvwljg1.png" alt="Amazon Lightsail CDN Distribution WordPress" /></p>
+<img src="/blog-assets/add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail/piEvwljg1.png" alt="Amazon Lightsail CDN Distribution WordPress" /></p>
 </li>
 <li><p>Now, (A) choose a plan. (B) Give it a name and (C) Hit <strong>Create Distribution</strong> button
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1652107795929/Sf65bVVmN.png" alt="CleanShot 2022-05-09 at 20.37.34@2x.png" /></p>
+<img src="/blog-assets/add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail/Sf65bVVmN.png" alt="CleanShot 2022-05-09 at 20.37.34@2x.png" /></p>
 </li>
 </ol>
 <p>Woohoo 🎉 Your first distribution is created. Wait for a while to be available. After getting done, you will see this 👇
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1652108794268/3BeQBMUzu.png" alt="Amazon Lightsail CDN Cloudfront Distribution " />
+<img src="/blog-assets/add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail/3BeQBMUzu.png" alt="Amazon Lightsail CDN Cloudfront Distribution " />
 (A) Your domain for the distribution. You can access the site using this URL.</p>
 <h2 id="heading-domain">Domain</h2>
 <h3 id="heading-update-the-domain-in-db">Update the Domain in DB</h3>

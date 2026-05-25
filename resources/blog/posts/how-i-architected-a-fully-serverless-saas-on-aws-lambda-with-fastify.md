@@ -8,7 +8,7 @@ reactionCount: 0
 responseCount: 0
 replyCount: 0
 sourceUrl: "https://web.archive.org/web/*/https://blog.harun.dev/how-i-architected-a-fully-serverless-saas-on-aws-lambda-with-fastify"
-coverImageUrl: "https://cdn.hashnode.com/uploads/covers/625d48cb9ad0ef10f07bd7b7/3a1040bf-6e2a-4a68-9636-43617715c256.jpg"
+coverImageUrl: "/blog-assets/how-i-architected-a-fully-serverless-saas-on-aws-lambda-with-fastify/cover.jpg"
 tags:
   - name: "AWS"
     slug: "aws"

@@ -8,7 +8,7 @@ reactionCount: 0
 responseCount: 3
 replyCount: 3
 sourceUrl: "https://web.archive.org/web/*/https://blog.harun.dev/deploy-laravel-application-to-amazon-lightsail"
-coverImageUrl: "https://cdn.hashnode.com/res/hashnode/image/upload/v1652972343828/JD6U4MZyQ.png"
+coverImageUrl: "/blog-assets/deploy-laravel-application-to-amazon-lightsail/cover.png"
 tags:
   - name: "AWS"
     slug: "aws"
@@ -30,10 +30,10 @@ tags:
 <h2 id="heading-create-amazon-lightsail-instance">Create Amazon Lightsail Instance</h2>
 <ol>
 <li><p>Go to Lightsail homepage. Click on the <strong>Create instance</strong> button under <strong>Instances</strong> tab.
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1652881692076/hLgNOWXsk.png" alt="CleanShot 2022-05-18 at 19.44.36@2x.png" /></p>
+<img src="/blog-assets/deploy-laravel-application-to-amazon-lightsail/hLgNOWXsk.png" alt="CleanShot 2022-05-18 at 19.44.36@2x.png" /></p>
 </li>
 <li><p>You will land on the Create instance page. We will use Ubuntu for this demo but you are open to choosing the OS of your choice.
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1652882301357/kHB-fJG9L.png" alt="CleanShot 2022-05-18 at 19.51.37@2x.png" />
+<img src="/blog-assets/deploy-laravel-application-to-amazon-lightsail/kHB-fJG9L.png" alt="CleanShot 2022-05-18 at 19.51.37@2x.png" />
 (A) Change the AWS Region and Availablity Zone (AZ) of your choice if not the correct one selected. (B) Select <strong>Linux/Unix</strong> platform. (C) Select <strong>Ubuntu (20.04 LTS)</strong> as OS. The blueprint should be <strong>OS Only</strong>. (D) Choose a plan. (E) Give it a name, and (F) Hit the <strong>Create instance</strong> button from the bottom of the page.</p>
 </li>
 <li><p>Your instance is in the <strong>Pending</strong> state. Will be <strong>Running</strong> in a few minutes. </p>
@@ -47,7 +47,7 @@ tags:
 </blockquote>
 <ol>
 <li><p>Go to the instance page by clicking on the name. And go to the <strong>Connect</strong> tab. We need these 3 things: (A) Public IP, (B) SSH Username, and (C) Download the SSH Key.
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1652883714529/oW0f4b2AO.png" alt="CleanShot 2022-05-18 at 20.21.12@2x.png" /></p>
+<img src="/blog-assets/deploy-laravel-application-to-amazon-lightsail/oW0f4b2AO.png" alt="CleanShot 2022-05-18 at 20.21.12@2x.png" /></p>
 </li>
 <li><p>Change permission of Key file: </p>
 <pre><code class="lang-bash"><span class="hljs-comment"># Change "path/to/keyfile.pem" with your key file name</span>
@@ -82,7 +82,7 @@ sudo add-apt-repository ppa:ondrej/php -y
 sudo apt install php8.1-fpm php8.1-cli php8.1-mysql php8.1-curl php-xml php-mbstring -y
 </code></pre>
 <p>Check php version by using <code>php --version</code> command. You should see something like this:
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1652886148738/mv58j3RPp.png" alt="CleanShot 2022-05-18 at 21.02.08@2x.png" /></p>
+<img src="/blog-assets/deploy-laravel-application-to-amazon-lightsail/mv58j3RPp.png" alt="CleanShot 2022-05-18 at 21.02.08@2x.png" /></p>
 </li>
 <li><p>Install Composer</p>
 <pre><code class="lang-bash"><span class="hljs-comment"># Download the bin file</span>
@@ -186,7 +186,7 @@ APP_URL=http://52.201.59.133
 </li>
 </ol>
 <p>Now go to your public IP address. Mine is <code>http://52.201.59.133</code>. You should see this welcome page.
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1652971832893/zcqFK0B3U.png" alt="CleanShot 2022-05-19 at 20.50.16@2x.png" /></p>
+<img src="/blog-assets/deploy-laravel-application-to-amazon-lightsail/zcqFK0B3U.png" alt="CleanShot 2022-05-19 at 20.50.16@2x.png" /></p>
 <p>Congratulations, your Laravel app launched on Amazon Lightsail instance. 🚀</p>
 <h2 id="heading-conclusion">Conclusion</h2>
 <p>In the next few articles, we are going to configure the database, load balancer &amp; Redis (Elasticache). Follow me and subscribe to <a target="_blank" href="https://harun.dev/blog">my newsletter</a>. </p>

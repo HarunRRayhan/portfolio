@@ -9,7 +9,7 @@ reactionCount: 0
 responseCount: 0
 replyCount: 0
 sourceUrl: "https://web.archive.org/web/*/https://blog.harun.dev/add-database-to-application-hosted-in-amazon-lightsail"
-coverImageUrl: "https://cdn.hashnode.com/res/hashnode/image/upload/v1653314129447/_3LPCm_b4.png"
+coverImageUrl: "/blog-assets/add-database-to-application-hosted-in-amazon-lightsail/cover.png"
 tags:
   - name: "AWS"
     slug: "aws"
@@ -33,10 +33,10 @@ tags:
 <li><p>Go to your Amazon Lightsail home page. And then click on the <strong>Databases</strong> tab.</p>
 </li>
 <li><p>Now click on the <strong>Create database</strong> button
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653131872710/gEcI9vj3t.png" alt="CleanShot 2022-05-21 at 17.17.16@2x.png" /></p>
+<img src="/blog-assets/add-database-to-application-hosted-in-amazon-lightsail/gEcI9vj3t.png" alt="CleanShot 2022-05-21 at 17.17.16@2x.png" /></p>
 </li>
 <li><p>Now you are on the database creation page:
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653132301734/u04toFGII.png" alt="CleanShot 2022-05-21 at 17.23.57@2x.png" /></p>
+<img src="/blog-assets/add-database-to-application-hosted-in-amazon-lightsail/u04toFGII.png" alt="CleanShot 2022-05-21 at 17.23.57@2x.png" /></p>
 <ul>
 <li>(A) Select AWS Region and Availablity Zone (AZ). for me Virginia and Zone A are perfect.</li>
 <li>(B) Choose the Database engine and version. I selected MySQL 8.</li>
@@ -45,7 +45,7 @@ tags:
 </ul>
 </li>
 <li><p>Scroll down a little and configure this:
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653134742780/DRvaNLKt4.png" alt="CleanShot 2022-05-21 at 18.03.04@2x.png" /></p>
+<img src="/blog-assets/add-database-to-application-hosted-in-amazon-lightsail/DRvaNLKt4.png" alt="CleanShot 2022-05-21 at 18.03.04@2x.png" /></p>
 <ul>
 <li>(A) Choose Database username</li>
 <li>(B) Password. I'm okay with the generated password, but you can choose yours.</li>
@@ -59,7 +59,7 @@ Your database should be created within a few minutes. Please wait for it until i
 </ol>
 <h2 id="heading-database-credentials">Database Credentials</h2>
 <p>You already know your database username and master database. For everything else, go to your database and click on the <strong>Connect</strong> tab. You should see your credentials like this:
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653135919053/o9bP5UDl4.png" alt="CleanShot 2022-05-21 at 18.24.30@2x.png" /></p>
+<img src="/blog-assets/add-database-to-application-hosted-in-amazon-lightsail/o9bP5UDl4.png" alt="CleanShot 2022-05-21 at 18.24.30@2x.png" /></p>
 <ul>
 <li>(A) DB Username</li>
 <li>(B) DB Password</li>
@@ -77,7 +77,7 @@ sudo systemctl start mysql.service
 <pre><code class="lang-bash">mysql --host &lt;db_endpoint&gt; --user &lt;db_username&gt; --password
 </code></pre>
 <p>You will be asked for your DB password. If successful, you will see this screen:
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653136540334/gIFUYhIHz.png" alt="CleanShot 2022-05-21 at 18.35.21@2x.png" /></p>
+<img src="/blog-assets/add-database-to-application-hosted-in-amazon-lightsail/gIFUYhIHz.png" alt="CleanShot 2022-05-21 at 18.35.21@2x.png" /></p>
 <h3 id="heading-sql-client-app-over-ssh-ssh-tunneling">SQL Client App over SSH (SSH Tunneling)</h3>
 <p>Most modern SQL Client applications (ex <a target="_blank" href="https://docs.tableplus.com/gui-tools/manage-connections#ssh-tunneling">TablePlus</a>, MySQL Workbench) have the option to connect Database via SSH. You can connect using that option. </p>
 <h2 id="heading-add-database-to-your-application">Add Database to your application</h2>

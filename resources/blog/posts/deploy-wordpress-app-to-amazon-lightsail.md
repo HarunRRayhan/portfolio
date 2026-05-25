@@ -10,7 +10,7 @@ reactionCount: 0
 responseCount: 0
 replyCount: 0
 sourceUrl: "https://web.archive.org/web/*/https://blog.harun.dev/deploy-wordpress-app-to-amazon-lightsail"
-coverImageUrl: "https://cdn.hashnode.com/res/hashnode/image/upload/v1651104172787/Y-kiHOYsl.png"
+coverImageUrl: "/blog-assets/deploy-wordpress-app-to-amazon-lightsail/cover.png"
 tags:
   - name: "AWS"
     slug: "aws"
@@ -32,38 +32,38 @@ tags:
 <p>Need a valid AWS account to deploy the WP app. If you don't have one, just create one from <a target="_blank" href="https://portal.aws.amazon.com/billing/signup">here</a>. Before starting to deploy your app read about <a target="_blank" href="https://aws.amazon.com/lightsail/pricing/">Amazon Lightsail Pricing and Free-Tier</a>. Don't worry, I will try to keep everything within the free tier. At this time of writing, you can run a Lightsail instance for free for 3 months.</p>
 <h1 id="heading-install-wordpress-app">Install WordPress App</h1>
 <p>Login to your AWS account if not already. Go to <a target="_blank" href="https://lightsail.aws.amazon.com">Lightsail homepage</a>. You should see a page like this:</p>
-<p><img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651060787414/7TgXRwaI1.png" alt="CleanShot 2022-04-27 at 17.59.20@2x.png" /></p>
+<p><img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/7TgXRwaI1.png" alt="CleanShot 2022-04-27 at 17.59.20@2x.png" /></p>
 <p>Are you seeing this? Let's go 🏃‍♂️</p>
 <h2 id="heading-create-instance">Create Instance</h2>
 <ol>
 <li><p>Now click on the big <strong>Create Instance</strong> button. If you don't see one, follow this:
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651061181136/t7Kzr_AGl.png" alt="CleanShot 2022-04-27 at 18.04.31@2x.png" /></p>
+<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/t7Kzr_AGl.png" alt="CleanShot 2022-04-27 at 18.04.31@2x.png" /></p>
 </li>
 <li><p>Let's choose <strong>Instance location</strong>, <strong>platform</strong>, and <strong>blueprint</strong>:
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651064483874/SsoaPiAKt.png" alt="CleanShot 2022-04-27 at 18.20.07@2x.png" />
+<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/SsoaPiAKt.png" alt="CleanShot 2022-04-27 at 18.20.07@2x.png" />
 A. Click the link to change location and availability zone (AZ) if not what you want. I recommend selecting a location closer to your customers.
 B. Choose the <strong>Linux/Unix</strong> platform.
 C. Select the <strong>Apps + OS</strong> from the blueprint.
 D. Now choose <strong>WordPress</strong> from the app list. <em>Not the multisite one</em>.</p>
 </li>
 <li><p>Now scroll down to <strong>Choose your instance plan</strong> section. I chose a free-tier plan and only one instance. Here is my setup:
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651065101157/8eZaPa-e5.png" alt="CleanShot 2022-04-27 at 19.04.37@2x.png" /></p>
+<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/8eZaPa-e5.png" alt="CleanShot 2022-04-27 at 19.04.37@2x.png" /></p>
 </li>
 <li><p>Finally scroll to the bottom of the page and click the <strong>Create instance</strong> button. Wait for the status to become <strong><em>Running</em></strong>. Congratulations, your instance has launched 🚀</p>
 </li>
 </ol>
 <h2 id="heading-assign-a-static-ip-optional">Assign a Static IP (optional)</h2>
 <p>AWS Lightsail Instance comes with public (and private) IP. Which changes every time Stop and Start the instance.  My Public IP was this when I launched the instance:
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651065976006/xngXQF1qF.png" alt="CleanShot 2022-04-27 at 19.24.43@2x.png" /></p>
+<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/xngXQF1qF.png" alt="CleanShot 2022-04-27 at 19.24.43@2x.png" /></p>
 <p>After Stop and Start the instance, it got a new Public IP address:
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651066336570/qlxGqkjSB.png" alt="CleanShot 2022-04-27 at 19.31.30@2x.png" /></p>
+<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/qlxGqkjSB.png" alt="CleanShot 2022-04-27 at 19.31.30@2x.png" /></p>
 <p>We have to fix that. So, let's create and assign a <strong>Static IP</strong>:</p>
 <ol>
 <li>Click on your application instance name to see the details of your instance. </li>
 <li>Click on <strong>+ Create static IP</strong> from here:
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651066765698/qL0v8VIuH.png" alt="CleanShot 2022-04-27 at 19.35.25@2x.png" /></li>
+<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/qL0v8VIuH.png" alt="CleanShot 2022-04-27 at 19.35.25@2x.png" /></li>
 <li>Add a meaningful name and click Create:
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651067026152/wMDiRyzMD.png" alt="CleanShot 2022-04-27 at 19.42.36@2x.png" /><blockquote>
+<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/wMDiRyzMD.png" alt="CleanShot 2022-04-27 at 19.42.36@2x.png" /><blockquote>
 <p>⚠️ Warning: You are allowed to assign 5 static IPs for free. You will be charged for static IP that is not attached to a running instance. </p>
 </blockquote>
 </li>
@@ -72,11 +72,11 @@ D. Now choose <strong>WordPress</strong> from the app list. <em>Not the multisit
 <p>You can connect to an instance in two ways: </p>
 <h3 id="heading-using-browser">Using browser</h3>
 <p>That's the easiest. Go to the <strong>Connect</strong> tab and click <strong>Connect using SSH</strong>:
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651068506979/ofhpf4_1M.png" alt="CleanShot 2022-04-27 at 20.07.41@2x.png" /></p>
+<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/ofhpf4_1M.png" alt="CleanShot 2022-04-27 at 20.07.41@2x.png" /></p>
 <h3 id="heading-using-ssh-client">Using SSH Client</h3>
 <ol>
 <li>Download the SSH key from here:
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651068654032/OKPX9IZfO.png" alt="CleanShot 2022-04-27 at 20.10.12@2x.png" /></li>
+<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/OKPX9IZfO.png" alt="CleanShot 2022-04-27 at 20.10.12@2x.png" /></li>
 <li>If you are using PuTTY you can <a target="_blank" href="https://lightsail.aws.amazon.com/ls/docs/en_us/articles/lightsail-how-to-set-up-putty-to-connect-using-ssh">follow this tutorial</a>. </li>
 <li>If you are using a terminal in macOS or Linux, run this command on where you downloaded the SSH key. </li>
 </ol>
@@ -92,19 +92,19 @@ ssh -i <span class="hljs-string">"&lt;path/to/your-lightsail-key&gt;.pem"</span>
 <li>You can get the username from the <strong>Connect</strong> tab. The username is <strong>user</strong> for this stack.</li>
 <li>To get the password, log in to SSH and run this command<pre><code class="lang-bash">cat bitnami_application_password
 </code></pre>
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651069453965/Ehgt_JWU7.png" alt="CleanShot 2022-04-27 at 20.23.35@2x.png" /></li>
+<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/Ehgt_JWU7.png" alt="CleanShot 2022-04-27 at 20.23.35@2x.png" /></li>
 <li>Now open a browser tab and go to <code>http://&lt;public_ip&gt;/wp-admin</code>. Enter username and password above. You should see the WP Admin dashboard like me.</li>
 </ol>
 <h1 id="heading-add-a-domain">Add a Domain</h1>
 <ol>
 <li>Go to the <strong>Home</strong> page. Click on the <strong>Networking</strong> tab and then hit <strong>Create DNS zone</strong> button
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651100514891/POkz7myRi.png" alt="CleanShot 2022-04-28 at 04.57.42@2x.png" /></li>
+<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/POkz7myRi.png" alt="CleanShot 2022-04-28 at 04.57.42@2x.png" /></li>
 <li>Add your domain name. Scroll to the bottom and click the <strong>Create DNS zone</strong> button
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651100878512/fz1N3wW4u.png" alt="CleanShot 2022-04-28 at 05.03.10@2x.png" /></li>
+<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/fz1N3wW4u.png" alt="CleanShot 2022-04-28 at 05.03.10@2x.png" /></li>
 <li>Add these name server records in your domain control panel (ex. Namecheap, GoDaddy). You might have different records than mine
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651101055794/Y_EVt8m18.png" alt="CleanShot 2022-04-28 at 05.09.00@2x.png" /></li>
+<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/Y_EVt8m18.png" alt="CleanShot 2022-04-28 at 05.09.00@2x.png" /></li>
 <li>Now to the good part. Click <strong>+ Add Record</strong> button. Add your instance and click on tick icon to save.
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651101295885/pp15TFvIg.png" alt="CleanShot 2022-04-28 at 05.13.07@2x.png" /><blockquote>
+<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/pp15TFvIg.png" alt="CleanShot 2022-04-28 at 05.13.07@2x.png" /><blockquote>
 <p>⚠️ It may take few minutes to days to propagate DNS records. </p>
 </blockquote>
 </li>
@@ -117,7 +117,7 @@ ssh -i <span class="hljs-string">"&lt;path/to/your-lightsail-key&gt;.pem"</span>
 <pre><code class="lang-bash">cat stack/wordpress/wp-config.php
 </code></pre>
 <p>Use DB credentials to connect to DB, and replace <code>localhost</code> with the instance's public IP. Connect to your DB via SSH (recommended) or add the <code>3306</code> port here:
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651070563015/vdJ8wmLh2.png" alt="CleanShot 2022-04-27 at 20.40.01@2x.png" /></p>
+<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/vdJ8wmLh2.png" alt="CleanShot 2022-04-27 at 20.40.01@2x.png" /></p>
 <blockquote>
 <p>ℹ️ Don't forget to change the domain name in <code>siteurl</code> and <code>home</code> rows of <code>wp_options</code> table.</p>
 </blockquote>

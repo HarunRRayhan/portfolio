@@ -8,7 +8,7 @@ reactionCount: 0
 responseCount: 1
 replyCount: 1
 sourceUrl: "https://web.archive.org/web/*/https://blog.harun.dev/building-a-production-rag-pipeline-on-aws-lambda-pgvector"
-coverImageUrl: "https://cdn.hashnode.com/uploads/covers/625d48cb9ad0ef10f07bd7b7/d73c67d5-917c-48a0-a67e-534a64ce08df.jpg"
+coverImageUrl: "/blog-assets/building-a-production-rag-pipeline-on-aws-lambda-pgvector/cover.jpg"
 tags:
   - name: "AWS"
     slug: "aws"

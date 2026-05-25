@@ -11,7 +11,7 @@ reactionCount: 0
 responseCount: 0
 replyCount: 0
 sourceUrl: "https://web.archive.org/web/*/https://blog.harun.dev/connect-redis-elasticache-to-application-in-amazon-lightsail-instance"
-coverImageUrl: "https://cdn.hashnode.com/res/hashnode/image/upload/v1653748387506/emK5Wx6yj.png"
+coverImageUrl: "/blog-assets/connect-redis-elasticache-to-application-in-amazon-lightsail-instance/cover.png"
 tags:
   - name: "AWS"
     slug: "aws"
@@ -35,10 +35,10 @@ tags:
 <li><p>Go to <a target="_blank" href="https://us-east-1.console.aws.amazon.com/elasticache/home?/dashboard&amp;region=us-east-1#/dashboard?getStarted=expand"><strong>Elasticache for Redis console</strong></a>. Change the region that you want to launch it. I selected <strong>us-east-1</strong> as my Lightsail Instance(s) are there. </p>
 </li>
 <li><p>Click the <strong>Create Redis cluster</strong> button from the center of the page (or wherever you see it)
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653740823924/ayTfyM9Sc.png" alt="CleanShot 2022-05-28 at 18.24.04@2x.png" /></p>
+<img src="/blog-assets/connect-redis-elasticache-to-application-in-amazon-lightsail-instance/ayTfyM9Sc.png" alt="CleanShot 2022-05-28 at 18.24.04@2x.png" /></p>
 </li>
 <li><p>You will land in this screen 👇
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653741612053/kUlxh7BaC.png" alt="CleanShot 2022-05-28 at 18.38.27@2x.png" /></p>
+<img src="/blog-assets/connect-redis-elasticache-to-application-in-amazon-lightsail-instance/kUlxh7BaC.png" alt="CleanShot 2022-05-28 at 18.38.27@2x.png" /></p>
 <ul>
 <li>A. Choose <strong>Configure and create a new cluster</strong></li>
 <li>B. Choose cluster mode <strong>Disabled</strong></li>
@@ -53,25 +53,25 @@ tags:
 </ul>
 </li>
 <li><p>You will be on the second page. Just uncheck <strong>Enable automatic backup</strong> and click the <strong>Next</strong> button from the bottom of the page.
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653742318231/ahAMqpjdB.png" alt="CleanShot 2022-05-28 at 18.50.07@2x.png" /></p>
+<img src="/blog-assets/connect-redis-elasticache-to-application-in-amazon-lightsail-instance/ahAMqpjdB.png" alt="CleanShot 2022-05-28 at 18.50.07@2x.png" /></p>
 </li>
 <li><p>Review everything on the 3rd and final page. And then click the <strong>Create</strong> button from the bottom of the page. </p>
 </li>
 <li><p>It will take a few minutes to get created. Wait for status changes to <strong>Available</strong>.
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653743046013/ETHuHBu8T.png" alt="CleanShot 2022-05-28 at 19.03.41@2x.png" /></p>
+<img src="/blog-assets/connect-redis-elasticache-to-application-in-amazon-lightsail-instance/ETHuHBu8T.png" alt="CleanShot 2022-05-28 at 19.03.41@2x.png" /></p>
 </li>
 <li><p>now, click on the Cluster name. And you will be on the details page.
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653743211659/IfsLDKS_6.png" alt="CleanShot 2022-05-28 at 19.05.38@2x.png" />
+<img src="/blog-assets/connect-redis-elasticache-to-application-in-amazon-lightsail-instance/IfsLDKS_6.png" alt="CleanShot 2022-05-28 at 19.05.38@2x.png" />
 Copy the <strong>Primary endpoint</strong> in your clipboard or somewhere safe. </p>
 </li>
 </ol>
 <h3 id="heading-configure-security-group-for-redis-cluster">Configure Security Group for Redis cluster</h3>
 <ol>
 <li><p>Go to the <a target="_blank" href="https://us-east-1.console.aws.amazon.com/vpc/home?region=us-east-1#securityGroups:"><strong>Security groups</strong></a> of VPS Console. Make sure you are in the same region as the Redis cluster. And then click the <strong>Create security group</strong> from the top-right corner.
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653744863578/l7kjpTUOR.png" alt="CleanShot 2022-05-28 at 19.33.08@2x.png" /></p>
+<img src="/blog-assets/connect-redis-elasticache-to-application-in-amazon-lightsail-instance/l7kjpTUOR.png" alt="CleanShot 2022-05-28 at 19.33.08@2x.png" /></p>
 </li>
 <li><p>You are in create Security Group page
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653745388466/tlEobrLnW.png" alt="CleanShot 2022-05-28 at 19.41.30@2x.png" /></p>
+<img src="/blog-assets/connect-redis-elasticache-to-application-in-amazon-lightsail-instance/tlEobrLnW.png" alt="CleanShot 2022-05-28 at 19.41.30@2x.png" /></p>
 <ul>
 <li>A. Give it a name</li>
 <li>B. Click on the <strong>Add rule</strong> button of the Inbound rules section.</li>
@@ -82,16 +82,16 @@ Copy the <strong>Primary endpoint</strong> in your clipboard or somewhere safe. 
 </ul>
 </li>
 <li><p>Now go to the <strong>Network and security</strong> tab of your Redis cluster and click the <strong>Modify</strong> button from the <strong>Security groups</strong> section.
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653746258674/GFFV32uHF.png" alt="CleanShot 2022-05-28 at 19.55.02@2x.png" /></p>
+<img src="/blog-assets/connect-redis-elasticache-to-application-in-amazon-lightsail-instance/GFFV32uHF.png" alt="CleanShot 2022-05-28 at 19.55.02@2x.png" /></p>
 </li>
 <li><p>Click on the <strong>Manage</strong> button from the next screen
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653746332691/9RL95yIIC.png" alt="CleanShot 2022-05-28 at 19.58.02@2x.png" /></p>
+<img src="/blog-assets/connect-redis-elasticache-to-application-in-amazon-lightsail-instance/9RL95yIIC.png" alt="CleanShot 2022-05-28 at 19.58.02@2x.png" /></p>
 </li>
 <li><p>Select the correct security group from the pop and then click on the <strong>Choose</strong> button.
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653746443378/yYbIwHuCh.png" alt="CleanShot 2022-05-28 at 19.59.19@2x.png" /></p>
+<img src="/blog-assets/connect-redis-elasticache-to-application-in-amazon-lightsail-instance/yYbIwHuCh.png" alt="CleanShot 2022-05-28 at 19.59.19@2x.png" /></p>
 </li>
 <li><p>Click <strong>Modify</strong> button from the bottom of the page.
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653746505482/U9cm147ER.png" alt="CleanShot 2022-05-28 at 20.00.47@2x.png" />
+<img src="/blog-assets/connect-redis-elasticache-to-application-in-amazon-lightsail-instance/U9cm147ER.png" alt="CleanShot 2022-05-28 at 20.00.47@2x.png" />
 It will take a few minutes to complete the modification. Wait until the status changes to <strong>Available</strong>.</p>
 </li>
 </ol>
@@ -99,11 +99,11 @@ It will take a few minutes to complete the modification. Wait until the status c
 <p>The important part of this tutorial. We need to peer VPC between Lightsail and Redis cluster's VPC to connect it. </p>
 <ol>
 <li><p>Go to the homepage of the Amazon Lightsail console. Click the <strong>Account</strong> from the Account menu dropdown.
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653743506780/Kkbk-kt5P.png" alt="CleanShot 2022-05-28 at 19.10.54@2x.png" /></p>
+<img src="/blog-assets/connect-redis-elasticache-to-application-in-amazon-lightsail-instance/Kkbk-kt5P.png" alt="CleanShot 2022-05-28 at 19.10.54@2x.png" /></p>
 </li>
 <li><p>Click on the <strong>Advanced</strong> tab from the Account settings page. You will see a list of your VPCs. Connect the one that resides in your Redis cluster. For me, it's <strong>Virginia (us-east-1)
 </strong>.
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653743731968/0hJH7OqKe.png" alt="CleanShot 2022-05-28 at 19.12.35@2x.png" /></p>
+<img src="/blog-assets/connect-redis-elasticache-to-application-in-amazon-lightsail-instance/0hJH7OqKe.png" alt="CleanShot 2022-05-28 at 19.12.35@2x.png" /></p>
 </li>
 </ol>
 <h2 id="heading-connect-to-the-redis-cluster-from-the-lightsail-instance">Connect to the Redis cluster from the Lightsail instance</h2>
@@ -130,7 +130,7 @@ sudo make BUILD_TLS=yes
 <pre><code class="lang-bash">redis-cli -h &lt;redis_endpoint&gt; -c -p 6379
 </code></pre>
 <p>Replace <code>&lt;redis_endpoint&gt;</code> with your Primary endpoint of Redis you copied in the clipboard. Remove port (":6379") from the endpoint URL. You will see this screen if successful 👇
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653747050113/8YFSWvlOm.png" alt="CleanShot 2022-05-28 at 20.10.24@2x.png" />
+<img src="/blog-assets/connect-redis-elasticache-to-application-in-amazon-lightsail-instance/8YFSWvlOm.png" alt="CleanShot 2022-05-28 at 20.10.24@2x.png" />
 You can use the <code>ping</code>, <code>set</code>, and <code>get</code> commands to test it out. </p>
 </li>
 </ol>

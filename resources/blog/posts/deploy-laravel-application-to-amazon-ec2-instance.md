@@ -10,7 +10,7 @@ reactionCount: 0
 responseCount: 0
 replyCount: 0
 sourceUrl: "https://web.archive.org/web/*/https://blog.harun.dev/deploy-laravel-application-to-amazon-ec2-instance"
-coverImageUrl: "https://cdn.hashnode.com/res/hashnode/image/upload/v1693055246482/c63255a8-849f-4a98-80a7-5babd4ed4a36.jpeg"
+coverImageUrl: "/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/cover.jpeg"
 tags:
   - name: "ec2"
     slug: "ec2"
@@ -35,45 +35,45 @@ tags:
 <h2 id="heading-create-key-pairs">Create Key Pairs</h2>
 <ol>
 <li><p>Login to AWS Management Console, and select the correct region from the top-right corner:</p>
-<p> <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1691818093530/f185a3cd-3c01-45c1-bcdf-f730d19f4ee1.png" alt class="image--center mx-auto" /></p>
+<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/f185a3cd-3c01-45c1-bcdf-f730d19f4ee1.png" alt class="image--center mx-auto" /></p>
 </li>
 <li><p>Now, go to EC2 Console, and click on the <strong>Key Pairs</strong> button under Network &amp; Security:</p>
-<p> <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1691819776893/0afbea3f-8b48-4d7f-9c8e-9f0711b7f250.png" alt class="image--center mx-auto" /></p>
+<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/0afbea3f-8b48-4d7f-9c8e-9f0711b7f250.png" alt class="image--center mx-auto" /></p>
 </li>
 <li><p>Click on <strong>Create key pairs</strong> from the top-right corner:</p>
-<p> <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1691820003504/fa05c0e6-aa34-4d0a-8334-f80d01f8485f.png" alt class="image--center mx-auto" /></p>
+<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/fa05c0e6-aa34-4d0a-8334-f80d01f8485f.png" alt class="image--center mx-auto" /></p>
 </li>
 <li><p>Give it a name and click <strong>Create key pairs</strong>. It will download the keypair file and keep it in a safe place for later.</p>
-<p> <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1691820623904/8d10f422-fb01-4350-bc68-18001cec5675.png" alt class="image--center mx-auto" /></p>
+<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/8d10f422-fb01-4350-bc68-18001cec5675.png" alt class="image--center mx-auto" /></p>
 </li>
 </ol>
 <h2 id="heading-launch-an-ec2-instance">Launch an EC2 Instance</h2>
 <ol>
 <li><p>Now, go to the instances page by clicking <strong>Instances</strong> under Instances:</p>
-<p> <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1691821070426/62208887-e537-4de4-92a8-749177ccad0f.png" alt class="image--center mx-auto" /></p>
+<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/62208887-e537-4de4-92a8-749177ccad0f.png" alt class="image--center mx-auto" /></p>
 </li>
 <li><p>Click the <strong>Lunch instance</strong> button from the top-right corner:</p>
-<p> <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1691821858878/c66b8705-addd-4f4d-8262-b122293bd813.png" alt class="image--center mx-auto" /></p>
+<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/c66b8705-addd-4f4d-8262-b122293bd813.png" alt class="image--center mx-auto" /></p>
 </li>
 <li><p>Now you are on the Lunch instance page:</p>
-<p> <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1691822561677/f3f5d1c6-86cc-43b2-b200-1787d5779190.png" alt class="image--center mx-auto" /></p>
+<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/f3f5d1c6-86cc-43b2-b200-1787d5779190.png" alt class="image--center mx-auto" /></p>
 <p> A. Give your instance a name<br /> B. Select Ubuntu<br /> C. Select "Ubuntu Server 22.04 LTS" AMI</p>
 </li>
 <li><p>In the next section:</p>
-<p> <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1691822921532/aaa75dbd-6169-4f63-a88d-7503c3fb1095.png" alt class="image--center mx-auto" /></p>
+<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/aaa75dbd-6169-4f63-a88d-7503c3fb1095.png" alt class="image--center mx-auto" /></p>
 <p> D. Select the instance type; I selected a free-tier eligible "t2.micro".<br /> E. Select the key pairs you selected previously.</p>
 </li>
 <li><p>Select all of these three checkboxes:</p>
-<p> <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1693050910149/cf9d94dd-b3d3-4351-9be2-0ed7eb0ea287.png" alt class="image--center mx-auto" /></p>
+<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/cf9d94dd-b3d3-4351-9be2-0ed7eb0ea287.png" alt class="image--center mx-auto" /></p>
 </li>
 <li><p>Keep everything else as it is and click on the <strong>Lunch instance</strong> button from the right sidebar's summary widget:</p>
-<p> <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1691823287609/61648364-cbc7-4928-b757-0b95c2d1d6a2.png" alt class="image--center mx-auto" /></p>
+<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/61648364-cbc7-4928-b757-0b95c2d1d6a2.png" alt class="image--center mx-auto" /></p>
 </li>
 <li><p>And then click the <strong>View all instances</strong> button:</p>
-<p> <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1693051025871/c408bc78-4f45-45c5-9604-a6d556219b75.png" alt class="image--center mx-auto" /></p>
+<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/c408bc78-4f45-45c5-9604-a6d556219b75.png" alt class="image--center mx-auto" /></p>
 </li>
 <li><p>Wait until <strong>Status checks</strong> turn <strong>2/2 checks passed</strong> and copy <code>public_ip</code> in a safe place:</p>
-<p> <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1693051347852/80863972-9bf7-48d0-b371-57b096cc10e0.png" alt class="image--center mx-auto" /></p>
+<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/80863972-9bf7-48d0-b371-57b096cc10e0.png" alt class="image--center mx-auto" /></p>
 </li>
 </ol>
 <h2 id="heading-connect-to-the-instance-via-ssh">Connect to the instance via SSH</h2>
@@ -107,7 +107,7 @@ tags:
      php8.1-mbstring
 </code></pre>
 <p> Check the version by using <code>php --version</code> command:</p>
-<p> <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1693053370527/20fb5290-0d36-4455-8170-f0de641bb44a.webp" alt class="image--center mx-auto" /></p>
+<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/20fb5290-0d36-4455-8170-f0de641bb44a.webp" alt class="image--center mx-auto" /></p>
 </li>
 <li><p>Install composer</p>
 <pre><code class="lang-bash"> <span class="hljs-comment"># Download the bin file</span>

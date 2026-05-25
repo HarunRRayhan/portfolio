@@ -9,7 +9,7 @@ reactionCount: 0
 responseCount: 0
 replyCount: 0
 sourceUrl: "https://web.archive.org/web/*/https://blog.harun.dev/install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging"
-coverImageUrl: "https://cdn.hashnode.com/res/hashnode/image/upload/v1654316728669/JAQl5HFqK.png"
+coverImageUrl: "/blog-assets/install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging/cover.png"
 tags:
   - name: "AWS"
     slug: "aws"
@@ -31,16 +31,16 @@ tags:
 <ol>
 <li>Go to <a target="_blank" href="https://console.aws.amazon.com/iam/">IAM Console</a>.</li>
 <li>Click on the <strong>Users</strong> menu from the navigation panel and then click on the <strong>Add Users</strong> button.
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1654260503965/iecpnlBpe.png" alt="CleanShot 2022-06-03 at 18.45.52@2x.png" /></li>
+<img src="/blog-assets/install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging/iecpnlBpe.png" alt="CleanShot 2022-06-03 at 18.45.52@2x.png" /></li>
 <li>You will be in the <strong>Add user</strong> screen:
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1654260634422/FtOVvkhW4.png" alt="CleanShot 2022-06-03 at 18.49.18@2x.png" /><ul>
+<img src="/blog-assets/install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging/FtOVvkhW4.png" alt="CleanShot 2022-06-03 at 18.49.18@2x.png" /><ul>
 <li>A. Give it a name. For me, it's <strong>LightsailCloudWatchAgent</strong>.</li>
 <li>B. Check the <strong>Access key - Programmatic access</strong> option</li>
 <li>C. Click on the <strong>Next: Permissions</strong> button.</li>
 </ul>
 </li>
 <li>You will be in the <strong>Set permissions</strong> page:
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1654261010738/ebCVaRI33.png" alt="CleanShot 2022-06-03 at 18.53.25@2x.png" /><ul>
+<img src="/blog-assets/install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging/ebCVaRI33.png" alt="CleanShot 2022-06-03 at 18.53.25@2x.png" /><ul>
 <li>A. Select the <strong>Attach existing policies directly</strong> option.</li>
 <li>B. Search for <strong>CloudWatchAgentServerPolicy</strong>.</li>
 <li>C. Select <strong>CloudWatchAgentServerPolicy</strong>, and</li>
@@ -50,7 +50,7 @@ tags:
 <li>Tags are optional. You can choose your tags. Click on the <strong>Next: Review</strong> after you are done.</li>
 <li>From review page you can check if everything alright and then click the <strong>Create user</strong> button.</li>
 <li>Your account is created and you will be in this screen:
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1654262147682/a1Y5zvdjy.png" alt="CleanShot 2022-06-03 at 19.15.00@2x.png" /><ul>
+<img src="/blog-assets/install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging/a1Y5zvdjy.png" alt="CleanShot 2022-06-03 at 19.15.00@2x.png" /><ul>
 <li>A. &amp; B. Copy <strong>Access Key ID</strong> and <strong>Secret access key</strong> in somewhere safe, or,</li>
 <li>C. Download the csv file.
 We will need this access later. </li>
@@ -73,7 +73,7 @@ sudo ./aws/install --bin-dir /usr/bin --install-dir /usr/<span class="hljs-built
 <pre><code class="lang-bash">sudo aws configure --profile AmazonCloudWatchAgent
 </code></pre>
 <p>Enter Access Key and Secret Like this:
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1654264842166/88TunGI6p.png" alt="CleanShot 2022-06-03 at 19.59.18@2x.png" /></p>
+<img src="/blog-assets/install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging/88TunGI6p.png" alt="CleanShot 2022-06-03 at 19.59.18@2x.png" /></p>
 </li>
 </ol>
 <h2 id="heading-install-the-cloudwatch-agent">Install the Cloudwatch Agent</h2>
@@ -91,7 +91,7 @@ sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
 <pre><code class="lang-bash">sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-config-wizard
 </code></pre>
 <p>Input your choices as I did. Check the arrow mark. You can choose your own or follow mine.
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1654315524093/sOZrTU36D.png" alt="CleanShot 2022-06-04 at 10.03.13@2x.png" /></p>
+<img src="/blog-assets/install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging/sOZrTU36D.png" alt="CleanShot 2022-06-04 at 10.03.13@2x.png" /></p>
 </li>
 <li><p>Give AWS Access to the Agent. Run this: </p>
 <pre><code class="lang-bash">sudo vim /opt/aws/amazon-cloudwatch-agent/etc/common-config.toml
@@ -111,7 +111,7 @@ sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
 <pre><code class="lang-bash">sudo amazon-cloudwatch-agent-ctl -a status
 </code></pre>
 <p>You should see something like this:
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1654266165471/XM2e620Sv.png" alt="CleanShot 2022-06-03 at 20.21.53@2x.png" /></p>
+<img src="/blog-assets/install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging/XM2e620Sv.png" alt="CleanShot 2022-06-03 at 20.21.53@2x.png" /></p>
 </li>
 </ol>
 <h2 id="heading-verify-metrics-on-cloudwatch">Verify metrics on CloudWatch</h2>
@@ -122,7 +122,7 @@ sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
 <li>Choose CWAgent.</li>
 <li>Choose any <strong>ImageId, InstanceId, InstanceType</strong>.</li>
 <li>Select the checkbox to display metrics on the graph. Here is mine:
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1654315784361/SZyZfXUjn.png" alt="CleanShot 2022-06-04 at 10.08.02@2x.png" /></li>
+<img src="/blog-assets/install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging/SZyZfXUjn.png" alt="CleanShot 2022-06-04 at 10.08.02@2x.png" /></li>
 </ol>
 <h2 id="heading-conclusion">Conclusion</h2>
 <p>Hope you enjoyed this article. This is the last article of the Amazon Lightsail series.  You can ask me any Lightsail-related question in the comments or on social media.</p>

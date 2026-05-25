@@ -10,7 +10,7 @@ reactionCount: 0
 responseCount: 0
 replyCount: 0
 sourceUrl: "https://web.archive.org/web/*/https://blog.harun.dev/add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances"
-coverImageUrl: "https://cdn.hashnode.com/res/hashnode/image/upload/v1653735720456/_xG7rWwwX.png"
+coverImageUrl: "/blog-assets/add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances/cover.png"
 tags:
   - name: "AWS"
     slug: "aws"
@@ -32,10 +32,10 @@ tags:
 <h2 id="heading-provision-a-load-balanced">Provision a Load Balanced</h2>
 <ol>
 <li><p>Go to the homepage of the Amazon Lightsail console. Click on the <strong>Networking</strong> tab and click on the <strong>Create load balancer</strong> button.
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653732192960/YhPj7TMSKh.png" alt="CleanShot 2022-05-28 at 16.02.40@2x.png" /></p>
+<img src="/blog-assets/add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances/YhPj7TMSKh.png" alt="CleanShot 2022-05-28 at 16.02.40@2x.png" /></p>
 </li>
 <li><p>You are in the Create a Load balancer screen like this 👇
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653732418229/ZhwhaDAYk.png" alt="CleanShot 2022-05-28 at 16.04.46@2x.png" /></p>
+<img src="/blog-assets/add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances/ZhwhaDAYk.png" alt="CleanShot 2022-05-28 at 16.04.46@2x.png" /></p>
 <ul>
 <li>A. Change your region to where your instances are. My instances are in Virginia.</li>
 <li>B. Give it a name, and</li>
@@ -48,19 +48,19 @@ tags:
 <h2 id="heading-attach-instances-to-the-load-balance">Attach instances to the Load balance</h2>
 <ol>
 <li><p>Go to the homepage again and then click the <strong>Networking</strong> tab. You should see Loadbalancer(s) including the one just created. Click on the name of the Load balancer.
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653732814943/IrgiatFzx.png" alt="CleanShot 2022-05-28 at 16.13.01@2x.png" /></p>
+<img src="/blog-assets/add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances/IrgiatFzx.png" alt="CleanShot 2022-05-28 at 16.13.01@2x.png" /></p>
 </li>
 <li><p>Our load balancer doesn't have any attached instance(s) yet, we are going to attach one or more. Select your instance in the Target instances section.
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653733100321/tow7uBR8v.png" alt="CleanShot 2022-05-28 at 16.15.02@2x.png" />
+<img src="/blog-assets/add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances/tow7uBR8v.png" alt="CleanShot 2022-05-28 at 16.15.02@2x.png" />
 I just have one in this region. You should see all of the instances you have in the region where the load balancer is provisioned. </p>
 </li>
 <li><p>Confirm the attachment of your instance
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653733242717/-HlrPCaJl.png" alt="CleanShot 2022-05-28 at 16.19.15@2x.png" /></p>
+<img src="/blog-assets/add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances/-HlrPCaJl.png" alt="CleanShot 2022-05-28 at 16.19.15@2x.png" /></p>
 </li>
 <li><p>Do the same process until you attached all of your target instances. </p>
 </li>
 <li><p>Go to Load balancer URL (<strong>DNS name</strong>) and you should see your application.
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653733608361/h0TDAs9G8.png" alt="CleanShot 2022-05-28 at 16.26.00@2x.png" /></p>
+<img src="/blog-assets/add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances/h0TDAs9G8.png" alt="CleanShot 2022-05-28 at 16.26.00@2x.png" /></p>
 </li>
 </ol>
 <blockquote>
@@ -76,7 +76,7 @@ I just have one in this region. You should see all of the instances you have in 
 <h2 id="heading-enable-https">Enable HTTPS</h2>
 <ol>
 <li>Go to the <strong>Inbound traffic</strong> tab of your Load balancer setting.
-<img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653734254772/badvd2GAs.png" alt="CleanShot 2022-05-28 at 16.35.34@2x.png" /><ul>
+<img src="/blog-assets/add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances/badvd2GAs.png" alt="CleanShot 2022-05-28 at 16.35.34@2x.png" /><ul>
 <li>A. Create an SSL certificate for your domain by clicking the <strong>Create certificate +</strong> button.</li>
 <li>B. You should see all of the created certificates in the <strong>SSL/TLS certificate</strong> list and select the one you just created. </li>
 <li>C. Optionally, you can Redirect from HTTP to HTTPS. (After enabling the HTTPS).</li>

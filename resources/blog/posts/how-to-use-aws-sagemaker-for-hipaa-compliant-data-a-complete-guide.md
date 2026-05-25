@@ -8,7 +8,7 @@ reactionCount: 0
 responseCount: 0
 replyCount: 0
 sourceUrl: "https://web.archive.org/web/*/https://blog.harun.dev/how-to-use-aws-sagemaker-for-hipaa-compliant-data-a-complete-guide"
-coverImageUrl: "https://cdn.hashnode.com/res/hashnode/image/upload/v1757139453358/06738cf8-b783-4bfe-89bd-3c77c09e5ad2.jpeg"
+coverImageUrl: "/blog-assets/how-to-use-aws-sagemaker-for-hipaa-compliant-data-a-complete-guide/cover.jpeg"
 tags:
   - name: "AWS"
     slug: "aws"
