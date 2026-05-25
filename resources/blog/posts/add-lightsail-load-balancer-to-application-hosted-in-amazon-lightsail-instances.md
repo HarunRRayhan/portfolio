@@ -1,7 +1,7 @@
 ---
 title: "Add Lightsail Load Balancer to Application hosted in Amazon Lightsail instance(s)"
 slug: "add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances"
-brief: "Lightsail offers Load Balancer. It's very easy to provision one and attach one or multiple instances to it. Let's create one and attach instances to it. 
+brief: "Lightsail offers Load Balancer. It's very easy to provision one and attach one or multiple instances to it. Let's create one and attach instances to it.
 Prerequisites
 You need one or more Amazon Lightsail instances to attach to the load balancer in ..."
 publishedAt: "2022-05-28T11:02:53.352Z"
@@ -50,7 +50,7 @@ tags:
 <li><p>Go to the homepage again and then click the <strong>Networking</strong> tab. You should see Loadbalancer(s) including the one just created. Click on the name of the Load balancer.
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653732814943/IrgiatFzx.png" alt="CleanShot 2022-05-28 at 16.13.01@2x.png" /></p>
 </li>
-<li><p>Our load balancer doesn't have any attached instance(s) yet, we are going to attach one or more. Select your instance in the Target instances section. 
+<li><p>Our load balancer doesn't have any attached instance(s) yet, we are going to attach one or more. Select your instance in the Target instances section.
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653733100321/tow7uBR8v.png" alt="CleanShot 2022-05-28 at 16.15.02@2x.png" />
 I just have one in this region. You should see all of the instances you have in the region where the load balancer is provisioned. </p>
 </li>
@@ -59,7 +59,7 @@ I just have one in this region. You should see all of the instances you have in 
 </li>
 <li><p>Do the same process until you attached all of your target instances. </p>
 </li>
-<li><p>Go to Load balancer URL (<strong>DNS name</strong>) and you should see your application. 
+<li><p>Go to Load balancer URL (<strong>DNS name</strong>) and you should see your application.
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653733608361/h0TDAs9G8.png" alt="CleanShot 2022-05-28 at 16.26.00@2x.png" /></p>
 </li>
 </ol>
@@ -75,7 +75,7 @@ I just have one in this region. You should see all of the instances you have in 
 </ol>
 <h2 id="heading-enable-https">Enable HTTPS</h2>
 <ol>
-<li>Go to the <strong>Inbound traffic</strong> tab of your Load balancer setting. 
+<li>Go to the <strong>Inbound traffic</strong> tab of your Load balancer setting.
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653734254772/badvd2GAs.png" alt="CleanShot 2022-05-28 at 16.35.34@2x.png" /><ul>
 <li>A. Create an SSL certificate for your domain by clicking the <strong>Create certificate +</strong> button.</li>
 <li>B. You should see all of the created certificates in the <strong>SSL/TLS certificate</strong> list and select the one you just created. </li>

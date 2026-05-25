@@ -1,7 +1,7 @@
 ---
 title: "Connect Redis/Elasticache to application in Amazon Lightsail instance"
 slug: "connect-redis-elasticache-to-application-in-amazon-lightsail-instance"
-brief: "You can create Redis/Elasticache even though Amazon Lightsail doesn't offer it. You can create an Elasticache for Redis cluster in AWS and connect using VPC Peering. 
+brief: "You can create Redis/Elasticache even though Amazon Lightsail doesn't offer it. You can create an Elasticache for Redis cluster in AWS and connect using VPC Peering.
 Prerequisites
 
 An Amazon Lightsail instance. To create a new instance follow Deploy..."
@@ -52,7 +52,7 @@ tags:
 <li>J. And then clieck the <strong>Next</strong> button from the bottom.</li>
 </ul>
 </li>
-<li><p>You will be on the second page. Just uncheck <strong>Enable automatic backup</strong> and click the <strong>Next</strong> button from the bottom of the page. 
+<li><p>You will be on the second page. Just uncheck <strong>Enable automatic backup</strong> and click the <strong>Next</strong> button from the bottom of the page.
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653742318231/ahAMqpjdB.png" alt="CleanShot 2022-05-28 at 18.50.07@2x.png" /></p>
 </li>
 <li><p>Review everything on the 3rd and final page. And then click the <strong>Create</strong> button from the bottom of the page. </p>
@@ -60,14 +60,14 @@ tags:
 <li><p>It will take a few minutes to get created. Wait for status changes to <strong>Available</strong>.
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653743046013/ETHuHBu8T.png" alt="CleanShot 2022-05-28 at 19.03.41@2x.png" /></p>
 </li>
-<li><p>now, click on the Cluster name. And you will be on the details page. 
+<li><p>now, click on the Cluster name. And you will be on the details page.
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653743211659/IfsLDKS_6.png" alt="CleanShot 2022-05-28 at 19.05.38@2x.png" />
 Copy the <strong>Primary endpoint</strong> in your clipboard or somewhere safe. </p>
 </li>
 </ol>
 <h3 id="heading-configure-security-group-for-redis-cluster">Configure Security Group for Redis cluster</h3>
 <ol>
-<li><p>Go to the <a target="_blank" href="https://us-east-1.console.aws.amazon.com/vpc/home?region=us-east-1#securityGroups:"><strong>Security groups</strong></a> of VPS Console. Make sure you are in the same region as the Redis cluster. And then click the <strong>Create security group</strong> from the top-right corner. 
+<li><p>Go to the <a target="_blank" href="https://us-east-1.console.aws.amazon.com/vpc/home?region=us-east-1#securityGroups:"><strong>Security groups</strong></a> of VPS Console. Make sure you are in the same region as the Redis cluster. And then click the <strong>Create security group</strong> from the top-right corner.
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653744863578/l7kjpTUOR.png" alt="CleanShot 2022-05-28 at 19.33.08@2x.png" /></p>
 </li>
 <li><p>You are in create Security Group page
@@ -87,7 +87,7 @@ Copy the <strong>Primary endpoint</strong> in your clipboard or somewhere safe. 
 <li><p>Click on the <strong>Manage</strong> button from the next screen
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653746332691/9RL95yIIC.png" alt="CleanShot 2022-05-28 at 19.58.02@2x.png" /></p>
 </li>
-<li><p>Select the correct security group from the pop and then click on the <strong>Choose</strong> button. 
+<li><p>Select the correct security group from the pop and then click on the <strong>Choose</strong> button.
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653746443378/yYbIwHuCh.png" alt="CleanShot 2022-05-28 at 19.59.19@2x.png" /></p>
 </li>
 <li><p>Click <strong>Modify</strong> button from the bottom of the page.
@@ -98,11 +98,11 @@ It will take a few minutes to complete the modification. Wait until the status c
 <h2 id="heading-vpc-peering">VPC Peering</h2>
 <p>The important part of this tutorial. We need to peer VPC between Lightsail and Redis cluster's VPC to connect it. </p>
 <ol>
-<li><p>Go to the homepage of the Amazon Lightsail console. Click the <strong>Account</strong> from the Account menu dropdown. 
+<li><p>Go to the homepage of the Amazon Lightsail console. Click the <strong>Account</strong> from the Account menu dropdown.
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653743506780/Kkbk-kt5P.png" alt="CleanShot 2022-05-28 at 19.10.54@2x.png" /></p>
 </li>
 <li><p>Click on the <strong>Advanced</strong> tab from the Account settings page. You will see a list of your VPCs. Connect the one that resides in your Redis cluster. For me, it's <strong>Virginia (us-east-1)
-</strong>. 
+</strong>.
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653743731968/0hJH7OqKe.png" alt="CleanShot 2022-05-28 at 19.12.35@2x.png" /></p>
 </li>
 </ol>
@@ -129,7 +129,7 @@ sudo make BUILD_TLS=yes
 <li><p>Now connect to the Redis cluster. The moment of truth.</p>
 <pre><code class="lang-bash">redis-cli -h &lt;redis_endpoint&gt; -c -p 6379
 </code></pre>
-<p>Replace <code>&lt;redis_endpoint&gt;</code> with your Primary endpoint of Redis you copied in the clipboard. Remove port (":6379") from the endpoint URL. You will see this screen if successful 👇 
+<p>Replace <code>&lt;redis_endpoint&gt;</code> with your Primary endpoint of Redis you copied in the clipboard. Remove port (":6379") from the endpoint URL. You will see this screen if successful 👇
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653747050113/8YFSWvlOm.png" alt="CleanShot 2022-05-28 at 20.10.24@2x.png" />
 You can use the <code>ping</code>, <code>set</code>, and <code>get</code> commands to test it out. </p>
 </li>

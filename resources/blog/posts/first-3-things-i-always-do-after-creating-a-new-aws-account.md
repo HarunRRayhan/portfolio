@@ -28,7 +28,7 @@ tags:
 <li>Go to <a target="_blank" href="https://console.aws.amazon.com/billing/home#/budgets"><strong>Budget Console</strong></a></li>
 <li>Click on the "<strong>Create Budget</strong>" button.</li>
 <li>Choose the first option, "<strong>Cost budget - Recommended</strong>" from the next page.</li>
-<li>From the next page: 
+<li>From the next page:
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1656945288308/bIPTXFqTW.png" alt="CleanShot 2022-07-04 at 20.33.25@2x.png" /><ul>
 <li>A. Give it a name.</li>
 <li>B. Set the Period as <strong>Month</strong> for this demo, but you can choose any other period.</li>
@@ -38,9 +38,9 @@ tags:
 <li>F. From the bottom-right of the page click "Next"</li>
 </ul>
 </li>
-<li>From the next page, click on the "<strong>Add an alert threshold</strong>. Going to set a couple of alerts. 
+<li>From the next page, click on the "<strong>Add an alert threshold</strong>. Going to set a couple of alerts.
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1656945969434/yGqNrA0Eu.png" alt="CleanShot 2022-07-04 at 20.43.58@2x.png" /></li>
-<li>Let's set an actual budget alert: 
+<li>Let's set an actual budget alert:
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1656946180091/ic5styUxa.png" alt="CleanShot 2022-07-04 at 20.48.00@2x.png" /><ul>
 <li>A. Choose <strong>80</strong> from the threshold.</li>
 <li>B. Select <strong>Actual</strong> from the trigger</li>
@@ -62,11 +62,11 @@ Everything is the same as the first alert, only change Trigger to <strong>Foreca
 <p>You should use MFA for all IAM accounts including the root account. If not possible, at least apply it to root and privileged accounts. Login to the account (root or IAM) and let's protect it.</p>
 <ol>
 <li>Go to <a target="_blank" href="https://console.aws.amazon.com/iam/home#/security_credentials$mfa"><strong>Security Credentials of IAM Console</strong></a></li>
-<li>Click on the "Assign MFA device" 
+<li>Click on the "Assign MFA device"
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1657111562695/G47bzXcts.png" alt="CleanShot 2022-07-06 at 18.45.13@2x.png" /></li>
 <li>Choose <strong>Virtual MFA device</strong> from the popup</li>
 <li>You can choose either of these apps: Authy, Duo Mobile, LastPass Authenticator, Microsoft Authenticator, Google Authenticator, Symantec VIP. My personal choice is Authy.</li>
-<li>Click on the "Show QR code" from the next popup and scan it from your MFA app. Then enter two codes (one after another). And then click the "Assign MFA" button. 
+<li>Click on the "Show QR code" from the next popup and scan it from your MFA app. Then enter two codes (one after another). And then click the "Assign MFA" button.
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1657112093771/vyB0BX5om.png" alt="CleanShot 2022-07-06 at 18.52.42@2x.png" /></li>
 </ol>
 <p>...</p>
@@ -85,7 +85,7 @@ Everything is the same as the first alert, only change Trigger to <strong>Foreca
 <ol>
 <li>Go to <a target="_blank" href="console.aws.amazon.com/iamv2/home#/users"><strong>Users page of IAM Console</strong></a>.</li>
 <li>Click on the <strong>Add users</strong> button from top-right corner. </li>
-<li>You will be in this page: 
+<li>You will be in this page:
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1657115139748/qnRC-GFHY.png" alt="CleanShot 2022-07-06 at 19.42.16@2x.png" /><ul>
 <li>A. Choose an username</li>
 <li>B. Chosse access type. I need both CLI and AWS Console access</li>
@@ -94,7 +94,7 @@ Everything is the same as the first alert, only change Trigger to <strong>Foreca
 <li>E. Click on the <strong>Next: Permission</strong> button from the bottom-right</li>
 </ul>
 </li>
-<li>You are in the permission page: 
+<li>You are in the permission page:
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1657115468984/bHYj1c_6X.png" alt="CleanShot 2022-07-06 at 19.50.04@2x.png" /><ul>
 <li>A. Choose <strong>Attach existing policies directly</strong> from the top options</li>
 <li>B. Search for the <strong>AdministratorAccess</strong> role</li>
@@ -103,9 +103,9 @@ Everything is the same as the first alert, only change Trigger to <strong>Foreca
 </ul>
 </li>
 <li>You are in the tags page. You can add you tag(s) if you want but it's optional. Click in the <strong>Next: Review</strong> button.</li>
-<li>Take a look on everything and check if it's matches to mine. And then click on the <strong>Create user</strong> button. 
+<li>Take a look on everything and check if it's matches to mine. And then click on the <strong>Create user</strong> button.
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1657115746019/M_4JaTtXY.png" alt="CleanShot 2022-07-06 at 19.55.22@2x.png" /></li>
-<li>Now we are in the final page: 
+<li>Now we are in the final page:
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1657115912225/AwtCueh_h.png" alt="CleanShot 2022-07-06 at 19.57.03@2x.png" /><ul>
 <li>A. The link to login to the console</li>
 <li>B &amp; C. Username &amp; Password to login to the console</li>

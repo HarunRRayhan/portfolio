@@ -2,7 +2,7 @@
 title: "Deploy WordPress App to Amazon Lightsail"
 slug: "deploy-wordpress-app-to-amazon-lightsail"
 brief: "Introduction
-AWS Lightsail can be the easiest entry to the AWS Cloud. It has fixed monthly pricing unlike most other services, so you don't have to worry about a huge monthly bill. 
+AWS Lightsail can be the easiest entry to the AWS Cloud. It has fixed monthly pricing unlike most other services, so you don't have to worry about a huge monthly bill.
 Lightsail is really great for small to medium apps. It has out-of-th..."
 publishedAt: "2022-04-27T15:00:52.149Z"
 readTimeInMinutes: 5
@@ -36,7 +36,7 @@ tags:
 <p>Are you seeing this? Let's go 🏃‍♂️</p>
 <h2 id="heading-create-instance">Create Instance</h2>
 <ol>
-<li><p>Now click on the big <strong>Create Instance</strong> button. If you don't see one, follow this: 
+<li><p>Now click on the big <strong>Create Instance</strong> button. If you don't see one, follow this:
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651061181136/t7Kzr_AGl.png" alt="CleanShot 2022-04-27 at 18.04.31@2x.png" /></p>
 </li>
 <li><p>Let's choose <strong>Instance location</strong>, <strong>platform</strong>, and <strong>blueprint</strong>:
@@ -53,9 +53,9 @@ D. Now choose <strong>WordPress</strong> from the app list. <em>Not the multisit
 </li>
 </ol>
 <h2 id="heading-assign-a-static-ip-optional">Assign a Static IP (optional)</h2>
-<p>AWS Lightsail Instance comes with public (and private) IP. Which changes every time Stop and Start the instance.  My Public IP was this when I launched the instance: 
+<p>AWS Lightsail Instance comes with public (and private) IP. Which changes every time Stop and Start the instance.  My Public IP was this when I launched the instance:
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651065976006/xngXQF1qF.png" alt="CleanShot 2022-04-27 at 19.24.43@2x.png" /></p>
-<p>After Stop and Start the instance, it got a new Public IP address: 
+<p>After Stop and Start the instance, it got a new Public IP address:
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651066336570/qlxGqkjSB.png" alt="CleanShot 2022-04-27 at 19.31.30@2x.png" /></p>
 <p>We have to fix that. So, let's create and assign a <strong>Static IP</strong>:</p>
 <ol>
@@ -75,7 +75,7 @@ D. Now choose <strong>WordPress</strong> from the app list. <em>Not the multisit
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651068506979/ofhpf4_1M.png" alt="CleanShot 2022-04-27 at 20.07.41@2x.png" /></p>
 <h3 id="heading-using-ssh-client">Using SSH Client</h3>
 <ol>
-<li>Download the SSH key from here: 
+<li>Download the SSH key from here:
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651068654032/OKPX9IZfO.png" alt="CleanShot 2022-04-27 at 20.10.12@2x.png" /></li>
 <li>If you are using PuTTY you can <a target="_blank" href="https://lightsail.aws.amazon.com/ls/docs/en_us/articles/lightsail-how-to-set-up-putty-to-connect-using-ssh">follow this tutorial</a>. </li>
 <li>If you are using a terminal in macOS or Linux, run this command on where you downloaded the SSH key. </li>
@@ -103,7 +103,7 @@ ssh -i <span class="hljs-string">"&lt;path/to/your-lightsail-key&gt;.pem"</span>
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651100878512/fz1N3wW4u.png" alt="CleanShot 2022-04-28 at 05.03.10@2x.png" /></li>
 <li>Add these name server records in your domain control panel (ex. Namecheap, GoDaddy). You might have different records than mine
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651101055794/Y_EVt8m18.png" alt="CleanShot 2022-04-28 at 05.09.00@2x.png" /></li>
-<li>Now to the good part. Click <strong>+ Add Record</strong> button. Add your instance and click on tick icon to save. 
+<li>Now to the good part. Click <strong>+ Add Record</strong> button. Add your instance and click on tick icon to save.
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651101295885/pp15TFvIg.png" alt="CleanShot 2022-04-28 at 05.13.07@2x.png" /><blockquote>
 <p>⚠️ It may take few minutes to days to propagate DNS records. </p>
 </blockquote>
@@ -116,7 +116,7 @@ ssh -i <span class="hljs-string">"&lt;path/to/your-lightsail-key&gt;.pem"</span>
 <p>Your database credentials exist in <code>wp-config.php</code> file. Connect to your instance via SSH and run this command: </p>
 <pre><code class="lang-bash">cat stack/wordpress/wp-config.php
 </code></pre>
-<p>Use DB credentials to connect to DB, and replace <code>localhost</code> with the instance's public IP. Connect to your DB via SSH (recommended) or add the <code>3306</code> port here: 
+<p>Use DB credentials to connect to DB, and replace <code>localhost</code> with the instance's public IP. Connect to your DB via SSH (recommended) or add the <code>3306</code> port here:
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1651070563015/vdJ8wmLh2.png" alt="CleanShot 2022-04-27 at 20.40.01@2x.png" /></p>
 <blockquote>
 <p>ℹ️ Don't forget to change the domain name in <code>siteurl</code> and <code>home</code> rows of <code>wp_options</code> table.</p>

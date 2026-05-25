@@ -32,7 +32,7 @@ tags:
 <li>Go to <a target="_blank" href="https://console.aws.amazon.com/iam/">IAM Console</a>.</li>
 <li>Click on the <strong>Users</strong> menu from the navigation panel and then click on the <strong>Add Users</strong> button.
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1654260503965/iecpnlBpe.png" alt="CleanShot 2022-06-03 at 18.45.52@2x.png" /></li>
-<li>You will be in the <strong>Add user</strong> screen: 
+<li>You will be in the <strong>Add user</strong> screen:
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1654260634422/FtOVvkhW4.png" alt="CleanShot 2022-06-03 at 18.49.18@2x.png" /><ul>
 <li>A. Give it a name. For me, it's <strong>LightsailCloudWatchAgent</strong>.</li>
 <li>B. Check the <strong>Access key - Programmatic access</strong> option</li>
@@ -49,7 +49,7 @@ tags:
 </li>
 <li>Tags are optional. You can choose your tags. Click on the <strong>Next: Review</strong> after you are done.</li>
 <li>From review page you can check if everything alright and then click the <strong>Create user</strong> button.</li>
-<li>Your account is created and you will be in this screen: 
+<li>Your account is created and you will be in this screen:
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1654262147682/a1Y5zvdjy.png" alt="CleanShot 2022-06-03 at 19.15.00@2x.png" /><ul>
 <li>A. &amp; B. Copy <strong>Access Key ID</strong> and <strong>Secret access key</strong> in somewhere safe, or,</li>
 <li>C. Download the csv file.
@@ -72,7 +72,7 @@ sudo ./aws/install --bin-dir /usr/bin --install-dir /usr/<span class="hljs-built
 <li><p>Now, we are going to configure the AWS access generated in the last step. Run this </p>
 <pre><code class="lang-bash">sudo aws configure --profile AmazonCloudWatchAgent
 </code></pre>
-<p>Enter Access Key and Secret Like this: 
+<p>Enter Access Key and Secret Like this:
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1654264842166/88TunGI6p.png" alt="CleanShot 2022-06-03 at 19.59.18@2x.png" /></p>
 </li>
 </ol>
@@ -110,7 +110,7 @@ sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
 <li><p>Check the status of the agent by using:</p>
 <pre><code class="lang-bash">sudo amazon-cloudwatch-agent-ctl -a status
 </code></pre>
-<p>You should see something like this: 
+<p>You should see something like this:
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1654266165471/XM2e620Sv.png" alt="CleanShot 2022-06-03 at 20.21.53@2x.png" /></p>
 </li>
 </ol>
@@ -121,7 +121,7 @@ sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
 <li>Under “<strong>Custom Namespaces</strong>”, You should see a link for “CWAgent”.</li>
 <li>Choose CWAgent.</li>
 <li>Choose any <strong>ImageId, InstanceId, InstanceType</strong>.</li>
-<li>Select the checkbox to display metrics on the graph. Here is mine: 
+<li>Select the checkbox to display metrics on the graph. Here is mine:
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1654315784361/SZyZfXUjn.png" alt="CleanShot 2022-06-04 at 10.08.02@2x.png" /></li>
 </ol>
 <h2 id="heading-conclusion">Conclusion</h2>

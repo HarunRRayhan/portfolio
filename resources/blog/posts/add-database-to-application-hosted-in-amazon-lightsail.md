@@ -35,7 +35,7 @@ tags:
 <li><p>Now click on the <strong>Create database</strong> button
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653131872710/gEcI9vj3t.png" alt="CleanShot 2022-05-21 at 17.17.16@2x.png" /></p>
 </li>
-<li><p>Now you are on the database creation page: 
+<li><p>Now you are on the database creation page:
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653132301734/u04toFGII.png" alt="CleanShot 2022-05-21 at 17.23.57@2x.png" /></p>
 <ul>
 <li>(A) Select AWS Region and Availablity Zone (AZ). for me Virginia and Zone A are perfect.</li>
@@ -44,7 +44,7 @@ tags:
 <li>(D) Click on <strong>Specify the master database name</strong>.</li>
 </ul>
 </li>
-<li><p>Scroll down a little and configure this: 
+<li><p>Scroll down a little and configure this:
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1653134742780/DRvaNLKt4.png" alt="CleanShot 2022-05-21 at 18.03.04@2x.png" /></p>
 <ul>
 <li>(A) Choose Database username</li>

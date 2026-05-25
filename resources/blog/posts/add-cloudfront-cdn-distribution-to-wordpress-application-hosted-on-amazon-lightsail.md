@@ -1,7 +1,7 @@
 ---
 title: "Add (Cloudfront) CDN Distribution to WordPress Application hosted on Amazon Lightsail"
 slug: "add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail"
-brief: "It's not very hard to add CDN Distribution to a WordPress app hosted on Amazon Lightsail. But if you are new, it can be cumbersome. This article is to demonstrate how to do it easily. 
+brief: "It's not very hard to add CDN Distribution to a WordPress app hosted on Amazon Lightsail. But if you are new, it can be cumbersome. This article is to demonstrate how to do it easily.
 Why Should I use CDN distribution?
 You might hear about Content D..."
 publishedAt: "2022-05-10T11:37:20.793Z"
@@ -26,7 +26,7 @@ tags:
 <p>It's not very hard to add CDN Distribution to a WordPress app hosted on Amazon Lightsail. But if you are new, it can be cumbersome. This article is to demonstrate how to do it easily. </p>
 <h2 id="heading-why-should-i-use-cdn-distribution">Why Should I use CDN distribution?</h2>
 <p>You might hear about Content Delivery Network (CDN). If not, here is an article explaining "<a target="_blank" href="https://www.cloudflare.com/en-gb/learning/cdn/what-is-a-cdn/">what is CDN?</a>". </p>
-<p>If you are not interested to read a long article, here is TL;DR: 
+<p>If you are not interested to read a long article, here is TL;DR:
 In CDN, Lots of small servers run closer to your customer. Content gets cached there and served from the closer server(s) of your customer. In that way, ease the pressure from the main servers. </p>
 <h2 id="heading-what-is-cdn-distribution">What is CDN Distribution?</h2>
 <p>It is the Amazon Lightsail CDN service. Under the hood, it uses Amazon Cloudfront. It has 300+ points of presence to deliver content closer to your customers. On top of that, it comes with AWS Shield, which protects infrastructure from DDoS attacks. </p>
@@ -46,10 +46,10 @@ In CDN, Lots of small servers run closer to your customer. Content gets cached t
 <p>Now we are ready to create our first distributions.</p>
 <h2 id="heading-create-cdn-distribution">Create CDN Distribution</h2>
 <ol>
-<li><p>Go to <a target="_blank" href="https://lightsail.aws.amazon.com/ls/webapp/home/networking">home page</a> of Lightsail. Go to <strong>Network</strong> tab again. This time hit the <strong>Create distribution</strong> button. 
+<li><p>Go to <a target="_blank" href="https://lightsail.aws.amazon.com/ls/webapp/home/networking">home page</a> of Lightsail. Go to <strong>Network</strong> tab again. This time hit the <strong>Create distribution</strong> button.
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1652106732159/UaCC5eSiv.png" alt="Create CDN Distribution on Amazon Lightsail" /></p>
 </li>
-<li><p>Select the WordPress Instance as Origin 
+<li><p>Select the WordPress Instance as Origin
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1652106891069/W12TgIi-k.png" alt="Amazon Lightsail CDN Distribution Origin" /></p>
 </li>
 <li><p>Hit <strong>Yes, apply</strong> to apply the predefined WordPress settings
@@ -59,7 +59,7 @@ In CDN, Lots of small servers run closer to your customer. Content gets cached t
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1652107795929/Sf65bVVmN.png" alt="CleanShot 2022-05-09 at 20.37.34@2x.png" /></p>
 </li>
 </ol>
-<p>Woohoo 🎉 Your first distribution is created. Wait for a while to be available. After getting done, you will see this 👇 
+<p>Woohoo 🎉 Your first distribution is created. Wait for a while to be available. After getting done, you will see this 👇
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1652108794268/3BeQBMUzu.png" alt="Amazon Lightsail CDN Cloudfront Distribution " />
 (A) Your domain for the distribution. You can access the site using this URL.</p>
 <h2 id="heading-domain">Domain</h2>

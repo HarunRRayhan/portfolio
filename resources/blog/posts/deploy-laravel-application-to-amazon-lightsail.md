@@ -32,7 +32,7 @@ tags:
 <li><p>Go to Lightsail homepage. Click on the <strong>Create instance</strong> button under <strong>Instances</strong> tab.
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1652881692076/hLgNOWXsk.png" alt="CleanShot 2022-05-18 at 19.44.36@2x.png" /></p>
 </li>
-<li><p>You will land on the Create instance page. We will use Ubuntu for this demo but you are open to choosing the OS of your choice. 
+<li><p>You will land on the Create instance page. We will use Ubuntu for this demo but you are open to choosing the OS of your choice.
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1652882301357/kHB-fJG9L.png" alt="CleanShot 2022-05-18 at 19.51.37@2x.png" />
 (A) Change the AWS Region and Availablity Zone (AZ) of your choice if not the correct one selected. (B) Select <strong>Linux/Unix</strong> platform. (C) Select <strong>Ubuntu (20.04 LTS)</strong> as OS. The blueprint should be <strong>OS Only</strong>. (D) Choose a plan. (E) Give it a name, and (F) Hit the <strong>Create instance</strong> button from the bottom of the page.</p>
 </li>
@@ -46,7 +46,7 @@ tags:
 <p>ℹ️ I described in detail <a target="_blank" href="https://harun.dev/blog/deploy-wordpress-app-to-amazon-lightsail#heading-connect-to-the-instance-using-ssh">How to connect to an Amazon Lightsail instance using SSH</a>. </p>
 </blockquote>
 <ol>
-<li><p>Go to the instance page by clicking on the name. And go to the <strong>Connect</strong> tab. We need these 3 things: (A) Public IP, (B) SSH Username, and (C) Download the SSH Key. 
+<li><p>Go to the instance page by clicking on the name. And go to the <strong>Connect</strong> tab. We need these 3 things: (A) Public IP, (B) SSH Username, and (C) Download the SSH Key.
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1652883714529/oW0f4b2AO.png" alt="CleanShot 2022-05-18 at 20.21.12@2x.png" /></p>
 </li>
 <li><p>Change permission of Key file: </p>
@@ -75,13 +75,13 @@ ssh -i <span class="hljs-string">"path/to/keyfile.pem"</span> &lt;username&gt;@&
 <pre><code class="lang-bash">sudo apt install curl git unzip -y
 </code></pre>
 </li>
-<li><p>Install PHP 
+<li><p>Install PHP
 I love the latest PHP 8.1. It's not officially available in Ubuntu 20.04 yet. We will enable the PHP Repository to install PHP 8.1.</p>
 <pre><code class="lang-bash">sudo apt install software-properties-common -y
 sudo add-apt-repository ppa:ondrej/php -y
 sudo apt install php8.1-fpm php8.1-cli php8.1-mysql php8.1-curl php-xml php-mbstring -y
 </code></pre>
-<p>Check php version by using <code>php --version</code> command. You should see something like this: 
+<p>Check php version by using <code>php --version</code> command. You should see something like this:
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1652886148738/mv58j3RPp.png" alt="CleanShot 2022-05-18 at 21.02.08@2x.png" /></p>
 </li>
 <li><p>Install Composer</p>
@@ -185,7 +185,7 @@ APP_URL=http://52.201.59.133
 </code></pre>
 </li>
 </ol>
-<p>Now go to your public IP address. Mine is <code>http://52.201.59.133</code>. You should see this welcome page. 
+<p>Now go to your public IP address. Mine is <code>http://52.201.59.133</code>. You should see this welcome page.
 <img src="https://cdn.hashnode.com/res/hashnode/image/upload/v1652971832893/zcqFK0B3U.png" alt="CleanShot 2022-05-19 at 20.50.16@2x.png" /></p>
 <p>Congratulations, your Laravel app launched on Amazon Lightsail instance. 🚀</p>
 <h2 id="heading-conclusion">Conclusion</h2>
