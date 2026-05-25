@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ContactController;
+use App\Support\BlogRepository;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -87,6 +88,121 @@ Route::get('/contact', function () {
 })->name('contact');
 
 Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
+
+Route::get('/blog', function () {
+    $blog = new BlogRepository();
+
+    return Inertia::render('Blog/Index', [
+        'publication' => $blog->publication(),
+        'posts' => $blog->indexPosts(),
+        'canonicalUrl' => url('/blog'),
+    ]);
+})->name('blog.index');
+
+Route::get('/blog/feed.xml', function () {
+    $blog = new BlogRepository();
+    $publication = $blog->publication();
+    $posts = array_slice($blog->indexPosts(), 0, 20);
+    $escape = fn (string $value): string => htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+    $siteUrl = rtrim(config('app.url', url('/')), '/');
+    $publishedAt = now()->toAtomString();
+
+    $items = collect($posts)->map(function (array $post) use ($escape, $blog) {
+        $postUrl = $blog->absoluteUrl($post['slug']);
+        $description = $post['brief'];
+        $pubDate = $post['publishedAtIso'];
+
+        return "<item>"
+            ."<title>{$escape($post['title'])}</title>"
+            ."<link>{$escape($postUrl)}</link>"
+            ."<guid isPermaLink=\"true\">{$escape($postUrl)}</guid>"
+            ."<pubDate>{$escape($pubDate)}</pubDate>"
+            ."<description>{$escape($description)}</description>"
+            ."</item>";
+    })->implode('');
+
+    $xml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>{$escape($publication['title'])}</title>
+    <link>{$escape($siteUrl.'/blog')}</link>
+    <description>{$escape('AWS, DevOps, Laravel, and serverless articles from Harun.')}</description>
+    <language>en</language>
+    <lastBuildDate>{$escape($publishedAt)}</lastBuildDate>
+    {$items}
+  </channel>
+</rss>
+XML;
+
+    return response($xml, 200)->header('Content-Type', 'application/rss+xml; charset=UTF-8');
+})->name('blog.feed');
+
+Route::get('/blog/{slug}', function (string $slug) {
+    $blog = new BlogRepository();
+    $post = $blog->find($slug);
+
+    abort_unless($post, 404);
+
+    return Inertia::render('Blog/Post', [
+        'publication' => $blog->publication(),
+        'post' => $blog->toPostPagePayload($post),
+        'relatedPosts' => $blog->related($slug, 3),
+        'canonicalUrl' => $blog->absoluteUrl($slug),
+    ]);
+})->name('blog.post');
+
+Route::get('/sitemap.xml', function () {
+    $blog = new BlogRepository();
+    $siteUrl = rtrim(config('app.url', url('/')), '/');
+
+    $staticUrls = [
+        ['loc' => $siteUrl.'/', 'lastmod' => now()->toDateString()],
+        ['loc' => $siteUrl.'/about', 'lastmod' => now()->toDateString()],
+        ['loc' => $siteUrl.'/services', 'lastmod' => now()->toDateString()],
+        ['loc' => $siteUrl.'/book', 'lastmod' => now()->toDateString()],
+        ['loc' => $siteUrl.'/contact', 'lastmod' => now()->toDateString()],
+        ['loc' => $siteUrl.'/privacy', 'lastmod' => now()->toDateString()],
+        ['loc' => $siteUrl.'/terms', 'lastmod' => now()->toDateString()],
+        ['loc' => $siteUrl.'/blog', 'lastmod' => now()->toDateString()],
+    ];
+
+    $blogUrls = collect($blog->indexPosts())->map(fn (array $post) => [
+        'loc' => $blog->absoluteUrl($post['slug']),
+        'lastmod' => substr($post['publishedAtIso'], 0, 10),
+    ]);
+
+    $urls = collect($staticUrls)->merge($blogUrls);
+    $escape = fn (string $value): string => htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+
+    $entries = $urls->map(fn (array $url) => <<<XML
+    <url>
+      <loc>{$escape($url['loc'])}</loc>
+      <lastmod>{$escape($url['lastmod'])}</lastmod>
+    </url>
+XML)->implode("\n");
+
+    $xml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+{$entries}
+</urlset>
+XML;
+
+    return response($xml, 200)->header('Content-Type', 'application/xml; charset=UTF-8');
+})->name('sitemap');
+
+Route::get('/robots.txt', function () {
+    $siteUrl = rtrim(config('app.url', url('/')), '/');
+
+    $txt = <<<TXT
+User-agent: *
+Allow: /
+Sitemap: {$siteUrl}/sitemap.xml
+TXT;
+
+    return response($txt, 200)->header('Content-Type', 'text/plain; charset=UTF-8');
+})->name('robots');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

@@ -15,11 +15,11 @@ import { Menu, ExternalLink } from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger } from "@/Components/ui/sheet"
 import { getImageUrl } from "../lib/imageUtils"
 
-const menuItems = [
+const menuItems: Array<{ name: string; href: string; external?: boolean }> = [
   { name: "Home", href: "/" },
   { name: "Services", href: "/services" },
   { name: "Book a Session", href: "/book" },
-  { name: "Blog", href: "https://harun.dev/blog", external: true },
+  { name: "Blog", href: "/blog" },
   { name: "About", href: "/about" },
   { name: "Contact", href: "/contact" },
 ]

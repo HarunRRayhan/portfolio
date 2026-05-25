@@ -158,5 +158,42 @@ resource "cloudflare_workers_route" "www_redirect_route" {
     script  = cloudflare_workers_script.www_redirect.script_name
 }
 
+resource "cloudflare_dns_record" "blog_cname" {
+    zone_id = var.cloudflare_zone_id
+    name    = "blog"
+    type    = "CNAME"
+    content = "workers.dev"
+    proxied = true
+    ttl     = 1
+}
+
+resource "cloudflare_workers_script" "blog_redirect" {
+    account_id  = var.cloudflare_account_id
+    script_name = "blog-redirect-harun-dev"
+    content = <<-EOF
+addEventListener('fetch', event => {
+  event.respondWith(handleRequest(event.request))
+})
+
+async function handleRequest(request) {
+  const url = new URL(request.url)
+
+  if (url.hostname === 'blog.harun.dev') {
+    const path = url.pathname === '/' ? '' : url.pathname
+    const redirectUrl = 'https://harun.dev/blog' + path + url.search
+    return Response.redirect(redirectUrl, 301)
+  }
+
+  return fetch(request)
+}
+EOF
+}
+
+resource "cloudflare_workers_route" "blog_redirect_route" {
+    zone_id = var.cloudflare_zone_id
+    pattern = "blog.harun.dev/*"
+    script  = cloudflare_workers_script.blog_redirect.script_name
+}
+
 
 
