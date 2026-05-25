@@ -151,6 +151,7 @@ Route::get('/blog/{slug}', function (string $slug) {
         'post' => $blog->toPostPagePayload($post),
         'relatedPosts' => $blog->related($slug, 3),
         'canonicalUrl' => $blog->absoluteUrl($slug),
+        'siteUrl' => rtrim(request()->root(), '/'),
     ]);
 })->name('blog.post');
 

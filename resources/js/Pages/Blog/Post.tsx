@@ -41,10 +41,16 @@ interface BlogPostPageProps {
   post: BlogPost
   relatedPosts: BlogPostSummary[]
   canonicalUrl: string
+  siteUrl: string
 }
 
-export default function BlogPostPage({ publication, post, relatedPosts, canonicalUrl }: BlogPostPageProps) {
+export default function BlogPostPage({ publication, post, relatedPosts, canonicalUrl, siteUrl }: BlogPostPageProps) {
   const description = post.brief
+  const coverImageUrl = post.coverImageUrl
+    ? post.coverImageUrl.startsWith('/')
+      ? `${siteUrl}${post.coverImageUrl}`
+      : post.coverImageUrl
+    : null
 
   const structuredData = {
     '@context': 'https://schema.org',
@@ -62,7 +68,7 @@ export default function BlogPostPage({ publication, post, relatedPosts, canonica
       url: publication.url,
     },
     mainEntityOfPage: canonicalUrl,
-    image: post.coverImageUrl ? [post.coverImageUrl] : undefined,
+    image: coverImageUrl ? [coverImageUrl] : undefined,
   }
 
   return (
@@ -75,11 +81,11 @@ export default function BlogPostPage({ publication, post, relatedPosts, canonica
         <meta property="og:description" content={description} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={canonicalUrl} />
-        {post.coverImageUrl ? <meta property="og:image" content={post.coverImageUrl} /> : null}
-        <meta name="twitter:card" content={post.coverImageUrl ? 'summary_large_image' : 'summary'} />
+        {coverImageUrl ? <meta property="og:image" content={coverImageUrl} /> : null}
+        <meta name="twitter:card" content={coverImageUrl ? 'summary_large_image' : 'summary'} />
         <meta name="twitter:title" content={post.title} />
         <meta name="twitter:description" content={description} />
-        {post.coverImageUrl ? <meta name="twitter:image" content={post.coverImageUrl} /> : null}
+        {coverImageUrl ? <meta name="twitter:image" content={coverImageUrl} /> : null}
         <link rel="canonical" href={canonicalUrl} />
         <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
       </Head>
@@ -100,9 +106,9 @@ export default function BlogPostPage({ publication, post, relatedPosts, canonica
             </div>
 
             <article className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-              {post.coverImageUrl ? (
+              {coverImageUrl ? (
                 <div className="relative aspect-[21/9] overflow-hidden bg-slate-100">
-                  <img src={post.coverImageUrl} alt={post.title} className="h-full w-full object-cover" />
+                  <img src={coverImageUrl} alt={post.title} className="h-full w-full object-cover" />
                 </div>
               ) : null}
 
