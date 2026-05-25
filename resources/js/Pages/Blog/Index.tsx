@@ -51,6 +51,7 @@ export default function BlogIndex({ publication, posts, canonicalUrl }: BlogInde
         <meta name="twitter:title" content="Blog | Harun R. Rayhan" />
         <meta name="twitter:description" content={description} />
         <link rel="canonical" href={canonicalUrl} />
+        <link rel="alternate" type="application/rss+xml" title="Harun's Blog RSS Feed" href="/blog/feed.xml" />
       </Head>
 
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white text-slate-900">

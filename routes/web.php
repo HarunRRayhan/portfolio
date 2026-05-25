@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ContactController;
 use App\Support\BlogRepository;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -91,11 +92,12 @@ Route::post('/contact', [ContactController::class, 'submit'])->name('contact.sub
 
 Route::get('/blog', function () {
     $blog = new BlogRepository();
+    $siteUrl = rtrim(config('app.url', url('/')), '/');
 
     return Inertia::render('Blog/Index', [
         'publication' => $blog->publication(),
         'posts' => $blog->indexPosts(),
-        'canonicalUrl' => url('/blog'),
+        'canonicalUrl' => $siteUrl.'/blog',
     ]);
 })->name('blog.index');
 
@@ -105,12 +107,12 @@ Route::get('/blog/feed.xml', function () {
     $posts = array_slice($blog->indexPosts(), 0, 20);
     $escape = fn (string $value): string => htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
     $siteUrl = rtrim(config('app.url', url('/')), '/');
-    $publishedAt = now()->toAtomString();
+    $publishedAt = now()->toRfc2822String();
 
     $items = collect($posts)->map(function (array $post) use ($escape, $blog) {
         $postUrl = $blog->absoluteUrl($post['slug']);
         $description = $post['brief'];
-        $pubDate = $post['publishedAtIso'];
+        $pubDate = Carbon::parse($post['publishedAt'])->toRfc2822String();
 
         return "<item>"
             ."<title>{$escape($post['title'])}</title>"
