@@ -83,12 +83,6 @@ export function Menubar() {
 
         <div className="hidden items-center gap-2 md:flex lg:justify-self-end">
           <Link
-            href="/blog"
-            className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-950"
-          >
-            Blog
-          </Link>
-          <Link
             href="/book"
             className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
           >

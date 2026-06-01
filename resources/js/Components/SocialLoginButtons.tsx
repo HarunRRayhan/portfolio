@@ -36,8 +36,19 @@ function SocialLoginButton({
 }
 
 export default function SocialLoginButtons({ redirectTo, compact = false }: SocialLoginButtonsProps) {
-  const githubHref = route('social.redirect', { provider: 'github', redirect: redirectTo })
-  const googleHref = route('social.redirect', { provider: 'google', redirect: redirectTo })
+  const buildProviderHref = (provider: 'github' | 'google') => {
+    const params = new URLSearchParams()
+
+    if (redirectTo) {
+      params.set('redirect', redirectTo)
+    }
+
+    const query = params.toString()
+    return query ? `/auth/${provider}?${query}` : `/auth/${provider}`
+  }
+
+  const githubHref = buildProviderHref('github')
+  const googleHref = buildProviderHref('google')
 
   return (
     <div className={compact ? 'space-y-3' : 'space-y-4'}>
@@ -52,13 +63,13 @@ export default function SocialLoginButtons({ redirectTo, compact = false }: Soci
           href={githubHref}
           label="GitHub"
           icon={<ProviderBadge label="gh" />}
-          className="inline-flex w-full items-center justify-center rounded-full border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-violet-300 hover:text-violet-700"
+          className="inline-flex w-full items-center justify-center rounded-full border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-950"
         />
         <SocialLoginButton
           href={googleHref}
           label="Google"
           icon={<ProviderBadge label="g" />}
-          className="inline-flex w-full items-center justify-center rounded-full border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-violet-300 hover:text-violet-700"
+          className="inline-flex w-full items-center justify-center rounded-full border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-950"
         />
       </div>
     </div>

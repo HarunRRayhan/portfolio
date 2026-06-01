@@ -19,7 +19,7 @@ const items = [...companies, ...companies]
 
 export function LogoSection() {
     return (
-        <section className="border-y border-slate-200 bg-slate-50 py-16">
+        <section className="border-b border-slate-100 bg-white py-16">
             <div className="container mx-auto px-4">
                 <div className="mx-auto max-w-2xl text-center">
                     <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">
@@ -35,8 +35,8 @@ export function LogoSection() {
                 </div>
 
                 <div className="relative mt-10 overflow-hidden">
-                    <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-slate-50 to-transparent" />
-                    <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-slate-50 to-transparent" />
+                    <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-white to-transparent" />
+                    <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-white to-transparent" />
 
                     <motion.div
                         initial={{ x: 0 }}
@@ -47,7 +47,7 @@ export function LogoSection() {
                         {items.map((company, index) => (
                             <div
                                 key={`${company.name}-${index}`}
-                                className="flex h-20 w-[210px] items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 shadow-sm"
+                                className="flex h-16 w-[190px] items-center justify-center rounded-xl border border-slate-100 bg-white px-5"
                             >
                                 <img
                                     src={company.logo}

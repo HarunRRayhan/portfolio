@@ -50,14 +50,14 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
         <link rel="alternate" type="application/rss+xml" title="Harun's Blog RSS Feed" href="/blog/feed.xml" />
       </Head>
 
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(124,58,237,0.08),_transparent_28%),linear-gradient(180deg,#f8fafc_0%,#ffffff_40%)] text-slate-900">
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(15,23,42,0.08),_transparent_28%),linear-gradient(180deg,#f8fafc_0%,#ffffff_40%)] text-slate-900">
         <Menubar />
 
         <main className="pt-24">
           <section className="mx-auto max-w-7xl px-4 pb-8 sm:px-6 lg:px-8">
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
               <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm sm:p-10 lg:p-12">
-                <p className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-white">
+                <p className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-white">
                   <Sparkles className="h-3.5 w-3.5" />
                   Writing hub
                 </p>
@@ -110,7 +110,7 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
           <section id="latest" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
             <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#7C3AED]">Latest writing</p>
+                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Latest writing</p>
                 <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">A cleaner reading surface for technical posts</h2>
               </div>
               <p className="max-w-2xl text-sm leading-7 text-slate-500">
@@ -135,7 +135,7 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
                           loading="lazy"
                         />
                       ) : (
-                        <div className="flex h-full items-end bg-gradient-to-br from-slate-950 via-[#4c1d95] to-[#7C3AED] p-6 text-white">
+                        <div className="flex h-full items-end bg-[linear-gradient(135deg,#0f172a_0%,#1f2937_100%)] p-6 text-white">
                           <div>
                             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/70">Article</p>
                             <p className="mt-3 text-2xl font-semibold tracking-tight">{post.title}</p>
@@ -160,7 +160,7 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
                         </span>
                       </div>
 
-                      <h3 className="mt-4 text-2xl font-semibold tracking-tight text-slate-950 transition-colors group-hover:text-[#7C3AED]">
+                      <h3 className="mt-4 text-2xl font-semibold tracking-tight text-slate-950 transition-colors group-hover:text-slate-700">
                         {post.title}
                       </h3>
                       <p className="mt-3 line-clamp-4 text-sm leading-7 text-slate-600">{post.brief}</p>
@@ -177,7 +177,7 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
                         ))}
                       </div>
 
-                      <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#7C3AED]">
+                      <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
                         Read article
                         <ArrowRight className="h-4 w-4" />
                       </div>
@@ -192,7 +192,7 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
             <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
               <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#7C3AED]">Latest updates</p>
+                  <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Latest updates</p>
                   <h2 className="mt-2 text-2xl font-semibold text-slate-950">Stay close to the writing.</h2>
                   <p className="mt-3 max-w-3xl text-slate-600">
                     New articles appear here first, with RSS and sitemap updates keeping readers and search engines in sync.

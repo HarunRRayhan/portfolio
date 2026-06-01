@@ -76,7 +76,7 @@ export function ReviewSlideSection() {
     return (
         <section className="relative overflow-hidden bg-white py-20 sm:py-24" id="testimonials">
             <div className="pointer-events-none absolute inset-0">
-                <div className="absolute -left-40 bottom-0 h-80 w-80 rounded-full bg-violet-500/5 blur-3xl" />
+                <div className="absolute -left-40 bottom-0 h-80 w-80 rounded-full bg-slate-900/5 blur-3xl" />
                 <div className="absolute right-0 top-0 h-64 w-64 rounded-full bg-sky-500/5 blur-3xl" />
             </div>
 
@@ -175,7 +175,7 @@ export function ReviewSlideSection() {
                         { value: '98%', label: 'Success rate' },
                     ].map((item) => (
                         <div key={item.label} className="rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-sm">
-                            <div className="text-3xl font-semibold text-violet-700">{item.value}</div>
+                            <div className="text-3xl font-semibold text-slate-700">{item.value}</div>
                             <div className="mt-1 text-sm text-slate-500">{item.label}</div>
                         </div>
                     ))}

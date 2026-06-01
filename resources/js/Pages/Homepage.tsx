@@ -12,6 +12,8 @@ import { Footer } from "@/Components/Footer"
 import { ErrorBoundary } from "@/Components/ErrorBoundary"
 import { getImageUrl } from "@/lib/imageUtils"
 
+const canonicalUrl = 'https://harun.dev/'
+
 export default function Homepage() {
     return (
         <ErrorBoundary>
@@ -19,48 +21,40 @@ export default function Homepage() {
                 <title>Harun R. Rayhan - Senior Software Engineer & DevOps Consultant</title>
                 <meta name="description" content="Expert software engineer and DevOps consultant specializing in cloud architecture, AWS solutions, and infrastructure automation. Discover how I can help transform your business." />
                 <meta name="keywords" content="software engineer, DevOps consultant, cloud architecture, AWS expert, infrastructure automation, CI/CD" />
-                
-                {/* OpenGraph Tags */}
                 <meta property="og:title" content="Harun R. Rayhan - Senior Software Engineer & DevOps Consultant" />
                 <meta property="og:description" content="Expert software engineer and DevOps consultant specializing in cloud architecture, AWS solutions, and infrastructure automation. Discover how I can help transform your business." />
                 <meta property="og:type" content="website" />
-                <meta property="og:url" content={window.location.href} />
-                
-                {/* Twitter Card Tags */}
+                <meta property="og:url" content={canonicalUrl} />
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta name="twitter:title" content="Harun R. Rayhan - Senior Software Engineer & DevOps Consultant" />
                 <meta name="twitter:description" content="Expert software engineer and DevOps consultant specializing in cloud architecture, AWS solutions, and infrastructure automation. Discover how I can help transform your business." />
-                
-                {/* Canonical URL */}
-                <link rel="canonical" href={window.location.href} />
-
-                {/* JSON-LD Structured Data */}
+                <link rel="canonical" href={canonicalUrl} />
                 <script type="application/ld+json">
                     {JSON.stringify({
-                        "@context": "https://schema.org",
-                        "@type": "Person",
-                        "name": "Harun R. Rayhan",
-                        "jobTitle": "Senior Software Engineer & DevOps Consultant",
-                        "description": "Expert software engineer and DevOps consultant specializing in cloud architecture and AWS solutions",
-                        "url": window.location.href,
-                        "knowsAbout": [
-                            "Software Engineering",
-                            "DevOps",
-                            "Cloud Architecture",
-                            "AWS",
-                            "Infrastructure Automation",
-                            "CI/CD",
-                            "Cloud Security"
+                        '@context': 'https://schema.org',
+                        '@type': 'Person',
+                        name: 'Harun R. Rayhan',
+                        jobTitle: 'Senior Software Engineer & DevOps Consultant',
+                        description: 'Expert software engineer and DevOps consultant specializing in cloud architecture and AWS solutions',
+                        url: canonicalUrl,
+                        knowsAbout: [
+                            'Software Engineering',
+                            'DevOps',
+                            'Cloud Architecture',
+                            'AWS',
+                            'Infrastructure Automation',
+                            'CI/CD',
+                            'Cloud Security',
                         ],
-                        "offers": {
-                            "@type": "Offer",
-                            "name": "DevOps and Cloud Consulting Services",
-                            "description": "Professional consulting services in cloud architecture, DevOps implementation, and infrastructure automation"
-                        }
+                        offers: {
+                            '@type': 'Offer',
+                            name: 'DevOps and Cloud Consulting Services',
+                            description: 'Professional consulting services in cloud architecture, DevOps implementation, and infrastructure automation',
+                        },
                     })}
                 </script>
             </Head>
-            <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(124,58,237,0.08),_transparent_24%),linear-gradient(180deg,#f8fafc_0%,#ffffff_36%)] font-sans text-slate-950">
+            <main className="min-h-screen bg-white font-sans text-slate-950">
                 <ErrorBoundary>
                     <Menubar/>
                 </ErrorBoundary>

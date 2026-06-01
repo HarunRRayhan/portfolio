@@ -80,9 +80,9 @@ export function SkillsSection() {
                                 initial="hidden"
                                 whileInView="visible"
                                 viewport={{ once: true }}
-                                className="rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm"
+                                className="rounded-2xl border border-slate-100 bg-white p-6"
                             >
-                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-600/10 text-violet-700">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
                                     <skill.icon className="h-6 w-6" />
                                 </div>
                                 <h3 className="mt-5 text-xl font-semibold text-slate-950">{skill.title}</h3>
@@ -90,13 +90,13 @@ export function SkillsSection() {
                             </motion.div>
                         ))}
 
-                        <div className="rounded-3xl border border-slate-200 bg-slate-950 p-6 text-white shadow-sm sm:col-span-2">
+                        <div className="rounded-2xl border border-slate-900 bg-slate-950 p-6 text-white sm:col-span-2">
                             <div className="text-sm font-medium uppercase tracking-[0.2em] text-slate-400">
                                 Quick highlights
                             </div>
                             <div className="mt-5 grid gap-3 sm:grid-cols-3">
                                 {highlights.map((item) => (
-                                    <div key={item} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100">
+                                    <div key={item} className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
                                         {item}
                                     </div>
                                 ))}
@@ -105,23 +105,23 @@ export function SkillsSection() {
                     </div>
 
                     <div className="relative">
-                        <div className="absolute -inset-6 rounded-[2rem] bg-gradient-to-br from-violet-200/40 via-transparent to-sky-200/40 blur-3xl" />
-                        <div className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-6">
+                        <div className="absolute -inset-6 rounded-[2rem] bg-gradient-to-br from-slate-100/60 via-transparent to-slate-100/60 blur-3xl" />
+                        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_4px_24px_rgba(15,23,42,0.06)] sm:p-6">
                             <div className="flex items-center justify-between gap-4">
                                 <div>
-                                    <p className="text-sm font-medium uppercase tracking-[0.18em] text-slate-500">
+                                    <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-400">
                                         Certifications
                                     </p>
                                     <h3 className="mt-2 text-2xl font-semibold text-slate-950">
                                         Proof of hands-on depth
                                     </h3>
                                 </div>
-                                <div className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                                <div className="rounded border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
                                     AWS + IaC focused
                                 </div>
                             </div>
 
-                            <div className="mt-6 rounded-[1.75rem] border border-slate-200 bg-slate-50 p-4">
+                            <div className="mt-5 rounded-xl border border-slate-100 bg-slate-50 p-4">
                                 <Image
                                     src={getImageUrl('/images/aws-certifications.png')}
                                     alt="AWS certifications"
@@ -129,9 +129,9 @@ export function SkillsSection() {
                                 />
                             </div>
 
-                            <div className="mt-6 rounded-[1.5rem] border border-slate-200 bg-white p-5">
+                            <div className="mt-5 rounded-xl border border-slate-100 bg-slate-50/50 p-5">
                                 <div className="flex items-center gap-3">
-                                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-600/10 text-violet-700">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
                                         <Lightbulb className="h-5 w-5" />
                                     </div>
                                     <div>
