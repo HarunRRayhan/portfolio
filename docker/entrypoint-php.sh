@@ -4,7 +4,12 @@ set -e
 echo "[entrypoint-php.sh] Starting PHP-FPM setup as $(whoami)"
 
 # Ensure Laravel directories exist with proper permissions
-mkdir -p /var/www/html/storage/framework/{cache,sessions,views,testing,logs,cache/data} \
+mkdir -p /var/www/html/storage/framework/cache \
+         /var/www/html/storage/framework/cache/data \
+         /var/www/html/storage/framework/sessions \
+         /var/www/html/storage/framework/views \
+         /var/www/html/storage/framework/testing \
+         /var/www/html/storage/framework/logs \
          /var/www/html/bootstrap/cache
 
 # Set proper ownership and permissions

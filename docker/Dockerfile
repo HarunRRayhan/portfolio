@@ -68,7 +68,12 @@ COPY .env ./
 
 
 # Ensure required directories exist
-RUN mkdir -p /var/www/html/storage/framework/{cache,sessions,views,testing,logs,cache/data} \
+RUN mkdir -p /var/www/html/storage/framework/cache \
+    /var/www/html/storage/framework/cache/data \
+    /var/www/html/storage/framework/sessions \
+    /var/www/html/storage/framework/views \
+    /var/www/html/storage/framework/testing \
+    /var/www/html/storage/framework/logs \
     /var/www/html/bootstrap/cache \
     && touch /var/www/html/resources/views/.placeholder
 
@@ -86,7 +91,12 @@ RUN ls -l /var/www/html/resources && ls -l /var/www/html/resources/views && ls -
 # to ensure proper database connectivity and environment configuration
 
 # Ensure required Laravel directories exist and are writable
-RUN mkdir -p /var/www/html/storage/framework/{cache,sessions,views,testing,logs,cache/data} \
+RUN mkdir -p /var/www/html/storage/framework/cache \
+    /var/www/html/storage/framework/cache/data \
+    /var/www/html/storage/framework/sessions \
+    /var/www/html/storage/framework/views \
+    /var/www/html/storage/framework/testing \
+    /var/www/html/storage/framework/logs \
     /var/www/html/bootstrap/cache \
     && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
