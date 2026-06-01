@@ -2,11 +2,28 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\BlogCommentController;
+use App\Models\BlogCommentThread;
 use App\Support\BlogRepository;
 use Illuminate\Foundation\Application;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+Route::domain('blog.harun.dev')->any('{path?}', function (Request $request, ?string $path = null) {
+    $targetPath = '/blog/'.ltrim((string) $path, '/');
+    $targetPath = rtrim($targetPath, '/');
+
+    if ($targetPath === '/blog') {
+        $targetPath .= '/';
+    }
+
+    $query = $request->getQueryString();
+    $targetUrl = 'https://harun.dev'.$targetPath.($query ? '?'.$query : '');
+
+    return redirect()->away($targetUrl, 301);
+})->where('path', '.*');
 
 Route::get('/', function () {
     return Inertia::render('Homepage');
@@ -97,7 +114,7 @@ Route::get('/blog', function () {
     return Inertia::render('Blog/Index', [
         'publication' => $blog->publication(),
         'posts' => $blog->indexPosts(),
-        'canonicalUrl' => $siteUrl.'/blog',
+        'canonicalUrl' => $siteUrl.'/blog/',
     ]);
 })->name('blog.index');
 
@@ -146,14 +163,27 @@ Route::get('/blog/{slug}', function (string $slug) {
 
     abort_unless($post, 404);
 
+    $thread = BlogCommentThread::resolveForPost(
+        $slug,
+        (string) $post['title'],
+        $blog->absoluteUrl($slug),
+        (string) ($post['sourceUrl'] ?? $blog->sourceUrl($slug)),
+    );
+
     return Inertia::render('Blog/Post', [
         'publication' => $blog->publication(),
         'post' => $blog->toPostPagePayload($post),
         'relatedPosts' => $blog->related($slug, 3),
         'canonicalUrl' => $blog->absoluteUrl($slug),
         'siteUrl' => rtrim(request()->root(), '/'),
+        'commentCount' => $thread->commentCount(),
+        'comments' => $thread->commentTree(),
     ]);
 })->name('blog.post');
+
+Route::post('/blog/{slug}/comments', [BlogCommentController::class, 'store'])
+    ->middleware(['auth', 'throttle:20,1'])
+    ->name('blog.comments.store');
 
 Route::get('/sitemap.xml', function () {
     $blog = new BlogRepository();
@@ -167,7 +197,7 @@ Route::get('/sitemap.xml', function () {
         ['loc' => $siteUrl.'/contact', 'lastmod' => now()->toDateString()],
         ['loc' => $siteUrl.'/privacy', 'lastmod' => now()->toDateString()],
         ['loc' => $siteUrl.'/terms', 'lastmod' => now()->toDateString()],
-        ['loc' => $siteUrl.'/blog', 'lastmod' => now()->toDateString()],
+        ['loc' => $siteUrl.'/blog/', 'lastmod' => now()->toDateString()],
     ];
 
     $blogUrls = collect($blog->indexPosts())->map(fn (array $post) => [

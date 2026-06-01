@@ -1,148 +1,64 @@
 'use client'
 
+import React from 'react'
 import { motion } from 'framer-motion'
-import { useEffect, useRef, useState } from 'react'
-import { getImageUrl } from "../lib/imageUtils"
+import { getImageUrl } from '../lib/imageUtils'
 
 const companies = [
-  {
-    name: 'SocialHP Inc.',
-    logo: getImageUrl("/images/companies/socialhp.png")
-  },
-  {
-    name: 'LOreal France',
-    logo: getImageUrl("/images/companies/loreal.svg")
-  },
-  {
-    name: "Kiehl's",
-    logo: getImageUrl("/images/companies/kiehls.svg")
-  },
-  {
-    name: 'Samsung',
-    logo: getImageUrl("/images/companies/samsung.png")
-  },
-  {
-    name: 'Prudential',
-    logo: getImageUrl("/images/companies/prudential.jpg")
-  },
-  {
-    name: 'Lonza',
-    logo: getImageUrl("/images/companies/lonza.svg")
-  },
-  {
-    name: 'Fleetcor',
-    logo: getImageUrl("/images/companies/fleetcor.png")
-  },
-  {
-    name: 'NCR',
-    logo: getImageUrl("/images/companies/ncr.svg")
-  },
-  // Duplicate for infinite scroll
-  {
-    name: 'SocialHP Inc.',
-    logo: getImageUrl("/images/companies/socialhp.png")
-  },
-  {
-    name: 'LOreal France',
-    logo: getImageUrl("/images/companies/loreal.svg")
-  },
-  {
-    name: "Kiehl's",
-    logo: getImageUrl("/images/companies/kiehls.svg")
-  },
-  {
-    name: 'Samsung',
-    logo: getImageUrl("/images/companies/samsung.png")
-  },
-  {
-    name: 'Prudential',
-    logo: getImageUrl("/images/companies/prudential.jpg")
-  },
-  {
-    name: 'Lonza',
-    logo: getImageUrl("/images/companies/lonza.svg")
-  },
-  {
-    name: 'Fleetcor',
-    logo: getImageUrl("/images/companies/fleetcor.png")
-  },
-  {
-    name: 'NCR',
-    logo: getImageUrl("/images/companies/ncr.svg")
-  }
-] as Array<{ name: string; logo: string; className?: string }>
+    { name: 'SocialHP', logo: getImageUrl('/images/companies/socialhp.png') },
+    { name: 'L’Oréal', logo: getImageUrl('/images/companies/loreal.svg') },
+    { name: "Kiehl's", logo: getImageUrl('/images/companies/kiehls.svg') },
+    { name: 'Samsung', logo: getImageUrl('/images/companies/samsung.png') },
+    { name: 'Prudential', logo: getImageUrl('/images/companies/prudential.jpg') },
+    { name: 'Lonza', logo: getImageUrl('/images/companies/lonza.svg') },
+    { name: 'Fleetcor', logo: getImageUrl('/images/companies/fleetcor.png') },
+    { name: 'NCR', logo: getImageUrl('/images/companies/ncr.svg') },
+]
+
+const items = [...companies, ...companies]
 
 export function LogoSection() {
-  const [isVisible, setIsVisible] = useState(false)
-  const sectionRef = useRef(null)
+    return (
+        <section className="border-y border-slate-200 bg-slate-50 py-16">
+            <div className="container mx-auto px-4">
+                <div className="mx-auto max-w-2xl text-center">
+                    <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">
+                        Trusted by teams across industries
+                    </p>
+                    <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+                        Work that holds up in real production environments.
+                    </h2>
+                    <p className="mt-4 text-base leading-7 text-slate-600 sm:text-lg">
+                        Experience across product, enterprise, and growth teams — with a focus on reliability,
+                        clarity, and long-term maintainability.
+                    </p>
+                </div>
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsVisible(entry.isIntersecting)
-      },
-      { threshold: 0.1 }
-    )
+                <div className="relative mt-10 overflow-hidden">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-slate-50 to-transparent" />
+                    <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-slate-50 to-transparent" />
 
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current)
-    }
-
-    return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current)
-      }
-    }
-  }, [])
-
-  return (
-    <section ref={sectionRef} className="py-24 bg-[#F8F9FA] overflow-hidden">
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="container mx-auto px-4 text-center mb-12"
-      >
-        <h2 className="text-4xl font-bold text-gray-900 mb-4">
-          Trusted by Global Brands
-        </h2>
-        <p className="text-xl text-gray-600">
-          Delivering scalable solutions to industry leaders worldwide.
-        </p>
-      </motion.div>
-
-      <div className="relative w-full">
-        <div className="absolute left-0 top-0 w-32 h-full bg-gradient-to-r from-[#F8F9FA] to-transparent z-10" />
-        <div className="absolute right-0 top-0 w-32 h-full bg-gradient-to-l from-[#F8F9FA] to-transparent z-10" />
-
-        <motion.div
-          initial={{ x: 0 }}
-          animate={{ x: "-50%" }}
-          transition={{
-            duration: 40,
-            repeat: Infinity,
-            ease: "linear"
-          }}
-          whileHover={{ scale: 0.95 }}
-          className="group flex items-center space-x-32 whitespace-nowrap py-8"
-        >
-          {companies.map((company, index) => (
-            <div
-              key={`${company.name}-${index}`}
-              className={`flex-shrink-0 h-16 w-[200px] transition-all duration-300
-                ${(company.name === 'LOreal France' || company.name === "Kiehl's" || company.name === 'Samsung')
-                  ? 'scale-110 group-hover:scale-125'
-                  : 'group-hover:scale-110'}`}
-            >
-              <img
-                src={company.logo}
-                alt={`${company.name} logo`}
-                className={`w-full h-full object-contain filter grayscale hover:grayscale-0 transition-all duration-300 ${company.className || ''}`}
-              />
+                    <motion.div
+                        initial={{ x: 0 }}
+                        animate={{ x: '-50%' }}
+                        transition={{ duration: 36, repeat: Infinity, ease: 'linear' }}
+                        className="flex w-max items-center gap-4 py-6"
+                    >
+                        {items.map((company, index) => (
+                            <div
+                                key={`${company.name}-${index}`}
+                                className="flex h-20 w-[210px] items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 shadow-sm"
+                            >
+                                <img
+                                    src={company.logo}
+                                    alt={company.name}
+                                    className="max-h-10 w-auto object-contain grayscale transition duration-300 hover:grayscale-0"
+                                />
+                            </div>
+                        ))}
+                    </motion.div>
+                </div>
             </div>
-          ))}
-        </motion.div>
-      </div>
-    </section>
-  )
+        </section>
+    )
 }

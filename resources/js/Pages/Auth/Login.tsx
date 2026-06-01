@@ -2,6 +2,7 @@ import Checkbox from '@/Components/Checkbox';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
+import SocialLoginButtons from '@/Components/SocialLoginButtons';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -38,6 +39,14 @@ export default function Login({
                     {status}
                 </div>
             )}
+
+            <div className="mb-6">
+                <SocialLoginButtons redirectTo={route('dashboard')} />
+            </div>
+
+            <div className="mb-6 text-xs leading-6 text-gray-500">
+                Use email and password, or continue with GitHub/Google for a quicker sign-in flow.
+            </div>
 
             <form onSubmit={submit}>
                 <div>

@@ -1,144 +1,66 @@
 'use client'
 
-import {motion} from 'framer-motion'
-import {useEffect, useRef, useState} from 'react'
-import {getImageUrl} from '../lib/imageUtils'
+import React from 'react'
+import { motion } from 'framer-motion'
+import { getImageUrl } from '../lib/imageUtils'
 
 const technologies = [
-    {
-        name: 'Node.js',
-        logo: getImageUrl("/images/tech/nodejs.svg")
-    },
-    {
-        name: 'Linux',
-        logo: getImageUrl("/images/tech/linux.svg")
-    },
-    {
-        name: 'AWS',
-        logo: getImageUrl("/images/tech/aws.svg")
-    },
-    {
-        name: 'Terraform',
-        logo: getImageUrl("/images/tech/terraform.svg")
-    },
-    {
-        name: 'Docker',
-        logo: getImageUrl("/images/tech/docker.png")
-    },
-    {
-        name: 'Kubernetes',
-        logo: getImageUrl("/images/tech/kubernetes.svg")
-    },
-    {
-        name: 'Jenkins',
-        logo: getImageUrl("/images/tech/jenkins.svg")
-    },
-    {
-        name: 'GitHub Actions',
-        logo: getImageUrl("/images/tech/github-actions.svg")
-    },
-    {
-        name: 'Laravel',
-        logo: getImageUrl("/images/tech/laravel.svg")
-    },
-    {
-        name: 'Python',
-        logo: getImageUrl("/images/tech/python.svg")
-    },
-    {
-        name: 'Go',
-        logo: getImageUrl("/images/tech/go.svg")
-    },
-    // Duplicate for infinite scroll
-    {
-        name: 'Node.js',
-        logo: getImageUrl("/images/tech/nodejs.svg")
-    },
-    {
-        name: 'Linux',
-        logo: getImageUrl("/images/tech/linux.svg")
-    },
-    {
-        name: 'AWS',
-        logo: getImageUrl("/images/tech/aws.svg")
-    },
-    {
-        name: 'Terraform',
-        logo: getImageUrl("/images/tech/terraform.svg")
-    }
+    { name: 'Node.js', logo: getImageUrl('/images/tech/nodejs.svg') },
+    { name: 'Linux', logo: getImageUrl('/images/tech/linux.svg') },
+    { name: 'AWS', logo: getImageUrl('/images/tech/aws.svg') },
+    { name: 'Terraform', logo: getImageUrl('/images/tech/terraform.svg') },
+    { name: 'Docker', logo: getImageUrl('/images/tech/docker.png') },
+    { name: 'Kubernetes', logo: getImageUrl('/images/tech/kubernetes.svg') },
+    { name: 'Jenkins', logo: getImageUrl('/images/tech/jenkins.svg') },
+    { name: 'GitHub Actions', logo: getImageUrl('/images/tech/github-actions.svg') },
+    { name: 'Laravel', logo: getImageUrl('/images/tech/laravel.svg') },
+    { name: 'Python', logo: getImageUrl('/images/tech/python.svg') },
+    { name: 'Go', logo: getImageUrl('/images/tech/go.svg') },
 ]
 
+const items = [...technologies, ...technologies]
+
 export function TechStackSection() {
-    const [isVisible, setIsVisible] = useState(false)
-    const sectionRef = useRef(null)
-
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                setIsVisible(entry.isIntersecting)
-            },
-            {threshold: 0.1}
-        )
-
-        if (sectionRef.current) {
-            observer.observe(sectionRef.current)
-        }
-
-        return () => {
-            if (sectionRef.current) {
-                observer.unobserve(sectionRef.current)
-            }
-        }
-    }, [])
-
     return (
-        <section ref={sectionRef} className="py-24 bg-[#F8F9FA] overflow-hidden">
-            <motion.div
-                initial={{opacity: 0, y: 50}}
-                animate={isVisible ? {opacity: 1, y: 0} : {opacity: 0, y: 50}}
-                transition={{duration: 0.8, ease: "easeOut"}}
-                className="container mx-auto px-4 text-center mb-12"
-            >
-                <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                    Tech Stack & Expertise
-                </h2>
-                <p className="text-xl text-gray-600">
-                    Proficient in a wide range of modern technologies and tools.
-                </p>
-            </motion.div>
+        <section className="border-y border-slate-200 bg-slate-50 py-16 sm:py-20">
+            <div className="container mx-auto px-4">
+                <div className="mx-auto max-w-3xl text-center">
+                    <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">
+                        Tech stack
+                    </p>
+                    <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+                        Tools I use to keep systems moving.
+                    </h2>
+                    <p className="mt-4 text-base leading-7 text-slate-600 sm:text-lg">
+                        A practical stack for building, deploying, and operating modern web and cloud systems.
+                    </p>
+                </div>
 
-            <div className="relative w-full">
-                <div className="absolute left-0 top-0 w-24 h-full bg-gradient-to-r from-[#F8F9FA] to-transparent z-10"/>
-                <div
-                    className="absolute right-0 top-0 w-24 h-full bg-gradient-to-l from-[#F8F9FA] to-transparent z-10"/>
+                <div className="relative mt-10 overflow-hidden">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-20 bg-gradient-to-r from-slate-50 to-transparent" />
+                    <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-gradient-to-l from-slate-50 to-transparent" />
 
-                <motion.div
-                    initial={{x: 0}}
-                    animate={{x: "-50%"}}
-                    transition={{
-                        duration: 30,
-                        repeat: Infinity,
-                        ease: "linear"
-                    }}
-                    whileHover={{scale: 0.95}}
-                    className="group flex items-center space-x-16 whitespace-nowrap py-8"
-                >
-                    {technologies.map((tech, index) => (
-                        <div
-                            key={`${tech.name}-${index}`}
-                            className="flex-shrink-0 h-20 w-[200px] transition-all duration-300 group-hover:scale-110"
-                        >
-                            <div className="flex flex-col items-center gap-2">
+                    <motion.div
+                        initial={{ x: 0 }}
+                        animate={{ x: '-50%' }}
+                        transition={{ duration: 28, repeat: Infinity, ease: 'linear' }}
+                        className="flex w-max items-center gap-4 py-4"
+                    >
+                        {items.map((tech, index) => (
+                            <div
+                                key={`${tech.name}-${index}`}
+                                className="flex h-20 w-[180px] items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 shadow-sm"
+                            >
                                 <img
-                                    src={getImageUrl(tech.logo)}
-                                    alt={`${tech.name} logo`}
-                                    className="w-16 h-16 object-contain"
+                                    src={tech.logo}
+                                    alt={tech.name}
+                                    className="h-10 w-10 object-contain"
                                 />
-                                <span className="text-sm font-medium text-gray-600">{tech.name}</span>
+                                <span className="text-sm font-medium text-slate-700">{tech.name}</span>
                             </div>
-                        </div>
-                    ))}
-                </motion.div>
+                        ))}
+                    </motion.div>
+                </div>
             </div>
         </section>
     )

@@ -28,7 +28,7 @@ tags:
 <p><img src="https://images.pexels.com/photos/1424337/pexels-photo-1424337.jpeg?auto=compress&amp;cs=tinysrgb&amp;h=650&amp;w=940" alt="AWS serverless cloud computing" />
 <sub>Photo by <a href="https://www.pexels.com/@simon73">Simon Berger</a> on <a href="https://www.pexels.com/photo/blue-and-gray-sky-1424337/">Pexels</a></sub></p>
 <h2>Why Bedrock Instead of Self-Hosting</h2>
-<p>So here's what self-hosting actually looks like. You rent a GPU instance, download model weights (sometimes 50GB+), install CUDA, set up the inference server, and then keep all of that running and patched. A single p3.2xlarge with one NVIDIA V100 GPU costs about \(3.06/hour. That's \)2,200+ per month before you add EBS storage for the model weights, bandwidth for serving responses, and your own time managing the thing.</p>
+<p>So here's what self-hosting actually looks like. You rent a GPU instance, download model weights (sometimes 50GB+), install CUDA, set up the inference server, and then keep all of that running and patched. A single p3.2xlarge with one NVIDIA V100 GPU costs about $3.06/hour. That's $2,200+ per month before you add EBS storage for the model weights, bandwidth for serving responses, and your own time managing the thing.</p>
 <p>With Bedrock, you skip all of that. You make an API call. The model runs on AWS's infrastructure. You pay per token, and nothing when nobody's using it.</p>
 <p>I can't overstate how nice it is to not deal with CUDA dependency nightmares. Or Docker images with specific GPU driver versions that break when you update the base image. Or waking up at 3 AM because your inference server OOM'd.</p>
 <p>Now, self-hosting does make sense in specific situations:</p>
@@ -50,7 +50,7 @@ tags:
 </ol>
 <p>A few notes on the choices here:</p>
 <ul>
-<li><strong>API Gateway HTTP API</strong> for routing, not REST API. HTTP APIs are cheaper (\(1/million requests vs \)3.50) and have lower latency. For a simple inference endpoint, you don't need WAF or request validation at the gateway level.</li>
+<li><strong>API Gateway HTTP API</strong> for routing, not REST API. HTTP APIs are cheaper ($1/million requests vs $3.50) and have lower latency. For a simple inference endpoint, you don't need WAF or request validation at the gateway level.</li>
 <li><strong>Lambda running Node.js 22</strong> handles the business logic. It parses requests, calls Bedrock, and formats responses. 256MB of memory is enough for non-streaming calls, and a 30-second timeout gives Bedrock plenty of room.</li>
 <li><strong>Amazon Bedrock</strong> for model inference. We'll use Claude Sonnet 4.6 for complex tasks, Amazon Nova Lite for mid-tier work, and Nova Micro when we want the cheapest option.</li>
 <li><strong>IAM role</strong> connecting Lambda to Bedrock. The function needs <code>bedrock:InvokeModel</code> and <code>bedrock:InvokeModelWithResponseStream</code> permissions.</li>
@@ -316,7 +316,7 @@ while (true) {
     parseResponse: (body) =&gt; body.output.message.content[0].text,
   },
   "nova-micro": {
-    // Text-only, cheapest Nova model (~\(0.035/\)0.14 per million tokens)
+    // Text-only, cheapest Nova model (~$0.035/$0.14 per million tokens)
     modelId: "amazon.nova-micro-v1:0",
     buildRequest: (prompt, maxTokens) =&gt; ({
       messages: [
@@ -345,7 +345,7 @@ export const handler = async (event) =&gt; {
       statusCode: 400,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        error: `Unknown model: \({model}. Available: \){Object.keys(MODEL_MAP).join(", ")}`,
+        error: `Unknown model: ${model}. Available: ${Object.keys(MODEL_MAP).join(", ")}`,
       }),
     };
   }
@@ -375,8 +375,8 @@ export const handler = async (event) =&gt; {
 <p>When should you use each model?</p>
 <ul>
 <li><strong>Claude Sonnet 4.6</strong> for complex reasoning, code generation, analysis, and anything that needs high accuracy. 1M token context window, approaches Opus-level intelligence. It's the most capable on Bedrock right now.</li>
-<li><strong>Amazon Nova Lite</strong> for mid-tier tasks: summarization, document analysis, and anything multimodal (it handles images and video too). \(0.06/\)0.24 per million tokens.</li>
-<li><strong>Amazon Nova Micro</strong> for high-volume, text-only tasks where cost matters most. No image support, but at ~\(0.035/\)0.14 per million tokens it's the cheapest model on Bedrock.</li>
+<li><strong>Amazon Nova Lite</strong> for mid-tier tasks: summarization, document analysis, and anything multimodal (it handles images and video too). $0.06/$0.24 per million tokens.</li>
+<li><strong>Amazon Nova Micro</strong> for high-volume, text-only tasks where cost matters most. No image support, but at ~$0.035/$0.14 per million tokens it's the cheapest model on Bedrock.</li>
 </ul>
 <p>A quick note on throughput. By default, Bedrock uses on-demand pricing. You just call the API and pay per token. If you have a predictable, high-volume workload, look into Provisioned Throughput. You reserve model capacity and get a guaranteed number of tokens per minute. For most use cases though, on-demand is the right starting point. You can always switch later.</p>
 <h2>Cold Starts and Cost Breakdown</h2>
@@ -388,28 +388,28 @@ export const handler = async (event) =&gt; {
 <h3>Bedrock Token Pricing</h3>
 <p>Here's what the models cost as of early 2026:</p>
 <ul>
-<li><strong>Claude Sonnet 4.6:</strong> \(3.00 per million input tokens, \)15.00 per million output tokens (2x input / 1.5x output for prompts over 200K tokens)</li>
-<li><strong>Amazon Nova Lite:</strong> \(0.06 per million input tokens, \)0.24 per million output tokens</li>
-<li><strong>Amazon Nova Micro:</strong> \(0.035 per million input tokens, \)0.14 per million output tokens</li>
+<li><strong>Claude Sonnet 4.6:</strong> $3.00 per million input tokens, $15.00 per million output tokens (2x input / 1.5x output for prompts over 200K tokens)</li>
+<li><strong>Amazon Nova Lite:</strong> $0.06 per million input tokens, $0.24 per million output tokens</li>
+<li><strong>Amazon Nova Micro:</strong> $0.035 per million input tokens, $0.14 per million output tokens</li>
 </ul>
 <h3>Real Cost Math: 1M Requests Per Month</h3>
 <p>Let's say you're handling 1 million requests per month. Each request averages 500 input tokens and 200 output tokens. Here's what that looks like with Claude Sonnet:</p>
 <ul>
-<li>Input cost: 1,000,000 requests × 500 tokens / 1,000,000 × \(3.00 = <strong>\)1,500</strong></li>
-<li>Output cost: 1,000,000 requests × 200 tokens / 1,000,000 × \(15.00 = <strong>\)3,000</strong></li>
+<li>Input cost: 1,000,000 requests × 500 tokens / 1,000,000 × $3.00 = <strong>$1,500</strong></li>
+<li>Output cost: 1,000,000 requests × 200 tokens / 1,000,000 × $15.00 = <strong>$3,000</strong></li>
 <li><strong>Bedrock total: $4,500/month</strong></li>
 </ul>
 <p>Add the infrastructure costs:</p>
 <ul>
 <li>Lambda (256MB, avg 3s execution): ~$6.25/month</li>
-<li>API Gateway HTTP API: ~\(1.00/month (at \)1/million requests)</li>
+<li>API Gateway HTTP API: ~$1.00/month (at $1/million requests)</li>
 <li><strong>Infrastructure total: ~$7.25/month</strong></li>
 </ul>
 <p><strong>Grand total: ~$4,507/month for 1M requests with Claude Sonnet.</strong></p>
-<p>Compare that to self-hosting on a p3.2xlarge at \(2,200/month. The GPU instance is cheaper at this volume, but it can only handle about 1M requests if your inference server is well-optimized. And you pay that \)2,200 whether you get 1M requests or zero.</p>
-<p>At lower traffic, the math changes dramatically. At 100K requests/month, Bedrock costs drop to ~\(450. At 10K requests/month, you're looking at ~\)45. A GPU instance still costs $2,200.</p>
+<p>Compare that to self-hosting on a p3.2xlarge at $2,200/month. The GPU instance is cheaper at this volume, but it can only handle about 1M requests if your inference server is well-optimized. And you pay that $2,200 whether you get 1M requests or zero.</p>
+<p>At lower traffic, the math changes dramatically. At 100K requests/month, Bedrock costs drop to ~$450. At 10K requests/month, you're looking at ~$45. A GPU instance still costs $2,200.</p>
 <p>That's the real advantage. At zero traffic, you pay zero. Try saying that about a GPU server.</p>
-<p>For the multi-model routing setup, you save a lot more. Route simple tasks to Nova Micro and only use Claude for the complex stuff. If 70% of your requests go to Nova Micro and 30% need Claude Sonnet, your monthly Bedrock bill at 1M requests drops from \(4,500 to around \)400. That's a 90% cost reduction just from routing.</p>
+<p>For the multi-model routing setup, you save a lot more. Route simple tasks to Nova Micro and only use Claude for the complex stuff. If 70% of your requests go to Nova Micro and 30% need Claude Sonnet, your monthly Bedrock bill at 1M requests drops from $4,500 to around $400. That's a 90% cost reduction just from routing.</p>
 <h2>Wrapping Up</h2>
 <p>Bedrock takes the entire GPU infrastructure problem off your plate. You call an API, get AI inference, and pay for what you use. Lambda handles compute scaling automatically. Together they let you build production AI endpoints without touching a single piece of infrastructure. It's honestly the easiest way I've found to ship AI features.</p>
 <p>The patterns we covered handle most AI API use cases I've run into. The basic endpoint works for any synchronous inference call. Streaming gives your users that real-time typing experience. The multi-model router lets you make smart tradeoffs between cost and quality depending on what the task actually needs.</p>

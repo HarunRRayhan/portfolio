@@ -101,7 +101,7 @@
 **Objective:** Keep commenting available without rewriting the whole blog workflow.
 
 **Options to evaluate:**
-- keep Hashnode comments via “Discuss on Hashnode” links
+- keep historical discussion links as secondary references
 - add a lightweight on-site comment provider such as Giscus/Cusdis
 - scope comments only to blog post pages
 
@@ -145,7 +145,7 @@
 
 **Allowed destinations after 24 hours:**
 - daily.dev
-- Hashnode
+- Hashnode (legacy syndication target, if still relevant)
 - DevGuru
 - Medium
 - Hacker News

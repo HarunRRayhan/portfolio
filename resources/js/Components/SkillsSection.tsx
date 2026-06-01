@@ -1,252 +1,151 @@
 'use client'
 
+import React from 'react'
 import { motion } from 'framer-motion'
-import { Code2, Cloud, Lightbulb } from 'lucide-react'
+import { Code2, Cloud, Lightbulb, ShieldCheck, Workflow } from 'lucide-react'
 import { Image } from './Image'
-import { getImageUrl } from "../lib/imageUtils"
+import { getImageUrl } from '../lib/imageUtils'
 
 const skills = [
-  {
-    icon: Code2,
-    title: "17+ years as a software engineer",
-    description: "Polyglot engineer specializing in Backend Development, DevOps practices, and Cloud technologies. Experienced in building and scaling enterprise applications, with a focus on AWS solutions."
-  },
-  {
-    icon: Cloud,
-    title: "12x AWS Certified Expert",
-    description: "Comprehensive mastery of AWS services and architecture. Holds all AWS certifications, demonstrating deep expertise in cloud infrastructure, security, and DevOps methodologies."
-  },
-  {
-    icon: Lightbulb,
-    title: "10+ years of technical leadership",
-    description: "Led and mentored engineering teams across multiple organizations. Expertise in architectural decisions, team building, and implementing best practices in cloud-native environments."
-  }
+    {
+        icon: Code2,
+        title: 'Software engineering depth',
+        description:
+            'Polyglot engineering across backend systems, product delivery, and platform work — with a bias toward practical implementation.',
+    },
+    {
+        icon: Cloud,
+        title: 'AWS and cloud architecture',
+        description:
+            'Designing and operating reliable cloud systems with security, scalability, and cost control built in from the start.',
+    },
+    {
+        icon: Workflow,
+        title: 'Infrastructure automation',
+        description:
+            'Terraform, CI/CD, and deployment workflows that reduce manual overhead and make shipping safer.',
+    },
+    {
+        icon: ShieldCheck,
+        title: 'Production reliability',
+        description:
+            'Observability, alerting, and failure-mode thinking that keep systems calm when traffic or complexity grows.',
+    },
 ]
 
-const experiences = [
-  {
-    icon: Code2,
-    title: "17+ years as a software engineer",
-    description: "Polyglot engineer that's written code for Fortune 50 companies, startups (including his own), and everything in between. Harun enjoys mentoring and leading engineers as well as building out effective teams."
-  },
-  {
-    icon: Cloud,
-    title: "7+ years of building on AWS",
-    description: "Harun builds, deploys and monitors complex solutions on AWS. Certifications? He got them all... in six weeks. He's also a contributor to the AWS CDK and is a big proponent of IaC."
-  }
+const highlights = [
+    '17+ years building software',
+    '12x AWS certified',
+    'Technical leadership and mentoring',
 ]
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.2
-    }
-  }
-}
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.5
-    }
-  }
+    hidden: { opacity: 0, y: 16 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.45 },
+    },
 }
 
 export function SkillsSection() {
-  return (
-    <section className="py-24 bg-white relative overflow-hidden">
-      <svg
-        className="hidden lg:block absolute right-0 top-0 transform translate-x-1/3 -translate-y-1/4"
-        width="404"
-        height="784"
-        fill="none"
-        viewBox="0 0 404 784"
-        aria-hidden="true"
-      >
-        <defs>
-          <pattern
-            id="skills-grid"
-            x="0"
-            y="0"
-            width="20"
-            height="20"
-            patternUnits="userSpaceOnUse"
-          >
-            <rect x="0" y="0" width="4" height="4" className="text-[#7C3AED]" fill="currentColor" />
-          </pattern>
-        </defs>
-        <rect width="404" height="784" fill="url(#skills-grid)" className="opacity-10" />
-      </svg>
-      <div className="container mx-auto px-4">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            Harun&apos;s got (technical) skills.
-          </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            These days, he's focusing on cloud architecture and DevOps practices, particularly with AWS. He's passionate about infrastructure as code (IaC), especially in Terraform and AWS CDK, and building scalable, resilient systems.
-          </p>
-        </motion.div>
-
-        <div className="grid md:grid-cols-2 gap-12 mb-24">
-          {/* Left Column - Skills */}
-          <div className="max-w-2xl">
-            <h3 className="text-3xl font-bold text-gray-900 mb-12">
-              Builder. Expert. Mentor.
-            </h3>
-
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              className="space-y-12"
-            >
-              {skills.map((skill, index) => (
+    return (
+        <section className="bg-white py-20 sm:py-24">
+            <div className="container mx-auto px-4">
                 <motion.div
-                  key={index}
-                  variants={itemVariants}
-                  className="flex gap-6"
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6 }}
+                    className="mx-auto max-w-3xl text-center"
                 >
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-lg bg-[#7C3AED] bg-opacity-10 flex items-center justify-center">
-                      <skill.icon className="w-6 h-6 text-[#7C3AED]" />
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="text-xl font-semibold text-gray-900 mb-2">
-                      {skill.title}
-                    </h4>
-                    <p className="text-gray-600 leading-relaxed">
-                      {skill.description}
+                    <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">
+                        What I do best
                     </p>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-
-          {/* Right Column - AWS Certifications Image */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="flex items-center justify-center"
-          >
-            <Image
-              src={getImageUrl("/images/aws-certifications.png")}
-              alt="AWS Certifications"
-              className="w-full h-auto max-w-lg hover:scale-105 transition-transform duration-300"
-            />
-          </motion.div>
-        </div>
-      </div>
-      
-      {/* Experience Section */}
-    
-      <svg
-        className="hidden lg:block absolute left-0 bottom-0 transform -translate-x-1/4 translate-y-0"
-        width="404"
-        height="484"
-        fill="none"
-        viewBox="0 0 404 484"
-        aria-hidden="true"
-      >
-        <defs>
-          <pattern
-            id="experience-grid"
-            x="0"
-            y="0"
-            width="20"
-            height="20"
-            patternUnits="userSpaceOnUse"
-          >
-            <rect x="0" y="0" width="4" height="4" className="text-[#7C3AED]" fill="currentColor" />
-          </pattern>
-        </defs>
-        <rect width="404" height="484" fill="url(#experience-grid)" className="opacity-10" />
-      </svg>
-      <div className="container mx-auto px-4">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            Doer. Learner. Mentor.
-          </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Harun is happiest when he's building things and learning. Sometimes he needs to go head down and accomplish something that he isn't sure is possible.
-          </p>
-        </motion.div>
-
-        <div className="grid md:grid-cols-2 gap-12 mb-0">
-          {/* Left Column - Professional Certifications Image */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="flex items-center justify-center"
-          >
-            <Image
-              src={getImageUrl("/images/professional-certifications.png")}
-              alt="Professional Certifications - Terraform Associate, Certified Scrum Developer, and Certified Scrum Master"
-              className="w-full h-auto max-w-[250px] hover:scale-105 transition-transform duration-300"
-            />
-          </motion.div>
-
-          {/* Right Column - Experience Items */}
-          <div className="max-w-2xl">
-            <h3 className="text-3xl font-bold text-gray-900 mb-12">
-              Experience & Impact
-            </h3>
-
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              className="space-y-12"
-            >
-              {experiences.map((experience, index) => (
-                <motion.div
-                  key={index}
-                  variants={itemVariants}
-                  className="flex gap-6"
-                >
-                  <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-lg bg-[#7C3AED] bg-opacity-10 flex items-center justify-center">
-                      <experience.icon className="w-6 h-6 text-[#7C3AED]" />
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="text-xl font-semibold text-gray-900 mb-2">
-                      {experience.title}
-                    </h4>
-                    <p className="text-gray-600 leading-relaxed">
-                      {experience.description}
+                    <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl lg:text-5xl">
+                        Calm execution across code, cloud, and operations.
+                    </h2>
+                    <p className="mt-4 text-base leading-7 text-slate-600 sm:text-lg">
+                        The work usually sits at the intersection of engineering, DevOps, and platform thinking —
+                        so the focus is on systems that are simple to ship and easy to support.
                     </p>
-                  </div>
                 </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-} 
+
+                <div className="mt-14 grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        {skills.map((skill) => (
+                            <motion.div
+                                key={skill.title}
+                                variants={itemVariants}
+                                initial="hidden"
+                                whileInView="visible"
+                                viewport={{ once: true }}
+                                className="rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm"
+                            >
+                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-600/10 text-violet-700">
+                                    <skill.icon className="h-6 w-6" />
+                                </div>
+                                <h3 className="mt-5 text-xl font-semibold text-slate-950">{skill.title}</h3>
+                                <p className="mt-3 text-sm leading-7 text-slate-600">{skill.description}</p>
+                            </motion.div>
+                        ))}
+
+                        <div className="rounded-3xl border border-slate-200 bg-slate-950 p-6 text-white shadow-sm sm:col-span-2">
+                            <div className="text-sm font-medium uppercase tracking-[0.2em] text-slate-400">
+                                Quick highlights
+                            </div>
+                            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                                {highlights.map((item) => (
+                                    <div key={item} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100">
+                                        {item}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="relative">
+                        <div className="absolute -inset-6 rounded-[2rem] bg-gradient-to-br from-violet-200/40 via-transparent to-sky-200/40 blur-3xl" />
+                        <div className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-6">
+                            <div className="flex items-center justify-between gap-4">
+                                <div>
+                                    <p className="text-sm font-medium uppercase tracking-[0.18em] text-slate-500">
+                                        Certifications
+                                    </p>
+                                    <h3 className="mt-2 text-2xl font-semibold text-slate-950">
+                                        Proof of hands-on depth
+                                    </h3>
+                                </div>
+                                <div className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                                    AWS + IaC focused
+                                </div>
+                            </div>
+
+                            <div className="mt-6 rounded-[1.75rem] border border-slate-200 bg-slate-50 p-4">
+                                <Image
+                                    src={getImageUrl('/images/aws-certifications.png')}
+                                    alt="AWS certifications"
+                                    className="h-auto w-full rounded-[1.25rem] object-contain"
+                                />
+                            </div>
+
+                            <div className="mt-6 rounded-[1.5rem] border border-slate-200 bg-white p-5">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-600/10 text-violet-700">
+                                        <Lightbulb className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <div className="text-sm font-medium text-slate-500">Working style</div>
+                                        <div className="text-base font-semibold text-slate-950">
+                                            Opinionated where it matters, flexible where it helps.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    )
+}

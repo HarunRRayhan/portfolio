@@ -2,7 +2,7 @@ import { Head, Link } from '@inertiajs/react'
 import { Footer } from '@/Components/Footer'
 import { Menubar } from '@/Components/Menubar'
 import { ErrorBoundary } from '@/Components/ErrorBoundary'
-import { CalendarDays, ExternalLink, MessageCircle, Newspaper, Tag, Clock3 } from 'lucide-react'
+import { ArrowRight, CalendarDays, Clock3, MessageCircle, Rss, Sparkles, Tag } from 'lucide-react'
 
 interface BlogPostSummary {
   title: string
@@ -22,20 +22,16 @@ interface BlogPostSummary {
 }
 
 interface BlogIndexProps {
-  publication: {
-    title: string
-    url: string
-    host: string
-    exportedAt: string
-    source: string
-  }
   posts: BlogPostSummary[]
   canonicalUrl: string
 }
 
-export default function BlogIndex({ publication, posts, canonicalUrl }: BlogIndexProps) {
+export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
   const description =
-    "AWS, DevOps, Laravel, serverless architecture, and practical engineering notes from Harun's blog."
+    'AWS, DevOps, Laravel, serverless architecture, and practical engineering notes from Harun\'s blog.'
+
+  const uniqueTags = new Set(posts.flatMap((post) => post.tags.map((tag) => tag.name))).size
+  const totalComments = posts.reduce((sum, post) => sum + post.responseCount + post.replyCount, 0)
 
   return (
     <ErrorBoundary>
@@ -54,54 +50,83 @@ export default function BlogIndex({ publication, posts, canonicalUrl }: BlogInde
         <link rel="alternate" type="application/rss+xml" title="Harun's Blog RSS Feed" href="/blog/feed.xml" />
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white text-slate-900">
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(124,58,237,0.08),_transparent_28%),linear-gradient(180deg,#f8fafc_0%,#ffffff_40%)] text-slate-900">
         <Menubar />
 
         <main className="pt-24">
           <section className="mx-auto max-w-7xl px-4 pb-8 sm:px-6 lg:px-8">
-            <div className="rounded-[2rem] border border-slate-200 bg-white/80 p-8 shadow-sm backdrop-blur-sm md:p-12">
-              <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-                <div className="max-w-3xl">
-                  <p className="inline-flex items-center gap-2 rounded-full bg-[#7C3AED]/10 px-4 py-2 text-sm font-medium text-[#6D28D9]">
-                    <Newspaper className="h-4 w-4" />
-                    Publication: {publication.title}
-                  </p>
-                  <h1 className="mt-6 text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl">
-                    Blog
-                  </h1>
-                  <p className="mt-5 text-lg leading-8 text-slate-600">
-                    Long-form notes on AWS, DevOps, Laravel, serverless systems, and the practical decisions behind
-                    shipping and running production software.
-                  </p>
-                </div>
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+              <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm sm:p-10 lg:p-12">
+                <p className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-white">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Writing hub
+                </p>
+                <h1 className="mt-6 max-w-3xl text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
+                  Engineering notes, shipping lessons, and practical systems thinking.
+                </h1>
+                <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-600">
+                  A home for long-form posts on AWS, DevOps, Laravel, serverless architecture, and how production software
+                  actually gets built.
+                </p>
 
-                <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[30rem]">
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <p className="text-sm text-slate-500">Posts</p>
-                    <p className="mt-2 text-3xl font-semibold text-slate-950">{posts.length}</p>
-                  </div>
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <p className="text-sm text-slate-500">Source</p>
-                    <p className="mt-2 text-xl font-semibold text-slate-950">Migrated from a legacy publication</p>
-                  </div>
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <p className="text-sm text-slate-500">Canonical</p>
-                    <p className="mt-2 text-xl font-semibold text-slate-950">harun.dev/blog</p>
-                  </div>
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <a
+                    href="#latest"
+                    className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+                  >
+                    Browse latest
+                    <ArrowRight className="h-4 w-4" />
+                  </a>
+                  <a
+                    href="/blog/feed.xml"
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:text-slate-950"
+                  >
+                    RSS feed
+                    <Rss className="h-4 w-4" />
+                  </a>
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+                  <p className="text-sm font-medium text-slate-500">Posts</p>
+                  <p className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">{posts.length}</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-500">Latest articles published on this site.</p>
+                </div>
+                <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+                  <p className="text-sm font-medium text-slate-500">Topics</p>
+                  <p className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">{uniqueTags}</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-500">Tags currently represented across the blog archive.</p>
+                </div>
+                <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:col-span-2 lg:col-span-1">
+                  <p className="text-sm font-medium text-slate-500">Comments</p>
+                  <p className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">{totalComments}</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-500">Threaded discussion count across the live posts.</p>
                 </div>
               </div>
             </div>
           </section>
 
-          <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <section id="latest" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#7C3AED]">Latest writing</p>
+                <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">A cleaner reading surface for technical posts</h2>
+              </div>
+              <p className="max-w-2xl text-sm leading-7 text-slate-500">
+                Each post uses a consistent editorial layout: clear metadata, generous spacing, stronger hierarchy, and a card
+                system that keeps the writing front and center.
+              </p>
+            </div>
+
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
               {posts.map((post) => (
                 <article
                   key={post.slug}
-                  className="group overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                  className="group overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_-34px_rgba(15,23,42,0.45)]"
                 >
-                  <Link href={post.url} className="block">
-                    <div className="relative aspect-[16/9] overflow-hidden bg-slate-100">
+                  <Link href={post.url} className="block h-full">
+                    <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
                       {post.coverImageUrl ? (
                         <img
                           src={post.coverImageUrl}
@@ -109,27 +134,37 @@ export default function BlogIndex({ publication, posts, canonicalUrl }: BlogInde
                           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                           loading="lazy"
                         />
-                      ) : null}
+                      ) : (
+                        <div className="flex h-full items-end bg-gradient-to-br from-slate-950 via-[#4c1d95] to-[#7C3AED] p-6 text-white">
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/70">Article</p>
+                            <p className="mt-3 text-2xl font-semibold tracking-tight">{post.title}</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
+
                     <div className="p-6">
                       <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500">
-                        <span className="inline-flex items-center gap-1">
+                        <span className="inline-flex items-center gap-1.5">
                           <CalendarDays className="h-3.5 w-3.5" />
                           {post.publishedAtHuman}
                         </span>
-                        <span className="inline-flex items-center gap-1">
+                        <span className="inline-flex items-center gap-1.5">
                           <Clock3 className="h-3.5 w-3.5" />
                           {post.readTimeLabel}
                         </span>
-                        <span className="inline-flex items-center gap-1">
+                        <span className="inline-flex items-center gap-1.5">
                           <MessageCircle className="h-3.5 w-3.5" />
                           {post.responseCount + post.replyCount} comments
                         </span>
                       </div>
-                      <h2 className="mt-4 text-2xl font-semibold tracking-tight text-slate-950 transition-colors group-hover:text-[#7C3AED]">
+
+                      <h3 className="mt-4 text-2xl font-semibold tracking-tight text-slate-950 transition-colors group-hover:text-[#7C3AED]">
                         {post.title}
-                      </h2>
+                      </h3>
                       <p className="mt-3 line-clamp-4 text-sm leading-7 text-slate-600">{post.brief}</p>
+
                       <div className="mt-5 flex flex-wrap gap-2">
                         {post.tags.slice(0, 4).map((tag) => (
                           <span
@@ -141,6 +176,11 @@ export default function BlogIndex({ publication, posts, canonicalUrl }: BlogInde
                           </span>
                         ))}
                       </div>
+
+                      <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#7C3AED]">
+                        Read article
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
                     </div>
                   </Link>
                 </article>
@@ -148,26 +188,25 @@ export default function BlogIndex({ publication, posts, canonicalUrl }: BlogInde
             </div>
           </section>
 
-          <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+          <section className="mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
             <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#7C3AED]">Syndication</p>
-                  <h2 className="mt-2 text-2xl font-semibold text-slate-950">One canonical source, many downstream shares</h2>
+                  <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#7C3AED]">Latest updates</p>
+                  <h2 className="mt-2 text-2xl font-semibold text-slate-950">Stay close to the writing.</h2>
                   <p className="mt-3 max-w-3xl text-slate-600">
-                    Articles publish here first. After 24 hours they can be shared to daily.dev, DevGuru,
-                    Medium, and Hacker News without fragmenting the canonical URL.
+                    New articles appear here first, with RSS and sitemap updates keeping readers and search engines in sync.
                   </p>
                 </div>
-                <a
-                  href={publication.url}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[#7C3AED] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#6D28D9]"
-                >
-                  Open archived source
-                  <ExternalLink className="h-4 w-4" />
-                </a>
+                <div className="flex flex-wrap gap-3">
+                  <a
+                    href="/blog/feed.xml"
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:text-slate-950"
+                  >
+                    RSS feed
+                    <Rss className="h-4 w-4" />
+                  </a>
+                </div>
               </div>
             </div>
           </section>
