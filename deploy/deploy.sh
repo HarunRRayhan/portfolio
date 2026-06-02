@@ -843,6 +843,7 @@ execute_ssh "cd $APP_DIR && docker compose -f $DOCKER_COMPOSE_FILE exec -T php_b
 
 # Execute artisan commands using php_blue container
 execute_ssh "cd $APP_DIR && \
+    docker compose -f $DOCKER_COMPOSE_FILE exec -T php_blue php artisan package:discover --ansi && \
     docker compose -f $DOCKER_COMPOSE_FILE exec -T php_blue php artisan config:cache && \
     docker compose -f $DOCKER_COMPOSE_FILE exec -T php_blue php artisan route:cache && \
     docker compose -f $DOCKER_COMPOSE_FILE exec -T php_blue php artisan view:cache && \
@@ -889,7 +890,7 @@ execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T 
     chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
     \
     # Ensure cache driver is set to file in the .env file
-    grep -q \"CACHE_DRIVER=file\" /var/www/html/.env || sed -i \"s/CACHE_DRIVER=.*/CACHE_DRIVER=file/\" /var/www/html/.env'"
+    grep -q "CACHE_STORE=file" /var/www/html/.env || sed -i "s/CACHE_STORE=.*/CACHE_STORE=file/" /var/www/html/.env'"
 
 # Laravel setup is now handled by the entrypoint scripts
 echo "Laravel cache and storage setup is handled by the PHP container entrypoint script."

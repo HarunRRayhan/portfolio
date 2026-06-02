@@ -19,10 +19,10 @@ const items = [...companies, ...companies]
 
 export function LogoSection() {
     return (
-        <section className="border-b border-slate-100 bg-white py-16">
+        <section className="border-b border-blue-100 bg-[linear-gradient(180deg,rgba(248,251,255,0.96)_0%,#ffffff_100%)] py-16">
             <div className="container mx-auto px-4">
                 <div className="mx-auto max-w-2xl text-center">
-                    <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">
+                    <p className="text-sm font-medium uppercase tracking-[0.2em] text-blue-500">
                         Trusted by teams across industries
                     </p>
                     <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
@@ -35,8 +35,8 @@ export function LogoSection() {
                 </div>
 
                 <div className="relative mt-10 overflow-hidden">
-                    <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-white to-transparent" />
-                    <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-white to-transparent" />
+                    <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-[#f8fbff] to-transparent" />
+                    <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-[#f8fbff] to-transparent" />
 
                     <motion.div
                         initial={{ x: 0 }}
@@ -47,7 +47,7 @@ export function LogoSection() {
                         {items.map((company, index) => (
                             <div
                                 key={`${company.name}-${index}`}
-                                className="flex h-16 w-[190px] items-center justify-center rounded-xl border border-slate-100 bg-white px-5"
+                                className="flex h-16 w-[190px] items-center justify-center rounded-xl border border-blue-100 bg-white px-5 shadow-[0_1px_0_rgba(29,78,216,0.03)]"
                             >
                                 <img
                                     src={company.logo}

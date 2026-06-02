@@ -47,8 +47,8 @@ export function Menubar() {
   return (
     <header
       className={cn(
-        'fixed inset-x-0 top-0 z-50 border-b border-slate-200/70 transition-all duration-300',
-        isScrolled ? 'bg-white/90 shadow-[0_14px_40px_-24px_rgba(15,23,42,0.45)] backdrop-blur-xl' : 'bg-white/70 backdrop-blur-xl',
+        'fixed inset-x-0 top-0 z-50 border-b border-slate-200/60 transition-all duration-300',
+        isScrolled ? 'bg-white/88 shadow-[0_14px_40px_-24px_rgba(15,23,42,0.22)] backdrop-blur-xl' : 'bg-white/82 backdrop-blur-xl',
       )}
     >
       <div className="mx-auto grid max-w-7xl items-center gap-3 px-4 py-3 sm:px-6 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:px-8">
@@ -61,7 +61,7 @@ export function Menubar() {
         </Link>
 
         <nav className="hidden justify-self-center lg:flex lg:w-full lg:justify-center">
-          <div className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white p-1 shadow-sm">
+          <div className="inline-flex items-center gap-1 rounded-full border border-blue-100 bg-white p-1 shadow-sm">
             {menuItems.map((item) => {
               const active = isActive(item.href)
 
@@ -71,7 +71,7 @@ export function Menubar() {
                   href={item.href}
                   className={cn(
                     'rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
-                    active ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950',
+                    active ? 'bg-blue-700 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950',
                   )}
                 >
                   {item.name}
@@ -84,7 +84,7 @@ export function Menubar() {
         <div className="hidden items-center gap-2 md:flex lg:justify-self-end">
           <Link
             href="/book"
-            className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+            className="inline-flex items-center gap-2 rounded-full bg-blue-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-600"
           >
             Book a session
             <ArrowRight className="h-4 w-4" />
@@ -97,14 +97,14 @@ export function Menubar() {
               <button
                 type="button"
                 aria-label="Open navigation"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 shadow-sm transition-colors hover:bg-slate-100"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-blue-100 bg-white text-slate-900 shadow-sm transition-colors hover:bg-blue-50"
               >
                 <Menu className="h-5 w-5" />
               </button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[320px] border-l border-slate-200 bg-white p-0">
+            <SheetContent side="right" className="w-[320px] border-l border-blue-100 bg-white p-0">
               <div className="flex h-full flex-col">
-                <div className="border-b border-slate-200 px-5 py-5">
+                <div className="border-b border-blue-100 px-5 py-5">
                   <div className="flex items-center gap-3">
                     <Logo className="h-8 w-8" />
                     <div>
@@ -124,7 +124,7 @@ export function Menubar() {
                         href={item.href}
                         className={cn(
                           'block rounded-2xl px-4 py-3 text-sm font-medium transition-colors',
-                          active ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-950',
+                          active ? 'bg-blue-600 text-white' : 'text-slate-700 hover:bg-blue-50 hover:text-slate-950',
                         )}
                       >
                         {item.name}
@@ -133,10 +133,10 @@ export function Menubar() {
                   })}
                 </nav>
 
-                <div className="border-t border-slate-200 p-4">
+                <div className="border-t border-blue-100 p-4">
                   <Link
                     href="/book"
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
                   >
                     Book a session
                     <ArrowRight className="h-4 w-4" />

@@ -36,18 +36,18 @@ const socials = [
 
 export function Footer() {
     return (
-        <footer className="border-t border-slate-200 bg-slate-950 text-white">
+        <footer className="border-t border-blue-900/40 bg-slate-950 text-white">
             <div className="container mx-auto px-4 py-16 sm:py-20">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.6 }}
-                    className="rounded-[2rem] border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur sm:p-8 lg:p-10"
+                    className="rounded-[2rem] border border-blue-500/10 bg-white/5 p-6 shadow-2xl backdrop-blur sm:p-8 lg:p-10"
                 >
                     <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
                         <div>
-                            <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300">
+                            <div className="inline-flex items-center gap-3 rounded-full border border-blue-400/15 bg-white/5 px-4 py-2 text-sm text-slate-300">
                                 <Logo className="h-6 w-6" />
                                 Available for remote consulting
                             </div>
@@ -63,14 +63,14 @@ export function Footer() {
 
                             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                                 <Link href="/contact">
-                                    <Button className="w-full rounded-full bg-white px-6 text-slate-950 hover:bg-slate-100 sm:w-auto">
+                                    <Button className="w-full rounded-full bg-blue-50 px-6 text-slate-950 hover:bg-white sm:w-auto">
                                         Start a project
                                     </Button>
                                 </Link>
                                 <Link href="/blog">
                                     <Button
                                         variant="outline"
-                                        className="w-full rounded-full border-white/15 bg-transparent px-6 text-white hover:bg-white/10 sm:w-auto"
+                                        className="w-full rounded-full border-blue-400/20 bg-transparent px-6 text-white hover:bg-blue-500/10 sm:w-auto"
                                     >
                                         Read the blog
                                         <ArrowRight className="ml-2 h-4 w-4" />
@@ -103,7 +103,7 @@ export function Footer() {
                     </div>
                 </motion.div>
 
-                <div className="mt-10 flex flex-col gap-6 border-t border-white/10 pt-8 sm:flex-row sm:items-center sm:justify-between">
+                <div className="mt-10 flex flex-col gap-6 border-t border-blue-500/10 pt-8 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-sm text-slate-400">
                         © {new Date().getFullYear()} Harun R. Rayhan. Built with a focus on clarity and reliability.
                     </p>
@@ -118,7 +118,7 @@ export function Footer() {
                                 aria-label={label}
                                 whileHover={{ y: -2 }}
                                 whileTap={{ scale: 0.96 }}
-                                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
+                                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-blue-400/15 bg-white/5 text-slate-300 transition hover:border-blue-300/30 hover:bg-blue-500/10 hover:text-white"
                             >
                                 <Icon className="h-5 w-5" />
                             </motion.a>

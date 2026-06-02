@@ -1,0 +1,11 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Harun.dev logo option J</title>
+  <desc id="desc">A calm blue monogram badge with clean geometry and strong legibility.</desc>
+  <rect x="24" y="24" width="464" height="464" rx="120" fill="#0B1220"/>
+  <rect x="56" y="56" width="400" height="400" rx="96" fill="#0F172A" stroke="#1D4ED8" stroke-width="6"/>
+  <path d="M168 162V350" stroke="#DBEAFE" stroke-width="28" stroke-linecap="round"/>
+  <path d="M168 254C168 222 193 196 226 196H245C285 196 312 222 312 258C312 294 285 320 245 320H168" stroke="#60A5FA" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M318 196V320" stroke="#93C5FD" stroke-width="24" stroke-linecap="round"/>
+  <path d="M318 232C333 210 357 196 388 196" stroke="#60A5FA" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="388" cy="196" r="6" fill="#60A5FA"/>
+</svg>

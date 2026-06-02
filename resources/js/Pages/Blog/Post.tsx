@@ -8,7 +8,7 @@ import { Footer } from '@/Components/Footer'
 import { Menubar } from '@/Components/Menubar'
 import { ErrorBoundary } from '@/Components/ErrorBoundary'
 import { BlogDiscussion } from '@/Components/BlogDiscussion'
-import { ArrowLeft, ArrowRight, BookOpen, CalendarDays, Clock3, MessageCircle, Sparkles, Tag } from 'lucide-react'
+import { ArrowRight, BookOpen, CalendarDays, Clock3, MessageCircle, Sparkles, Tag } from 'lucide-react'
 
 interface BlogPostTag {
   name: string
@@ -229,7 +229,7 @@ export default function BlogPostPage({
         <Menubar />
 
         <main className="pt-24">
-          <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <article className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_30px_90px_-55px_rgba(15,23,42,0.45)]">
               {coverImageUrl ? (
                 <div className="overflow-hidden border-b border-slate-200 bg-slate-100">
@@ -260,11 +260,11 @@ export default function BlogPostPage({
                   </Link>
                 </div>
 
-                <h1 className="mt-6 max-w-4xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
+                <h1 className="mt-6 max-w-5xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
                   {post.title}
                 </h1>
 
-                <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-600 sm:text-xl sm:leading-9">{post.brief}</p>
+                <p className="mt-5 max-w-4xl text-lg leading-8 text-slate-600 sm:text-xl sm:leading-9">{post.brief}</p>
 
                 <div className="mt-8 flex flex-wrap items-center gap-3 text-sm text-slate-600">
                   <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 font-medium text-slate-700">
@@ -293,27 +293,11 @@ export default function BlogPostPage({
                   ))}
                 </div>
 
-                <div className="mt-10 flex flex-wrap gap-3">
-                  <a
-                    href="#article"
-                    className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
-                  >
-                    Jump into the post
-                    <ArrowRight className="h-4 w-4" />
-                  </a>
-                  <Link
-                    href="/blog"
-                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:text-slate-950"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    Back to archive
-                  </Link>
-                </div>
               </div>
             </article>
           </section>
 
-          <section id="article" className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+          <section id="article" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
             <article className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-200 bg-slate-50/80 px-6 py-5 md:px-8">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Article</p>
@@ -323,7 +307,7 @@ export default function BlogPostPage({
               </div>
 
               <div className="px-6 py-8 md:px-8 lg:px-10">
-                <div ref={contentRef} className="mx-auto max-w-[70ch]">
+                <div ref={contentRef} className="mx-auto max-w-[78ch]">
                   <div
                     className="blog-content text-[1.05rem] leading-8 text-slate-700 [&_a]:font-medium [&_a]:text-slate-900 [&_a]:underline [&_a]:underline-offset-4 [&_blockquote]:my-8 [&_blockquote]:rounded-r-2xl [&_blockquote]:border-l-4 [&_blockquote]:border-slate-300 [&_blockquote]:bg-slate-50 [&_blockquote]:px-5 [&_blockquote]:py-4 [&_blockquote]:not-italic [&_blockquote]:text-slate-700 [&_code]:rounded [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.95em] [&_h2]:mt-14 [&_h2]:mb-4 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-slate-950 [&_h3]:mt-10 [&_h3]:mb-3 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:tracking-tight [&_h3]:text-slate-950 [&_img]:my-8 [&_img]:rounded-2xl [&_img]:border [&_img]:border-slate-200 [&_img]:shadow-sm [&_li]:my-2 [&_ol]:my-6 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-6 [&_p]:my-5 [&_pre]:my-0 [&_pre]:overflow-x-auto [&_pre]:bg-transparent [&_pre]:p-4 [&_pre]:text-slate-100 [&_pre]:font-mono [&_pre]:text-[0.95rem] [&_pre]:leading-7 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-inherit [&_pre_code]:whitespace-pre-wrap [&_pre_code]:break-words [&_ul]:my-6 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6"
                     dangerouslySetInnerHTML={{ __html: post.contentHtml }}
@@ -422,7 +406,7 @@ export default function BlogPostPage({
             </section>
           ) : null}
 
-          <section className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
+          <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <ErrorBoundary>
               <BlogDiscussion slug={post.slug} title={post.title} commentCount={commentCount} comments={comments} />
             </ErrorBoundary>

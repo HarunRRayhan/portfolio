@@ -1,0 +1,8 @@
+<svg width="900" height="180" viewBox="0 0 900 180" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Harun.dev logo option I</title>
+  <desc id="desc">A premium blue wordmark with a restrained editorial feel.</desc>
+  <text x="40" y="112" fill="#0F172A" font-family="Inter, Geist Sans, Segoe UI, Arial, sans-serif" font-size="76" font-weight="600" letter-spacing="-0.05em">Harun</text>
+  <text x="244" y="112" fill="#2563EB" font-family="Inter, Geist Sans, Segoe UI, Arial, sans-serif" font-size="76" font-weight="400" letter-spacing="-0.05em">.dev</text>
+  <line x1="42" y1="128" x2="372" y2="128" stroke="#BFDBFE" stroke-width="2"/>
+  <circle cx="376" cy="128" r="2.5" fill="#60A5FA"/>
+</svg>

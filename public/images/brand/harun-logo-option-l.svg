@@ -1,0 +1,8 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Harun.dev logo option L</title>
+  <desc id="desc">A simple lowercase h lettermark in a blue badge.</desc>
+  <rect x="24" y="24" width="464" height="464" rx="120" fill="#0B1220"/>
+  <rect x="56" y="56" width="400" height="400" rx="96" fill="#0F172A" stroke="#1D4ED8" stroke-width="6"/>
+  <path d="M202 162V352" stroke="#DBEAFE" stroke-width="32" stroke-linecap="round"/>
+  <path d="M202 258C202 223 228 196 264 196H277C315 196 341 222 341 258C341 294 315 320 277 320H202" stroke="#60A5FA" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

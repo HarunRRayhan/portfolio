@@ -1,0 +1,12 @@
+<svg width="720" height="180" viewBox="0 0 720 180" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Harun.dev logo option B</title>
+  <desc id="desc">A refined horizontal wordmark with a cleaner, more editorial typographic feel.</desc>
+  <rect x="24" y="26" width="128" height="128" rx="34" fill="#0F172A"/>
+  <rect x="34" y="36" width="108" height="108" rx="26" fill="#111827" stroke="#334155" stroke-width="3"/>
+  <path d="M66 120V61" stroke="#F8FAFC" stroke-width="10" stroke-linecap="round"/>
+  <path d="M66 90C66 80 75 73 87 73H94C108 73 117 82 117 95C117 109 106 118 91 118H66" stroke="#F8FAFC" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M117 91C122 81 130 76 140 77" stroke="#CBD5E1" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M184 114C184 110 187 107 191 107H199C203 107 206 110 206 114V116C206 120 203 123 199 123H191C187 123 184 120 184 116V114Z" fill="#64748B"/>
+  <text x="220" y="112" fill="#0F172A" font-family="Geist Sans, Inter, Segoe UI, Arial, sans-serif" font-size="62" font-weight="500" letter-spacing="-0.02em">Harun<tspan fill="#64748B" font-weight="400">.dev</tspan></text>
+  <line x1="220" y1="128" x2="486" y2="128" stroke="#E2E8F0" stroke-width="2"/>
+</svg>

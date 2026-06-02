@@ -1,0 +1,12 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Harun.dev logo option C</title>
+  <desc id="desc">A cleaner minimalist monogram with simpler geometry and more breathing room.</desc>
+  <rect x="24" y="24" width="464" height="464" rx="120" fill="#0F172A"/>
+  <rect x="56" y="56" width="400" height="400" rx="96" fill="#111827" stroke="#334155" stroke-width="6"/>
+  <path d="M171 164V348" stroke="#F8FAFC" stroke-width="28" stroke-linecap="round"/>
+  <path d="M171 250C171 217 197 191 231 191H248C286 191 312 216 312 249C312 282 286 307 248 307H171" stroke="#F8FAFC" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M318 193V307" stroke="#CBD5E1" stroke-width="24" stroke-linecap="round"/>
+  <path d="M318 228C333 205 358 192 387 192" stroke="#CBD5E1" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="388" cy="192" r="7" fill="#CBD5E1"/>
+  <path d="M176 390H336" stroke="#475569" stroke-width="8" stroke-linecap="round"/>
+</svg>

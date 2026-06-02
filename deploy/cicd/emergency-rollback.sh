@@ -89,14 +89,14 @@ http:
 
   routers:
     web:
-      rule: \"Host(\`harun.dev\`) || Host(\`www.harun.dev\`)\"
+      rule: \"Host(\`harun.dev\`)\"
       service: web-$ROLLBACK_ENV
       entryPoints:
         - websecure
       tls:
         certResolver: letsencrypt
     web-insecure:
-      rule: \"Host(\`harun.dev\`) || Host(\`www.harun.dev\`)\"
+      rule: \"Host(\`harun.dev\`)\"
       service: web-$ROLLBACK_ENV
       entryPoints:
         - web

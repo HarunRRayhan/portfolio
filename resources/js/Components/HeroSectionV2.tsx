@@ -33,8 +33,8 @@ const capabilities = [
 
 export function HeroSectionV2() {
     return (
-        <section className="relative overflow-hidden border-b border-slate-100 bg-white">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+        <section className="relative overflow-hidden border-b border-blue-100 bg-[linear-gradient(180deg,rgba(239,246,255,0.78)_0%,rgba(255,255,255,0.98)_72%)]">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-200 to-transparent" />
             <div className="container relative mx-auto px-4 py-20 sm:py-24 lg:py-28">
                 <div className="grid items-center gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
                     <motion.div
@@ -43,14 +43,14 @@ export function HeroSectionV2() {
                         transition={{ duration: 0.7, ease: 'easeOut' }}
                         className="max-w-2xl"
                     >
-                        <div className="mb-6 inline-flex items-center gap-2 rounded border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        <div className="mb-6 inline-flex items-center gap-2 rounded border border-blue-100 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
+                            <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
                             Senior Software Engineer & DevOps Consultant
                         </div>
 
                         <h1 className="max-w-xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl lg:text-[3.75rem] lg:leading-[1.1]">
                             Building cloud systems that feel{' '}
-                            <span className="bg-gradient-to-r from-slate-900 via-slate-700 to-slate-500 bg-clip-text text-transparent">
+                            <span className="bg-gradient-to-r from-blue-700 via-blue-600 to-slate-700 bg-clip-text text-transparent">
                                 calm, fast, and reliable
                             </span>
                             .
@@ -65,7 +65,7 @@ export function HeroSectionV2() {
                             <Link href="/contact">
                                 <Button
                                     size="lg"
-                                    className="group w-full rounded-full bg-slate-950 px-6 text-white shadow-none transition hover:-translate-y-0.5 hover:bg-slate-800 sm:w-auto"
+                                    className="group w-full rounded-full bg-blue-700 px-6 text-white shadow-none transition hover:-translate-y-0.5 hover:bg-blue-600 sm:w-auto"
                                 >
                                     Contact me
                                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -75,18 +75,18 @@ export function HeroSectionV2() {
                                 <Button
                                     size="lg"
                                     variant="outline"
-                                    className="w-full rounded-full border-slate-200 bg-white px-6 text-slate-900 shadow-none hover:border-slate-400 hover:bg-slate-50 sm:w-auto"
+                                    className="w-full rounded-full border-blue-200 bg-white px-6 text-slate-900 shadow-none hover:border-blue-300 hover:bg-white sm:w-auto"
                                 >
                                     Book a session
                                 </Button>
                             </Link>
                         </div>
 
-                        <div className="mt-10 flex border-y border-slate-100 py-5">
+                        <div className="mt-10 flex border-y border-blue-100 py-5">
                             {highlights.map((item, i) => (
                                 <div
                                     key={item.label}
-                                    className={`flex-1${i > 0 ? ' border-l border-slate-100 pl-6' : ''}${i < highlights.length - 1 ? ' pr-6' : ''}`}
+                                    className={`flex-1${i > 0 ? ' border-l border-blue-100 pl-6' : ''}${i < highlights.length - 1 ? ' pr-6' : ''}`}
                                 >
                                     <div className="text-2xl font-semibold tabular-nums text-slate-950">{item.value}</div>
                                     <div className="mt-0.5 text-xs font-medium uppercase tracking-[0.1em] text-slate-400">{item.label}</div>
@@ -97,7 +97,7 @@ export function HeroSectionV2() {
                         <div className="mt-8 space-y-3 text-sm text-slate-600">
                             {capabilities.map((item) => (
                                 <div key={item} className="flex items-start gap-3">
-                                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400" />
+                                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
                                     <span>{item}</span>
                                 </div>
                             ))}
@@ -122,7 +122,7 @@ export function HeroSectionV2() {
                                         aria-label={label}
                                         whileHover={{ y: -2 }}
                                         whileTap={{ scale: 0.96 }}
-                                        className="inline-flex h-9 w-9 items-center justify-center rounded border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-950"
+                                        className="inline-flex h-9 w-9 items-center justify-center rounded border border-blue-100 bg-white text-slate-500 transition hover:border-blue-300 hover:text-slate-950"
                                     >
                                         <Icon className="h-4 w-4" />
                                     </motion.a>
@@ -137,7 +137,7 @@ export function HeroSectionV2() {
                         transition={{ duration: 0.8, ease: 'easeOut', delay: 0.1 }}
                         className="relative"
                     >
-                        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_4px_24px_rgba(15,23,42,0.06)]">
+                        <div className="relative overflow-hidden rounded-2xl border border-blue-100 bg-white p-6 shadow-[0_4px_24px_rgba(15,23,42,0.06)]">
                             <div className="flex items-start justify-between gap-4">
                                 <div>
                                     <div className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-400">Current focus</div>
@@ -145,7 +145,7 @@ export function HeroSectionV2() {
                                         Reliable systems, better shipping
                                     </div>
                                 </div>
-                                <div className="shrink-0 rounded border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                                <div className="shrink-0 rounded border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-800">
                                     Available for consulting
                                 </div>
                             </div>
@@ -159,14 +159,14 @@ export function HeroSectionV2() {
                                 ].map((item) => (
                                     <div
                                         key={item}
-                                        className="rounded border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700"
+                                        className="rounded border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm font-medium text-slate-700"
                                     >
                                         {item}
                                     </div>
                                 ))}
                             </div>
 
-                            <div className="mt-5 rounded-xl border border-slate-900 bg-slate-950 p-5 text-white">
+                            <div className="mt-5 rounded-xl border border-slate-900 bg-gradient-to-br from-slate-950 via-slate-950 to-blue-950 p-5 text-white">
                                 <div className="flex items-center justify-between gap-4">
                                     <div>
                                         <div className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-400">Delivery style</div>
