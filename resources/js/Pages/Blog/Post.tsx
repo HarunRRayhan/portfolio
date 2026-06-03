@@ -8,7 +8,7 @@ import { Footer } from '@/Components/Footer'
 import { Menubar } from '@/Components/Menubar'
 import { ErrorBoundary } from '@/Components/ErrorBoundary'
 import { BlogDiscussion } from '@/Components/BlogDiscussion'
-import { ArrowRight, BookOpen, CalendarDays, Clock3, MessageCircle, Sparkles, Tag } from 'lucide-react'
+import { ArrowRight, BookOpen, CalendarDays, ChevronDown, Clock3, MessageCircle, Sparkles, Tag } from 'lucide-react'
 
 interface BlogPostTag {
   name: string
@@ -26,6 +26,8 @@ interface BlogPostSummary {
   responseCount: number
   replyCount: number
   coverImageUrl?: string | null
+  isDraft: boolean
+  draftPreviewUrl?: string | null
   tags: BlogPostTag[]
   url: string
   canonicalUrl: string
@@ -101,6 +103,10 @@ function enhanceCodeBlocks(root: HTMLElement) {
       return
     }
 
+    const sourceText = (code.textContent ?? pre.textContent ?? '').replace(/(?:\r\n|\r|\n)+$/u, '')
+    const lineCount = sourceText === '' ? 0 : sourceText.split(/\r\n|\r|\n/).length
+    const shouldFold = lineCount > 10
+
     pre.dataset.enhanced = 'true'
     pre.classList.add('m-0', 'overflow-x-auto', 'bg-transparent', 'p-0')
     code.classList.add('bg-transparent', 'p-0')
@@ -111,8 +117,8 @@ function enhanceCodeBlocks(root: HTMLElement) {
       console.warn('Code highlighting failed:', error)
     }
 
-    const wrapper = document.createElement('div')
-    wrapper.className =
+    const shell = document.createElement(shouldFold ? 'details' : 'div')
+    shell.className =
       'group relative my-8 overflow-hidden rounded-[1.5rem] border border-slate-700 bg-slate-950 shadow-[0_24px_70px_-34px_rgba(15,23,42,0.75)]'
 
     const toolbar = document.createElement('div')
@@ -152,9 +158,44 @@ function enhanceCodeBlocks(root: HTMLElement) {
 
     toolbar.append(languageBadge, copyButton)
 
-    if (pre.parentNode) {
-      pre.parentNode.insertBefore(wrapper, pre)
-      wrapper.append(toolbar, pre)
+    if (shouldFold) {
+      const summary = document.createElement('summary')
+      summary.className =
+        'flex cursor-pointer list-none items-center justify-between gap-3 border-b border-white/10 px-4 py-3 text-left text-sm font-medium text-slate-100 transition-colors hover:bg-white/5 [&::-webkit-details-marker]:hidden'
+
+      const summaryMeta = document.createElement('div')
+      summaryMeta.className = 'flex min-w-0 items-center gap-3'
+
+      const summaryLabel = document.createElement('span')
+      summaryLabel.className = 'truncate'
+      summaryLabel.textContent = 'Long code block'
+
+      const summaryCount = document.createElement('span')
+      summaryCount.className =
+        'shrink-0 rounded-full bg-white/10 px-2.5 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-slate-200'
+      summaryCount.textContent = `${lineCount} lines`
+
+      summaryMeta.append(summaryLabel, summaryCount)
+
+      const summaryToggle = document.createElement('span')
+      summaryToggle.className = 'inline-flex items-center gap-1 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-slate-300'
+      summaryToggle.textContent = 'Show code'
+
+      const summaryIcon = document.createElement('span')
+      summaryIcon.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 transition-transform duration-200 group-open:rotate-180"><path fill="currentColor" d="M12 15.5a1 1 0 0 1-.707-.293l-5-5a1 1 0 1 1 1.414-1.414L12 13.086l4.293-4.293a1 1 0 0 1 1.414 1.414l-5 5A1 1 0 0 1 12 15.5Z"/></svg>`
+      summaryToggle.append(summaryIcon)
+
+      summary.append(summaryMeta, summaryToggle)
+      if (pre.parentNode) {
+        pre.parentNode.insertBefore(shell, pre)
+      }
+      shell.append(summary, toolbar, pre)
+    } else {
+      if (pre.parentNode) {
+        pre.parentNode.insertBefore(shell, pre)
+      }
+
+      shell.append(toolbar, pre)
     }
   })
 }
@@ -171,6 +212,7 @@ export default function BlogPostPage({
   const description = post.brief
   const contentRef = useRef<HTMLDivElement | null>(null)
   const coverImageUrl = post.coverImageUrl ?? null
+  const isDraft = post.isDraft
   const metaImageUrl = coverImageUrl
     ? coverImageUrl.startsWith('/')
       ? `${siteUrl}${coverImageUrl}`
@@ -221,6 +263,8 @@ export default function BlogPostPage({
         <meta name="twitter:title" content={post.title} />
         <meta name="twitter:description" content={description} />
         {metaImageUrl ? <meta name="twitter:image" content={metaImageUrl} /> : null}
+        {isDraft ? <meta name="robots" content="noindex, nofollow, noarchive" /> : null}
+        {isDraft ? <meta name="googlebot" content="noindex, nofollow, noarchive" /> : null}
         <link rel="canonical" href={canonicalUrl} />
         <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
       </Head>
@@ -275,10 +319,14 @@ export default function BlogPostPage({
                     <Clock3 className="h-4 w-4" />
                     {post.readTimeLabel}
                   </span>
-                  <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 font-medium text-slate-700">
+                  <a
+                    href="#comments"
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 font-medium text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-100 hover:text-slate-950"
+                    aria-label={`Jump to comments section (${commentCount} comments)`}
+                  >
                     <MessageCircle className="h-4 w-4" />
                     {commentCount} comments
-                  </span>
+                  </a>
                 </div>
 
                 <div className="mt-8 flex flex-wrap gap-2">
@@ -292,6 +340,19 @@ export default function BlogPostPage({
                     </span>
                   ))}
                 </div>
+
+                {isDraft ? (
+                  <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-7 text-amber-900">
+                    <strong className="font-semibold">Draft preview.</strong> This post is only available through the
+                    private draft link and stays out of the index, sitemap, and comments until it is published.
+                    {post.draftPreviewUrl ? (
+                      <>
+                        {' '}
+                        Draft link: <a className="font-semibold underline underline-offset-4" href={post.draftPreviewUrl}>{post.draftPreviewUrl}</a>
+                      </>
+                    ) : null}
+                  </div>
+                ) : null}
 
               </div>
             </article>
@@ -406,11 +467,13 @@ export default function BlogPostPage({
             </section>
           ) : null}
 
-          <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-            <ErrorBoundary>
-              <BlogDiscussion slug={post.slug} title={post.title} commentCount={commentCount} comments={comments} />
-            </ErrorBoundary>
-          </section>
+          {!isDraft ? (
+            <section id="comments" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+              <ErrorBoundary>
+                <BlogDiscussion slug={post.slug} title={post.title} commentCount={commentCount} comments={comments} />
+              </ErrorBoundary>
+            </section>
+          ) : null}
         </main>
 
         <Footer />

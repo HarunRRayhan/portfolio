@@ -107,14 +107,18 @@ Route::get('/contact', function () {
 
 Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
 
-Route::get('/blog', function () {
+Route::get('/blog', function (Request $request) {
+    if ($request->getRequestUri() === '/blog/') {
+        return redirect('/blog', 301);
+    }
+
     $blog = new BlogRepository();
     $siteUrl = rtrim(config('app.url', url('/')), '/');
 
     return Inertia::render('Blog/Index', [
         'publication' => $blog->publication(),
         'posts' => $blog->indexPosts(),
-        'canonicalUrl' => $siteUrl.'/blog/',
+        'canonicalUrl' => $siteUrl.'/blog',
     ]);
 })->name('blog.index');
 
@@ -157,11 +161,43 @@ XML;
     return response($xml, 200)->header('Content-Type', 'application/rss+xml; charset=UTF-8');
 })->name('blog.feed');
 
-Route::get('/blog/{slug}', function (string $slug) {
+Route::get('/blog/{slug}/draft/{previewToken}', function (Request $request, string $slug, string $previewToken) {
     $blog = new BlogRepository();
     $post = $blog->find($slug);
 
     abort_unless($post, 404);
+
+    $isDraft = (bool) ($post['draft'] ?? false);
+    $expectedToken = (string) ($post['draftToken'] ?? '');
+
+    if ($isDraft) {
+        abort_unless($expectedToken !== '' && hash_equals($expectedToken, $previewToken), 404);
+    } else {
+        abort(404);
+    }
+
+    $response = Inertia::render('Blog/Post', [
+        'publication' => $blog->publication(),
+        'post' => $blog->toPostPagePayload($post),
+        'relatedPosts' => $blog->related($slug, 3),
+        'canonicalUrl' => $blog->absoluteUrl($slug),
+        'siteUrl' => rtrim(request()->root(), '/'),
+        'commentCount' => 0,
+        'comments' => [],
+    ]);
+
+    return $response;
+})->where('previewToken', '[A-Fa-f0-9]{32}')->name('blog.preview');
+
+Route::get('/blog/{slug}', function (Request $request, string $slug) {
+    $blog = new BlogRepository();
+    $post = $blog->find($slug);
+
+    abort_unless($post, 404);
+
+    if ((bool) ($post['draft'] ?? false)) {
+        abort(404);
+    }
 
     $thread = BlogCommentThread::resolveForPost(
         $slug,
@@ -170,15 +206,20 @@ Route::get('/blog/{slug}', function (string $slug) {
         (string) ($post['sourceUrl'] ?? $blog->sourceUrl($slug)),
     );
 
-    return Inertia::render('Blog/Post', [
+    $commentCount = $thread->commentCount();
+    $comments = $thread->commentTree();
+
+    $response = Inertia::render('Blog/Post', [
         'publication' => $blog->publication(),
         'post' => $blog->toPostPagePayload($post),
         'relatedPosts' => $blog->related($slug, 3),
         'canonicalUrl' => $blog->absoluteUrl($slug),
         'siteUrl' => rtrim(request()->root(), '/'),
-        'commentCount' => $thread->commentCount(),
-        'comments' => $thread->commentTree(),
+        'commentCount' => $commentCount,
+        'comments' => $comments,
     ]);
+
+    return $response;
 })->name('blog.post');
 
 Route::post('/blog/{slug}/comments', [BlogCommentController::class, 'store'])
@@ -197,7 +238,7 @@ Route::get('/sitemap.xml', function () {
         ['loc' => $siteUrl.'/contact', 'lastmod' => now()->toDateString()],
         ['loc' => $siteUrl.'/privacy', 'lastmod' => now()->toDateString()],
         ['loc' => $siteUrl.'/terms', 'lastmod' => now()->toDateString()],
-        ['loc' => $siteUrl.'/blog/', 'lastmod' => now()->toDateString()],
+        ['loc' => $siteUrl.'/blog', 'lastmod' => now()->toDateString()],
     ];
 
     $blogUrls = collect($blog->indexPosts())->map(fn (array $post) => [

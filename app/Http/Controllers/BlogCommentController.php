@@ -16,6 +16,7 @@ class BlogCommentController extends Controller
         $post = $blog->find($slug);
 
         abort_unless($post, 404);
+        abort_unless(! (bool) ($post['draft'] ?? false), 404);
 
         $validated = $request->validate([
             'content' => ['required', 'string', 'min:3', 'max:5000'],

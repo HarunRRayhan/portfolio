@@ -16,6 +16,13 @@
         @viteReactRefresh
         @vite(['resources/js/app.tsx', "resources/js/Pages/{$page['component']}.tsx"])
         @inertiaHead
+        @php
+            $isDraftBlogPost = ($page['component'] ?? null) === 'Blog/Post' && data_get($page, 'props.post.isDraft');
+        @endphp
+        @if ($isDraftBlogPost)
+            <meta name="robots" content="noindex, nofollow, noarchive">
+            <meta name="googlebot" content="noindex, nofollow, noarchive">
+        @endif
     </head>
     <body class="font-sans antialiased">
         @inertia

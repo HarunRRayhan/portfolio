@@ -39,7 +39,9 @@ class BlogRepository
     public function indexPosts(): array
     {
         return collect($this->posts())
+            ->reject(fn (array $post) => (bool) ($post['draft'] ?? false))
             ->map(fn (array $post) => $this->summarizePost($post))
+            ->values()
             ->all();
     }
 
@@ -59,11 +61,29 @@ class BlogRepository
     {
         return collect($this->posts())
             ->reject(fn (array $post) => $post['slug'] === $slug)
+            ->reject(fn (array $post) => (bool) ($post['draft'] ?? false))
             ->sortByDesc('publishedAt')
             ->take($limit)
             ->map(fn (array $post) => $this->summarizePost($post))
             ->values()
             ->all();
+    }
+
+    public function previewUrl(string $slug): ?string
+    {
+        $post = $this->find($slug);
+
+        if (! $post || ! (bool) ($post['draft'] ?? false)) {
+            return null;
+        }
+
+        $token = $post['draftToken'] ?? null;
+
+        if (! is_string($token) || $token === '') {
+            return null;
+        }
+
+        return $this->absoluteUrl($slug).'/draft/'.$token;
     }
 
     /**
@@ -86,6 +106,8 @@ class BlogRepository
             'responseCount' => $post['responseCount'],
             'replyCount' => $post['replyCount'],
             'coverImageUrl' => $post['coverImageUrl'] ?? null,
+            'isDraft' => (bool) ($post['draft'] ?? false),
+            'draftPreviewUrl' => $this->previewUrl($post['slug']),
             'tags' => collect($post['tags'] ?? [])
                 ->map(fn (array $tag) => [
                     'name' => $tag['name'],
@@ -208,6 +230,8 @@ class BlogRepository
             'reactionCount' => (int) ($meta['reactionCount'] ?? 0),
             'responseCount' => (int) ($meta['responseCount'] ?? 0),
             'replyCount' => (int) ($meta['replyCount'] ?? 0),
+            'draft' => filter_var($meta['draft'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            'draftToken' => isset($meta['draftToken']) ? (string) $meta['draftToken'] : '',
             'coverImageUrl' => $meta['coverImageUrl'] ?? null,
             'tags' => collect($meta['tags'] ?? [])
                 ->map(function ($tag): array {

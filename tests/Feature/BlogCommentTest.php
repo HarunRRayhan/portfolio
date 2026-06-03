@@ -56,4 +56,19 @@ class BlogCommentTest extends TestCase
             'content' => 'Great write-up on the deployment flow.',
         ]);
     }
+
+    #[Test]
+    public function it_blocks_comments_on_draft_posts(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post('/blog/how-i-make-ai-coding-agents-safe-in-a-real-aws-codebase/comments', [
+            'content' => 'This is a draft comment.',
+        ]);
+
+        $response->assertNotFound();
+        $this->assertDatabaseMissing('comments', [
+            'content' => 'This is a draft comment.',
+        ]);
+    }
 }
