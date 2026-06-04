@@ -445,16 +445,39 @@ jobs:
           echo "Uploading status script..."
           scp -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no deploy/cicd/status.sh ubuntu@$PUBLIC_IP:/opt/portfolio/deploy/cicd/
 
-          # Execute the server-only deployment on the server
-          echo "Executing server deployment..."
+          # Start the server-only deployment in the background so the SSH session can return immediately.
+          echo "Starting server deployment on the server (detached)..."
           ssh -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no ubuntu@$PUBLIC_IP << 'EOF'
             cd /opt/portfolio/deploy/cicd
             chmod +x server-deploy.sh status.sh
-
-            # Execute server-only deployment (assets already handled by GitHub Actions)
-            echo "Starting server-only blue-green deployment..."
-            ./server-deploy.sh
+            rm -f /tmp/server-deploy.exit /tmp/server-deploy.log /tmp/server-deploy.pid
+            nohup bash -lc 'cd /opt/portfolio/deploy/cicd && ./server-deploy.sh; echo $? > /tmp/server-deploy.exit' >/tmp/server-deploy.log 2>&1 < /dev/null &
+            echo $! > /tmp/server-deploy.pid
           EOF
+
+          echo "Polling server deployment until completion..."
+          for attempt in $(seq 1 240); do
+            deploy_state=$(ssh -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no ubuntu@$PUBLIC_IP 'if [ -f /tmp/server-deploy.exit ]; then cat /tmp/server-deploy.exit; else echo running; fi')
+            if [ "$deploy_state" != "running" ]; then
+              if [ "$deploy_state" = "0" ]; then
+                echo "✅ Server deployment completed successfully"
+                break
+              fi
+
+              echo "❌ Server deployment failed with exit code $deploy_state"
+              echo "Last 50 lines of server log:"
+              ssh -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no ubuntu@$PUBLIC_IP 'tail -n 50 /tmp/server-deploy.log' || true
+              exit 1
+            fi
+
+            if [ "$attempt" -eq 240 ]; then
+              echo "Error: server deployment did not finish within expected time"
+              ssh -i deploy/portfolio-key.pem -o StrictHostKeyChecking=no ubuntu@$PUBLIC_IP 'tail -n 50 /tmp/server-deploy.log' || true
+              exit 1
+            fi
+
+            sleep 30
+          done
 
       - name: Verify deployment
         if: success()
