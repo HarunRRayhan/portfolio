@@ -107,7 +107,7 @@ execute_ssh() {
   
   while [ $retry_count -lt $max_retries ]; do
     # Use bash -c to properly handle complex commands and avoid color code issues
-    if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -i "$SSH_KEY" "$REMOTE_USER@$PUBLIC_IP" "$command"; then
+    if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -o ServerAliveInterval=30 -o ServerAliveCountMax=120 -o TCPKeepAlive=yes -i "$SSH_KEY" "$REMOTE_USER@$PUBLIC_IP" "$command"; then
       return 0
     else
       retry_count=$((retry_count + 1))
