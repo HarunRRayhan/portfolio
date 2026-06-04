@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1.7
-
 # Builder stage
 FROM php:8.4-fpm-alpine AS builder
 
@@ -13,8 +11,7 @@ WORKDIR /app
 COPY composer.json composer.lock ./
 
 # Install Composer dependencies without app-source-sensitive scripts
-RUN --mount=type=cache,target=/tmp/composer-cache \
-    wget https://getcomposer.org/composer-stable.phar -O composer.phar \
+RUN wget https://getcomposer.org/composer-stable.phar -O composer.phar \
     && COMPOSER_CACHE_DIR=/tmp/composer-cache php composer.phar install --no-dev --optimize-autoloader --no-interaction --no-scripts \
     && rm composer.phar
 
