@@ -292,42 +292,57 @@ jobs:
         run: |
           echo "Uploading static assets to Cloudflare R2..."
 
-          # Load R2 configuration from .env.deploy
-          R2_BUCKET_NAME=$(grep '^R2_BUCKET_NAME=' deploy/.env.deploy | cut -d '=' -f2)
-          R2_S3_ENDPOINT=$(grep '^R2_S3_ENDPOINT=' deploy/.env.deploy | cut -d '=' -f2)
-          R2_ACCESS_KEY_ID=$(grep '^R2_ACCESS_KEY_ID=' deploy/.env.deploy | cut -d '=' -f2)
-          R2_SECRET_ACCESS_KEY=$(grep '^R2_SECRET_ACCESS_KEY=' deploy/.env.deploy | cut -d '=' -f2)
+          upload_assets() {
+            # Load R2 configuration from .env.deploy
+            R2_BUCKET_NAME=$(grep '^R2_BUCKET_NAME=' deploy/.env.deploy | cut -d '=' -f2)
+            R2_S3_ENDPOINT=$(grep '^R2_S3_ENDPOINT=' deploy/.env.deploy | cut -d '=' -f2)
+            R2_ACCESS_KEY_ID=$(grep '^R2_ACCESS_KEY_ID=' deploy/.env.deploy | cut -d '=' -f2)
+            R2_SECRET_ACCESS_KEY=$(grep '^R2_SECRET_ACCESS_KEY=' deploy/.env.deploy | cut -d '=' -f2)
 
-          if [ -z "$R2_BUCKET_NAME" ] || [ -z "$R2_S3_ENDPOINT" ] || [ -z "$R2_ACCESS_KEY_ID" ] || [ -z "$R2_SECRET_ACCESS_KEY" ]; then
-            echo "Error: R2 configuration missing. Required: R2_BUCKET_NAME, R2_S3_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY"
-            exit 1
-          fi
+            if [ -z "$R2_BUCKET_NAME" ] || [ -z "$R2_S3_ENDPOINT" ] || [ -z "$R2_ACCESS_KEY_ID" ] || [ -z "$R2_SECRET_ACCESS_KEY" ]; then
+              echo "Error: R2 configuration missing. Required: R2_BUCKET_NAME, R2_S3_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY"
+              return 1
+            fi
 
-          # Set R2 credentials
-          export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
-          export AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
+            # Set R2 credentials
+            export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
+            export AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
 
-          # Upload build assets with proper content types
-          echo "Uploading build assets with proper content types..."
-          aws s3 sync public/build "s3://$R2_BUCKET_NAME/build" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+            # Upload build assets with proper content types
+            echo "Uploading build assets with proper content types..."
+            aws s3 sync public/build "s3://$R2_BUCKET_NAME/build" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
 
-          # Upload JS files with proper content type
-          echo "Setting proper content types for JavaScript files..."
-          find public/build -name "*.js" -type f | while read -r file; do
-            relative_path="${file#public/}"
-            aws s3 cp "$file" "s3://$R2_BUCKET_NAME/$relative_path" --endpoint-url "$R2_S3_ENDPOINT" --content-type "application/javascript" --acl public-read
+            # Upload JS files with proper content type
+            echo "Setting proper content types for JavaScript files..."
+            find public/build -name "*.js" -type f | while read -r file; do
+              relative_path="${file#public/}"
+              aws s3 cp "$file" "s3://$R2_BUCKET_NAME/$relative_path" --endpoint-url "$R2_S3_ENDPOINT" --content-type "application/javascript" --acl public-read
+            done
+
+            # Upload CSS files with proper content type
+            echo "Setting proper content types for CSS files..."
+            find public/build -name "*.css" -type f | while read -r file; do
+              relative_path="${file#public/}"
+              aws s3 cp "$file" "s3://$R2_BUCKET_NAME/$relative_path" --endpoint-url "$R2_S3_ENDPOINT" --content-type "text/css" --acl public-read
+            done
+
+            # Upload other static assets
+            aws s3 sync public/fonts "s3://$R2_BUCKET_NAME/fonts" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+            aws s3 sync public/images "s3://$R2_BUCKET_NAME/images" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+          }
+
+          max_attempts=3
+          attempt=1
+          until upload_assets; do
+            if [ "$attempt" -ge "$max_attempts" ]; then
+              echo "Error: Cloudflare R2 upload failed after $max_attempts attempts"
+              exit 1
+            fi
+
+            attempt=$((attempt + 1))
+            sleep $((attempt * 15))
+            echo "Retrying Cloudflare R2 upload (attempt $attempt/$max_attempts)..."
           done
-
-          # Upload CSS files with proper content type
-          echo "Setting proper content types for CSS files..."
-          find public/build -name "*.css" -type f | while read -r file; do
-            relative_path="${file#public/}"
-            aws s3 cp "$file" "s3://$R2_BUCKET_NAME/$relative_path" --endpoint-url "$R2_S3_ENDPOINT" --content-type "text/css" --acl public-read
-          done
-
-          # Upload other static assets
-          aws s3 sync public/fonts "s3://$R2_BUCKET_NAME/fonts" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
-          aws s3 sync public/images "s3://$R2_BUCKET_NAME/images" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
 
           echo "Static assets uploaded to Cloudflare R2"
 
