@@ -310,19 +310,17 @@ switch_traffic() {
   docker compose -f $APP_DIR/docker/docker-compose.yml restart traefik
   sleep 5
   
-  # Wait for traffic switch to take effect and verify
+  # Wait for traffic switch to take effect and verify via Traefik's own routing view.
   while [ $attempt -le $max_attempts ]; do
     sleep 2
-    
-    # Check if traffic is being routed to the target environment
-    local public_response=$(curl -s -o /dev/null -w '%{http_code}' "https://harun.dev/health" 2>/dev/null || echo '000')
-    
-    if [ "$public_response" = "200" ]; then
+
+    local active_env=$(detect_active_environment)
+    if [ "$active_env" = "$target_env" ]; then
       success "Traffic successfully switched to $target_env environment"
       return 0
     fi
-    
-    log "Traffic switch verification attempt $attempt/$max_attempts..."
+
+    log "Traffic switch verification attempt $attempt/$max_attempts... (active: $active_env, target: $target_env)"
     attempt=$((attempt + 1))
   done
   
