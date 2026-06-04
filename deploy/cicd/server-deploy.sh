@@ -180,8 +180,24 @@ deploy_to_environment() {
   log "Deploying to $target_env environment..."
   
   # Build the target environment sequentially to reduce resource pressure during deployment.
-  docker compose -f $APP_DIR/docker/docker-compose.yml build php_$target_env
-  docker compose -f $APP_DIR/docker/docker-compose.yml build nginx_$target_env
+  local max_build_attempts=3
+  for service in php_$target_env nginx_$target_env; do
+    local build_attempt=1
+    while [ $build_attempt -le $max_build_attempts ]; do
+      if docker compose -f $APP_DIR/docker/docker-compose.yml build "$service"; then
+        break
+      fi
+
+      warning "Build failed for $service, retrying ($build_attempt/$max_build_attempts)..."
+      build_attempt=$((build_attempt + 1))
+      sleep 30
+    done
+
+    if [ $build_attempt -gt $max_build_attempts ]; then
+      error "Failed to build $service after $max_build_attempts attempts"
+      return 1
+    fi
+  done
   docker compose -f $APP_DIR/docker/docker-compose.yml up -d php_$target_env nginx_$target_env
   
   # Wait for containers to be ready
