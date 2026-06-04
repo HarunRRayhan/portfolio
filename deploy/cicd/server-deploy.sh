@@ -179,8 +179,9 @@ deploy_to_environment() {
   
   log "Deploying to $target_env environment..."
   
-  # Build and start containers for target environment
-  docker compose -f $APP_DIR/docker/docker-compose.yml build php_$target_env nginx_$target_env
+  # Build the target environment sequentially to reduce resource pressure during deployment.
+  docker compose -f $APP_DIR/docker/docker-compose.yml build php_$target_env
+  docker compose -f $APP_DIR/docker/docker-compose.yml build nginx_$target_env
   docker compose -f $APP_DIR/docker/docker-compose.yml up -d php_$target_env nginx_$target_env
   
   # Wait for containers to be ready
