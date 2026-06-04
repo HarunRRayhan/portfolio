@@ -77,8 +77,8 @@ RUN mkdir -p /var/www/html/storage/framework/cache \
     /var/www/html/bootstrap/cache \
     && touch /var/www/html/resources/views/.placeholder
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html \
+# Set permissions for writable runtime paths only
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 755 /var/www/html/storage \
     && chmod -R 755 /var/www/html/bootstrap/cache \
     && chmod -R 755 /var/www/html/public/build
