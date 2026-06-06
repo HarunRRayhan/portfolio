@@ -92,6 +92,8 @@ You can also deploy manually using the deployment scripts:
 ### Infrastructure
 
 - **Production URL**: https://harun.dev
+- **Hidden admin panel**: `harun.dev/admin` (not linked in the public UI)
+- **Bio landing page**: `harun.dev/bio`
 - **Deployment Strategy**: Blue-Green with Traefik load balancer
 - **Container Orchestration**: Docker Compose
 - **SSL/TLS**: Automatic Let's Encrypt certificates

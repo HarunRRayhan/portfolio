@@ -30,8 +30,62 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+    $blog = new BlogRepository();
+    $posts = $blog->posts();
+    $publishedPosts = array_values(array_filter($posts, fn (array $post) => ! (bool) ($post['draft'] ?? false)));
+    $draftPosts = array_values(array_filter($posts, fn (array $post) => (bool) ($post['draft'] ?? false)));
+
+    return Inertia::render('Dashboard', [
+        'stats' => [
+            'totalPosts' => count($posts),
+            'publishedPosts' => count($publishedPosts),
+            'draftPosts' => count($draftPosts),
+            'previewReadyDrafts' => count(array_filter($draftPosts, fn (array $post) => ! empty($blog->previewUrl((string) $post['slug'])))),
+        ],
+        'panelStatus' => 'Ready',
+        'panelStatusDetail' => 'Protected by auth + verified and wired to the live blog content source.',
+        'recentPosts' => array_slice($blog->indexPosts(), 0, 5),
+        'draftPostsList' => array_map(fn (array $post) => [
+            'title' => (string) $post['title'],
+            'slug' => (string) $post['slug'],
+            'brief' => (string) $post['brief'],
+            'publishedAtHuman' => (string) ($post['publishedAtHuman'] ?? ''),
+            'readTimeLabel' => (string) ($post['readTimeLabel'] ?? ''),
+            'draftPreviewUrl' => $blog->previewUrl((string) $post['slug']),
+        ], $draftPosts),
+    ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::get('/admin', function () {
+    $blog = new BlogRepository();
+    $posts = $blog->posts();
+    $publishedPosts = array_values(array_filter($posts, fn (array $post) => ! (bool) ($post['draft'] ?? false)));
+    $draftPosts = array_values(array_filter($posts, fn (array $post) => (bool) ($post['draft'] ?? false)));
+
+    return Inertia::render('Dashboard', [
+        'stats' => [
+            'totalPosts' => count($posts),
+            'publishedPosts' => count($publishedPosts),
+            'draftPosts' => count($draftPosts),
+            'previewReadyDrafts' => count(array_filter($draftPosts, fn (array $post) => ! empty($blog->previewUrl((string) $post['slug'])))),
+        ],
+        'panelStatus' => 'Ready',
+        'panelStatusDetail' => 'Protected by auth + verified and wired to the live blog content source.',
+        'recentPosts' => array_slice($blog->indexPosts(), 0, 5),
+        'draftPostsList' => array_map(fn (array $post) => [
+            'title' => (string) $post['title'],
+            'slug' => (string) $post['slug'],
+            'brief' => (string) $post['brief'],
+            'publishedAtHuman' => (string) ($post['publishedAtHuman'] ?? ''),
+            'readTimeLabel' => (string) ($post['readTimeLabel'] ?? ''),
+            'draftPreviewUrl' => $blog->previewUrl((string) $post['slug']),
+        ], $draftPosts),
+    ]);
+})->middleware(['auth', 'verified'])->name('admin');
+
+Route::get('/bio', function () {
+    return Inertia::render('Bio');
+})->name('bio');
 
 Route::get('/about', function () {
     return Inertia::render('About');
