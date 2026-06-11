@@ -103,10 +103,6 @@ function enhanceCodeBlocks(root: HTMLElement) {
       return
     }
 
-    const sourceText = (code.textContent ?? pre.textContent ?? '').replace(/(?:\r\n|\r|\n)+$/u, '')
-    const lineCount = sourceText === '' ? 0 : sourceText.split(/\r\n|\r|\n/).length
-    const shouldFold = lineCount > 10
-
     pre.dataset.enhanced = 'true'
     pre.classList.add('m-0', 'overflow-x-auto', 'bg-transparent', 'p-0')
     code.classList.add('bg-transparent', 'p-0')
@@ -117,7 +113,7 @@ function enhanceCodeBlocks(root: HTMLElement) {
       console.warn('Code highlighting failed:', error)
     }
 
-    const shell = document.createElement(shouldFold ? 'details' : 'div')
+    const shell = document.createElement('div')
     shell.className =
       'group relative my-8 overflow-hidden rounded-[1.5rem] border border-slate-700 bg-slate-950 shadow-[0_24px_70px_-34px_rgba(15,23,42,0.75)]'
 
@@ -133,14 +129,14 @@ function enhanceCodeBlocks(root: HTMLElement) {
     copyButton.type = 'button'
     copyButton.className =
       'inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-white/15'
-    copyButton.textContent = 'Copy'
+    copyButton.textContent = 'Copy code'
 
-    const resetLabel = copyButton.textContent ?? 'Copy'
+    const resetLabel = copyButton.textContent ?? 'Copy code'
     copyButton.addEventListener('click', async () => {
-      const sourceText = code.innerText || pre.innerText
+      const fullSourceText = code.textContent || pre.textContent || ''
 
       try {
-        await navigator.clipboard.writeText(sourceText)
+        await navigator.clipboard.writeText(fullSourceText)
         copyButton.textContent = 'Copied'
         copyButton.disabled = true
         window.setTimeout(() => {
@@ -158,45 +154,11 @@ function enhanceCodeBlocks(root: HTMLElement) {
 
     toolbar.append(languageBadge, copyButton)
 
-    if (shouldFold) {
-      const summary = document.createElement('summary')
-      summary.className =
-        'flex cursor-pointer list-none items-center justify-between gap-3 border-b border-white/10 px-4 py-3 text-left text-sm font-medium text-slate-100 transition-colors hover:bg-white/5 [&::-webkit-details-marker]:hidden'
-
-      const summaryMeta = document.createElement('div')
-      summaryMeta.className = 'flex min-w-0 items-center gap-3'
-
-      const summaryLabel = document.createElement('span')
-      summaryLabel.className = 'truncate'
-      summaryLabel.textContent = 'Long code block'
-
-      const summaryCount = document.createElement('span')
-      summaryCount.className =
-        'shrink-0 rounded-full bg-white/10 px-2.5 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-slate-200'
-      summaryCount.textContent = `${lineCount} lines`
-
-      summaryMeta.append(summaryLabel, summaryCount)
-
-      const summaryToggle = document.createElement('span')
-      summaryToggle.className = 'inline-flex items-center gap-1 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-slate-300'
-      summaryToggle.textContent = 'Show code'
-
-      const summaryIcon = document.createElement('span')
-      summaryIcon.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true" class="h-4 w-4 transition-transform duration-200 group-open:rotate-180"><path fill="currentColor" d="M12 15.5a1 1 0 0 1-.707-.293l-5-5a1 1 0 1 1 1.414-1.414L12 13.086l4.293-4.293a1 1 0 0 1 1.414 1.414l-5 5A1 1 0 0 1 12 15.5Z"/></svg>`
-      summaryToggle.append(summaryIcon)
-
-      summary.append(summaryMeta, summaryToggle)
-      if (pre.parentNode) {
-        pre.parentNode.insertBefore(shell, pre)
-      }
-      shell.append(summary, toolbar, pre)
-    } else {
-      if (pre.parentNode) {
-        pre.parentNode.insertBefore(shell, pre)
-      }
-
-      shell.append(toolbar, pre)
+    if (pre.parentNode) {
+      pre.parentNode.insertBefore(shell, pre)
     }
+
+    shell.append(toolbar, pre)
   })
 }
 
