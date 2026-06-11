@@ -6,6 +6,7 @@ use App\Models\BlogCommentThread;
 use App\Support\BlogRepository;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use RyanChandler\Comments\Models\Comment;
 
 class BlogCommentController extends Controller
@@ -45,6 +46,8 @@ class BlogCommentController extends Controller
             $request->user(),
             $parent,
         );
+
+        Cache::forget('blog.post.'.$slug.'.comments');
 
         return redirect()->to(route('blog.post', ['slug' => $slug]).'#discussion');
     }

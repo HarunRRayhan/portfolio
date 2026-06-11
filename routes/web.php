@@ -8,6 +8,7 @@ use App\Support\BlogRepository;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -253,19 +254,31 @@ Route::get('/blog/{slug}', function (Request $request, string $slug) {
         abort(404);
     }
 
+    $commentCacheKey = 'blog.post.'.$slug.'.comments';
     $commentCount = 0;
     $comments = [];
 
     try {
-        $thread = BlogCommentThread::resolveForPost(
+        $commentPayload = Cache::remember($commentCacheKey, now()->addMinutes(5), function () use (
+            $blog,
             $slug,
-            (string) $post['title'],
-            $blog->absoluteUrl($slug),
-            (string) ($post['sourceUrl'] ?? $blog->sourceUrl($slug)),
-        );
+            $post,
+        ): array {
+            $thread = BlogCommentThread::resolveForPost(
+                $slug,
+                (string) $post['title'],
+                $blog->absoluteUrl($slug),
+                (string) ($post['sourceUrl'] ?? $blog->sourceUrl($slug)),
+            );
 
-        $commentCount = $thread->commentCount();
-        $comments = $thread->commentTree();
+            return [
+                'count' => $thread->commentCount(),
+                'comments' => $thread->commentTree(),
+            ];
+        });
+
+        $commentCount = $commentPayload['count'];
+        $comments = $commentPayload['comments'];
     } catch (\Throwable $exception) {
         report($exception);
     }

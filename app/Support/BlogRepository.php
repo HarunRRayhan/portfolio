@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use RuntimeException;
 use Symfony\Component\Yaml\Yaml;
 
@@ -11,6 +12,10 @@ class BlogRepository
     private const CONTENT_DIR = 'blog/posts';
 
     private const PUBLICATION_PATH = 'blog/publication.yml';
+
+    private const CACHE_KEY = 'blog.repository.payload';
+
+    private const CACHE_TTL_MINUTES = 15;
 
     /**
      * @var array<string, mixed>|null
@@ -160,20 +165,24 @@ class BlogRepository
             return $this->data;
         }
 
-        $publication = $this->loadPublication();
-        $posts = collect(glob(resource_path(self::CONTENT_DIR.'/*.md')) ?: [])
-            ->map(fn (string $path) => $this->parsePostFile($path, $publication))
-            ->sortByDesc(fn (array $post) => Carbon::parse($post['publishedAt'])->timestamp)
-            ->values()
-            ->all();
+        $this->data = Cache::remember(self::CACHE_KEY, now()->addMinutes(self::CACHE_TTL_MINUTES), function (): array {
+            $publication = $this->loadPublication();
+            $posts = collect(glob(resource_path(self::CONTENT_DIR.'/*.md')) ?: [])
+                ->map(fn (string $path) => $this->parsePostFile($path, $publication))
+                ->sortByDesc(fn (array $post) => Carbon::parse($post['publishedAt'])->timestamp)
+                ->values()
+                ->all();
 
-        $this->data = [
-            'publication' => $publication,
-            'posts' => $posts,
-        ];
+            return [
+                'publication' => $publication,
+                'posts' => $posts,
+            ];
+        });
 
         return $this->data;
     }
+
+
 
     /**
      * @return array<string, mixed>
