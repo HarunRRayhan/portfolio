@@ -9,9 +9,7 @@ import { Card, CardContent } from "@/Components/ui/card"
 import { Head } from '@inertiajs/react'
 
 const defaultBookingUrl = 'https://calendar.app.google/udfiL5QMDefg7SiD6'
-const defaultEmbedUrl = 'https://calendar.google.com/calendar/appointments/schedules/AcZssZ2WP1vzheZr36_dTSwJ5V6xIrm3bxGnItNcqTCzLxpya9p-yA_mH6uSaKhGA98iTicoYyAoNL7n?gv=true'
 const bookingUrl = import.meta.env.VITE_BOOKING_URL?.trim() || defaultBookingUrl
-const embedUrl = import.meta.env.VITE_BOOKING_EMBED_URL?.trim() || defaultEmbedUrl
 const hasBookingUrl = bookingUrl.length > 0
 
 const features = [
@@ -102,27 +100,16 @@ export default function Book() {
                   <CardContent className="p-0">
                     <div className="grid md:grid-cols-5">
                       {/* Left: main content */}
-                      <div className="col-span-3 space-y-6 bg-white p-6 sm:p-8 md:p-10">
+                      <div className="col-span-3 space-y-6 bg-white p-8 sm:p-10">
                         <div className="space-y-2">
                           <h2 className="text-2xl font-semibold tracking-[-0.03em] text-slate-950">
                             Pick a time that works for you
                           </h2>
                           <p className="leading-7 text-slate-600">
-                            This booking page embeds Google Calendar’s appointment schedule directly on the page.
-                            It checks availability, hides busy slots, and keeps the flow simple.
+                            This booking page points to a Google Calendar appointment schedule. It checks
+                            availability, hides busy slots, and lets you book directly — no custom scheduler
+                            needed.
                           </p>
-                        </div>
-
-                        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-                          <iframe
-                            src={embedUrl}
-                            title="Book a 30-minute consultation"
-                            width="100%"
-                            height="600"
-                            style={{ border: 0 }}
-                            loading="lazy"
-                            referrerPolicy="no-referrer-when-downgrade"
-                          />
                         </div>
 
                         <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-5">
@@ -157,7 +144,7 @@ export default function Book() {
                             variant="outline"
                             className="w-full rounded-full border-slate-200 bg-white px-6 text-slate-900 shadow-none hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
                           >
-                            <a href="mailto:hello@harun.dev">
+                            <a href="mailto:me@harun.dev">
                               <Mail className="mr-2 h-4 w-4" />
                               Contact via email
                             </a>
