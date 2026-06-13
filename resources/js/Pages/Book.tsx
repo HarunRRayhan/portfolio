@@ -3,35 +3,38 @@
 import { Menubar } from "@/Components/Menubar"
 import { Footer } from "@/Components/Footer"
 import { motion } from "framer-motion"
-import { Calendar } from "lucide-react"
+import { Calendar, ExternalLink, Mail, Sparkles } from "lucide-react"
 import { Button } from "@/Components/ui/button"
 import { Card, CardContent } from "@/Components/ui/card"
-import { Link, Head } from '@inertiajs/react'
-import { getImageUrl } from "@/lib/imageUtils"
+import { Head } from '@inertiajs/react'
+
+const defaultBookingUrl = 'https://calendar.app.google/udfiL5QMDefg7SiD6'
+const defaultEmbedUrl = 'https://calendar.google.com/calendar/appointments/schedules/AcZssZ2WP1vzheZr36_dTSwJ5V6xIrm3bxGnItNcqTCzLxpya9p-yA_mH6uSaKhGA98iTicoYyAoNL7n?gv=true'
+const bookingUrl = import.meta.env.VITE_BOOKING_URL?.trim() || defaultBookingUrl
+const embedUrl = import.meta.env.VITE_BOOKING_EMBED_URL?.trim() || defaultEmbedUrl
+const hasBookingUrl = bookingUrl.length > 0
+
+const features = [
+  'Google Calendar availability checks',
+  'Booking windows, buffers, and notice controls',
+  'Confirmation and calendar hold',
+]
 
 export default function Book() {
   return (
     <>
       <Head>
         <title>Book a Consultation | Cloud & DevOps Expert - Harun R. Rayhan</title>
-        <meta name="description" content="Schedule a 30-minute consultation to discuss your cloud architecture, DevOps, or infrastructure automation needs. Let's explore how we can transform your business together." />
-        <meta name="keywords" content="book consultation, cloud consulting, DevOps consulting, technical consultation, AWS expert consultation" />
-        
-        {/* OpenGraph Tags */}
+        <meta name="description" content="Book a 30-minute consultation to discuss cloud architecture, DevOps, or infrastructure automation. Powered by Google Calendar appointment schedules." />
+        <meta name="keywords" content="book consultation, cloud consulting, DevOps consulting, technical consultation, AWS expert consultation, Google Calendar appointment schedules" />
         <meta property="og:title" content="Book a Consultation | Cloud & DevOps Expert - Harun R. Rayhan" />
-        <meta property="og:description" content="Schedule a 30-minute consultation to discuss your cloud architecture, DevOps, or infrastructure automation needs. Let's explore how we can transform your business together." />
+        <meta property="og:description" content="Book a 30-minute consultation to discuss cloud architecture, DevOps, or infrastructure automation. Powered by Google Calendar appointment schedules." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
-        
-        {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Book a Consultation | Cloud & DevOps Expert - Harun R. Rayhan" />
-        <meta name="twitter:description" content="Schedule a 30-minute consultation to discuss your cloud architecture, DevOps, or infrastructure automation needs. Let's explore how we can transform your business together." />
-        
-        {/* Canonical URL */}
+        <meta name="twitter:description" content="Book a 30-minute consultation to discuss cloud architecture, DevOps, or infrastructure automation. Powered by Google Calendar appointment schedules." />
         <link rel="canonical" href={window.location.href} />
-
-        {/* JSON-LD Structured Data */}
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
@@ -46,57 +49,159 @@ export default function Book() {
             "serviceType": "Professional Consultation",
             "offers": {
               "@type": "Offer",
-              "description": "Free 30-minute consultation session",
-              "availability": "http://schema.org/ComingSoon"
+              "description": "Bookable consultation session",
+              "availability": "http://schema.org/InStock"
             }
           })}
         </script>
       </Head>
-      <div className="flex flex-col min-h-screen relative">
-        <div className="fixed top-0 left-0 right-0 z-50">
+      <div className="flex flex-col min-h-screen bg-slate-50">
+        <div className="relative z-50">
           <Menubar />
         </div>
+
         <main className="flex-1">
-          {/* Hero Section */}
-          <section className="min-h-[400px] bg-gradient-to-br from-[#86D2F1] via-[#7C3AED] to-[#8B5CF6] flex items-center">
-            <div className="container mx-auto px-4 py-20">
+          {/* Hero */}
+          <section className="relative overflow-hidden border-b border-slate-200/80 bg-white">
+            <div className="pointer-events-none absolute inset-0">
+              <div className="absolute left-1/2 top-0 h-[30rem] w-[30rem] -translate-x-1/2 rounded-full bg-blue-100/45 blur-3xl" />
+              <div className="absolute right-0 top-24 h-64 w-64 rounded-full bg-sky-100/50 blur-3xl" />
+            </div>
+            <div className="container relative mx-auto px-4 py-20 sm:py-24 lg:py-28">
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                className="text-center max-w-3xl mx-auto"
+                transition={{ duration: 0.7, ease: 'easeOut' }}
+                className="mx-auto max-w-3xl text-center"
               >
-                <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Schedule a Consultation</h1>
-                <p className="text-xl text-white/80">
-                  Book a 30-minute session to discuss your project needs and explore how we can work together to achieve
-                  your goals.
+                <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 shadow-sm">
+                  <Sparkles className="h-3.5 w-3.5 text-blue-600" />
+                  Google Calendar appointment schedule
+                </div>
+                <h1 className="mt-6 text-4xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-5xl lg:text-6xl">
+                  Schedule a Consultation
+                </h1>
+                <p className="mt-5 mx-auto max-w-xl text-lg leading-8 text-slate-600">
+                  Book a 30-minute session to discuss your project needs and explore how we can work together
+                  to achieve your goals.
                 </p>
               </motion.div>
             </div>
           </section>
 
-          {/* Calendar Section */}
-          <section className="py-32 bg-gray-50 flex-grow">
+          {/* Booking section */}
+          <section className="py-20 sm:py-24">
             <div className="container mx-auto px-4">
-              <Card className="max-w-2xl mx-auto shadow-lg">
-                <CardContent className="p-8">
-                  <div className="text-center space-y-6">
-                    <Calendar className="w-16 h-16 mx-auto text-[#7C3AED]" />
-                    <h2 className="text-2xl font-semibold text-gray-800">Calendar Integration Coming Soon</h2>
-                    <p className="text-gray-600">
-                      We're currently setting up our booking system. For immediate assistance, please reach out via email.
-                    </p>
-                    <Button className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white">
-                      <a href="mailto:hello@harun.dev" className="text-white no-underline">Contact via Email</a>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+                className="mx-auto max-w-4xl"
+              >
+                <Card className="overflow-hidden border-slate-200 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+                  <CardContent className="p-0">
+                    <div className="grid md:grid-cols-5">
+                      {/* Left: main content */}
+                      <div className="col-span-3 space-y-6 bg-white p-6 sm:p-8 md:p-10">
+                        <div className="space-y-2">
+                          <h2 className="text-2xl font-semibold tracking-[-0.03em] text-slate-950">
+                            Pick a time that works for you
+                          </h2>
+                          <p className="leading-7 text-slate-600">
+                            This booking page embeds Google Calendar’s appointment schedule directly on the page.
+                            It checks availability, hides busy slots, and keeps the flow simple.
+                          </p>
+                        </div>
+
+                        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+                          <iframe
+                            src={embedUrl}
+                            title="Book a 30-minute consultation"
+                            width="100%"
+                            height="600"
+                            style={{ border: 0 }}
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                          />
+                        </div>
+
+                        <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                          <p className="text-sm font-semibold text-slate-900">What you get</p>
+                          <ul className="space-y-2">
+                            {features.map((f) => (
+                              <li key={f} className="flex items-start gap-3 text-sm text-slate-600">
+                                <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
+                                <span>{f}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div className="flex flex-col gap-3 sm:flex-row">
+                          {hasBookingUrl ? (
+                            <Button
+                              asChild
+                              size="lg"
+                              className="group w-full rounded-full bg-slate-950 px-6 text-white shadow-none transition hover:-translate-y-0.5 hover:bg-slate-800 sm:w-auto"
+                            >
+                              <a href={bookingUrl} target="_blank" rel="noreferrer">
+                                Open booking page
+                                <ExternalLink className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                              </a>
+                            </Button>
+                          ) : null}
+
+                          <Button
+                            asChild
+                            size="lg"
+                            variant="outline"
+                            className="w-full rounded-full border-slate-200 bg-white px-6 text-slate-900 shadow-none hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
+                          >
+                            <a href="mailto:hello@harun.dev">
+                              <Mail className="mr-2 h-4 w-4" />
+                              Contact via email
+                            </a>
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Right: how it works panel */}
+                      <div className="col-span-2 bg-slate-950 p-8 text-white sm:p-10">
+                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                          How it works
+                        </p>
+                        <div className="mt-6 space-y-6">
+                          {[
+                            { step: '1', text: 'Open the Google Calendar appointment schedule link.' },
+                            { step: '2', text: 'Choose an available time slot that fits your schedule.' },
+                            { step: '3', text: 'You get a confirmation and I get a clean calendar hold.' },
+                          ].map(({ step, text }) => (
+                            <div key={step} className="flex gap-4">
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-semibold">
+                                {step}
+                              </span>
+                              <p className="text-sm leading-6 text-slate-300">{text}</p>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-5">
+                          <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Fallback</p>
+                          <p className="mt-2 text-sm leading-6 text-slate-300">
+                            If the booking page is unavailable, reach out via email and I can send a direct
+                            calendar invitation.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             </div>
           </section>
         </main>
+
         <Footer />
       </div>
     </>
   )
-} 
+}
