@@ -821,9 +821,10 @@ step 22 "Executing deployment commands"
 DOCKER_COMPOSE_FILE="./docker/docker-compose.yml"
 
 # Execute the commands in sequence for blue-green deployment
+# Use cached Docker layers here; a full --no-cache rebuild can exhaust the Lightsail instance.
 execute_ssh "cd $APP_DIR && \
     docker compose -f $DOCKER_COMPOSE_FILE down && \
-    docker compose -f $DOCKER_COMPOSE_FILE build --no-cache && \
+    docker compose -f $DOCKER_COMPOSE_FILE build && \
     docker compose -f $DOCKER_COMPOSE_FILE up -d && \
     docker compose -f $DOCKER_COMPOSE_FILE ps"
 # Remove the .env from the repo root after build

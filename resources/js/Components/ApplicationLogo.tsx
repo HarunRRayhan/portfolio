@@ -1,15 +1,8 @@
-import { getImageUrl } from "../lib/imageUtils"
 import type { ComponentPropsWithoutRef } from 'react'
+import { HarunBrandMark } from './HarunBrandMark'
 
-export default function ApplicationLogo(props: ComponentPropsWithoutRef<'img'>) {
+export default function ApplicationLogo(props: ComponentPropsWithoutRef<'svg'>) {
     const { className, ...rest } = props
 
-    return (
-        <img
-            {...rest}
-            className={className}
-            src={getImageUrl('/images/brand/harun-logo.svg')}
-            alt="Harun logo"
-        />
-    )
+    return <HarunBrandMark {...rest} className={className} />
 }
