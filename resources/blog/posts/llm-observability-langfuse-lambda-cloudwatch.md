@@ -18,7 +18,8 @@ tags:
   - name: "Serverless"
     slug: "serverless"
   - name: "Observability"
-    slug: "observability"---
+    slug: "observability"
+---
 <p><strong>Draft note:</strong> This article is currently drafted for review only and will stay out of the public blog index until I publish it.</p>
 <p>I have learned the hard way that an LLM feature is not production-ready just because the prompt works in a notebook.</p>
 <p>The real question is whether I can tell what happened when it fails at 2 a.m. Did the model answer badly? Did the prompt change? Did the Lambda retry? Did the request time out because the upstream API was slow? Or did I just spend ten minutes staring at a CloudWatch log stream that only says <code>Error: failed request</code>?</p>

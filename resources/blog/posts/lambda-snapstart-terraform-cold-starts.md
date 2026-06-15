@@ -17,7 +17,8 @@ tags:
   - name: Terraform
     slug: terraform
   - name: Serverless
-    slug: serverless---
+    slug: serverless
+---
 
 <p>Cold starts are the most complained-about thing in serverless. I've seen teams abandon Lambda entirely because they couldn't get init times under control. They moved to ECS Fargate or EC2, traded cold starts for always-on costs, and regretted it six months later when the bill came in.</p>
 <p>Lambda SnapStart changes the math. It works by taking a snapshot of the initialized execution environment (the Firecracker microVM) and caching it. When a new invocation comes in, Lambda loads the snapshot instead of running init from scratch. The result: cold starts drop from multiple seconds to sub-200ms for Java, and you get measurable improvements for Python too.</p>

@@ -19,7 +19,8 @@ tags:
   - name: "TypeScript"
     slug: "typescript"
   - name: "Nodejs"
-    slug: "nodejs"---
+    slug: "nodejs"
+---
 AI coding agents are useful, but only if you treat them like a fast junior engineer, not like a magic autopilot.
 
 I use them to save time on repetitive work, explore code paths, draft changes, and help me understand a messy repo faster. I do not let them roam free in production, guess at infrastructure changes, or push anything without a review loop.

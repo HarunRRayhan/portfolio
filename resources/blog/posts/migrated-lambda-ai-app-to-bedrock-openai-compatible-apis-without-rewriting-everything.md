@@ -17,7 +17,8 @@ tags:
   - name: "Bedrock"
     slug: "bedrock"
   - name: "Serverless"
-    slug: "serverless"---
+    slug: "serverless"
+---
 <p><strong>Draft note:</strong> This article is drafted for review only. It will stay out of the public blog index until I publish it.</p>
 <p>I wanted to move one of my Lambda AI apps off the old setup and onto Amazon Bedrock without turning it into a rewrite project.</p>
 <p>That mattered because the app already worked. It accepted a request, built a prompt, called a model, handled retries, logged traces, and returned a response. The architecture was fine. The problem was the underlying model provider path had started to feel like something I would rather replace before it turned into a dependency headache.</p>
