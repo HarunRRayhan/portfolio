@@ -4,7 +4,7 @@ slug: "aws-waf-cloudfront-solo-dev"
 brief: "How to set up AWS WAF in front of CloudFront for a solo-built application, with rate limiting, bot control, and IP block rules, all managed with Terraform."
 publishedAt: "2026-06-16T09:00:00.000Z"
 draft: true
-draftToken: "waf-cloudfront-preview-2026"
+draftToken: "589a98d310086517c22954f394519408"
 readTimeInMinutes: 10
 reactionCount: 0
 responseCount: 0

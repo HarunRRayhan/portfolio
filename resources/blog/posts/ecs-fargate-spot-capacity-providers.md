@@ -4,7 +4,7 @@ slug: "ecs-fargate-spot-capacity-providers"
 brief: "How to use Fargate Spot capacity providers to reduce container costs by up to 70%, with real Terraform configurations and interruption handling strategies."
 publishedAt: "2026-06-21T09:00:00.000Z"
 draft: true
-draftToken: "fargate-spot-preview-2026"
+draftToken: "6f3788f71d7518d5ba560826ec473aee"
 readTimeInMinutes: 9
 reactionCount: 0
 responseCount: 0
