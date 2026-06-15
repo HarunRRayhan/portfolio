@@ -6,6 +6,7 @@ publishedAt: "2026-06-21T09:00:00.000Z"
 draft: true
 draftToken: "6f3788f71d7518d5ba560826ec473aee"
 readTimeInMinutes: 9
+coverImageUrl: "/blog-assets/ecs-fargate-spot-capacity-providers/cover.jpg"
 reactionCount: 0
 responseCount: 0
 replyCount: 0

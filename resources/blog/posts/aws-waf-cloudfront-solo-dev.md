@@ -6,6 +6,7 @@ publishedAt: "2026-06-16T09:00:00.000Z"
 draft: true
 draftToken: "589a98d310086517c22954f394519408"
 readTimeInMinutes: 10
+coverImageUrl: "/blog-assets/aws-waf-cloudfront-solo-dev/cover.jpg"
 reactionCount: 0
 responseCount: 0
 replyCount: 0

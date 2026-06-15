@@ -6,6 +6,7 @@ publishedAt: "2026-06-18T09:00:00.000Z"
 draft: true
 draftToken: "27496dab5588c2d0d38d8a652021d4e5"
 readTimeInMinutes: 11
+coverImageUrl: "/blog-assets/bedrock-agents-production-knowledge-bases/cover.jpg"
 reactionCount: 0
 responseCount: 0
 replyCount: 0
