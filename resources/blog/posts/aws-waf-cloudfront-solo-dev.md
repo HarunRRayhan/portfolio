@@ -3,8 +3,6 @@ title: "AWS WAF + CloudFront for a Solo Dev - Rate Limiting, Bot Control, and IP
 slug: "aws-waf-cloudfront-solo-dev"
 brief: "How to set up AWS WAF in front of CloudFront for a solo-built application, with rate limiting, bot control, and IP block rules, all managed with Terraform."
 publishedAt: "2026-06-16T09:00:00.000Z"
-draft: true
-draftToken: "589a98d310086517c22954f394519408"
 readTimeInMinutes: 10
 coverImageUrl: "/blog-assets/aws-waf-cloudfront-solo-dev/cover.jpg"
 reactionCount: 0
@@ -20,8 +18,7 @@ tags:
   - name: Security
     slug: security
   - name: Terraform
-    slug: terraform
----
+    slug: terraform---
 
 <p>I run a handful of personal projects behind CloudFront. For a long time I thought WAF was overkill for a solo dev. A waste of money and complexity. Then I watched a single scraper hit my API 50,000 times in an afternoon and spike my Lambda costs by $40. That changed my mind.</p>
 <p>AWS WAF in front of CloudFront costs about $6 per month for the web ACL plus whatever you add in rule groups. For that you get rate limiting, IP blocking, bot detection, and managed threat protection. Compared to the cost of one bad day with an unchecked scraper, it pays for itself in the first hour.</p>
