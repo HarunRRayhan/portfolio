@@ -2,21 +2,20 @@
 """
 Generate blog cover images for haruns-portfolio.
 
-Mirrors the approach from blog-writer/src/images/cover.ts:
-  - Gradient background (1600x840)
-  - Title text overlay (centered, word-wrapped)
-  - Optional AWS icon row
-  - Footer with site URL and social handle
+Replicates the exact layout from blog-writer/src/images/cover.ts:
+  - Smooth SVG gradient background (1600x840)
+  - Centered title text (bold, white, word-wrapped)
+  - AWS icon row (from blog-writer's icon set)
+  - Footer: harun.dev on left, social icons + @HarunRRayhan on right
+
+Then converts to JPEG using sharp from blog-writer's node_modules.
 
 Usage:
   python3 scripts/generate-cover.py <post-slug>
-  python3 scripts/generate-cover.py <post-slug> --title "Custom Title"
-  python3 scripts/generate-cover.py <post-slug> --icons lambda,terraform,s3 --gradient "#1a5276,#6c3483"
+  python3 scripts/generate-cover.py <post-slug> --title "Custom Title" --icons lambda,bedrock
 """
-from PIL import Image, ImageDraw, ImageFont
-import argparse, json, os, re, sys, math
+import subprocess, json, os, re, sys, tempfile, shutil, math, argparse, base64
 
-# --- Constants ---
 COVER_W = 1600
 COVER_H = 840
 ICON_SIZE = 100
@@ -24,269 +23,251 @@ ICON_SPACING = 140
 ICONS_DIR = os.path.expanduser("~/Code/blog-writer/src/images/aws-icons")
 POSTS_DIR = os.path.expanduser("resources/blog/posts")
 ASSETS_DIR = os.path.expanduser("public/blog-assets")
+SHARP_BIN = os.path.expanduser("~/Code/blog-writer/node_modules/.bin/")
 
-DEFAULT_GRADIENT = ("#1a5276", "#6c3483")
+DEFAULT_GRADIENT = ("#0f172a", "#1e293b")
 DEFAULT_ICONS = ["lambda", "rds", "apigateway", "codedeploy", "cloudformation"]
 
-# --- Helpers ---
+# Social icon SVG paths (matching blog-writer cover.ts style)
+X_ICON_PATH = "M13.6,10.47 L21.15,2 L19.22,2 L12.78,9.26 L7.26,2 L2,2 L9.89,13.17 L2,22 L3.93,22 L10.72,14.38 L16.58,22 L22,22 L13.6,10.47 Z M11.6,13.3 L10.76,12.16 L4.68,3.34 L6.66,3.34 L12.36,10.1 L13.2,11.24 L19.23,20.74 L17.25,20.74 L11.6,13.3 Z"
+LINKEDIN_PATH = "M0,0 h22 v22 h-22 z"
+FACEBOOK_PATH = "M0,0 h22 v22 h-22 z"
 
-def parse_hex(color: str) -> tuple:
-    """Parse '#RRGGBB' or '#RGB' to (R, G, B) tuple."""
-    c = color.lstrip("#")
-    if len(c) == 3:
-        c = "".join(x * 2 for x in c)
-    return (int(c[0:2], 16), int(c[2:4], 16), int(c[4:6], 16))
+def escape_xml(s):
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
 
-
-def interpolate_color(c1: tuple, c2: tuple, t: float) -> tuple:
-    """Linearly interpolate between two RGB colors at ratio t (0-1)."""
-    return tuple(int(a + (b - a) * t) for a, b in zip(c1, c2))
-
-
-def draw_gradient(draw: ImageDraw, w: int, h: int, from_color: str, to_color: str):
-    """Draw a diagonal gradient from top-left to bottom-right."""
-    c1 = parse_hex(from_color)
-    c2 = parse_hex(to_color)
-    for y in range(h):
-        for x in range(w):
-            t = (x / w + y / h) / 2  # diagonal blend
-            t = max(0.0, min(1.0, t))
-            color = interpolate_color(c1, c2, t)
-            draw.point((x, y), fill=color)
-
-
-def wrap_text(text: str, max_chars: int = 28) -> list:
-    """Word-wrap text to fit within max_chars per line."""
+def wrap_lines(text, max_chars=28):
     words = text.split()
     lines = []
-    current = ""
-    for word in words:
-        if current and len(current) + len(word) + 1 > max_chars:
-            lines.append(current.strip())
-            current = word
+    cur = ""
+    for w in words:
+        if cur and len(cur) + len(w) + 1 > max_chars:
+            lines.append(cur.strip())
+            cur = w
         else:
-            current += (" " if current else "") + word
-    if current:
-        lines.append(current.strip())
+            cur += (" " if cur else "") + w
+    if cur:
+        lines.append(cur.strip())
     return lines
 
-
-def draw_title(draw: ImageDraw, title: str, font_path: str = None):
-    """Draw centered, wrapped title on the cover."""
-    lines = wrap_text(title, 28)
-    font_size = 58
-    if len(lines) >= 4:
-        font_size = 44
-    elif len(lines) >= 3:
-        font_size = 50
-
-    font = None
-    if font_path and os.path.exists(font_path):
-        try:
-            font = ImageFont.truetype(font_path, font_size)
-        except Exception:
-            font = None
-
-    if font is None:
-        # Fallback to default — small but works
-        font = ImageFont.load_default()
-
-    line_height = int(font_size * 1.35)
-    block_h = len(lines) * line_height
-    start_y = COVER_H * 0.38 - block_h / 2 + font_size * 0.3
-
-    for i, line in enumerate(lines):
-        _, _, tw, th = font.getbbox(line) if hasattr(font, 'getbbox') else (0, 0, 0, 0)
-        # Use textbbox for centering
-        bbox = draw.textbbox((0, 0), line, font=font)
-        tw = bbox[2] - bbox[0]
-        x = (COVER_W - tw) / 2
-        y = start_y + i * line_height
-        draw.text((x, y), line, fill="white", font=font)
-
-
-def draw_footer(draw: ImageDraw, font_path: str = None):
-    """Draw site URL and social handle footer."""
-    font_size = 22
-    font = None
-    if font_path and os.path.exists(font_path):
-        try:
-            font = ImageFont.truetype(font_path, font_size)
-        except Exception:
-            font = None
-    if font is None:
-        font = ImageFont.load_default()
-
-    base_y = COVER_H - 55
-    fill = (255, 255, 255, 230)
-
-    # Left: globe dot + harun.dev
-    bbox = draw.textbbox((0, 0), "harun.dev", font=font)
-    text_w = bbox[2] - bbox[0]
-    draw.text((45, base_y - font_size * 0.25), "harun.dev", fill=fill, font=font)
-
-    # Right: @HarunRRayhan
-    bbox2 = draw.textbbox((0, 0), "@HarunRRayhan", font=font)
-    handle_w = bbox2[2] - bbox2[0]
-    draw.text((COVER_W - 45 - handle_w, base_y - font_size * 0.25),
-              "@HarunRRayhan", fill=fill, font=font)
-
-
-def load_post_slug(post_slug: str) -> dict | None:
-    """Load blog post frontmatter from the markdown file."""
+def load_post_meta(post_slug):
     md_path = os.path.join(POSTS_DIR, f"{post_slug}.md")
     if not os.path.exists(md_path):
-        print(f"Post not found: {md_path}")
         return None
-
     with open(md_path) as f:
         content = f.read()
-
-    # Parse YAML-ish frontmatter
     m = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
     if not m:
-        print(f"No frontmatter found in {md_path}")
         return None
-
     meta = {}
     for line in m.group(1).strip().split("\n"):
         if ":" in line:
-            key, _, val = line.partition(":")
-            meta[key.strip()] = val.strip().strip('"')
+            k, _, v = line.partition(":")
+            meta[k.strip()] = v.strip().strip('"')
     return meta
 
-
-def find_icons_for_post(post_slug: str) -> list[str]:
-    """Guess relevant AWS icons from post slug content."""
-    post = load_post_slug(post_slug)
-    if not post:
-        return DEFAULT_ICONS
-
-    title = (post.get("title", "") + " " + post_slug).lower()
-
-    # Map keywords to icons
-    keyword_map = {
-        "lambda": "lambda", "function": "lambda", "serverless": "lambda",
-        "terraform": "terraform", "iac": "terraform", "infrastructure": "terraform",
-        "s3": "s3", "storage": "s3", "object": "s3",
-        "api": "apigateway", "gateway": "apigateway", "rest": "apigateway",
-        "ecs": "ecs", "fargate": "fargate", "container": "ecs",
-        "rds": "rds", "database": "rds", "postgres": "rds",
-        "bedrock": "bedrock", "ai": "bedrock", "claude": "bedrock", "llm": "bedrock",
-        "ec2": "ec2", "lightsail": "ec2",
-        "cloudfront": "s3", "cdn": "s3",
-        "cicd": "codedeploy", "ci/cd": "codedeploy", "deploy": "codedeploy",
-        "sqs": "sqs", "queue": "sqs", "event": "eventbridge",
-        "redis": "elasticache", "cache": "elasticache",
-        "aurora": "aurora",
-        "dynamodb": "dynamodb", "dynamo": "dynamodb",
-        "ecr": "ecr", "docker": "ecr",
-        "laravel": "laravel",
-        "cloudformation": "cloudformation",
+def find_icons(post_slug):
+    post = load_post_meta(post_slug)
+    title = ((post or {}).get("title", "") + " " + post_slug).lower()
+    kw_map = {
+        "lambda":"lambda","function":"lambda","serverless":"lambda",
+        "terraform":"terraform","iac":"terraform","infrastructure":"terraform",
+        "s3":"s3","storage":"s3","bedrock":"bedrock","ai":"bedrock","claude":"bedrock","llm":"bedrock",
+        "ecs":"ecs","fargate":"fargate","container":"ecs",
+        "sqs":"sqs","queue":"sqs","event":"eventbridge",
+        "cicd":"codedeploy","ci/cd":"codedeploy","deploy":"codedeploy",
+        "ec2":"ec2","lightsail":"ec2",
+        "api":"apigateway","gateway":"apigateway",
+        "rds":"rds","database":"rds"
     }
-
     found = []
-    for keyword, icon in keyword_map.items():
-        if keyword in title:
-            icon_path = os.path.join(ICONS_DIR, f"{icon}.png")
-            if os.path.exists(icon_path) and icon not in found:
+    for kw, icon in kw_map.items():
+        if kw in title:
+            ip = os.path.join(ICONS_DIR, f"{icon}.png")
+            if os.path.exists(ip) and icon not in found:
                 found.append(icon)
+    return found[:5] or DEFAULT_ICONS
 
-    return found[:5] if found else DEFAULT_ICONS
+def build_cover_svg(title, gradient, icons):
+    """Build full cover SVG matching blog-writer's layout."""
+    f, t = gradient
+    lines = wrap_lines(title, 28)
+    fs = 58
+    if len(lines) >= 4: fs = 44
+    elif len(lines) >= 3: fs = 50
+    lh = 72
+    block_h = len(lines) * lh
+    start_y = int(COVER_H * 0.38 - block_h / 2 + fs * 0.35)
 
+    # Title lines
+    tspans = "\n".join(
+        f'<tspan x="{COVER_W//2}" dy="{0 if i==0 else lh}">{escape_xml(l)}</tspan>'
+        for i, l in enumerate(lines)
+    )
+    title_svg = f'''<text x="{COVER_W//2}" y="{start_y}" text-anchor="middle"
+        font-family="Arial,Helvetica,sans-serif" font-size="{fs}" font-weight="bold" fill="white">
+        {tspans}</text>'''
 
-def generate_cover(post_slug: str, title: str = None,
-                   icons: list[str] = None, gradient: tuple = None):
-    """Main cover generation function."""
+    # Icons row
+    icon_svgs = ""
+    icon_count = len(icons)
+    total_w = (icon_count - 1) * ICON_SPACING
+    start_x = (COVER_W - total_w) // 2 - ICON_SIZE // 2
+    icons_y = int(COVER_H * 0.62)
+
+    for i, icon_name in enumerate(icons):
+        ip = os.path.join(ICONS_DIR, f"{icon_name}.png")
+        if os.path.exists(ip):
+            import base64
+            with open(ip, "rb") as fh:
+                b64 = base64.b64encode(fh.read()).decode()
+            x = start_x + i * ICON_SPACING
+            icon_svgs += f'''<image x="{x}" y="{icons_y}" width="{ICON_SIZE}" height="{ICON_SIZE}"
+                href="data:image/png;base64,{b64}" />\n'''
+
+    # Footer
+    pad = int(COVER_W * 0.15)
+    base_y = COVER_H - 50
+    icon_s = 22
+    fs_footer = 24
+    fill = "rgba(255,255,255,0.9)"
+
+    # Left: globe + harun.dev
+    globe = f'''<g transform="translate({pad}, {base_y - 28})">
+        <circle cx="11" cy="11" r="10" stroke="{fill}" stroke-width="1.8" fill="none"/>
+        <ellipse cx="11" cy="11" rx="5" ry="10" stroke="{fill}" stroke-width="1.5" fill="none"/>
+        <line x1="1" y1="11" x2="21" y2="11" stroke="{fill}" stroke-width="1.5"/></g>'''
+
+    # Right side: X icon + LinkedIn + Facebook + @HarunRRayhan
+    handle_w = 210
+    gap = 12
+    text_gap = 16
+    right_edge = COVER_W - pad
+
+    fb_x = right_edge - handle_w - text_gap - icon_s
+    li_x = fb_x - gap - icon_s
+    x_x = li_x - gap - icon_s
+    icon_top_y = base_y - 28
+
+    # Scale factor for X icon path
+    s = icon_s / 24
+    x_logo = f'''<g transform="translate({x_x}, {icon_top_y})">
+        <path d="M{13.6*s},{10.47*s} L{21.15*s},{2*s} L{19.22*s},{2*s} L{12.78*s},{9.26*s} L{7.26*s},{2*s} L{2*s},{2*s} L{9.89*s},{13.17*s} L{2*s},{22*s} L{3.93*s},{22*s} L{10.72*s},{14.38*s} L{16.58*s},{22*s} L{22*s},{22*s} L{13.6*s},{10.47*s} Z M{11.6*s},{13.3*s} L{10.76*s},{12.16*s} L{4.68*s},{3.34*s} L{6.66*s},{3.34*s} L{12.36*s},{10.1*s} L{13.2*s},{11.24*s} L{19.23*s},{20.74*s} L{17.25*s},{20.74*s} L{11.6*s},{13.3*s} Z" fill="{fill}"/></g>'''
+
+    linkedin = f'''<g transform="translate({li_x}, {icon_top_y})">
+        <rect x="0" y="0" width="{icon_s}" height="{icon_s}" rx="4" fill="#0A66C2"/>
+        <text x="{icon_s//2}" y="{icon_s - 5}" text-anchor="middle" font-family="Arial" font-size="15" font-weight="bold" fill="white">in</text></g>'''
+
+    facebook = f'''<g transform="translate({fb_x}, {icon_top_y})">
+        <rect x="0" y="0" width="{icon_s}" height="{icon_s}" rx="4" fill="#1877F2"/>
+        <text x="{icon_s//2}" y="{icon_s - 5}" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="white">f</text></g>'''
+
+    handle_x = right_edge
+    handle_text = f'''<text x="{handle_x}" y="{base_y}" text-anchor="end"
+        font-family="Arial,Helvetica,sans-serif" font-size="{fs_footer}" fill="{fill}" font-weight="bold">@HarunRRayhan</text>'''
+
+    url_text = f'''<text x="{pad + icon_s + 10}" y="{base_y}" font-family="Arial,Helvetica,sans-serif"
+        font-size="{fs_footer}" fill="{fill}" font-weight="bold">harun.dev</text>'''
+
+    svg = f'''<svg width="{COVER_W}" height="{COVER_H}" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="{f}"/>
+            <stop offset="100%" stop-color="{t}"/>
+        </linearGradient>
+    </defs>
+    <rect width="{COVER_W}" height="{COVER_H}" fill="url(#bg)"/>
+    {title_svg}
+    {icon_svgs}
+    {globe}
+    {x_logo}
+    {linkedin}
+    {facebook}
+    {handle_text}
+    {url_text}
+    </svg>'''
+    return svg
+
+def generate_cover(post_slug, title=None, icons=None, gradient=None):
+    # Resolve paths
     global POSTS_DIR, ASSETS_DIR
-
-    # Allow running from project root
+    for alt_p, alt_a in [(os.path.join(os.getcwd(), p) for p in ("resources/blog/posts", "public/blog-assets"))]:
+        pass
     alt_posts = os.path.join(os.getcwd(), "resources/blog/posts")
     alt_assets = os.path.join(os.getcwd(), "public/blog-assets")
     if not os.path.exists(POSTS_DIR) and os.path.exists(alt_posts):
         POSTS_DIR = alt_posts
         ASSETS_DIR = alt_assets
 
-    # Resolve title from post frontmatter if not provided
+    # Resolve title
     if not title:
-        post = load_post_slug(post_slug)
-        if post and post.get("title"):
-            title = post["title"]
-        else:
-            title = post_slug.replace("-", " ").title()
+        post = load_post_meta(post_slug)
+        title = (post or {}).get("title", post_slug.replace("-", " ").title())
 
     # Resolve icons
     if icons is None:
-        icons = find_icons_for_post(post_slug)
+        icons = find_icons(post_slug)
 
     # Resolve gradient
     if gradient is None:
-        if "bedrock" in post_slug or "migrat" in post_slug:
-            gradient = ("#1a3a5c", "#6c3483")  # amber-ish
-        elif "review" in post_slug or "code" in post_slug:
-            gradient = ("#1a2a4c", "#4338ca")  # indigo
-        elif "cicd" in post_slug or "actions" in post_slug or "deploy" in post_slug:
-            gradient = ("#0f3b6c", "#3b82f6")  # blue
+        if any(x in post_slug for x in ("bedrock","migrat","ai")):
+            gradient = ("#1a3a5c", "#6c3483")
+        elif any(x in post_slug for x in ("review","code")):
+            gradient = ("#1a2a4c", "#4338ca")
+        elif any(x in post_slug for x in ("cicd","actions","deploy")):
+            gradient = ("#0f3b6c", "#3b82f6")
         else:
             gradient = DEFAULT_GRADIENT
 
-    # Create output path
     out_dir = os.path.join(ASSETS_DIR, post_slug)
     os.makedirs(out_dir, exist_ok=True)
+    svg_path = os.path.join(out_dir, "cover.svg")
     out_path = os.path.join(out_dir, "cover.jpg")
 
-    # Build image
-    img = Image.new("RGB", (COVER_W, COVER_H))
-    draw = ImageDraw.Draw(img)
-
     print(f"Generating cover for: {title}")
-    print(f"  Gradient: {gradient[0]} → {gradient[1]}")
+    print(f"  Gradient: {gradient[0]} -> {gradient[1]}")
     print(f"  Icons: {', '.join(icons)}")
     print(f"  Output: {out_path}")
 
-    # Draw gradient background
-    from_color, to_color = gradient
-    draw_gradient(draw, COVER_W, COVER_H, from_color, to_color)
+    # Build SVG
+    svg = build_cover_svg(title, gradient, icons)
+    with open(svg_path, "w") as f:
+        f.write(svg)
 
-    # Draw title
-    draw_title(draw, title)
+    # Convert SVG to JPEG using sharp from blog-writer
+    node_script = f'''
+const sharp = require("sharp");
+const svg = require("fs").readFileSync("{svg_path}", "utf8");
+sharp(Buffer.from(svg)).resize({COVER_W}, {COVER_H}).jpeg({{ quality: 95 }}).toFile("{out_path}")
+  .then(() => console.log("OK"))
+  .catch(e => {{ console.error(e.message); process.exit(1); }});
+'''
+    # Try to use sharp from blog-writer's node_modules
+    env = os.environ.copy()
+    env["NODE_PATH"] = os.path.expanduser("~/Code/blog-writer/node_modules")
 
-    # Draw footer
-    draw_footer(draw)
+    result = subprocess.run(
+        ["node", "-e", node_script],
+        capture_output=True, text=True, timeout=60, env=env
+    )
 
-    # Composite AWS icons
-    icon_count = len(icons)
-    total_icons_w = (icon_count - 1) * ICON_SPACING
-    icons_start_x = int((COVER_W - total_icons_w) / 2 - ICON_SIZE / 2)
-    icons_y = int(COVER_H * 0.62)
+    if result.returncode != 0:
+        print(f"  WARNING: sharp conversion failed: {result.stderr.strip()}")
+        print("  Using SVG directly instead")
+        os.rename(svg_path, out_path.replace(".jpg", ".svg"))
+        return out_path.replace(".jpg", ".svg")
+    else:
+        os.remove(svg_path)
+        size = os.path.getsize(out_path)
+        print(f"  OK ({size} bytes)")
+        return out_path
 
-    for i, icon_name in enumerate(icons):
-        icon_path = os.path.join(ICONS_DIR, f"{icon_name}.png")
-        if os.path.exists(icon_path):
-            try:
-                icon_img = Image.open(icon_path).convert("RGBA")
-                icon_img = icon_img.resize((ICON_SIZE, ICON_SIZE), Image.LANCZOS)
-                x = icons_start_x + i * ICON_SPACING
-                img.paste(icon_img, (x, icons_y), icon_img)
-            except Exception as e:
-                print(f"  Warning: Could not load icon '{icon_name}': {e}")
-        else:
-            print(f"  Warning: Icon not found: {icon_name}")
-
-    # Save
-    img.save(out_path, quality=95, optimize=True)
-    print(f"✓ Cover image saved ({os.path.getsize(out_path)} bytes)")
-    return out_path
-
-
-# --- CLI ---
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate blog cover image")
-    parser.add_argument("slug", help="Post slug (directory name)")
-    parser.add_argument("--title", help="Override post title")
-    parser.add_argument("--icons", help="Comma-separated icon names (e.g. lambda,terraform,s3)")
-    parser.add_argument("--gradient", help='Gradient colors "from,to" (e.g. "#1a5276,#6c3483")')
-
+    parser.add_argument("slug", help="Post slug")
+    parser.add_argument("--title", help="Override title")
+    parser.add_argument("--icons", help="Comma-separated icon names")
+    parser.add_argument("--gradient", help='Gradient "from,to"')
     args = parser.parse_args()
 
     icons = args.icons.split(",") if args.icons else None
@@ -296,4 +277,4 @@ if __name__ == "__main__":
         if len(parts) == 2:
             gradient = (parts[0].strip(), parts[1].strip())
 
-    generate_cover(args.slug, title=args.title, icons=icons, gradient=gradient)
+    generate_cover(args.slug, args.title, icons, gradient)
