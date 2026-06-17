@@ -126,48 +126,63 @@ def build_cover_svg(title, gradient, icons):
                 href="data:image/png;base64,{b64}" />\n'''
 
     # Footer
-    pad = int(COVER_W * 0.15)
-    base_y = COVER_H - 50
-    icon_s = 22
-    fs_footer = 24
+    pad = int(COVER_W * 0.15)  # 240px on 1600px
+    base_y = COVER_H - 55
+    icon_s = 20
+    fs_footer = 20
     fill = "rgba(255,255,255,0.9)"
+    # Vertical center for icons: text baseline is base_y, cap height ~14px,
+    # so icon center should be at base_y - 7, icon top at base_y - 7 - icon_s/2
+    icon_top_y = base_y - 18
 
-    # Left: globe + harun.dev
-    globe = f'''<g transform="translate({pad}, {base_y - 28})">
-        <circle cx="11" cy="11" r="10" stroke="{fill}" stroke-width="1.8" fill="none"/>
-        <ellipse cx="11" cy="11" rx="5" ry="10" stroke="{fill}" stroke-width="1.5" fill="none"/>
-        <line x1="1" y1="11" x2="21" y2="11" stroke="{fill}" stroke-width="1.5"/></g>'''
+    # Left: globe + harun.dev inline (both at same baseline)
+    globe = f'''<g transform="translate({pad}, {icon_top_y})">
+        <circle cx="10" cy="10" r="9" stroke="{fill}" stroke-width="1.6" fill="none"/>
+        <ellipse cx="10" cy="10" rx="4.5" ry="9" stroke="{fill}" stroke-width="1.3" fill="none"/>
+        <line x1="1" y1="10" x2="19" y2="10" stroke="{fill}" stroke-width="1.3"/></g>'''
+    url_text = f'''<text x="{pad + icon_s + 8}" y="{base_y}" font-family="Arial,Helvetica,sans-serif"
+        font-size="{fs_footer}" fill="{fill}" font-weight="bold">harun.dev</text>'''
 
-    # Right side: X icon + LinkedIn + Facebook + @HarunRRayhan
-    handle_w = 210
-    gap = 12
-    text_gap = 16
+    # Right side: @HarunRRayhan handle + social icons
+    # Layout (left to right): [X] [LinkedIn] [Facebook] ... [@HarunRRayhan]
+    # All icons use icon_s=20, spacing=8px between icons
     right_edge = COVER_W - pad
+    icon_gap = 8
+    handle_text_str = "@HarunRRayhan"
+    handle_font_size = fs_footer
 
-    fb_x = right_edge - handle_w - text_gap - icon_s
-    li_x = fb_x - gap - icon_s
-    x_x = li_x - gap - icon_s
-    icon_top_y = base_y - 28
+    # Position handle text first (right-aligned at right_edge)
+    # Then position icons to the left of it with consistent spacing
+    handle_x = right_edge
 
-    # Scale factor for X icon path
+    # Icons start to the left of the handle text
+    # Approximate handle text width at 20px bold Arial (~15-16px per char)
+    estimated_handle_w = len(handle_text_str) * 16  # ~224px
+    icons_right_edge = right_edge - estimated_handle_w - 16  # 16px gap between icons and handle
+
+    # Three icons, each icon_s wide with icon_gap between them
+    # Right-most icon (Facebook) at icons_right_edge - icon_s
+    # Middle icon (LinkedIn) to the left of Facebook
+    # Left-most icon (X) to the left of LinkedIn
+    fb_x = icons_right_edge - icon_s
+    li_x = fb_x - icon_gap - icon_s
+    x_x = li_x - icon_gap - icon_s
+
+    # Scale factor for X icon path (designed at 24x24)
     s = icon_s / 24
     x_logo = f'''<g transform="translate({x_x}, {icon_top_y})">
         <path d="M{13.6*s},{10.47*s} L{21.15*s},{2*s} L{19.22*s},{2*s} L{12.78*s},{9.26*s} L{7.26*s},{2*s} L{2*s},{2*s} L{9.89*s},{13.17*s} L{2*s},{22*s} L{3.93*s},{22*s} L{10.72*s},{14.38*s} L{16.58*s},{22*s} L{22*s},{22*s} L{13.6*s},{10.47*s} Z M{11.6*s},{13.3*s} L{10.76*s},{12.16*s} L{4.68*s},{3.34*s} L{6.66*s},{3.34*s} L{12.36*s},{10.1*s} L{13.2*s},{11.24*s} L{19.23*s},{20.74*s} L{17.25*s},{20.74*s} L{11.6*s},{13.3*s} Z" fill="{fill}"/></g>'''
 
     linkedin = f'''<g transform="translate({li_x}, {icon_top_y})">
-        <rect x="0" y="0" width="{icon_s}" height="{icon_s}" rx="4" fill="#0A66C2"/>
-        <text x="{icon_s//2}" y="{icon_s - 5}" text-anchor="middle" font-family="Arial" font-size="15" font-weight="bold" fill="white">in</text></g>'''
+        <rect x="0" y="0" width="{icon_s}" height="{icon_s}" rx="3" fill="#0A66C2"/>
+        <text x="{icon_s//2}" y="{icon_s - 4}" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="white">in</text></g>'''
 
     facebook = f'''<g transform="translate({fb_x}, {icon_top_y})">
-        <rect x="0" y="0" width="{icon_s}" height="{icon_s}" rx="4" fill="#1877F2"/>
-        <text x="{icon_s//2}" y="{icon_s - 5}" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="white">f</text></g>'''
+        <rect x="0" y="0" width="{icon_s}" height="{icon_s}" rx="3" fill="#1877F2"/>
+        <text x="{icon_s//2}" y="{icon_s - 4}" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="white">f</text></g>'''
 
-    handle_x = right_edge
     handle_text = f'''<text x="{handle_x}" y="{base_y}" text-anchor="end"
-        font-family="Arial,Helvetica,sans-serif" font-size="{fs_footer}" fill="{fill}" font-weight="bold">@HarunRRayhan</text>'''
-
-    url_text = f'''<text x="{pad + icon_s + 10}" y="{base_y}" font-family="Arial,Helvetica,sans-serif"
-        font-size="{fs_footer}" fill="{fill}" font-weight="bold">harun.dev</text>'''
+        font-family="Arial,Helvetica,sans-serif" font-size="{handle_font_size}" fill="{fill}" font-weight="bold">{handle_text_str}</text>'''
 
     svg = f'''<svg width="{COVER_W}" height="{COVER_H}" xmlns="http://www.w3.org/2000/svg">
     <defs>
