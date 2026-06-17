@@ -18,7 +18,8 @@ tags:
   - name: Security
     slug: security
   - name: Terraform
-    slug: terraform---
+    slug: terraform
+---
 
 <p>I run a handful of personal projects behind CloudFront. For a long time I thought WAF was overkill for a solo dev. A waste of money and complexity. Then I watched a single scraper hit my API 50,000 times in an afternoon and spike my Lambda costs by $40. That changed my mind.</p>
 <p>AWS WAF in front of CloudFront costs about $6 per month for the web ACL plus whatever you add in rule groups. For that you get rate limiting, IP blocking, bot detection, and managed threat protection. Compared to the cost of one bad day with an unchecked scraper, it pays for itself in the first hour.</p>
