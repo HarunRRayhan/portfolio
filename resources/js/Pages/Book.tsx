@@ -3,16 +3,11 @@
 import { Menubar } from "@/Components/Menubar"
 import { Footer } from "@/Components/Footer"
 import { motion } from "framer-motion"
-import { ExternalLink, Mail, Sparkles } from "lucide-react"
-import { Button } from "@/Components/ui/button"
-import { Card, CardContent } from "@/Components/ui/card"
+import { Sparkles } from "lucide-react"
 import { Head } from '@inertiajs/react'
 
-const defaultBookingUrl = 'https://calendar.app.google/udfiL5QMDefg7SiD6'
 const defaultEmbedUrl = 'https://calendar.google.com/calendar/appointments/schedules/AcZssZ2WP1vzheZr36_dTSwJ5V6xIrm3bxGnItNcqTCzLxpya9p-yA_mH6uSaKhGA98iTicoYyAoNL7n?gv=true'
-const bookingUrl = import.meta.env.VITE_BOOKING_URL?.trim() || defaultBookingUrl
 const embedUrl = import.meta.env.VITE_BOOKING_EMBED_URL?.trim() || defaultEmbedUrl
-const hasBookingUrl = bookingUrl.length > 0
 
 export default function Book() {
   return (
@@ -76,14 +71,13 @@ export default function Book() {
                   Schedule a Consultation
                 </h1>
                 <p className="mt-5 mx-auto max-w-xl text-lg leading-8 text-slate-600">
-                  Book a 30-minute session to discuss your project needs and explore how we can work together
-                  to achieve your goals.
+                  Pick an available time slot below and you'll get a confirmation instantly.
                 </p>
               </motion.div>
             </div>
           </section>
 
-          {/* Booking section */}
+          {/* Booking embed — full width */}
           <section className="py-20 sm:py-24">
             <div className="container mx-auto px-4">
               <motion.div
@@ -92,87 +86,17 @@ export default function Book() {
                 transition={{ duration: 0.6, delay: 0.1 }}
                 className="mx-auto max-w-5xl"
               >
-                <Card className="overflow-hidden border-slate-200 shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
-                  <CardContent className="p-0">
-                    <div className="grid md:grid-cols-2">
-                      {/* Left: booking embed */}
-                      <div className="bg-white p-6 sm:p-8">
-                        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-sm">
-                          <iframe
-                            src={embedUrl}
-                            style={{ border: 0 }}
-                            width="100%"
-                            height="650"
-                            frameBorder="0"
-                            loading="lazy"
-                            title="Google Calendar appointment schedule"
-                          />
-                        </div>
-                        <p className="mt-4 text-sm leading-6 text-slate-500">
-                          If the embed fails to load, use the booking button instead.
-                        </p>
-                      </div>
-
-                      {/* Right: info + CTA */}
-                      <div className="bg-slate-950 p-8 text-white sm:p-10 flex flex-col justify-between">
-                        <div>
-                          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-                            How it works
-                          </p>
-                          <div className="mt-6 space-y-6">
-                            {[
-                              { step: '1', text: 'Open the Google Calendar appointment schedule link.' },
-                              { step: '2', text: 'Choose an available time slot that fits your schedule.' },
-                              { step: '3', text: 'You get a confirmation and I get a clean calendar hold.' },
-                            ].map(({ step, text }) => (
-                              <div key={step} className="flex gap-4">
-                                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-semibold">
-                                  {step}
-                                </span>
-                                <p className="text-sm leading-6 text-slate-300">{text}</p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="mt-10 space-y-4">
-                          {hasBookingUrl ? (
-                            <Button
-                              asChild
-                              size="lg"
-                              className="group w-full rounded-full bg-white px-6 text-slate-900 shadow-none transition hover:-translate-y-0.5 hover:bg-slate-100"
-                            >
-                              <a href={bookingUrl} target="_blank" rel="noreferrer">
-                                Open booking page
-                                <ExternalLink className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                              </a>
-                            </Button>
-                          ) : null}
-
-                          <Button
-                            asChild
-                            size="lg"
-                            variant="outline"
-                            className="w-full rounded-full border-white/20 px-6 text-white shadow-none hover:border-white/40 hover:bg-white/10"
-                          >
-                            <a href="mailto:me@harun.dev">
-                              <Mail className="mr-2 h-4 w-4" />
-                              Contact via email
-                            </a>
-                          </Button>
-
-                          <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Fallback</p>
-                            <p className="mt-2 text-sm leading-6 text-slate-300">
-                              If the booking page is unavailable, reach out via email and I can send a direct
-                              calendar invitation.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
+                  <iframe
+                    src={embedUrl}
+                    style={{ border: 0 }}
+                    width="100%"
+                    height="650"
+                    frameBorder="0"
+                    loading="lazy"
+                    title="Google Calendar appointment schedule"
+                  />
+                </div>
               </motion.div>
             </div>
           </section>
