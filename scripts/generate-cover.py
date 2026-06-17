@@ -125,48 +125,42 @@ def build_cover_svg(title, gradient, icons):
             icon_svgs += f'''<image x="{x}" y="{icons_y}" width="{ICON_SIZE}" height="{ICON_SIZE}"
                 href="data:image/png;base64,{b64}" />\n'''
 
-    # Footer
+    # Footer — compact group on the right side
+    # Layout (left to right):
+    #   [🌐] [harun.dev]  ··  [X] [in] [f]  ··  @HarunRRayhan
+    # All right-aligned at right_edge, all icons and text in close proximity
     pad = int(COVER_W * 0.15)  # 240px on 1600px
     base_y = COVER_H - 55
-    icon_s = 20
+    icon_s = 20          # icon square size
+    icon_gap = 8         # gap between adjacent icons
+    section_gap = 20     # gap between (globe+text) and (social icons) and (handle)
     fs_footer = 20
     fill = "rgba(255,255,255,0.9)"
-    # Vertical center for icons: text baseline is base_y, cap height ~14px,
-    # so icon center should be at base_y - 7, icon top at base_y - 7 - icon_s/2
-    icon_top_y = base_y - 18
+    # Vertical center for icons relative to text baseline
+    icon_top_y = base_y - 18  # centers ~20px icon with 20px text
 
-    # Left: globe + harun.dev inline (both at same baseline)
-    globe = f'''<g transform="translate({pad}, {icon_top_y})">
-        <circle cx="10" cy="10" r="9" stroke="{fill}" stroke-width="1.6" fill="none"/>
-        <ellipse cx="10" cy="10" rx="4.5" ry="9" stroke="{fill}" stroke-width="1.3" fill="none"/>
-        <line x1="1" y1="10" x2="19" y2="10" stroke="{fill}" stroke-width="1.3"/></g>'''
-    url_text = f'''<text x="{pad + icon_s + 8}" y="{base_y}" font-family="Arial,Helvetica,sans-serif"
-        font-size="{fs_footer}" fill="{fill}" font-weight="bold">harun.dev</text>'''
-
-    # Right side: @HarunRRayhan handle + social icons
-    # Layout (left to right): [X] [LinkedIn] [Facebook] ... [@HarunRRayhan]
-    # All icons use icon_s=20, spacing=8px between icons
     right_edge = COVER_W - pad
-    icon_gap = 8
     handle_text_str = "@HarunRRayhan"
-    handle_font_size = fs_footer
 
-    # Position handle text first (right-aligned at right_edge)
-    # Then position icons to the left of it with consistent spacing
+    # Build from right to left, anchoring at right_edge:
+
+    # 1. Right-most: handle text (right-aligned)
     handle_x = right_edge
 
-    # Icons start to the left of the handle text
-    # Approximate handle text width at 20px bold Arial (~15-16px per char)
-    estimated_handle_w = len(handle_text_str) * 16  # ~224px
-    icons_right_edge = right_edge - estimated_handle_w - 16  # 16px gap between icons and handle
+    # Approximate handle text width at 20px bold (~15-16px per char)
+    est_handle_w = len(handle_text_str) * 16
 
-    # Three icons, each icon_s wide with icon_gap between them
-    # Right-most icon (Facebook) at icons_right_edge - icon_s
-    # Middle icon (LinkedIn) to the left of Facebook
-    # Left-most icon (X) to the left of LinkedIn
-    fb_x = icons_right_edge - icon_s
-    li_x = fb_x - icon_gap - icon_s
-    x_x = li_x - icon_gap - icon_s
+    # 2. Social icons: [X] [LinkedIn] [Facebook] to the left of handle
+    social_group_right = right_edge - est_handle_w - section_gap
+    fb_x = social_group_right - icon_s       # Facebook (right-most icon)
+    li_x = fb_x - icon_gap - icon_s          # LinkedIn (middle)
+    x_x = li_x - icon_gap - icon_s           # X (left-most social icon)
+
+    # 3. Left group: [🌐] [harun.dev] to the left of social icons
+    est_url_w = len("harun.dev") * 16  # rough estimate
+    url_group_right = x_x - section_gap
+    url_text_x = url_group_right - est_url_w   # right-aligned text
+    globe_x = url_text_x - icon_gap - icon_s   # globe to the left of text
 
     # Scale factor for X icon path (designed at 24x24)
     s = icon_s / 24
@@ -182,7 +176,15 @@ def build_cover_svg(title, gradient, icons):
         <text x="{icon_s//2}" y="{icon_s - 4}" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="white">f</text></g>'''
 
     handle_text = f'''<text x="{handle_x}" y="{base_y}" text-anchor="end"
-        font-family="Arial,Helvetica,sans-serif" font-size="{handle_font_size}" fill="{fill}" font-weight="bold">{handle_text_str}</text>'''
+        font-family="Arial,Helvetica,sans-serif" font-size="{fs_footer}" fill="{fill}" font-weight="bold">{handle_text_str}</text>'''
+
+    globe = f'''<g transform="translate({globe_x}, {icon_top_y})">
+        <circle cx="10" cy="10" r="9" stroke="{fill}" stroke-width="1.6" fill="none"/>
+        <ellipse cx="10" cy="10" rx="4.5" ry="9" stroke="{fill}" stroke-width="1.3" fill="none"/>
+        <line x1="1" y1="10" x2="19" y2="10" stroke="{fill}" stroke-width="1.3"/></g>'''
+
+    url_text = f'''<text x="{url_text_x}" y="{base_y}" font-family="Arial,Helvetica,sans-serif"
+        font-size="{fs_footer}" fill="{fill}" font-weight="bold" text-anchor="end">harun.dev</text>'''
 
     svg = f'''<svg width="{COVER_W}" height="{COVER_H}" xmlns="http://www.w3.org/2000/svg">
     <defs>
@@ -195,11 +197,11 @@ def build_cover_svg(title, gradient, icons):
     {title_svg}
     {icon_svgs}
     {globe}
+    {url_text}
     {x_logo}
     {linkedin}
     {facebook}
     {handle_text}
-    {url_text}
     </svg>'''
     return svg
 
