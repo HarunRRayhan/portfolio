@@ -7,7 +7,7 @@ readTimeInMinutes: 9
 reactionCount: 0
 responseCount: 0
 replyCount: 0
-coverImageUrl: "/blog-assets/production-ai-code-review-for-terraform-and-lambda-prs/cover.svg"
+coverImageUrl: "/blog-assets/production-ai-code-review-for-terraform-and-lambda-prs/cover.jpg"
 sourceUrl: "https://web.archive.org/web/*/https://blog.harun.dev/production-ai-code-review-for-terraform-and-lambda-prs"
 tags:
   - name: "AWS"

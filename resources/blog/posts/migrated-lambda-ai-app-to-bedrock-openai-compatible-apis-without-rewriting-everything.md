@@ -7,7 +7,7 @@ readTimeInMinutes: 11
 reactionCount: 0
 responseCount: 0
 replyCount: 0
-coverImageUrl: "/blog-assets/migrated-lambda-ai-app-to-bedrock-openai-compatible-apis-without-rewriting-everything/cover.svg"
+coverImageUrl: "/blog-assets/migrated-lambda-ai-app-to-bedrock-openai-compatible-apis-without-rewriting-everything/cover.jpg"
 tags:
   - name: "AWS"
     slug: "aws"

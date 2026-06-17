@@ -8,7 +8,7 @@ reactionCount: 0
 responseCount: 0
 replyCount: 0
 sourceUrl: "https://web.archive.org/web/*/https://blog.harun.dev/github-actions-lambda-terraform-cicd"
-coverImageUrl: "/blog-assets/github-actions-lambda-terraform-cicd/cover.svg"
+coverImageUrl: "/blog-assets/github-actions-lambda-terraform-cicd/cover.jpg"
 tags:
   - name: "AWS"
     slug: "aws"
