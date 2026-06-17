@@ -7,7 +7,7 @@ readTimeInMinutes: 9
 reactionCount: 0
 responseCount: 0
 replyCount: 0
-coverImageUrl: "/blog-assets/how-i-make-ai-coding-agents-safe-in-a-real-aws-codebase/cover.jpg"
+coverImageUrl: "/blog-assets/production-ai-code-review-for-terraform-and-lambda-prs/cover.svg"
 sourceUrl: "https://web.archive.org/web/*/https://blog.harun.dev/production-ai-code-review-for-terraform-and-lambda-prs"
 tags:
   - name: "AWS"
