@@ -3,8 +3,6 @@ title: "ECS Fargate Spot + Capacity Providers - Saving 70% on Container Hosting"
 slug: "ecs-fargate-spot-capacity-providers"
 brief: "How to use Fargate Spot capacity providers to reduce container costs by up to 70%, with real Terraform configurations and interruption handling strategies."
 publishedAt: "2026-06-21T09:00:00.000Z"
-draft: true
-draftToken: "6f3788f71d7518d5ba560826ec473aee"
 readTimeInMinutes: 9
 coverImageUrl: "/blog-assets/ecs-fargate-spot-capacity-providers/cover.jpg"
 reactionCount: 0
@@ -20,8 +18,7 @@ tags:
   - name: Cost Optimization
     slug: cost-optimization
   - name: Terraform
-    slug: terraform
----
+    slug: terraform---
 
 <p>I have been running containers on AWS for almost six years now. I started with EC2-backed ECS clusters, moved to Fargate for the operational simplicity, and eventually found myself staring at monthly bills wondering where all those Fargate vCPU hours were going. The answer was everywhere: every service, every environment, every task that sat idle overnight.</p>
 
