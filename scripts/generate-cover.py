@@ -143,24 +143,24 @@ def build_cover_svg(title, gradient, icons):
     handle_text_str = "@HarunRRayhan"
 
     # Build from right to left, anchoring at right_edge:
+    # Layout: [🌐] 8px [harun.dev] 20px [X] 8px [LinkedIn] 8px [Facebook] 20px [@HarunRRayhan]
 
-    # 1. Right-most: handle text (right-aligned)
+    # 1. Handle text (right-aligned)
     handle_x = right_edge
 
-    # Approximate handle text width at 20px bold (~15-16px per char)
-    est_handle_w = len(handle_text_str) * 16
+    # Approximate text widths at 20px bold Arial (~10-11px per char)
+    est_handle_w = len(handle_text_str) * 11
+    est_url_w = len("harun.dev") * 11
 
-    # 2. Social icons: [X] [LinkedIn] [Facebook] to the left of handle
-    social_group_right = right_edge - est_handle_w - section_gap
-    fb_x = social_group_right - icon_s       # Facebook (right-most icon)
-    li_x = fb_x - icon_gap - icon_s          # LinkedIn (middle)
-    x_x = li_x - icon_gap - icon_s           # X (left-most social icon)
+    # 2. Social icons (right to left: Facebook, LinkedIn, X)
+    fb_x = right_edge - est_handle_w - section_gap - icon_s          # Facebook left edge
+    li_x = fb_x - icon_gap - icon_s                                   # LinkedIn left edge
+    x_x = li_x - icon_gap - icon_s                                    # X left edge
 
-    # 3. Left group: [🌐] [harun.dev] to the left of social icons
-    est_url_w = len("harun.dev") * 16  # rough estimate
-    url_group_right = x_x - section_gap
-    url_text_x = url_group_right - est_url_w   # right-aligned text
-    globe_x = url_text_x - icon_gap - icon_s   # globe to the left of text
+    # 3. URL group: [🌐] harun.dev (left-anchored) to the left of social icons
+    #    globe at [globe_x], 8px gap, then harun.dev text starts at [url_text_x]
+    url_text_x = x_x - section_gap - est_url_w                        # harun.dev left edge (left-aligned)
+    globe_x = url_text_x - icon_gap - icon_s                          # globe left edge
 
     # Scale factor for X icon path (designed at 24x24)
     s = icon_s / 24
@@ -184,7 +184,7 @@ def build_cover_svg(title, gradient, icons):
         <line x1="1" y1="10" x2="19" y2="10" stroke="{fill}" stroke-width="1.3"/></g>'''
 
     url_text = f'''<text x="{url_text_x}" y="{base_y}" font-family="Arial,Helvetica,sans-serif"
-        font-size="{fs_footer}" fill="{fill}" font-weight="bold" text-anchor="end">harun.dev</text>'''
+        font-size="{fs_footer}" fill="{fill}" font-weight="bold" >harun.dev</text>'''
 
     svg = f'''<svg width="{COVER_W}" height="{COVER_H}" xmlns="http://www.w3.org/2000/svg">
     <defs>
