@@ -18,7 +18,8 @@ tags:
   - name: Lambda
     slug: lambda
   - name: Terraform
-    slug: terraform---
+    slug: terraform
+---
 <p>I have been building AI-powered features on AWS for the last two years. Most of them follow the same pattern. A Lambda function takes a prompt, calls a Bedrock model, and returns a response. It works. But there is a ceiling on what you can do with a single model call and a static prompt.</p>
 <p>A Bedrock Agent is different from a Lambda function that calls Bedrock. When you call <code>bedrock:InvokeModel</code> from a Lambda function, you get exactly one response. No tool use. No document retrieval. No multi-step reasoning. The agent wraps orchestration around the model. It can call knowledge bases for context, invoke Lambda functions as tools, follow guardrails, and chain multiple steps together based on what the model decides to do next.</p>
 <p>I have built three production Bedrock Agents so far. One for internal customer support, one for automated incident response, and one for document summarization across a large S3 corpus. Each one taught me something about where the complexity really lives. It is not in the agent itself. It is in the surrounding pieces. Knowledge base ingestion, action group schemas, IAM policies, and guardrails.</p>

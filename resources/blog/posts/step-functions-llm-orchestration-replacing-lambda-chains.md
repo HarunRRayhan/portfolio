@@ -5,7 +5,7 @@ brief: "Lambda chaining for multi-step AI workflows gets messy fast. Failed step
 publishedAt: "2026-06-27T09:00:00.000Z"
 readTimeInMinutes: 11
 draft: true
-draftToken: "step-functions-llm-preview-2026"
+draftToken: "2b7e1ad8a5f37af3325bb2671f3c78bd"
 tags:
   - name: AWS
     slug: aws

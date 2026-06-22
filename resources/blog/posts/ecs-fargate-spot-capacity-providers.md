@@ -18,7 +18,8 @@ tags:
   - name: Cost Optimization
     slug: cost-optimization
   - name: Terraform
-    slug: terraform---
+    slug: terraform
+---
 
 <p>I have been running containers on AWS for almost six years now. I started with EC2-backed ECS clusters, moved to Fargate for the operational simplicity, and eventually found myself staring at monthly bills wondering where all those Fargate vCPU hours were going. The answer was everywhere: every service, every environment, every task that sat idle overnight.</p>
 
