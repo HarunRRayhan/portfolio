@@ -4,6 +4,7 @@ slug: "step-functions-llm-orchestration-replacing-lambda-chains"
 brief: "Lambda chaining for multi-step AI workflows gets messy fast. Failed steps, retries, timeouts, and idle billing. Here is how I replaced manual Lambda chaining with AWS Step Functions for LLM orchestration."
 publishedAt: "2026-06-27T09:00:00.000Z"
 readTimeInMinutes: 11
+coverImageUrl: "/blog-assets/step-functions-llm-orchestration-replacing-lambda-chains/cover.jpg"
 draft: true
 draftToken: "2b7e1ad8a5f37af3325bb2671f3c78bd"
 tags:
