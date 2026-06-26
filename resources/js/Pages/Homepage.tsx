@@ -54,7 +54,7 @@ export default function Homepage() {
                     })}
                 </script>
             </Head>
-            <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(15,23,42,0.035),_transparent_32%),linear-gradient(180deg,#fafafa_0%,#ffffff_42%,#fafafa_100%)] font-sans text-slate-950">
+            <main className="min-h-screen bg-slate-50 font-sans text-slate-900">
                 <ErrorBoundary>
                     <Menubar/>
                 </ErrorBoundary>

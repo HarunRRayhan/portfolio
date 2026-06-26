@@ -19,24 +19,24 @@ const items = [...companies, ...companies]
 
 export function LogoSection() {
     return (
-        <section className="border-b border-blue-100 bg-[linear-gradient(180deg,rgba(248,251,255,0.96)_0%,#ffffff_100%)] py-16">
+        <section className="border-b border-slate-200 bg-slate-50/80 py-14">
             <div className="container mx-auto px-4">
                 <div className="mx-auto max-w-2xl text-center">
-                    <p className="text-sm font-medium uppercase tracking-[0.2em] text-blue-500">
+                    <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
                         Trusted by teams across industries
                     </p>
-                    <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+                    <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
                         Work that holds up in real production environments.
                     </h2>
-                    <p className="mt-4 text-base leading-7 text-slate-600 sm:text-lg">
+                    <p className="mt-3 text-base leading-7 text-slate-500">
                         Experience across product, enterprise, and growth teams — with a focus on reliability,
                         clarity, and long-term maintainability.
                     </p>
                 </div>
 
-                <div className="relative mt-10 overflow-hidden">
-                    <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-[#f8fbff] to-transparent" />
-                    <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-[#f8fbff] to-transparent" />
+                <div className="relative mt-8 overflow-hidden">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-slate-50/80 to-transparent" />
+                    <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-slate-50/80 to-transparent" />
 
                     <motion.div
                         initial={{ x: 0 }}
@@ -47,12 +47,12 @@ export function LogoSection() {
                         {items.map((company, index) => (
                             <div
                                 key={`${company.name}-${index}`}
-                                className="flex h-16 w-[190px] items-center justify-center rounded-xl border border-blue-100 bg-white px-5 shadow-[0_1px_0_rgba(29,78,216,0.03)]"
+                                className="flex h-14 w-[180px] items-center justify-center rounded-lg border border-slate-200 bg-white px-5 shadow-sm"
                             >
                                 <img
                                     src={company.logo}
                                     alt={company.name}
-                                    className="max-h-10 w-auto object-contain grayscale transition duration-300 hover:grayscale-0"
+                                    className="max-h-9 w-auto object-contain grayscale opacity-60 transition duration-300 hover:opacity-100 hover:grayscale-0"
                                 />
                             </div>
                         ))}

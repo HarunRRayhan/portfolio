@@ -47,21 +47,23 @@ export function Menubar() {
   return (
     <header
       className={cn(
-        'fixed inset-x-0 top-0 z-50 border-b border-slate-200/60 transition-all duration-300',
-        isScrolled ? 'bg-white/88 shadow-[0_14px_40px_-24px_rgba(15,23,42,0.22)] backdrop-blur-xl' : 'bg-white/82 backdrop-blur-xl',
+        'fixed inset-x-0 top-0 z-50 border-b transition-all duration-300',
+        isScrolled
+          ? 'border-slate-200/50 bg-white/85 shadow-[0_14px_40px_-24px_rgba(15,23,42,0.18)] backdrop-blur-xl'
+          : 'border-transparent bg-white/70 backdrop-blur-md',
       )}
     >
       <div className="mx-auto grid max-w-7xl items-center gap-3 px-4 py-3 sm:px-6 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:px-8">
         <Link href="/" className="flex shrink-0 items-center gap-3">
           <Logo className="h-9 w-9" />
           <div className="hidden sm:block">
-            <p className="text-sm font-semibold tracking-tight text-slate-950">Harun R. Rayhan</p>
+            <p className="text-sm font-semibold tracking-tight text-slate-900">Harun R. Rayhan</p>
             <p className="text-xs text-slate-500">Cloud, DevOps, and product engineering</p>
           </div>
         </Link>
 
         <nav className="hidden justify-self-center lg:flex lg:w-full lg:justify-center">
-          <div className="inline-flex items-center gap-1 rounded-full border border-blue-100 bg-white p-1 shadow-sm">
+          <div className="inline-flex items-center gap-1 rounded-full border border-slate-200/80 bg-white/60 p-1 shadow-sm backdrop-blur-sm">
             {menuItems.map((item) => {
               const active = isActive(item.href)
 
@@ -71,7 +73,9 @@ export function Menubar() {
                   href={item.href}
                   className={cn(
                     'rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
-                    active ? 'bg-blue-700 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950',
+                    active
+                      ? 'bg-slate-900 text-white shadow-sm'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
                   )}
                 >
                   {item.name}
@@ -81,67 +85,64 @@ export function Menubar() {
           </div>
         </nav>
 
-        <div className="hidden items-center gap-2 md:flex lg:justify-self-end">
-          <Link
-            href="/book"
-            className="inline-flex items-center gap-2 rounded-full bg-blue-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-600"
-          >
-            Book a session
-            <ArrowRight className="h-4 w-4" />
+        <div className="hidden items-center gap-3 lg:flex">
+          <div className="flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50/60 px-3 py-1.5">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+            </span>
+            <span className="text-xs font-medium text-emerald-700">Available for work</span>
+          </div>
+          <Link href="/contact">
+            <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 active:scale-[0.97]">
+              Contact
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
           </Link>
         </div>
 
-        <div className="justify-self-end md:hidden">
+        {/* Mobile hamburger */}
+        <div className="flex items-center justify-self-end lg:hidden">
           <Sheet>
             <SheetTrigger asChild>
-              <button
-                type="button"
-                aria-label="Open navigation"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-blue-100 bg-white text-slate-900 shadow-sm transition-colors hover:bg-blue-50"
-              >
+              <button className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100">
                 <Menu className="h-5 w-5" />
               </button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[320px] border-l border-blue-100 bg-white p-0">
-              <div className="flex h-full flex-col">
-                <div className="border-b border-blue-100 px-5 py-5">
-                  <div className="flex items-center gap-3">
-                    <Logo className="h-8 w-8" />
-                    <div>
-                      <p className="text-sm font-semibold text-slate-950">Harun R. Rayhan</p>
-                      <p className="text-xs text-slate-500">Cloud, DevOps, and product engineering</p>
-                    </div>
-                  </div>
-                </div>
-
-                <nav className="flex-1 space-y-2 px-4 py-5">
-                  {menuItems.map((item) => {
-                    const active = isActive(item.href)
-
-                    return (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className={cn(
-                          'block rounded-2xl px-4 py-3 text-sm font-medium transition-colors',
-                          active ? 'bg-blue-600 text-white' : 'text-slate-700 hover:bg-blue-50 hover:text-slate-950',
-                        )}
-                      >
-                        {item.name}
-                      </Link>
-                    )
-                  })}
-                </nav>
-
-                <div className="border-t border-blue-100 p-4">
-                  <Link
-                    href="/book"
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
-                  >
-                    Book a session
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </div>
+            <SheetContent side="right" className="w-72 border-slate-200 p-6 pt-12">
+              <div className="mb-6 flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                </span>
+                <span className="text-xs font-medium text-emerald-700">Available for work</span>
+              </div>
+              <nav className="flex flex-col gap-1">
+                {menuItems.map((item) => {
+                  const active = isActive(item.href)
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className={cn(
+                        'rounded-lg px-3 py-2.5 text-sm font-medium transition',
+                        active
+                          ? 'bg-slate-900 text-white'
+                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+                      )}
+                    >
+                      {item.name}
+                    </Link>
+                  )
+                })}
+              </nav>
+              <div className="mt-6 border-t border-slate-200 pt-6">
+                <Link href="/contact">
+                  <button className="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800">
+                    Contact me
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                </Link>
               </div>
             </SheetContent>
           </Sheet>
