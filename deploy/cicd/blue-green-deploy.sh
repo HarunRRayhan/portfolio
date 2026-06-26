@@ -577,8 +577,8 @@ switch_traffic() {
   
   log "Switching traffic to $target_env environment..."
   
-  # Update Traefik dynamic configuration
-  execute_ssh "cd $APP_DIR && sed -i \"s/service: web-blue/service: web-${target_env}/g; s/service: web-green/service: web-${target_env}/g\" docker/traefik-dynamic.yml"
+  # Update Traefik dynamic configuration - replace ALL service references at once
+  execute_ssh "cd $APP_DIR && sed -i 's/service: web-[a-z]*/service: web-${target_env}/g' docker/traefik-dynamic.yml"
   
   # Restart Traefik to pick up the new configuration
   execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml restart traefik"

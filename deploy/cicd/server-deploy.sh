@@ -120,24 +120,47 @@ done
 
 # Function to detect current active environment via Traefik
 detect_active_environment() {
-  # Try to get Traefik configuration
+  # Try to get Traefik configuration using jq for reliable JSON parsing
   local traefik_config=$(curl -s http://localhost:8080/api/http/services 2>/dev/null || echo 'failed')
   
-  if [[ "$traefik_config" != "failed" ]] && echo "$traefik_config" | grep -q "web-blue"; then
-    if echo "$traefik_config" | grep -q '"loadBalancer":{"servers":\[{"url":"http://nginx_blue:80"}'; then
-      echo "blue"
-      return 0
+  if [[ "$traefik_config" != "failed" ]] && command -v jq &>/dev/null; then
+    # Use jq to find which service has a server URL matching our nginx containers
+    local active=$(echo "$traefik_config" | jq -r '
+      to_entries[] 
+      | select(.key | startswith("web-"))
+      | select(.value.loadBalancer.servers[0].url | contains("nginx_"))
+      | .key 
+    ' 2>/dev/null | head -1)
+    
+    if [[ -n "$active" ]]; then
+      # Extract color (blue/green) from service name like "web-blue" or "web-green"
+      local color="${active#web-}"
+      if [[ "$color" == "blue" ]] || [[ "$color" == "green" ]]; then
+        echo "$color"
+        return 0
+      fi
+    fi
+  elif [[ "$traefik_config" != "failed" ]]; then
+    # Fallback grep-based detection (less reliable, for systems without jq)
+    if echo "$traefik_config" | grep -q '"web-blue"'; then
+      local blue_url=$(echo "$traefik_config" | grep -o '"url":"http://nginx_blue:80"' | head -1)
+      local green_url=$(echo "$traefik_config" | grep -o '"url":"http://nginx_green:80"' | head -1)
+      if [[ -n "$blue_url" ]] && [[ -z "$green_url" ]]; then
+        echo "blue"
+        return 0
+      fi
+    fi
+    if echo "$traefik_config" | grep -q '"web-green"'; then
+      local blue_url=$(echo "$traefik_config" | grep -o '"url":"http://nginx_blue:80"' | head -1)
+      local green_url=$(echo "$traefik_config" | grep -o '"url":"http://nginx_green:80"' | head -1)
+      if [[ -n "$green_url" ]] && [[ -z "$blue_url" ]]; then
+        echo "green"
+        return 0
+      fi
     fi
   fi
   
-  if [[ "$traefik_config" != "failed" ]] && echo "$traefik_config" | grep -q "web-green"; then
-    if echo "$traefik_config" | grep -q '"loadBalancer":{"servers":\[{"url":"http://nginx_green:80"}'; then
-      echo "green"
-      return 0
-    fi
-  fi
-  
-  # Fallback: check container status
+  # Final fallback: check container status
   local blue_status=$(docker compose -f $APP_DIR/docker/docker-compose.yml ps nginx_blue --format '{{.State}}' 2>/dev/null || echo 'not_running')
   local green_status=$(docker compose -f $APP_DIR/docker/docker-compose.yml ps nginx_green --format '{{.State}}' 2>/dev/null || echo 'not_running')
   
@@ -146,10 +169,14 @@ detect_active_environment() {
   elif [[ "$green_status" == "running" ]] && [[ "$blue_status" != "running" ]]; then
     echo "green"
   elif [[ "$green_status" == "running" ]] && [[ "$blue_status" == "running" ]]; then
-    # If both are running, check which one is active via Traefik or default to green
-    echo "green"
+    # If both are running, check Traefik routing via API (brute force)
+    # Default to the environment that Traefik's config file currently points to
+    if grep -q "service: web-blue" $APP_DIR/docker/traefik-dynamic.yml 2>/dev/null; then
+      echo "blue"
+    else
+      echo "green"
+    fi
   else
-    # If neither are running, start with green as the baseline
     echo "none"
   fi
 }
@@ -320,8 +347,15 @@ switch_traffic() {
   
   log "Switching traffic to $target_env environment..."
   
-  # Update Traefik dynamic configuration
-  sed -i "s/service: web-blue/service: web-${target_env}/g; s/service: web-green/service: web-${target_env}/g" $APP_DIR/docker/traefik-dynamic.yml
+  # Update Traefik dynamic configuration - replace ALL service references at once
+  # to avoid creating duplicate service names
+  sed -i "s/service: web-[a-z]*/service: web-${target_env}/g" $APP_DIR/docker/traefik-dynamic.yml
+  
+  # Verify the file doesn't have duplicate service entries
+  local service_count=$(grep -c "^    web-" $APP_DIR/docker/traefik-dynamic.yml 2>/dev/null || echo 0)
+  if [ "$service_count" -gt 1 ]; then
+    warning "Multiple service definitions found in Traefik config. This may cause routing issues."
+  fi
   
   # Restart Traefik to pick up the new configuration
   docker compose -f $APP_DIR/docker/docker-compose.yml restart traefik
