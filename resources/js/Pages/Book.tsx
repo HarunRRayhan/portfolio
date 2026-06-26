@@ -44,7 +44,7 @@ export default function Book() {
 
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-slate-200 bg-slate-50">
-        <div className="container mx-auto px-4 py-20 sm:py-24 lg:py-28">
+        <div className="container mx-auto py-20 sm:py-24 lg:py-28">
           <div className="mx-auto max-w-2xl text-center">
             <div className="mb-4 inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white/80 px-3 py-1.5 shadow-sm">
               <Sparkles className="h-3.5 w-3.5 text-amber-500" />
@@ -70,7 +70,7 @@ export default function Book() {
 
       {/* Calendar embed */}
       <section className="bg-white py-16 sm:py-20">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}

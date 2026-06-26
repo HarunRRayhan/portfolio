@@ -46,7 +46,7 @@ export function Footer() {
                     backgroundSize: '48px 48px',
                 }}
             />
-            <div className="container relative mx-auto px-4 py-16 sm:py-20">
+            <div className="container relative mx-auto py-16 sm:py-20">
                 {/* CTA section */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}

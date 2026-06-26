@@ -55,7 +55,7 @@ export function HeroSectionV2() {
             <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-amber-500/5 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-amber-500/5 blur-3xl" />
 
-            <div className="container relative mx-auto px-4 py-20 sm:py-24 lg:py-32">
+            <div className="container relative mx-auto py-20 sm:py-24 lg:py-32">
                 <div className="grid items-center gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
                     {/* Left: Main content */}
                     <motion.div

@@ -8,7 +8,7 @@ import { getImageUrl } from "../lib/imageUtils"
 export function AboutHero() {
   return (
     <section className="relative py-20 overflow-hidden bg-gradient-to-br from-[#86D2F1] via-[#7C3AED] to-[#8B5CF6]">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto">
         <div className="flex flex-col lg:flex-row items-center justify-between">
           <motion.div
             className="lg:w-1/2 text-center lg:text-left mb-10 lg:mb-0 pr-0 lg:pr-8"

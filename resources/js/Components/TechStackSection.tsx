@@ -32,7 +32,7 @@ export function TechStackSection() {
                     backgroundSize: '48px 48px',
                 }}
             />
-            <div className="container relative mx-auto px-4">
+            <div className="container relative mx-auto">
                 <div className="mx-auto max-w-3xl text-center">
                     <div className="mb-4 inline-flex items-center gap-2 rounded-md border border-slate-700 bg-slate-800/80 px-3 py-1.5">
                         <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-400">

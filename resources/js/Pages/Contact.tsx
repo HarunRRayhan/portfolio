@@ -215,7 +215,7 @@ export default function Contact() {
             {/* Hero Section */}
                     <section
                         className="min-h-[400px] bg-gradient-to-br from-[#86D2F1] via-[#7C3AED] to-[#8B5CF6] flex items-center">
-                        <div className="container mx-auto px-4 py-20">
+                        <div className="container mx-auto py-20">
                             <motion.div
                                 initial={{opacity: 0, y: 20}}
                                 animate={{opacity: 1, y: 0}}

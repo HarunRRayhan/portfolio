@@ -21,7 +21,7 @@ export function InfiniteScrollTech({ technologies, backgroundColor = "#F8F9FA" }
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
         viewport={{ once: true }}
-        className="container mx-auto px-4 text-center mb-12"
+        className="container mx-auto text-center mb-12"
       >
         <h2 className="text-4xl font-bold text-gray-900 mb-4">Technologies We Use</h2>
         <p className="text-xl text-gray-600">

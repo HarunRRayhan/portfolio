@@ -81,7 +81,7 @@ export function ReviewSlideSection() {
                 <div className="absolute -right-40 top-0 h-80 w-80 rounded-full bg-amber-500/5 blur-3xl" />
             </div>
 
-            <div className="container relative mx-auto px-4">
+            <div className="container relative mx-auto">
                 <motion.div
                     initial={{ opacity: 0, y: 16 }}
                     whileInView={{ opacity: 1, y: 0 }}

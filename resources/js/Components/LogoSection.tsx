@@ -20,7 +20,7 @@ const items = [...companies, ...companies]
 export function LogoSection() {
     return (
         <section className="border-b border-slate-200 bg-slate-50/80 py-14">
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto">
                 <div className="mx-auto max-w-2xl text-center">
                     <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
                         Trusted by teams across industries

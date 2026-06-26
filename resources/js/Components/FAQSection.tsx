@@ -63,7 +63,7 @@ const faqs = [
 export function FAQSection() {
   return (
     <section className="py-20 pb-32 bg-gray-50">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

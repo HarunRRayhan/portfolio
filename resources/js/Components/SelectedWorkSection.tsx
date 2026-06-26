@@ -38,7 +38,7 @@ const items = [
 export function SelectedWorkSection() {
     return (
         <section className="border-b border-slate-200 bg-slate-50 py-20 sm:py-24" id="selected-work">
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto">
                 <motion.div
                     initial={{ opacity: 0, y: 16 }}
                     whileInView={{ opacity: 1, y: 0 }}
