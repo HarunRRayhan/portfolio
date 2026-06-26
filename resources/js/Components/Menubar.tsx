@@ -4,7 +4,7 @@ import * as React from 'react'
 import { Link, usePage } from '@inertiajs/react'
 import { cn } from '@/lib/utils'
 import { Logo } from './Logo'
-import { ArrowRight, Menu } from 'lucide-react'
+import { ArrowRight, Calendar, Menu } from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger } from '@/Components/ui/sheet'
 
 type MenuItem = {
@@ -86,17 +86,10 @@ export function Menubar() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          <div className="flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50/60 px-3 py-1.5">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-            </span>
-            <span className="text-xs font-medium text-emerald-700">Available for work</span>
-          </div>
-          <Link href="/contact">
+          <Link href="/book">
             <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 active:scale-[0.97]">
-              Contact
-              <ArrowRight className="h-3.5 w-3.5" />
+              <Calendar className="h-3.5 w-3.5" />
+              Book a session
             </button>
           </Link>
         </div>
@@ -110,13 +103,6 @@ export function Menubar() {
               </button>
             </SheetTrigger>
             <SheetContent side="right" className="w-72 border-slate-200 p-6 pt-12">
-              <div className="mb-6 flex items-center gap-2">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                </span>
-                <span className="text-xs font-medium text-emerald-700">Available for work</span>
-              </div>
               <nav className="flex flex-col gap-1">
                 {menuItems.map((item) => {
                   const active = isActive(item.href)
@@ -137,10 +123,10 @@ export function Menubar() {
                 })}
               </nav>
               <div className="mt-6 border-t border-slate-200 pt-6">
-                <Link href="/contact">
-                  <button className="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800">
-                    Contact me
-                    <ArrowRight className="h-3.5 w-3.5" />
+                <Link href="/book">
+                  <button className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800">
+                    <Calendar className="h-4 w-4" />
+                    Book a session
                   </button>
                 </Link>
               </div>

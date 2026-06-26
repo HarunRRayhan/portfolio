@@ -53,7 +53,7 @@ export function HeroSectionV2() {
             />
             {/* Gradient glow accents */}
             <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-amber-500/5 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-emerald-500/5 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-amber-500/5 blur-3xl" />
 
             <div className="container relative mx-auto px-4 py-20 sm:py-24 lg:py-32">
                 <div className="grid items-center gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
@@ -72,8 +72,8 @@ export function HeroSectionV2() {
                             </span>
                             <span className="h-1 w-1 rounded-full bg-slate-300" />
                             <span className="relative flex h-2 w-2">
-                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+                                <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
                             </span>
                         </div>
 
@@ -132,7 +132,7 @@ export function HeroSectionV2() {
                         <div className="mt-8 space-y-3 text-sm text-slate-600">
                             {capabilities.map((item) => (
                                 <div key={item} className="flex items-start gap-3">
-                                    <span className="mt-1.5 flex h-4 w-4 items-center justify-center rounded border border-emerald-200 bg-emerald-50 text-[10px] font-bold text-emerald-600">
+                                    <span className="mt-1.5 flex h-4 w-4 items-center justify-center rounded border border-amber-200 bg-amber-50 text-[10px] font-bold text-amber-600">
                                         ✓
                                     </span>
                                     <span>{item}</span>

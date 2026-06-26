@@ -75,7 +75,7 @@ export function SkillsSection() {
                     </div>
                     <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
                         Calm execution across{' '}
-                        <span className="text-emerald-600 underline decoration-emerald-200 decoration-2 underline-offset-4">
+                        <span className="text-amber-600 underline decoration-amber-200 decoration-2 underline-offset-4">
                             code, cloud, and operations
                         </span>
                         .
@@ -138,7 +138,7 @@ export function SkillsSection() {
 
                     {/* Right column: Certifications + style card */}
                     <div className="relative">
-                        <div className="absolute -inset-6 rounded-[2rem] bg-gradient-to-br from-amber-500/8 via-transparent to-emerald-500/8 blur-3xl" />
+                        <div className="absolute -inset-6 rounded-[2rem] bg-gradient-to-br from-amber-500/8 via-transparent to-amber-500/8 blur-3xl" />
                         <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
                             <div className="flex items-center justify-between gap-4">
                                 <div>

@@ -78,7 +78,7 @@ export function ReviewSlideSection() {
             {/* Subtle background accents */}
             <div className="pointer-events-none absolute inset-0">
                 <div className="absolute -left-40 bottom-0 h-80 w-80 rounded-full bg-amber-500/5 blur-3xl" />
-                <div className="absolute -right-40 top-0 h-80 w-80 rounded-full bg-emerald-500/5 blur-3xl" />
+                <div className="absolute -right-40 top-0 h-80 w-80 rounded-full bg-amber-500/5 blur-3xl" />
             </div>
 
             <div className="container relative mx-auto px-4">
