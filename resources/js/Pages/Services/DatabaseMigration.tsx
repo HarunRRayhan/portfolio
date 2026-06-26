@@ -126,7 +126,6 @@ export default function DatabaseMigration() {
         </script>
       </Head>
       <main className="flex flex-col min-h-screen">
-        <Menubar />
         <ServiceHero
           icon={Database}
           title="Database Migration"
@@ -321,7 +320,6 @@ export default function DatabaseMigration() {
             </motion.div>
           </div>
         </motion.section>
-        <Footer />
       </main>
     </>
   )

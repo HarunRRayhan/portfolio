@@ -143,7 +143,6 @@ export default function DatabaseOptimization() {
         </script>
       </Head>
       <main className="flex flex-col min-h-screen">
-        <Menubar />
         <ServiceHero
           icon={Database}
           title="Database Optimization"
@@ -346,7 +345,6 @@ export default function DatabaseOptimization() {
             </motion.div>
           </div>
         </motion.section>
-        <Footer />
       </main>
     </>
   )

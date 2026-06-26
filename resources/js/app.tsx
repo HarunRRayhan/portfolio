@@ -3,6 +3,7 @@ import './bootstrap';
 
 import { createInertiaApp, type ResolvedComponent } from '@inertiajs/react';
 import { createRoot } from 'react-dom/client';
+import PublicLayout from './Layouts/PublicLayout';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 const pages = import.meta.glob('./Pages/**/*.tsx') as Record<
@@ -13,15 +14,14 @@ const pages = import.meta.glob('./Pages/**/*.tsx') as Record<
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
     resolve: async (name) => {
-        const page = pages[`./Pages/${name}.tsx`];
+        const page = (await pages[`./Pages/${name}.tsx`]()).default;
 
-        if (!page) {
-            throw new Error(`Page not found: ./Pages/${name}.tsx`);
+        // Apply PublicLayout as default for all pages unless they specify their own
+        if (!page.layout) {
+            page.layout = PublicLayout
         }
 
-        const module = await page();
-
-        return module.default;
+        return page;
     },
     setup({ el, App, props }) {
         const root = createRoot(el);

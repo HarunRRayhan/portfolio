@@ -1,5 +1,4 @@
-'use client'
-
+import React from 'react'
 import { Head, Link } from '@inertiajs/react'
 import { motion } from 'framer-motion'
 import { getImageUrl } from '@/lib/imageUtils'
@@ -16,6 +15,7 @@ const links = [
   { href: 'mailto:me@harun.dev?subject=Hello%20Harun', label: 'Email', icon: Mail },
 ]
 
+// Bio is a standalone link-in-bio page — no nav, no footer
 export default function Bio() {
   const canonicalUrl = typeof window !== 'undefined' ? window.location.href : 'https://harun.dev/bio'
 
@@ -111,3 +111,6 @@ export default function Bio() {
     </>
   )
 }
+
+// Override the default PublicLayout — Bio is standalone
+;(Bio as any).layout = null

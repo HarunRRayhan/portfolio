@@ -180,7 +180,6 @@ export default function DevOpsPage() {
         </script>
       </Head>
       <main className="flex flex-col min-h-screen">
-        <Menubar />
         <ServiceHero
           icon={GitBranch}
           title="DevOps Services"
@@ -419,7 +418,6 @@ export default function DevOpsPage() {
             </motion.div>
           </div>
         </motion.section>
-        <Footer />
       </main>
     </>
   )

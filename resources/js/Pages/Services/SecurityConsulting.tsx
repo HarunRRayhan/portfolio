@@ -153,7 +153,6 @@ export default function SecurityConsulting() {
         </script>
       </Head>
       <main className="flex flex-col min-h-screen">
-        <Menubar />
         <ServiceHero
           icon={Lock}
           title="Security Consulting"
@@ -353,7 +352,6 @@ export default function SecurityConsulting() {
             </motion.div>
           </div>
         </motion.section>
-        <Footer />
       </main>
     </>
   )

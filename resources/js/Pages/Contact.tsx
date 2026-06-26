@@ -1,8 +1,4 @@
-'use client'
-
 import {useState, useEffect, FormEvent, ChangeEvent} from "react"
-import {Menubar} from "@/Components/Menubar"
-import {Footer} from "@/Components/Footer"
 import {motion} from "framer-motion"
 import {Button} from "@/Components/ui/button"
 import {Input} from "@/Components/ui/input"
@@ -13,7 +9,6 @@ import {cn} from "@/lib/utils"
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/Components/ui/command"
 import {Popover, PopoverContent, PopoverTrigger} from "@/Components/ui/popover"
 import type React from "react"
-import {ErrorBoundary} from "@/Components/ErrorBoundary"
 import {Head} from "@inertiajs/react";
 import {router} from '@inertiajs/react'
 import {toast} from "sonner"
@@ -175,7 +170,7 @@ export default function Contact() {
     }
 
     return (
-        <ErrorBoundary>
+        <>
             <Toaster position="top-right" richColors />
             <Head>
                 <title>Contact Harun | Cloud & DevOps Consulting Services</title>
@@ -217,12 +212,7 @@ export default function Contact() {
                     })}
                 </script>
             </Head>
-            <div className="flex flex-col min-h-screen relative">
-                <div className="fixed top-0 left-0 right-0 z-50">
-                    <Menubar/>
-                </div>
-                <main className="flex-1">
-                    {/* Hero Section */}
+            {/* Hero Section */}
                     <section
                         className="min-h-[400px] bg-gradient-to-br from-[#86D2F1] via-[#7C3AED] to-[#8B5CF6] flex items-center">
                         <div className="container mx-auto px-4 py-20">
@@ -483,9 +473,6 @@ export default function Contact() {
                             </motion.div>
                         </div>
                     </section>
-                </main>
-                <Footer/>
-            </div>
-        </ErrorBoundary>
+        </>
     )
 }

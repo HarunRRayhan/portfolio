@@ -143,7 +143,6 @@ export default function MLOps() {
         </script>
       </Head>
       <main className="flex flex-col min-h-screen">
-        <Menubar />
         <ServiceHero
           icon={Brain}
           title="MLOps"
@@ -345,7 +344,6 @@ export default function MLOps() {
             </motion.div>
           </div>
         </motion.section>
-        <Footer />
       </main>
     </>
   )

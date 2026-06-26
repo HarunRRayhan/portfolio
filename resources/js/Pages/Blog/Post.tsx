@@ -4,9 +4,6 @@ import { Head, Link } from '@inertiajs/react'
 import { useEffect, useMemo, useRef } from 'react'
 import hljs from 'highlight.js/lib/common'
 import 'highlight.js/styles/github-dark.css'
-import { Footer } from '@/Components/Footer'
-import { Menubar } from '@/Components/Menubar'
-import { ErrorBoundary } from '@/Components/ErrorBoundary'
 import { BlogDiscussion } from '@/Components/BlogDiscussion'
 import { ArrowRight, BookOpen, CalendarDays, ChevronDown, Clock3, MessageCircle, Sparkles, Tag } from 'lucide-react'
 
@@ -211,7 +208,7 @@ export default function BlogPostPage({
   }, [post.slug, post.contentHtml])
 
   return (
-    <ErrorBoundary>
+    <>
       <Head>
         <title>{`${post.title} | Harun's Blog`}</title>
         <meta name="description" content={description} />
@@ -231,10 +228,7 @@ export default function BlogPostPage({
         <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
       </Head>
 
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(15,23,42,0.08),_transparent_28%),linear-gradient(180deg,#fafafa_0%,#ffffff_42%)] text-slate-950">
-        <Menubar />
-
-        <main className="pt-24">
+      <div className="pt-24">
           <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <article className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_30px_90px_-55px_rgba(15,23,42,0.45)]">
               {coverImageUrl ? (
@@ -431,15 +425,10 @@ export default function BlogPostPage({
 
           {!isDraft ? (
             <section id="comments" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-              <ErrorBoundary>
                 <BlogDiscussion slug={post.slug} title={post.title} commentCount={commentCount} comments={comments} />
-              </ErrorBoundary>
             </section>
           ) : null}
-        </main>
-
-        <Footer />
       </div>
-    </ErrorBoundary>
+    </>
   )
 }

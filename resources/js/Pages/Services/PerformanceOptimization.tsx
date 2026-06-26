@@ -143,7 +143,6 @@ export default function PerformanceOptimization() {
         </script>
       </Head>
       <main className="flex flex-col min-h-screen">
-        <Menubar />
         <ServiceHero
           icon={Zap}
           title="Performance Optimization"
@@ -342,7 +341,6 @@ export default function PerformanceOptimization() {
             </motion.div>
           </div>
         </motion.section>
-        <Footer />
       </main>
     </>
   )

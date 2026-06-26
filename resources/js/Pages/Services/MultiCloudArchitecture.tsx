@@ -136,7 +136,6 @@ export default function MultiCloudArchitecture() {
         </script>
       </Head>
       <main className="flex flex-col min-h-screen">
-        <Menubar />
         <ServiceHero
           icon={Cloud}
           title="Multi-Cloud Architecture"
@@ -340,7 +339,6 @@ export default function MultiCloudArchitecture() {
             </motion.div>
           </div>
         </motion.section>
-        <Footer />
       </main>
     </>
   )

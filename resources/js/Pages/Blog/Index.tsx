@@ -1,7 +1,4 @@
 import { Head, Link } from '@inertiajs/react'
-import { Footer } from '@/Components/Footer'
-import { Menubar } from '@/Components/Menubar'
-import { ErrorBoundary } from '@/Components/ErrorBoundary'
 import { ArrowRight, CalendarDays, Clock3, MessageCircle, Rss, Sparkles, Tag } from 'lucide-react'
 
 interface BlogPostSummary {
@@ -34,7 +31,7 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
   const totalComments = posts.reduce((sum, post) => sum + post.responseCount + post.replyCount, 0)
 
   return (
-    <ErrorBoundary>
+    <>
       <Head>
         <title>Blog | Harun R. Rayhan</title>
         <meta name="description" content={description} />
@@ -50,10 +47,7 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
         <link rel="alternate" type="application/rss+xml" title="Harun's Blog RSS Feed" href="/blog/feed.xml" />
       </Head>
 
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(15,23,42,0.08),_transparent_28%),linear-gradient(180deg,#f8fafc_0%,#ffffff_40%)] text-slate-900">
-        <Menubar />
-
-        <main className="pt-24">
+      <div className="pt-24">
           <section className="mx-auto max-w-7xl px-4 pb-8 sm:px-6 lg:px-8">
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
               <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm sm:p-10 lg:p-12">
@@ -210,10 +204,7 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
               </div>
             </div>
           </section>
-        </main>
-
-        <Footer />
       </div>
-    </ErrorBoundary>
+    </>
   )
 }

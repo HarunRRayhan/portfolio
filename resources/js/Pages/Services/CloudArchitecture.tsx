@@ -78,7 +78,6 @@ export default function CloudArchitecturePage() {
     <>
       <Head title="Cloud Architecture" />
       <main className="flex flex-col min-h-screen">
-        <Menubar />
         <ServiceHero
           icon={Cloud}
           title="Cloud Architecture"
@@ -338,7 +337,6 @@ export default function CloudArchitecturePage() {
             </motion.div>
           </div>
         </motion.section>
-        <Footer />
       </main>
     </>
   )

@@ -141,7 +141,6 @@ export default function AWSCloud() {
         </script>
       </Head>
       <main className="flex flex-col min-h-screen">
-        <Menubar />
         <ServiceHero
           icon={Cloud}
           title="AWS Cloud Services"
@@ -345,7 +344,6 @@ export default function AWSCloud() {
             </motion.div>
           </div>
         </motion.section>
-        <Footer />
       </main>
     </>
   )

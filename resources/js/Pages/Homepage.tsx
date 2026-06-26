@@ -1,33 +1,26 @@
-'use client'
-
-import React from "react"
 import { Head } from "@inertiajs/react"
-import { Menubar } from "@/Components/Menubar"
 import { HeroSectionV2 } from "@/Components/HeroSectionV2"
 import { LogoSection } from "@/Components/LogoSection"
 import { SkillsSection } from "@/Components/SkillsSection"
 import { TechStackSection } from "@/Components/TechStackSection"
 import { ReviewSlideSection } from "@/Components/ReviewSlideSection"
-import { Footer } from "@/Components/Footer"
-import { ErrorBoundary } from "@/Components/ErrorBoundary"
-import { getImageUrl } from "@/lib/imageUtils"
 
 const canonicalUrl = 'https://harun.dev/'
 
 export default function Homepage() {
     return (
-        <ErrorBoundary>
+        <>
             <Head>
                 <title>Harun R. Rayhan - Senior Software Engineer & DevOps Consultant</title>
-                <meta name="description" content="Expert software engineer and DevOps consultant specializing in cloud architecture, AWS solutions, and infrastructure automation. Discover how I can help transform your business." />
+                <meta name="description" content="Expert software engineer and DevOps consultant specializing in cloud architecture, AWS solutions, and infrastructure automation." />
                 <meta name="keywords" content="software engineer, DevOps consultant, cloud architecture, AWS expert, infrastructure automation, CI/CD" />
                 <meta property="og:title" content="Harun R. Rayhan - Senior Software Engineer & DevOps Consultant" />
-                <meta property="og:description" content="Expert software engineer and DevOps consultant specializing in cloud architecture, AWS solutions, and infrastructure automation. Discover how I can help transform your business." />
+                <meta property="og:description" content="Expert software engineer and DevOps consultant specializing in cloud architecture, AWS solutions, and infrastructure automation." />
                 <meta property="og:type" content="website" />
                 <meta property="og:url" content={canonicalUrl} />
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta name="twitter:title" content="Harun R. Rayhan - Senior Software Engineer & DevOps Consultant" />
-                <meta name="twitter:description" content="Expert software engineer and DevOps consultant specializing in cloud architecture, AWS solutions, and infrastructure automation. Discover how I can help transform your business." />
+                <meta name="twitter:description" content="Expert software engineer and DevOps consultant specializing in cloud architecture, AWS solutions, and infrastructure automation." />
                 <link rel="canonical" href={canonicalUrl} />
                 <script type="application/ld+json">
                     {JSON.stringify({
@@ -54,29 +47,11 @@ export default function Homepage() {
                     })}
                 </script>
             </Head>
-            <main className="min-h-screen bg-slate-50 font-sans text-slate-900">
-                <ErrorBoundary>
-                    <Menubar/>
-                </ErrorBoundary>
-                <ErrorBoundary>
-                    <HeroSectionV2/>
-                </ErrorBoundary>
-                <ErrorBoundary>
-                    <LogoSection/>
-                </ErrorBoundary>
-                <ErrorBoundary>
-                    <SkillsSection/>
-                </ErrorBoundary>
-                <ErrorBoundary>
-                    <TechStackSection/>
-                </ErrorBoundary>
-                <ErrorBoundary>
-                    <ReviewSlideSection/>
-                </ErrorBoundary>
-                <ErrorBoundary>
-                    <Footer/>
-                </ErrorBoundary>
-            </main>
-        </ErrorBoundary>
+            <HeroSectionV2 />
+            <LogoSection />
+            <SkillsSection />
+            <TechStackSection />
+            <ReviewSlideSection />
+        </>
     )
 }

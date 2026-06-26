@@ -165,7 +165,6 @@ export default function ServerlessInfrastructure() {
         </script>
       </Head>
       <main className="flex flex-col min-h-screen">
-        <Menubar />
         <ServiceHero
           icon={Cloud}
           title="Serverless Infrastructure"
@@ -365,7 +364,6 @@ export default function ServerlessInfrastructure() {
             </motion.div>
           </div>
         </motion.section>
-        <Footer />
       </main>
     </>
   )

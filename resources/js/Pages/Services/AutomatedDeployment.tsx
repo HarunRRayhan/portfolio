@@ -143,7 +143,6 @@ export default function AutomatedDeployment() {
         </script>
       </Head>
       <main className="flex flex-col min-h-screen">
-        <Menubar />
         <ServiceHero
           icon={GitBranch}
           title="Automated Deployment"
@@ -345,7 +344,6 @@ export default function AutomatedDeployment() {
             </motion.div>
           </div>
         </motion.section>
-        <Footer />
       </main>
     </>
   )

@@ -143,7 +143,6 @@ export default function MonitoringObservability() {
         </script>
       </Head>
       <main className="flex flex-col min-h-screen">
-        <Menubar />
         <ServiceHero
           icon={BarChart}
           title="Monitoring & Observability"
@@ -341,7 +340,6 @@ export default function MonitoringObservability() {
             </motion.div>
           </div>
         </motion.section>
-        <Footer />
       </main>
     </>
   )

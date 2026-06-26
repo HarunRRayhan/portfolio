@@ -143,7 +143,6 @@ export default function InfrastructureMigration() {
         </script>
       </Head>
       <main className="flex flex-col min-h-screen">
-        <Menubar />
         <ServiceHero
           icon={ArrowRightLeft}
           title="Infrastructure Migration"
@@ -336,7 +335,6 @@ export default function InfrastructureMigration() {
             </motion.div>
           </div>
         </motion.section>
-        <Footer />
       </main>
     </>
   )

@@ -1,7 +1,5 @@
 import { Head } from '@inertiajs/react'
 import { motion } from 'framer-motion'
-import { Menubar } from '@/Components/Menubar'
-import { Footer } from '@/Components/Footer'
 import { Container } from '@/Components/ui/container'
 import { Shield } from 'lucide-react'
 import { getImageUrl } from "@/lib/imageUtils"
@@ -43,7 +41,6 @@ export default function Privacy() {
         </script>
       </Head>
       <main className="flex flex-col min-h-screen">
-        <Menubar />
         <section className="py-24 bg-gradient-to-br from-[#86D2F1] via-[#7C3AED] to-[#8B5CF6]">
           <div className="container mx-auto px-4 text-center">
             <motion.div
@@ -139,7 +136,6 @@ export default function Privacy() {
           </Container>
         </section>
 
-        <Footer />
       </main>
     </>
   )
