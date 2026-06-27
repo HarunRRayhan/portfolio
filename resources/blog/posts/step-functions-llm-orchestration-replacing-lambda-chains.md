@@ -5,8 +5,6 @@ brief: "Lambda chaining for multi-step AI workflows gets messy fast. Failed step
 publishedAt: "2026-06-27T09:00:00.000Z"
 readTimeInMinutes: 11
 coverImageUrl: "/blog-assets/step-functions-llm-orchestration-replacing-lambda-chains/cover.jpg"
-draft: true
-draftToken: "2b7e1ad8a5f37af3325bb2671f3c78bd"
 tags:
   - name: AWS
     slug: aws
@@ -19,8 +17,7 @@ tags:
   - name: Terraform
     slug: terraform
   - name: Bedrock
-    slug: bedrock
----
+    slug: bedrock---
 
 <p>I built my first LLM-powered document pipeline the way most people do. A Lambda function extracts text from a PDF. It calls another Lambda to classify the content. That one calls a third Lambda to generate a summary. Then a fourth to store the results in DynamoDB. Each function invokes the next one directly via the Lambda SDK.</p>
 
