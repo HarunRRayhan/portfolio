@@ -17,7 +17,8 @@ tags:
   - name: Terraform
     slug: terraform
   - name: Bedrock
-    slug: bedrock---
+    slug: bedrock
+---
 
 <p>I built my first LLM-powered document pipeline the way most people do. A Lambda function extracts text from a PDF. It calls another Lambda to classify the content. That one calls a third Lambda to generate a summary. Then a fourth to store the results in DynamoDB. Each function invokes the next one directly via the Lambda SDK.</p>
 
