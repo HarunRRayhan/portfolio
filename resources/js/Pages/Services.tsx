@@ -5,6 +5,7 @@ import {Head, Link} from "@inertiajs/react"
 import {motion} from "framer-motion"
 import {Button} from "@/Components/ui/button"
 import {getImageUrl} from "@/lib/imageUtils"
+import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/Components/ui/card/index"
 import {
     ArrowRight,
     Cloud,
