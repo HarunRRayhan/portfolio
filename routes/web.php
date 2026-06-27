@@ -244,6 +244,19 @@ Route::get('/blog/{slug}/draft/{previewToken}', function (Request $request, stri
     return $response;
 })->where('previewToken', '[A-Fa-f0-9]{32}')->name('blog.preview');
 
+// Track blog post views
+Route::post('/blog/{slug}/view', function (string $slug) {
+    $blog = new \App\Support\BlogRepository();
+    $post = $blog->find($slug);
+    abort_unless($post, 404);
+    if ((bool) ($post['draft'] ?? false)) {
+        abort(404);
+    }
+    $count = Illuminate\Support\Facades\Cache::increment("post.views.".$slug);
+    return response()->json(['views' => $count]);
+})->name('blog.view');
+
+// Blog post
 Route::get('/blog/{slug}', function (Request $request, string $slug) {
     $blog = new BlogRepository();
     $post = $blog->find($slug);

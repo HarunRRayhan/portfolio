@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import hljs from 'highlight.js/lib/common'
 import 'highlight.js/styles/github-dark.css'
 import { BlogDiscussion } from '@/Components/BlogDiscussion'
-import { ArrowRight, BookOpen, CalendarDays, ChevronDown, Clock3, MessageCircle, Sparkles, Tag } from 'lucide-react'
+import { ArrowRight, BookOpen, CalendarDays, ChevronDown, Clock3, Eye, MessageCircle, Sparkles, Tag } from 'lucide-react'
 
 interface BlogPostTag {
   name: string
@@ -25,6 +25,7 @@ interface BlogPostSummary {
   coverImageUrl?: string | null
   isDraft: boolean
   draftPreviewUrl?: string | null
+  viewCount: number
   tags: BlogPostTag[]
   url: string
   canonicalUrl: string
@@ -207,6 +208,14 @@ export default function BlogPostPage({
     enhanceCodeBlocks(contentRef.current)
   }, [post.slug, post.contentHtml])
 
+  // Track page view
+  useEffect(() => {
+    if (!isDraft && post.slug) {
+      fetch(`/blog/${post.slug}/view`, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .catch(() => {})
+    }
+  }, [post.slug, isDraft])
+
   return (
     <>
       <Head>
@@ -283,6 +292,10 @@ export default function BlogPostPage({
                     <MessageCircle className="h-4 w-4" />
                     {commentCount} comments
                   </a>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 font-medium text-slate-700">
+                    <Eye className="h-4 w-4" />
+                    {post.viewCount ?? 0} views
+                  </span>
                 </div>
 
                 <div className="mt-8 flex flex-wrap gap-2">

@@ -111,6 +111,7 @@ class BlogRepository
             'responseCount' => $post['responseCount'],
             'replyCount' => $post['replyCount'],
             'coverImageUrl' => $post['coverImageUrl'] ?? null,
+            'viewCount' => Cache::remember("post.views.{$post['slug']}", 3600, fn () => 0),
             'isDraft' => (bool) ($post['draft'] ?? false),
             'draftPreviewUrl' => $this->previewUrl($post['slug']),
             'tags' => collect($post['tags'] ?? [])
