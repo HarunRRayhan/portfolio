@@ -3,6 +3,7 @@ title: "Running Long AI Workloads on Lambda MicroVMs Without Going Broke"
 slug: "lambda-microvm-long-ai-workloads"
 brief: "How to run long AI inference workloads on AWS Lambda MicroVMs with real cost controls, timeout handling, and concurrency management."
 draft: true
+draftToken: "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6"
 readTimeInMinutes: 12
 coverImageUrl: "/blog-assets/lambda-microvm-long-ai-workloads/cover.jpg"
 reactionCount: 0
