@@ -50,7 +50,7 @@ export function PersonalValues() {
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: index * 0.1 }}
             >
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#86D2F1] to-[#7C3AED] flex items-center justify-center mb-4">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center mb-4">
                 <value.icon className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">{value.title}</h3>

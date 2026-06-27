@@ -113,7 +113,7 @@ export function FAQSection() {
             <Link href="/contact">
               <Button
                 size="lg"
-                className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white transition-all duration-300 group"
+                className="bg-slate-900 hover:bg-slate-800 text-white transition-all duration-300 group"
               >
                 <MessageCircle className="w-5 h-5 mr-2 group-hover:animate-bounce" />
                 Not covered your question? Ask Harun

@@ -7,7 +7,7 @@ import { getImageUrl } from "../lib/imageUtils"
 
 export function AboutHero() {
   return (
-    <section className="relative py-20 overflow-hidden bg-gradient-to-br from-[#86D2F1] via-[#7C3AED] to-[#8B5CF6]">
+    <section className="relative py-20 overflow-hidden bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950">
       <div className="container mx-auto">
         <div className="flex flex-col lg:flex-row items-center justify-between">
           <motion.div
@@ -29,7 +29,7 @@ export function AboutHero() {
               <Button
                 variant="default"
                 size="lg"
-                className="bg-white text-[#7C3AED] hover:bg-white/90 transition-all duration-300 group"
+                className="bg-white text-amber-600 hover:bg-white/90 transition-all duration-300 group"
                 onClick={() => window.open("/cv-harun-r-rayhan.pdf", "_blank")}
               >
                 <FileDown className="mr-2 h-5 w-5 group-hover:translate-y-0.5 transition-transform duration-300" />

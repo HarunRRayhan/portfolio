@@ -176,7 +176,7 @@ export default function InfrastructureMigration() {
                 <motion.div key={index} variants={fadeInUp}>
                   <Card>
                     <CardHeader>
-                      <service.icon className="w-10 h-10 text-[#7C3AED] mb-4" />
+                      <service.icon className="w-10 h-10 text-amber-600 mb-4" />
                       <CardTitle>{service.title}</CardTitle>
                     </CardHeader>
                     <CardContent>{service.content}</CardContent>
@@ -213,7 +213,7 @@ export default function InfrastructureMigration() {
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
-                  <CheckCircle className="w-6 h-6 text-[#7C3AED] flex-shrink-0 mt-1" />
+                  <CheckCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-1" />
                   <div>
                     <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
                     <p>{item.content}</p>
@@ -258,7 +258,7 @@ export default function InfrastructureMigration() {
                 <motion.div key={index} variants={fadeInUp}>
                   <Card>
                     <CardHeader>
-                      <step.icon className="w-10 h-10 text-[#7C3AED] mb-4" />
+                      <step.icon className="w-10 h-10 text-amber-600 mb-4" />
                       <CardTitle>{step.title}</CardTitle>
                     </CardHeader>
                     <CardContent>{step.content}</CardContent>

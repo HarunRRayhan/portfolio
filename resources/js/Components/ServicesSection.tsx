@@ -50,7 +50,7 @@ export function ServicesSection() {
   return (
     <>
       <section className="relative py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#86D2F1] via-[#7C3AED] to-[#8B5CF6]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950" />
         <div className="relative text-center mb-16 text-white">
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
@@ -84,8 +84,8 @@ export function ServicesSection() {
               >
                 <Card className="h-full bg-white hover:shadow-lg transition-shadow duration-300">
                   <CardHeader>
-                    <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center mb-4">
-                      <Icon className="w-6 h-6 text-purple-600" />
+                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                      <Icon className="w-6 h-6 text-slate-700" />
                     </div>
                     <CardTitle className="text-xl font-bold">{service.title}</CardTitle>
                     <CardDescription className="text-gray-600 mt-2">{service.description}</CardDescription>
@@ -93,7 +93,7 @@ export function ServicesSection() {
                   <CardContent>
                     <Link 
                       href={service.link} 
-                      className="inline-flex items-center text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors"
+                      className="inline-flex items-center text-sm font-medium text-slate-700 hover:text-slate-800 transition-colors"
                     >
                       Learn More
                       <ArrowRight className="ml-1 w-4 h-4" />

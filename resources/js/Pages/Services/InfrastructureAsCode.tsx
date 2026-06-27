@@ -171,7 +171,7 @@ export default function InfrastructureAsCodePage() {
           description="Implement and manage your infrastructure using modern IaC tools for improved efficiency, consistency, and scalability."
         />
         <div className="container mx-auto px-4 py-4">
-          <Link href="/services" className="inline-flex items-center text-[#7C3AED] hover:text-[#6D28D9] font-medium">
+          <Link href="/services" className="inline-flex items-center text-amber-600 hover:text-amber-700 font-medium">
             <ArrowRight className="w-4 h-4 mr-2 rotate-180" />
             Back to Services
           </Link>
@@ -205,7 +205,7 @@ export default function InfrastructureAsCodePage() {
                 <motion.div key={index} variants={fadeInUp}>
                   <Card>
                     <CardHeader>
-                      <service.icon className="w-10 h-10 text-[#7C3AED] mb-4" />
+                      <service.icon className="w-10 h-10 text-amber-600 mb-4" />
                       <CardTitle>{service.title}</CardTitle>
                     </CardHeader>
                     <CardContent>{service.content}</CardContent>
@@ -245,7 +245,7 @@ export default function InfrastructureAsCodePage() {
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
-                  <CheckCircle className="w-6 h-6 text-[#7C3AED] flex-shrink-0 mt-1" />
+                  <CheckCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-1" />
                   <div>
                     <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
                     <p>{item.content}</p>
@@ -290,7 +290,7 @@ export default function InfrastructureAsCodePage() {
                 <motion.div key={index} variants={fadeInUp}>
                   <Card>
                     <CardHeader>
-                      <step.icon className="w-10 h-10 text-[#7C3AED] mb-4" />
+                      <step.icon className="w-10 h-10 text-amber-600 mb-4" />
                       <CardTitle>{step.title}</CardTitle>
                     </CardHeader>
                     <CardContent>{step.content}</CardContent>

@@ -12,7 +12,7 @@ interface ServiceHeroProps {
 
 export function ServiceHero({ icon: Icon, title, description }: ServiceHeroProps) {
   return (
-    <section className="py-24 bg-gradient-to-br from-[#86D2F1] via-[#7C3AED] to-[#8B5CF6]">
+    <section className="py-24 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950">
       <div className="container mx-auto text-center">
         <motion.div
           initial={{ opacity: 0, y: -20 }}

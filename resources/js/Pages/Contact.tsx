@@ -214,7 +214,7 @@ export default function Contact() {
             </Head>
             {/* Hero Section */}
                     <section
-                        className="min-h-[400px] bg-gradient-to-br from-[#86D2F1] via-[#7C3AED] to-[#8B5CF6] flex items-center">
+                        className="min-h-[400px] bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 flex items-center">
                         <div className="container mx-auto py-20">
                             <motion.div
                                 initial={{opacity: 0, y: 20}}
@@ -424,7 +424,7 @@ export default function Contact() {
                                                     <div className="mt-2 flex flex-wrap gap-2">
                                                         {selectedServices.map((service) => (
                                                             <span key={service}
-                                                                  className="bg-[#7C3AED] text-white px-2 py-1 rounded-full text-sm">
+                                                                  className="amber-100 text-amber-700 px-2 py-1 rounded-full text-sm">
                             {service}
                                                             <button type="button" onClick={() => toggleService(service)}
                                                                     className="ml-2 focus:outline-none">

@@ -81,7 +81,7 @@ export function SelectedWorkSection() {
                             <ul className="mt-5 space-y-2">
                                 {item.points.map((point) => (
                                     <li key={point} className="flex items-start gap-3 text-sm text-slate-600">
-                                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
+                                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
                                         <span>{point}</span>
                                     </li>
                                 ))}
@@ -89,7 +89,7 @@ export function SelectedWorkSection() {
 
                             <Link
                                 href={item.href}
-                                className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-blue-700 transition group-hover:text-blue-800"
+                                className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition group-hover:text-slate-800"
                             >
                                 {item.cta}
                                 <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />

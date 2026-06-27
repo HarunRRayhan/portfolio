@@ -28,7 +28,7 @@ export function VolunteeringSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <div className="rounded-xl border bg-gradient-to-br from-[#86D2F1]/5 to-[#7C3AED]/5 shadow p-8">
+            <div className="rounded-xl border bg-gradient-to-br from-amber-500/5 to-amber-600/5 shadow p-8">
               <div className="flex items-start gap-8">
                 <div className="w-32 h-32 rounded-lg flex items-center justify-center flex-shrink-0">
                   <img
@@ -39,7 +39,7 @@ export function VolunteeringSection() {
                 </div>
                 <div className="flex-1">
                   <h3 className="text-3xl font-bold text-gray-900 mb-3">AWS Community Builder</h3>
-                  <p className="text-[#7C3AED] font-medium text-lg mb-2">Amazon Web Services (AWS)</p>
+                  <p className="text-amber-600 font-medium text-lg mb-2">Amazon Web Services (AWS)</p>
                   <p className="text-gray-600 text-lg mb-4">Mar 2022 - Present</p>
                   <p className="text-gray-600 text-lg leading-relaxed mb-8">
                     AWS Community Builders are enthusiasts and emerging thought leaders who are passionate about AWS
@@ -49,8 +49,8 @@ export function VolunteeringSection() {
                     Builders through specialized webinars, panels, and resources.
                   </p>
                   <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-[#7C3AED] bg-opacity-10 flex items-center justify-center flex-shrink-0">
-                      <Award className="w-5 h-5 text-[#7C3AED]" />
+                    <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
+                      <Award className="w-5 h-5 text-amber-600" />
                     </div>
                     <p className="text-gray-800 font-medium text-lg pt-1">
                       Recognized as a Top Content Contributor for Q2 2022 in the APJ Region

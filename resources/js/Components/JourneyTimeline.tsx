@@ -58,7 +58,7 @@ export function JourneyTimeline() {
         </motion.h2>
         <div className="relative">
           {/* Vertical line */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-[#86D2F1] via-[#7C3AED] to-[#8B5CF6]"></div>
+          <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-slate-700 via-slate-800 to-slate-900"></div>
 
           {timelineEvents.map((event, index) => (
             <motion.div
@@ -71,15 +71,15 @@ export function JourneyTimeline() {
             >
               <div className={`w-1/2 ${index % 2 === 0 ? "text-right pr-8" : "pl-8"}`}>
                 <h3 className="text-xl font-semibold text-gray-900 mb-1">{event.title}</h3>
-                <p className="text-[#7C3AED] font-medium mb-2">{event.company}</p>
+                <p className="text-amber-600 font-medium mb-2">{event.company}</p>
                 <p className="text-sm text-gray-500 mb-2">{event.location}</p>
                 <p className="text-gray-600">{event.description}</p>
               </div>
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#86D2F1] to-[#7C3AED] flex items-center justify-center z-10">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center z-10">
                 <event.icon className="w-6 h-6 text-white" />
               </div>
               <div className={`w-1/2 ${index % 2 === 0 ? "pl-8" : "text-right pr-8"}`}>
-                <span className="text-2xl font-bold text-[#7C3AED]">{event.year}</span>
+                <span className="text-2xl font-bold text-amber-600">{event.year}</span>
               </div>
             </motion.div>
           ))}
