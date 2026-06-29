@@ -284,7 +284,7 @@ export default function PerformanceOptimization() {
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Link href="/contact">
-                <Button size="lg" className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white">
+                <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white">
                   Get Started
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>

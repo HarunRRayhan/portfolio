@@ -73,7 +73,7 @@ export default function Contact() {
             particleCount: 150,
             spread: 100,
             origin: { y: 0.6 },
-            colors: ['#7C3AED', '#8B5CF6', '#6D28D9'],
+            colors: ['#D97706', '#F59E0B', '#FCD34D'],
             angle: 90,
             startVelocity: 30,
             gravity: 0.5,
@@ -339,7 +339,7 @@ export default function Contact() {
                                                                         setOpen(true);
                                                                     }
                                                                 }}
-                                                                className="w-full justify-between bg-gray-50/50 border-gray-200 hover:bg-gray-50/80 text-lg h-14 px-4 focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50 focus:border-purple-600"
+                                                                className="w-full justify-between bg-gray-50/50 border-gray-200 hover:bg-gray-50/80 text-lg h-14 px-4 focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 focus:border-amber-500"
                                                             >
                                                                 {selectedServices.length > 0 ? `${selectedServices.length} selected` : "Select services"}
                                                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50"/>
@@ -437,7 +437,7 @@ export default function Contact() {
                                                 <Button
                                                     type="submit"
                                                     disabled={isSubmitting}
-                                                    className="h-12 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-base font-semibold px-6 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-400 focus:ring-opacity-75 focus:bg-[#6D28D9] flex items-center gap-2 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    className="h-12 bg-slate-900 hover:bg-slate-800 text-white text-base font-semibold px-6 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-amber-400 focus:ring-opacity-75 focus:bg-slate-800 flex items-center gap-2 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
                                                     {isSubmitting ? (
                                                         <>

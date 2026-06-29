@@ -40,7 +40,7 @@ export const Envelope = ({ onComplete }: EnvelopeProps) => {
             exit="exit"
         >
             <div className="flex flex-col items-center gap-6">
-                <div className="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center">
+                <div className="w-20 h-20 bg-amber-600 rounded-full flex items-center justify-center">
                     <Check className="w-10 h-10 text-white" />
                 </div>
                 <div className="space-y-2">
@@ -51,7 +51,7 @@ export const Envelope = ({ onComplete }: EnvelopeProps) => {
                 </div>
                 <motion.button
                     onClick={onComplete}
-                    className="mt-4 px-6 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors"
+                    className="mt-4 px-6 py-3 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition-colors"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                 >
