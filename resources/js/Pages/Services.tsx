@@ -195,7 +195,7 @@ export default function ServicesPage() {
                 </script>
             </Head>
             <main className="flex flex-col min-h-screen">
-                <section className="py-24 bg-gradient-to-br from-[#86D2F1] via-[#7C3AED] to-[#8B5CF6]">
+                <section className="py-24 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950">
                     <div className="container mx-auto px-4 text-center">
                         <motion.div
                             initial={{opacity: 0, y: -20}}
@@ -232,8 +232,8 @@ export default function ServicesPage() {
                                 <Card key={index} className="flex flex-col">
                                     <CardHeader>
                                         <div
-                                            className="w-12 h-12 rounded-lg bg-[#7C3AED] bg-opacity-10 flex items-center justify-center mb-4">
-                                            <service.icon className="w-6 h-6 text-[#7C3AED]"/>
+                                            className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center mb-4">
+                                            <service.icon className="w-6 h-6 text-slate-700"/>
                                         </div>
                                         <CardTitle>{service.title}</CardTitle>
                                         <CardDescription>{service.description}</CardDescription>
@@ -254,7 +254,7 @@ export default function ServicesPage() {
                                 <Button
                                     variant="outline"
                                     size="lg"
-                                    className="bg-white text-[#7C3AED] hover:bg-[#7C3AED] hover:text-white border-[#7C3AED] transition-all duration-300"
+                                    className="bg-white text-slate-700 hover:bg-slate-900 hover:text-white border-slate-300 transition-all duration-300"
                                 >
                                     <MessageSquare className="w-5 h-5 mr-2"/>
                                     Is the service you're looking for missing? We might do it. Send us a message.
