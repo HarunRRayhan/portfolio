@@ -41,7 +41,7 @@ tags:
 
 <p>Here is what that looks like in practice:</p>
 
-<pre><code>async function processDocument(doc) {
+<pre><code class="language-javascript">async function processDocument(doc) {
   const job = await bedrock.startInvokeModel({
     modelId: 'anthropic.claude-sonnet-v2',
     body: JSON.stringify({ prompt: doc.prompt }),
@@ -71,7 +71,7 @@ tags:
 
 <p>I set reserved concurrency on every function that handles AI workloads. The number depends on the criticality of the function and the cost per invocation.</p>
 
-<pre><code>resource "aws_lambda_function" "hrr_doc_processor" {
+<pre><code class="language-hcl">resource "aws_lambda_function" "hrr_doc_processor" {
   function_name = "hrr-doc-processor-${var.environment}"
   role          = aws_iam_role.hrr_lambda_role.arn
   filename      = "function.zip"
@@ -94,7 +94,7 @@ tags:
 
 <p>I set provisioned concurrency to match my base traffic level. For the doc processor, that is 2 always-warm environments. Traffic spikes above that level take the cold start penalty, but the base load never does.</p>
 
-<pre><code>resource "aws_lambda_provisioned_concurrency_config" "hrr_base" {
+<pre><code class="language-hcl">resource "aws_lambda_provisioned_concurrency_config" "hrr_base" {
   function_name                     = aws_lambda_function.hrr_doc_processor.function_name
   qualifier                         = aws_lambda_alias.hrr_prod.name
   provisioned_concurrent_executions = 2
@@ -116,7 +116,7 @@ tags:
 
 <p>The DLQ catches the overflow and stores it for reprocessing. The CloudWatch alarm notifies me when throttling happens so I can decide whether to increase the concurrency cap or let the queue drain slowly.</p>
 
-<pre><code>resource "aws_lambda_function_event_invoke_config" "hrr_dlq" {
+<pre><code class="language-hcl">resource "aws_lambda_function_event_invoke_config" "hrr_dlq" {
   function_name = aws_lambda_function.hrr_doc_processor.function_name
 
   destination_config {
@@ -139,7 +139,7 @@ tags:
 
 <p>The budget report is a simple Lambda function that runs every Monday morning. It queries the Cost Explorer API and compares the current week to the previous four weeks. If the cost exceeded the threshold, it posts a summary to a Slack webhook.</p>
 
-<pre><code>async function checkLambdaCost() {
+<pre><code class="language-javascript">async function checkLambdaCost() {
   const cost = await costExplorer.getCostAndUsage({
     TimePeriod: {
       Start: '2026-06-20',
