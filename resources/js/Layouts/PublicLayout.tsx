@@ -2,6 +2,7 @@ import React, { PropsWithChildren } from 'react'
 import { Menubar } from '@/Components/Menubar'
 import { Footer } from '@/Components/Footer'
 import { ErrorBoundary } from '@/Components/ErrorBoundary'
+import { ServicePageCaseStudies } from '@/Components/ServicePageCaseStudies'
 
 interface PublicLayoutProps {
   /** Override the default slate-50 background. Pages with custom gradients pass their own. */
@@ -23,6 +24,9 @@ export default function PublicLayout({
       <main>
         <ErrorBoundary>{children}</ErrorBoundary>
       </main>
+      <ErrorBoundary>
+        <ServicePageCaseStudies />
+      </ErrorBoundary>
       {!hideFooter && (
         <ErrorBoundary>
           <Footer />

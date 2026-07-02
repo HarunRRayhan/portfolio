@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\CaseStudyRepository;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -29,11 +30,16 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $caseStudies = new CaseStudyRepository();
+        $byService = $caseStudies->groupedByServiceSlug();
+
         return [
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
             ],
+            'caseStudiesByService' => $byService,
+            'featuredCaseStudies' => $caseStudies->featured(3),
         ];
     }
 }

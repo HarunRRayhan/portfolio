@@ -5,6 +5,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\BlogCommentController;
 use App\Models\BlogCommentThread;
 use App\Support\BlogRepository;
+use App\Support\CaseStudyRepository;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -161,6 +162,75 @@ Route::get('/contact', function () {
 })->name('contact');
 
 Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
+
+Route::get('/case-studies', function (Request $request) {
+    if ($request->getRequestUri() === '/case-studies/') {
+        return redirect('/case-studies', 301);
+    }
+
+    $repo = new CaseStudyRepository();
+    $siteUrl = rtrim(config('app.url', url('/')), '/');
+
+    return Inertia::render('CaseStudies/Index', [
+        'studies' => $repo->indexStudies(),
+        'canonicalUrl' => $siteUrl.'/case-studies',
+    ]);
+})->name('case-studies.index');
+
+Route::get('/case-studies/feed.xml', function () {
+    $repo = new CaseStudyRepository();
+    $studies = array_slice($repo->indexStudies(), 0, 20);
+    $escape = fn (string $value): string => htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+    $siteUrl = rtrim(config('app.url', url('/')), '/');
+    $publishedAt = now()->toRfc2822String();
+
+    $items = collect($studies)->map(function (array $study) use ($escape, $repo) {
+        $url = $repo->absoluteUrl($study['slug']);
+        $description = (string) ($study['brief'] ?? $study['problem'] ?? '');
+        $pubDate = Carbon::parse($study['publishedAt'])->toRfc2822String();
+
+        return '<item>'
+            .'<title>'.$escape($study['codename']).'</title>'
+            .'<link>'.$escape($url).'</link>'
+            .'<guid isPermaLink="true">'.$escape($url).'</guid>'
+            .'<pubDate>'.$escape($pubDate).'</pubDate>'
+            .'<description>'.$escape($description).'</description>'
+            .'</item>';
+    })->implode('');
+
+    $xml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Case Studies | Harun R. Rayhan</title>
+    <link>{$escape($siteUrl.'/case-studies')}</link>
+    <description>Anonymized cloud and DevOps case studies (constellation codenames).</description>
+    <language>en</language>
+    <lastBuildDate>{$escape($publishedAt)}</lastBuildDate>
+    {$items}
+  </channel>
+</rss>
+XML;
+
+    return response($xml, 200)->header('Content-Type', 'application/rss+xml; charset=UTF-8');
+})->name('case-studies.feed');
+
+Route::get('/case-studies/{slug}', function (string $slug) {
+    $repo = new CaseStudyRepository();
+    $study = $repo->find($slug);
+
+    abort_unless($study, 404);
+
+    if ((bool) ($study['draft'] ?? false)) {
+        abort(404);
+    }
+
+    return Inertia::render('CaseStudies/Detail', [
+        'study' => $repo->toDetailPayload($study),
+        'relatedStudies' => $repo->related($slug, 3),
+        'canonicalUrl' => $repo->absoluteUrl($slug),
+    ]);
+})->name('case-studies.show');
 
 Route::get('/blog', function (Request $request) {
     if ($request->getRequestUri() === '/blog/') {
@@ -326,6 +396,7 @@ Route::get('/sitemap.xml', function () {
         ['loc' => $siteUrl.'/privacy', 'lastmod' => now()->toDateString()],
         ['loc' => $siteUrl.'/terms', 'lastmod' => now()->toDateString()],
         ['loc' => $siteUrl.'/blog', 'lastmod' => now()->toDateString()],
+        ['loc' => $siteUrl.'/case-studies', 'lastmod' => now()->toDateString()],
     ];
 
     $blogUrls = collect($blog->indexPosts())->map(fn (array $post) => [
@@ -333,7 +404,13 @@ Route::get('/sitemap.xml', function () {
         'lastmod' => substr($post['publishedAtIso'], 0, 10),
     ]);
 
-    $urls = collect($staticUrls)->merge($blogUrls);
+    $caseStudyRepo = new CaseStudyRepository();
+    $caseStudyUrls = collect($caseStudyRepo->indexStudies())->map(fn (array $study) => [
+        'loc' => $caseStudyRepo->absoluteUrl($study['slug']),
+        'lastmod' => substr($study['publishedAtIso'], 0, 10),
+    ]);
+
+    $urls = collect($staticUrls)->merge($blogUrls)->merge($caseStudyUrls);
     $escape = fn (string $value): string => htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
 
     $entries = $urls->map(fn (array $url) => <<<XML

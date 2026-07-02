@@ -3,11 +3,18 @@ import { HeroSectionV2 } from "@/Components/HeroSectionV2"
 import { LogoSection } from "@/Components/LogoSection"
 import { SkillsSection } from "@/Components/SkillsSection"
 import { TechStackSection } from "@/Components/TechStackSection"
+import { CaseStudiesHomeSection } from "@/Components/CaseStudiesSections"
 import { ReviewSlideSection } from "@/Components/ReviewSlideSection"
+import { usePage } from "@inertiajs/react"
+import type { CaseStudyCardSummary } from "@/Components/CaseStudiesSections"
 
 const canonicalUrl = 'https://harun.dev/'
 
 export default function Homepage() {
+    const { featuredCaseStudies } = usePage().props as {
+        featuredCaseStudies?: CaseStudyCardSummary[]
+    }
+
     return (
         <>
             <Head>
@@ -51,6 +58,7 @@ export default function Homepage() {
             <LogoSection />
             <SkillsSection />
             <TechStackSection />
+            <CaseStudiesHomeSection studies={featuredCaseStudies ?? []} />
             <ReviewSlideSection />
         </>
     )
