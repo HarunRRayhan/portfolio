@@ -78,6 +78,11 @@ function buildRelatedTagList(posts: BlogPostSummary[]): string[] {
 }
 
 function getCodeLanguage(code: HTMLElement): string {
+  // Check preserved original language first (set before highlight.js runs)
+  if (code.dataset.language) {
+    return code.dataset.language.replace(/-/g, ' ')
+  }
+
   const className = code.className || ''
   const match = className.match(/language-([a-z0-9-]+)/i) ?? className.match(/lang-([a-z0-9-]+)/i)
 
@@ -104,6 +109,12 @@ function enhanceCodeBlocks(root: HTMLElement) {
     pre.dataset.enhanced = 'true'
     pre.classList.add('m-0', 'overflow-x-auto', 'bg-transparent', 'p-0')
     code.classList.add('bg-transparent', 'p-0')
+
+    // Save original language from HTML before highlight.js replaces it
+    const langMatch = code.className.match(/language-([a-z0-9-]+)/i) ?? code.className.match(/lang-([a-z0-9-]+)/i)
+    if (langMatch?.[1]) {
+      code.dataset.language = langMatch[1]
+    }
 
     try {
       hljs.highlightElement(code)
