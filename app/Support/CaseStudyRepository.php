@@ -230,7 +230,7 @@ class CaseStudyRepository
         }
 
         $this->studies = Cache::remember(self::CACHE_KEY, now()->addMinutes(self::CACHE_TTL_MINUTES), function (): array {
-            $paths = glob(resource_path(self::CONTENT_DIR.'/*.md')) ?: [];
+            $paths = glob(resource_path(self::CONTENT_DIR.'/[!_.]*.md')) ?: [];
 
             if ($paths === []) {
                 return [];
