@@ -1,6 +1,7 @@
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
+import SocialLoginButtons from '@/Components/SocialLoginButtons';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -27,6 +28,25 @@ export default function Register() {
         <GuestLayout>
             <Head title="Register" />
 
+            <div className="mb-6">
+                <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-slate-500">
+                    Social sign-in
+                </h2>
+                <p className="mb-3 text-xs text-slate-400">Register with <strong>Google</strong> (admin) — GitHub sign-in is coming soon.</p>
+                <SocialLoginButtons />
+            </div>
+
+            <div className="relative mb-6">
+                <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-slate-200" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white px-2 text-slate-400">
+                        Or register with email
+                    </span>
+                </div>
+            </div>
+
             <form onSubmit={submit}>
                 <div>
                     <InputLabel htmlFor="name" value="Name" />
@@ -38,7 +58,6 @@ export default function Register() {
                         className="mt-1 block w-full"
                         autoComplete="name"
                         isFocused={true}
-                        onChange={(e) => setData('name', e.target.value)}
                         required
                     />
 
@@ -109,7 +128,7 @@ export default function Register() {
                         href={route('login')}
                         className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                     >
-                        Already registered?
+                        Already have an account?
                     </Link>
 
                     <PrimaryButton className="ms-4" disabled={processing}>

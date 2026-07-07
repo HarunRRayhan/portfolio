@@ -77,6 +77,12 @@ class SocialAuthenticationController extends Controller
             $user->password = Str::random(64);
         }
 
+        // Auto-promote configured super-admin emails to admin role
+        $adminEmails = (array) config('auth.super_admin_emails', []);
+        if (in_array($user->email, $adminEmails, true) && $user->role !== 'admin') {
+            $user->role = 'admin';
+        }
+
         $user->email_verified_at ??= now();
         $user->save();
 

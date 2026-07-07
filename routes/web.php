@@ -56,7 +56,7 @@ Route::get('/dashboard', function () {
             'draftPreviewUrl' => $blog->previewUrl((string) $post['slug']),
         ], $draftPosts),
     ]);
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth', 'verified', 'role:admin'])->name('dashboard');
 
 Route::get('/admin', function () {
     $blog = new BlogRepository();
@@ -83,7 +83,7 @@ Route::get('/admin', function () {
             'draftPreviewUrl' => $blog->previewUrl((string) $post['slug']),
         ], $draftPosts),
     ]);
-})->middleware(['auth', 'verified'])->name('admin');
+})->middleware(['auth', 'verified', 'role:admin'])->name('admin');
 
 Route::get('/bio', function () {
     return Inertia::render('Bio');
@@ -337,7 +337,7 @@ Route::get('/blog/{slug}', function (Request $request, string $slug) {
         abort(404);
     }
 
-    $commentCacheKey = 'blog.post.'.$slug.'.comments';
+    $commentCacheKey = 'blog.post.'.$slug.'.comments.'.($request->user()?->id ?? 'guest');
     $commentCount = 0;
     $comments = [];
 
@@ -346,7 +346,9 @@ Route::get('/blog/{slug}', function (Request $request, string $slug) {
             $blog,
             $slug,
             $post,
+            $request,
         ): array {
+            $viewer = $request->user();
             $thread = BlogCommentThread::resolveForPost(
                 $slug,
                 (string) $post['title'],
@@ -355,7 +357,7 @@ Route::get('/blog/{slug}', function (Request $request, string $slug) {
             );
 
             return [
-                'count' => $thread->commentCount(),
+                'count' => $thread->visibleCommentCountForViewer($viewer),
                 'comments' => $thread->commentTree(),
             ];
         });

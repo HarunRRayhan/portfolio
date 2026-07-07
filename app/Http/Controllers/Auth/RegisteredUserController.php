@@ -40,12 +40,15 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => in_array(strtolower((string) $request->email), array_map('strtolower', (array) config('auth.super_admin_emails', [])), true)
+                ? 'admin'
+                : 'commenter',
         ]);
 
         event(new Registered($user));
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        return redirect(route('blog.index', absolute: false));
     }
 }

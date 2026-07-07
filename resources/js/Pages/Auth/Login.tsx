@@ -7,7 +7,6 @@ import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
-import { getImageUrl } from "@/lib/imageUtils"
 
 export default function Login({
     status,
@@ -41,11 +40,22 @@ export default function Login({
             )}
 
             <div className="mb-6">
-                <SocialLoginButtons redirectTo={route('dashboard')} />
+                <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-slate-500">
+                    Social sign-in
+                </h2>
+                <p className="mb-3 text-xs text-slate-400">Sign in with <strong>Google</strong> (admin) — GitHub sign-in is coming soon.</p>
+                <SocialLoginButtons />
             </div>
 
-            <div className="mb-6 text-xs leading-6 text-gray-500">
-                Use email and password, or continue with GitHub/Google for a quicker sign-in flow.
+            <div className="relative mb-6">
+                <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-slate-200" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white px-2 text-slate-400">
+                        Commenter sign-in
+                    </span>
+                </div>
             </div>
 
             <form onSubmit={submit}>
@@ -112,6 +122,17 @@ export default function Login({
                     </PrimaryButton>
                 </div>
             </form>
+
+            <p className="mt-6 text-center text-xs text-slate-400">
+                No account yet?{' '}
+                <Link
+                    href={route('register')}
+                    className="font-medium text-slate-600 underline hover:text-slate-900"
+                >
+                    Create a commenter account
+                </Link>
+                .
+            </p>
         </GuestLayout>
     );
 }

@@ -43,7 +43,25 @@ class BlogCommentThread extends Model
     }
 
     /**
+     * Visible comment count for the current viewer.
+     *
+     * Admins see everything; commenters only see their own comments.
+     */
+    public function visibleCommentCountForViewer(?\App\Models\User $viewer): int
+    {
+        $query = $this->comments();
+
+        if ($viewer && ! $viewer->isAdmin()) {
+            $query->where('user_id', $viewer->id);
+        }
+
+        return $query->count();
+    }
+
+    /**
      * Convert flat comment records into a nested tree for the UI.
+     *
+     * Admins see every comment. Non-admin (commenter) users see only their own.
      *
      * @return array<int, array<string, mixed>>
      */
@@ -53,6 +71,19 @@ class BlogCommentThread extends Model
             ->with('user')
             ->orderBy('created_at')
             ->get();
+
+        $viewer = auth()->user();
+        $isAdmin = $viewer && method_exists($viewer, 'isAdmin') && $viewer->isAdmin();
+
+        if (! $isAdmin) {
+            $allowedUserIds = $viewer ? [intval($viewer->id)] : [];
+
+            $comments = $comments->filter(function ($comment) use ($allowedUserIds) {
+                $authorId = optional($comment->user)->id;
+
+                return $authorId !== null && in_array(intval($authorId), $allowedUserIds, true);
+            })->values();
+        }
 
         return $this->buildTree($comments);
     }
