@@ -17,15 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'role' => function ($request, $next, string $role) {
-                $user = $request->user();
-
-                if (! $user || $user->role !== $role) {
-                    abort(403, 'Unauthorized.');
-                }
-
-                return $next($request);
-            },
+            'role' => \App\Http\Middleware\CheckRole::class,
         ]);
 
         // Exclude Resend webhook from CSRF protection
