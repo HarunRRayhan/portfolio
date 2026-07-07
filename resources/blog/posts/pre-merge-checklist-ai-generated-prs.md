@@ -8,7 +8,6 @@ coverImageUrl: "/blog-assets/pre-merge-checklist-ai-generated-prs/cover.jpg"
 reactionCount: 0
 responseCount: 0
 replyCount: 0
-draft: true
 tags:
   - name: AWS
     slug: aws
@@ -19,8 +18,7 @@ tags:
   - name: Terraform
     slug: terraform
   - name: CI/CD
-    slug: ci-cd
----
+    slug: ci-cd---
 
 <p>I have been leaning hard into AI coding agents for the last few months. Claude Code, Copilot, the whole stack. They generate Terraform, Lambda handlers, CI workflows, and blog content. And honestly? They are shockingly productive.</p>
 
