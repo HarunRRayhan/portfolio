@@ -2,8 +2,8 @@
 title: "Lambda SnapStart with Terraform - Cutting Cold Starts Without the Hacks"
 slug: "lambda-snapstart-terraform-cold-starts"
 brief: "How to enable Lambda SnapStart for Java and Python runtimes using Terraform, measure cold start improvements, and compare costs against provisioned concurrency."
-publishedAt: "2026-12-31T09:00:00.000Z"
-draft: true
+publishedAt: "2026-07-07T09:00:00.000Z"
+draft: false
 draftToken: "d3fd357370f1507e39d4f97edd9f2ba9"
 readTimeInMinutes: 8
 coverImageUrl: "/blog-assets/lambda-snapstart-terraform-cold-starts/cover.jpg"
