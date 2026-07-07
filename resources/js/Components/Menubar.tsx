@@ -4,7 +4,7 @@ import * as React from 'react'
 import { Link, router, usePage } from '@inertiajs/react'
 import { cn } from '@/lib/utils'
 import { Logo } from './Logo'
-import { ArrowRight, Calendar, LogOut, Menu, User } from 'lucide-react'
+import { Calendar, ChevronDown, LogOut, Menu, User } from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger } from '@/Components/ui/sheet'
 
 type MenuItem = {
@@ -23,9 +23,11 @@ const menuItems: MenuItem[] = [
 
 export function Menubar() {
   const [isScrolled, setIsScrolled] = React.useState(false)
+  const [profileOpen, setProfileOpen] = React.useState(false)
   const { url } = usePage()
   const pathname = url.split('?')[0]
   const user = usePage().props.auth?.user as { name?: string; email?: string } | null | undefined
+  const profileRef = React.useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
     if (typeof window === 'undefined') return
@@ -34,12 +36,23 @@ export function Menubar() {
       setIsScrolled(window.scrollY > 24)
     }
 
+    const handleClickOutside = (e: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false)
+      }
+    }
+
     window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
   }, [])
 
   const handleLogout = () => {
     router.post('/logout')
+    setProfileOpen(false)
   }
 
   const isActive = (href: string) => {
@@ -92,39 +105,52 @@ export function Menubar() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
+          <Link href="/book">
+            <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 active:scale-[0.97]">
+              <Calendar className="h-3.5 w-3.5" />
+              Book a session
+            </button>
+          </Link>
+
           {user ? (
-            <div className="flex items-center gap-3">
-              <Link
-                href="/dashboard"
-                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-white"
-              >
-                <User className="h-3.5 w-3.5" />
-                {user.name?.split(' ')[0] ?? 'Account'}
-              </Link>
+            <div className="relative" ref={profileRef}>
               <button
-                onClick={handleLogout}
-                className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 active:scale-[0.97]"
-                aria-label="Log out"
+                onClick={() => setProfileOpen(!profileOpen)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
               >
-                <LogOut className="h-3.5 w-3.5" />
-                Log out
+                <User className="h-4 w-4" />
+                <span className="max-w-[100px] truncate">{user.name?.split(' ')[0] ?? 'Account'}</span>
+                <ChevronDown className={cn('h-3.5 w-3.5 transition', profileOpen && 'rotate-180')} />
               </button>
+
+              {profileOpen && (
+                <div className="absolute right-0 top-full z-50 mt-2 w-48 origin-top-right rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg">
+                  <Link
+                    href="/dashboard"
+                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100"
+                    onClick={() => setProfileOpen(false)}
+                  >
+                    <User className="h-4 w-4" />
+                    Dashboard
+                  </Link>
+                  <hr className="my-1 border-slate-100" />
+                  <button
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 transition hover:bg-red-50"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign out
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
-            <>
-              <Link
-                href="/login"
-                className="inline-flex items-center rounded-full px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
-              >
-                Sign in
-              </Link>
-              <Link href="/book">
-                <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 active:scale-[0.97]">
-                  <Calendar className="h-3.5 w-3.5" />
-                  Book a session
-                </button>
-              </Link>
-            </>
+            <Link
+              href="/login"
+              className="inline-flex items-center rounded-full px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
+            >
+              Sign in
+            </Link>
           )}
         </div>
 
@@ -159,29 +185,45 @@ export function Menubar() {
               <div className="mt-6 border-t border-slate-200 pt-6">
                 {user ? (
                   <div className="flex flex-col gap-2">
+                    <div className="px-1 pb-1">
+                      <p className="text-sm font-medium text-slate-900">{user.name ?? 'Account'}</p>
+                      <p className="text-xs text-slate-500">{user.email}</p>
+                    </div>
                     <Link
                       href="/dashboard"
                       className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                      onClick={() => {
+                        const closeBtn = document.querySelector('[data-radix-collection-item]')
+                        ;(closeBtn as HTMLButtonElement)?.click()
+                      }}
                     >
                       <User className="h-4 w-4" />
-                      {user.name?.split(' ')[0] ?? 'Account'}
+                      Dashboard
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-red-200 px-4 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-50"
                     >
                       <LogOut className="h-4 w-4" />
-                      Log out
+                      Sign out
                     </button>
                   </div>
                 ) : (
+                  <Link href="/login">
+                    <button className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                      <User className="h-4 w-4" />
+                      Sign in
+                    </button>
+                  </Link>
+                )}
+                <div className="mt-3">
                   <Link href="/book">
                     <button className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800">
                       <Calendar className="h-4 w-4" />
                       Book a session
                     </button>
                   </Link>
-                )}
+                </div>
               </div>
             </SheetContent>
           </Sheet>
