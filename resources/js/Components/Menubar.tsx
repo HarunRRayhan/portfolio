@@ -116,11 +116,11 @@ export function Menubar() {
             <div className="relative" ref={profileRef}>
               <button
                 onClick={() => setProfileOpen(!profileOpen)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
               >
-                <User className="h-4 w-4" />
-                <span className="max-w-[100px] truncate">{user.name?.split(' ')[0] ?? 'Account'}</span>
-                <ChevronDown className={cn('h-3.5 w-3.5 transition', profileOpen && 'rotate-180')} />
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-800 text-xs font-semibold text-white">
+                  {(user.name?.charAt(0) ?? '?').toUpperCase()}
+                </span>
               </button>
 
               {profileOpen && (
@@ -147,9 +147,9 @@ export function Menubar() {
           ) : (
             <Link
               href="/login"
-              className="inline-flex items-center rounded-full px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
             >
-              Sign in
+              <User className="h-4 w-4" />
             </Link>
           )}
         </div>
