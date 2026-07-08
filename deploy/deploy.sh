@@ -538,8 +538,9 @@ cd "$REPO_ROOT"
 
 # Empty out public/build/assets if it exists
 if [ -d "public/build/assets" ]; then
-  echo "[INFO] Emptying public/build/assets before build..."
-  rm -rf public/build/assets/*
+  echo "[INFO] Note: public/build/assets already exists; Vite will overwrite stale files."
+  # Intentionally NOT clearing this directory — a failed deploy after clearing and before
+  # uploading to R2 would leave the CDN with no assets, causing a blank white page.
 fi
 
 # Backup existing .env file if it exists
@@ -583,7 +584,7 @@ export AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
 
 # Ensure proper content types for different file types
 echo "Uploading build assets with proper content types..."
-aws s3 sync "$REPO_ROOT/public/build" "s3://$R2_BUCKET_NAME/build" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+aws s3 sync "$REPO_ROOT/public/build" "s3://$R2_BUCKET_NAME/build" --endpoint-url "$R2_S3_ENDPOINT" --acl public-read
 
 # Upload JS files with proper content type
 echo "Setting proper content types for JavaScript files..."
@@ -600,8 +601,8 @@ find "$REPO_ROOT/public/build" -name "*.css" -type f | while read -r file; do
 done
 
 # Upload other static assets
-aws s3 sync "$REPO_ROOT/public/fonts" "s3://$R2_BUCKET_NAME/fonts" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
-aws s3 sync "$REPO_ROOT/public/images" "s3://$R2_BUCKET_NAME/images" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+aws s3 sync "$REPO_ROOT/public/fonts" "s3://$R2_BUCKET_NAME/fonts" --endpoint-url "$R2_S3_ENDPOINT" --acl public-read
+aws s3 sync "$REPO_ROOT/public/images" "s3://$R2_BUCKET_NAME/images" --endpoint-url "$R2_S3_ENDPOINT" --acl public-read
 
 success "Static assets uploaded to Cloudflare R2."
 
