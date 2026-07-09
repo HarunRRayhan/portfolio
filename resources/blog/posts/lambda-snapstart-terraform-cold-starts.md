@@ -53,7 +53,7 @@ tags:
 <h3>Basic Configuration</h3>
 <p>You enable SnapStart on the Lambda function resource with the <code>snap_start</code> block and set the <code>apply_on</code> value to <code>PublishedVersions</code>. SnapStart only works on published versions, not the <code>$LATEST</code> alias.</p>
 
-<pre><code>resource "aws_lambda_function" "api" {
+<pre><code class="language-hcl">resource "aws_lambda_function" "api" {
   filename      = "function.zip"
   function_name = "my-api-function"
   role          = aws_iam_role.lambda.arn
@@ -87,7 +87,7 @@ output "lambda_version" {
 <h3>Publishing Versions and Aliases</h3>
 <p>You need to explicitly publish a version and point your alias at it. I use <code>aws_lambda_function</code> with <code>publish = true</code> to auto-publish on every deploy, then create an alias for my staging/production traffic.</p>
 
-<pre><code>resource "aws_lambda_function" "api" {
+<pre><code class="language-hcl">resource "aws_lambda_function" "api" {
   filename         = "function.zip"
   function_name    = "my-api-function"
   role             = aws_iam_role.lambda.arn
@@ -118,7 +118,7 @@ resource "aws_lambda_function_event_invoke_config" "prod" {
 <h3>Python Example</h3>
 <p>The Python configuration is identical. The same <code>snap_start</code> block works for any supported runtime.</p>
 
-<pre><code>resource "aws_lambda_function" "inference" {
+<pre><code class="language-hcl">resource "aws_lambda_function" "inference" {
   filename         = "function.zip"
   function_name    = "inference-processor"
   role             = aws_iam_role.lambda.arn
@@ -166,7 +166,7 @@ resource "aws_lambda_alias" "prod" {
 
 <p>You can measure this yourself with CloudWatch Logs. Look for the <code>Init Duration</code> field in the REPORT log line:</p>
 
-<pre><code>REPORT RequestId: abc-123  Duration: 45.12 ms  Billed Duration: 46 ms
+<pre><code class="language-plaintext">REPORT RequestId: abc-123  Duration: 45.12 ms  Billed Duration: 46 ms
   Memory Size: 1024 MB  Max Memory Used: 178 MB
   Init Duration: 180.23 ms</code></pre>
 
@@ -174,7 +174,7 @@ resource "aws_lambda_alias" "prod" {
 
 <p>You can query this at scale with a CloudWatch Logs Insights query:</p>
 
-<pre><code>filter @type = "REPORT"
+<pre><code class="language-sql">filter @type = "REPORT"
 | stats avg(@initDuration) as avgInit,
         pct(@initDuration, 95) as p95Init,
         pct(@initDuration, 99) as p99Init
@@ -198,7 +198,7 @@ resource "aws_lambda_alias" "prod" {
 
 <p>For Java, you register a <code>com.amazonaws.services.lambda.runtime.snapstart.SnapStartRestoreListener</code>:</p>
 
-<pre><code>public class MyRestoreHook implements SnapStartRestoreListener {
+<pre><code class="language-java">public class MyRestoreHook implements SnapStartRestoreListener {
     @Override
     public void restore() {
         // Refresh database connections
