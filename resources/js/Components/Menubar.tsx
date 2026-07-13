@@ -4,7 +4,7 @@ import * as React from 'react'
 import { Link, router, usePage } from '@inertiajs/react'
 import { cn } from '@/lib/utils'
 import { Logo } from './Logo'
-import { Calendar, ChevronDown, LogOut, Menu, User } from 'lucide-react'
+import { Calendar, ChevronDown, ExternalLink, LogOut, Menu, User } from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger } from '@/Components/ui/sheet'
 
 type MenuItem = {
@@ -21,13 +21,23 @@ const menuItems: MenuItem[] = [
   { name: 'Contact', href: '/contact' },
 ]
 
+const products = [
+  { name: 'Toolblip', href: 'https://toolblip.com', tagline: 'Website & brand monitoring' },
+  { name: 'Ploy.cloud', href: 'https://ploy.cloud', tagline: 'Cloud platform engineering' },
+  { name: 'Crontinel', href: 'https://crontinel.com', tagline: 'Cron job monitoring & alerts' },
+  { name: 'Appnary', href: 'https://appnary.com', tagline: 'Directory of hand-picked apps' },
+  { name: 'Amazing Plugins', href: 'https://amazingplugins.com', tagline: 'Premium Laravel plugins' },
+]
+
 export function Menubar() {
   const [isScrolled, setIsScrolled] = React.useState(false)
   const [profileOpen, setProfileOpen] = React.useState(false)
+  const [productsOpen, setProductsOpen] = React.useState(false)
   const { url } = usePage()
   const pathname = url.split('?')[0]
   const user = usePage().props.auth?.user as { name?: string; email?: string } | null | undefined
   const profileRef = React.useRef<HTMLDivElement>(null)
+  const productsRef = React.useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
     if (typeof window === 'undefined') return
@@ -39,6 +49,9 @@ export function Menubar() {
     const handleClickOutside = (e: MouseEvent) => {
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
         setProfileOpen(false)
+      }
+      if (productsRef.current && !productsRef.current.contains(e.target as Node)) {
+        setProductsOpen(false)
       }
     }
 
@@ -105,6 +118,46 @@ export function Menubar() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
+          {/* Products dropdown */}
+          <div className="relative" ref={productsRef}>
+            <button
+              onClick={() => setProductsOpen(!productsOpen)}
+              onMouseEnter={() => setProductsOpen(true)}
+              className={cn(
+                'inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
+                productsOpen
+                  ? 'bg-slate-900 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+              )}
+            >
+              Products
+              <ChevronDown className={cn('h-3.5 w-3.5 transition-transform duration-200', productsOpen && 'rotate-180')} />
+            </button>
+
+            {productsOpen && (
+              <div
+                className="absolute right-0 top-full z-50 mt-2 w-56 origin-top-right rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg"
+                onMouseLeave={() => setProductsOpen(false)}
+              >
+                {products.map((product) => (
+                  <a
+                    key={product.name}
+                    href={product.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm text-slate-700 transition hover:bg-slate-100"
+                  >
+                    <div>
+                      <p className="font-medium">{product.name}</p>
+                      <p className="text-xs text-slate-500">{product.tagline}</p>
+                    </div>
+                    <ExternalLink className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+
           <Link href="/book">
             <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 active:scale-[0.97]">
               <Calendar className="h-3.5 w-3.5" />
@@ -182,6 +235,26 @@ export function Menubar() {
                   )
                 })}
               </nav>
+              <div className="mt-4 border-t border-slate-200 pt-4">
+                <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Products</p>
+                <div className="flex flex-col gap-1">
+                  {products.map((product) => (
+                    <a
+                      key={product.name}
+                      href={product.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm text-slate-700 transition hover:bg-slate-100"
+                    >
+                      <div>
+                        <p className="font-medium">{product.name}</p>
+                        <p className="text-xs text-slate-500">{product.tagline}</p>
+                      </div>
+                      <ExternalLink className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                    </a>
+                  ))}
+                </div>
+              </div>
               <div className="mt-6 border-t border-slate-200 pt-6">
                 {user ? (
                   <div className="flex flex-col gap-2">
