@@ -103,33 +103,7 @@ export function Menubar() {
               )
             })}
 
-            {/* Products — simple nav link to /products page */}
-            <Link
-              href="/products"
-              className={cn(
-                'rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
-                isActive('/products')
-                  ? 'bg-slate-900 text-white shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
-              )}
-            >
-              Products
-            </Link>
-
-            {/* Contact — standalone */}
-            <Link
-              href="/contact"
-              className={cn(
-                'rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
-                isActive('/contact')
-                  ? 'bg-slate-900 text-white shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
-              )}
-            >
-              Contact
-            </Link>
-
-            {/* More dropdown (Blog, About) */}
+            {/* More dropdown (Blog, About, Products) */}
             <div className="relative" ref={moreRef}>
               <button
                 onClick={() => setMoreOpen(!moreOpen)}
@@ -233,7 +207,7 @@ export function Menubar() {
             </SheetTrigger>
             <SheetContent side="right" className="w-72 border-slate-200 p-6 pt-12">
               <nav className="flex flex-col gap-1">
-                {[...mainNavItems, { name: 'Products', href: '/products' }, { name: 'Contact', href: '/contact' }].map((item) => {
+                {[...mainNavItems, { name: 'Contact', href: '/contact' }].map((item) => {
                   const active = isActive(item.href)
                   return (
                     <Link

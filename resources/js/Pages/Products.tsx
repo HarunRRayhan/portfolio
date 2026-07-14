@@ -1,81 +1,92 @@
 import { Head, Link } from "@inertiajs/react"
 import { cn } from "@/lib/utils"
-import { ExternalLink, Globe, Cloud, Bell, Grid3X3, Puzzle } from "lucide-react"
+import { ExternalLink, Globe, Cloud, Bell, Grid3X3, Puzzle, Wrench, Link as LinkIcon } from "lucide-react"
 
 const products = [
   {
     name: "Toolblip",
     url: "https://toolblip.com",
-    tagline: "Website & brand monitoring",
-    icon: Globe,
+    tagline: "Free online developer tools",
+    icon: Wrench,
     iconBg: "bg-blue-50 text-blue-600",
     description:
-      "Monitor your websites, APIs, and brand mentions in real time. Get instant alerts when something goes down, your SSL is about to expire, or your brand is mentioned online. Toolblip helps you stay on top of your digital presence without the noise.",
+      "A collection of 1,565 free developer tools that run entirely in your browser. JSON formatters, Base64 encoders, QR generators, word counters, SEO tools, and more. No signup, no tracking, no server round-trips — just paste and go. Privacy-first, nothing leaves your browser.",
     benefits: [
-      "Uptime monitoring with global checkpoints",
-      "SSL certificate expiry alerts",
-      "Brand mention tracking across the web",
-      "Slack, email, and webhook notifications",
+      "1,565 tools across 18 categories",
+      "100% free, no signup required",
+      "Runs in your browser — no data leaves your machine",
+      "Privacy-first: no tracking, no uploads",
     ],
+    extraLinks: [],
   },
   {
-    name: "Ploy.cloud",
+    name: "PloyCloud",
     url: "https://ploy.cloud",
-    tagline: "Cloud platform engineering",
+    tagline: "Managed hosting for Laravel, WordPress, PHP, and Node.js",
     icon: Cloud,
     iconBg: "bg-amber-50 text-amber-600",
     description:
-      "A curated platform for cloud engineers who want to ship faster. Ploy.cloud provides battle-tested Terraform modules, CI/CD templates, and architecture blueprints drawn from real production environments.",
+      "Deploy Laravel, WordPress, PHP, and Node.js apps to AWS, Google Cloud, DigitalOcean, Vultr, or your own server in minutes. Docker-powered automation handles provisioning, SSL, security, database setup, and zero-downtime releases. Connect your code repository, pick your cloud provider, and deploy — no DevOps expertise required.",
     benefits: [
-      "Production-grade Terraform modules",
-      "CI/CD pipeline templates for AWS",
-      "Architecture decision records",
-      "Cloud cost optimization playbooks",
+      "Deploy to AWS, GCP, DigitalOcean, Vultr, or custom servers",
+      "Docker-powered automation with zero-downtime releases",
+      "Automatic SSL, security, and database setup",
+      "No markup on cloud costs — you pay your provider directly",
     ],
+    extraLinks: [],
   },
   {
     name: "Crontinel",
     url: "https://crontinel.com",
-    tagline: "Cron job monitoring & alerts",
+    tagline: "Cron, queue, and background job monitoring",
     icon: Bell,
     iconBg: "bg-emerald-50 text-emerald-600",
     description:
-      "Never miss a scheduled task again. Crontinel monitors your cron jobs, scheduled tasks, and background workers so you know instantly when something fails, stalls, or runs longer than expected.",
+      "Open-source monitoring that goes beyond uptime pings. Crontinel hooks into your scheduler, queue driver, and agent runner to track job runs, queue depth, worker state, model latency, and agent tool calls. Detects silently failed cron jobs, crashed workers, and agent loops in under 60 seconds. No per-task wrapping required — one SDK hooks everything.",
     benefits: [
-      "Heartbeat monitoring for any scheduled task",
-      "Execution duration and anomaly tracking",
-      "Multi-channel alerts (email, Slack, SMS)",
-      "Historical run logs and uptime reporting",
+      "60-second detection of silent cron failures",
+      "Per-worker status, queue depth, and failed job rate",
+      "Zero per-task instrumentation — one SDK hooks in",
+      "Open-source (MIT), self-host or use cloud",
+    ],
+    extraLinks: [
+      { label: "GitHub", href: "https://github.com/crontinel/crontinel" },
+      { label: "Laravel package", href: "https://github.com/crontinel/laravel" },
     ],
   },
   {
     name: "Appnary",
     url: "https://appnary.com",
-    tagline: "Directory of hand-picked apps",
+    tagline: "Shopify apps for merchants",
     icon: Grid3X3,
     iconBg: "bg-purple-50 text-purple-600",
     description:
-      "A carefully curated directory of the best software tools and apps for developers, designers, and product teams. Every listing is hand-picked and reviewed so you spend less time searching and more time building.",
+      "Launching soon on the Shopify App Store. Simple, affordable tools built for Shopify merchants, not enterprise teams. First app: Pixel Tracker for tracking ad performance and ROAS directly in your Shopify dashboard. More apps in development.",
     benefits: [
-      "Hand-picked tools across every category",
-      "Honest reviews from real users",
-      "Comparison guides and alternatives",
-      "Weekly curated updates",
+      "Pixel Tracker — ad performance and ROAS tracking",
+      "Built for merchants, not enterprise teams",
+      "Simple, transparent pricing",
+      "More apps coming soon",
     ],
+    extraLinks: [],
   },
   {
     name: "Amazing Plugins",
     url: "https://amazingplugins.com",
-    tagline: "Premium Laravel plugins",
+    tagline: "Free WooCommerce plugins",
     icon: Puzzle,
     iconBg: "bg-rose-50 text-rose-600",
     description:
-      "High-quality, well-documented Laravel plugins and packages built with modern PHP practices. From admin panels to API toolkits, each plugin is production-tested and maintained for the long haul.",
+      "Small, sharp WooCommerce plugins built by a two-person studio. Each plugin solves one specific problem and gets out of the way. WooCommerce Accessibility Fixer fixes 10 common accessibility issues in one click. Stale Order Cleaner finds and deletes stale orders in bulk. All plugins are genuinely free — no product limits, no upgrade nagging, no hidden paywalls.",
     benefits: [
-      "Production-tested Laravel packages",
-      "Comprehensive documentation",
-      "Active maintenance and support",
-      "Modern PHP 8.x standards",
+      "WooCommerce Accessibility Fixer — 10 a11y fixes in one click",
+      "Stale Order Cleaner — bulk delete stale orders with dry-run preview",
+      "Every plugin is genuinely free, no bait-and-switch",
+      "Two-week release cadence with rollback on every plugin",
+    ],
+    extraLinks: [
+      { label: "GitHub (Stale Order Cleaner)", href: "https://github.com/AmazingPlugins/stale-order-cleaner-for-woocommerce" },
+      { label: "WordPress.org", href: "https://wordpress.org/plugins/woocommerce-accessibility-fixer/" },
     ],
   },
 ]
@@ -87,7 +98,7 @@ export default function Products() {
         <title>Products | Harun R. Rayhan</title>
         <meta
           name="description"
-          content="Products built by Harun R. Rayhan — Toolblip, Ploy.cloud, Crontinel, Appnary, and Amazing Plugins."
+          content="Products built by Harun R. Rayhan — Toolblip, PloyCloud, Crontinel, Appnary, and Amazing Plugins."
         />
       </Head>
 
@@ -100,8 +111,8 @@ export default function Products() {
               Tools I build and maintain
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-lg text-slate-600">
-              Every product here solves a problem I ran into myself. Some are monitoring tools, some are
-              directories, some are developer tooling. All of them are actively maintained.
+              Every product here solves a problem I ran into myself. Some are developer tools, some are
+              monitoring infrastructure, some are e-commerce plugins. All of them are actively maintained.
             </p>
           </div>
 
@@ -115,7 +126,7 @@ export default function Products() {
                   className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-8 shadow-sm transition-all hover:shadow-md sm:p-10"
                 >
                   <div className="flex items-start gap-5">
-                    {/* Logo */}
+                    {/* Logo icon */}
                     <div className={cn(
                       "flex h-14 w-14 shrink-0 items-center justify-center rounded-xl",
                       product.iconBg
@@ -137,7 +148,7 @@ export default function Products() {
                         ))}
                       </ul>
 
-                      <div className="mt-6">
+                      <div className="mt-6 flex flex-wrap items-center gap-3">
                         <a
                           href={product.url}
                           target="_blank"
@@ -147,6 +158,18 @@ export default function Products() {
                           Visit {product.name}
                           <ExternalLink className="h-3.5 w-3.5" />
                         </a>
+                        {product.extraLinks.map((link) => (
+                          <a
+                            key={link.label}
+                            href={link.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+                          >
+                            <LinkIcon className="h-3.5 w-3.5" />
+                            {link.label}
+                          </a>
+                        ))}
                       </div>
                     </div>
                   </div>
