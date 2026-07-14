@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1.0"
+   width="1210pt"
+   height="200pt"
+   viewBox="0 0 1210 200"
+   preserveAspectRatio="xMidYMid"
+   id="svg13"
+   sodipodi:docname="logo-full-v5.svg"
+   inkscape:version="1.4.2 (ebf0e940, 2025-05-08)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs13">
+    <!-- Fonts removed for security - using system fonts -->
+  </defs>
+  <sodipodi:namedview
+     id="namedview13"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="pt"
+     inkscape:zoom="0.55016785"
+     inkscape:cx="906.99593"
+     inkscape:cy="201.75661"
+     inkscape:window-width="1728"
+     inkscape:window-height="1051"
+     inkscape:window-x="0"
+     inkscape:window-y="38"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg13" />
+  <g
+     transform="matrix(0.12861826,0,0,-0.1377774,-372.03367,476.72923)"
+     fill="#3b82f6"
+     stroke="none"
+     id="g13">
+    <path
+       d="m 6100,3359 c -87,-8 -151,-32 -232,-86 -85,-56 -147,-126 -194,-220 -22,-43 -43,-72 -50,-69 -35,13 -107,16 -160,7 -91,-17 -174,-63 -237,-131 l -55,-59 -308,-11 c -170,-6 -399,-15 -509,-20 -110,-5 -220,-10 -244,-10 -24,0 -42,-2 -39,-5 5,-5 264,-17 748,-35 162,-6 300,-13 306,-15 8,-2 9,-17 4,-45 -4,-22 -9,-42 -11,-44 -4,-4 -263,-15 -924,-41 -418,-16 -588,-25 -583,-30 5,-6 1048,-36 1903,-55 l 420,-9 34,-38 c 19,-21 62,-68 97,-104 l 63,-66 -21,-42 c -11,-22 -42,-64 -69,-93 -27,-29 -49,-53 -49,-53 0,-1 195,1 433,3 397,4 437,6 491,24 156,51 255,164 286,325 33,167 -65,358 -223,435 -71,35 -126,47 -214,48 h -71 l -7,41 c -4,22 -22,70 -41,107 -103,204 -307,313 -544,291 z m 469,-483 c 18,-21 -4,-111 -50,-205 -47,-95 -111,-165 -249,-272 -132,-103 -114,-103 -214,1 -71,73 -85,93 -77,108 5,9 69,76 143,148 110,107 148,138 209,167 116,57 216,80 238,53 z m -479,-193 c -1,-5 -31,-41 -68,-80 l -67,-73 -39,11 c -21,6 -55,8 -75,4 l -36,-6 76,76 76,75 h 67 c 36,0 66,-3 66,-7 z m 246,-329 c -3,-26 -6,-56 -6,-66 0,-18 -114,-148 -129,-148 -4,0 -6,36 -6,81 l 1,81 64,49 c 36,27 69,49 74,49 5,0 6,-21 2,-46 z"
+       id="path1" />
+    <path
+       d="m 6308,2740 c -25,-26 -29,-36 -24,-63 13,-70 94,-100 141,-52 37,36 34,86 -6,119 -41,34 -73,33 -111,-4 z"
+       id="path2" />
+    <path
+       d="m 4915,2399 c -453,-8 -1278,-26 -1678,-35 -153,-4 -274,-10 -270,-14 16,-14 2188,-54 2609,-48 l 240,3 52,43 c 29,24 52,48 52,53 0,10 -415,10 -1005,-2 z"
+       id="path3" />
+    <path
+       d="m 5955,2270 c -16,-11 -50,-30 -75,-42 -50,-23 -76,-25 -910,-48 -212,-6 -515,-18 -675,-25 -159,-8 -330,-15 -380,-16 -80,-1 -86,-2 -50,-11 24,-5 422,-10 985,-11 l 945,-2 53,24 c 32,15 71,44 102,78 66,72 68,95 5,53 z"
+       id="path4" />
+  </g>
+  <text
+     xml:space="preserve"
+     style="font-size:126.549px;line-height:0;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#333333;stroke-width:0.878811"
+     x="941.05499"
+     y="141.95187"
+     id="text14"
+     transform="scale(0.93858447,1.0654342)"><tspan
+       sodipodi:role="line"
+       id="tspan14"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:135px;line-height:0;font-family:Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;-inkscape-font-specification:'Inter, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;stroke-width:0.878811"
+       x="941.05499"
+       y="141.95187">ploycloud</tspan></text>
+</svg>
