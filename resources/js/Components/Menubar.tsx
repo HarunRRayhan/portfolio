@@ -7,18 +7,10 @@ import { Logo } from './Logo'
 import { Calendar, ChevronDown, ExternalLink, LogOut, Menu, User } from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger } from '@/Components/ui/sheet'
 
-type MenuItem = {
-  name: string
-  href: string
-}
-
-const menuItems: MenuItem[] = [
+const mainNavItems = [
   { name: 'Home', href: '/' },
   { name: 'Case Studies', href: '/case-studies' },
   { name: 'Services', href: '/services' },
-  { name: 'Blog', href: '/blog' },
-  { name: 'About', href: '/about' },
-  { name: 'Contact', href: '/contact' },
 ]
 
 const products = [
@@ -29,15 +21,24 @@ const products = [
   { name: 'Amazing Plugins', href: 'https://amazingplugins.com', tagline: 'Premium Laravel plugins' },
 ]
 
+const moreItems = [
+  { name: 'Blog', href: '/blog' },
+  { name: 'About', href: '/about' },
+  { name: 'Contact', href: '/contact' },
+]
+
 export function Menubar() {
   const [isScrolled, setIsScrolled] = React.useState(false)
   const [profileOpen, setProfileOpen] = React.useState(false)
   const [productsOpen, setProductsOpen] = React.useState(false)
+  const [moreOpen, setMoreOpen] = React.useState(false)
+  const [mobileProductsOpen, setMobileProductsOpen] = React.useState(false)
+  const [mobileMoreOpen, setMobileMoreOpen] = React.useState(false)
   const { url } = usePage()
   const pathname = url.split('?')[0]
   const user = usePage().props.auth?.user as { name?: string; email?: string } | null | undefined
   const profileRef = React.useRef<HTMLDivElement>(null)
-  const productsRef = React.useRef<HTMLDivElement>(null)
+  const dropdownRef = React.useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
     if (typeof window === 'undefined') return
@@ -50,8 +51,9 @@ export function Menubar() {
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
         setProfileOpen(false)
       }
-      if (productsRef.current && !productsRef.current.contains(e.target as Node)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setProductsOpen(false)
+        setMoreOpen(false)
       }
     }
 
@@ -69,12 +71,38 @@ export function Menubar() {
   }
 
   const isActive = (href: string) => {
-    if (href === '/') {
-      return pathname === '/'
-    }
-
+    if (href === '/') return pathname === '/'
     return pathname === href || pathname.startsWith(`${href}/`)
   }
+
+  // Shared dropdown item for products
+  const ProductItems = () => (
+    <>
+      {products.map((product) => (
+        <a
+          key={product.name}
+          href={product.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm text-slate-700 transition hover:bg-slate-100"
+        >
+          <div>
+            <p className="font-medium">{product.name}</p>
+            <p className="text-xs text-slate-500">{product.tagline}</p>
+          </div>
+          <ExternalLink className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+        </a>
+      ))}
+      <hr className="my-1 border-slate-200" />
+      <Link
+        href="/products"
+        className="flex items-center rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+        onClick={() => setProductsOpen(false)}
+      >
+        All Products
+      </Link>
+    </>
+  )
 
   return (
     <header
@@ -94,11 +122,11 @@ export function Menubar() {
           </div>
         </Link>
 
+        {/* Desktop nav */}
         <nav className="hidden justify-self-center lg:flex lg:w-full lg:justify-center">
           <div className="inline-flex items-center gap-1 rounded-full border border-slate-200/80 bg-white/60 p-1 shadow-sm backdrop-blur-sm">
-            {menuItems.map((item) => {
+            {mainNavItems.map((item) => {
               const active = isActive(item.href)
-
               return (
                 <Link
                   key={item.name}
@@ -114,50 +142,77 @@ export function Menubar() {
                 </Link>
               )
             })}
+
+            {/* Products dropdown (inline) */}
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => { setProductsOpen(!productsOpen); setMoreOpen(false) }}
+                onMouseEnter={() => { setProductsOpen(true); setMoreOpen(false) }}
+                className={cn(
+                  'inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
+                  productsOpen || isActive('/products')
+                    ? 'bg-slate-900 text-white shadow-sm'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+                )}
+              >
+                Products
+                <ChevronDown className={cn('h-3.5 w-3.5 transition-transform duration-200', productsOpen && 'rotate-180')} />
+              </button>
+              {productsOpen && (
+                <div
+                  className="absolute left-0 top-full z-50 mt-2 w-56 origin-top-left rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg"
+                  onMouseLeave={() => setProductsOpen(false)}
+                >
+                  <ProductItems />
+                </div>
+              )}
+            </div>
+
+            {/* More dropdown (Blog, About, Contact) */}
+            <div className="relative">
+              <button
+                onClick={() => { setMoreOpen(!moreOpen); setProductsOpen(false) }}
+                onMouseEnter={() => { setMoreOpen(true); setProductsOpen(false) }}
+                className={cn(
+                  'inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
+                  moreOpen || moreItems.some(i => isActive(i.href))
+                    ? 'bg-slate-900 text-white shadow-sm'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+                )}
+              >
+                More
+                <ChevronDown className={cn('h-3.5 w-3.5 transition-transform duration-200', moreOpen && 'rotate-180')} />
+              </button>
+              {moreOpen && (
+                <div
+                  className="absolute left-0 top-full z-50 mt-2 w-44 origin-top-left rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg"
+                  onMouseLeave={() => setMoreOpen(false)}
+                >
+                  {moreItems.map((item) => {
+                    const active = isActive(item.href)
+                    return (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className={cn(
+                          'flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition',
+                          active
+                            ? 'bg-slate-100 text-slate-900'
+                            : 'text-slate-700 hover:bg-slate-100',
+                        )}
+                        onClick={() => setMoreOpen(false)}
+                      >
+                        {item.name}
+                      </Link>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          {/* Products dropdown */}
-          <div className="relative" ref={productsRef}>
-            <button
-              onClick={() => setProductsOpen(!productsOpen)}
-              onMouseEnter={() => setProductsOpen(true)}
-              className={cn(
-                'inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
-                productsOpen
-                  ? 'bg-slate-900 text-white shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
-              )}
-            >
-              Products
-              <ChevronDown className={cn('h-3.5 w-3.5 transition-transform duration-200', productsOpen && 'rotate-180')} />
-            </button>
-
-            {productsOpen && (
-              <div
-                className="absolute right-0 top-full z-50 mt-2 w-56 origin-top-right rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg"
-                onMouseLeave={() => setProductsOpen(false)}
-              >
-                {products.map((product) => (
-                  <a
-                    key={product.name}
-                    href={product.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm text-slate-700 transition hover:bg-slate-100"
-                  >
-                    <div>
-                      <p className="font-medium">{product.name}</p>
-                      <p className="text-xs text-slate-500">{product.tagline}</p>
-                    </div>
-                    <ExternalLink className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                  </a>
-                ))}
-              </div>
-            )}
-          </div>
-
           <Link href="/book">
             <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 active:scale-[0.97]">
               <Calendar className="h-3.5 w-3.5" />
@@ -217,7 +272,7 @@ export function Menubar() {
             </SheetTrigger>
             <SheetContent side="right" className="w-72 border-slate-200 p-6 pt-12">
               <nav className="flex flex-col gap-1">
-                {menuItems.map((item) => {
+                {[...mainNavItems, ...moreItems].map((item) => {
                   const active = isActive(item.href)
                   return (
                     <Link
@@ -235,26 +290,43 @@ export function Menubar() {
                   )
                 })}
               </nav>
+
+              {/* Mobile products section */}
               <div className="mt-4 border-t border-slate-200 pt-4">
-                <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Products</p>
-                <div className="flex flex-col gap-1">
-                  {products.map((product) => (
-                    <a
-                      key={product.name}
-                      href={product.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm text-slate-700 transition hover:bg-slate-100"
+                <button
+                  onClick={() => setMobileProductsOpen(!mobileProductsOpen)}
+                  className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+                >
+                  Products
+                  <ChevronDown className={cn('h-4 w-4 transition-transform duration-200', mobileProductsOpen && 'rotate-180')} />
+                </button>
+                {mobileProductsOpen && (
+                  <div className="ml-2 mt-1 flex flex-col gap-1 border-l-2 border-slate-100 pl-2">
+                    {products.map((product) => (
+                      <a
+                        key={product.name}
+                        href={product.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-slate-600 transition hover:bg-slate-100"
+                      >
+                        <div>
+                          <p className="font-medium">{product.name}</p>
+                          <p className="text-xs text-slate-400">{product.tagline}</p>
+                        </div>
+                        <ExternalLink className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                      </a>
+                    ))}
+                    <Link
+                      href="/products"
+                      className="rounded-lg px-3 py-2 text-sm font-medium text-amber-600 transition hover:bg-slate-100"
                     >
-                      <div>
-                        <p className="font-medium">{product.name}</p>
-                        <p className="text-xs text-slate-500">{product.tagline}</p>
-                      </div>
-                      <ExternalLink className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                    </a>
-                  ))}
-                </div>
+                      All Products →
+                    </Link>
+                  </div>
+                )}
               </div>
+
               <div className="mt-6 border-t border-slate-200 pt-6">
                 {user ? (
                   <div className="flex flex-col gap-2">
@@ -265,10 +337,6 @@ export function Menubar() {
                     <Link
                       href="/dashboard"
                       className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-                      onClick={() => {
-                        const closeBtn = document.querySelector('[data-radix-collection-item]')
-                        ;(closeBtn as HTMLButtonElement)?.click()
-                      }}
                     >
                       <User className="h-4 w-4" />
                       Dashboard

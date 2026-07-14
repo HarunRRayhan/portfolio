@@ -93,6 +93,10 @@ Route::get('/about', function () {
     return Inertia::render('About');
 })->name('about');
 
+Route::get('/products', function () {
+    return Inertia::render('Products');
+})->name('products');
+
 Route::get('/services', function () {
     return Inertia::render('Services');
 })->name('services');
