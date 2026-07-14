@@ -1,11 +1,14 @@
 import { Head, Link } from "@inertiajs/react"
-import { ExternalLink } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { ExternalLink, Globe, Cloud, Bell, Grid3X3, Puzzle } from "lucide-react"
 
 const products = [
   {
     name: "Toolblip",
     url: "https://toolblip.com",
     tagline: "Website & brand monitoring",
+    icon: Globe,
+    iconBg: "bg-blue-50 text-blue-600",
     description:
       "Monitor your websites, APIs, and brand mentions in real time. Get instant alerts when something goes down, your SSL is about to expire, or your brand is mentioned online. Toolblip helps you stay on top of your digital presence without the noise.",
     benefits: [
@@ -19,8 +22,10 @@ const products = [
     name: "Ploy.cloud",
     url: "https://ploy.cloud",
     tagline: "Cloud platform engineering",
+    icon: Cloud,
+    iconBg: "bg-amber-50 text-amber-600",
     description:
-      "A curated platform for cloud engineers who want to ship faster. Ploy.cloud provides battle-tested Terraform modules, CI/CD templates, and architecture blueprints drawn from real production environments — not theoretical white papers.",
+      "A curated platform for cloud engineers who want to ship faster. Ploy.cloud provides battle-tested Terraform modules, CI/CD templates, and architecture blueprints drawn from real production environments.",
     benefits: [
       "Production-grade Terraform modules",
       "CI/CD pipeline templates for AWS",
@@ -32,6 +37,8 @@ const products = [
     name: "Crontinel",
     url: "https://crontinel.com",
     tagline: "Cron job monitoring & alerts",
+    icon: Bell,
+    iconBg: "bg-emerald-50 text-emerald-600",
     description:
       "Never miss a scheduled task again. Crontinel monitors your cron jobs, scheduled tasks, and background workers so you know instantly when something fails, stalls, or runs longer than expected.",
     benefits: [
@@ -45,6 +52,8 @@ const products = [
     name: "Appnary",
     url: "https://appnary.com",
     tagline: "Directory of hand-picked apps",
+    icon: Grid3X3,
+    iconBg: "bg-purple-50 text-purple-600",
     description:
       "A carefully curated directory of the best software tools and apps for developers, designers, and product teams. Every listing is hand-picked and reviewed so you spend less time searching and more time building.",
     benefits: [
@@ -58,6 +67,8 @@ const products = [
     name: "Amazing Plugins",
     url: "https://amazingplugins.com",
     tagline: "Premium Laravel plugins",
+    icon: Puzzle,
+    iconBg: "bg-rose-50 text-rose-600",
     description:
       "High-quality, well-documented Laravel plugins and packages built with modern PHP practices. From admin panels to API toolkits, each plugin is production-tested and maintained for the long haul.",
     benefits: [
@@ -96,41 +107,52 @@ export default function Products() {
 
           {/* Product cards */}
           <div className="space-y-8">
-            {products.map((product) => (
-              <div
-                key={product.name}
-                className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-8 shadow-sm transition-all hover:shadow-md sm:p-10"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h2 className="text-2xl font-bold text-slate-900">{product.name}</h2>
-                    <p className="mt-1 text-base font-medium text-amber-600">{product.tagline}</p>
-                    <p className="mt-3 text-slate-600 leading-relaxed">{product.description}</p>
+            {products.map((product) => {
+              const Icon = product.icon
+              return (
+                <div
+                  key={product.name}
+                  className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-8 shadow-sm transition-all hover:shadow-md sm:p-10"
+                >
+                  <div className="flex items-start gap-5">
+                    {/* Logo */}
+                    <div className={cn(
+                      "flex h-14 w-14 shrink-0 items-center justify-center rounded-xl",
+                      product.iconBg
+                    )}>
+                      <Icon className="h-7 w-7" />
+                    </div>
 
-                    <ul className="mt-5 grid gap-2 sm:grid-cols-2">
-                      {product.benefits.map((benefit) => (
-                        <li key={benefit} className="flex items-start gap-2 text-sm text-slate-600">
-                          <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
-                          {benefit}
-                        </li>
-                      ))}
-                    </ul>
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-2xl font-bold text-slate-900">{product.name}</h2>
+                      <p className="mt-0.5 text-base font-medium text-amber-600">{product.tagline}</p>
+                      <p className="mt-3 text-slate-600 leading-relaxed">{product.description}</p>
+
+                      <ul className="mt-5 grid gap-2 sm:grid-cols-2">
+                        {product.benefits.map((benefit) => (
+                          <li key={benefit} className="flex items-start gap-2 text-sm text-slate-600">
+                            <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
+                            {benefit}
+                          </li>
+                        ))}
+                      </ul>
+
+                      <div className="mt-6">
+                        <a
+                          href={product.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 active:scale-[0.97]"
+                        >
+                          Visit {product.name}
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                <div className="mt-6 flex items-center gap-4 border-t border-slate-100 pt-5">
-                  <a
-                    href={product.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 active:scale-[0.97]"
-                  >
-                    Visit {product.name}
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           {/* Bottom CTA */}

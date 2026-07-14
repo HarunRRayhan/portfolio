@@ -13,32 +13,22 @@ const mainNavItems = [
   { name: 'Services', href: '/services' },
 ]
 
-const products = [
-  { name: 'Toolblip', href: 'https://toolblip.com', tagline: 'Website & brand monitoring' },
-  { name: 'Ploy.cloud', href: 'https://ploy.cloud', tagline: 'Cloud platform engineering' },
-  { name: 'Crontinel', href: 'https://crontinel.com', tagline: 'Cron job monitoring & alerts' },
-  { name: 'Appnary', href: 'https://appnary.com', tagline: 'Directory of hand-picked apps' },
-  { name: 'Amazing Plugins', href: 'https://amazingplugins.com', tagline: 'Premium Laravel plugins' },
-]
-
 const moreItems = [
   { name: 'Blog', href: '/blog' },
   { name: 'About', href: '/about' },
-  { name: 'Contact', href: '/contact' },
+  { name: 'Products', href: '/products' },
 ]
 
 export function Menubar() {
   const [isScrolled, setIsScrolled] = React.useState(false)
   const [profileOpen, setProfileOpen] = React.useState(false)
-  const [productsOpen, setProductsOpen] = React.useState(false)
   const [moreOpen, setMoreOpen] = React.useState(false)
-  const [mobileProductsOpen, setMobileProductsOpen] = React.useState(false)
   const [mobileMoreOpen, setMobileMoreOpen] = React.useState(false)
   const { url } = usePage()
   const pathname = url.split('?')[0]
   const user = usePage().props.auth?.user as { name?: string; email?: string } | null | undefined
   const profileRef = React.useRef<HTMLDivElement>(null)
-  const dropdownRef = React.useRef<HTMLDivElement>(null)
+  const moreRef = React.useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
     if (typeof window === 'undefined') return
@@ -51,8 +41,7 @@ export function Menubar() {
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
         setProfileOpen(false)
       }
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setProductsOpen(false)
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
         setMoreOpen(false)
       }
     }
@@ -74,35 +63,6 @@ export function Menubar() {
     if (href === '/') return pathname === '/'
     return pathname === href || pathname.startsWith(`${href}/`)
   }
-
-  // Shared dropdown item for products
-  const ProductItems = () => (
-    <>
-      {products.map((product) => (
-        <a
-          key={product.name}
-          href={product.href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm text-slate-700 transition hover:bg-slate-100"
-        >
-          <div>
-            <p className="font-medium">{product.name}</p>
-            <p className="text-xs text-slate-500">{product.tagline}</p>
-          </div>
-          <ExternalLink className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-        </a>
-      ))}
-      <hr className="my-1 border-slate-200" />
-      <Link
-        href="/products"
-        className="flex items-center rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
-        onClick={() => setProductsOpen(false)}
-      >
-        All Products
-      </Link>
-    </>
-  )
 
   return (
     <header
@@ -143,36 +103,37 @@ export function Menubar() {
               )
             })}
 
-            {/* Products dropdown (inline) */}
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => { setProductsOpen(!productsOpen); setMoreOpen(false) }}
-                onMouseEnter={() => { setProductsOpen(true); setMoreOpen(false) }}
-                className={cn(
-                  'inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
-                  productsOpen || isActive('/products')
-                    ? 'bg-slate-900 text-white shadow-sm'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
-                )}
-              >
-                Products
-                <ChevronDown className={cn('h-3.5 w-3.5 transition-transform duration-200', productsOpen && 'rotate-180')} />
-              </button>
-              {productsOpen && (
-                <div
-                  className="absolute left-0 top-full z-50 mt-2 w-56 origin-top-left rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg"
-                  onMouseLeave={() => setProductsOpen(false)}
-                >
-                  <ProductItems />
-                </div>
+            {/* Products — simple nav link to /products page */}
+            <Link
+              href="/products"
+              className={cn(
+                'rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
+                isActive('/products')
+                  ? 'bg-slate-900 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
               )}
-            </div>
+            >
+              Products
+            </Link>
 
-            {/* More dropdown (Blog, About, Contact) */}
-            <div className="relative">
+            {/* Contact — standalone */}
+            <Link
+              href="/contact"
+              className={cn(
+                'rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
+                isActive('/contact')
+                  ? 'bg-slate-900 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+              )}
+            >
+              Contact
+            </Link>
+
+            {/* More dropdown (Blog, About) */}
+            <div className="relative" ref={moreRef}>
               <button
-                onClick={() => { setMoreOpen(!moreOpen); setProductsOpen(false) }}
-                onMouseEnter={() => { setMoreOpen(true); setProductsOpen(false) }}
+                onClick={() => setMoreOpen(!moreOpen)}
+                onMouseEnter={() => setMoreOpen(true)}
                 className={cn(
                   'inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
                   moreOpen || moreItems.some(i => isActive(i.href))
@@ -272,7 +233,7 @@ export function Menubar() {
             </SheetTrigger>
             <SheetContent side="right" className="w-72 border-slate-200 p-6 pt-12">
               <nav className="flex flex-col gap-1">
-                {[...mainNavItems, ...moreItems].map((item) => {
+                {[...mainNavItems, { name: 'Products', href: '/products' }, { name: 'Contact', href: '/contact' }].map((item) => {
                   const active = isActive(item.href)
                   return (
                     <Link
@@ -291,38 +252,34 @@ export function Menubar() {
                 })}
               </nav>
 
-              {/* Mobile products section */}
+              {/* Mobile more section */}
               <div className="mt-4 border-t border-slate-200 pt-4">
                 <button
-                  onClick={() => setMobileProductsOpen(!mobileProductsOpen)}
+                  onClick={() => setMobileMoreOpen(!mobileMoreOpen)}
                   className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
                 >
-                  Products
-                  <ChevronDown className={cn('h-4 w-4 transition-transform duration-200', mobileProductsOpen && 'rotate-180')} />
+                  More
+                  <ChevronDown className={cn('h-4 w-4 transition-transform duration-200', mobileMoreOpen && 'rotate-180')} />
                 </button>
-                {mobileProductsOpen && (
+                {mobileMoreOpen && (
                   <div className="ml-2 mt-1 flex flex-col gap-1 border-l-2 border-slate-100 pl-2">
-                    {products.map((product) => (
-                      <a
-                        key={product.name}
-                        href={product.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-slate-600 transition hover:bg-slate-100"
-                      >
-                        <div>
-                          <p className="font-medium">{product.name}</p>
-                          <p className="text-xs text-slate-400">{product.tagline}</p>
-                        </div>
-                        <ExternalLink className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                      </a>
-                    ))}
-                    <Link
-                      href="/products"
-                      className="rounded-lg px-3 py-2 text-sm font-medium text-amber-600 transition hover:bg-slate-100"
-                    >
-                      All Products →
-                    </Link>
+                    {moreItems.map((item) => {
+                      const active = isActive(item.href)
+                      return (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          className={cn(
+                            'rounded-lg px-3 py-2 text-sm font-medium transition',
+                            active
+                              ? 'bg-slate-100 text-slate-900'
+                              : 'text-slate-600 hover:bg-slate-100',
+                          )}
+                        >
+                          {item.name}
+                        </Link>
+                      )
+                    })}
                   </div>
                 )}
               </div>
