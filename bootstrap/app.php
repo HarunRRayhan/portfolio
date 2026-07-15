@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Exclude Resend webhook from CSRF protection
         $middleware->validateCsrfTokens(except: [
             'resend/*',
+            'blog/*/view',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
