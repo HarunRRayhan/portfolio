@@ -326,7 +326,16 @@ Route::post('/blog/{slug}/view', function (string $slug) {
     if ((bool) ($post['draft'] ?? false)) {
         abort(404);
     }
-    $count = Illuminate\Support\Facades\Cache::increment("post.views.".$slug);
+    // Persist to database immediately, warm the cache
+    $now = \Illuminate\Support\Carbon::now();
+    \Illuminate\Support\Facades\DB::table('blog_post_views')->upsert(
+        ['slug' => $slug, 'count' => 1, 'created_at' => $now, 'updated_at' => $now],
+        'slug',
+        ['count' => \Illuminate\Support\Facades\DB::raw('blog_post_views.count + 1'), 'updated_at' => $now]
+    );
+    $viewRow = \Illuminate\Support\Facades\DB::table('blog_post_views')->where('slug', $slug)->first(['count']);
+    $count = $viewRow ? (int) $viewRow->count : 0;
+    \Illuminate\Support\Facades\Cache::put("post.views.".$slug, $count, 3600);
     return response()->json(['views' => $count]);
 })->name('blog.view');
 

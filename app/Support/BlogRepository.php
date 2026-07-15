@@ -111,7 +111,17 @@ class BlogRepository
             'responseCount' => $post['responseCount'],
             'replyCount' => $post['replyCount'],
             'coverImageUrl' => $post['coverImageUrl'] ?? null,
-            'viewCount' => Cache::remember("post.views.{$post['slug']}", 3600, fn () => 0),
+            'viewCount' => Cache::remember("post.views.{$post['slug']}", 3600, function () use ($post) {
+                try {
+                    $row = \Illuminate\Support\Facades\DB::table('blog_post_views')
+                        ->where('slug', $post['slug'])
+                        ->first(['count']);
+
+                    return $row ? (int) $row->count : 0;
+                } catch (\Throwable) {
+                    return 0;
+                }
+            }),
             'isDraft' => (bool) ($post['draft'] ?? false),
             'draftPreviewUrl' => $this->previewUrl($post['slug']),
             'tags' => collect($post['tags'] ?? [])
