@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
-import { Head, Link } from '@inertiajs/react'
+import React, { useCallback, useEffect, useState } from 'react'
+import { Head, Link, usePage } from '@inertiajs/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getImageUrl } from '@/lib/imageUtils'
-import { ArrowUpRight } from 'lucide-react'
+import { ArrowUpRight, Check, Copy } from 'lucide-react'
 import { bioIcon } from '@/lib/bioIcons'
 
 interface BioLink {
@@ -15,17 +15,23 @@ interface BioLink {
 const isInternal = (url: string) => url.startsWith('/')
 const isMailto = (url: string) => url.startsWith('mailto:') || url.startsWith('tel:')
 
-/** Tidy up a raw tab value for display — "Social Media" stays, "default" becomes "Links". */
+/** Tidy tab value for display — "default" becomes "Links". */
 const displayTab = (tab: string): string => (tab === 'default' ? 'Links' : tab)
 
-// Bio is a standalone link-in-bio page — no nav, no footer chrome.
+const SOCIAL_ICONS = ['instagram', 'tiktok', 'facebook', 'linkedin', 'x', 'twitter', 'youtube']
+
 export default function Bio({ links = [] }: { links?: BioLink[] }) {
+  const { url } = usePage()
   const canonicalUrl = typeof window !== 'undefined' ? window.location.href : 'https://harun.dev/bio'
 
-  // Group links by tab, preserving insertion order
+  // Separate social (icon-only row) from regular (tabbed) links
+  const socialLinks = links.filter((l) => SOCIAL_ICONS.includes(l.icon))
+  const regularLinks = links.filter((l) => !SOCIAL_ICONS.includes(l.icon))
+
+  // Group regular links by tab, preserving insertion order
   const tabMap = new Map<string, BioLink[]>()
   const tabOrder: string[] = []
-  for (const link of links) {
+  for (const link of regularLinks) {
     const t = link.tab || 'default'
     if (!tabMap.has(t)) {
       tabMap.set(t, [])
@@ -34,8 +40,45 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
     tabMap.get(t)!.push(link)
   }
 
-  const [activeTab, setActiveTab] = useState(tabOrder[0] || 'default')
+  // Determine initial tab from URL query param, default to first
+  const initialTab = (() => {
+    const match = url.match(/[?&]tab=([^&]+)/)
+    if (match) {
+      const decoded = decodeURIComponent(match[1])
+      if (tabOrder.includes(decoded)) return decoded
+    }
+    return tabOrder[0] || 'default'
+  })()
+
+  const [activeTab, setActiveTab] = useState(initialTab)
+  const [copiedTab, setCopiedTab] = useState<string | null>(null)
   const currentLinks = tabMap.get(activeTab) ?? []
+
+  // Sync URL when tab changes (replaceState, no page reload)
+  useEffect(() => {
+    const base = window.location.pathname
+    const params = new URLSearchParams(window.location.search)
+    if (activeTab === tabOrder[0] || (!activeTab && tabOrder.length <= 1)) {
+      params.delete('tab')
+    } else {
+      params.set('tab', activeTab)
+    }
+    const qs = params.toString()
+    const newUrl = qs ? `${base}?${qs}` : base
+    window.history.replaceState(null, '', newUrl)
+  }, [activeTab, tabOrder])
+
+  const copyTabLink = useCallback(
+    (tab: string) => {
+      const base = window.location.origin + window.location.pathname
+      const shareUrl = tab === tabOrder[0] ? base : `${base}?tab=${encodeURIComponent(tab)}`
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        setCopiedTab(tab)
+        setTimeout(() => setCopiedTab(null), 2000)
+      })
+    },
+    [tabOrder],
+  )
 
   return (
     <>
@@ -88,6 +131,29 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
                 </p>
               </div>
 
+              {/* Scrollable social icons row (icons only) */}
+              {socialLinks.length > 0 && (
+                <div className="mt-4 w-full max-w-[340px]">
+                  <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                    {socialLinks.map((link) => {
+                      const Icon = bioIcon(link.icon)
+                      return (
+                        <a
+                          key={link.url}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex h-11 w-11 shrink-0 snap-start items-center justify-center rounded-2xl border border-white/10 bg-white/5 transition hover:bg-white/10 active:bg-white/15"
+                          aria-label={link.label}
+                        >
+                          <Icon className="h-5 w-5 text-blue-200" />
+                        </a>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
               <p className="mt-5 max-w-md text-sm leading-6 text-slate-300 sm:text-base">
                 I build and maintain practical cloud systems with a bias for clarity, reliability, and automation.
                 Portfolio work, blog posts, and contact details live here.
@@ -103,13 +169,33 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
                         key={tab}
                         type="button"
                         onClick={() => setActiveTab(tab)}
-                        className={`flex-1 whitespace-nowrap rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wider transition sm:text-sm ${
+                        className={`group relative flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider transition sm:text-sm ${
                           isActive
                             ? 'bg-blue-500/20 text-blue-200 shadow-sm'
                             : 'text-slate-400 hover:bg-white/5 hover:text-white'
                         }`}
                       >
                         {displayTab(tab)}
+
+                        {/* Copy link button (visible on hover of active tab) */}
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            copyTabLink(tab)
+                          }}
+                          className={`ml-1 inline-flex h-4 w-4 items-center justify-center rounded transition ${
+                            isActive
+                              ? 'opacity-60 hover:opacity-100 hover:bg-blue-400/20'
+                              : 'hidden'
+                          }`}
+                          title="Copy link to this tab"
+                        >
+                          {copiedTab === tab ? (
+                            <Check className="h-3 w-3 text-green-300" />
+                          ) : (
+                            <Copy className="h-3 w-3" />
+                          )}
+                        </span>
                       </button>
                     )
                   })}

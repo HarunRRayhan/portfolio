@@ -3,6 +3,8 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\BlogCommentController;
+use App\Http\Controllers\Admin\BioLinkController;
+use App\Models\BioLink;
 use App\Models\BlogCommentThread;
 use App\Support\BlogRepository;
 use App\Support\CaseStudyRepository;
@@ -85,8 +87,37 @@ Route::get('/admin', function () {
     ]);
 })->middleware(['auth', 'verified', 'role:admin'])->name('admin');
 
+// Admin CRUD for link-in-bio entries
+Route::middleware(['auth', 'verified', 'role:admin'])
+    ->prefix('admin/bio')
+    ->name('admin.bio.')
+    ->group(function () {
+        Route::get('/', [BioLinkController::class, 'index'])->name('index');
+        Route::get('/create', [BioLinkController::class, 'create'])->name('create');
+        Route::post('/', [BioLinkController::class, 'store'])->name('store');
+        Route::post('/reorder', [BioLinkController::class, 'reorder'])->name('reorder');
+        Route::get('/{bioLink}/edit', [BioLinkController::class, 'edit'])->name('edit');
+        Route::put('/{bioLink}', [BioLinkController::class, 'update'])->name('update');
+        Route::patch('/{bioLink}/toggle', [BioLinkController::class, 'toggle'])->name('toggle');
+        Route::delete('/{bioLink}', [BioLinkController::class, 'destroy'])->name('destroy');
+    });
+
+// Public link-in-bio landing page (DB-driven, no auth)
 Route::get('/bio', function () {
-    return Inertia::render('Bio');
+    $links = BioLink::query()
+        ->active()
+        ->orderBy('priority')
+        ->orderBy('id')
+        ->get(['label', 'url', 'icon', 'tab'])
+        ->map(fn (BioLink $link) => [
+            'label' => $link->label,
+            'url' => $link->url,
+            'icon' => $link->icon,
+            'tab' => $link->tab ?? 'default',
+        ])
+        ->all();
+
+    return Inertia::render('Bio', ['links' => $links]);
 })->name('bio');
 
 Route::get('/about', function () {
