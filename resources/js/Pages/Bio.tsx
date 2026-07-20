@@ -1,23 +1,41 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Head, Link } from '@inertiajs/react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { getImageUrl } from '@/lib/imageUtils'
-import { BookOpen, Home, MessageCircle } from 'lucide-react'
-import { Github, Linkedin, Mail, Twitter } from '@/lib/icons'
+import { ArrowUpRight } from 'lucide-react'
+import { bioIcon } from '@/lib/bioIcons'
 
-const links = [
-  { href: '/', label: 'Home', icon: Home, internal: true },
-  { href: '/blog', label: 'Blog', icon: BookOpen, internal: true },
-  { href: '/contact', label: 'Contact', icon: MessageCircle, internal: true },
-  { href: 'https://github.com/HarunRRayhan', label: 'GitHub', icon: Github },
-  { href: 'https://www.linkedin.com/in/harunrrayhan/', label: 'LinkedIn', icon: Linkedin },
-  { href: 'https://x.com/HarunRRayhan', label: 'X', icon: Twitter },
-  { href: 'mailto:me@harun.dev?subject=Hello%20Harun', label: 'Email', icon: Mail },
-]
+interface BioLink {
+  label: string
+  url: string
+  icon: string
+  tab: string
+}
 
-// Bio is a standalone link-in-bio page — no nav, no footer
-export default function Bio() {
+const isInternal = (url: string) => url.startsWith('/')
+const isMailto = (url: string) => url.startsWith('mailto:') || url.startsWith('tel:')
+
+/** Tidy up a raw tab value for display — "Social Media" stays, "default" becomes "Links". */
+const displayTab = (tab: string): string => (tab === 'default' ? 'Links' : tab)
+
+// Bio is a standalone link-in-bio page — no nav, no footer chrome.
+export default function Bio({ links = [] }: { links?: BioLink[] }) {
   const canonicalUrl = typeof window !== 'undefined' ? window.location.href : 'https://harun.dev/bio'
+
+  // Group links by tab, preserving insertion order
+  const tabMap = new Map<string, BioLink[]>()
+  const tabOrder: string[] = []
+  for (const link of links) {
+    const t = link.tab || 'default'
+    if (!tabMap.has(t)) {
+      tabMap.set(t, [])
+      tabOrder.push(t)
+    }
+    tabMap.get(t)!.push(link)
+  }
+
+  const [activeTab, setActiveTab] = useState(tabOrder[0] || 'default')
+  const currentLinks = tabMap.get(activeTab) ?? []
 
   return (
     <>
@@ -44,25 +62,30 @@ export default function Bio() {
         <link rel="canonical" href={canonicalUrl} />
       </Head>
 
-      <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 px-4 py-12 text-white sm:px-6 lg:px-8">
+      <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 px-4 py-10 text-white sm:px-6 sm:py-12 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-xl items-center"
+          className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-xl flex-col items-center"
         >
-          <div className="w-full rounded-3xl border border-white/10 bg-white/10 p-6 shadow-2xl shadow-slate-950/30 backdrop-blur md:p-8">
+          <div className="w-full rounded-3xl border border-white/10 bg-white/10 p-5 shadow-2xl shadow-slate-950/30 backdrop-blur sm:p-6 md:p-8">
             <div className="flex flex-col items-center text-center">
               <img
                 src={getImageUrl('/images/profile/harun-profile.jpeg')}
                 alt="Harun R. Rayhan"
                 className="h-24 w-24 rounded-full border-4 border-white/15 object-cover shadow-lg"
+                loading="eager"
+                width={96}
+                height={96}
               />
 
               <div className="mt-5 space-y-2">
                 <p className="text-sm font-semibold uppercase tracking-[0.22em] text-blue-200/80">Harun.dev bio</p>
                 <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Harun R. Rayhan</h1>
-                <p className="text-sm text-slate-300 sm:text-base">AWS DevOps · CloudOps · Infrastructure Automation</p>
+                <p className="text-sm text-slate-300 sm:text-base">
+                  AWS DevOps · CloudOps · Infrastructure Automation
+                </p>
               </div>
 
               <p className="mt-5 max-w-md text-sm leading-6 text-slate-300 sm:text-base">
@@ -70,47 +93,104 @@ export default function Bio() {
                 Portfolio work, blog posts, and contact details live here.
               </p>
 
-              <div className="mt-8 grid w-full gap-3">
-                {links.map(({ href, label, icon: Icon, internal }) => {
-                  const className =
-                    'flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm font-medium text-white transition hover:border-blue-300/50 hover:bg-white/10 hover:-translate-y-0.5'
+              {/* Tab navigation */}
+              {tabOrder.length > 1 && (
+                <nav aria-label="Link categories" className="mt-6 flex w-full gap-1.5 overflow-x-auto rounded-xl border border-white/10 bg-white/5 p-1">
+                  {tabOrder.map((tab) => {
+                    const isActive = tab === activeTab
+                    return (
+                      <button
+                        key={tab}
+                        type="button"
+                        onClick={() => setActiveTab(tab)}
+                        className={`flex-1 whitespace-nowrap rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wider transition sm:text-sm ${
+                          isActive
+                            ? 'bg-blue-500/20 text-blue-200 shadow-sm'
+                            : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                        }`}
+                      >
+                        {displayTab(tab)}
+                      </button>
+                    )
+                  })}
+                </nav>
+              )}
 
-                  const content = (
-                    <>
-                      <span className="flex items-center gap-3">
-                        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/15 text-blue-200">
-                          <Icon className="h-4 w-4" />
-                        </span>
-                        <span>{label}</span>
-                      </span>
-                      <span className="text-xs uppercase tracking-[0.18em] text-slate-400">Open</span>
-                    </>
-                  )
+              {/* Link cards for active tab */}
+              <nav aria-label={`${displayTab(activeTab)} links`} className="mt-6 grid w-full gap-3">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeTab}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.2 }}
+                    className="grid w-full gap-3"
+                  >
+                    {currentLinks.map((link) => {
+                      const Icon = bioIcon(link.icon)
+                      const internal = isInternal(link.url)
+                      const mailish = isMailto(link.url)
 
-                  return internal ? (
-                    <Link key={label} href={href} className={className}>
-                      {content}
-                    </Link>
-                  ) : (
-                    <a
-                      key={label}
-                      href={href}
-                      target={href.startsWith('mailto:') ? undefined : '_blank'}
-                      rel={href.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
-                      className={className}
-                    >
-                      {content}
-                    </a>
-                  )
-                })}
-              </div>
+                      const className =
+                        'group flex min-h-[56px] items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3.5 text-left text-sm font-medium text-white transition hover:-translate-y-0.5 hover:border-blue-300/50 hover:bg-white/10 active:translate-y-0'
+
+                      const content = (
+                        <>
+                          <span className="flex min-w-0 items-center gap-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-500/15 text-blue-200">
+                              <Icon className="h-4 w-4" />
+                            </span>
+                            <span className="truncate">{link.label}</span>
+                          </span>
+                          <ArrowUpRight className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:text-blue-200" />
+                        </>
+                      )
+
+                      if (internal) {
+                        return (
+                          <Link key={`${link.label}-${link.url}`} href={link.url} className={className}>
+                            {content}
+                          </Link>
+                        )
+                      }
+
+                      return (
+                        <a
+                          key={`${link.label}-${link.url}`}
+                          href={link.url}
+                          target={mailish ? undefined : '_blank'}
+                          rel={mailish ? undefined : 'noopener noreferrer'}
+                          className={className}
+                        >
+                          {content}
+                        </a>
+                      )
+                    })}
+                  </motion.div>
+                </AnimatePresence>
+
+                {currentLinks.length === 0 && (
+                  <p className="rounded-2xl border border-dashed border-white/15 px-4 py-6 text-center text-sm text-slate-400">
+                    No links in this category yet.
+                  </p>
+                )}
+              </nav>
             </div>
           </div>
+
+          <footer className="mt-6 text-center text-xs text-slate-400">
+            <a href="https://harun.dev" className="transition hover:text-slate-200">
+              harun.dev
+            </a>
+            <span className="mx-2 text-slate-600">·</span>
+            <span>© {new Date().getFullYear()} Harun R. Rayhan</span>
+          </footer>
         </motion.div>
       </main>
     </>
   )
 }
 
-// Override the default PublicLayout — Bio is standalone
-;(Bio as any).layout = null
+// Override the default PublicLayout — Bio is standalone (no site nav/footer).
+;(Bio as any).layout = (page: React.ReactNode) => page
