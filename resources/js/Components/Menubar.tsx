@@ -17,6 +17,7 @@ const moreItems = [
   { name: 'Blog', href: '/blog' },
   { name: 'About', href: '/about' },
   { name: 'Products', href: '/products' },
+  { name: 'Bio', href: '/bio' },
 ]
 
 export function Menubar() {
