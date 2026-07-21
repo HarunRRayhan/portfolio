@@ -12,6 +12,7 @@ class BioLinkClick extends Model
     protected $fillable = [
         'bio_link_id',
         'ip_address',
+        'country',
         'user_agent',
         'referer',
     ];

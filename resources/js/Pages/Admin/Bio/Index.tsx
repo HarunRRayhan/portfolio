@@ -1,7 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, Link, router } from '@inertiajs/react'
 import { useEffect, useState } from 'react'
-import { ExternalLink, GripVertical, Pencil, Plus, Trash2 } from 'lucide-react'
+import { BarChart3, ExternalLink, GripVertical, Pencil, Plus, Trash2 } from 'lucide-react'
 import { bioIcon } from '@/lib/bioIcons'
 
 interface BioLinkRecord {
@@ -69,13 +69,22 @@ export default function Index({ links }: { links: BioLinkRecord[] }) {
                 View public page ↗
               </a>
             </p>
-            <Link
-              href="/admin/bio/create"
-              className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
-            >
-              <Plus className="h-4 w-4" />
-              Add link
-            </Link>
+            <div className="flex shrink-0 items-center gap-2">
+              <Link
+                href="/admin/bio/analytics"
+                className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50"
+              >
+                <BarChart3 className="h-4 w-4" />
+                Analytics
+              </Link>
+              <Link
+                href="/admin/bio/create"
+                className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
+              >
+                <Plus className="h-4 w-4" />
+                Add link
+              </Link>
+            </div>
           </div>
 
           <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">

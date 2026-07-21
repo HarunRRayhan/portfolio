@@ -7,16 +7,21 @@ export default function Create() {
     label: '',
     url: '',
     icon: 'link',
+    thumbnail: null,
+    featured: false,
+    remove_thumbnail: false,
     tab: 'default',
     tab_slug: '',
     priority: 100,
     expires_at: '',
     is_active: true,
+    include_countries: [],
+    exclude_countries: [],
   })
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
-    post('/admin/bio')
+    post('/admin/bio', { forceFormData: true })
   }
 
   return (

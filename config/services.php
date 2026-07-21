@@ -47,4 +47,13 @@ return [
         ],
     ],
 
+    'maxmind' => [
+        // Local GeoLite2-Country database used to geo-target bio links. When the
+        // file is absent every lookup returns null and links fall back to being
+        // shown, so this is optional. See `php artisan geoip:update`.
+        'database' => env('MAXMIND_DATABASE', storage_path('app/geoip/GeoLite2-Country.mmdb')),
+        'license_key' => env('MAXMIND_LICENSE_KEY'),
+        'account_id' => env('MAXMIND_ACCOUNT_ID'),
+    ],
+
 ];

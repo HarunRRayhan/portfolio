@@ -8,6 +8,7 @@ use App\Models\BioLink;
 use App\Models\BlogCommentThread;
 use App\Support\BlogRepository;
 use App\Support\CaseStudyRepository;
+use App\Services\CountryResolver;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -93,6 +94,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])
     ->name('admin.bio.')
     ->group(function () {
         Route::get('/', [BioLinkController::class, 'index'])->name('index');
+        Route::get('/analytics', [BioLinkController::class, 'analytics'])->name('analytics');
         Route::get('/create', [BioLinkController::class, 'create'])->name('create');
         Route::post('/', [BioLinkController::class, 'store'])->name('store');
         Route::post('/reorder', [BioLinkController::class, 'reorder'])->name('reorder');
@@ -103,17 +105,23 @@ Route::middleware(['auth', 'verified', 'role:admin'])
     });
 
 // Public link-in-bio landing page (DB-driven, no auth)
-Route::get('/bio', function () {
+Route::get('/bio', function (Request $request, CountryResolver $countries) {
+    $country = $countries->resolve($request->ip());
+
     $links = BioLink::query()
         ->active()
         ->orderBy('priority')
         ->orderBy('id')
-        ->get(['id', 'label', 'url', 'icon', 'tab', 'tab_slug'])
+        ->get(['id', 'label', 'url', 'icon', 'thumbnail_path', 'featured', 'tab', 'tab_slug', 'include_countries', 'exclude_countries'])
+        ->filter(fn (BioLink $link) => $link->isVisibleInCountry($country))
+        ->values()
         ->map(fn (BioLink $link) => [
             'id' => $link->id,
             'label' => $link->label,
             'url' => $link->url,
             'icon' => $link->icon,
+            'thumbnail_url' => $link->thumbnail_url,
+            'featured' => (bool) $link->featured,
             'tab' => $link->tab ?? 'default',
             'tab_slug' => $link->tab_slug ?? Str::slug($link->tab ?? 'default'),
         ])
@@ -123,7 +131,7 @@ Route::get('/bio', function () {
 });
 
 // Click tracking for bio links (no auth needed)
-Route::post('/bio/click', function (Request $request) {
+Route::post('/bio/click', function (Request $request, CountryResolver $countries) {
     $data = $request->validate([
         'id' => ['required', 'integer', 'exists:bio_links,id'],
     ]);
@@ -131,6 +139,7 @@ Route::post('/bio/click', function (Request $request) {
     App\Models\BioLinkClick::create([
         'bio_link_id' => $data['id'],
         'ip_address' => $request->ip(),
+        'country' => $countries->resolve($request->ip()),
         'user_agent' => $request->userAgent(),
         'referer' => $request->header('referer'),
     ]);
