@@ -121,6 +121,7 @@ class BioLinkController extends Controller
             'url' => $link->url,
             'icon' => $link->icon,
             'tab' => $link->tab,
+            'tab_slug' => $link->tab_slug,
             'priority' => $link->priority,
             'expires_at' => $link->expires_at?->format('Y-m-d\TH:i'),
             'is_active' => (bool) $link->is_active,

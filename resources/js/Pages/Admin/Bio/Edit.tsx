@@ -1,0 +1,56 @@
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
+import { Head, useForm } from '@inertiajs/react'
+import BioLinkForm, { type BioLinkFormData } from './Partials/BioLinkForm'
+
+interface BioLinkRecord {
+  id: number
+  label: string
+  url: string
+  icon: string
+  tab: string | null
+  tab_slug: string | null
+  priority: number
+  expires_at: string | null
+  is_active: boolean
+}
+
+export default function Edit({ link }: { link: BioLinkRecord }) {
+  const { data, setData, put, processing, errors } = useForm<BioLinkFormData>({
+    label: link.label,
+    url: link.url,
+    icon: link.icon ?? 'link',
+    tab: link.tab ?? 'default',
+    tab_slug: link.tab_slug ?? '',
+    priority: link.priority ?? 100,
+    expires_at: link.expires_at ?? '',
+    is_active: link.is_active,
+  })
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault()
+    put(`/admin/bio/${link.id}`)
+  }
+
+  return (
+    <AuthenticatedLayout
+      header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Edit Bio Link</h2>}
+    >
+      <Head title={`Edit · ${link.label}`} />
+
+      <div className="py-6 sm:py-12">
+        <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
+          <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+            <BioLinkForm
+              data={data}
+              setData={setData}
+              errors={errors}
+              processing={processing}
+              onSubmit={submit}
+              submitLabel="Save changes"
+            />
+          </div>
+        </div>
+      </div>
+    </AuthenticatedLayout>
+  )
+}

@@ -11,6 +11,7 @@ interface BioLink {
   url: string
   icon: string
   tab: string
+  tab_slug: string
 }
 
 const isInternal = (url: string) => url.startsWith('/')
@@ -43,56 +44,65 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
   const socialLinks = links.filter((l) => SOCIAL_ICONS.includes(l.icon))
   const regularLinks = links.filter((l) => !SOCIAL_ICONS.includes(l.icon))
 
-  // Group regular links by tab, preserving insertion order
-  const tabMap = new Map<string, BioLink[]>()
-  const tabOrder: string[] = []
+  // Group regular links by tab slug, preserving insertion order
+  interface TabGroup {
+    slug: string
+    label: string
+    links: BioLink[]
+  }
+  const tabGroups: TabGroup[] = []
+  const tabMap = new Map<string, TabGroup>()
   for (const link of regularLinks) {
-    const t = link.tab || 'default'
-    if (!tabMap.has(t)) {
-      tabMap.set(t, [])
-      tabOrder.push(t)
+    const slug = link.tab_slug || 'default'
+    const existing = tabMap.get(slug)
+    if (existing) {
+      existing.links.push(link)
+    } else {
+      const group: TabGroup = { slug, label: link.tab || 'default', links: [link] }
+      tabMap.set(slug, group)
+      tabGroups.push(group)
     }
-    tabMap.get(t)!.push(link)
   }
 
-  // Determine initial tab from URL query param, default to first
-  const initialTab = (() => {
+  // Determine initial tab slug from URL query param, default to first
+  const initialSlug = (() => {
     const match = url.match(/[?&]tab=([^&]+)/)
     if (match) {
       const decoded = decodeURIComponent(match[1])
-      if (tabOrder.includes(decoded)) return decoded
+      if (tabMap.has(decoded)) return decoded
     }
-    return tabOrder[0] || 'default'
+    return tabGroups[0]?.slug || 'default'
   })()
 
-  const [activeTab, setActiveTab] = useState(initialTab)
-  const [copiedTab, setCopiedTab] = useState<string | null>(null)
-  const currentLinks = tabMap.get(activeTab) ?? []
+  const [activeSlug, setActiveSlug] = useState(initialSlug)
+  const [copiedSlug, setCopiedSlug] = useState<string | null>(null)
+  const activeGroup = tabMap.get(activeSlug)
+  const currentLinks = activeGroup?.links ?? []
 
   // Sync URL when tab changes (replaceState, no page reload)
   useEffect(() => {
     const base = window.location.pathname
     const params = new URLSearchParams(window.location.search)
-    if (activeTab === tabOrder[0] || (!activeTab && tabOrder.length <= 1)) {
+    if (activeSlug === tabGroups[0]?.slug || tabGroups.length <= 1) {
       params.delete('tab')
     } else {
-      params.set('tab', activeTab)
+      params.set('tab', activeSlug)
     }
     const qs = params.toString()
     const newUrl = qs ? `${base}?${qs}` : base
     window.history.replaceState(null, '', newUrl)
-  }, [activeTab, tabOrder])
+  }, [activeSlug, tabGroups])
 
   const copyTabLink = useCallback(
-    (tab: string) => {
+    (slug: string) => {
       const base = window.location.origin + window.location.pathname
-      const shareUrl = tab === tabOrder[0] ? base : `${base}?tab=${encodeURIComponent(tab)}`
+      const shareUrl = slug === tabGroups[0]?.slug ? base : `${base}?tab=${encodeURIComponent(slug)}`
       navigator.clipboard.writeText(shareUrl).then(() => {
-        setCopiedTab(tab)
-        setTimeout(() => setCopiedTab(null), 2000)
+        setCopiedSlug(slug)
+        setTimeout(() => setCopiedSlug(null), 2000)
       })
     },
-    [tabOrder],
+    [tabGroups],
   )
 
   return (
@@ -176,28 +186,28 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
               </p>
 
               {/* Tab navigation */}
-              {tabOrder.length > 1 && (
+              {tabGroups.length > 1 && (
                 <nav aria-label="Link categories" className="mt-6 flex w-full gap-1.5 overflow-x-auto rounded-xl border border-white/10 bg-white/5 p-1">
-                  {tabOrder.map((tab) => {
-                    const isActive = tab === activeTab
+                  {tabGroups.map((group) => {
+                    const isActive = group.slug === activeSlug
                     return (
                       <button
-                        key={tab}
+                        key={group.slug}
                         type="button"
-                        onClick={() => setActiveTab(tab)}
+                        onClick={() => setActiveSlug(group.slug)}
                         className={`group relative flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider transition sm:text-sm ${
                           isActive
                             ? 'bg-blue-500/20 text-blue-200 shadow-sm'
                             : 'text-slate-400 hover:bg-white/5 hover:text-white'
                         }`}
                       >
-                        {displayTab(tab)}
+                        {displayTab(group.label)}
 
                         {/* Copy link button (visible on hover of active tab) */}
                         <span
                           onClick={(e) => {
                             e.stopPropagation()
-                            copyTabLink(tab)
+                            copyTabLink(group.slug)
                           }}
                           className={`ml-1 inline-flex h-4 w-4 items-center justify-center rounded transition ${
                             isActive
@@ -206,7 +216,7 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
                           }`}
                           title="Copy link to this tab"
                         >
-                          {copiedTab === tab ? (
+                          {copiedSlug === group.slug ? (
                             <Check className="h-3 w-3 text-green-300" />
                           ) : (
                             <Copy className="h-3 w-3" />
@@ -219,10 +229,10 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
               )}
 
               {/* Link cards for active tab */}
-              <nav aria-label={`${displayTab(activeTab)} links`} className="mt-6 grid w-full gap-3">
+              <nav aria-label={`${displayTab(activeGroup?.label ?? 'Links')} links`} className="mt-6 grid w-full gap-3">
                 <AnimatePresence mode="wait">
                   <motion.div
-                    key={activeTab}
+                    key={activeSlug}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}

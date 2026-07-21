@@ -108,13 +108,14 @@ Route::get('/bio', function () {
         ->active()
         ->orderBy('priority')
         ->orderBy('id')
-        ->get(['id', 'label', 'url', 'icon', 'tab'])
+        ->get(['id', 'label', 'url', 'icon', 'tab', 'tab_slug'])
         ->map(fn (BioLink $link) => [
             'id' => $link->id,
             'label' => $link->label,
             'url' => $link->url,
             'icon' => $link->icon,
             'tab' => $link->tab ?? 'default',
+            'tab_slug' => $link->tab_slug ?? Str::slug($link->tab ?? 'default'),
         ])
         ->all();
 
