@@ -94,6 +94,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])
     ->name('admin.bio.')
     ->group(function () {
         Route::get('/', [BioLinkController::class, 'index'])->name('index');
+        Route::get('/analytics', [BioLinkController::class, 'analytics'])->name('analytics');
         Route::get('/create', [BioLinkController::class, 'create'])->name('create');
         Route::post('/', [BioLinkController::class, 'store'])->name('store');
         Route::post('/reorder', [BioLinkController::class, 'reorder'])->name('reorder');
