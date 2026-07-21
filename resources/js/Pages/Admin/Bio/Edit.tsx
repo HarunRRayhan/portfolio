@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
-import { Head, useForm } from '@inertiajs/react'
+import { Head, router, useForm } from '@inertiajs/react'
 import BioLinkForm, { type BioLinkFormData } from './Partials/BioLinkForm'
 
 interface BioLinkRecord {
@@ -7,6 +7,8 @@ interface BioLinkRecord {
   label: string
   url: string
   icon: string
+  thumbnail_url: string | null
+  featured: boolean
   tab: string | null
   tab_slug: string | null
   priority: number
@@ -17,10 +19,13 @@ interface BioLinkRecord {
 }
 
 export default function Edit({ link }: { link: BioLinkRecord }) {
-  const { data, setData, put, processing, errors } = useForm<BioLinkFormData>({
+  const { data, setData, processing, errors } = useForm<BioLinkFormData>({
     label: link.label,
     url: link.url,
     icon: link.icon ?? 'link',
+    thumbnail: null,
+    featured: link.featured,
+    remove_thumbnail: false,
     tab: link.tab ?? 'default',
     tab_slug: link.tab_slug ?? '',
     priority: link.priority ?? 100,
@@ -32,7 +37,9 @@ export default function Edit({ link }: { link: BioLinkRecord }) {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
-    put(`/admin/bio/${link.id}`)
+    // PHP never populates $_FILES for PUT bodies, multipart or not, so a real
+    // file upload has to ride in on a POST with a spoofed _method instead.
+    router.post(`/admin/bio/${link.id}`, { ...data, _method: 'put' }, { forceFormData: true })
   }
 
   return (
@@ -51,6 +58,7 @@ export default function Edit({ link }: { link: BioLinkRecord }) {
               processing={processing}
               onSubmit={submit}
               submitLabel="Save changes"
+              existingThumbnailUrl={link.thumbnail_url}
             />
           </div>
         </div>

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -138,7 +139,14 @@ class BioLinkController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        BioLink::create($this->validateData($request));
+        $data = $this->validateData($request);
+        unset($data['remove_thumbnail'], $data['thumbnail']); // 'thumbnail' is the raw upload, not a column
+
+        if ($request->hasFile('thumbnail')) {
+            $data['thumbnail_path'] = $request->file('thumbnail')->store('bio-thumbnails', 'public');
+        }
+
+        BioLink::create($data);
 
         return redirect()->route('admin.bio.index')->with('flash', [
             'type' => 'success',
@@ -155,7 +163,21 @@ class BioLinkController extends Controller
 
     public function update(Request $request, BioLink $bioLink): RedirectResponse
     {
-        $bioLink->update($this->validateData($request));
+        $data = $this->validateData($request);
+        $removeThumbnail = (bool) ($data['remove_thumbnail'] ?? false);
+        unset($data['remove_thumbnail'], $data['thumbnail']);
+
+        // A newly uploaded file always wins over "remove"; both replace the
+        // old stored file, so the delete only ever targets what's on disk now.
+        if ($request->hasFile('thumbnail')) {
+            $this->deleteThumbnail($bioLink);
+            $data['thumbnail_path'] = $request->file('thumbnail')->store('bio-thumbnails', 'public');
+        } elseif ($removeThumbnail) {
+            $this->deleteThumbnail($bioLink);
+            $data['thumbnail_path'] = null;
+        }
+
+        $bioLink->update($data);
 
         return redirect()->route('admin.bio.index')->with('flash', [
             'type' => 'success',
@@ -165,12 +187,20 @@ class BioLinkController extends Controller
 
     public function destroy(BioLink $bioLink): RedirectResponse
     {
+        $this->deleteThumbnail($bioLink);
         $bioLink->delete();
 
         return redirect()->route('admin.bio.index')->with('flash', [
             'type' => 'success',
             'message' => 'Bio link deleted.',
         ]);
+    }
+
+    private function deleteThumbnail(BioLink $bioLink): void
+    {
+        if ($bioLink->thumbnail_path) {
+            Storage::disk('public')->delete($bioLink->thumbnail_path);
+        }
     }
 
     /**
@@ -210,6 +240,9 @@ class BioLinkController extends Controller
             'label' => ['required', 'string', 'max:255'],
             'url' => ['required', 'string', 'max:2048'],
             'icon' => ['required', 'string', 'max:60'],
+            'thumbnail' => ['nullable', 'image', 'max:2048'],
+            'remove_thumbnail' => ['nullable', 'boolean'],
+            'featured' => ['nullable', 'boolean'],
             'tab' => ['nullable', 'string', 'max:60'],
             'priority' => ['nullable', 'integer', 'min:0', 'max:65535'],
             'expires_at' => ['nullable', 'date'],
@@ -231,6 +264,8 @@ class BioLinkController extends Controller
             'label' => $link->label,
             'url' => $link->url,
             'icon' => $link->icon,
+            'thumbnail_url' => $link->thumbnail_url,
+            'featured' => (bool) $link->featured,
             'tab' => $link->tab,
             'tab_slug' => $link->tab_slug,
             'priority' => $link->priority,

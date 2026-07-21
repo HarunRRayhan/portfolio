@@ -112,7 +112,7 @@ Route::get('/bio', function (Request $request, CountryResolver $countries) {
         ->active()
         ->orderBy('priority')
         ->orderBy('id')
-        ->get(['id', 'label', 'url', 'icon', 'tab', 'tab_slug', 'include_countries', 'exclude_countries'])
+        ->get(['id', 'label', 'url', 'icon', 'thumbnail_path', 'featured', 'tab', 'tab_slug', 'include_countries', 'exclude_countries'])
         ->filter(fn (BioLink $link) => $link->isVisibleInCountry($country))
         ->values()
         ->map(fn (BioLink $link) => [
@@ -120,6 +120,8 @@ Route::get('/bio', function (Request $request, CountryResolver $countries) {
             'label' => $link->label,
             'url' => $link->url,
             'icon' => $link->icon,
+            'thumbnail_url' => $link->thumbnail_url,
+            'featured' => (bool) $link->featured,
             'tab' => $link->tab ?? 'default',
             'tab_slug' => $link->tab_slug ?? Str::slug($link->tab ?? 'default'),
         ])

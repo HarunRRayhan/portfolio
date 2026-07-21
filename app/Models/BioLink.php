@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class BioLink extends Model
@@ -15,6 +16,8 @@ class BioLink extends Model
         'tab',
         'tab_slug',
         'icon',
+        'thumbnail_path',
+        'featured',
         'priority',
         'expires_at',
         'is_active',
@@ -25,9 +28,20 @@ class BioLink extends Model
     protected $casts = [
         'expires_at' => 'datetime',
         'is_active' => 'boolean',
+        'featured' => 'boolean',
         'include_countries' => 'array',
         'exclude_countries' => 'array',
     ];
+
+    protected $appends = ['thumbnail_url'];
+
+    /** Public URL for the stored thumbnail, or null if there isn't one. */
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        return $this->thumbnail_path
+            ? Storage::disk('public')->url($this->thumbnail_path)
+            : null;
+    }
 
     protected static function booted(): void
     {

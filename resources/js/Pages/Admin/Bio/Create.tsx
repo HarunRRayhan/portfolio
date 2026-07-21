@@ -7,6 +7,9 @@ export default function Create() {
     label: '',
     url: '',
     icon: 'link',
+    thumbnail: null,
+    featured: false,
+    remove_thumbnail: false,
     tab: 'default',
     tab_slug: '',
     priority: 100,
@@ -18,7 +21,7 @@ export default function Create() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
-    post('/admin/bio')
+    post('/admin/bio', { forceFormData: true })
   }
 
   return (

@@ -17,7 +17,7 @@ import {
   Star,
   Video,
 } from 'lucide-react'
-import { Github, Linkedin, Mail, Twitter } from '@/lib/icons'
+import { Facebook, Github, Instagram, Linkedin, Mail, Threads, TikTok, Twitter, YouTube } from '@/lib/icons'
 import type { ComponentType, SVGProps } from 'react'
 
 export type BioIcon = ComponentType<SVGProps<SVGSVGElement>>
@@ -40,6 +40,11 @@ export const BIO_ICONS: Record<string, { label: string; Icon: BioIcon }> = {
   github: { label: 'GitHub', Icon: Github },
   linkedin: { label: 'LinkedIn', Icon: Linkedin },
   twitter: { label: 'X / Twitter', Icon: Twitter },
+  instagram: { label: 'Instagram', Icon: Instagram },
+  tiktok: { label: 'TikTok', Icon: TikTok },
+  youtube: { label: 'YouTube', Icon: YouTube },
+  facebook: { label: 'Facebook', Icon: Facebook },
+  threads: { label: 'Threads', Icon: Threads },
   send: { label: 'Telegram / Send', Icon: Send },
   video: { label: 'Video', Icon: Video },
   music: { label: 'Music', Icon: Music },
