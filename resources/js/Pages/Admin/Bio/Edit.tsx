@@ -12,6 +12,8 @@ interface BioLinkRecord {
   priority: number
   expires_at: string | null
   is_active: boolean
+  include_countries: string[] | null
+  exclude_countries: string[] | null
 }
 
 export default function Edit({ link }: { link: BioLinkRecord }) {
@@ -24,6 +26,8 @@ export default function Edit({ link }: { link: BioLinkRecord }) {
     priority: link.priority ?? 100,
     expires_at: link.expires_at ?? '',
     is_active: link.is_active,
+    include_countries: link.include_countries ?? [],
+    exclude_countries: link.exclude_countries ?? [],
   })
 
   const submit = (e: React.FormEvent) => {

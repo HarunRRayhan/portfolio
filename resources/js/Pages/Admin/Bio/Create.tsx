@@ -12,6 +12,8 @@ export default function Create() {
     priority: 100,
     expires_at: '',
     is_active: true,
+    include_countries: [],
+    exclude_countries: [],
   })
 
   const submit = (e: React.FormEvent) => {

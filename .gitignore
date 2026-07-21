@@ -5,6 +5,8 @@
 /public/storage
 /storage/*.key
 /storage/pail
+# MaxMind GeoLite2 database, fetched by `php artisan geoip:update`
+/storage/app/geoip
 /vendor
 .env
 .env.testing

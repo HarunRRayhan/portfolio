@@ -107,6 +107,10 @@ class BioLinkController extends Controller
             'priority' => ['nullable', 'integer', 'min:0', 'max:65535'],
             'expires_at' => ['nullable', 'date'],
             'is_active' => ['boolean'],
+            'include_countries' => ['nullable', 'array'],
+            'include_countries.*' => ['string', 'size:2', 'alpha'],
+            'exclude_countries' => ['nullable', 'array'],
+            'exclude_countries.*' => ['string', 'size:2', 'alpha'],
         ]);
     }
 
@@ -125,6 +129,8 @@ class BioLinkController extends Controller
             'priority' => $link->priority,
             'expires_at' => $link->expires_at?->format('Y-m-d\TH:i'),
             'is_active' => (bool) $link->is_active,
+            'include_countries' => $link->include_countries ?? [],
+            'exclude_countries' => $link->exclude_countries ?? [],
             'clicks_count' => (int) ($link->clicks_count ?? 0),
         ];
     }
