@@ -238,7 +238,12 @@ deploy_to_environment() {
   docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$target_env sh -c 'mkdir -p /var/www/html/storage/framework/cache /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/framework/testing'
   docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$target_env chown -R www-data:www-data /var/www/html/storage
   docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$target_env chmod -R 775 /var/www/html/storage
-  
+
+  # Apply pending schema changes and ensure the public storage symlink exists
+  # before the app starts serving traffic on this environment.
+  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$target_env php artisan migrate --force
+  docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$target_env sh -c 'if [ ! -L /var/www/html/public/storage ]; then php artisan storage:link; else echo Storage link already exists, skipping creation; fi'
+
   docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$target_env php artisan cache:clear
   docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$target_env php artisan route:clear
   docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$target_env php artisan config:clear
