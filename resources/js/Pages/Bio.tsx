@@ -6,6 +6,7 @@ import { ArrowUpRight, Check, Copy } from 'lucide-react'
 import { bioIcon } from '@/lib/bioIcons'
 
 interface BioLink {
+  id: number
   label: string
   url: string
   icon: string
@@ -19,6 +20,20 @@ const isMailto = (url: string) => url.startsWith('mailto:') || url.startsWith('t
 const displayTab = (tab: string): string => (tab === 'default' ? 'Links' : tab)
 
 const SOCIAL_ICONS = ['instagram', 'tiktok', 'facebook', 'linkedin', 'x', 'twitter', 'youtube']
+
+/** POST a click event to the server (fire-and-forget with keepalive). */
+const trackClick = (id: number) => {
+  try {
+    fetch('/bio/click', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      body: JSON.stringify({ id }),
+      keepalive: true,
+    })
+  } catch {
+    // silently ignore tracking failures
+  }
+}
 
 export default function Bio({ links = [] }: { links?: BioLink[] }) {
   const { url } = usePage()
@@ -143,6 +158,7 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
                           href={link.url}
                           target="_blank"
                           rel="noopener noreferrer"
+                          onClick={() => trackClick(link.id)}
                           className="flex h-11 w-11 shrink-0 snap-start items-center justify-center rounded-2xl border border-white/10 bg-white/5 transition hover:bg-white/10 active:bg-white/15"
                           aria-label={link.label}
                         >
@@ -235,7 +251,7 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
 
                       if (internal) {
                         return (
-                          <Link key={`${link.label}-${link.url}`} href={link.url} className={className}>
+                          <Link key={`${link.label}-${link.url}`} href={link.url} className={className} onClick={() => trackClick(link.id)}>
                             {content}
                           </Link>
                         )
@@ -247,6 +263,7 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
                           href={link.url}
                           target={mailish ? undefined : '_blank'}
                           rel={mailish ? undefined : 'noopener noreferrer'}
+                          onClick={() => trackClick(link.id)}
                           className={className}
                         >
                           {content}

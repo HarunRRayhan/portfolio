@@ -108,8 +108,9 @@ Route::get('/bio', function () {
         ->active()
         ->orderBy('priority')
         ->orderBy('id')
-        ->get(['label', 'url', 'icon', 'tab'])
+        ->get(['id', 'label', 'url', 'icon', 'tab'])
         ->map(fn (BioLink $link) => [
+            'id' => $link->id,
             'label' => $link->label,
             'url' => $link->url,
             'icon' => $link->icon,
@@ -118,7 +119,23 @@ Route::get('/bio', function () {
         ->all();
 
     return Inertia::render('Bio', ['links' => $links]);
-})->name('bio');
+});
+
+// Click tracking for bio links (no auth needed)
+Route::post('/bio/click', function (Request $request) {
+    $data = $request->validate([
+        'id' => ['required', 'integer', 'exists:bio_links,id'],
+    ]);
+
+    App\Models\BioLinkClick::create([
+        'bio_link_id' => $data['id'],
+        'ip_address' => $request->ip(),
+        'user_agent' => $request->userAgent(),
+        'referer' => $request->header('referer'),
+    ]);
+
+    return response()->noContent();
+})->name('bio.click');
 
 Route::get('/about', function () {
     return Inertia::render('About');

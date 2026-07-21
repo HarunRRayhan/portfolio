@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'resend/*',
             'blog/*/view',
+            'bio/click',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
