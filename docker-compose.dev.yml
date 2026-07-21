@@ -1,0 +1,38 @@
+# Local development database only. Production runs the blue/green stack in
+# docker/docker-compose.yml, where the app reaches Postgres over the internal
+# network as host "db". Here we publish the port so artisan can run on the host.
+#
+#   docker compose -f docker-compose.dev.yml up -d
+#   php artisan migrate
+#
+# Credentials below are throwaway and local-only -- this container is not
+# reachable off your machine. Point your .env at it with:
+#
+#   DB_HOST=127.0.0.1
+#   DB_DATABASE=portfolio
+#   DB_USERNAME=portfolio
+#   DB_PASSWORD=local-dev-only
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: portfolio_dev_db
+    environment:
+      POSTGRES_DB: portfolio
+      POSTGRES_USER: portfolio
+      POSTGRES_PASSWORD: local-dev-only
+    ports:
+      # Deliberately not "127.0.0.1:5432:5432" -- under OrbStack that bind
+      # accepts the TCP connection and then drops it before Postgres ever
+      # sees an auth attempt, so artisan fails with "server closed the
+      # connection unexpectedly" and the server log stays empty.
+      - "5432:5432"
+    volumes:
+      - portfolio_dev_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portfolio -d portfolio"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  portfolio_dev_pgdata:
