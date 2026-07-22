@@ -2,8 +2,8 @@ import {
   BookOpen,
   Briefcase,
   Calendar,
-  ExternalLink,
   FileText,
+  Globe,
   Heart,
   Home,
   Link as LinkIcon,
@@ -27,7 +27,7 @@ export type BioIcon = ComponentType<SVGProps<SVGSVGElement>>
 // stable. Both the admin icon picker and the public /bio page read from here.
 export const BIO_ICONS: Record<string, { label: string; Icon: BioIcon }> = {
   link: { label: 'Link', Icon: LinkIcon },
-  globe: { label: 'Website', Icon: ExternalLink },
+  globe: { label: 'Website', Icon: Globe },
   home: { label: 'Home', Icon: Home },
   blog: { label: 'Blog', Icon: BookOpen },
   message: { label: 'Message', Icon: MessageCircle },
