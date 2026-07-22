@@ -30,6 +30,7 @@ interface BlogPostSummary {
   tags: BlogPostTag[]
   url: string
   canonicalUrl: string
+  shareUrl: string
   sourceUrl: string
 }
 
@@ -309,7 +310,7 @@ export default function BlogPostPage({
                     {post.viewCount ?? 0} views
                   </span>
                   <ShareButton
-                    url={canonicalUrl}
+                    url={post.shareUrl}
                     title={post.title}
                     shareTitle={post.title}
                     label={`Share "${post.title}"`}

@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\ShortLink;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use RuntimeException;
@@ -133,6 +134,7 @@ class BlogRepository
                 ->all(),
             'url' => $this->relativeUrl($post['slug']),
             'canonicalUrl' => $this->absoluteUrl($post['slug']),
+            'shareUrl' => $this->shareUrl($post),
             'sourceUrl' => $post['sourceUrl'] ?? $this->sourceUrl($post['slug']),
             'contentText' => $this->contentText($contentHtml),
         ];
@@ -158,6 +160,20 @@ class BlogRepository
     public function absoluteUrl(string $slug): string
     {
         return rtrim(config('app.url', url('/')), '/').$this->relativeUrl($slug);
+    }
+
+    /**
+     * @param  array<string, mixed>  $post
+     */
+    public function shareUrl(array $post): string
+    {
+        $absoluteUrl = $this->absoluteUrl($post['slug']);
+
+        return Cache::remember(
+            "post.shareurl.{$post['slug']}",
+            3600,
+            fn () => ShortLink::getOrCreateForUrl($absoluteUrl, $post['title'])?->short_url ?? $absoluteUrl,
+        );
     }
 
     public function sourceUrl(string $slug): string
