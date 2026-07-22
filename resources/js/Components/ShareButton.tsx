@@ -11,7 +11,7 @@ export function ShareButton({
   label = 'Share',
   theme = 'warm',
   triggerClassName = '',
-  panelClassName = 'right-0',
+  panelClassName = 'sm:right-0',
   wrapperClassName = 'relative',
   children,
 }: {
@@ -57,7 +57,9 @@ export function ShareButton({
         {children ?? <Share2 className="h-4 w-4" />}
       </button>
       {open && (
-        <div className={`absolute top-full z-30 mt-2 ${panelClassName}`}>
+        <div
+          className={`fixed inset-x-4 bottom-4 z-30 sm:absolute sm:inset-x-auto sm:bottom-auto sm:top-full sm:mt-2 ${panelClassName}`}
+        >
           <ShareSheet title={title} url={url} shareTitle={shareTitle} theme={theme} onClose={() => setOpen(false)} />
         </div>
       )}
