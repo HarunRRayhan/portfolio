@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Head, Link, usePage } from '@inertiajs/react'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
 import { getImageUrl } from '@/lib/imageUtils'
-import { Check, Copy, Share2, X } from 'lucide-react'
+import { Check, Copy, Maximize2, Share2, X } from 'lucide-react'
 import { bioIcon } from '@/lib/bioIcons'
 
 interface BioLink {
@@ -115,6 +116,7 @@ function ShareSheet({
   onClose: () => void
 }) {
   const [copied, setCopied] = useState(false)
+  const [zoomed, setZoomed] = useState(false)
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
 
   const copy = () => {
@@ -145,9 +147,17 @@ function ShareSheet({
         </button>
       </div>
 
-      <div className="mt-3 flex justify-center rounded-xl border border-[#e4d7c4] bg-white p-3">
+      <button
+        type="button"
+        onClick={() => setZoomed(true)}
+        aria-label="Enlarge QR code"
+        className="group relative mt-3 flex w-full justify-center rounded-xl border border-[#e4d7c4] bg-white p-3 transition hover:border-[#c98a4b]"
+      >
         <QRCodeSVG value={url} size={144} bgColor="#ffffff" fgColor="#2b2320" level="M" />
-      </div>
+        <span className="absolute inset-0 flex items-center justify-center rounded-xl bg-[#2b2320]/0 opacity-0 transition group-hover:bg-[#2b2320]/40 group-hover:opacity-100">
+          <Maximize2 className="h-5 w-5 text-white" />
+        </span>
+      </button>
 
       <div className="mt-3 flex gap-2">
         {canShare && (
@@ -168,6 +178,42 @@ function ShareSheet({
           {copied ? 'Copied' : 'Copy link'}
         </button>
       </div>
+
+      {zoomed &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${title} QR code`}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-[#2b2320]/80 p-6 backdrop-blur-sm"
+            onClick={() => setZoomed(false)}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <div
+              className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                onClick={() => setZoomed(false)}
+                aria-label="Close"
+                className="absolute right-3 top-3 rounded-full p-1.5 text-[#8a6a45] transition hover:bg-[#f1e6d3] hover:text-[#2b2320]"
+              >
+                <X className="h-5 w-5" />
+              </button>
+              <QRCodeSVG
+                value={url}
+                size={512}
+                bgColor="#ffffff"
+                fgColor="#2b2320"
+                level="M"
+                className="h-auto w-full"
+              />
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   )
 }
@@ -254,8 +300,7 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
   })()
 
   const [activeSlug, setActiveSlug] = useState(initialSlug)
-  const [copiedSlug, setCopiedSlug] = useState<string | null>(null)
-  const [openMenu, setOpenMenu] = useState<number | 'page' | null>(null)
+  const [openMenu, setOpenMenu] = useState<number | 'page' | `tab:${string}` | null>(null)
   const menuRef = useRef<HTMLDivElement | null>(null)
   const activeGroup = tabMap.get(activeSlug)
   const currentLinks = activeGroup?.links ?? []
@@ -279,14 +324,10 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
     window.history.replaceState(null, '', newUrl)
   }, [activeSlug, tabGroups])
 
-  const copyTabLink = useCallback(
+  const tabShareUrl = useCallback(
     (slug: string) => {
       const base = window.location.origin + window.location.pathname
-      const shareUrl = slug === tabGroups[0]?.slug ? base : `${base}?tab=${encodeURIComponent(slug)}`
-      navigator.clipboard.writeText(shareUrl).then(() => {
-        setCopiedSlug(slug)
-        setTimeout(() => setCopiedSlug(null), 2000)
-      })
+      return slug === tabGroups[0]?.slug ? base : `${base}?tab=${encodeURIComponent(slug)}`
     },
     [tabGroups],
   )
@@ -417,46 +458,58 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
 
             {/* Tab navigation */}
             {tabGroups.length > 1 && (
-              <nav
-                aria-label="Link categories"
-                className="mt-7 flex w-full gap-1 overflow-x-auto rounded-full border border-[#e4d7c4] bg-[#fffaf6]/70 p-1"
-              >
-                {tabGroups.map((group) => {
-                  const isActive = group.slug === activeSlug
-                  return (
-                    <button
-                      key={group.slug}
-                      type="button"
-                      onClick={() => setActiveSlug(group.slug)}
-                      className={`relative flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 font-mono text-xs font-medium uppercase tracking-wider transition sm:text-[13px] ${
-                        isActive
-                          ? 'bg-[#2b2320] text-[#f7f1e8] shadow-sm'
-                          : 'text-[#6b5d4f] hover:bg-[#f1e6d3] hover:text-[#2b2320]'
-                      }`}
-                    >
-                      {displayTab(group.label)}
-
-                      {/* Copy link button (visible on the active tab) */}
-                      <span
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          copyTabLink(group.slug)
-                        }}
-                        className={`ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded transition ${
-                          isActive ? 'opacity-70 hover:opacity-100' : 'hidden'
+              <div className="relative mt-7 w-full" ref={typeof openMenu === 'string' && openMenu.startsWith('tab:') ? menuRef : null}>
+                <nav
+                  aria-label="Link categories"
+                  className="flex w-full gap-1 overflow-x-auto rounded-full border border-[#e4d7c4] bg-[#fffaf6]/70 p-1"
+                >
+                  {tabGroups.map((group) => {
+                    const isActive = group.slug === activeSlug
+                    const shareId = `tab:${group.slug}` as const
+                    return (
+                      <button
+                        key={group.slug}
+                        type="button"
+                        onClick={() => setActiveSlug(group.slug)}
+                        className={`relative flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 font-mono text-xs font-medium uppercase tracking-wider transition sm:text-[13px] ${
+                          isActive
+                            ? 'bg-[#2b2320] text-[#f7f1e8] shadow-sm'
+                            : 'text-[#6b5d4f] hover:bg-[#f1e6d3] hover:text-[#2b2320]'
                         }`}
-                        title="Copy link to this tab"
                       >
-                        {copiedSlug === group.slug ? (
-                          <Check className="h-3 w-3 text-emerald-400" />
-                        ) : (
-                          <Copy className="h-3 w-3" />
-                        )}
-                      </span>
-                    </button>
-                  )
-                })}
-              </nav>
+                        {displayTab(group.label)}
+
+                        {/* Share button (visible on the active tab) */}
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setOpenMenu(openMenu === shareId ? null : shareId)
+                          }}
+                          role="button"
+                          aria-label={`Share ${displayTab(group.label)}`}
+                          aria-haspopup="menu"
+                          aria-expanded={openMenu === shareId}
+                          className={`ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded transition ${
+                            isActive ? 'opacity-70 hover:opacity-100' : 'hidden'
+                          }`}
+                          title={`Share ${displayTab(group.label)}`}
+                        >
+                          <Share2 className="h-3 w-3" />
+                        </span>
+                      </button>
+                    )
+                  })}
+                </nav>
+
+                {typeof openMenu === 'string' && openMenu.startsWith('tab:') && (
+                  <ShareSheet
+                    title={`Share ${displayTab(tabMap.get(openMenu.slice(4))?.label ?? '')}`}
+                    url={tabShareUrl(openMenu.slice(4))}
+                    shareTitle="Harun R. Rayhan"
+                    onClose={() => setOpenMenu(null)}
+                  />
+                )}
+              </div>
             )}
 
             {/* Link cards for the active tab */}
