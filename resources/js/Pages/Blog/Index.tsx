@@ -17,6 +17,7 @@ interface BlogPostSummary {
   tags: Array<{ name: string; slug: string }>
   url: string
   canonicalUrl: string
+  shareUrl: string
   sourceUrl: string
 }
 
@@ -185,7 +186,7 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
                   </div>
 
                   <ShareButton
-                    url={post.canonicalUrl}
+                    url={post.shareUrl}
                     title={post.title}
                     shareTitle={post.title}
                     label={`Share "${post.title}"`}
