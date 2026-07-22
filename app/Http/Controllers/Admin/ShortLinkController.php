@@ -155,6 +155,16 @@ class ShortLinkController extends Controller
     {
         $data = $this->validateData($request);
 
+        // A blank code means "just shorten this URL" -- check for an existing
+        // link first so the same destination doesn't end up with two codes.
+        // A custom code is a deliberate vanity alias, so it always creates.
+        if (empty($data['code']) && ShortLink::findForUrl($data['destination_url'])) {
+            return redirect()->route('admin.short.index')->with('flash', [
+                'type' => 'info',
+                'message' => 'That URL is already shortened, so we reused the existing link.',
+            ]);
+        }
+
         ShortLink::create($data);
 
         return redirect()->route('admin.short.index')->with('flash', [

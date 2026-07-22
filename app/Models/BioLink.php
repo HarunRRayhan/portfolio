@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -13,6 +14,7 @@ class BioLink extends Model
     protected $fillable = [
         'label',
         'url',
+        'short_link_id',
         'tab',
         'tab_slug',
         'icon',
@@ -50,6 +52,15 @@ class BioLink extends Model
                 $tab = $link->tab ?? 'default';
                 $link->tab_slug = $tab === 'default' ? 'default' : Str::slug($tab);
             }
+
+            // Resolve (or reuse) a short link whenever the destination changes,
+            // so every bio link points visitors through /s/{code} instead of
+            // straight at the raw URL. Internal routes and mailto: come back
+            // null from getOrCreateForUrl, which clears any short link a since
+            // edited URL no longer needs one.
+            if ($link->isDirty('url')) {
+                $link->short_link_id = ShortLink::getOrCreateForUrl($link->url, $link->label)?->id;
+            }
         });
     }
 
@@ -65,6 +76,11 @@ class BioLink extends Model
     public function clicks(): HasMany
     {
         return $this->hasMany(BioLinkClick::class);
+    }
+
+    public function shortLink(): BelongsTo
+    {
+        return $this->belongsTo(ShortLink::class);
     }
 
     /**
