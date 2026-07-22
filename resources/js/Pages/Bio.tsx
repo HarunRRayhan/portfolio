@@ -386,9 +386,21 @@ function ShareTrigger({
   )
 }
 
-export default function Bio({ links = [] }: { links?: BioLink[] }) {
+export default function Bio({
+  links = [],
+  page_share_url: pageShareUrl,
+  tab_share_urls: tabShareUrls = {},
+}: {
+  links?: BioLink[]
+  page_share_url?: string
+  tab_share_urls?: Record<string, string>
+}) {
   const { url } = usePage()
+  // Real page URL — feeds SEO tags (og:url, canonical). Must stay the actual
+  // page, never the shortener redirect.
   const canonicalUrl = typeof window !== 'undefined' ? window.location.href : 'https://harun.dev/bio'
+  // Shortened page URL for the "Share this page" sheet's QR/copy/social links.
+  const pageShareLinkUrl = pageShareUrl ?? canonicalUrl
 
   // Separate social (icon-only row) from regular (tabbed) links. Website and
   // email are pulled out and appended last, in a fixed order, regardless of
@@ -464,10 +476,11 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
 
   const tabShareUrl = useCallback(
     (slug: string) => {
+      if (tabShareUrls[slug]) return tabShareUrls[slug]
       const base = window.location.origin + window.location.pathname
       return slug === tabGroups[0]?.slug ? base : `${base}?tab=${encodeURIComponent(slug)}`
     },
-    [tabGroups],
+    [tabGroups, tabShareUrls],
   )
 
   // Close whichever share menu is open on an outside click or Escape.
@@ -541,7 +554,7 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
             </button>
             {openMenu === 'page' && (
               <div className="absolute right-0 top-full z-30 mt-2">
-                <ShareSheet title="Share this page" url={canonicalUrl} shareTitle="Harun R. Rayhan" onClose={() => setOpenMenu(null)} />
+                <ShareSheet title="Share this page" url={pageShareLinkUrl} shareTitle="Harun R. Rayhan" onClose={() => setOpenMenu(null)} />
               </div>
             )}
           </div>
@@ -570,7 +583,7 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
                 Software Engineer turning Entrepreneur
               </p>
               <p className="font-mono text-xs text-[#6b5d4f] sm:text-sm">
-                DevOps · AI/ML Enthusiast · AWS · CloudOps · Infrastructure Automation
+                DevOps · AI/ML · AWS · CloudOps · Infrastructure Automation
               </p>
             </div>
 

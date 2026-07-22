@@ -165,7 +165,22 @@ Route::get('/bio', function (Request $request, CountryResolver $countries) {
         ])
         ->all();
 
-    return Inertia::render('Bio', ['links' => $links]);
+    $pageShareUrl = ShortLink::getOrCreateForUrl(url('/bio'), 'Bio page')?->short_url ?? url('/bio');
+
+    $tabShareUrls = collect($links)
+        ->pluck('tab_slug')
+        ->unique()
+        ->mapWithKeys(function (string $slug) {
+            $tabUrl = url('/bio').'?tab='.$slug;
+
+            return [$slug => ShortLink::getOrCreateForUrl($tabUrl, "Bio: {$slug}")?->short_url ?? $tabUrl];
+        });
+
+    return Inertia::render('Bio', [
+        'links' => $links,
+        'page_share_url' => $pageShareUrl,
+        'tab_share_urls' => $tabShareUrls,
+    ]);
 });
 
 // Click tracking for bio links (no auth needed)
