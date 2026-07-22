@@ -99,4 +99,46 @@ class ShortLinkTest extends TestCase
     {
         $this->get('/admin/short')->assertRedirect('/login');
     }
+
+    public function test_get_or_create_for_url_reuses_an_existing_link_for_the_same_destination(): void
+    {
+        $first = ShortLink::getOrCreateForUrl('https://example.com/path');
+        $second = ShortLink::getOrCreateForUrl('https://EXAMPLE.com/path/');
+
+        $this->assertSame($first->id, $second->id);
+        $this->assertSame(1, ShortLink::count());
+    }
+
+    public function test_get_or_create_for_url_detects_one_of_our_own_short_urls(): void
+    {
+        $link = ShortLink::create(['destination_url' => 'https://example.com/target']);
+
+        $reused = ShortLink::getOrCreateForUrl($link->short_url);
+
+        $this->assertSame($link->id, $reused->id);
+        $this->assertSame(1, ShortLink::count());
+    }
+
+    public function test_get_or_create_for_url_returns_null_for_internal_and_mailto_urls(): void
+    {
+        $this->assertNull(ShortLink::getOrCreateForUrl('/bio'));
+        $this->assertNull(ShortLink::getOrCreateForUrl('mailto:harun@harun.dev'));
+        $this->assertSame(0, ShortLink::count());
+    }
+
+    public function test_creating_via_admin_with_an_already_shortened_url_reuses_it(): void
+    {
+        $existing = ShortLink::create(['destination_url' => 'https://example.com/target']);
+
+        $this->actingAs($this->admin())
+            ->post('/admin/short', [
+                'destination_url' => 'https://example.com/target',
+                'is_active' => true,
+            ])
+            ->assertRedirect('/admin/short')
+            ->assertSessionHas('flash.type', 'info');
+
+        $this->assertSame(1, ShortLink::count());
+        $this->assertSame($existing->code, ShortLink::first()->code);
+    }
 }

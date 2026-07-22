@@ -12,6 +12,7 @@ interface BioLink {
   id: number
   label: string
   url: string
+  share_url: string
   icon: string
   thumbnail_url: string | null
   featured: boolean
@@ -140,7 +141,7 @@ function LinkAnchor({ link, className }: { link: BioLink; className: string }) {
 
   return (
     <a
-      href={link.url}
+      href={link.share_url}
       target={mailish ? undefined : '_blank'}
       rel={mailish ? undefined : 'noopener noreferrer'}
       onClick={() => trackClick(link.id)}
@@ -378,7 +379,7 @@ function ShareTrigger({
       </button>
       {isOpen && (
         <div className="absolute right-0 top-full z-30 mt-2">
-          <ShareSheet title={link.label} url={link.url} shareTitle={link.label} onClose={onClose} />
+          <ShareSheet title={link.label} url={link.share_url} shareTitle={link.label} onClose={onClose} />
         </div>
       )}
     </div>
@@ -582,7 +583,7 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
                   return (
                     <a
                       key={link.id}
-                      href={link.url}
+                      href={link.share_url}
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={() => trackClick(link.id)}
