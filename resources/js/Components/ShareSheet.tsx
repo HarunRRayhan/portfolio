@@ -125,7 +125,7 @@ export function ShareSheet({
   )
 
   return (
-    <div role="menu" className={`w-72 rounded-2xl border ${t.border} ${t.panelBg} p-4 text-left shadow-xl ${t.panelShadow}`}>
+    <div role="menu" className={`w-full rounded-2xl border ${t.border} ${t.panelBg} p-4 text-left shadow-xl sm:w-72 ${t.panelShadow}`}>
       <div className="flex items-center justify-between gap-2">
         <p className={`truncate ${t.font} text-xs font-semibold uppercase tracking-wider ${t.label}`}>{title}</p>
         <div className="flex shrink-0 items-center gap-0.5">
