@@ -217,19 +217,22 @@ function ShareSheet({
     </div>
   )
 
+  // Intent URLs are opened via `window.open` at click time rather than a
+  // static `href` — ad blockers' cosmetic filter lists (e.g. Fanboy's Social
+  // Blocking List) match and hide anchors whose `href` attribute contains
+  // known share-intent hosts like facebook.com/sharer or twitter.com/intent.
   const renderSocialShare = () => (
     <div className="mt-3 flex justify-center gap-2">
       {SOCIAL_SHARE.map(({ name, Icon, href }) => (
-        <a
+        <button
           key={name}
-          href={href(url, shareTitle)}
-          target="_blank"
-          rel="noopener noreferrer"
+          type="button"
+          onClick={() => window.open(href(url, shareTitle), '_blank', 'noopener,noreferrer')}
           aria-label={`Share on ${name}`}
           className="flex h-9 w-9 items-center justify-center rounded-full border border-[#e4d7c4] bg-white text-[#5b4a3a] transition hover:border-[#c98a4b] hover:text-[#b8541f]"
         >
           <Icon className="h-4 w-4" />
-        </a>
+        </button>
       ))}
     </div>
   )
