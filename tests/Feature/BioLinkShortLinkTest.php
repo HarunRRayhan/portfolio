@@ -111,4 +111,27 @@ class BioLinkShortLinkTest extends TestCase
         // Internal links have nothing to shorten -- share_url just mirrors url.
         $this->assertSame('/contact', $byLabel['Contact']['share_url']);
     }
+
+    public function test_the_bio_page_exposes_short_urls_for_the_page_and_each_tab(): void
+    {
+        BioLink::create([
+            'label' => 'Blog',
+            'url' => 'https://example.com/blog',
+            'icon' => 'link',
+            'tab' => 'default',
+        ]);
+        BioLink::create([
+            'label' => 'Shop',
+            'url' => 'https://example.com/shop',
+            'icon' => 'link',
+            'tab' => 'Products',
+        ]);
+
+        $props = $this->get('/bio')->assertOk()->viewData('page')['props'];
+
+        $this->assertStringContainsString('/s/', $props['page_share_url']);
+        $this->assertStringContainsString('/s/', $props['tab_share_urls']['default']);
+        $this->assertStringContainsString('/s/', $props['tab_share_urls']['products']);
+        $this->assertNotSame($props['tab_share_urls']['default'], $props['tab_share_urls']['products']);
+    }
 }
