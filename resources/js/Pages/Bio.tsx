@@ -59,27 +59,35 @@ const SOCIAL_TRAILING = ['globe', 'mail']
 const SOCIAL_SHARE = [
   {
     name: 'X',
+    label: undefined as string | undefined,
     Icon: Twitter,
     href: (url: string, title: string) =>
       `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
   },
   {
     name: 'Facebook',
+    // "Share on Facebook" is a common cosmetic-filter target in ad-blocker
+    // social-widget lists — a differently worded label keeps this button
+    // visible without changing what it does.
+    label: 'Share to Facebook' as string | undefined,
     Icon: Facebook,
     href: (url: string) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
   },
   {
     name: 'LinkedIn',
+    label: undefined as string | undefined,
     Icon: Linkedin,
     href: (url: string) => `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
   },
   {
     name: 'WhatsApp',
+    label: undefined as string | undefined,
     Icon: WhatsApp,
     href: (url: string, title: string) => `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`,
   },
   {
     name: 'Reddit',
+    label: undefined as string | undefined,
     Icon: Reddit,
     href: (url: string, title: string) =>
       `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`,
@@ -223,12 +231,12 @@ function ShareSheet({
   // known share-intent hosts like facebook.com/sharer or twitter.com/intent.
   const renderSocialShare = () => (
     <div className="mt-3 flex justify-center gap-2">
-      {SOCIAL_SHARE.map(({ name, Icon, href }) => (
+      {SOCIAL_SHARE.map(({ name, label, Icon, href }) => (
         <button
           key={name}
           type="button"
           onClick={() => window.open(href(url, shareTitle), '_blank', 'noopener,noreferrer')}
-          aria-label={`Share on ${name}`}
+          aria-label={label ?? `Share on ${name}`}
           className="flex h-9 w-9 items-center justify-center rounded-full border border-[#e4d7c4] bg-white text-[#5b4a3a] transition hover:border-[#c98a4b] hover:text-[#b8541f]"
         >
           <Icon className="h-4 w-4" />
@@ -404,6 +412,11 @@ export default function Bio({
   const canonicalUrl = typeof window !== 'undefined' ? window.location.href : 'https://harun.dev/bio'
   // Shortened page URL for the "Share this page" sheet's QR/copy/social links.
   const pageShareLinkUrl = pageShareUrl ?? canonicalUrl
+  // og:image/twitter:image need a fully-qualified URL. getImageUrl() already
+  // returns an absolute CDN URL in production; fall back to the canonical
+  // domain everywhere else so link previews still resolve.
+  const bioOgImagePath = getImageUrl('/images/og/bio.jpg')
+  const ogImageUrl = bioOgImagePath.startsWith('http') ? bioOgImagePath : `https://harun.dev${bioOgImagePath}`
 
   // Separate social (icon-only row) from regular (tabbed) links. Website and
   // email are pulled out and appended last, in a fixed order, regardless of
@@ -519,12 +532,16 @@ export default function Bio({
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:image" content={ogImageUrl} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Harun Ray | Bio" />
         <meta
           name="twitter:description"
           content="Quick links to Harun R. Rayhan's portfolio, blog, contact details, and social profiles."
         />
+        <meta name="twitter:image" content={ogImageUrl} />
         <link rel="canonical" href={canonicalUrl} />
       </Head>
 
