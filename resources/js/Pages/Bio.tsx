@@ -4,8 +4,9 @@ import { Head, Link, usePage } from '@inertiajs/react'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
 import { getImageUrl } from '@/lib/imageUtils'
-import { Check, Copy, Maximize2, Share2, X } from 'lucide-react'
+import { Check, Copy, Maximize2, Minimize2, Share2, X } from 'lucide-react'
 import { bioIcon } from '@/lib/bioIcons'
+import { Facebook, Linkedin, Reddit, Twitter, WhatsApp } from '@/lib/icons'
 
 interface BioLink {
   id: number
@@ -20,6 +21,17 @@ interface BioLink {
 
 const isInternal = (url: string) => url.startsWith('/')
 const isMailto = (url: string) => url.startsWith('mailto:') || url.startsWith('tel:')
+
+/** External-site favicon URL via Google's favicon service, or null when the
+ *  link has no real domain to fetch one for (internal routes, mailto/tel). */
+const faviconUrl = (url: string): string | null => {
+  if (isInternal(url) || isMailto(url)) return null
+  try {
+    return `https://www.google.com/s2/favicons?sz=64&domain=${new URL(url).hostname}`
+  } catch {
+    return null
+  }
+}
 
 /** Tidy tab value for display — "default" becomes "Links". */
 const displayTab = (tab: string): string => (tab === 'default' ? 'Links' : tab)
@@ -36,6 +48,42 @@ const SOCIAL_ICONS = [
   'mail',
   'globe',
 ]
+
+// Website and email always render last in the social icon row, in this order,
+// regardless of where they fall in the underlying links data.
+const SOCIAL_TRAILING = ['globe', 'mail']
+
+// One-tap social-share targets shown in every ShareSheet, under the QR and
+// above Share/Copy. `href` builds each platform's share-intent URL.
+const SOCIAL_SHARE = [
+  {
+    name: 'X',
+    Icon: Twitter,
+    href: (url: string, title: string) =>
+      `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
+  },
+  {
+    name: 'Facebook',
+    Icon: Facebook,
+    href: (url: string) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+  },
+  {
+    name: 'LinkedIn',
+    Icon: Linkedin,
+    href: (url: string) => `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
+  },
+  {
+    name: 'WhatsApp',
+    Icon: WhatsApp,
+    href: (url: string, title: string) => `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`,
+  },
+  {
+    name: 'Reddit',
+    Icon: Reddit,
+    href: (url: string, title: string) =>
+      `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`,
+  },
+] as const
 
 // Tabs that always render in this fixed order, even before they have links.
 // A declared tab with no links shows a "Coming soon" panel instead of hiding.
@@ -102,8 +150,24 @@ function LinkAnchor({ link, className }: { link: BioLink; className: string }) {
   )
 }
 
+/** Renders a link's real favicon when available, falling back to its
+ *  registry icon (`bioIcon`) if the domain has none or it fails to load. */
+function LinkFavicon({ link, className }: { link: BioLink; className: string }) {
+  const [failed, setFailed] = useState(false)
+  const favicon = faviconUrl(link.url)
+  const Icon = bioIcon(link.icon)
+
+  if (!favicon || failed) return <Icon className={className} />
+
+  return <img src={favicon} alt="" className={`${className} rounded-[3px] object-contain`} onError={() => setFailed(true)} />
+}
+
 /** Shared share-sheet UI (native share, copy-link, and a scannable QR code) —
- *  used for both the whole-page share button and each per-link share trigger. */
+ *  used for both the whole-page share button and each per-link share trigger.
+ *  Renders unpositioned — the caller wraps it in its own positioned container.
+ *  Tapping the QR (or Expand) swaps to a full-screen overlay with the same
+ *  content at a larger size; Collapse returns to this inline view in place,
+ *  Close dismisses the sheet everywhere. */
 function ShareSheet({
   title,
   url,
@@ -116,7 +180,7 @@ function ShareSheet({
   onClose: () => void
 }) {
   const [copied, setCopied] = useState(false)
-  const [zoomed, setZoomed] = useState(false)
+  const [expanded, setExpanded] = useState(false)
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
 
   const copy = () => {
@@ -130,26 +194,75 @@ function ShareSheet({
     navigator.share({ title: shareTitle, url }).catch(() => {})
   }
 
+  const renderActions = () => (
+    <div className="mt-3 flex gap-2">
+      {canShare && (
+        <button
+          type="button"
+          onClick={share}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#e4d7c4] bg-white px-3 py-2 font-mono text-xs font-medium text-[#3a2f27] transition hover:bg-[#f1e6d3]"
+        >
+          <Share2 className="h-3.5 w-3.5" /> Share
+        </button>
+      )}
+      <button
+        type="button"
+        onClick={copy}
+        className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#e4d7c4] bg-white px-3 py-2 font-mono text-xs font-medium text-[#3a2f27] transition hover:bg-[#f1e6d3]"
+      >
+        {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+        {copied ? 'Copied' : 'Copy link'}
+      </button>
+    </div>
+  )
+
+  const renderSocialShare = () => (
+    <div className="mt-3 flex justify-center gap-2">
+      {SOCIAL_SHARE.map(({ name, Icon, href }) => (
+        <a
+          key={name}
+          href={href(url, shareTitle)}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Share on ${name}`}
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-[#e4d7c4] bg-white text-[#5b4a3a] transition hover:border-[#c98a4b] hover:text-[#b8541f]"
+        >
+          <Icon className="h-4 w-4" />
+        </a>
+      ))}
+    </div>
+  )
+
   return (
     <div
       role="menu"
-      className="absolute right-0 top-full z-30 mt-2 w-72 rounded-2xl border border-[#e4d7c4] bg-[#fffaf6] p-4 text-left shadow-xl shadow-[#2b2320]/10"
+      className="w-72 rounded-2xl border border-[#e4d7c4] bg-[#fffaf6] p-4 text-left shadow-xl shadow-[#2b2320]/10"
     >
       <div className="flex items-center justify-between gap-2">
         <p className="truncate font-mono text-xs font-semibold uppercase tracking-wider text-[#5b4a3a]">{title}</p>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="shrink-0 rounded-full p-1 text-[#8a6a45] transition hover:bg-[#f1e6d3] hover:text-[#2b2320]"
-        >
-          <X className="h-3.5 w-3.5" />
-        </button>
+        <div className="flex shrink-0 items-center gap-0.5">
+          <button
+            type="button"
+            onClick={() => setExpanded(true)}
+            aria-label="Expand"
+            className="rounded-full p-1 text-[#8a6a45] transition hover:bg-[#f1e6d3] hover:text-[#2b2320]"
+          >
+            <Maximize2 className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="rounded-full p-1 text-[#8a6a45] transition hover:bg-[#f1e6d3] hover:text-[#2b2320]"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
 
       <button
         type="button"
-        onClick={() => setZoomed(true)}
+        onClick={() => setExpanded(true)}
         aria-label="Enlarge QR code"
         className="group relative mt-3 flex w-full justify-center rounded-xl border border-[#e4d7c4] bg-white p-3 transition hover:border-[#c98a4b]"
       >
@@ -159,59 +272,73 @@ function ShareSheet({
         </span>
       </button>
 
-      <div className="mt-3 flex gap-2">
-        {canShare && (
-          <button
-            type="button"
-            onClick={share}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#e4d7c4] bg-white px-3 py-2 font-mono text-xs font-medium text-[#3a2f27] transition hover:bg-[#f1e6d3]"
-          >
-            <Share2 className="h-3.5 w-3.5" /> Share
-          </button>
-        )}
-        <button
-          type="button"
-          onClick={copy}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#e4d7c4] bg-white px-3 py-2 font-mono text-xs font-medium text-[#3a2f27] transition hover:bg-[#f1e6d3]"
-        >
-          {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
-          {copied ? 'Copied' : 'Copy link'}
-        </button>
-      </div>
+      {renderSocialShare()}
+      {renderActions()}
 
-      {zoomed &&
+      {expanded &&
         typeof document !== 'undefined' &&
         createPortal(
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label={`${title} QR code`}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-[#2b2320]/80 p-6 backdrop-blur-sm"
-            onClick={() => setZoomed(false)}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <div
-              className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
+          <AnimatePresence>
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-label={`${title} share sheet`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="fixed inset-0 z-[100] flex items-center justify-center bg-[#2b2320]/80 p-6 backdrop-blur-sm"
+              onClick={() => setExpanded(false)}
+              onMouseDown={(e) => e.stopPropagation()}
             >
-              <button
-                type="button"
-                onClick={() => setZoomed(false)}
-                aria-label="Close"
-                className="absolute right-3 top-3 rounded-full p-1.5 text-[#8a6a45] transition hover:bg-[#f1e6d3] hover:text-[#2b2320]"
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={{ duration: 0.18, ease: 'easeOut' }}
+                className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
               >
-                <X className="h-5 w-5" />
-              </button>
-              <QRCodeSVG
-                value={url}
-                size={512}
-                bgColor="#ffffff"
-                fgColor="#2b2320"
-                level="M"
-                className="h-auto w-full"
-              />
-            </div>
-          </div>,
+                <div className="flex items-center justify-between gap-2">
+                  <p className="truncate font-mono text-xs font-semibold uppercase tracking-wider text-[#5b4a3a]">
+                    {title}
+                  </p>
+                  <div className="flex shrink-0 items-center gap-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setExpanded(false)}
+                      aria-label="Collapse"
+                      className="rounded-full p-1.5 text-[#8a6a45] transition hover:bg-[#f1e6d3] hover:text-[#2b2320]"
+                    >
+                      <Minimize2 className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      aria-label="Close"
+                      className="rounded-full p-1.5 text-[#8a6a45] transition hover:bg-[#f1e6d3] hover:text-[#2b2320]"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex justify-center rounded-xl border border-[#e4d7c4] bg-white p-3">
+                  <QRCodeSVG
+                    value={url}
+                    size={512}
+                    bgColor="#ffffff"
+                    fgColor="#2b2320"
+                    level="M"
+                    className="h-auto w-full max-w-[360px]"
+                  />
+                </div>
+
+                {renderSocialShare()}
+                {renderActions()}
+              </motion.div>
+            </motion.div>
+          </AnimatePresence>,
           document.body,
         )}
     </div>
@@ -249,7 +376,11 @@ function ShareTrigger({
       >
         <Share2 className="h-4 w-4" />
       </button>
-      {isOpen && <ShareSheet title={link.label} url={link.url} shareTitle={link.label} onClose={onClose} />}
+      {isOpen && (
+        <div className="absolute right-0 top-full z-30 mt-2">
+          <ShareSheet title={link.label} url={link.url} shareTitle={link.label} onClose={onClose} />
+        </div>
+      )}
     </div>
   )
 }
@@ -258,8 +389,14 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
   const { url } = usePage()
   const canonicalUrl = typeof window !== 'undefined' ? window.location.href : 'https://harun.dev/bio'
 
-  // Separate social (icon-only row) from regular (tabbed) links
-  const socialLinks = links.filter((l) => SOCIAL_ICONS.includes(l.icon))
+  // Separate social (icon-only row) from regular (tabbed) links. Website and
+  // email are pulled out and appended last, in a fixed order, regardless of
+  // where they land in the raw data.
+  const socialLinksRaw = links.filter((l) => SOCIAL_ICONS.includes(l.icon))
+  const socialLinks = [
+    ...socialLinksRaw.filter((l) => !SOCIAL_TRAILING.includes(l.icon)),
+    ...SOCIAL_TRAILING.flatMap((icon) => socialLinksRaw.filter((l) => l.icon === icon)),
+  ]
   const regularLinks = links.filter((l) => !SOCIAL_ICONS.includes(l.icon))
 
   // Group regular links by tab slug, preserving insertion order
@@ -402,7 +539,9 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
               <Share2 className="h-4 w-4" />
             </button>
             {openMenu === 'page' && (
-              <ShareSheet title="Share this page" url={canonicalUrl} shareTitle="Harun R. Rayhan" onClose={() => setOpenMenu(null)} />
+              <div className="absolute right-0 top-full z-30 mt-2">
+                <ShareSheet title="Share this page" url={canonicalUrl} shareTitle="Harun R. Rayhan" onClose={() => setOpenMenu(null)} />
+              </div>
             )}
           </div>
 
@@ -434,9 +573,10 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
               </p>
             </div>
 
-            {/* Monochrome social icon row */}
+            {/* Monochrome social icon row — scrolls horizontally on phones
+                (icons run ~22% larger there too); wraps and centers from sm+ */}
             {socialLinks.length > 0 && (
-              <div className="mt-5 flex flex-wrap items-center justify-center gap-1">
+              <div className="mt-5 flex w-full flex-nowrap items-center justify-start gap-1 overflow-x-auto px-1 [scrollbar-width:none] sm:w-auto sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
                 {socialLinks.map((link) => {
                   const Icon = bioIcon(link.icon)
                   return (
@@ -447,9 +587,15 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
                       rel="noopener noreferrer"
                       onClick={() => trackClick(link.id)}
                       aria-label={link.label}
-                      className="flex h-10 w-10 items-center justify-center rounded-full text-[#4a3b2e] transition hover:-translate-y-0.5 hover:text-[#b8541f]"
+                      className="group relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-[#4a3b2e] transition hover:-translate-y-0.5 hover:text-[#b8541f] sm:h-12 sm:w-12"
                     >
-                      <Icon className="h-[18px] w-[18px]" />
+                      <Icon className="h-[26px] w-[26px] sm:h-[22px] sm:w-[22px]" />
+                      <span
+                        role="tooltip"
+                        className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-[#2b2320] px-2 py-1 font-mono text-[10px] font-medium text-[#f7f1e8] opacity-0 shadow-md transition-opacity duration-150 [@media(hover:hover)]:group-hover:opacity-100"
+                      >
+                        {link.label}
+                      </span>
                     </a>
                   )
                 })}
@@ -489,7 +635,7 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
                           aria-label={`Share ${displayTab(group.label)}`}
                           aria-haspopup="menu"
                           aria-expanded={openMenu === shareId}
-                          className={`ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded transition ${
+                          className={`ml-0.5 inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded transition sm:h-4 sm:w-4 ${
                             isActive ? 'opacity-70 hover:opacity-100' : 'hidden'
                           }`}
                           title={`Share ${displayTab(group.label)}`}
@@ -501,14 +647,36 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
                   })}
                 </nav>
 
-                {typeof openMenu === 'string' && openMenu.startsWith('tab:') && (
-                  <ShareSheet
-                    title={`Share ${displayTab(tabMap.get(openMenu.slice(4))?.label ?? '')}`}
-                    url={tabShareUrl(openMenu.slice(4))}
-                    shareTitle="Harun R. Rayhan"
-                    onClose={() => setOpenMenu(null)}
-                  />
-                )}
+                {typeof openMenu === 'string' &&
+                  openMenu.startsWith('tab:') &&
+                  (() => {
+                    const openSlug = openMenu.slice(4)
+                    const idx = tabGroups.findIndex((g) => g.slug === openSlug)
+                    const centerPct = tabGroups.length > 0 ? ((idx + 0.5) / tabGroups.length) * 100 : 50
+                    return (
+                      <>
+                        {/* Caret pins to the exact tab center so it's obvious which
+                            tab this popup belongs to, independent of where the
+                            sheet itself gets clamped on narrow screens. */}
+                        <span
+                          aria-hidden="true"
+                          className="absolute top-full z-30 mt-[7px] h-3 w-3 rotate-45 rounded-[2px] border-l border-t border-[#e4d7c4] bg-[#fffaf6]"
+                          style={{ left: `${centerPct}%`, transform: 'translateX(-50%)' }}
+                        />
+                        <div
+                          className="absolute top-full z-30 mt-2"
+                          style={{ left: `clamp(9rem, ${centerPct}%, calc(100% - 9rem))`, transform: 'translateX(-50%)' }}
+                        >
+                          <ShareSheet
+                            title={`Share ${displayTab(tabMap.get(openSlug)?.label ?? '')}`}
+                            url={tabShareUrl(openSlug)}
+                            shareTitle="Harun R. Rayhan"
+                            onClose={() => setOpenMenu(null)}
+                          />
+                        </div>
+                      </>
+                    )
+                  })()}
               </div>
             )}
 
@@ -524,7 +692,6 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
                   className="grid w-full gap-3"
                 >
                   {featuredLinks.map((link) => {
-                    const Icon = bioIcon(link.icon)
                     return (
                       <motion.div
                         key={link.id}
@@ -546,7 +713,7 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
                         </div>
                         <div className="flex items-stretch border-t border-[#e4d7c4]">
                           <span className="pointer-events-none flex flex-1 items-center gap-2.5 px-4 py-3">
-                            <Icon className="h-4 w-4 shrink-0 text-[#8a6a45]" />
+                            <LinkFavicon link={link} className="h-4 w-4 shrink-0 text-[#8a6a45]" />
                             <span className="truncate font-mono text-sm font-medium text-[#2b2320]">
                               {link.label}
                             </span>
@@ -565,7 +732,6 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
                   })}
 
                   {standardLinks.map((link) => {
-                    const Icon = bioIcon(link.icon)
                     return (
                       <motion.div
                         key={link.id}
@@ -577,7 +743,7 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
                         <div className="relative flex-1 overflow-hidden rounded-l-2xl">
                           <LinkAnchor link={link} className="absolute inset-0" />
                           <span className="pointer-events-none flex items-center justify-center gap-2.5 px-5 py-3.5">
-                            <Icon className="h-4 w-4 shrink-0 text-[#8a6a45]" />
+                            <LinkFavicon link={link} className="h-4 w-4 shrink-0 text-[#8a6a45]" />
                             <span className="truncate font-mono text-sm font-medium text-[#2b2320]">
                               {link.label}
                             </span>
@@ -605,12 +771,17 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
             </nav>
           </div>
 
-          <footer className="mt-7 text-center font-mono text-xs text-[#8a7a68]">
-            <a href="https://harun.dev" className="transition hover:text-[#b8541f]">
-              harun.dev
-            </a>
-            <span className="mx-2 text-[#c9bba4]">·</span>
-            <span>© {new Date().getFullYear()} Harun R. Rayhan</span>
+          <footer className="mt-10 space-y-3 pb-6 text-center font-mono text-xs text-[#8a7a68]">
+            <p className="mx-auto max-w-xs text-[#a3937e]">
+              Thanks for stopping by — new tools and posts land here first.
+            </p>
+            <p>
+              <a href="https://harun.dev" className="transition hover:text-[#b8541f]">
+                harun.dev
+              </a>
+              <span className="mx-2 text-[#c9bba4]">·</span>
+              <span>© {new Date().getFullYear()} Harun R. Rayhan</span>
+            </p>
           </footer>
         </motion.div>
       </main>
