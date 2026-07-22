@@ -4,7 +4,10 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\BlogCommentController;
 use App\Http\Controllers\Admin\BioLinkController;
+use App\Http\Controllers\Admin\ShortLinkController;
 use App\Models\BioLink;
+use App\Models\ShortLink;
+use App\Models\ShortLinkClick;
 use App\Models\BlogCommentThread;
 use App\Support\BlogRepository;
 use App\Support\CaseStudyRepository;
@@ -103,6 +106,39 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::patch('/{bioLink}/toggle', [BioLinkController::class, 'toggle'])->name('toggle');
         Route::delete('/{bioLink}', [BioLinkController::class, 'destroy'])->name('destroy');
     });
+
+// Admin CRUD for the URL shortener
+Route::middleware(['auth', 'verified', 'role:admin'])
+    ->prefix('admin/short')
+    ->name('admin.short.')
+    ->group(function () {
+        Route::get('/', [ShortLinkController::class, 'index'])->name('index');
+        Route::get('/analytics', [ShortLinkController::class, 'analytics'])->name('analytics');
+        Route::get('/create', [ShortLinkController::class, 'create'])->name('create');
+        Route::post('/', [ShortLinkController::class, 'store'])->name('store');
+        Route::get('/{shortLink}/edit', [ShortLinkController::class, 'edit'])->name('edit');
+        Route::put('/{shortLink}', [ShortLinkController::class, 'update'])->name('update');
+        Route::patch('/{shortLink}/toggle', [ShortLinkController::class, 'toggle'])->name('toggle');
+        Route::delete('/{shortLink}', [ShortLinkController::class, 'destroy'])->name('destroy');
+    });
+
+// Public short-link redirect + click tracking (no auth needed). 302 so
+// browsers/CDNs never cache the redirect and skip recording a hit.
+Route::get('/s/{code}', function (string $code, Request $request, CountryResolver $countries) {
+    $link = ShortLink::query()->active()->where('code', $code)->first();
+
+    abort_unless($link, 404);
+
+    ShortLinkClick::create([
+        'short_link_id' => $link->id,
+        'ip_address' => $request->ip(),
+        'country' => $countries->resolve($request->ip()),
+        'user_agent' => $request->userAgent(),
+        'referer' => $request->header('referer'),
+    ]);
+
+    return redirect()->away($link->destination_url, 302);
+})->name('short.redirect');
 
 // Public link-in-bio landing page (DB-driven, no auth)
 Route::get('/bio', function (Request $request, CountryResolver $countries) {
