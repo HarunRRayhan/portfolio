@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react'
-import { ArrowRight, CalendarDays, Clock3, MessageCircle, Rss, Sparkles, Tag } from 'lucide-react'
+import { ArrowRight, CalendarDays, Clock3, Eye, MessageCircle, Rss, Sparkles, Tag } from 'lucide-react'
 
 interface BlogPostSummary {
   title: string
@@ -12,6 +12,7 @@ interface BlogPostSummary {
   responseCount: number
   replyCount: number
   coverImageUrl?: string | null
+  viewCount: number
   tags: Array<{ name: string; slug: string }>
   url: string
   canonicalUrl: string
@@ -151,6 +152,10 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
                         <span className="inline-flex items-center gap-1.5">
                           <MessageCircle className="h-3.5 w-3.5" />
                           {post.responseCount + post.replyCount} comments
+                        </span>
+                        <span className="inline-flex items-center gap-1.5">
+                          <Eye className="h-3.5 w-3.5" />
+                          {post.viewCount ?? 0} views
                         </span>
                       </div>
 
