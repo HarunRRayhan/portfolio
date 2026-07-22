@@ -23,7 +23,25 @@ const isMailto = (url: string) => url.startsWith('mailto:') || url.startsWith('t
 /** Tidy tab value for display — "default" becomes "Links". */
 const displayTab = (tab: string): string => (tab === 'default' ? 'Links' : tab)
 
-const SOCIAL_ICONS = ['instagram', 'tiktok', 'youtube', 'facebook', 'threads', 'github', 'linkedin', 'twitter']
+const SOCIAL_ICONS = [
+  'instagram',
+  'tiktok',
+  'youtube',
+  'facebook',
+  'threads',
+  'github',
+  'linkedin',
+  'twitter',
+  'mail',
+  'globe',
+]
+
+// Tabs that always render in this fixed order, even before they have links.
+// A declared tab with no links shows a "Coming soon" panel instead of hiding.
+const DECLARED_TABS = [
+  { slug: 'products', label: 'Products' },
+  { slug: 'ai-tools', label: 'AI Tools' },
+]
 
 /** POST a click event to the server (fire-and-forget with keepalive). */
 const trackClick = (id: number) => {
@@ -237,6 +255,13 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
   }
   const tabGroups: TabGroup[] = []
   const tabMap = new Map<string, TabGroup>()
+  // Seed the always-visible declared tabs first (empty until links land),
+  // so e.g. "AI Tools" shows a "Coming soon" panel instead of disappearing.
+  for (const declared of DECLARED_TABS) {
+    const group: TabGroup = { slug: declared.slug, label: declared.label, links: [] }
+    tabMap.set(declared.slug, group)
+    tabGroups.push(group)
+  }
   for (const link of regularLinks) {
     const slug = link.tab_slug || 'default'
     const existing = tabMap.get(slug)
@@ -373,7 +398,7 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
             <div className="relative">
               <div className="absolute inset-0 -z-10 scale-110 rounded-full bg-gradient-to-br from-[#e8b374] to-[#b8541f] opacity-40 blur-xl" />
               <img
-                src={getImageUrl('/images/profile/harun-profile.jpeg')}
+                src={getImageUrl('/images/profile/harun-bio.jpg')}
                 alt="Harun R. Rayhan"
                 className="h-24 w-24 rounded-full border-4 border-[#fffaf6] object-cover shadow-lg shadow-[#2b2320]/10"
                 loading="eager"
@@ -477,7 +502,9 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
                       <motion.div
                         key={link.id}
                         variants={itemVariants}
-                        className="group rounded-3xl border border-[#e4d7c4] bg-[#fffaf6] shadow-md shadow-[#2b2320]/[0.05]"
+                        className={`group rounded-3xl border border-[#e4d7c4] bg-[#fffaf6] shadow-md shadow-[#2b2320]/[0.05] ${
+                          openMenu === link.id ? 'relative z-30' : ''
+                        }`}
                       >
                         <div className="relative">
                           <LinkAnchor link={link} className="absolute inset-0" />
@@ -516,7 +543,9 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
                       <motion.div
                         key={link.id}
                         variants={itemVariants}
-                        className="flex items-stretch rounded-2xl border border-[#e4d7c4] bg-[#fffaf6]/90 shadow-sm shadow-[#2b2320]/[0.03] transition hover:-translate-y-0.5 hover:border-[#c98a4b] hover:shadow-md"
+                        className={`flex items-stretch rounded-2xl border border-[#e4d7c4] bg-[#fffaf6]/90 shadow-sm shadow-[#2b2320]/[0.03] transition hover:-translate-y-0.5 hover:border-[#c98a4b] hover:shadow-md ${
+                          openMenu === link.id ? 'relative z-30' : ''
+                        }`}
                       >
                         <div className="relative flex-1 overflow-hidden rounded-l-2xl">
                           <LinkAnchor link={link} className="absolute inset-0" />
@@ -543,7 +572,7 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
 
               {currentLinks.length === 0 && (
                 <p className="rounded-2xl border border-dashed border-[#e4d7c4] px-4 py-6 text-center font-mono text-sm text-[#8a7a68]">
-                  No links in this category yet.
+                  Coming soon.
                 </p>
               )}
             </nav>
