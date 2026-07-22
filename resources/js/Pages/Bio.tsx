@@ -545,7 +545,7 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
             )}
           </div>
 
-          <div className="flex flex-col items-center text-center">
+          <div className="flex w-full flex-col items-center text-center">
             <div className="relative">
               <div className="absolute inset-0 -z-10 scale-110 rounded-full bg-gradient-to-br from-[#e8b374] to-[#b8541f] opacity-40 blur-xl" />
               <img
@@ -573,10 +573,10 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
               </p>
             </div>
 
-            {/* Monochrome social icon row — scrolls horizontally on phones
-                (icons run ~22% larger there too); wraps and centers from sm+ */}
+            {/* Monochrome social icon row — wraps and centers at every width
+                so it never gets clipped by main's overflow-hidden. */}
             {socialLinks.length > 0 && (
-              <div className="mt-5 flex w-full flex-nowrap items-center justify-start gap-1 overflow-x-auto px-1 [scrollbar-width:none] sm:w-auto sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
+              <div className="mt-5 flex w-full flex-wrap items-center justify-center gap-1">
                 {socialLinks.map((link) => {
                   const Icon = bioIcon(link.icon)
                   return (
@@ -773,7 +773,7 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
 
           <footer className="mt-10 space-y-3 pb-6 text-center font-mono text-xs text-[#8a7a68]">
             <p className="mx-auto max-w-xs text-[#a3937e]">
-              Thanks for stopping by — new tools and posts land here first.
+              Thanks for stopping by. New tools and posts land here first.
             </p>
             <p>
               <a href="https://harun.dev" className="transition hover:text-[#b8541f]">
