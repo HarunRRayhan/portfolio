@@ -3,7 +3,7 @@ import { Head, Link, usePage } from '@inertiajs/react'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
 import { getImageUrl } from '@/lib/imageUtils'
-import { Check, Copy, MoreVertical, Share2, X } from 'lucide-react'
+import { Check, Copy, Share2, X } from 'lucide-react'
 import { bioIcon } from '@/lib/bioIcons'
 
 interface BioLink {
@@ -101,89 +101,19 @@ function LinkAnchor({ link, className }: { link: BioLink; className: string }) {
   )
 }
 
-/** Copy-link / native-share dropdown anchored under a single link's ⋮ button. */
-function ShareDropdown({ url, label, onClose }: { url: string; label: string; onClose: () => void }) {
-  const [copied, setCopied] = useState(false)
-  const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
-
-  const copy = () => {
-    navigator.clipboard.writeText(url).then(() => {
-      setCopied(true)
-      setTimeout(onClose, 900)
-    })
-  }
-
-  const share = () => {
-    navigator.share({ title: label, url }).catch(() => {})
-    onClose()
-  }
-
-  return (
-    <div
-      role="menu"
-      className="absolute right-0 top-full z-20 mt-2 w-44 overflow-hidden rounded-xl border border-[#e4d7c4] bg-[#fffaf6] py-1 text-left shadow-lg shadow-[#2b2320]/10"
-    >
-      {canShare && (
-        <button
-          type="button"
-          role="menuitem"
-          onClick={share}
-          className="flex w-full items-center gap-2 px-3.5 py-2.5 font-mono text-xs text-[#3a2f27] transition hover:bg-[#f1e6d3]"
-        >
-          <Share2 className="h-3.5 w-3.5" /> Share
-        </button>
-      )}
-      <button
-        type="button"
-        role="menuitem"
-        onClick={copy}
-        className="flex w-full items-center gap-2 px-3.5 py-2.5 font-mono text-xs text-[#3a2f27] transition hover:bg-[#f1e6d3]"
-      >
-        {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
-        {copied ? 'Copied' : 'Copy link'}
-      </button>
-    </div>
-  )
-}
-
-/** The per-link share trigger (⋮ button) plus its dropdown, self-contained. */
-function ShareTrigger({
-  link,
-  isOpen,
-  onToggle,
+/** Shared share-sheet UI (native share, copy-link, and a scannable QR code) —
+ *  used for both the whole-page share button and each per-link share trigger. */
+function ShareSheet({
+  title,
+  url,
+  shareTitle,
   onClose,
-  menuRef,
-  cornerClassName = '',
 }: {
-  link: BioLink
-  isOpen: boolean
-  onToggle: () => void
+  title: string
+  url: string
+  shareTitle: string
   onClose: () => void
-  menuRef: React.RefObject<HTMLDivElement | null>
-  /** Rounds the button's own corners to match whichever card edge it sits on
-   *  now that the card no longer clips overflow (the dropdown needs to be
-   *  able to paint outside the card's rounded border). */
-  cornerClassName?: string
 }) {
-  return (
-    <div className="relative" ref={isOpen ? menuRef : null}>
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-label={`Share ${link.label}`}
-        aria-haspopup="menu"
-        aria-expanded={isOpen}
-        className={`flex h-full w-11 shrink-0 items-center justify-center border-l border-[#e4d7c4]/70 text-[#8a6a45] transition hover:bg-[#f1e6d3] hover:text-[#2b2320] ${cornerClassName}`}
-      >
-        <MoreVertical className="h-4 w-4" />
-      </button>
-      {isOpen && <ShareDropdown url={link.url} label={link.label} onClose={onClose} />}
-    </div>
-  )
-}
-
-/** Whole-page share sheet: native share, copy-link, and a scannable QR code. */
-function PageShareSheet({ url, onClose }: { url: string; onClose: () => void }) {
   const [copied, setCopied] = useState(false)
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
 
@@ -195,18 +125,21 @@ function PageShareSheet({ url, onClose }: { url: string; onClose: () => void }) 
   }
 
   const share = () => {
-    navigator.share({ title: 'Harun R. Rayhan', url }).catch(() => {})
+    navigator.share({ title: shareTitle, url }).catch(() => {})
   }
 
   return (
-    <div className="absolute right-0 top-full z-30 mt-2 w-72 rounded-2xl border border-[#e4d7c4] bg-[#fffaf6] p-4 shadow-xl shadow-[#2b2320]/10">
-      <div className="flex items-center justify-between">
-        <p className="font-mono text-xs font-semibold uppercase tracking-wider text-[#5b4a3a]">Share this page</p>
+    <div
+      role="menu"
+      className="absolute right-0 top-full z-30 mt-2 w-72 rounded-2xl border border-[#e4d7c4] bg-[#fffaf6] p-4 text-left shadow-xl shadow-[#2b2320]/10"
+    >
+      <div className="flex items-center justify-between gap-2">
+        <p className="truncate font-mono text-xs font-semibold uppercase tracking-wider text-[#5b4a3a]">{title}</p>
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="rounded-full p-1 text-[#8a6a45] transition hover:bg-[#f1e6d3] hover:text-[#2b2320]"
+          className="shrink-0 rounded-full p-1 text-[#8a6a45] transition hover:bg-[#f1e6d3] hover:text-[#2b2320]"
         >
           <X className="h-3.5 w-3.5" />
         </button>
@@ -235,6 +168,42 @@ function PageShareSheet({ url, onClose }: { url: string; onClose: () => void }) 
           {copied ? 'Copied' : 'Copy link'}
         </button>
       </div>
+    </div>
+  )
+}
+
+/** The per-link share trigger (share icon button) plus its ShareSheet, self-contained. */
+function ShareTrigger({
+  link,
+  isOpen,
+  onToggle,
+  onClose,
+  menuRef,
+  cornerClassName = '',
+}: {
+  link: BioLink
+  isOpen: boolean
+  onToggle: () => void
+  onClose: () => void
+  menuRef: React.RefObject<HTMLDivElement | null>
+  /** Rounds the button's own corners to match whichever card edge it sits on
+   *  now that the card no longer clips overflow (the dropdown needs to be
+   *  able to paint outside the card's rounded border). */
+  cornerClassName?: string
+}) {
+  return (
+    <div className="relative" ref={isOpen ? menuRef : null}>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label={`Share ${link.label}`}
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
+        className={`flex h-full w-11 shrink-0 items-center justify-center border-l border-[#e4d7c4]/70 text-[#8a6a45] transition hover:bg-[#f1e6d3] hover:text-[#2b2320] ${cornerClassName}`}
+      >
+        <Share2 className="h-4 w-4" />
+      </button>
+      {isOpen && <ShareSheet title={link.label} url={link.url} shareTitle={link.label} onClose={onClose} />}
     </div>
   )
 }
@@ -391,7 +360,9 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
             >
               <Share2 className="h-4 w-4" />
             </button>
-            {openMenu === 'page' && <PageShareSheet url={canonicalUrl} onClose={() => setOpenMenu(null)} />}
+            {openMenu === 'page' && (
+              <ShareSheet title="Share this page" url={canonicalUrl} shareTitle="Harun R. Rayhan" onClose={() => setOpenMenu(null)} />
+            )}
           </div>
 
           <div className="flex flex-col items-center text-center">
@@ -414,8 +385,11 @@ export default function Bio({ links = [] }: { links?: BioLink[] }) {
               <h1 className="font-display text-3xl font-semibold tracking-tight text-[#2b2320] sm:text-4xl">
                 Harun R. Rayhan
               </h1>
-              <p className="font-mono text-sm text-[#6b5d4f] sm:text-base">
-                AWS DevOps · CloudOps · Infrastructure Automation
+              <p className="font-mono text-sm font-semibold text-[#3a2f27] sm:text-base">
+                Software Engineer turning Entrepreneur
+              </p>
+              <p className="font-mono text-xs text-[#6b5d4f] sm:text-sm">
+                DevOps · AI/ML Enthusiast · AWS · CloudOps · Infrastructure Automation
               </p>
             </div>
 
