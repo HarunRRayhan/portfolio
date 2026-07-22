@@ -175,12 +175,18 @@ export default function Dashboard({ stats, recentPosts, draftPostsList }: Props)
                         <div className="px-4 sm:px-6 py-4 border-b border-neutral-200 dark:border-neutral-700">
                             <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">Quick Actions</h3>
                         </div>
-                        <div className="px-4 sm:px-6 py-4">
+                        <div className="px-4 sm:px-6 py-4 flex flex-wrap gap-3">
                             <Link
                                 href="/admin"
                                 className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
                             >
                                 View All Posts
+                            </Link>
+                            <Link
+                                href="/admin/short"
+                                className="inline-flex items-center px-4 py-2 bg-white text-neutral-700 text-sm font-medium rounded-lg border border-neutral-200 hover:bg-neutral-50 transition-colors dark:bg-neutral-800 dark:text-neutral-200 dark:border-neutral-700 dark:hover:bg-neutral-700/50"
+                            >
+                                Short Links
                             </Link>
                         </div>
                     </div>
