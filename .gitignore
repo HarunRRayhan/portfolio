@@ -53,3 +53,6 @@ deploy/.env.**
 !deploy/.env.example
 !deploy/.env.*.example
 **/__pycache__/
+
+# Claude Code plan-mode scratch files — not app code, never deployed
+/reports/
