@@ -25,8 +25,6 @@ const THEME = {
     socialHoverBorder: 'hover:border-[#c98a4b]',
     socialHoverText: 'hover:text-[#b8541f]',
     qrHoverBorder: 'hover:border-[#c98a4b]',
-    qrOverlayBase: 'bg-[#2b2320]/0',
-    qrOverlayHover: 'group-hover:bg-[#2b2320]/40',
     modalBackdrop: 'bg-[#2b2320]/80',
     qrFg: '#2b2320',
   },
@@ -45,8 +43,6 @@ const THEME = {
     socialHoverBorder: 'hover:border-slate-400',
     socialHoverText: 'hover:text-slate-950',
     qrHoverBorder: 'hover:border-slate-400',
-    qrOverlayBase: 'bg-slate-950/0',
-    qrOverlayHover: 'group-hover:bg-slate-950/40',
     modalBackdrop: 'bg-slate-950/80',
     qrFg: '#0f172a',
   },
@@ -156,12 +152,9 @@ export function ShareSheet({
         type="button"
         onClick={() => setExpanded(true)}
         aria-label="Enlarge QR code"
-        className={`group relative mt-3 flex w-full justify-center rounded-xl border ${t.border} bg-white p-3 transition ${t.qrHoverBorder}`}
+        className={`mt-3 flex w-full justify-center rounded-xl border ${t.border} bg-white p-3 transition ${t.qrHoverBorder}`}
       >
         <QRCodeSVG value={url} size={144} bgColor="#ffffff" fgColor={t.qrFg} level="M" />
-        <span className={`absolute inset-0 flex items-center justify-center rounded-xl ${t.qrOverlayBase} opacity-0 transition ${t.qrOverlayHover} group-hover:opacity-100`}>
-          <Maximize2 className="h-5 w-5 text-white" />
-        </span>
       </button>
 
       {renderSocialShare()}
