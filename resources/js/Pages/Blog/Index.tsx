@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react'
 import { ArrowRight, CalendarDays, Clock3, Eye, MessageCircle, Rss, Sparkles, Tag } from 'lucide-react'
+import { ShareButton } from '@/Components/ShareButton'
 
 interface BlogPostSummary {
   title: string
@@ -118,70 +119,80 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
               {posts.map((post) => (
                 <article
                   key={post.slug}
-                  className="group overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_-34px_rgba(15,23,42,0.45)]"
+                  className="group relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_-34px_rgba(15,23,42,0.45)]"
                 >
-                  <Link href={post.url} className="block h-full">
-                    <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
-                      {post.coverImageUrl ? (
-                        <img
-                          src={post.coverImageUrl}
-                          alt={post.title}
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="flex h-full items-end bg-[linear-gradient(135deg,#0f172a_0%,#1f2937_100%)] p-6 text-white">
-                          <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/70">Article</p>
-                            <p className="mt-3 text-2xl font-semibold tracking-tight">{post.title}</p>
-                          </div>
+                  <Link href={post.url} className="absolute inset-0 z-10" aria-label={post.title} />
+
+                  <div className="pointer-events-none relative aspect-[16/10] overflow-hidden bg-slate-100">
+                    {post.coverImageUrl ? (
+                      <img
+                        src={post.coverImageUrl}
+                        alt={post.title}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="flex h-full items-end bg-[linear-gradient(135deg,#0f172a_0%,#1f2937_100%)] p-6 text-white">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/70">Article</p>
+                          <p className="mt-3 text-2xl font-semibold tracking-tight">{post.title}</p>
                         </div>
-                      )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pointer-events-none p-6">
+                    <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500">
+                      <span className="inline-flex items-center gap-1.5">
+                        <CalendarDays className="h-3.5 w-3.5" />
+                        {post.publishedAtHuman}
+                      </span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <Clock3 className="h-3.5 w-3.5" />
+                        {post.readTimeLabel}
+                      </span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <MessageCircle className="h-3.5 w-3.5" />
+                        {post.responseCount + post.replyCount} comments
+                      </span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <Eye className="h-3.5 w-3.5" />
+                        {post.viewCount ?? 0} views
+                      </span>
                     </div>
 
-                    <div className="p-6">
-                      <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500">
-                        <span className="inline-flex items-center gap-1.5">
-                          <CalendarDays className="h-3.5 w-3.5" />
-                          {post.publishedAtHuman}
-                        </span>
-                        <span className="inline-flex items-center gap-1.5">
-                          <Clock3 className="h-3.5 w-3.5" />
-                          {post.readTimeLabel}
-                        </span>
-                        <span className="inline-flex items-center gap-1.5">
-                          <MessageCircle className="h-3.5 w-3.5" />
-                          {post.responseCount + post.replyCount} comments
-                        </span>
-                        <span className="inline-flex items-center gap-1.5">
-                          <Eye className="h-3.5 w-3.5" />
-                          {post.viewCount ?? 0} views
-                        </span>
-                      </div>
+                    <h3 className="mt-4 text-2xl font-semibold tracking-tight text-slate-950 transition-colors group-hover:text-slate-700">
+                      {post.title}
+                    </h3>
+                    <p className="mt-3 line-clamp-4 text-sm leading-7 text-slate-600">{post.brief}</p>
 
-                      <h3 className="mt-4 text-2xl font-semibold tracking-tight text-slate-950 transition-colors group-hover:text-slate-700">
-                        {post.title}
-                      </h3>
-                      <p className="mt-3 line-clamp-4 text-sm leading-7 text-slate-600">{post.brief}</p>
-
-                      <div className="mt-5 flex flex-wrap gap-2">
-                        {post.tags.slice(0, 4).map((tag) => (
-                          <span
-                            key={tag.slug}
-                            className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600"
-                          >
-                            <Tag className="h-3 w-3" />
-                            {tag.name}
-                          </span>
-                        ))}
-                      </div>
-
-                      <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
-                        Read article
-                        <ArrowRight className="h-4 w-4" />
-                      </div>
+                    <div className="mt-5 flex flex-wrap gap-2">
+                      {post.tags.slice(0, 4).map((tag) => (
+                        <span
+                          key={tag.slug}
+                          className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600"
+                        >
+                          <Tag className="h-3 w-3" />
+                          {tag.name}
+                        </span>
+                      ))}
                     </div>
-                  </Link>
+
+                    <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
+                      Read article
+                      <ArrowRight className="h-4 w-4" />
+                    </div>
+                  </div>
+
+                  <ShareButton
+                    url={post.canonicalUrl}
+                    title={post.title}
+                    shareTitle={post.title}
+                    label={`Share "${post.title}"`}
+                    theme="slate"
+                    wrapperClassName="absolute right-4 top-4 z-20"
+                    triggerClassName="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-600 shadow-sm backdrop-blur transition hover:border-slate-300 hover:text-slate-950"
+                  />
                 </article>
               ))}
             </div>

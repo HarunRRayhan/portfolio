@@ -5,7 +5,8 @@ import { useEffect, useMemo, useRef } from 'react'
 import hljs from 'highlight.js/lib/common'
 import 'highlight.js/styles/github-dark.css'
 import { BlogDiscussion } from '@/Components/BlogDiscussion'
-import { ArrowRight, BookOpen, CalendarDays, ChevronDown, Clock3, Eye, MessageCircle, Sparkles, Tag } from 'lucide-react'
+import { ShareButton } from '@/Components/ShareButton'
+import { ArrowRight, BookOpen, CalendarDays, ChevronDown, Clock3, Eye, MessageCircle, Share2, Sparkles, Tag } from 'lucide-react'
 
 interface BlogPostTag {
   name: string
@@ -307,6 +308,17 @@ export default function BlogPostPage({
                     <Eye className="h-4 w-4" />
                     {post.viewCount ?? 0} views
                   </span>
+                  <ShareButton
+                    url={canonicalUrl}
+                    title={post.title}
+                    shareTitle={post.title}
+                    label={`Share "${post.title}"`}
+                    theme="slate"
+                    triggerClassName="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 font-medium text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-100 hover:text-slate-950"
+                  >
+                    <Share2 className="h-4 w-4" />
+                    Share
+                  </ShareButton>
                 </div>
 
                 <div className="mt-8 flex flex-wrap gap-2">
