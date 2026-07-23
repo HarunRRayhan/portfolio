@@ -133,13 +133,25 @@ function LinkFavicon({ link, className }: { link: BioLink; className: string }) 
   return <img src={favicon} alt="" className={`${className} rounded-[3px] object-contain`} onError={() => setFailed(true)} />
 }
 
-/** Standard-row icon: a link's real logo in a bordered box when it has a
- *  thumbnail (Products), otherwise the small favicon/registry icon. */
+/** Real product logos, keyed by link URL — mirrors resources/js/Pages/Products.tsx.
+ *  Served as plain public assets rather than the thumbnail_path/storage disk so
+ *  they're available immediately on deploy, no admin upload or migration needed. */
+const PRODUCT_LOGOS: Record<string, string> = {
+  'https://toolblip.com': '/images/products/toolblip.svg',
+  'https://ploy.cloud': '/images/products/ploycloud-icon.svg',
+  'https://crontinel.com': '/images/products/crontinel.png',
+  'https://appnary.com': '/images/products/appnary.svg',
+  'https://amazingplugins.com': '/images/products/amazingplugins.jpg',
+}
+
+/** Standard-row icon: a product's real logo in a bordered box when it has
+ *  one, otherwise the small favicon/registry icon. */
 function LinkIcon({ link }: { link: BioLink }) {
-  if (link.thumbnail_url) {
+  const logo = PRODUCT_LOGOS[link.url]
+  if (logo) {
     return (
       <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#e4d7c4] bg-white sm:h-12 sm:w-12">
-        <img src={link.thumbnail_url} alt="" className="h-7 w-7 object-contain sm:h-8 sm:w-8" />
+        <img src={logo} alt="" className="h-7 w-7 object-contain sm:h-8 sm:w-8" />
       </span>
     )
   }
