@@ -10,6 +10,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 export interface BioLinkFormData {
   label: string
+  description: string
   url: string
   icon: string
   thumbnail: File | null
@@ -97,6 +98,19 @@ export default function BioLinkForm({
           required
         />
         <InputError message={errors.label} className="mt-2" />
+      </div>
+
+      <div>
+        <InputLabel htmlFor="description" value="Description (optional)" />
+        <TextInput
+          id="description"
+          className="mt-1 block w-full"
+          value={data.description}
+          onChange={(e) => setData('description', e.target.value)}
+          placeholder="e.g. Free online developer tools"
+        />
+        <p className="mt-1 text-xs text-gray-500">Shown under the label on the public /bio page.</p>
+        <InputError message={errors.description} className="mt-2" />
       </div>
 
       <div>
