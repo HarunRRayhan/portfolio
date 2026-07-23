@@ -27,6 +27,7 @@ const THEME = {
     qrHoverBorder: 'hover:border-[#c98a4b]',
     modalBackdrop: 'bg-[#2b2320]/80',
     qrFg: '#2b2320',
+    focusRing: 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f]',
   },
   slate: {
     font: '',
@@ -45,6 +46,7 @@ const THEME = {
     qrHoverBorder: 'hover:border-slate-400',
     modalBackdrop: 'bg-slate-950/80',
     qrFg: '#0f172a',
+    focusRing: 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500',
   },
 } as const
 
@@ -88,7 +90,7 @@ export function ShareSheet({
         <button
           type="button"
           onClick={share}
-          className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg border ${t.border} bg-white px-3 py-2 ${t.font} text-xs font-medium ${t.action} transition ${t.actionHoverBg}`}
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg border ${t.border} bg-white px-3 py-2 ${t.font} text-xs font-medium ${t.action} transition ${t.actionHoverBg} ${t.focusRing}`}
         >
           <Share2 className="h-3.5 w-3.5" /> Share
         </button>
@@ -96,7 +98,7 @@ export function ShareSheet({
       <button
         type="button"
         onClick={copy}
-        className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg border ${t.border} bg-white px-3 py-2 ${t.font} text-xs font-medium ${t.action} transition ${t.actionHoverBg}`}
+        className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg border ${t.border} bg-white px-3 py-2 ${t.font} text-xs font-medium ${t.action} transition ${t.actionHoverBg} ${t.focusRing}`}
       >
         {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
         {copied ? 'Copied' : 'Copy link'}
@@ -116,7 +118,7 @@ export function ShareSheet({
           type="button"
           onClick={() => window.open(href(url, shareTitle), '_blank', 'noopener,noreferrer')}
           aria-label={label ?? `Share on ${name}`}
-          className={`flex h-9 w-9 items-center justify-center rounded-full border ${t.border} bg-white ${t.social} transition ${t.socialHoverBorder} ${t.socialHoverText}`}
+          className={`flex h-9 w-9 items-center justify-center rounded-full border ${t.border} bg-white ${t.social} transition ${t.socialHoverBorder} ${t.socialHoverText} ${t.focusRing}`}
         >
           <Icon className="h-4 w-4" />
         </button>
@@ -133,7 +135,7 @@ export function ShareSheet({
             type="button"
             onClick={() => setExpanded(true)}
             aria-label="Expand"
-            className={`rounded-full p-1 ${t.muted} transition ${t.mutedHoverBg} ${t.mutedHoverText}`}
+            className={`rounded-full p-1 ${t.muted} transition ${t.mutedHoverBg} ${t.mutedHoverText} ${t.focusRing}`}
           >
             <Maximize2 className="h-3.5 w-3.5" />
           </button>
@@ -141,7 +143,7 @@ export function ShareSheet({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className={`rounded-full p-1 ${t.muted} transition ${t.mutedHoverBg} ${t.mutedHoverText}`}
+            className={`rounded-full p-1 ${t.muted} transition ${t.mutedHoverBg} ${t.mutedHoverText} ${t.focusRing}`}
           >
             <X className="h-3.5 w-3.5" />
           </button>
@@ -152,7 +154,7 @@ export function ShareSheet({
         type="button"
         onClick={() => setExpanded(true)}
         aria-label="Enlarge QR code"
-        className={`mt-3 flex w-full justify-center rounded-xl border ${t.border} bg-white p-3 transition ${t.qrHoverBorder}`}
+        className={`mt-3 flex w-full justify-center rounded-xl border ${t.border} bg-white p-3 transition ${t.qrHoverBorder} ${t.focusRing}`}
       >
         <QRCodeSVG value={url} size={144} bgColor="#ffffff" fgColor={t.qrFg} level="M" />
       </button>
@@ -191,7 +193,7 @@ export function ShareSheet({
                       type="button"
                       onClick={() => setExpanded(false)}
                       aria-label="Collapse"
-                      className={`rounded-full p-1.5 ${t.muted} transition ${t.mutedHoverBg} ${t.mutedHoverText}`}
+                      className={`rounded-full p-1.5 ${t.muted} transition ${t.mutedHoverBg} ${t.mutedHoverText} ${t.focusRing}`}
                     >
                       <Minimize2 className="h-4 w-4" />
                     </button>
@@ -199,7 +201,7 @@ export function ShareSheet({
                       type="button"
                       onClick={onClose}
                       aria-label="Close"
-                      className={`rounded-full p-1.5 ${t.muted} transition ${t.mutedHoverBg} ${t.mutedHoverText}`}
+                      className={`rounded-full p-1.5 ${t.muted} transition ${t.mutedHoverBg} ${t.mutedHoverText} ${t.focusRing}`}
                     >
                       <X className="h-4 w-4" />
                     </button>
