@@ -317,7 +317,7 @@ export default function Bio({
         <link rel="canonical" href={canonicalUrl} />
       </Head>
 
-      <main className="relative min-h-screen overflow-hidden bg-[#f7f1e8] px-4 py-10 text-[#2b2320] sm:px-6 sm:py-14 lg:px-8">
+      <main className="relative min-h-dvh overflow-hidden bg-[#f7f1e8] px-4 py-10 text-[#2b2320] sm:px-6 sm:py-14 lg:px-8">
         {/* Layered warm glow */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_20%_-10%,rgba(217,157,89,0.35),transparent),radial-gradient(ellipse_55%_45%_at_100%_110%,rgba(184,84,31,0.22),transparent)]" />
         {/* Fine grain for depth over the flat fill */}
@@ -330,7 +330,7 @@ export default function Bio({
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="relative mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-xl flex-col items-center pt-12"
+          className="relative mx-auto flex min-h-[calc(100dvh-6rem)] w-full max-w-xl flex-col items-center pt-12"
         >
           {/* Whole-page share button */}
           <div className="absolute right-0 top-0" ref={openMenu === 'page' ? menuRef : null}>
