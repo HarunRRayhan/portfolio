@@ -99,10 +99,13 @@ const itemVariants: Variants = {
 function LinkAnchor({ link, className }: { link: BioLink; className: string }) {
   const internal = isInternal(link.url)
   const mailish = isMailto(link.url)
+  // The card that hosts this anchor clips overflow, so a negative outline
+  // offset keeps the keyboard-focus ring visible instead of getting clipped.
+  const focusClassName = `${className} focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#b8541f]`
 
   if (internal) {
     return (
-      <Link href={link.url} onClick={() => trackClick(link.id)} className={className} aria-label={link.label} />
+      <Link href={link.url} onClick={() => trackClick(link.id)} className={focusClassName} aria-label={link.label} />
     )
   }
 
@@ -112,7 +115,7 @@ function LinkAnchor({ link, className }: { link: BioLink; className: string }) {
       target={mailish ? undefined : '_blank'}
       rel={mailish ? undefined : 'noopener noreferrer'}
       onClick={() => trackClick(link.id)}
-      className={className}
+      className={focusClassName}
       aria-label={link.label}
     />
   )
@@ -128,6 +131,20 @@ function LinkFavicon({ link, className }: { link: BioLink; className: string }) 
   if (!favicon || failed) return <Icon className={className} />
 
   return <img src={favicon} alt="" className={`${className} rounded-[3px] object-contain`} onError={() => setFailed(true)} />
+}
+
+/** Standard-row icon: a link's real logo in a bordered box when it has a
+ *  thumbnail (Products), otherwise the small favicon/registry icon. */
+function LinkIcon({ link }: { link: BioLink }) {
+  if (link.thumbnail_url) {
+    return (
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#e4d7c4] bg-white sm:h-12 sm:w-12">
+        <img src={link.thumbnail_url} alt="" className="h-7 w-7 object-contain sm:h-8 sm:w-8" />
+      </span>
+    )
+  }
+
+  return <LinkFavicon link={link} className="h-4 w-4 shrink-0 text-[#8a6a45]" />
 }
 
 /** The per-link share trigger (share icon button) plus its ShareSheet, self-contained. */
@@ -157,7 +174,7 @@ function ShareTrigger({
         aria-label={`Share ${link.label}`}
         aria-haspopup="menu"
         aria-expanded={isOpen}
-        className={`flex h-full w-11 shrink-0 items-center justify-center border-l border-[#e4d7c4]/70 text-[#8a6a45] transition hover:bg-[#f1e6d3] hover:text-[#2b2320] ${cornerClassName}`}
+        className={`flex h-full w-11 shrink-0 items-center justify-center border-l border-[#e4d7c4]/70 text-[#8a6a45] transition hover:bg-[#f1e6d3] hover:text-[#2b2320] focus-visible:bg-[#f1e6d3] focus-visible:text-[#2b2320] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#b8541f] ${cornerClassName}`}
       >
         <Share2 className="h-4 w-4" />
       </button>
@@ -353,7 +370,7 @@ export default function Bio({
               aria-label="Share this page"
               aria-haspopup="menu"
               aria-expanded={openMenu === 'page'}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-[#e4d7c4] bg-[#fffaf6]/90 text-[#5b4a3a] shadow-sm backdrop-blur transition hover:border-[#c98a4b] hover:text-[#2b2320]"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-[#e4d7c4] bg-[#fffaf6]/90 text-[#5b4a3a] shadow-sm backdrop-blur transition hover:border-[#c98a4b] hover:text-[#2b2320] focus-visible:border-[#c98a4b] focus-visible:text-[#2b2320] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f]"
             >
               <Share2 className="h-4 w-4" />
             </button>
@@ -406,12 +423,12 @@ export default function Bio({
                       rel="noopener noreferrer"
                       onClick={() => trackClick(link.id)}
                       aria-label={link.label}
-                      className="group relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-[#4a3b2e] transition hover:-translate-y-0.5 hover:text-[#b8541f] sm:h-12 sm:w-12"
+                      className="group relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-[#4a3b2e] transition hover:-translate-y-0.5 hover:text-[#b8541f] focus-visible:-translate-y-0.5 focus-visible:text-[#b8541f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f] sm:h-12 sm:w-12"
                     >
                       <Icon className="h-[26px] w-[26px] sm:h-[22px] sm:w-[22px]" />
                       <span
                         role="tooltip"
-                        className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-[#2b2320] px-2 py-1 font-mono text-[10px] font-medium text-[#f7f1e8] opacity-0 shadow-md transition-opacity duration-150 [@media(hover:hover)]:group-hover:opacity-100"
+                        className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-[#2b2320] px-2 py-1 font-mono text-[10px] font-medium text-[#f7f1e8] opacity-0 shadow-md transition-opacity duration-150 [@media(hover:hover)]:group-hover:opacity-100 group-focus-visible:opacity-100"
                       >
                         {link.label}
                       </span>
@@ -432,36 +449,40 @@ export default function Bio({
                     const isActive = group.slug === activeSlug
                     const shareId = `tab:${group.slug}` as const
                     return (
-                      <button
+                      <div
                         key={group.slug}
-                        type="button"
-                        onClick={() => setActiveSlug(group.slug)}
-                        className={`relative flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 font-mono text-xs font-medium uppercase tracking-wider transition sm:text-[13px] ${
+                        className={`relative flex flex-1 items-center justify-center whitespace-nowrap rounded-full font-mono text-xs font-medium uppercase tracking-wider transition sm:text-[13px] ${
                           isActive
                             ? 'bg-[#2b2320] text-[#f7f1e8] shadow-sm'
                             : 'text-[#6b5d4f] hover:bg-[#f1e6d3] hover:text-[#2b2320]'
                         }`}
                       >
-                        {displayTab(group.label)}
-
-                        {/* Share button (visible on the active tab) */}
-                        <span
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setOpenMenu(openMenu === shareId ? null : shareId)
-                          }}
-                          role="button"
-                          aria-label={`Share ${displayTab(group.label)}`}
-                          aria-haspopup="menu"
-                          aria-expanded={openMenu === shareId}
-                          className={`ml-0.5 inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded transition sm:h-4 sm:w-4 ${
-                            isActive ? 'opacity-70 hover:opacity-100' : 'hidden'
-                          }`}
-                          title={`Share ${displayTab(group.label)}`}
+                        <button
+                          type="button"
+                          onClick={() => setActiveSlug(group.slug)}
+                          aria-pressed={isActive}
+                          className="flex-1 rounded-full px-3.5 py-2 uppercase tracking-wider focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f]"
                         >
-                          <Share2 className="h-3 w-3" />
-                        </span>
-                      </button>
+                          {displayTab(group.label)}
+                        </button>
+
+                        {/* Share button (visible on the active tab, a sibling
+                            of the select button so this isn't an interactive
+                            control nested inside another one). */}
+                        {isActive && (
+                          <button
+                            type="button"
+                            onClick={() => setOpenMenu(openMenu === shareId ? null : shareId)}
+                            aria-label={`Share ${displayTab(group.label)}`}
+                            aria-haspopup="menu"
+                            aria-expanded={openMenu === shareId}
+                            title={`Share ${displayTab(group.label)}`}
+                            className="mr-2 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded opacity-70 transition hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f] sm:h-4 sm:w-4"
+                          >
+                            <Share2 className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
                     )
                   })}
                 </nav>
@@ -566,13 +587,13 @@ export default function Bio({
                               link.description ? '' : 'justify-center'
                             }`}
                           >
-                            <LinkFavicon link={link} className="h-4 w-4 shrink-0 text-[#8a6a45]" />
+                            <LinkIcon link={link} />
                             {link.description ? (
                               <span className="min-w-0 flex-1 text-left">
                                 <span className="block truncate font-mono text-sm font-medium text-[#2b2320]">
                                   {link.label}
                                 </span>
-                                <span className="block truncate text-xs text-[#a3937e]">
+                                <span className="block truncate text-xs text-[#6b5d4f]">
                                   {link.description}
                                 </span>
                               </span>
@@ -598,15 +619,15 @@ export default function Bio({
               </AnimatePresence>
 
               {currentLinks.length === 0 && (
-                <p className="rounded-2xl border border-dashed border-[#e4d7c4] px-4 py-6 text-center font-mono text-sm text-[#8a7a68]">
+                <p className="rounded-2xl border border-dashed border-[#e4d7c4] px-4 py-6 text-center font-mono text-sm text-[#6b5d4f]">
                   Coming soon.
                 </p>
               )}
             </nav>
           </div>
 
-          <footer className="mt-10 space-y-3 pb-6 text-center font-mono text-xs text-[#8a7a68]">
-            <p className="mx-auto max-w-xs text-[#a3937e]">
+          <footer className="mt-10 space-y-3 pb-6 text-center font-mono text-xs text-[#6b5d4f]">
+            <p className="mx-auto max-w-xs">
               Thanks for stopping by. New tools and posts land here first.
             </p>
             <p>
