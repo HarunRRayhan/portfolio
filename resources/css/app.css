@@ -114,6 +114,10 @@
   }
   html {
     overscroll-behavior-y: none;
+    /* Matches PublicLayout's bg-slate-50 — iOS Safari paints this color into
+       the overscroll/toolbar-collapse region, so it must match the page
+       instead of the default white body. */
+    background-color: #f8fafc;
   }
   body {
     @apply bg-background text-foreground;

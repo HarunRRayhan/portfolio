@@ -262,6 +262,18 @@ export default function Bio({
     window.history.replaceState(null, '', newUrl)
   }, [activeSlug, tabGroups])
 
+  // Paint the root canvas cream to match this page. iOS Safari uses the
+  // <html> background to fill the overscroll/toolbar-collapse region, and the
+  // app default (set in app.css) is slate to match PublicLayout — without
+  // this override that region flashes slate instead of Bio's cream.
+  useEffect(() => {
+    const root = document.documentElement
+    root.style.backgroundColor = '#f7f1e8'
+    return () => {
+      root.style.backgroundColor = ''
+    }
+  }, [])
+
   const tabShareUrl = useCallback(
     (slug: string) => {
       if (tabShareUrls[slug]) return tabShareUrls[slug]
