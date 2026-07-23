@@ -9,6 +9,7 @@ import { ShareSheet } from '@/Components/ShareSheet'
 interface BioLink {
   id: number
   label: string
+  description: string | null
   url: string
   share_url: string
   icon: string
@@ -369,10 +370,10 @@ export default function Bio({
               <img
                 src={getImageUrl('/images/profile/harun-bio.jpg')}
                 alt="Harun R. Rayhan"
-                className="h-24 w-24 rounded-full border-4 border-[#fffaf6] object-cover shadow-lg shadow-[#2b2320]/10"
+                className="h-32 w-32 rounded-full border-4 border-[#fffaf6] object-cover shadow-lg shadow-[#2b2320]/10 sm:h-36 sm:w-36"
                 loading="eager"
-                width={96}
-                height={96}
+                width={144}
+                height={144}
               />
             </div>
 
@@ -560,11 +561,26 @@ export default function Bio({
                       >
                         <div className="relative flex-1 overflow-hidden rounded-l-2xl">
                           <LinkAnchor link={link} className="absolute inset-0" />
-                          <span className="pointer-events-none flex items-center justify-center gap-2.5 px-5 py-3.5">
+                          <span
+                            className={`pointer-events-none flex items-center gap-2.5 px-5 py-3.5 ${
+                              link.description ? '' : 'justify-center'
+                            }`}
+                          >
                             <LinkFavicon link={link} className="h-4 w-4 shrink-0 text-[#8a6a45]" />
-                            <span className="truncate font-mono text-sm font-medium text-[#2b2320]">
-                              {link.label}
-                            </span>
+                            {link.description ? (
+                              <span className="min-w-0 flex-1 text-left">
+                                <span className="block truncate font-mono text-sm font-medium text-[#2b2320]">
+                                  {link.label}
+                                </span>
+                                <span className="block truncate text-xs text-[#a3937e]">
+                                  {link.description}
+                                </span>
+                              </span>
+                            ) : (
+                              <span className="truncate font-mono text-sm font-medium text-[#2b2320]">
+                                {link.label}
+                              </span>
+                            )}
                           </span>
                         </div>
                         <ShareTrigger

@@ -13,6 +13,7 @@ class BioLink extends Model
 {
     protected $fillable = [
         'label',
+        'description',
         'url',
         'short_link_id',
         'tab',

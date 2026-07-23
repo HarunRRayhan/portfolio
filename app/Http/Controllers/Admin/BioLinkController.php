@@ -238,6 +238,7 @@ class BioLinkController extends Controller
     {
         return $request->validate([
             'label' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:255'],
             'url' => ['required', 'string', 'max:2048'],
             'icon' => ['required', 'string', 'max:60'],
             'thumbnail' => ['nullable', 'image', 'max:2048'],
@@ -262,6 +263,7 @@ class BioLinkController extends Controller
         return [
             'id' => $link->id,
             'label' => $link->label,
+            'description' => $link->description,
             'url' => $link->url,
             'icon' => $link->icon,
             'thumbnail_url' => $link->thumbnail_url,
