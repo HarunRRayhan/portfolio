@@ -114,10 +114,11 @@
   }
   html {
     overscroll-behavior-y: none;
-    /* Matches PublicLayout's bg-slate-50 — iOS Safari paints this color into
-       the overscroll/toolbar-collapse region, so it must match the page
-       instead of the default white body. */
-    background-color: #f8fafc;
+    /* Matches Footer's bg-slate-950 — iOS Safari paints this color into the
+       overscroll/toolbar-collapse region below the page, and every default
+       page (PublicLayout) ends with the dark Footer, not the slate-50 wrapper
+       behind it. */
+    background-color: #020617;
   }
   body {
     @apply bg-background text-foreground;
