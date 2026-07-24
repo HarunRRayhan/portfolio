@@ -381,10 +381,10 @@ export default function Bio({
             <button
               type="button"
               onClick={() => openPopup('bio-header', 'warm')}
-              aria-label="Subscribe"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-[#e4d7c4] bg-[#fffaf6]/90 text-[#5b4a3a] shadow-sm backdrop-blur transition hover:border-[#c98a4b] hover:text-[#2b2320] focus-visible:border-[#c98a4b] focus-visible:text-[#2b2320] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f]"
+              className="flex h-10 items-center gap-1.5 rounded-full border border-[#e4d7c4] bg-[#fffaf6]/90 px-4 font-mono text-xs font-medium uppercase tracking-wider text-[#5b4a3a] shadow-sm backdrop-blur transition hover:border-[#c98a4b] hover:text-[#2b2320] focus-visible:border-[#c98a4b] focus-visible:text-[#2b2320] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f]"
             >
               <Mail className="h-4 w-4" />
+              Subscribe
             </button>
 
             <div className="relative" ref={openMenu === 'page' ? menuRef : null}>
