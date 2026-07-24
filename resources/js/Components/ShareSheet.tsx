@@ -111,14 +111,14 @@ export function ShareSheet({
   // Blocking List) match and hide anchors whose `href` attribute contains
   // known share-intent hosts like facebook.com/sharer or twitter.com/intent.
   const renderSocialShare = () => (
-    <div className="mt-3 flex justify-center gap-2">
+    <div className="mt-3 flex gap-2 overflow-x-auto py-1">
       {SOCIAL_SHARE.map(({ name, label, Icon, href }) => (
         <button
           key={name}
           type="button"
           onClick={() => window.open(href(url, shareTitle), '_blank', 'noopener,noreferrer')}
           aria-label={label ?? `Share on ${name}`}
-          className={`flex h-9 w-9 items-center justify-center rounded-full border ${t.border} bg-white ${t.social} transition ${t.socialHoverBorder} ${t.socialHoverText} ${t.focusRing}`}
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border ${t.border} bg-white ${t.social} transition ${t.socialHoverBorder} ${t.socialHoverText} ${t.focusRing}`}
         >
           <Icon className="h-4 w-4" />
         </button>
