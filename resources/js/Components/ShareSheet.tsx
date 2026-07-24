@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
-import { Check, Link2, Maximize2, Minimize2, Share, X } from 'lucide-react'
+import { Check, Copy, Maximize2, Minimize2, Share, X } from 'lucide-react'
 import { SOCIAL_SHARE } from '@/lib/shareTargets'
 
 export type ShareSheetTheme = 'warm' | 'slate'
@@ -22,6 +22,7 @@ const THEME = {
     qrHoverBorder: 'hover:border-[#c98a4b]',
     modalBackdrop: 'bg-[#2b2320]/80',
     qrFg: '#2b2320',
+    copyBg: 'bg-[#2b2320] text-[#fdf8f2]',
     focusRing: 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f]',
   },
   slate: {
@@ -36,6 +37,7 @@ const THEME = {
     qrHoverBorder: 'hover:border-slate-400',
     modalBackdrop: 'bg-slate-950/80',
     qrFg: '#0f172a',
+    copyBg: 'bg-slate-900 text-white',
     focusRing: 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500',
   },
 } as const
@@ -83,25 +85,34 @@ export function ShareSheet({
   // Copy-link and native-share ("More") are folded in as the first/last
   // tiles so the whole row acts like a native OS share sheet.
   //
-  // Tile size stays compact in the inline dropdown (mobile-first, grows a
-  // little at sm:) so more tiles fit without scrolling, and is fixed larger
-  // in the expanded pop-up, which has room to spare at `max-w-md`.
+  // Tile size in the inline dropdown is deliberately wider than the panel can
+  // fit in one go — the row is meant to end mid-tile so it reads as
+  // scrollable at a glance instead of looking like a complete, static row.
+  // The expanded pop-up is fixed larger still, with room to spare at `max-w-md`.
   const TILE = {
-    sheet: { wrap: 'w-12 sm:w-14', circle: 'h-8 w-8 sm:h-11 sm:w-11', icon: 'h-3 w-3 sm:h-5 sm:w-5', iconSm: 'h-3 w-3 sm:h-4 sm:w-4', label: 'text-[9px] sm:text-[10px]', gap: 'gap-2' },
+    sheet: { wrap: 'w-16', circle: 'h-12 w-12', icon: 'h-5 w-5', iconSm: 'h-4 w-4', label: 'text-[10px]', gap: 'gap-2' },
     modal: { wrap: 'w-16', circle: 'h-14 w-14', icon: 'h-6 w-6', iconSm: 'h-5 w-5', label: 'text-[11px]', gap: 'gap-3' },
   } as const
 
   const renderSocialShare = (variant: keyof typeof TILE) => {
     const s = TILE[variant]
+    const fade =
+      variant === 'sheet'
+        ? '[mask-image:linear-gradient(to_right,black_82%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_right,black_82%,transparent_100%)]'
+        : ''
     return (
-      <div className={`mt-3 flex ${s.gap} overflow-x-auto py-1`}>
+      <div className={`mt-3 flex ${s.gap} overflow-x-auto py-1 ${fade}`}>
         <button
           type="button"
           onClick={copy}
           className={`flex ${s.wrap} shrink-0 flex-col items-center gap-1.5 rounded-xl py-1 ${t.focusRing}`}
         >
-          <span className={`flex ${s.circle} items-center justify-center rounded-full bg-slate-100 text-slate-700`}>
-            {copied ? <Check className={`${s.iconSm} text-emerald-600`} /> : <Link2 className={s.iconSm} />}
+          <span
+            className={`flex ${s.circle} items-center justify-center rounded-full transition-all duration-300 ${
+              copied ? 'scale-105 bg-emerald-500 text-white' : `${t.copyBg} hover:scale-105 active:scale-95`
+            }`}
+          >
+            {copied ? <Check className={s.iconSm} /> : <Copy className={s.iconSm} />}
           </span>
           <span className={`${t.font} ${s.label} font-medium ${t.muted}`}>{copied ? 'Copied' : 'Copy link'}</span>
         </button>
