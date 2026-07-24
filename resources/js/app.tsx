@@ -4,6 +4,7 @@ import './bootstrap';
 import { createInertiaApp, type ResolvedComponent } from '@inertiajs/react';
 import { createRoot } from 'react-dom/client';
 import PublicLayout from './Layouts/PublicLayout';
+import { SubscribeProvider } from './Components/SubscribeProvider';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 const pages = import.meta.glob('./Pages/**/*.tsx') as Record<
@@ -26,7 +27,11 @@ createInertiaApp({
     setup({ el, App, props }) {
         const root = createRoot(el);
 
-        root.render(<App {...props} />);
+        root.render(
+            <SubscribeProvider>
+                <App {...props} />
+            </SubscribeProvider>
+        );
     },
     progress: {
         color: '#4B5563',
