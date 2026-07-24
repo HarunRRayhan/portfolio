@@ -2,9 +2,10 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Head, Link, usePage } from '@inertiajs/react'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { getImageUrl } from '@/lib/imageUtils'
-import { Share2 } from 'lucide-react'
+import { Mail, Share2 } from 'lucide-react'
 import { bioIcon } from '@/lib/bioIcons'
 import { ShareSheet } from '@/Components/ShareSheet'
+import { useSubscribePopup } from '@/Components/SubscribeProvider'
 
 interface BioLink {
   id: number
@@ -209,6 +210,7 @@ export default function Bio({
   tab_share_urls?: Record<string, string>
 }) {
   const { url } = usePage()
+  const { openPopup } = useSubscribePopup()
   // Real page URL — feeds SEO tags (og:url, canonical). Must stay the actual
   // page, never the shortener redirect.
   const canonicalUrl = typeof window !== 'undefined' ? window.location.href : 'https://harun.dev/bio'
@@ -374,23 +376,34 @@ export default function Bio({
           transition={{ duration: 0.6, ease: 'easeOut' }}
           className="relative mx-auto flex min-h-[calc(100svh-6rem)] w-full max-w-xl flex-col items-center pt-12"
         >
-          {/* Whole-page share button */}
-          <div className="absolute right-0 top-0" ref={openMenu === 'page' ? menuRef : null}>
+          {/* Subscribe + whole-page share buttons */}
+          <div className="absolute right-0 top-0 flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setOpenMenu(openMenu === 'page' ? null : 'page')}
-              aria-label="Share this page"
-              aria-haspopup="menu"
-              aria-expanded={openMenu === 'page'}
+              onClick={() => openPopup('bio-header', 'warm')}
+              aria-label="Subscribe"
               className="flex h-10 w-10 items-center justify-center rounded-full border border-[#e4d7c4] bg-[#fffaf6]/90 text-[#5b4a3a] shadow-sm backdrop-blur transition hover:border-[#c98a4b] hover:text-[#2b2320] focus-visible:border-[#c98a4b] focus-visible:text-[#2b2320] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f]"
             >
-              <Share2 className="h-4 w-4" />
+              <Mail className="h-4 w-4" />
             </button>
-            {openMenu === 'page' && (
-              <div className="absolute right-0 top-full z-30 mt-2">
-                <ShareSheet title="Harun R. Rayhan" url={pageShareLinkUrl} shareTitle="Harun R. Rayhan" onClose={() => setOpenMenu(null)} />
-              </div>
-            )}
+
+            <div className="relative" ref={openMenu === 'page' ? menuRef : null}>
+              <button
+                type="button"
+                onClick={() => setOpenMenu(openMenu === 'page' ? null : 'page')}
+                aria-label="Share this page"
+                aria-haspopup="menu"
+                aria-expanded={openMenu === 'page'}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-[#e4d7c4] bg-[#fffaf6]/90 text-[#5b4a3a] shadow-sm backdrop-blur transition hover:border-[#c98a4b] hover:text-[#2b2320] focus-visible:border-[#c98a4b] focus-visible:text-[#2b2320] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f]"
+              >
+                <Share2 className="h-4 w-4" />
+              </button>
+              {openMenu === 'page' && (
+                <div className="absolute right-0 top-full z-30 mt-2">
+                  <ShareSheet title="Harun R. Rayhan" url={pageShareLinkUrl} shareTitle="Harun R. Rayhan" onClose={() => setOpenMenu(null)} />
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex w-full flex-col items-center text-center">
