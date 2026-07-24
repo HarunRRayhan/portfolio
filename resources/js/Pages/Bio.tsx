@@ -417,7 +417,7 @@ export default function Bio({
                 Software Engineer turning Entrepreneur
               </p>
               <p className="font-mono text-xs text-[#6b5d4f] sm:text-sm">
-                DevOps · AI/ML · AWS · CloudOps · Infrastructure Automation
+                DevOps · AI / ML · AWS · CloudOps · Infrastructure Automation
               </p>
             </div>
 
@@ -533,7 +533,7 @@ export default function Bio({
             )}
 
             {/* Link cards for the active tab */}
-            <nav aria-label={`${displayTab(activeGroup?.label ?? 'Links')} links`} className="mt-6 grid w-full gap-3">
+            <nav aria-label={`${displayTab(activeGroup?.label ?? 'Links')} links`} className="mt-6 grid w-full grid-cols-1 gap-3">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeSlug}
@@ -541,7 +541,7 @@ export default function Bio({
                   initial="hidden"
                   animate="show"
                   exit={{ opacity: 0, y: -8, transition: { duration: 0.15 } }}
-                  className="grid w-full gap-3"
+                  className="grid w-full grid-cols-1 gap-3"
                 >
                   {featuredLinks.map((link) => {
                     return (
