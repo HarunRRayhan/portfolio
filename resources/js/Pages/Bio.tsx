@@ -192,7 +192,7 @@ function ShareTrigger({
       </button>
       {isOpen && (
         <div className="absolute right-0 top-full z-30 mt-2">
-          <ShareSheet kicker="Share link" title={link.label} url={link.share_url} shareTitle={link.label} onClose={onClose} />
+          <ShareSheet title={link.label} url={link.share_url} shareTitle={link.label} onClose={onClose} />
         </div>
       )}
     </div>
@@ -212,7 +212,7 @@ export default function Bio({
   // Real page URL — feeds SEO tags (og:url, canonical). Must stay the actual
   // page, never the shortener redirect.
   const canonicalUrl = typeof window !== 'undefined' ? window.location.href : 'https://harun.dev/bio'
-  // Shortened page URL for the "Share this page" sheet's QR/copy/social links.
+  // Shortened page URL for the "Share link" sheet's QR/copy/social links.
   const pageShareLinkUrl = pageShareUrl ?? canonicalUrl
   // og:image/twitter:image need a fully-qualified URL. getImageUrl() already
   // returns an absolute CDN URL in production; fall back to the canonical

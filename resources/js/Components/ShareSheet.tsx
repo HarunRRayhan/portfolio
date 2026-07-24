@@ -47,7 +47,7 @@ const THEME = {
  *  Close dismisses the sheet everywhere. */
 export function ShareSheet({
   title,
-  kicker = 'Share this page',
+  kicker = 'Share link',
   url,
   shareTitle,
   onClose,
@@ -83,18 +83,18 @@ export function ShareSheet({
   // Copy-link and native-share ("More") are folded in as the first/last
   // tiles so the whole row acts like a native OS share sheet.
   //
-  // Tile size is smaller in the inline dropdown (mobile-first, grows at sm:)
-  // and stays at the dropdown's largest size in the expanded pop-up, which
-  // has room to spare at `max-w-md`.
+  // Tile size stays compact in the inline dropdown (mobile-first, grows a
+  // little at sm:) so more tiles fit without scrolling, and is fixed larger
+  // in the expanded pop-up, which has room to spare at `max-w-md`.
   const TILE = {
-    sheet: { wrap: 'w-14 sm:w-16', circle: 'h-11 w-11 sm:h-14 sm:w-14', icon: 'h-4 w-4 sm:h-6 sm:w-6', iconSm: 'h-4 w-4 sm:h-5 sm:w-5', label: 'text-[10px] sm:text-[11px]' },
-    modal: { wrap: 'w-16', circle: 'h-14 w-14', icon: 'h-6 w-6', iconSm: 'h-5 w-5', label: 'text-[11px]' },
+    sheet: { wrap: 'w-12 sm:w-14', circle: 'h-8 w-8 sm:h-11 sm:w-11', icon: 'h-3 w-3 sm:h-5 sm:w-5', iconSm: 'h-3 w-3 sm:h-4 sm:w-4', label: 'text-[9px] sm:text-[10px]', gap: 'gap-2' },
+    modal: { wrap: 'w-16', circle: 'h-14 w-14', icon: 'h-6 w-6', iconSm: 'h-5 w-5', label: 'text-[11px]', gap: 'gap-3' },
   } as const
 
   const renderSocialShare = (variant: keyof typeof TILE) => {
     const s = TILE[variant]
     return (
-      <div className="mt-3 flex gap-3 overflow-x-auto py-1">
+      <div className={`mt-3 flex ${s.gap} overflow-x-auto py-1`}>
         <button
           type="button"
           onClick={copy}
