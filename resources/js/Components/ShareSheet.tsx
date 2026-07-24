@@ -47,12 +47,14 @@ const THEME = {
  *  Close dismisses the sheet everywhere. */
 export function ShareSheet({
   title,
+  kicker = 'Share this page',
   url,
   shareTitle,
   onClose,
   theme = 'warm',
 }: {
   title: string
+  kicker?: string
   url: string
   shareTitle: string
   onClose: () => void
@@ -80,53 +82,68 @@ export function ShareSheet({
   // known share-intent hosts like facebook.com/sharer or twitter.com/intent.
   // Copy-link and native-share ("More") are folded in as the first/last
   // tiles so the whole row acts like a native OS share sheet.
-  const renderSocialShare = () => (
-    <div className="mt-3 flex gap-3 overflow-x-auto py-1">
-      <button
-        type="button"
-        onClick={copy}
-        className={`flex w-16 shrink-0 flex-col items-center gap-1.5 rounded-xl py-1 ${t.focusRing}`}
-      >
-        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-700">
-          {copied ? <Check className="h-5 w-5 text-emerald-600" /> : <Link2 className="h-5 w-5" />}
-        </span>
-        <span className={`${t.font} text-[11px] font-medium ${t.muted}`}>{copied ? 'Copied' : 'Copy link'}</span>
-      </button>
+  //
+  // Tile size is smaller in the inline dropdown (mobile-first, grows at sm:)
+  // and stays at the dropdown's largest size in the expanded pop-up, which
+  // has room to spare at `max-w-md`.
+  const TILE = {
+    sheet: { wrap: 'w-14 sm:w-16', circle: 'h-11 w-11 sm:h-14 sm:w-14', icon: 'h-4 w-4 sm:h-6 sm:w-6', iconSm: 'h-4 w-4 sm:h-5 sm:w-5', label: 'text-[10px] sm:text-[11px]' },
+    modal: { wrap: 'w-16', circle: 'h-14 w-14', icon: 'h-6 w-6', iconSm: 'h-5 w-5', label: 'text-[11px]' },
+  } as const
 
-      {SOCIAL_SHARE.map(({ name, label, Icon, href, bg, fg }) => (
-        <button
-          key={name}
-          type="button"
-          onClick={() => window.open(href(url, shareTitle), '_blank', 'noopener,noreferrer')}
-          aria-label={label ?? `Share on ${name}`}
-          className={`flex w-16 shrink-0 flex-col items-center gap-1.5 rounded-xl py-1 ${t.focusRing}`}
-        >
-          <span className="flex h-14 w-14 items-center justify-center rounded-full" style={{ background: bg, color: fg }}>
-            <Icon className="h-6 w-6" />
-          </span>
-          <span className={`${t.font} text-[11px] font-medium ${t.muted}`}>{name}</span>
-        </button>
-      ))}
-
-      {canShare && (
+  const renderSocialShare = (variant: keyof typeof TILE) => {
+    const s = TILE[variant]
+    return (
+      <div className="mt-3 flex gap-3 overflow-x-auto py-1">
         <button
           type="button"
-          onClick={share}
-          className={`flex w-16 shrink-0 flex-col items-center gap-1.5 rounded-xl py-1 ${t.focusRing}`}
+          onClick={copy}
+          className={`flex ${s.wrap} shrink-0 flex-col items-center gap-1.5 rounded-xl py-1 ${t.focusRing}`}
         >
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-700">
-            <Share className="h-5 w-5" />
+          <span className={`flex ${s.circle} items-center justify-center rounded-full bg-slate-100 text-slate-700`}>
+            {copied ? <Check className={`${s.iconSm} text-emerald-600`} /> : <Link2 className={s.iconSm} />}
           </span>
-          <span className={`${t.font} text-[11px] font-medium ${t.muted}`}>More</span>
+          <span className={`${t.font} ${s.label} font-medium ${t.muted}`}>{copied ? 'Copied' : 'Copy link'}</span>
         </button>
-      )}
-    </div>
-  )
+
+        {SOCIAL_SHARE.map(({ name, label, Icon, href, bg, fg }) => (
+          <button
+            key={name}
+            type="button"
+            onClick={() => window.open(href(url, shareTitle), '_blank', 'noopener,noreferrer')}
+            aria-label={label ?? `Share on ${name}`}
+            className={`flex ${s.wrap} shrink-0 flex-col items-center gap-1.5 rounded-xl py-1 ${t.focusRing}`}
+          >
+            <span className={`flex ${s.circle} items-center justify-center rounded-full`} style={{ background: bg, color: fg }}>
+              <Icon className={s.icon} />
+            </span>
+            <span className={`${t.font} ${s.label} font-medium ${t.muted}`}>{name}</span>
+          </button>
+        ))}
+
+        {canShare && (
+          <button
+            type="button"
+            onClick={share}
+            className={`flex ${s.wrap} shrink-0 flex-col items-center gap-1.5 rounded-xl py-1 ${t.focusRing}`}
+          >
+            <span className={`flex ${s.circle} items-center justify-center rounded-full bg-slate-100 text-slate-700`}>
+              <Share className={s.iconSm} />
+            </span>
+            <span className={`${t.font} ${s.label} font-medium ${t.muted}`}>More</span>
+          </button>
+        )}
+      </div>
+    )
+  }
 
   return (
-    <div role="menu" className={`w-full rounded-2xl border ${t.border} ${t.panelBg} p-4 text-left shadow-xl sm:w-72 ${t.panelShadow}`}>
+    <div role="menu" className={`w-72 max-w-[calc(100vw-2rem)] rounded-2xl border ${t.border} ${t.panelBg} p-4 text-left shadow-xl ${t.panelShadow}`}>
       <div className="flex items-center justify-between gap-2">
-        <p className={`truncate ${t.font} text-xs font-semibold uppercase tracking-wider ${t.label}`}>{title}</p>
+        <div className="min-w-0">
+          <p className={`truncate ${t.font} text-[10px] font-semibold uppercase tracking-wider ${t.muted}`}>{kicker}</p>
+          <p className={`truncate ${t.font} text-sm font-semibold ${t.label}`}>{title}</p>
+        </div>
         <div className="flex shrink-0 items-center gap-0.5">
           <button
             type="button"
@@ -156,7 +173,7 @@ export function ShareSheet({
         <QRCodeSVG value={url} size={144} bgColor="#ffffff" fgColor={t.qrFg} level="M" />
       </button>
 
-      {renderSocialShare()}
+      {renderSocialShare('sheet')}
 
       {expanded &&
         typeof document !== 'undefined' &&
@@ -183,7 +200,10 @@ export function ShareSheet({
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <p className={`truncate ${t.font} text-xs font-semibold uppercase tracking-wider ${t.label}`}>{title}</p>
+                  <div className="min-w-0">
+                    <p className={`truncate ${t.font} text-[10px] font-semibold uppercase tracking-wider ${t.muted}`}>{kicker}</p>
+                    <p className={`truncate ${t.font} text-base font-semibold ${t.label}`}>{title}</p>
+                  </div>
                   <div className="flex shrink-0 items-center gap-0.5">
                     <button
                       type="button"
@@ -215,7 +235,7 @@ export function ShareSheet({
                   />
                 </div>
 
-                {renderSocialShare()}
+                {renderSocialShare('modal')}
               </motion.div>
             </motion.div>
           </AnimatePresence>,
