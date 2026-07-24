@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\BlogCommentController;
 use App\Http\Controllers\Admin\BioLinkController;
 use App\Http\Controllers\Admin\ShortLinkController;
@@ -278,6 +279,8 @@ Route::get('/contact', function () {
 })->name('contact');
 
 Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
+
+Route::post('/subscribe', [NewsletterController::class, 'subscribe'])->name('subscribe');
 
 Route::get('/case-studies', function (Request $request) {
     if ($request->getRequestUri() === '/case-studies/') {

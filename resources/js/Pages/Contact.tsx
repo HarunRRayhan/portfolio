@@ -12,7 +12,6 @@ import type React from "react"
 import {Head} from "@inertiajs/react";
 import {router} from '@inertiajs/react'
 import {toast} from "sonner"
-import { Toaster } from "sonner"
 import { usePage } from '@inertiajs/react'
 import { PageProps as InertiaPageProps } from '@inertiajs/core'
 import confetti from 'canvas-confetti';
@@ -171,7 +170,6 @@ export default function Contact() {
 
     return (
         <>
-            <Toaster position="top-right" richColors />
             <Head>
                 <title>Contact Harun | Cloud & DevOps Consulting Services</title>
                 <meta name="description" content="Get in touch for expert cloud computing and DevOps consulting services. Let's discuss your project needs in AWS, infrastructure automation, CI/CD, or any other cloud services." />
