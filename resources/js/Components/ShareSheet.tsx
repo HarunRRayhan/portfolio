@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
-import { Check, Copy, Maximize2, Minimize2, Share2, X } from 'lucide-react'
+import { Check, Link2, Maximize2, Minimize2, Share, X } from 'lucide-react'
 import { SOCIAL_SHARE } from '@/lib/shareTargets'
 
 export type ShareSheetTheme = 'warm' | 'slate'
@@ -19,11 +19,6 @@ const THEME = {
     muted: 'text-[#8a6a45]',
     mutedHoverBg: 'hover:bg-[#f1e6d3]',
     mutedHoverText: 'hover:text-[#2b2320]',
-    action: 'text-[#3a2f27]',
-    actionHoverBg: 'hover:bg-[#f1e6d3]',
-    social: 'text-[#5b4a3a]',
-    socialHoverBorder: 'hover:border-[#c98a4b]',
-    socialHoverText: 'hover:text-[#b8541f]',
     qrHoverBorder: 'hover:border-[#c98a4b]',
     modalBackdrop: 'bg-[#2b2320]/80',
     qrFg: '#2b2320',
@@ -38,11 +33,6 @@ const THEME = {
     muted: 'text-slate-500',
     mutedHoverBg: 'hover:bg-slate-100',
     mutedHoverText: 'hover:text-slate-950',
-    action: 'text-slate-700',
-    actionHoverBg: 'hover:bg-slate-100',
-    social: 'text-slate-600',
-    socialHoverBorder: 'hover:border-slate-400',
-    socialHoverText: 'hover:text-slate-950',
     qrHoverBorder: 'hover:border-slate-400',
     modalBackdrop: 'bg-slate-950/80',
     qrFg: '#0f172a',
@@ -84,45 +74,52 @@ export function ShareSheet({
     navigator.share({ title: shareTitle, url }).catch(() => {})
   }
 
-  const renderActions = () => (
-    <div className="mt-3 flex gap-2">
-      {canShare && (
-        <button
-          type="button"
-          onClick={share}
-          className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg border ${t.border} bg-white px-3 py-2 ${t.font} text-xs font-medium ${t.action} transition ${t.actionHoverBg} ${t.focusRing}`}
-        >
-          <Share2 className="h-3.5 w-3.5" /> Share
-        </button>
-      )}
-      <button
-        type="button"
-        onClick={copy}
-        className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg border ${t.border} bg-white px-3 py-2 ${t.font} text-xs font-medium ${t.action} transition ${t.actionHoverBg} ${t.focusRing}`}
-      >
-        {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
-        {copied ? 'Copied' : 'Copy link'}
-      </button>
-    </div>
-  )
-
   // Intent URLs are opened via `window.open` at click time rather than a
   // static `href` — ad blockers' cosmetic filter lists (e.g. Fanboy's Social
   // Blocking List) match and hide anchors whose `href` attribute contains
   // known share-intent hosts like facebook.com/sharer or twitter.com/intent.
+  // Copy-link and native-share ("More") are folded in as the first/last
+  // tiles so the whole row acts like a native OS share sheet.
   const renderSocialShare = () => (
-    <div className="mt-3 flex gap-2 overflow-x-auto py-1">
-      {SOCIAL_SHARE.map(({ name, label, Icon, href }) => (
+    <div className="mt-3 flex gap-3 overflow-x-auto py-1">
+      <button
+        type="button"
+        onClick={copy}
+        className={`flex w-16 shrink-0 flex-col items-center gap-1.5 rounded-xl py-1 ${t.focusRing}`}
+      >
+        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-700">
+          {copied ? <Check className="h-5 w-5 text-emerald-600" /> : <Link2 className="h-5 w-5" />}
+        </span>
+        <span className={`${t.font} text-[11px] font-medium ${t.muted}`}>{copied ? 'Copied' : 'Copy link'}</span>
+      </button>
+
+      {SOCIAL_SHARE.map(({ name, label, Icon, href, bg, fg }) => (
         <button
           key={name}
           type="button"
           onClick={() => window.open(href(url, shareTitle), '_blank', 'noopener,noreferrer')}
           aria-label={label ?? `Share on ${name}`}
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border ${t.border} bg-white ${t.social} transition ${t.socialHoverBorder} ${t.socialHoverText} ${t.focusRing}`}
+          className={`flex w-16 shrink-0 flex-col items-center gap-1.5 rounded-xl py-1 ${t.focusRing}`}
         >
-          <Icon className="h-4 w-4" />
+          <span className="flex h-14 w-14 items-center justify-center rounded-full" style={{ background: bg, color: fg }}>
+            <Icon className="h-6 w-6" />
+          </span>
+          <span className={`${t.font} text-[11px] font-medium ${t.muted}`}>{name}</span>
         </button>
       ))}
+
+      {canShare && (
+        <button
+          type="button"
+          onClick={share}
+          className={`flex w-16 shrink-0 flex-col items-center gap-1.5 rounded-xl py-1 ${t.focusRing}`}
+        >
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-700">
+            <Share className="h-5 w-5" />
+          </span>
+          <span className={`${t.font} text-[11px] font-medium ${t.muted}`}>More</span>
+        </button>
+      )}
     </div>
   )
 
@@ -160,7 +157,6 @@ export function ShareSheet({
       </button>
 
       {renderSocialShare()}
-      {renderActions()}
 
       {expanded &&
         typeof document !== 'undefined' &&
@@ -220,7 +216,6 @@ export function ShareSheet({
                 </div>
 
                 {renderSocialShare()}
-                {renderActions()}
               </motion.div>
             </motion.div>
           </AnimatePresence>,
