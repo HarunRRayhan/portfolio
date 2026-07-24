@@ -192,7 +192,7 @@ function ShareTrigger({
       </button>
       {isOpen && (
         <div className="absolute right-0 top-full z-30 mt-2">
-          <ShareSheet title={link.label} url={link.share_url} shareTitle={link.label} onClose={onClose} />
+          <ShareSheet kicker="Share link" title={link.label} url={link.share_url} shareTitle={link.label} onClose={onClose} />
         </div>
       )}
     </div>
@@ -388,7 +388,7 @@ export default function Bio({
             </button>
             {openMenu === 'page' && (
               <div className="absolute right-0 top-full z-30 mt-2">
-                <ShareSheet title="Share this page" url={pageShareLinkUrl} shareTitle="Harun R. Rayhan" onClose={() => setOpenMenu(null)} />
+                <ShareSheet title="Harun R. Rayhan" url={pageShareLinkUrl} shareTitle="Harun R. Rayhan" onClose={() => setOpenMenu(null)} />
               </div>
             )}
           </div>
@@ -520,7 +520,7 @@ export default function Bio({
                           style={{ left: `clamp(9rem, ${centerPct}%, calc(100% - 9rem))`, transform: 'translateX(-50%)' }}
                         >
                           <ShareSheet
-                            title={`Share ${displayTab(tabMap.get(openSlug)?.label ?? '')}`}
+                            title={displayTab(tabMap.get(openSlug)?.label ?? '')}
                             url={tabShareUrl(openSlug)}
                             shareTitle="Harun R. Rayhan"
                             onClose={() => setOpenMenu(null)}
