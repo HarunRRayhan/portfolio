@@ -130,15 +130,17 @@ Route::get('/s/{code}', function (string $code, Request $request, CountryResolve
 
     abort_unless($link, 404);
 
+    $country = $countries->resolve($request->ip());
+
     ShortLinkClick::create([
         'short_link_id' => $link->id,
         'ip_address' => $request->ip(),
-        'country' => $countries->resolve($request->ip()),
+        'country' => $country,
         'user_agent' => $request->userAgent(),
         'referer' => $request->header('referer'),
     ]);
 
-    return redirect()->away($link->destination_url, 302);
+    return redirect()->away($link->resolveDestination($country), 302);
 })->name('short.redirect');
 
 // Public link-in-bio landing page (DB-driven, no auth)

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\ShortLink;
 use App\Models\ShortLinkClick;
 use App\Models\User;
+use App\Services\CountryResolver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -124,6 +125,34 @@ class ShortLinkTest extends TestCase
         $this->assertNull(ShortLink::getOrCreateForUrl('/bio'));
         $this->assertNull(ShortLink::getOrCreateForUrl('mailto:harun@harun.dev'));
         $this->assertSame(0, ShortLink::count());
+    }
+
+    public function test_a_country_override_redirects_a_matching_visitor_elsewhere(): void
+    {
+        $link = ShortLink::create([
+            'destination_url' => 'https://example.com/us',
+            'country_overrides' => ['AU' => 'https://example.com/au'],
+        ]);
+
+        $this->mock(CountryResolver::class)
+            ->shouldReceive('resolve')
+            ->andReturn('AU');
+
+        $this->get("/s/{$link->code}")->assertRedirect('https://example.com/au');
+    }
+
+    public function test_a_country_override_leaves_other_visitors_on_the_default_destination(): void
+    {
+        $link = ShortLink::create([
+            'destination_url' => 'https://example.com/us',
+            'country_overrides' => ['AU' => 'https://example.com/au'],
+        ]);
+
+        $this->mock(CountryResolver::class)
+            ->shouldReceive('resolve')
+            ->andReturn(null);
+
+        $this->get("/s/{$link->code}")->assertRedirect('https://example.com/us');
     }
 
     public function test_creating_via_admin_with_an_already_shortened_url_reuses_it(): void
