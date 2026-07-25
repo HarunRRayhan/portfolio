@@ -58,7 +58,8 @@ const SOCIAL_TRAILING = ['globe', 'mail']
 // A declared tab with no links shows a "Coming soon" panel instead of hiding.
 const DECLARED_TABS = [
   { slug: 'products', label: 'Products' },
-  { slug: 'ai-tools', label: 'AI/ML' },
+  { slug: 'ai', label: 'AI' },
+  { slug: 'tools', label: 'Tools' },
   { slug: 'cashback', label: 'Cashback' },
 ]
 
