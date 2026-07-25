@@ -146,19 +146,21 @@ const PRODUCT_LOGOS: Record<string, string> = {
   'https://amazingplugins.com': '/images/products/amazingplugins.jpg',
 }
 
-/** Standard-row icon: a product's real logo in a bordered box when it has
- *  one, otherwise the small favicon/registry icon. */
+/** Standard-row icon: a product's real logo when it has one, otherwise the
+ *  site's real favicon (falling back to the registry icon). Either way it
+ *  renders in the same bordered box, so every tab reads consistently. */
 function LinkIcon({ link }: { link: BioLink }) {
   const logo = PRODUCT_LOGOS[link.url]
-  if (logo) {
-    return (
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#e4d7c4] bg-white sm:h-12 sm:w-12">
-        <img src={logo} alt="" className="h-7 w-7 object-contain sm:h-8 sm:w-8" />
-      </span>
-    )
-  }
 
-  return <LinkFavicon link={link} className="h-4 w-4 shrink-0 text-[#8a6a45]" />
+  return (
+    <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#e4d7c4] bg-white sm:h-12 sm:w-12">
+      {logo ? (
+        <img src={logo} alt="" className="h-7 w-7 object-contain sm:h-8 sm:w-8" />
+      ) : (
+        <LinkFavicon link={link} className="h-7 w-7 text-[#8a6a45] sm:h-8 sm:w-8" />
+      )}
+    </span>
+  )
 }
 
 /** The per-link share trigger (share icon button) plus its ShareSheet, self-contained. */
