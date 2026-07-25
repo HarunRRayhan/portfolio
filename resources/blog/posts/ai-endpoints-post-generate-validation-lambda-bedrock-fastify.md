@@ -3,8 +3,6 @@ title: "AI Endpoints Aren't CRUD: Post-Generate Validation on Lambda + Bedrock +
 slug: "ai-endpoints-post-generate-validation-lambda-bedrock-fastify"
 brief: "A Bedrock-backed Fastify route on Lambda needs a contract after the model answers, not just before it. Zod on the output, RAG context treated as untrusted data, one repair pass then a 422, idempotent SQS, and the CloudWatch metrics that catch it drifting."
 publishedAt: "2026-07-25T18:00:00.000Z"
-draft: true
-draftToken: "aca6297d619616dd555bd088805d274e"
 readTimeInMinutes: 12
 coverImageUrl: "/blog-assets/ai-endpoints-post-generate-validation-lambda-bedrock-fastify/cover.jpg"
 reactionCount: 0
@@ -22,8 +20,7 @@ tags:
   - name: AI
     slug: ai
   - name: Serverless
-    slug: serverless
----
+    slug: serverless---
 
 <p>I shipped a refund of $180 twice last quarter, to the same customer, from an endpoint that had passed every test I wrote for it. The endpoint was a Fastify route running on Lambda. It took a support email, asked Claude on Bedrock to pull out the intent and a refund amount, and if the intent came back as "refund" it dropped a job on an SQS queue. Textbook serverless AI. It worked in the demo, it worked in staging, and then a real email came in that the model read a little too generously.</p>
 <p>Claude returned valid JSON. That was the problem. The shape was perfect, the <code>refund_amount_cents</code> field was a clean integer, and the value was four times the order total because the customer had listed three past orders in the same thread. My handler trusted the shape, enqueued the job, the invoke timed out on the client side, the client retried, and my handler happily enqueued a second identical job. Two refunds, one CloudWatch log I found the next morning.</p>
