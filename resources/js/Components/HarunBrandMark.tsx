@@ -18,22 +18,17 @@ export function HarunBrandMark({ className, ...rest }: HarunBrandMarkProps) {
     >
       <rect x="32" y="32" width="448" height="448" rx="112" fill="#0F172A" />
       <rect x="64" y="64" width="384" height="384" rx="88" fill="#111827" stroke="#334155" strokeWidth="8" />
-      <path d="M162 350V150" stroke="#F8FAFC" strokeWidth="34" strokeLinecap="round" />
-      <path
-        d="M162 252C190 214 224 200 258 214C290 228 306 258 306 350"
-        stroke="#F8FAFC"
-        strokeWidth="34"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M306 252C326 218 356 202 390 212"
-        stroke="#CBD5E1"
-        strokeWidth="34"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path d="M178 398H348" stroke="#475569" strokeWidth="10" strokeLinecap="round" />
+      <path d="M176 150V362" stroke="#F8FAFC" strokeWidth="34" strokeLinecap="round" />
+      <path d="M336 150V362" stroke="#F8FAFC" strokeWidth="34" strokeLinecap="round" />
+      <path d="M176 256H336" stroke="#22D3EE" strokeWidth="30" strokeLinecap="round" />
+      <circle cx="176" cy="150" r="19" fill="#22D3EE" />
+      <circle cx="176" cy="362" r="19" fill="#22D3EE" />
+      <circle cx="336" cy="150" r="19" fill="#22D3EE" />
+      <circle cx="336" cy="362" r="19" fill="#22D3EE" />
+      <circle cx="176" cy="150" r="8" fill="#0F172A" />
+      <circle cx="176" cy="362" r="8" fill="#0F172A" />
+      <circle cx="336" cy="150" r="8" fill="#0F172A" />
+      <circle cx="336" cy="362" r="8" fill="#0F172A" />
     </svg>
   )
 }
