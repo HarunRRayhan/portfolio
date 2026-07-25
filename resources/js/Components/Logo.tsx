@@ -1,6 +1,5 @@
 'use client'
 
-import { Link } from '@inertiajs/react'
 import { cn } from '@/lib/utils'
 import { HarunBrandMark } from './HarunBrandMark'
 
@@ -10,8 +9,8 @@ interface LogoProps {
 
 export function Logo({ className }: LogoProps) {
   return (
-    <Link href="/" className={cn('flex items-center justify-center', className)} aria-label="Harun home">
+    <span className={cn('flex items-center justify-center', className)}>
       <HarunBrandMark className="h-full w-full" />
-    </Link>
+    </span>
   )
 }
