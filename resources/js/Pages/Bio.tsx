@@ -59,8 +59,8 @@ const SOCIAL_TRAILING = ['globe', 'mail']
 const DECLARED_TABS = [
   { slug: 'products', label: 'Products' },
   { slug: 'ai', label: 'AI/ML' },
-  { slug: 'tools', label: 'Tools' },
   { slug: 'cashback', label: 'Cashback' },
+  { slug: 'tools', label: 'Tools' },
 ]
 
 /** POST a click event to the server (fire-and-forget with keepalive). */
