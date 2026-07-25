@@ -58,7 +58,7 @@ const SOCIAL_TRAILING = ['globe', 'mail']
 // A declared tab with no links shows a "Coming soon" panel instead of hiding.
 const DECLARED_TABS = [
   { slug: 'products', label: 'Products' },
-  { slug: 'ai-tools', label: 'AI Tools' },
+  { slug: 'ai-tools', label: 'AI/ML' },
   { slug: 'cashback', label: 'Cashback' },
 ]
 
@@ -471,44 +471,51 @@ export default function Bio({
                   aria-label="Link categories"
                   className="flex w-full gap-1 overflow-x-auto rounded-full border border-[#e4d7c4] bg-[#fffaf6]/70 p-1"
                 >
-                  {tabGroups.map((group) => {
+                  {tabGroups.map((group, idx) => {
                     const isActive = group.slug === activeSlug
                     const shareId = `tab:${group.slug}` as const
+                    // A divider between two inactive tabs marks where one ends
+                    // and the next begins — skipped next to the active pill,
+                    // since its own background already reads as a boundary.
+                    const prevActive = idx > 0 && tabGroups[idx - 1].slug === activeSlug
+                    const showDivider = idx > 0 && !isActive && !prevActive
                     return (
-                      <div
-                        key={group.slug}
-                        className={`relative flex flex-1 items-center justify-center whitespace-nowrap rounded-full font-mono text-xs font-medium uppercase tracking-wider transition sm:text-[13px] ${
-                          isActive
-                            ? 'bg-[#2b2320] text-[#f7f1e8] shadow-sm'
-                            : 'text-[#6b5d4f] hover:bg-[#f1e6d3] hover:text-[#2b2320]'
-                        }`}
-                      >
-                        <button
-                          type="button"
-                          onClick={() => setActiveSlug(group.slug)}
-                          aria-pressed={isActive}
-                          className="flex-1 rounded-full px-3.5 py-2 uppercase tracking-wider focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f]"
+                      <React.Fragment key={group.slug}>
+                        {showDivider && <span aria-hidden="true" className="my-1.5 w-px shrink-0 self-stretch bg-[#e4d7c4]" />}
+                        <div
+                          className={`relative flex flex-1 items-center justify-center whitespace-nowrap rounded-full font-mono text-xs font-medium uppercase tracking-wider transition sm:text-[13px] ${
+                            isActive
+                              ? 'bg-[#2b2320] text-[#f7f1e8] shadow-sm'
+                              : 'text-[#6b5d4f] hover:bg-[#f1e6d3] hover:text-[#2b2320]'
+                          }`}
                         >
-                          {displayTab(group.label)}
-                        </button>
-
-                        {/* Share button (visible on the active tab, a sibling
-                            of the select button so this isn't an interactive
-                            control nested inside another one). */}
-                        {isActive && (
                           <button
                             type="button"
-                            onClick={() => setOpenMenu(openMenu === shareId ? null : shareId)}
-                            aria-label={`Share ${displayTab(group.label)}`}
-                            aria-haspopup="menu"
-                            aria-expanded={openMenu === shareId}
-                            title={`Share ${displayTab(group.label)}`}
-                            className="mr-2 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded opacity-70 transition hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f] sm:h-4 sm:w-4"
+                            onClick={() => setActiveSlug(group.slug)}
+                            aria-pressed={isActive}
+                            className="flex-1 rounded-full px-3.5 py-2 uppercase tracking-wider focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f]"
                           >
-                            <Share2 className="h-3 w-3" />
+                            {displayTab(group.label)}
                           </button>
-                        )}
-                      </div>
+
+                          {/* Share button (visible on the active tab, a sibling
+                              of the select button so this isn't an interactive
+                              control nested inside another one). */}
+                          {isActive && (
+                            <button
+                              type="button"
+                              onClick={() => setOpenMenu(openMenu === shareId ? null : shareId)}
+                              aria-label={`Share ${displayTab(group.label)}`}
+                              aria-haspopup="menu"
+                              aria-expanded={openMenu === shareId}
+                              title={`Share ${displayTab(group.label)}`}
+                              className="mr-2 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded opacity-70 transition hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f] sm:h-4 sm:w-4"
+                            >
+                              <Share2 className="h-3 w-3" />
+                            </button>
+                          )}
+                        </div>
+                      </React.Fragment>
                     )
                   })}
                 </nav>
