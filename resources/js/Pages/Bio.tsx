@@ -519,10 +519,10 @@ export default function Bio({
                             if (el) tabRefs.current.set(group.slug, el)
                             else tabRefs.current.delete(group.slug)
                           }}
-                          // Fixed to ~29% of the strip's own width (not flex-1)
-                          // so roughly three and a half tabs show at once and
-                          // the rest signal themselves via horizontal scroll.
-                          className={`relative flex w-[29%] shrink-0 items-center justify-center whitespace-nowrap rounded-full font-mono text-xs font-bold uppercase tracking-wider transition sm:text-[13px] ${
+                          // Fixed to ~26.4% of the strip's own width (not
+                          // flex-1) so three full tabs plus two-thirds of a
+                          // fourth show at once, signaling more via scroll.
+                          className={`relative flex w-[26.4%] shrink-0 items-center justify-center whitespace-nowrap rounded-full font-mono text-xs font-bold uppercase tracking-wider transition sm:text-[13px] ${
                             isActive
                               ? 'bg-[#2b2320] text-[#f7f1e8] shadow-sm'
                               : 'text-[#6b5d4f] hover:bg-[#f1e6d3] hover:text-[#2b2320]'
