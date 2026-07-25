@@ -4,7 +4,7 @@ slug: "ai-endpoints-post-generate-validation-lambda-bedrock-fastify"
 brief: "A Bedrock-backed Fastify route on Lambda needs a contract after the model answers, not just before it. Zod on the output, RAG context treated as untrusted data, one repair pass then a 422, idempotent SQS, and the CloudWatch metrics that catch it drifting."
 publishedAt: "2026-07-25T18:00:00.000Z"
 draft: true
-draftToken: "d0308e8ee8816e47936d4c92d1f9633d30ffc9d5"
+draftToken: "aca6297d619616dd555bd088805d274e"
 readTimeInMinutes: 12
 coverImageUrl: "/blog-assets/ai-endpoints-post-generate-validation-lambda-bedrock-fastify/cover.jpg"
 reactionCount: 0
