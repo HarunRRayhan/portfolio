@@ -60,8 +60,9 @@ format the site already renders.
 6. **Don't rehash** a topic already covered on the blog. Grep `resources/blog/posts/*.md` titles/tags
    first if there's any doubt about overlap.
 
-7. **Cover image**: note in your final report that `public/blog-assets/{slug}/cover.jpg` still needs
-   an image — don't try to generate or source one yourself.
+7. **Cover image**: don't generate one yourself. Note in your final report that
+   `public/blog-assets/{slug}/cover.jpg` still needs an image, and that it should come from the
+   `blog-cover-artist` subagent (or the `blog-cover-generator` skill directly).
 
 8. **Finish by reporting**: the file path you wrote, the title, word count, and a one-line reminder
    that it's `draft: true` pending review and a cover image.
