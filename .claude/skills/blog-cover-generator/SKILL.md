@@ -1,15 +1,21 @@
 ---
 name: blog-cover-generator
-description: Use when a blog post at resources/blog/posts/{slug}.md needs a cover image built at public/blog-assets/{slug}/cover.jpg. Builds the gradient + title + icon-badge + footer template used across harun.dev/blog posts and renders it at exactly 1600x840. Not for writing post body content or picking which post to cover.
+description: Use when a blog post at resources/blog/posts/{slug}.md needs a cover image built at public/blog-assets/{slug}/cover.jpg. Builds the title + icon-badge + footer template used across harun.dev/blog posts, either over a gradient or a darkened stock photo, and renders it at exactly 1600x840 (same aspect ratio as the 1200x630 OG image, so it doubles as og:image). Not for writing post body content or picking which post to cover.
 ---
 
 # blog-cover-generator
 
-Builds a `cover.jpg` that matches the site's existing cover convention: a
-diagonal gradient background, the post title centered in bold white type, a
-row of colored icon badges for the post's tech stack, and a footer bar with
-the site domain and social handle. No stock photos, no AI-generated art —
-it's a rendered HTML/CSS composite, same as the rest of the blog's covers.
+Builds a `cover.jpg` that matches the site's existing cover convention: the
+post title centered in bold white type, a row of colored icon badges for its
+tech stack, and a footer bar with the site domain and social handle — over
+either a diagonal gradient (the default, most posts) or a darkened stock
+photo (a documented alternate style, see below). It's always a rendered
+HTML/CSS composite, never a bare, undesigned photo and never AI-generated
+art.
+
+`1600x840` is the exact same aspect ratio as the standard OG image size
+(`1200x630` — both are 1.9048:1), so the same file works as `og:image`
+without a separate crop.
 
 ## Before building
 
@@ -17,6 +23,15 @@ Look at 2-3 recent `public/blog-assets/*/cover.jpg` files to catch drift in
 the convention (colors already in heavy rotation, footer wording, badge
 count). Pay attention to which gradient colors the last few posts used —
 pick something that doesn't repeat the immediately preceding post.
+
+## Gradient vs. photo background
+
+Default to the gradient template — it's what most covers use. Use the photo
+variant only when asked, or when the post has a specific real-world image
+that fits (a screenshot, a stock photo tied to the post's premise). As of
+this writing two posts use it: `lock-down-bedrock-iam-lambda-data-leak` and
+`ai-endpoints-post-generate-validation-lambda-bedrock-fastify`. Look at
+those two for the exact treatment before building a new one.
 
 ## Template structure
 
@@ -91,36 +106,87 @@ Full working template (background, title, badges, footer) is at
 `references/cover-template.html` in this skill directory — copy it, swap the
 gradient/title/badges, keep the footer as-is.
 
+## Photo-background variant
+
+Same title/badge/footer layout, but the `.cover` background is a full-bleed
+photo instead of a gradient, darkened enough that white text and photo
+detail both stay legible:
+
+```css
+.bg {
+  position: absolute; inset: 0;
+  background: url('stock-bg.jpg') center/cover no-repeat;
+  filter: brightness(0.5) saturate(0.75);
+}
+.overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(160deg, rgba(4,8,12,0.68) 0%, rgba(6,12,16,0.5) 45%, rgba(4,8,12,0.72) 100%);
+}
+.title {
+  /* same as the gradient template, plus a stronger shadow so it reads over busy photo detail */
+  text-shadow: 0 6px 20px rgba(0,0,0,0.7), 0 2px 6px rgba(0,0,0,0.6);
+}
+.badge {
+  /* add a drop shadow so badges separate from the photo instead of blending in */
+  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+}
+```
+
+Put `.bg` and `.overlay` as the first two children of `.cover`, before the
+title. Everything else (title markup, badges, footer) is unchanged from the
+gradient template.
+
 ## Render process
 
 Playwright's `browser_navigate` blocks `file://` URLs, and its screenshot
 tool only writes inside the repo (`.playwright-mcp/` or repo root) — so the
 render has to go through a local HTTP server:
 
-1. Write the filled-in template to a scratch `.html` file.
+1. Write the filled-in template to a scratch `.html` file. If it's the photo
+   variant, put the source image next to it in the same scratch dir (e.g.
+   `stock-bg.jpg`) so the `url('stock-bg.jpg')` reference resolves.
 2. Serve its directory: `python3 -m http.server <port> &` (background it,
    pick a free port, run it from the scratch dir so the URL is just
    `cover-template.html`).
 3. Load the deferred Playwright tools if not already available:
-   `ToolSearch("select:mcp__plugin_playwright_playwright__browser_navigate,mcp__plugin_playwright_playwright__browser_resize,mcp__plugin_playwright_playwright__browser_take_screenshot")`.
-4. `browser_resize` to exactly `1600x840`.
+   `ToolSearch("select:mcp__plugin_playwright_playwright__browser_navigate,mcp__plugin_playwright_playwright__browser_resize,mcp__plugin_playwright_playwright__browser_take_screenshot,mcp__plugin_playwright_playwright__browser_evaluate")`.
+4. `browser_resize` to `1600x840`, then verify with
+   `browser_evaluate(() => ({w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio}))`.
+   **This environment's `devicePixelRatio` isn't always 1** — if the reported
+   `innerWidth`/`innerHeight` don't come back as exactly 1600x840, re-issue
+   `browser_resize` with the request scaled by `dpr` (e.g. dpr 0.75 needs a
+   `1200x630` resize request to land on an actual 1600x840 viewport) and
+   re-check. Skipping this check produces a screenshot with the real content
+   squeezed into a corner and the rest padded solid white — check for that
+   visually before moving on.
 5. `browser_navigate` to `http://127.0.0.1:<port>/cover-template.html`.
 6. `browser_take_screenshot` with `type: "jpeg"`, `scale: "css"`,
    `fullPage: false`, saved to `.playwright-mcp/cover-render.jpg` (must be
-   inside the tool's allowed roots — repo root or `.playwright-mcp/`).
-7. Confirm the output is exactly 1600x840 with `file cover-render.jpg`.
+   inside the tool's allowed roots — repo root or `.playwright-mcp/`). Don't
+   use an element-targeted screenshot (`target: '.cover'`) as a shortcut
+   around the dpr issue — it hits the same padding bug.
+7. Confirm the output is exactly 1600x840 with `file cover-render.jpg`, and
+   spot-check a corner pixel isn't plain white (`python3 -c "from PIL import
+   Image; print(Image.open('cover-render.jpg').getpixel((1590,830)))"`) — a
+   corner still showing `(255,255,255)` means the dpr padding bug hit and
+   step 4 needs redoing. If the render lands at a smaller same-ratio size
+   (e.g. `1200x630`), upscale losslessly with
+   `Image.resize((1600,840), Image.LANCZOS)` rather than re-rendering.
 8. Copy it to `public/blog-assets/{slug}/cover.jpg`, overwriting whatever's
    there.
-9. Kill the local HTTP server and delete the scratch `.html` and rendered
-   `.jpg` from wherever they landed outside the final destination — check
-   `git status --short` before committing to make sure nothing stray (like a
-   screenshot left at the repo root) got added.
+9. Kill the local HTTP server and delete the scratch `.html`, source photo,
+   and rendered `.jpg` from wherever they landed outside the final
+   destination — check `git status --short` before committing to make sure
+   nothing stray (a leftover screenshot or a stray `.playwright-mcp/` dir at
+   the repo root) got added.
 
 ## What this skill doesn't do
 
 - Doesn't touch the post's markdown/frontmatter beyond confirming the title
   and `coverImageUrl` path it needs.
 - Doesn't commit, branch, PR, or deploy — that's a separate step.
-- Doesn't source or embed real photos. If a post genuinely needs a photo
-  background (rare — only 2-3 older covers do this), that's a different
-  convention; ask before deviating from the gradient template.
+- Doesn't default to a photo background — that's an intentional per-post
+  choice (see "Gradient vs. photo background" above), not the norm.
+- Doesn't source a new stock photo on its own initiative. If a post needs
+  one and doesn't already have a downloaded candidate, ask first rather than
+  picking one.
