@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Head, Link, usePage } from '@inertiajs/react'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { getImageUrl } from '@/lib/imageUtils'
-import { Mail, Share2 } from 'lucide-react'
-import { bioIcon } from '@/lib/bioIcons'
+import { Mail, Share2, Package, Bot, PiggyBank, Wrench, MoreHorizontal } from 'lucide-react'
+import { bioIcon, type BioIcon } from '@/lib/bioIcons'
 import { ShareSheet } from '@/Components/ShareSheet'
 import { useSubscribePopup } from '@/Components/SubscribeProvider'
 
@@ -56,11 +56,12 @@ const SOCIAL_TRAILING = ['globe', 'mail']
 
 // Tabs that always render in this fixed order, even before they have links.
 // A declared tab with no links shows a "Coming soon" panel instead of hiding.
-const DECLARED_TABS = [
-  { slug: 'products', label: 'Products' },
-  { slug: 'ai', label: 'AI/ML' },
-  { slug: 'cashback', label: 'Cashback' },
-  { slug: 'tools', label: 'Tools' },
+const DECLARED_TABS: { slug: string; label: string; Icon: BioIcon }[] = [
+  { slug: 'products', label: 'Products', Icon: Package },
+  { slug: 'ai', label: 'AI/ML', Icon: Bot },
+  { slug: 'cashback', label: 'Cashback', Icon: PiggyBank },
+  { slug: 'tools', label: 'Tools', Icon: Wrench },
+  { slug: 'others', label: 'Others', Icon: MoreHorizontal },
 ]
 
 /** POST a click event to the server (fire-and-forget with keepalive). */
@@ -240,6 +241,7 @@ export default function Bio({
   interface TabGroup {
     slug: string
     label: string
+    Icon: BioIcon
     links: BioLink[]
   }
   const tabGroups: TabGroup[] = []
@@ -247,17 +249,19 @@ export default function Bio({
   // Seed the always-visible declared tabs first (empty until links land),
   // so e.g. "AI Tools" shows a "Coming soon" panel instead of disappearing.
   for (const declared of DECLARED_TABS) {
-    const group: TabGroup = { slug: declared.slug, label: declared.label, links: [] }
+    const group: TabGroup = { slug: declared.slug, label: declared.label, Icon: declared.Icon, links: [] }
     tabMap.set(declared.slug, group)
     tabGroups.push(group)
   }
+  // Anything whose tab doesn't match a declared one falls into "Others"
+  // instead of spawning its own pill.
   for (const link of regularLinks) {
     const slug = link.tab_slug || 'default'
-    const existing = tabMap.get(slug)
+    const existing = tabMap.get(slug) ?? tabMap.get('others')
     if (existing) {
       existing.links.push(link)
     } else {
-      const group: TabGroup = { slug, label: link.tab || 'default', links: [link] }
+      const group: TabGroup = { slug, label: link.tab || 'default', Icon: MoreHorizontal, links: [link] }
       tabMap.set(slug, group)
       tabGroups.push(group)
     }
@@ -276,6 +280,9 @@ export default function Bio({
   const [activeSlug, setActiveSlug] = useState(initialSlug)
   const [openMenu, setOpenMenu] = useState<number | 'page' | `tab:${string}` | null>(null)
   const menuRef = useRef<HTMLDivElement | null>(null)
+  const tabScrollRef = useRef<HTMLElement | null>(null)
+  const tabRefs = useRef(new Map<string, HTMLDivElement>())
+  const [tabCaretPct, setTabCaretPct] = useState(50)
   const activeGroup = tabMap.get(activeSlug)
   const currentLinks = activeGroup?.links ?? []
 
@@ -319,7 +326,9 @@ export default function Bio({
     [tabGroups, tabShareUrls],
   )
 
-  // Close whichever share menu is open on an outside click or Escape.
+  // Close whichever share menu is open on an outside click, Escape, or a
+  // scroll of the (now horizontally-scrollable) tab strip -- once the strip
+  // moves, the caret math below is stale until the menu is reopened.
   useEffect(() => {
     if (openMenu === null) return
     const onPointerDown = (e: MouseEvent) => {
@@ -328,12 +337,31 @@ export default function Bio({
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpenMenu(null)
     }
+    const onScroll = (e: Event) => {
+      if (e.target === tabScrollRef.current) setOpenMenu(null)
+    }
     document.addEventListener('mousedown', onPointerDown)
     document.addEventListener('keydown', onKeyDown)
+    document.addEventListener('scroll', onScroll, true)
     return () => {
       document.removeEventListener('mousedown', onPointerDown)
       document.removeEventListener('keydown', onKeyDown)
+      document.removeEventListener('scroll', onScroll, true)
     }
+  }, [openMenu])
+
+  // The share caret/sheet pin to the active tab's real on-screen position,
+  // not just its index -- with the tab strip scrollable, a naive
+  // index/length percentage would point at the wrong tab once the strip
+  // has been scrolled.
+  useLayoutEffect(() => {
+    if (typeof openMenu !== 'string' || !openMenu.startsWith('tab:')) return
+    const containerEl = tabScrollRef.current
+    const tabEl = tabRefs.current.get(openMenu.slice(4))
+    if (!containerEl || !tabEl) return
+    const containerRect = containerEl.getBoundingClientRect()
+    const tabRect = tabEl.getBoundingClientRect()
+    setTabCaretPct(((tabRect.left - containerRect.left + tabRect.width / 2) / containerRect.width) * 100)
   }, [openMenu])
 
   return (
@@ -472,6 +500,7 @@ export default function Bio({
               <div className="relative mt-7 w-full" ref={typeof openMenu === 'string' && openMenu.startsWith('tab:') ? menuRef : null}>
                 <nav
                   aria-label="Link categories"
+                  ref={tabScrollRef as React.RefObject<HTMLElement>}
                   className="flex w-full gap-1 overflow-x-auto rounded-full border border-[#e4d7c4] bg-[#fffaf6]/70 p-1"
                 >
                   {tabGroups.map((group, idx) => {
@@ -486,7 +515,14 @@ export default function Bio({
                       <React.Fragment key={group.slug}>
                         {showDivider && <span aria-hidden="true" className="my-1.5 w-px shrink-0 self-stretch bg-[#e4d7c4]" />}
                         <div
-                          className={`relative flex flex-1 items-center justify-center whitespace-nowrap rounded-full font-mono text-xs font-medium uppercase tracking-wider transition sm:text-[13px] ${
+                          ref={(el) => {
+                            if (el) tabRefs.current.set(group.slug, el)
+                            else tabRefs.current.delete(group.slug)
+                          }}
+                          // Fixed to ~29% of the strip's own width (not flex-1)
+                          // so roughly three and a half tabs show at once and
+                          // the rest signal themselves via horizontal scroll.
+                          className={`relative flex w-[29%] shrink-0 items-center justify-center whitespace-nowrap rounded-full font-mono text-xs font-bold uppercase tracking-wider transition sm:text-[13px] ${
                             isActive
                               ? 'bg-[#2b2320] text-[#f7f1e8] shadow-sm'
                               : 'text-[#6b5d4f] hover:bg-[#f1e6d3] hover:text-[#2b2320]'
@@ -494,11 +530,15 @@ export default function Bio({
                         >
                           <button
                             type="button"
-                            onClick={() => setActiveSlug(group.slug)}
+                            onClick={(e) => {
+                              setActiveSlug(group.slug)
+                              e.currentTarget.parentElement?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+                            }}
                             aria-pressed={isActive}
-                            className="flex-1 rounded-full px-3.5 py-2 uppercase tracking-wider focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f]"
+                            className="flex flex-1 items-center justify-center gap-1.5 rounded-full px-2.5 py-2 uppercase tracking-wider focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f]"
                           >
-                            {displayTab(group.label)}
+                            <group.Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                            <span className="truncate">{displayTab(group.label)}</span>
                           </button>
 
                           {/* Share button (visible on the active tab, a sibling
@@ -527,21 +567,19 @@ export default function Bio({
                   openMenu.startsWith('tab:') &&
                   (() => {
                     const openSlug = openMenu.slice(4)
-                    const idx = tabGroups.findIndex((g) => g.slug === openSlug)
-                    const centerPct = tabGroups.length > 0 ? ((idx + 0.5) / tabGroups.length) * 100 : 50
                     return (
                       <>
-                        {/* Caret pins to the exact tab center so it's obvious which
-                            tab this popup belongs to, independent of where the
-                            sheet itself gets clamped on narrow screens. */}
+                        {/* Caret pins to the tab's measured on-screen center
+                            (tabCaretPct) so it's correct even when the now-
+                            scrollable strip has been scrolled. */}
                         <span
                           aria-hidden="true"
                           className="absolute top-full z-30 mt-[7px] h-3 w-3 rotate-45 rounded-[2px] border-l border-t border-[#e4d7c4] bg-[#fffaf6]"
-                          style={{ left: `${centerPct}%`, transform: 'translateX(-50%)' }}
+                          style={{ left: `${tabCaretPct}%`, transform: 'translateX(-50%)' }}
                         />
                         <div
                           className="absolute top-full z-30 mt-2"
-                          style={{ left: `clamp(9rem, ${centerPct}%, calc(100% - 9rem))`, transform: 'translateX(-50%)' }}
+                          style={{ left: `clamp(9rem, ${tabCaretPct}%, calc(100% - 9rem))`, transform: 'translateX(-50%)' }}
                         >
                           <ShareSheet
                             title={displayTab(tabMap.get(openSlug)?.label ?? '')}
