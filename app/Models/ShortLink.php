@@ -12,6 +12,7 @@ class ShortLink extends Model
     protected $fillable = [
         'code',
         'destination_url',
+        'country_overrides',
         'url_hash',
         'title',
         'is_active',
@@ -21,6 +22,7 @@ class ShortLink extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'expires_at' => 'datetime',
+        'country_overrides' => 'array',
     ];
 
     protected $appends = ['short_url'];
@@ -136,6 +138,22 @@ class ShortLink extends Model
     public function getShortUrlAttribute(): string
     {
         return url('/s/'.$this->code);
+    }
+
+    /**
+     * The redirect target for a visitor from $country: their country's
+     * override if one is set, otherwise the plain destination_url. Lets one
+     * shared/copied link fan out by geography (e.g. AU visitors land on the
+     * AU store, everyone else keeps the default) without needing a separate
+     * short code per country.
+     */
+    public function resolveDestination(?string $country): string
+    {
+        if ($country && isset($this->country_overrides[$country])) {
+            return $this->country_overrides[$country];
+        }
+
+        return $this->destination_url;
     }
 
     public function scopeActive(Builder $query): Builder
