@@ -2,19 +2,21 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Concerns\HasClickAnalytics;
 use App\Http\Controllers\Controller;
 use App\Models\ShortLink;
 use App\Models\ShortLinkClick;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ShortLinkController extends Controller
 {
+    use HasClickAnalytics;
+
     public function index(): Response
     {
         return Inertia::render('Admin/Short/Index', [
@@ -58,97 +60,16 @@ class ShortLinkController extends Controller
             'selectedLinkId' => $linkId,
             'totalClicks' => $scoped(ShortLinkClick::query())->count(),
             'windowClicks' => (clone $clicks)->count(),
-            'daily' => $this->dailySeries($since, $days, $linkId),
-            'byLink' => $linkId ? [] : $this->clicksByLink($since),
-            'byCountry' => $this->groupCounts((clone $clicks), 'country'),
-            'byReferer' => $this->refererCounts((clone $clicks)),
-        ]);
-    }
-
-    /**
-     * One row per day in the window, including days with no clicks -- a bar
-     * chart with gaps silently rescales the x axis and misreads as continuous.
-     *
-     * @return list<array{date: string, clicks: int}>
-     */
-    private function dailySeries(\DateTimeInterface $since, int $days, ?int $linkId): array
-    {
-        $query = ShortLinkClick::query()->where('created_at', '>=', $since);
-
-        if ($linkId) {
-            $query->where('short_link_id', $linkId);
-        }
-
-        $counts = $query
-            ->selectRaw('date(created_at) as day, count(*) as clicks')
-            ->groupBy('day')
-            ->pluck('clicks', 'day');
-
-        return collect(range(0, $days - 1))
-            ->map(function (int $offset) use ($since, $counts) {
-                $date = Carbon::parse($since)->addDays($offset)->toDateString();
-
-                return [
-                    'date' => $date,
-                    'clicks' => (int) ($counts[$date] ?? 0),
-                ];
-            })
-            ->all();
-    }
-
-    /**
-     * @return list<array{id: int, code: string, title: ?string, clicks: int}>
-     */
-    private function clicksByLink(\DateTimeInterface $since): array
-    {
-        return ShortLink::query()
-            ->withCount(['clicks as clicks' => fn ($q) => $q->where('created_at', '>=', $since)])
-            ->orderByDesc('clicks')
-            ->get()
-            ->map(fn (ShortLink $link) => [
+            'daily' => $this->dailySeries($scoped(ShortLinkClick::query()), $since, $days),
+            'byLink' => $linkId ? [] : $this->clicksByLink(ShortLink::query(), $since, fn (ShortLink $link) => [
                 'id' => $link->id,
                 'code' => $link->code,
                 'title' => $link->title,
                 'clicks' => (int) $link->clicks,
-            ])
-            ->all();
-    }
-
-    /**
-     * @return list<array{key: string, clicks: int}>
-     */
-    private function groupCounts(Builder $query, string $column): array
-    {
-        return $query
-            ->whereNotNull($column)
-            ->selectRaw("{$column} as key, count(*) as clicks")
-            ->groupBy($column)
-            ->orderByDesc('clicks')
-            ->limit(10)
-            ->get()
-            ->map(fn ($row) => ['key' => (string) $row->key, 'clicks' => (int) $row->clicks])
-            ->all();
-    }
-
-    /**
-     * Referers are grouped by host: the full URL fragments the counts into
-     * near-duplicates that say nothing about where traffic came from.
-     *
-     * @return list<array{key: string, clicks: int}>
-     */
-    private function refererCounts(Builder $query): array
-    {
-        return $query
-            ->whereNotNull('referer')
-            ->pluck('referer')
-            ->map(fn (?string $url) => $url ? (parse_url($url, PHP_URL_HOST) ?: null) : null)
-            ->filter()
-            ->countBy()
-            ->sortDesc()
-            ->take(10)
-            ->map(fn (int $clicks, string $host) => ['key' => $host, 'clicks' => $clicks])
-            ->values()
-            ->all();
+            ]),
+            'byCountry' => $this->groupCounts((clone $clicks), 'country'),
+            'byReferer' => $this->refererCounts((clone $clicks)),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
