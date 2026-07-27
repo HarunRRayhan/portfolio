@@ -56,7 +56,33 @@ export function JourneyTimeline() {
         >
           My Professional Journey
         </motion.h2>
-        <div className="relative">
+        {/* Mobile: stacked list */}
+        <div className="space-y-8 lg:hidden">
+          {timelineEvents.map((event, index) => (
+            <motion.div
+              key={index}
+              className="flex items-start gap-4"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: index * 0.1 }}
+            >
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-slate-700 to-slate-800">
+                <event.icon className="h-6 w-6 text-white" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-sm font-bold text-amber-600">{event.year}</span>
+                <h3 className="mb-1 text-lg font-semibold text-gray-900">{event.title}</h3>
+                <p className="mb-1 font-medium text-amber-600">{event.company}</p>
+                <p className="mb-2 text-sm text-gray-500">{event.location}</p>
+                <p className="text-sm text-gray-600">{event.description}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Desktop: alternating timeline */}
+        <div className="relative hidden lg:block">
           {/* Vertical line */}
           <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-slate-700 via-slate-800 to-slate-900"></div>
 

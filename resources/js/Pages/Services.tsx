@@ -254,9 +254,9 @@ export default function ServicesPage() {
                                 <Button
                                     variant="outline"
                                     size="lg"
-                                    className="bg-white text-slate-700 hover:bg-slate-900 hover:text-white border-slate-300 transition-all duration-300"
+                                    className="h-auto w-full max-w-xl whitespace-normal bg-white py-3 text-center text-slate-700 transition-all duration-300 hover:bg-slate-900 hover:text-white border-slate-300"
                                 >
-                                    <MessageSquare className="w-5 h-5 mr-2"/>
+                                    <MessageSquare className="w-5 h-5 mr-2 shrink-0"/>
                                     Is the service you're looking for missing? We might do it. Send us a message.
                                 </Button>
                             </Link>
