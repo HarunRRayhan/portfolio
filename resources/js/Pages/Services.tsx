@@ -2,8 +2,8 @@
 
 import React from "react"
 import {Head, Link} from "@inertiajs/react"
-import {motion} from "framer-motion"
 import {Button} from "@/Components/ui/button"
+import {ServiceHero} from "@/Components/ServiceHero"
 import {getImageUrl} from "@/lib/imageUtils"
 import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/Components/ui/card/index"
 import {
@@ -176,12 +176,14 @@ export default function ServicesPage() {
                 <meta property="og:description" content="Expert cloud computing, DevOps, and software engineering services including AWS, Infrastructure as Code, CI/CD, security consulting, and performance optimization." />
                 <meta property="og:type" content="website" />
                 <meta property="og:url" content={window.location.href} />
-                
+                <meta property="og:image" content={getImageUrl("/service-assets/services/hero.jpg")} />
+
                 {/* Twitter Card Tags */}
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta name="twitter:title" content="Professional Cloud & DevOps Services | Harun's Portfolio" />
                 <meta name="twitter:description" content="Expert cloud computing, DevOps, and software engineering services including AWS, Infrastructure as Code, CI/CD, security consulting, and performance optimization." />
-                
+                <meta name="twitter:image" content={getImageUrl("/service-assets/services/hero.jpg")} />
+
                 {/* Canonical URL */}
                 <link rel="canonical" href={window.location.href} />
 
@@ -211,35 +213,12 @@ export default function ServicesPage() {
                 </script>
             </Head>
             <main className="flex flex-col min-h-screen">
-                <section className="py-24 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950">
-                    <div className="container mx-auto px-4 text-center">
-                        <motion.div
-                            initial={{opacity: 0, y: -20}}
-                            animate={{opacity: 1, y: 0}}
-                            transition={{duration: 0.5}}
-                            className="w-16 h-16 rounded-lg bg-white/10 flex items-center justify-center mx-auto mb-6"
-                        >
-                            <Grid className="w-8 h-8 text-white"/>
-                        </motion.div>
-                        <motion.h1
-                            initial={{opacity: 0, y: -20}}
-                            animate={{opacity: 1, y: 0}}
-                            transition={{duration: 0.5, delay: 0.1}}
-                            className="text-4xl md:text-5xl font-bold text-white mb-6"
-                        >
-                            Our Services
-                        </motion.h1>
-                        <motion.p
-                            initial={{opacity: 0, y: -20}}
-                            animate={{opacity: 1, y: 0}}
-                            transition={{duration: 0.5, delay: 0.2}}
-                            className="text-xl text-white/90 max-w-3xl mx-auto"
-                        >
-                            Elevate your business with our comprehensive range of software engineering and cloud
-                            services.
-                        </motion.p>
-                    </div>
-                </section>
+                <ServiceHero
+                    icon={Grid}
+                    title="Our Services"
+                    description="Elevate your business with our comprehensive range of software engineering and cloud services."
+                    backgroundImage="/service-assets/services/hero.jpg"
+                />
 
                 <section className="py-24 bg-white">
                     <div className="container mx-auto px-4">
