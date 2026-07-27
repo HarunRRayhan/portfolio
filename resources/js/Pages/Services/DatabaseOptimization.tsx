@@ -48,7 +48,7 @@ const technologies = [
   },
   {
     name: "Amazon RDS",
-    logo: getImageUrl("/images/logos/tech/hp_schema%402x.b509be7f0e26575880dbd3f100d2d9fc3585ef14.png"),
+    logo: getImageUrl("/images/logos/tech/hp_schema@2x.b509be7f0e26575880dbd3f100d2d9fc3585ef14.png"),
   },
   {
     name: "Google Cloud SQL",
