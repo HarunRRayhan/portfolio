@@ -20,10 +20,26 @@ import {
     MonitorSmartphone,
     MessageSquare,
     Grid,
+    Gauge,
+    Replace,
 } from "lucide-react"
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/Components/ui/accordion"
 
 const services = [
+    {
+        icon: Gauge,
+        title: "Vibe Scaler",
+        description:
+            "We take an app you built fast with AI coding tools and scale it in place to handle real traffic and payments.",
+        link: "/services/vibe-scaling",
+    },
+    {
+        icon: Replace,
+        title: "Vibe Code Migration",
+        description:
+            "We port an app you built fast with AI coding tools to a production language and framework, feature for feature, without losing data or users.",
+        link: "/services/vibe-code-migration",
+    },
     {
         icon: Cloud,
         title: "Multi-Cloud Architecture",

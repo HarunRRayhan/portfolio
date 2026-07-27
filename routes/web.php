@@ -272,6 +272,14 @@ Route::get('/services/multi-cloud-architecture', function () {
     return Inertia::render('Services/MultiCloudArchitecture');
 })->name('services.multi-cloud-architecture');
 
+Route::get('/services/vibe-scaling', function () {
+    return Inertia::render('Services/VibeScaling');
+})->name('services.vibe-scaling');
+
+Route::get('/services/vibe-code-migration', function () {
+    return Inertia::render('Services/VibeCodeMigration');
+})->name('services.vibe-code-migration');
+
 Route::get('/book', function () {
     return Inertia::render('Book');
 })->name('book');
