@@ -79,7 +79,7 @@ export function Menubar() {
           <Logo className="h-9 w-9" />
           <div className="hidden sm:block">
             <p className="text-sm font-semibold tracking-tight text-slate-900">Harun R. Rayhan</p>
-            <p className="text-xs text-slate-500">Cloud, DevOps, and product engineering</p>
+            <p className="text-xs text-slate-500">DevOps, AI/ML, Cloud, and Product Engineering</p>
           </div>
         </Link>
 
