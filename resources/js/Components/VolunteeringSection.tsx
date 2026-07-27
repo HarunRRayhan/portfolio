@@ -28,16 +28,16 @@ export function VolunteeringSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <div className="rounded-xl border bg-gradient-to-br from-amber-500/5 to-amber-600/5 shadow p-8">
-              <div className="flex items-start gap-8">
-                <div className="w-32 h-32 rounded-lg flex items-center justify-center flex-shrink-0">
+            <div className="rounded-xl border bg-gradient-to-br from-amber-500/5 to-amber-600/5 shadow p-5 sm:p-8">
+              <div className="flex flex-col items-start gap-6 sm:flex-row sm:gap-8">
+                <div className="w-32 h-32 rounded-lg flex items-center justify-center flex-shrink-0 mx-auto sm:mx-0">
                   <img
                     src={getImageUrl("/images/community/aws-community-builder.png")}
                     alt="AWS Community Builder"
                     className="w-32 h-32 object-contain"
                   />
                 </div>
-                <div className="flex-1">
+                <div className="min-w-0 flex-1">
                   <h3 className="text-3xl font-bold text-gray-900 mb-3">AWS Community Builder</h3>
                   <p className="text-amber-600 font-medium text-lg mb-2">Amazon Web Services (AWS)</p>
                   <p className="text-gray-600 text-lg mb-4">Mar 2022 - Present</p>
