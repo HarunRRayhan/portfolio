@@ -83,13 +83,13 @@ export default function InfrastructureMigration() {
         <meta property="og:description" content="Expert infrastructure migration services. Seamlessly migrate your infrastructure to modern platforms with minimal disruption and maximum efficiency." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
-        <meta property="og:image" content={getImageUrl("/service-assets/infrastructure-migration/cover.jpg")} />
+        <meta property="og:image" content={getImageUrl("/service-assets/infrastructure-migration/hero.jpg")} />
 
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Infrastructure Migration Services | Harun R. Rayhan" />
         <meta name="twitter:description" content="Expert infrastructure migration services. Seamlessly migrate your infrastructure to modern platforms with minimal disruption and maximum efficiency." />
-        <meta name="twitter:image" content={getImageUrl("/service-assets/infrastructure-migration/cover.jpg")} />
+        <meta name="twitter:image" content={getImageUrl("/service-assets/infrastructure-migration/hero.jpg")} />
         
         {/* Canonical URL */}
         <link rel="canonical" href={window.location.href} />

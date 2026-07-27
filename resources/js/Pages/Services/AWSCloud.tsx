@@ -81,13 +81,13 @@ export default function AWSCloud() {
         <meta property="og:description" content="Expert AWS cloud solutions and consulting services. Leverage the full power of Amazon Web Services with our certified professionals for scalable, secure, and cost-effective cloud infrastructure." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
-        <meta property="og:image" content={getImageUrl("/service-assets/aws-cloud/cover.jpg")} />
+        <meta property="og:image" content={getImageUrl("/service-assets/aws-cloud/hero.jpg")} />
 
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="AWS Cloud Services & Solutions | Harun R. Rayhan" />
         <meta name="twitter:description" content="Expert AWS cloud solutions and consulting services. Leverage the full power of Amazon Web Services with our certified professionals for scalable, secure, and cost-effective cloud infrastructure." />
-        <meta name="twitter:image" content={getImageUrl("/service-assets/aws-cloud/cover.jpg")} />
+        <meta name="twitter:image" content={getImageUrl("/service-assets/aws-cloud/hero.jpg")} />
         
         {/* Canonical URL */}
         <link rel="canonical" href={window.location.href} />

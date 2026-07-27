@@ -93,13 +93,13 @@ export default function SecurityConsulting() {
         <meta property="og:description" content="Expert security consulting services. Protect your infrastructure and applications with comprehensive security assessments, implementation, and best practices." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
-        <meta property="og:image" content={getImageUrl("/service-assets/security-consulting/cover.jpg")} />
+        <meta property="og:image" content={getImageUrl("/service-assets/security-consulting/hero.jpg")} />
 
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Security Consulting & Implementation Services | Harun R. Rayhan" />
         <meta name="twitter:description" content="Expert security consulting services. Protect your infrastructure and applications with comprehensive security assessments, implementation, and best practices." />
-        <meta name="twitter:image" content={getImageUrl("/service-assets/security-consulting/cover.jpg")} />
+        <meta name="twitter:image" content={getImageUrl("/service-assets/security-consulting/hero.jpg")} />
 
         {/* Canonical URL */}
         <link rel="canonical" href={window.location.href} />

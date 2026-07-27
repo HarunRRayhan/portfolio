@@ -66,13 +66,13 @@ export default function DatabaseMigration() {
         <meta property="og:description" content="Expert database migration services. Seamlessly migrate your databases to modern platforms with minimal downtime and zero data loss." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
-        <meta property="og:image" content={getImageUrl("/service-assets/database-migration/cover.jpg")} />
+        <meta property="og:image" content={getImageUrl("/service-assets/database-migration/hero.jpg")} />
 
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Database Migration Services | Harun R. Rayhan" />
         <meta name="twitter:description" content="Expert database migration services. Seamlessly migrate your databases to modern platforms with minimal downtime and zero data loss." />
-        <meta name="twitter:image" content={getImageUrl("/service-assets/database-migration/cover.jpg")} />
+        <meta name="twitter:image" content={getImageUrl("/service-assets/database-migration/hero.jpg")} />
         
         {/* Canonical URL */}
         <link rel="canonical" href={window.location.href} />

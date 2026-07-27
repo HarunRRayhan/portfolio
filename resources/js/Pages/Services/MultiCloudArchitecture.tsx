@@ -76,13 +76,13 @@ export default function MultiCloudArchitecture() {
         <meta property="og:description" content="Expert multi-cloud architecture and implementation services. Design and manage efficient cloud solutions across AWS, Azure, Google Cloud, and other providers." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
-        <meta property="og:image" content={getImageUrl("/service-assets/multi-cloud-architecture/cover.jpg")} />
+        <meta property="og:image" content={getImageUrl("/service-assets/multi-cloud-architecture/hero.jpg")} />
 
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Multi-Cloud Architecture Services | Harun R. Rayhan" />
         <meta name="twitter:description" content="Expert multi-cloud architecture and implementation services. Design and manage efficient cloud solutions across AWS, Azure, Google Cloud, and other providers." />
-        <meta name="twitter:image" content={getImageUrl("/service-assets/multi-cloud-architecture/cover.jpg")} />
+        <meta name="twitter:image" content={getImageUrl("/service-assets/multi-cloud-architecture/hero.jpg")} />
         
         {/* Canonical URL */}
         <link rel="canonical" href={window.location.href} />

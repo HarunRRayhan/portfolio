@@ -83,13 +83,13 @@ export default function PerformanceOptimization() {
         <meta property="og:description" content="Expert cloud performance optimization services. Enhance your cloud infrastructure efficiency, reduce costs, and improve application performance through advanced optimization techniques." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
-        <meta property="og:image" content={`${window.location.origin}${getImageUrl("/service-assets/performance-optimization/cover.jpg")}`} />
+        <meta property="og:image" content={`${window.location.origin}${getImageUrl("/service-assets/performance-optimization/hero.jpg")}`} />
 
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Cloud Performance Optimization Services | Harun R. Rayhan" />
         <meta name="twitter:description" content="Expert cloud performance optimization services. Enhance your cloud infrastructure efficiency, reduce costs, and improve application performance through advanced optimization techniques." />
-        <meta name="twitter:image" content={`${window.location.origin}${getImageUrl("/service-assets/performance-optimization/cover.jpg")}`} />
+        <meta name="twitter:image" content={`${window.location.origin}${getImageUrl("/service-assets/performance-optimization/hero.jpg")}`} />
         
         {/* Canonical URL */}
         <link rel="canonical" href={window.location.href} />

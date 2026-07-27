@@ -83,13 +83,13 @@ export default function AutomatedDeployment() {
         <meta property="og:description" content="Expert automated deployment and CI/CD implementation services. Streamline your software delivery pipeline with efficient automation and reliable deployment processes." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
-        <meta property="og:image" content={getImageUrl("/service-assets/automated-deployment/cover.jpg")} />
+        <meta property="og:image" content={getImageUrl("/service-assets/automated-deployment/hero.jpg")} />
 
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Automated Deployment & CI/CD Services | Harun R. Rayhan" />
         <meta name="twitter:description" content="Expert automated deployment and CI/CD implementation services. Streamline your software delivery pipeline with efficient automation and reliable deployment processes." />
-        <meta name="twitter:image" content={getImageUrl("/service-assets/automated-deployment/cover.jpg")} />
+        <meta name="twitter:image" content={getImageUrl("/service-assets/automated-deployment/hero.jpg")} />
         
         {/* Canonical URL */}
         <link rel="canonical" href={window.location.href} />
