@@ -16,7 +16,7 @@ import { getImageUrl } from "@/lib/imageUtils"
 const technologies = [
   {
     name: "AWS Migration Hub",
-    logo: getImageUrl("/images/logos/migration/aws-migration-hub.png"),
+    logo: getImageUrl("/images/logos/migration/aws-migration-hub-logo.svg"),
   },
   {
     name: "Azure Migrate",
@@ -40,15 +40,15 @@ const technologies = [
   },
   {
     name: "Docker",
-    logo: getImageUrl("/images/logos/migration/docker-logo.png"),
+    logo: getImageUrl("/images/logos/migration/docker-logo.svg"),
   },
   {
     name: "Kubernetes",
-    logo: getImageUrl("/images/logos/migration/kubernetes-logo.png"),
+    logo: getImageUrl("/images/logos/migration/kubernetes-logo.svg"),
   },
   {
     name: "CloudEndure Migration",
-    logo: getImageUrl("/images/logos/migration/cloudendure-logo.png"),
+    logo: getImageUrl("/images/logos/migration/cloudendure-logo.svg"),
   },
   {
     name: "Carbonite Migrate",
@@ -56,7 +56,7 @@ const technologies = [
   },
   {
     name: "Velostrata",
-    logo: getImageUrl("/images/logos/migration/velostrata-logo.png"),
+    logo: getImageUrl("/images/logos/migration/velostrata-logo.svg"),
   },
 ]
 
@@ -83,11 +83,13 @@ export default function InfrastructureMigration() {
         <meta property="og:description" content="Expert infrastructure migration services. Seamlessly migrate your infrastructure to modern platforms with minimal disruption and maximum efficiency." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
-        
+        <meta property="og:image" content={getImageUrl("/service-assets/infrastructure-migration/cover.jpg")} />
+
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Infrastructure Migration Services | Harun R. Rayhan" />
         <meta name="twitter:description" content="Expert infrastructure migration services. Seamlessly migrate your infrastructure to modern platforms with minimal disruption and maximum efficiency." />
+        <meta name="twitter:image" content={getImageUrl("/service-assets/infrastructure-migration/cover.jpg")} />
         
         {/* Canonical URL */}
         <link rel="canonical" href={window.location.href} />

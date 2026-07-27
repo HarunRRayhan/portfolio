@@ -4,6 +4,7 @@ import { ArrowRight, CalendarDays, Clock3, Sparkles } from 'lucide-react'
 export type CaseStudySummary = {
   slug: string
   codename: string
+  title: string
   client: string
   industry: string
   duration: string

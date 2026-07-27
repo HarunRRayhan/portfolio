@@ -24,14 +24,14 @@ import { InfiniteScrollTech } from "@/Components/InfiniteScrollTech"
 import { getImageUrl } from "@/lib/imageUtils"
 
 const technologies = [
-  { name: "MySQL", logo: getImageUrl("/images/logos/db/mysql-logo.png") },
+  { name: "MySQL", logo: getImageUrl("/images/logos/db/mysql-logo.svg") },
   { name: "PostgreSQL", logo: getImageUrl("/images/logos/db/postgresql-logo.png") },
   { name: "MongoDB", logo: getImageUrl("/images/logos/db/mongodb-logo.png") },
-  { name: "Oracle", logo: getImageUrl("/images/logos/db/oracle-logo.png") },
+  { name: "Oracle", logo: getImageUrl("/images/logos/db/oracle-logo.svg") },
   { name: "Microsoft SQL Server", logo: getImageUrl("/images/logos/db/sqlserver-logo.png") },
   {
     name: "Amazon RDS",
-    logo: getImageUrl("/images/logos/db/aws-rds-logo.png"),
+    logo: getImageUrl("/images/logos/db/aws-rds-logo.svg"),
   },
   {
     name: "Google Cloud SQL",
@@ -66,11 +66,13 @@ export default function DatabaseMigration() {
         <meta property="og:description" content="Expert database migration services. Seamlessly migrate your databases to modern platforms with minimal downtime and zero data loss." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
-        
+        <meta property="og:image" content={getImageUrl("/service-assets/database-migration/cover.jpg")} />
+
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Database Migration Services | Harun R. Rayhan" />
         <meta name="twitter:description" content="Expert database migration services. Seamlessly migrate your databases to modern platforms with minimal downtime and zero data loss." />
+        <meta name="twitter:image" content={getImageUrl("/service-assets/database-migration/cover.jpg")} />
         
         {/* Canonical URL */}
         <link rel="canonical" href={window.location.href} />

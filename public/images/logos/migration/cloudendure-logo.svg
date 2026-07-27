@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="img" aria-label="CloudEndure">
+  <rect width="24" height="24" rx="5" fill="#232F3E"/>
+  <path d="M7 15.5a3.25 3.25 0 0 1-.35-6.48 4.25 4.25 0 0 1 8.2-1.4 3.5 3.5 0 0 1-.35 7.88H7Z" fill="#FF9900"/>
+  <path d="m10.5 17.5 2-2.25h-1.4l1.9-2.25-1.9.6 1.4-2.35-2.6 2.85h1.35l-1.9 2.2 1.15-.4Z" fill="#232F3E"/>
+</svg>

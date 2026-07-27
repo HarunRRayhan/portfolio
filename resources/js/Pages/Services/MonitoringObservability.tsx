@@ -56,7 +56,7 @@ const technologies = [
   },
   {
     name: "AWS CloudWatch",
-    logo: getImageUrl("/images/logos/AWS-CloudWatch_icon_64_Squid.4c65a3d318a1e2c52a77f4f60b336430c9d7294a.png"),
+    logo: getImageUrl("/images/logos/aws-cloudwatch-logo.svg"),
   },
 ]
 
@@ -83,12 +83,14 @@ export default function MonitoringObservability() {
         <meta property="og:description" content="Expert monitoring and observability services. Gain deep insights into your systems with comprehensive monitoring, logging, and observability solutions." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
-        
+        <meta property="og:image" content={getImageUrl("/service-assets/monitoring-observability/cover.jpg")} />
+
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Monitoring & Observability Services | Harun R. Rayhan" />
         <meta name="twitter:description" content="Expert monitoring and observability services. Gain deep insights into your systems with comprehensive monitoring, logging, and observability solutions." />
-        
+        <meta name="twitter:image" content={getImageUrl("/service-assets/monitoring-observability/cover.jpg")} />
+
         {/* Canonical URL */}
         <link rel="canonical" href={window.location.href} />
 

@@ -17,15 +17,15 @@ const technologies = [
   },
   {
     name: "MySQL",
-    logo: getImageUrl("/images/logos/db/mysql-logo.png"),
+    logo: getImageUrl("/images/logos/db/mysql-logo.svg"),
   },
   {
     name: "Redis",
-    logo: getImageUrl("/images/logos/performance/redis-logo.png"),
+    logo: getImageUrl("/images/logos/performance/redis-logo.svg"),
   },
   {
     name: "Docker",
-    logo: getImageUrl("/images/logos/tech/vertical-logo-monochromatic.png"),
+    logo: getImageUrl("/images/logos/tech/docker-logo.svg"),
   },
   {
     name: "Kubernetes",
@@ -84,11 +84,13 @@ export default function VibeScaling() {
         <meta property="og:description" content="You built your app fast with AI coding tools and it found real users. We scale it in place: performance under load, database fixes, monitoring, and reliability, no rewrite required." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
+        <meta property="og:image" content={getImageUrl("/service-assets/vibe-scaling/cover.jpg")} />
 
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Vibe Scaler: Scale Your AI-Built App | Harun R. Rayhan" />
         <meta name="twitter:description" content="You built your app fast with AI coding tools and it found real users. We scale it in place: performance under load, database fixes, monitoring, and reliability, no rewrite required." />
+        <meta name="twitter:image" content={getImageUrl("/service-assets/vibe-scaling/cover.jpg")} />
 
         {/* Canonical URL */}
         <link rel="canonical" href={window.location.href} />

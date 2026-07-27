@@ -1,6 +1,7 @@
 ---
 slug: polaris
 codename: Polaris
+title: "Polaris: Migrating a 15-Year-Old ERP Off Zend Framework 1"
 publishedAt: "2026-07-27"
 duration: "6 to 12 months"
 problem: "The ERP ran on Zend Framework 1, a PHP framework roughly 15 years old. It couldn't scale, had lost community and vendor support, was hard to hire for, and carried security and compliance gaps while feature work slowed to a crawl."

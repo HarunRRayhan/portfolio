@@ -14,47 +14,47 @@ import { getImageUrl } from "@/lib/imageUtils"
 const technologies = [
   {
     name: "Amazon EC2",
-    logo: getImageUrl("/images/logos/aws/ec2-icon.png"),
+    logo: getImageUrl("/images/logos/aws/ec2-icon.svg"),
   },
   {
     name: "Amazon S3",
-    logo: getImageUrl("/images/logos/aws/s3-icon.png"),
+    logo: getImageUrl("/images/logos/aws/s3-icon.svg"),
   },
   {
     name: "Amazon RDS",
-    logo: getImageUrl("/images/logos/aws/rds-icon.png"),
+    logo: getImageUrl("/images/logos/aws/rds-icon.svg"),
   },
   {
     name: "Amazon Lambda",
-    logo: getImageUrl("/images/logos/aws/lambda-icon.png"),
+    logo: getImageUrl("/images/logos/aws/lambda-icon.svg"),
   },
   {
     name: "Amazon VPC",
-    logo: getImageUrl("/images/logos/aws/vpc-icon.png"),
+    logo: getImageUrl("/images/logos/aws/vpc-icon.svg"),
   },
   {
     name: "Amazon CloudFront",
-    logo: getImageUrl("/images/logos/aws/cloudfront-icon.png"),
+    logo: getImageUrl("/images/logos/aws/cloudfront-icon.svg"),
   },
   {
     name: "AWS IAM",
-    logo: getImageUrl("/images/logos/aws/iam-icon.png"),
+    logo: getImageUrl("/images/logos/aws/iam-icon.svg"),
   },
   {
     name: "Amazon ECS",
-    logo: getImageUrl("/images/logos/aws/ecs-icon.png"),
+    logo: getImageUrl("/images/logos/aws/ecs-icon.svg"),
   },
   {
     name: "Amazon EKS",
-    logo: getImageUrl("/images/logos/aws/eks-icon.png"),
+    logo: getImageUrl("/images/logos/aws/eks-icon.svg"),
   },
   {
     name: "AWS CloudFormation",
-    logo: getImageUrl("/images/logos/aws/cloudformation-icon.png"),
+    logo: getImageUrl("/images/logos/aws/cloudformation-icon.svg"),
   },
   {
     name: "Amazon CloudWatch",
-    logo: getImageUrl("/images/logos/aws/cloudwatch-icon.png"),
+    logo: getImageUrl("/images/logos/aws/cloudwatch-icon.svg"),
   },
 ]
 
@@ -81,11 +81,13 @@ export default function AWSCloud() {
         <meta property="og:description" content="Expert AWS cloud solutions and consulting services. Leverage the full power of Amazon Web Services with our certified professionals for scalable, secure, and cost-effective cloud infrastructure." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
-        
+        <meta property="og:image" content={getImageUrl("/service-assets/aws-cloud/cover.jpg")} />
+
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="AWS Cloud Services & Solutions | Harun R. Rayhan" />
         <meta name="twitter:description" content="Expert AWS cloud solutions and consulting services. Leverage the full power of Amazon Web Services with our certified professionals for scalable, secure, and cost-effective cloud infrastructure." />
+        <meta name="twitter:image" content={getImageUrl("/service-assets/aws-cloud/cover.jpg")} />
         
         {/* Canonical URL */}
         <link rel="canonical" href={window.location.href} />

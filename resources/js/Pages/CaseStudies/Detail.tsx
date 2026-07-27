@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react'
-import { ArrowRight, CalendarDays, Clock3, Sparkles } from 'lucide-react'
+import { ArrowRight, CalendarDays, Clock3, Share2, Sparkles } from 'lucide-react'
 import { CaseStudyArticleBody } from '@/Components/CaseStudyArticleBody'
+import { ShareButton } from '@/Components/ShareButton'
 import type { CaseStudySummary } from '@/Pages/CaseStudies/Index'
 
 export type CaseStudyDetail = CaseStudySummary & {
@@ -27,9 +28,9 @@ export default function CaseStudyDetailPage({ study, relatedStudies, canonicalUr
   return (
     <>
       <Head>
-        <title>{`${study.codename} | Case Studies`}</title>
+        <title>{`${study.title} | Case Studies`}</title>
         <meta name="description" content={description} />
-        <meta property="og:title" content={`${study.codename} | Case Study`} />
+        <meta property="og:title" content={study.title} />
         <meta property="og:description" content={description} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={canonicalUrl} />
@@ -53,7 +54,7 @@ export default function CaseStudyDetailPage({ study, relatedStudies, canonicalUr
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-200/90">
                   {study.industry}
                 </p>
-                <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">{study.codename}</h1>
+                <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">{study.title}</h1>
                 <p className="mt-4 max-w-2xl text-lg text-white/80">{study.client}</p>
               </div>
             )}
@@ -74,7 +75,7 @@ export default function CaseStudyDetailPage({ study, relatedStudies, canonicalUr
                       {study.industry}
                     </p>
                     <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
-                      {study.codename}
+                      {study.title}
                     </h1>
                     <p className="mt-3 text-slate-600">{study.client}</p>
                   </div>
@@ -90,6 +91,17 @@ export default function CaseStudyDetailPage({ study, relatedStudies, canonicalUr
                     {study.readTimeLabel}
                   </span>
                   <span>{study.duration}</span>
+                  <ShareButton
+                    url={study.canonicalUrl}
+                    title={study.title}
+                    shareTitle={study.title}
+                    label={`Share "${study.title}"`}
+                    theme="slate"
+                    triggerClassName="inline-flex items-center gap-1.5 text-slate-500 transition-colors hover:text-slate-950"
+                  >
+                    <Share2 className="h-4 w-4" />
+                    Share
+                  </ShareButton>
                 </div>
 
                 <div className="mt-8 rounded-2xl border border-amber-200/80 bg-amber-50/60 p-6">

@@ -16,7 +16,7 @@ import { getImageUrl } from "@/lib/imageUtils"
 const technologies = [
   {
     name: "MySQL",
-    logo: getImageUrl("/images/logos/tech/logo-mysql-170x115.png"),
+    logo: getImageUrl("/images/logos/tech/mysql-logo.svg"),
   },
   {
     name: "PostgreSQL",
@@ -28,7 +28,7 @@ const technologies = [
   },
   {
     name: "Oracle",
-    logo: getImageUrl("/images/logos/tech/rh03-oracle-logo.png"),
+    logo: getImageUrl("/images/logos/tech/oracle-logo.svg"),
   },
   {
     name: "Microsoft SQL Server",
@@ -36,7 +36,7 @@ const technologies = [
   },
   {
     name: "Redis",
-    logo: getImageUrl("/images/logos/tech/redis-white.png"),
+    logo: getImageUrl("/images/logos/tech/redis-logo.svg"),
   },
   {
     name: "Elasticsearch",
@@ -48,7 +48,7 @@ const technologies = [
   },
   {
     name: "Amazon RDS",
-    logo: getImageUrl("/images/logos/tech/hp_schema@2x.b509be7f0e26575880dbd3f100d2d9fc3585ef14.png"),
+    logo: getImageUrl("/images/logos/tech/aws-rds-logo.svg"),
   },
   {
     name: "Google Cloud SQL",
@@ -83,12 +83,14 @@ export default function DatabaseOptimization() {
         <meta property="og:description" content="Expert database optimization services. Enhance your database performance, improve query efficiency, and optimize resource utilization for better scalability." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
-        
+        <meta property="og:image" content={getImageUrl("/service-assets/database-optimization/cover.jpg")} />
+
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Database Performance Optimization Services | Harun R. Rayhan" />
         <meta name="twitter:description" content="Expert database optimization services. Enhance your database performance, improve query efficiency, and optimize resource utilization for better scalability." />
-        
+        <meta name="twitter:image" content={getImageUrl("/service-assets/database-optimization/cover.jpg")} />
+
         {/* Canonical URL */}
         <link rel="canonical" href={window.location.href} />
 
