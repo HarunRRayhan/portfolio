@@ -149,6 +149,7 @@ export default function InfrastructureMigration() {
           icon={ArrowRightLeft}
           title="Infrastructure Migration"
           description="Seamlessly migrate your infrastructure to modern, scalable platforms with minimal downtime."
+          backgroundImage="/service-assets/infrastructure-migration/hero.jpg"
         />
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">

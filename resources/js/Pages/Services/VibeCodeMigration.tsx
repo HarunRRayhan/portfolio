@@ -150,6 +150,7 @@ export default function VibeCodeMigration() {
           icon={Replace}
           title="Vibe Code Migration"
           description="Your prototype did its job and found real users. When the stack it started on cannot carry it any further, we move it to a production language and framework and keep every feature working."
+          backgroundImage="/service-assets/vibe-code-migration/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
           <Link href="/services" className="inline-flex items-center text-amber-600 hover:text-amber-700 font-medium">

@@ -132,6 +132,7 @@ export default function DatabaseMigration() {
           icon={Database}
           title="Database Migration"
           description="Seamlessly migrate your databases to modern cloud platforms with minimal downtime."
+          backgroundImage="/service-assets/database-migration/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
           <Link href="/services" className="inline-flex items-center text-amber-600 hover:text-amber-700 font-medium">

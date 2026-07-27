@@ -149,6 +149,7 @@ export default function PerformanceOptimization() {
           icon={Zap}
           title="Performance Optimization"
           description="Optimize your cloud infrastructure for maximum performance, efficiency, and cost-effectiveness."
+          backgroundImage="/service-assets/performance-optimization/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
           <Link href="/services" className="inline-flex items-center text-amber-600 hover:text-amber-700 font-medium">

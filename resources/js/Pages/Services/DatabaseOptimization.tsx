@@ -149,6 +149,7 @@ export default function DatabaseOptimization() {
           icon={Database}
           title="Database Optimization"
           description="Optimize your database performance, scalability, and reliability for maximum efficiency."
+          backgroundImage="/service-assets/database-optimization/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
           <Link href="/services" className="inline-flex items-center text-amber-600 hover:text-amber-700 font-medium">

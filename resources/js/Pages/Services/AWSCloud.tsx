@@ -147,6 +147,7 @@ export default function AWSCloud() {
           icon={Cloud}
           title="AWS Cloud Services"
           description="Expert AWS cloud solutions to help you leverage the full power of Amazon Web Services for your business needs."
+          backgroundImage="/service-assets/aws-cloud/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
           <Link href="/services" className="inline-flex items-center text-amber-600 hover:text-amber-700 font-medium">

@@ -171,6 +171,7 @@ export default function ServerlessInfrastructure() {
           icon={Cloud}
           title="Serverless Infrastructure"
           description="Design and implement scalable serverless solutions to reduce operational overhead and costs while improving scalability."
+          backgroundImage="/service-assets/serverless-infrastructure/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
           <Link href="/services" className="inline-flex items-center text-amber-600 hover:text-amber-700 font-medium">

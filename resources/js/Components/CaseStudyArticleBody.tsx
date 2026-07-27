@@ -88,7 +88,7 @@ export function CaseStudyArticleBody({ html, slug, className }: Props) {
       ref={ref}
       className={
         className ??
-        'prose prose-slate max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-a:text-amber-700 prose-code:rounded prose-code:bg-slate-100 prose-code:px-1 prose-code:py-0.5 prose-code:before:content-none prose-code:after:content-none'
+        "max-w-none text-base leading-8 text-slate-700 [&>h2]:mt-14 [&>h2]:mb-4 [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:tracking-tight [&>h2]:text-slate-950 [&>h2:first-child]:mt-0 [&>h2]:before:mb-5 [&>h2]:before:block [&>h2]:before:h-0.5 [&>h2]:before:w-10 [&>h2]:before:rounded-full [&>h2]:before:bg-amber-500 [&>h2]:before:content-[''] [&>p]:my-5 [&>p]:leading-8 [&>p]:text-slate-700 [&>p:first-of-type]:text-lg [&>p:first-of-type]:text-slate-800 [&>ul]:my-6 [&>ul]:space-y-3 [&>ul>li]:relative [&>ul>li]:pl-6 [&>ul>li]:leading-7 [&>ul>li]:text-slate-700 [&>ul>li]:before:absolute [&>ul>li]:before:left-0 [&>ul>li]:before:top-[0.65em] [&>ul>li]:before:h-1.5 [&>ul>li]:before:w-1.5 [&>ul>li]:before:rounded-full [&>ul>li]:before:bg-amber-500 [&>ul>li]:before:content-[''] [&_a]:font-medium [&_a]:text-amber-700 [&_a]:underline [&_a]:decoration-amber-300 [&_a]:underline-offset-2 [&_a]:transition-colors [&_a]:hover:text-amber-800 [&_a]:hover:decoration-amber-500 [&_strong]:font-semibold [&_strong]:text-slate-900 [&_:not(pre)>code]:rounded [&_:not(pre)>code]:bg-slate-100 [&_:not(pre)>code]:px-1 [&_:not(pre)>code]:py-0.5 [&_:not(pre)>code]:text-[0.9em] [&_:not(pre)>code]:text-slate-800"
       }
       dangerouslySetInnerHTML={{ __html: html }}
     />
