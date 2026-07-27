@@ -22,6 +22,6 @@ Add one idea per week. The Tuesday 5pm cron reads this file and nudges you if an
 ## Notes
 
 - Codename theme: **constellations / stars**
-- Sections: Stack → Context → Problem → Diagnosis → Approach → Outcomes
+- Body sections: Context → Diagnosis → Approach → Outcomes → optional closing. Stack and Problem are no longer body sections; they render as structured UI from the `techStack` and `problem` frontmatter (sidebar Stack card and at-a-glance Problem block). `approach`, `outcome`, `tags`, `industry`, and `client` also render on-page, so keep them written to stand alone.
 - Never put client names or NDA-sensitive numbers here; keep bullets vague.
 - Use `_PLAN.md` (private queue). Case study files go in this same directory, one `.md` per slug, with YAML frontmatter.

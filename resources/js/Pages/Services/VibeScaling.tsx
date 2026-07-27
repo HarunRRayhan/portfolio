@@ -150,6 +150,7 @@ export default function VibeScaling() {
           icon={Gauge}
           title="Vibe Scaler"
           description="You built it fast with AI coding tools and it found real users. We take that app and make it hold up under the traffic and payments now coming through it."
+          backgroundImage="/service-assets/vibe-scaling/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
           <Link href="/services" className="inline-flex items-center text-amber-600 hover:text-amber-700 font-medium">

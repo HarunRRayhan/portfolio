@@ -149,6 +149,7 @@ export default function MonitoringObservability() {
           icon={BarChart}
           title="Monitoring & Observability"
           description="Implement comprehensive monitoring solutions to gain deep insights into your infrastructure and applications."
+          backgroundImage="/service-assets/monitoring-observability/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
           <Link href="/services" className="inline-flex items-center text-amber-600 hover:text-amber-700 font-medium">

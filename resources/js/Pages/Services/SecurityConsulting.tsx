@@ -159,6 +159,7 @@ export default function SecurityConsulting() {
           icon={Lock}
           title="Security Consulting"
           description="Protect your cloud infrastructure with comprehensive security assessments and implementation."
+          backgroundImage="/service-assets/security-consulting/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
           <Link href="/services" className="inline-flex items-center text-amber-600 hover:text-amber-700 font-medium">

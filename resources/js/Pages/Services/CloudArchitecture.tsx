@@ -89,6 +89,7 @@ export default function CloudArchitecturePage() {
           icon={Cloud}
           title="Cloud Architecture"
           description="Design and implement scalable, secure, and cost-effective cloud architectures for your business."
+          backgroundImage="/service-assets/cloud-architecture/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
           <Link href="/services" className="inline-flex items-center text-amber-600 hover:text-amber-700 font-medium">

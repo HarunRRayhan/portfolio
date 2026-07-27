@@ -142,6 +142,7 @@ export default function MultiCloudArchitecture() {
           icon={Cloud}
           title="Multi-Cloud Architecture"
           description="Design and implement robust multi-cloud solutions that leverage the best of different cloud providers."
+          backgroundImage="/service-assets/multi-cloud-architecture/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
           <Link href="/services" className="inline-flex items-center text-amber-600 hover:text-amber-700 font-medium">

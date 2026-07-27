@@ -194,6 +194,7 @@ export default function DevOpsPage() {
           icon={GitBranch}
           title="DevOps Services"
           description="Implement modern DevOps practices to streamline your development and operations workflows."
+          backgroundImage="/service-assets/devops/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
           <Link href="/services" className="inline-flex items-center text-amber-600 hover:text-amber-700 font-medium">

@@ -15,20 +15,31 @@ convention.
 ## Process
 
 1. Read `resources/case-studies/_PLAN.md` first for the codename theme,
-   section order (Stack → Context → Problem → Diagnosis → Approach →
-   Outcomes), and anonymization rules (no client names, no NDA-sensitive
-   numbers).
+   body section order (Context → Diagnosis → Approach → Outcomes →
+   optional closing), and anonymization rules (no client names, no
+   NDA-sensitive numbers).
 2. Read 1-2 recent case studies in the directory for voice and structure
    before writing or editing.
 3. Frontmatter fields: `slug`, `codename` (the constellation name alone,
    e.g. "Polaris"), `title` (a longer, descriptive line that tells the
    reader what the engagement was about — e.g. "Polaris: Migrating a
    15-Year-Old ERP Off Zend Framework 1" — since `codename` alone tells the
-   reader nothing). Also `publishedAt`, `duration`, `problem`, `approach`,
+   reader nothing). Also `publishedAt`, `duration`, `industry` and `client`
+   (both required, anonymized descriptors: an industry category and a
+   generic client descriptor, never a real name), `problem`, `approach`,
    `outcome` (list), `services` (must match labels in
-   `app/Support/CaseStudyServiceMap.php`), `techStack`, `tags`.
-4. Body is raw HTML (`<h2>`, `<p>`, `<ul>`), matching the section order
-   above. Cross-link to `/services/{slug}` pages where relevant.
+   `app/Support/CaseStudyServiceMap.php`), `techStack`, `tags`. Note that
+   `problem`, `approach`, `outcome`, `tags`, `industry`, and `client` all
+   render as structured UI on the detail page now (at-a-glance card,
+   Results band, Topics chips, hero eyebrow/client line), so none of them
+   are dead data. Write them to stand on their own.
+4. Body is raw HTML (`<h2>`, `<p>`, `<ul>`) covering **Context → Diagnosis
+   → Approach → Outcomes → optional closing**. Don't add a Stack or Problem
+   `<h2>`: those render as structured UI from the `techStack` and `problem`
+   frontmatter, so a body section would just duplicate the cards. The
+   frontmatter one-liners are the summary; the body is the deeper story
+   behind them, not a restatement. Cross-link to `/services/{slug}` pages
+   where relevant.
 5. When editing an existing case study rather than drafting a new one
    (e.g. fixing a title), make the minimal targeted edit — don't rewrite
    the whole file.

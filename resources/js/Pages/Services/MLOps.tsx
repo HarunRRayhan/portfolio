@@ -149,6 +149,7 @@ export default function MLOps() {
           icon={Brain}
           title="MLOps"
           description="Streamline your machine learning operations with automated workflows and efficient infrastructure."
+          backgroundImage="/service-assets/mlops/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
           <Link href="/services" className="inline-flex items-center text-amber-600 hover:text-amber-700 font-medium">
