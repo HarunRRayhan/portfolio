@@ -36,7 +36,7 @@ const technologies = [
   },
   {
     name: "Google Cloud Functions",
-    logo: getImageUrl("/images/logos/tech/google-cloud-functions-logo-AECD57BFA2-seeklogo.com.png"),
+    logo: getImageUrl("/images/logos/tech/google-cloud-functions-logo.svg"),
   },
   {
     name: "Vercel",
@@ -105,11 +105,13 @@ export default function ServerlessInfrastructure() {
         <meta property="og:description" content="Expert serverless architecture and implementation services. Build scalable, cost-effective applications using AWS Lambda, Azure Functions, and other serverless technologies." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
+        <meta property="og:image" content={getImageUrl("/service-assets/serverless-infrastructure/cover.jpg")} />
 
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Serverless Infrastructure Services | Harun R. Rayhan" />
         <meta name="twitter:description" content="Expert serverless architecture and implementation services. Build scalable, cost-effective applications using AWS Lambda, Azure Functions, and other serverless technologies." />
+        <meta name="twitter:image" content={getImageUrl("/service-assets/serverless-infrastructure/cover.jpg")} />
 
         {/* Canonical URL */}
         <link rel="canonical" href={window.location.href} />

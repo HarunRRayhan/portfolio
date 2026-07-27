@@ -28,7 +28,7 @@ const technologies = [
   },
   {
     name: "CircleCI",
-    logo: getImageUrl("/images/logos/circleci-logo-stacked-fb-657e221fda1646a7e652c09c9fbfb2b0feb5d710089bb4d8e8c759d37a832694.png"),
+    logo: getImageUrl("/images/logos/circleci-logo.svg"),
   },
   {
     name: "Travis CI",
@@ -36,7 +36,7 @@ const technologies = [
   },
   {
     name: "AWS CodePipeline",
-    logo: getImageUrl("/images/logos/console_codepipeline_icon.0c5de384dc60b71dae9d780b0c572d5deb9e3f0a.png"),
+    logo: getImageUrl("/images/logos/aws-codepipeline-logo.svg"),
   },
   {
     name: "Azure DevOps",
@@ -44,7 +44,7 @@ const technologies = [
   },
   {
     name: "Docker",
-    logo: getImageUrl("/images/logos/tech/vertical-logo-monochromatic.png"),
+    logo: getImageUrl("/images/logos/tech/docker-logo.svg"),
   },
   {
     name: "Kubernetes",
@@ -83,11 +83,13 @@ export default function AutomatedDeployment() {
         <meta property="og:description" content="Expert automated deployment and CI/CD implementation services. Streamline your software delivery pipeline with efficient automation and reliable deployment processes." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
-        
+        <meta property="og:image" content={getImageUrl("/service-assets/automated-deployment/cover.jpg")} />
+
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Automated Deployment & CI/CD Services | Harun R. Rayhan" />
         <meta name="twitter:description" content="Expert automated deployment and CI/CD implementation services. Streamline your software delivery pipeline with efficient automation and reliable deployment processes." />
+        <meta name="twitter:image" content={getImageUrl("/service-assets/automated-deployment/cover.jpg")} />
         
         {/* Canonical URL */}
         <link rel="canonical" href={window.location.href} />

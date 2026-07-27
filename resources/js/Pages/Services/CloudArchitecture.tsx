@@ -35,7 +35,7 @@ const technologies = [
     name: "Kubernetes",
     logo: getImageUrl("/images/logos/cloud-arch/kubernetes-logo.svg"),
   },
-  { name: "Docker", logo: getImageUrl("/images/logos/cloud-arch/docker-logo.png") },
+  { name: "Docker", logo: getImageUrl("/images/logos/cloud-arch/docker-logo.svg") },
   { name: "Terraform", logo: getImageUrl("/images/logos/cloud-arch/terraform-logo.svg") },
   { name: "Ansible", logo: getImageUrl("/images/logos/cloud-arch/ansible-logo.svg") },
   { name: "Jenkins", logo: getImageUrl("/images/logos/cloud-arch/jenkins-logo.svg") },
@@ -76,7 +76,14 @@ export default function CloudArchitecturePage() {
 
   return (
     <>
-      <Head title="Cloud Architecture" />
+      <Head title="Cloud Architecture">
+        <meta property="og:title" content="Cloud Architecture" />
+        <meta
+          property="og:description"
+          content="Design and implement scalable, secure, and cost-effective cloud architectures for your business."
+        />
+        <meta property="og:image" content={getImageUrl("/service-assets/cloud-architecture/cover.jpg")} />
+      </Head>
       <main className="flex flex-col min-h-screen">
         <ServiceHero
           icon={Cloud}

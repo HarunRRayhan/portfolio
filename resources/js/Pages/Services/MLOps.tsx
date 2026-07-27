@@ -20,7 +20,7 @@ const technologies = [
   },
   {
     name: "PyTorch",
-    logo: getImageUrl("/images/logos/tech/pytorch-logo.png"),
+    logo: getImageUrl("/images/logos/tech/pytorch-logo.svg"),
   },
   {
     name: "Kubernetes",
@@ -32,15 +32,15 @@ const technologies = [
   },
   {
     name: "MLflow",
-    logo: getImageUrl("/images/logos/tech/MLflow-logo-final-black.png"),
+    logo: getImageUrl("/images/logos/tech/mlflow-logo.svg"),
   },
   {
     name: "Apache Airflow",
-    logo: getImageUrl("/images/logos/tech/pin_large.png"),
+    logo: getImageUrl("/images/logos/tech/apache-airflow-logo.svg"),
   },
   {
     name: "Docker",
-    logo: getImageUrl("/images/logos/tech/vertical-logo-monochromatic.png"),
+    logo: getImageUrl("/images/logos/tech/docker-logo.svg"),
   },
   {
     name: "Nvidia CUDA",
@@ -48,7 +48,7 @@ const technologies = [
   },
   {
     name: "Amazon SageMaker",
-    logo: getImageUrl("/images/logos/tech/SageMaker_Amazon.6e2760a8a5f7e5f3a8b7e9f9b6d2f7e7e5f3a8b7e9f9b6d2f7e7.png"),
+    logo: getImageUrl("/images/logos/tech/aws-sagemaker-logo.svg"),
   },
   {
     name: "Google Cloud AI Platform",
@@ -83,11 +83,13 @@ export default function MLOps() {
         <meta property="og:description" content="Expert MLOps services. Streamline your machine learning operations with automated pipelines, model deployment, and monitoring solutions." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
-        
+        <meta property="og:image" content={getImageUrl("/service-assets/mlops/cover.jpg")} />
+
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="MLOps & Machine Learning Operations Services | Harun R. Rayhan" />
         <meta name="twitter:description" content="Expert MLOps services. Streamline your machine learning operations with automated pipelines, model deployment, and monitoring solutions." />
+        <meta name="twitter:image" content={getImageUrl("/service-assets/mlops/cover.jpg")} />
         
         {/* Canonical URL */}
         <link rel="canonical" href={window.location.href} />

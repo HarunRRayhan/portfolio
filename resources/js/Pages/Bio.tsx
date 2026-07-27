@@ -368,13 +368,13 @@ export default function Bio({
   return (
     <>
       <Head>
-        <title>Harun Ray | Bio</title>
+        <title>Harun R. Rayhan | Bio</title>
         <meta
           name="description"
           content="Harun R. Rayhan's bio page with quick links to his portfolio, blog, contact details, and social profiles."
         />
-        <meta name="keywords" content="Harun Ray, bio, portfolio, AWS DevOps, CloudOps, links" />
-        <meta property="og:title" content="Harun Ray | Bio" />
+        <meta name="keywords" content="Harun R. Rayhan, bio, portfolio, AWS DevOps, CloudOps, links" />
+        <meta property="og:title" content="Harun R. Rayhan | Bio" />
         <meta
           property="og:description"
           content="Quick links to Harun R. Rayhan's portfolio, blog, contact details, and social profiles."
@@ -385,7 +385,7 @@ export default function Bio({
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Harun Ray | Bio" />
+        <meta name="twitter:title" content="Harun R. Rayhan | Bio" />
         <meta
           name="twitter:description"
           content="Quick links to Harun R. Rayhan's portfolio, blog, contact details, and social profiles."

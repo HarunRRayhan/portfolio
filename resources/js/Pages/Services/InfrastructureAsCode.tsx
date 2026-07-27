@@ -40,7 +40,7 @@ const technologies = [
   },
   {
     name: "Docker",
-    logo: getImageUrl("/images/logos/tech/vertical-logo-monochromatic.png"),
+    logo: getImageUrl("/images/logos/tech/docker-logo.svg"),
   },
   {
     name: "GitLab CI",
@@ -105,12 +105,14 @@ export default function InfrastructureAsCodePage() {
         <meta property="og:description" content="Expert Infrastructure as Code (IaC) services using Terraform, AWS CDK, and other modern tools. Automate your infrastructure deployment and management for better efficiency and reliability." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
-        
+        <meta property="og:image" content={getImageUrl("/service-assets/infrastructure-as-code/cover.jpg")} />
+
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Infrastructure as Code (IaC) Services | Harun R. Rayhan" />
         <meta name="twitter:description" content="Expert Infrastructure as Code (IaC) services using Terraform, AWS CDK, and other modern tools. Automate your infrastructure deployment and management for better efficiency and reliability." />
-        
+        <meta name="twitter:image" content={getImageUrl("/service-assets/infrastructure-as-code/cover.jpg")} />
+
         {/* Canonical URL */}
         <link rel="canonical" href={window.location.href} />
 

@@ -19,7 +19,7 @@ const technologies = [
   },
   {
     name: "Docker",
-    logo: getImageUrl("/images/logos/tech/vertical-logo-monochromatic.png"),
+    logo: getImageUrl("/images/logos/tech/docker-logo.svg"),
   },
   {
     name: "Kubernetes",
@@ -89,6 +89,12 @@ export default function DevOpsPage() {
   const [isVisible, setIsVisible] = useState(false)
   const sectionRef = useRef(null)
 
+  // og:image/twitter:image need a fully-qualified URL. getImageUrl() already
+  // returns an absolute CDN URL in production; fall back to the canonical
+  // domain everywhere else so link previews still resolve.
+  const devopsOgImagePath = getImageUrl('/service-assets/devops/cover.jpg')
+  const ogImageUrl = devopsOgImagePath.startsWith('http') ? devopsOgImagePath : `https://harun.dev${devopsOgImagePath}`
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -120,12 +126,16 @@ export default function DevOpsPage() {
         <meta property="og:description" content="Transform your development and operations with expert DevOps consulting services. Implement CI/CD pipelines, automation, and modern DevOps practices to accelerate your software delivery." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
-        
+        <meta property="og:image" content={ogImageUrl} />
+        <meta property="og:image:width" content="1600" />
+        <meta property="og:image:height" content="840" />
+
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="DevOps Implementation & Consulting Services | Harun R. Rayhan" />
         <meta name="twitter:description" content="Transform your development and operations with expert DevOps consulting services. Implement CI/CD pipelines, automation, and modern DevOps practices to accelerate your software delivery." />
-        
+        <meta name="twitter:image" content={ogImageUrl} />
+
         {/* Canonical URL */}
         <link rel="canonical" href={window.location.href} />
 
