@@ -23,6 +23,22 @@ services:
       - internal
       - app-network
 
+  scheduler:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: php-fpm
+    container_name: scheduler
+    env_file:
+      - .env
+    restart: unless-stopped
+    # The image ENTRYPOINT (/entrypoint-php.sh) runs its setup then `exec "$@"`,
+    # so overriding command here cleanly replaces php-fpm with the scheduler loop.
+    command: ["sh", "-c", "while true; do php artisan schedule:run --no-interaction; sleep 60; done"]
+    networks:
+      - internal
+      - app-network
+
   nginx_blue:
     build:
       context: ..

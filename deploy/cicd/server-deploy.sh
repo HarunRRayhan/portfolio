@@ -248,7 +248,18 @@ deploy_to_environment() {
   docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$target_env php artisan route:clear
   docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$target_env php artisan config:clear
   docker compose -f $APP_DIR/docker/docker-compose.yml exec -T php_$target_env php artisan route:cache
-  
+
+  # Rebuild and restart the scheduler with the new code. It is a single persistent
+  # instance outside the blue/green swap (like db) that runs scheduled artisan
+  # commands (e.g. publishing scheduled posts, hourly inspire). A scheduler failure
+  # is lower stakes than serving live traffic, so warn and continue rather than
+  # aborting or rolling back the primary web deploy.
+  if docker compose -f $APP_DIR/docker/docker-compose.yml up -d --build scheduler; then
+    success "Scheduler service rebuilt and restarted"
+  else
+    warning "Scheduler service failed to rebuild/restart; continuing with deploy (scheduled tasks may be stale until next deploy)"
+  fi
+
   success "$target_env environment deployed successfully"
 }
 
