@@ -4,6 +4,8 @@ http:
       rule: "Host(`harun.dev`)"
       entryPoints:
         - web
+      middlewares:
+        - https-redirect
       service: web-blue
     web-main-secure:
       rule: "Host(`harun.dev`)"
@@ -14,6 +16,11 @@ http:
         certResolver: le
         domains:
           - main: "harun.dev"
+  middlewares:
+    https-redirect:
+      redirectScheme:
+        scheme: https
+        permanent: true
   services:
     web-blue:
       loadBalancer:
