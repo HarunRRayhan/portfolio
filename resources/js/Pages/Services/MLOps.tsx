@@ -83,13 +83,13 @@ export default function MLOps() {
         <meta property="og:description" content="Expert MLOps services. Streamline your machine learning operations with automated pipelines, model deployment, and monitoring solutions." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
-        <meta property="og:image" content={getImageUrl("/service-assets/mlops/cover.jpg")} />
+        <meta property="og:image" content={getImageUrl("/service-assets/mlops/hero.jpg")} />
 
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="MLOps & Machine Learning Operations Services | Harun R. Rayhan" />
         <meta name="twitter:description" content="Expert MLOps services. Streamline your machine learning operations with automated pipelines, model deployment, and monitoring solutions." />
-        <meta name="twitter:image" content={getImageUrl("/service-assets/mlops/cover.jpg")} />
+        <meta name="twitter:image" content={getImageUrl("/service-assets/mlops/hero.jpg")} />
         
         {/* Canonical URL */}
         <link rel="canonical" href={window.location.href} />

@@ -83,13 +83,13 @@ export default function DatabaseOptimization() {
         <meta property="og:description" content="Expert database optimization services. Enhance your database performance, improve query efficiency, and optimize resource utilization for better scalability." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
-        <meta property="og:image" content={getImageUrl("/service-assets/database-optimization/cover.jpg")} />
+        <meta property="og:image" content={getImageUrl("/service-assets/database-optimization/hero.jpg")} />
 
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Database Performance Optimization Services | Harun R. Rayhan" />
         <meta name="twitter:description" content="Expert database optimization services. Enhance your database performance, improve query efficiency, and optimize resource utilization for better scalability." />
-        <meta name="twitter:image" content={getImageUrl("/service-assets/database-optimization/cover.jpg")} />
+        <meta name="twitter:image" content={getImageUrl("/service-assets/database-optimization/hero.jpg")} />
 
         {/* Canonical URL */}
         <link rel="canonical" href={window.location.href} />

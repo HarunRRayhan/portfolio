@@ -92,7 +92,7 @@ export default function DevOpsPage() {
   // og:image/twitter:image need a fully-qualified URL. getImageUrl() already
   // returns an absolute CDN URL in production; fall back to the canonical
   // domain everywhere else so link previews still resolve.
-  const devopsOgImagePath = getImageUrl('/service-assets/devops/cover.jpg')
+  const devopsOgImagePath = getImageUrl('/service-assets/devops/hero.jpg')
   const ogImageUrl = devopsOgImagePath.startsWith('http') ? devopsOgImagePath : `https://harun.dev${devopsOgImagePath}`
 
   useEffect(() => {

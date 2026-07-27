@@ -82,7 +82,7 @@ export default function CloudArchitecturePage() {
           property="og:description"
           content="Design and implement scalable, secure, and cost-effective cloud architectures for your business."
         />
-        <meta property="og:image" content={getImageUrl("/service-assets/cloud-architecture/cover.jpg")} />
+        <meta property="og:image" content={getImageUrl("/service-assets/cloud-architecture/hero.jpg")} />
       </Head>
       <main className="flex flex-col min-h-screen">
         <ServiceHero

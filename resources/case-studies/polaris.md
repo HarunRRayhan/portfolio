@@ -4,8 +4,8 @@ codename: Polaris
 title: "Polaris: Migrating a 15-Year-Old ERP Off Zend Framework 1"
 publishedAt: "2026-07-27"
 duration: "6 to 12 months"
-industry: "Enterprise operations"
-client: "An operations-heavy business running a custom ERP"
+industry: "Enterprise ERP platform"
+client: "A company that builds and operates an ERP platform used by multiple Fortune 500 clients"
 problem: "The ERP ran on Zend Framework 1, a PHP framework roughly 15 years old. It couldn't scale, had lost community and vendor support, was hard to hire for, and carried security and compliance gaps while feature work slowed to a crawl."
 approach: "We rebuilt the system on Symfony, split the frontend off from the backend, and broke the backend into microservices so the team could change one part without risking the rest."
 outcome:
@@ -18,11 +18,15 @@ services:
   - "Vibe Code Migration"
   - "Vibe Scaler"
 techStack:
-  - "Zend Framework 1"
-  - "Symfony"
-  - "PHP"
+  - "Zend Framework 1 (legacy origin)"
+  - "Symfony / API Platform"
+  - "React"
+  - "Next.js"
+  - "AWS Lambda"
+  - "Python"
+  - "Node.js"
+  - "Laravel"
   - "Microservices"
-  - "REST APIs"
 tags:
   - "Legacy Migration"
   - "ERP"
@@ -30,8 +34,8 @@ tags:
   - "Microservices"
 ---
 <h2>Context</h2>
-<p>Polaris is the internal system a business runs its operations on. Inventory, orders, finance, and the reports pulled out of all of it. A system like this rarely gets rewritten, because it works and everyone depends on it. So it kept running on the framework it was born on, and that framework turned 15.</p>
-<p>Nobody wants to be the person who touches the system that pays everyone. That's why it sat untouched for so long, and it's also why it eventually became a problem.</p>
+<p>Polaris isn't one company's internal tool. It's an ERP platform built and sold as a product, and the day-to-day operations of several Fortune 500 companies run on it. Inventory, orders, finance, and the reports pulled out of all of it, for more than one large client at once. A system like this rarely gets rewritten, because it works and everyone depends on it. So it kept running on the framework it was born on, and that framework turned 15.</p>
+<p>Nobody wants to be the person who breaks the system that several Fortune 500 clients run on. That's why it sat untouched for so long, and it's also why it eventually became a problem.</p>
 
 <h2>Diagnosis</h2>
 <p>Most of the pain traced back to age.</p>
@@ -44,9 +48,10 @@ tags:
 <p>None of these get better on their own. They compound.</p>
 
 <h2>Approach</h2>
-<p>We rebuilt on Symfony and used the rebuild to fix the structure, not just the framework.</p>
-<p>The big move was splitting the frontend off from the backend. Once they were separate, we could break the backend into smaller services, each owning one part of the system. A change to orders no longer put finance at risk.</p>
-<p>With a larger team working over 6 to 12 months, a big-bang cutover was never the plan. The safe path is to move module by module. You run the old and new systems side by side during the handover, so the business keeps operating while pieces cross over one at a time.</p>
+<p>We rebuilt the backend on Symfony with API Platform, and used the rebuild to fix the structure, not just the framework.</p>
+<p>The big move was splitting the frontend off from the backend. The new frontend runs on React and Next.js, talking to the Symfony API over HTTP. Once the two were separate, we could break the backend into smaller services, each owning one part of the system. A change to orders no longer put finance at risk.</p>
+<p>Not every job belongs in the main backend. Work that runs on its own schedule or scales in bursts moved to microservices on AWS Lambda, written in Python or Node.js depending on the task. A few smaller side services run on Laravel. Each piece sits on the stack that fits it, instead of one aging framework carrying everything.</p>
+<p>With a larger team working over 6 to 12 months, a big-bang cutover was never the plan. The safe path is to move module by module. You run the old and new systems side by side during the handover, so operations keep running while pieces cross over one at a time.</p>
 
 <h2>Outcomes</h2>
 <p>The system got noticeably faster, and the incidents that used to interrupt the team mostly went away.</p>

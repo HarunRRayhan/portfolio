@@ -84,13 +84,13 @@ export default function VibeCodeMigration() {
         <meta property="og:description" content="Your prototype found real users, but the stack it started on cannot be its permanent home. We port it to a production language and framework, feature for feature, without losing data or the users you already have." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={window.location.href} />
-        <meta property="og:image" content={getImageUrl("/service-assets/vibe-code-migration/cover.jpg")} />
+        <meta property="og:image" content={getImageUrl("/service-assets/vibe-code-migration/hero.jpg")} />
 
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Vibe Code Migration: Port Your AI-Built App to a Production Stack | Harun R. Rayhan" />
         <meta name="twitter:description" content="Your prototype found real users, but the stack it started on cannot be its permanent home. We port it to a production language and framework, feature for feature, without losing data or the users you already have." />
-        <meta name="twitter:image" content={getImageUrl("/service-assets/vibe-code-migration/cover.jpg")} />
+        <meta name="twitter:image" content={getImageUrl("/service-assets/vibe-code-migration/hero.jpg")} />
 
         {/* Canonical URL */}
         <link rel="canonical" href={window.location.href} />
