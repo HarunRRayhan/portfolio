@@ -5,7 +5,6 @@ import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
-import { getImageUrl } from "@/lib/imageUtils"
 
 export default function ResetPassword({
     token,
