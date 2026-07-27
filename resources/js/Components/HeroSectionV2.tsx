@@ -116,9 +116,9 @@ export function HeroSectionV2() {
                             {highlights.map((item, i) => (
                                 <div
                                     key={item.label}
-                                    className={`flex-1${i > 0 ? ' border-l border-slate-200 pl-6' : ''}${i < highlights.length - 1 ? ' pr-6' : ''}`}
+                                    className={`flex-1${i > 0 ? ' border-l border-slate-200 pl-4 sm:pl-6' : ''}${i < highlights.length - 1 ? ' pr-4 sm:pr-6' : ''}`}
                                 >
-                                    <div className="font-mono text-2xl font-semibold tabular-nums text-slate-900">
+                                    <div className="font-mono text-xl font-semibold tabular-nums text-slate-900 sm:text-2xl">
                                         {item.value}
                                     </div>
                                     <div className="mt-0.5 text-xs font-medium uppercase tracking-[0.12em] text-slate-400">

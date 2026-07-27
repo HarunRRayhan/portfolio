@@ -5,7 +5,7 @@ import { Link, router, usePage } from '@inertiajs/react'
 import { cn } from '@/lib/utils'
 import { Logo } from './Logo'
 import { Calendar, ChevronDown, ExternalLink, LogOut, Menu, User } from 'lucide-react'
-import { Sheet, SheetContent, SheetTrigger } from '@/Components/ui/sheet'
+import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from '@/Components/ui/sheet'
 
 const mainNavItems = [
   { name: 'Home', href: '/' },
@@ -74,7 +74,7 @@ export function Menubar() {
           : 'border-transparent bg-white/70 backdrop-blur-md',
       )}
     >
-      <div className="mx-auto grid max-w-7xl items-center gap-3 px-4 py-3 sm:px-6 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:px-8">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:px-8">
         <Link href="/" className="flex shrink-0 items-center gap-3">
           <Logo className="h-9 w-9" />
           <div className="hidden sm:block">
@@ -206,7 +206,9 @@ export function Menubar() {
                 <Menu className="h-5 w-5" />
               </button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-72 border-slate-200 p-6 pt-12">
+            <SheetContent side="right" className="w-[min(18rem,calc(100vw-2.5rem))] border-slate-200 p-6 pt-12">
+              <SheetTitle className="sr-only">Navigation menu</SheetTitle>
+              <SheetDescription className="sr-only">Jump to a page or book a session.</SheetDescription>
               <nav className="flex flex-col gap-1">
                 {[...mainNavItems, { name: 'Contact', href: '/contact' }].map((item) => {
                   const active = isActive(item.href)
@@ -215,7 +217,7 @@ export function Menubar() {
                       key={item.name}
                       href={item.href}
                       className={cn(
-                        'rounded-lg px-3 py-2.5 text-sm font-medium transition',
+                        'rounded-lg px-3 py-3 text-sm font-medium transition',
                         active
                           ? 'bg-slate-900 text-white'
                           : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
@@ -231,7 +233,7 @@ export function Menubar() {
               <div className="mt-4 border-t border-slate-200 pt-4">
                 <button
                   onClick={() => setMobileMoreOpen(!mobileMoreOpen)}
-                  className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+                  className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
                 >
                   More
                   <ChevronDown className={cn('h-4 w-4 transition-transform duration-200', mobileMoreOpen && 'rotate-180')} />
@@ -245,7 +247,7 @@ export function Menubar() {
                           key={item.name}
                           href={item.href}
                           className={cn(
-                            'rounded-lg px-3 py-2 text-sm font-medium transition',
+                            'rounded-lg px-3 py-2.5 text-sm font-medium transition',
                             active
                               ? 'bg-slate-100 text-slate-900'
                               : 'text-slate-600 hover:bg-slate-100',
@@ -268,14 +270,14 @@ export function Menubar() {
                     </div>
                     <Link
                       href="/dashboard"
-                      className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                      className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                     >
                       <User className="h-4 w-4" />
                       Dashboard
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-red-200 px-4 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-red-200 px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
                     >
                       <LogOut className="h-4 w-4" />
                       Sign out
@@ -283,7 +285,7 @@ export function Menubar() {
                   </div>
                 ) : (
                   <Link href="/login">
-                    <button className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                    <button className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
                       <User className="h-4 w-4" />
                       Sign in
                     </button>
@@ -291,7 +293,7 @@ export function Menubar() {
                 )}
                 <div className="mt-3">
                   <Link href="/book">
-                    <button className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800">
+                    <button className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-slate-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800">
                       <Calendar className="h-4 w-4" />
                       Book a session
                     </button>

@@ -229,7 +229,7 @@ export default function Contact() {
                     </section>
 
                     {/* Contact Form Section */}
-                    <section className="py-32 bg-gray-50">
+                    <section className="py-20 sm:py-28 lg:py-32 bg-gray-50">
                         <div className="container mx-auto px-4">
                             <motion.div
                                 initial={{opacity: 0, y: 20}}
@@ -247,7 +247,7 @@ export default function Contact() {
                                             transition={{ duration: 0.3 }}
                                         >
                                             <form onSubmit={handleSubmit}
-                                                  className="space-y-8 bg-white p-12 rounded-xl shadow-lg border border-gray-100">
+                                                  className="space-y-8 bg-white p-6 sm:p-10 lg:p-12 rounded-xl shadow-lg border border-gray-100">
                                                 <input type="hidden" name="referrer" value={referrer} />
                                                 <div className="space-y-3">
                                                     <Label htmlFor="name" className="text-lg font-medium">Name <span className="text-red-500">*</span></Label>
@@ -422,7 +422,7 @@ export default function Contact() {
                                                     <div className="mt-2 flex flex-wrap gap-2">
                                                         {selectedServices.map((service) => (
                                                             <span key={service}
-                                                                  className="amber-100 text-amber-700 px-2 py-1 rounded-full text-sm">
+                                                                  className="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-sm">
                             {service}
                                                             <button type="button" onClick={() => toggleService(service)}
                                                                     className="ml-2 focus:outline-none">
@@ -459,7 +459,7 @@ export default function Contact() {
                                     {showEnvelope && (
                                         <motion.div
                                             key="confirmation"
-                                            className="bg-white p-12 rounded-xl shadow-lg border border-gray-100"
+                                            className="bg-white p-6 sm:p-10 lg:p-12 rounded-xl shadow-lg border border-gray-100"
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: -20 }}
