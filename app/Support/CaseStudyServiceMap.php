@@ -13,6 +13,8 @@ class CaseStudyServiceMap
     public static function labelToSlug(): array
     {
         return [
+            'Vibe Scaler' => 'vibe-scaling',
+            'Vibe Code Migration' => 'vibe-code-migration',
             'Multi-Cloud Architecture' => 'multi-cloud-architecture',
             'AWS Cloud' => 'aws-cloud',
             'DevOps' => 'devops',

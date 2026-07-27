@@ -17,7 +17,7 @@ Add one idea per week. The Tuesday 5pm cron reads this file and nudges you if an
 
 | Codename | Slug | Published |
 |----------|------|-----------|
-| — | — | — |
+| Polaris | polaris | 2026-07-27 |
 
 ## Notes
 
