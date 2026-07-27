@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
-import { Head, router, useForm } from '@inertiajs/react'
+import { Head, useForm } from '@inertiajs/react'
 import BioLinkForm, { type BioLinkFormData } from './Partials/BioLinkForm'
 
 interface BioLinkRecord {
@@ -20,7 +20,7 @@ interface BioLinkRecord {
 }
 
 export default function Edit({ link }: { link: BioLinkRecord }) {
-  const { data, setData, processing, errors } = useForm<BioLinkFormData>({
+  const { data, setData, post, transform, processing, errors } = useForm<BioLinkFormData>({
     label: link.label,
     description: link.description ?? '',
     url: link.url,
@@ -41,7 +41,8 @@ export default function Edit({ link }: { link: BioLinkRecord }) {
     e.preventDefault()
     // PHP never populates $_FILES for PUT bodies, multipart or not, so a real
     // file upload has to ride in on a POST with a spoofed _method instead.
-    router.post(`/admin/bio/${link.id}`, { ...data, _method: 'put' }, { forceFormData: true })
+    transform((data) => ({ ...data, _method: 'put' }))
+    post(`/admin/bio/${link.id}`, { forceFormData: true })
   }
 
   return (

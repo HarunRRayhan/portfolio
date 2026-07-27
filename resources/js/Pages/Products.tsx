@@ -1,5 +1,6 @@
 import { Head, Link } from "@inertiajs/react"
 import { ExternalLink, Link as LinkIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 const products = [
   {
@@ -192,9 +193,4 @@ export default function Products() {
       </div>
     </>
   )
-}
-
-// Helper for conditional classes
-function cn(...classes: (string | boolean | undefined | null)[]) {
-  return classes.filter(Boolean).join(" ")
 }

@@ -3,8 +3,6 @@
 import React, { useEffect, useRef, useState } from "react"
 import { Head } from "@inertiajs/react"
 import { motion } from "framer-motion"
-import { Menubar } from "@/Components/Menubar"
-import { Footer } from "@/Components/Footer"
 import { ServiceHero } from "@/Components/ServiceHero"
 import { Button } from "@/Components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card/index"

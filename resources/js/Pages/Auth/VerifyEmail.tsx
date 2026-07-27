@@ -2,7 +2,6 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
-import { getImageUrl } from "@/lib/imageUtils"
 
 export default function VerifyEmail({ status }: { status?: string }) {
     const { post, processing } = useForm({});
