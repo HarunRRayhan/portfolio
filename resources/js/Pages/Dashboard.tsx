@@ -79,29 +79,29 @@ export default function Dashboard({ stats, recentPosts, draftPostsList }: Props)
             </Head>
 
             <div className="py-6 sm:py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8 space-y-6">
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-6">
                     {/* Stats Cards */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        <div className="bg-white dark:bg-neutral-800 shadow-sm sm:rounded-lg p-4 sm:p-6 border border-neutral-200 dark:border-neutral-700">
+                        <div className="bg-white dark:bg-neutral-800 shadow-sm rounded-lg p-4 sm:p-6 border border-neutral-200 dark:border-neutral-700">
                             <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Total Posts</p>
                             <p className="text-2xl sm:text-3xl font-semibold text-neutral-900 dark:text-white mt-1">{stats.totalPosts}</p>
                         </div>
-                        <div className="bg-white dark:bg-neutral-800 shadow-sm sm:rounded-lg p-4 sm:p-6 border border-neutral-200 dark:border-neutral-700">
+                        <div className="bg-white dark:bg-neutral-800 shadow-sm rounded-lg p-4 sm:p-6 border border-neutral-200 dark:border-neutral-700">
                             <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Published</p>
                             <p className="text-2xl sm:text-3xl font-semibold text-emerald-600 dark:text-emerald-400 mt-1">{stats.publishedPosts}</p>
                         </div>
-                        <div className="bg-white dark:bg-neutral-800 shadow-sm sm:rounded-lg p-4 sm:p-6 border border-neutral-200 dark:border-neutral-700">
+                        <div className="bg-white dark:bg-neutral-800 shadow-sm rounded-lg p-4 sm:p-6 border border-neutral-200 dark:border-neutral-700">
                             <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Drafts</p>
                             <p className="text-2xl sm:text-3xl font-semibold text-amber-600 dark:text-amber-400 mt-1">{stats.draftPosts}</p>
                         </div>
-                        <div className="bg-white dark:bg-neutral-800 shadow-sm sm:rounded-lg p-4 sm:p-6 border border-neutral-200 dark:border-neutral-700">
+                        <div className="bg-white dark:bg-neutral-800 shadow-sm rounded-lg p-4 sm:p-6 border border-neutral-200 dark:border-neutral-700">
                             <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Preview Ready</p>
                             <p className="text-2xl sm:text-3xl font-semibold text-blue-600 dark:text-blue-400 mt-1">{stats.previewReadyDrafts}</p>
                         </div>
                     </div>
 
                     {/* Recent Published Posts */}
-                    <div className="bg-white dark:bg-neutral-800 shadow-sm sm:rounded-lg border border-neutral-200 dark:border-neutral-700">
+                    <div className="bg-white dark:bg-neutral-800 shadow-sm rounded-lg border border-neutral-200 dark:border-neutral-700">
                         <div className="px-4 sm:px-6 py-4 border-b border-neutral-200 dark:border-neutral-700">
                             <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">Recent Published Posts</h3>
                         </div>
@@ -132,7 +132,7 @@ export default function Dashboard({ stats, recentPosts, draftPostsList }: Props)
                     </div>
 
                     {/* Draft Posts */}
-                    <div className="bg-white dark:bg-neutral-800 shadow-sm sm:rounded-lg border border-neutral-200 dark:border-neutral-700">
+                    <div className="bg-white dark:bg-neutral-800 shadow-sm rounded-lg border border-neutral-200 dark:border-neutral-700">
                         <div className="px-4 sm:px-6 py-4 border-b border-neutral-200 dark:border-neutral-700">
                             <h3 className="text-lg font-semibold text-amber-600 dark:text-amber-400">Draft Posts</h3>
                         </div>
@@ -171,7 +171,7 @@ export default function Dashboard({ stats, recentPosts, draftPostsList }: Props)
                     </div>
 
                     {/* Quick Actions */}
-                    <div className="bg-white dark:bg-neutral-800 shadow-sm sm:rounded-lg border border-neutral-200 dark:border-neutral-700">
+                    <div className="bg-white dark:bg-neutral-800 shadow-sm rounded-lg border border-neutral-200 dark:border-neutral-700">
                         <div className="px-4 sm:px-6 py-4 border-b border-neutral-200 dark:border-neutral-700">
                             <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">Quick Actions</h3>
                         </div>

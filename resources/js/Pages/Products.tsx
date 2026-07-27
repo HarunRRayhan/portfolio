@@ -120,9 +120,9 @@ export default function Products() {
             {products.map((product) => (
               <div
                 key={product.name}
-                className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-8 shadow-sm transition-all hover:shadow-md sm:p-10"
+                className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-md sm:p-8 md:p-10"
               >
-                <div className="flex items-start gap-5">
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
                   {/* Real logo */}
                   <div className={cn(
                     "flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-100",

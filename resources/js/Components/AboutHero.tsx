@@ -38,7 +38,7 @@ export function AboutHero() {
             </motion.div>
           </motion.div>
           <motion.div
-            className="lg:w-1/2 flex justify-end"
+            className="flex justify-center lg:w-1/2 lg:justify-end"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8 }}
@@ -47,7 +47,7 @@ export function AboutHero() {
               <img
                 src={getImageUrl("/images/profile/harun-profile.jpeg")}
                 alt="Harun R. Rayhan - Software Engineer and Cloud Architect"
-                className="w-80 h-80 rounded-full shadow-2xl border-4 border-white/20 object-cover"
+                className="h-56 w-56 rounded-full border-4 border-white/20 object-cover shadow-2xl sm:h-72 sm:w-72 lg:h-80 lg:w-80"
                 loading="eager"
               />
             </div>
