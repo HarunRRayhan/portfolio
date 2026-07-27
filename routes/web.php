@@ -38,7 +38,9 @@ Route::get('/', function () {
     return Inertia::render('Homepage');
 })->name('home');
 
-Route::get('/dashboard', function () {
+// The same admin dashboard view is served at both /dashboard and /admin, so
+// the payload-building logic lives in one closure shared by both routes.
+$renderDashboard = function () {
     $blog = new BlogRepository();
     $posts = $blog->posts();
     $publishedPosts = array_values(array_filter($posts, fn (array $post) => ! (bool) ($post['draft'] ?? false)));
@@ -63,34 +65,15 @@ Route::get('/dashboard', function () {
             'draftPreviewUrl' => $blog->previewUrl((string) $post['slug']),
         ], $draftPosts),
     ]);
-})->middleware(['auth', 'verified', 'role:admin'])->name('dashboard');
+};
 
-Route::get('/admin', function () {
-    $blog = new BlogRepository();
-    $posts = $blog->posts();
-    $publishedPosts = array_values(array_filter($posts, fn (array $post) => ! (bool) ($post['draft'] ?? false)));
-    $draftPosts = array_values(array_filter($posts, fn (array $post) => (bool) ($post['draft'] ?? false)));
+Route::get('/dashboard', $renderDashboard)
+    ->middleware(['auth', 'verified', 'role:admin'])
+    ->name('dashboard');
 
-    return Inertia::render('Dashboard', [
-        'stats' => [
-            'totalPosts' => count($posts),
-            'publishedPosts' => count($publishedPosts),
-            'draftPosts' => count($draftPosts),
-            'previewReadyDrafts' => count(array_filter($draftPosts, fn (array $post) => ! empty($blog->previewUrl((string) $post['slug'])))),
-        ],
-        'panelStatus' => 'Ready',
-        'panelStatusDetail' => 'Protected by auth + verified and wired to the live blog content source.',
-        'recentPosts' => array_slice($blog->indexPosts(), 0, 5),
-        'draftPostsList' => array_map(fn (array $post) => [
-            'title' => (string) $post['title'],
-            'slug' => (string) $post['slug'],
-            'brief' => (string) $post['brief'],
-            'publishedAtHuman' => (string) ($post['publishedAtHuman'] ?? ''),
-            'readTimeLabel' => (string) ($post['readTimeLabel'] ?? ''),
-            'draftPreviewUrl' => $blog->previewUrl((string) $post['slug']),
-        ], $draftPosts),
-    ]);
-})->middleware(['auth', 'verified', 'role:admin'])->name('admin');
+Route::get('/admin', $renderDashboard)
+    ->middleware(['auth', 'verified', 'role:admin'])
+    ->name('admin');
 
 // Admin CRUD for link-in-bio entries
 Route::middleware(['auth', 'verified', 'role:admin'])
@@ -202,7 +185,7 @@ Route::post('/bio/click', function (Request $request, CountryResolver $countries
     ]);
 
     return response()->noContent();
-})->name('bio.click');
+})->middleware('throttle:30,1')->name('bio.click');
 
 Route::get('/about', function () {
     return Inertia::render('About');
@@ -288,9 +271,13 @@ Route::get('/contact', function () {
     return Inertia::render('Contact');
 })->name('contact');
 
-Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
+Route::post('/contact', [ContactController::class, 'submit'])
+    ->middleware('throttle:5,1')
+    ->name('contact.submit');
 
-Route::post('/subscribe', [NewsletterController::class, 'subscribe'])->name('subscribe');
+Route::post('/subscribe', [NewsletterController::class, 'subscribe'])
+    ->middleware('throttle:5,1')
+    ->name('subscribe');
 
 Route::get('/case-studies', function (Request $request) {
     if ($request->getRequestUri() === '/case-studies/') {
@@ -462,7 +449,7 @@ Route::post('/blog/{slug}/view', function (string $slug) {
     $count = $viewRow ? (int) $viewRow->count : 0;
     \Illuminate\Support\Facades\Cache::put("post.views.".$slug, $count, 3600);
     return response()->json(['views' => $count]);
-})->name('blog.view');
+})->middleware('throttle:30,1')->name('blog.view');
 
 // Blog post
 Route::get('/blog/{slug}', function (Request $request, string $slug) {

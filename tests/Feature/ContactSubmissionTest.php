@@ -48,7 +48,9 @@ class ContactSubmissionTest extends TestCase
         $this->assertEquals(['Cloud Architecture', 'DevOps'], $submission->services);
         $this->assertEquals('sent', $submission->status);
 
-        Mail::assertQueued(ContactFormMail::class);
+        // The mailable sends synchronously (no queue worker runs in this app),
+        // so it lands in the "sent" bucket rather than the "queued" bucket.
+        Mail::assertSent(ContactFormMail::class);
     }
 
     #[Test]
@@ -58,7 +60,7 @@ class ContactSubmissionTest extends TestCase
 
         $response->assertSessionHasErrors(['name', 'email', 'subject', 'message']);
         $this->assertDatabaseCount('contact_submissions', 0);
-        Mail::assertNothingQueued();
+        Mail::assertNothingSent();
     }
 
     #[Test]
@@ -75,7 +77,7 @@ class ContactSubmissionTest extends TestCase
 
         $response->assertSessionHasErrors(['email']);
         $this->assertDatabaseCount('contact_submissions', 0);
-        Mail::assertNothingQueued();
+        Mail::assertNothingSent();
     }
 
     #[Test]
@@ -188,7 +190,7 @@ class ContactSubmissionTest extends TestCase
         $response2->assertRedirect();
 
         $this->assertDatabaseCount('contact_submissions', 2);
-        Mail::assertQueued(ContactFormMail::class, 2);
+        Mail::assertSent(ContactFormMail::class, 2);
     }
 
     #[Test]
@@ -274,6 +276,10 @@ class ContactSubmissionTest extends TestCase
     #[Test]
     public function it_validates_email_with_various_formats()
     {
+        // This case fires well over a dozen submissions to exercise validation;
+        // the /contact rate limiter is not what's under test here, so skip it.
+        $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
+
         $validEmails = [
             'test@example.com',
             'test+label@example.com',

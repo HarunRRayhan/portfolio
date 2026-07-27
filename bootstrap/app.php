@@ -20,9 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\CheckRole::class,
         ]);
 
-        // Exclude Resend webhook from CSRF protection
+        // These endpoints are called without a CSRF token (client-side beacons).
         $middleware->validateCsrfTokens(except: [
-            'resend/*',
             'blog/*/view',
             'bio/click',
         ]);
