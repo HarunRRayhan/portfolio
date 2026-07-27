@@ -146,6 +146,7 @@ const PRODUCT_LOGOS: Record<string, string> = {
   'https://crontinel.com': '/images/products/crontinel.png',
   'https://appnary.com': '/images/products/appnary-icon.png',
   'https://amazingplugins.com': '/images/products/amazingplugins.jpg',
+  'https://harun.dev': '/favicon.svg',
 }
 
 /** Standard-row icon: a product's real logo when it has one, otherwise the
