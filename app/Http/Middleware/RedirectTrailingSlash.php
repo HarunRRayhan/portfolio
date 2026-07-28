@@ -29,7 +29,24 @@ class RedirectTrailingSlash
             // without it, preserving scheme, host, and the query string.
             if ($path !== '/' && str_ends_with($path, '/')) {
                 $query = $request->getQueryString();
-                $target = rtrim($request->url(), '/').($query !== null ? '?'.$query : '');
+
+                // TLS is terminated at the edge (Cloudflare/Traefik) and the
+                // request reaches PHP over plain HTTP, so $request->url() would
+                // report the scheme as "http" and 301 to an http:// target. The
+                // edge then bounces that a SECOND time back to https, producing
+                // the 2-hop chain crawlers penalize. The edge tells us the real
+                // client-facing scheme via X-Forwarded-Proto (Traefik forwards
+                // "https" for TLS-terminated requests), so honour that to emit
+                // the correct https:// canonical in a single hop. Fall back to
+                // the request's own scheme for local dev over plain http, where
+                // no proxy sits in front and the header is absent.
+                $forwardedProto = $request->header('X-Forwarded-Proto');
+                $scheme = $forwardedProto !== null
+                    ? trim(explode(',', $forwardedProto)[0])
+                    : $request->getScheme();
+
+                $target = $scheme.'://'.$request->getHttpHost().$request->getBaseUrl().$request->getPathInfo();
+                $target = rtrim($target, '/').($query !== null ? '?'.$query : '');
 
                 return redirect()->to($target, 301);
             }
