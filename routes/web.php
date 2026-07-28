@@ -5,8 +5,10 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\BlogCommentController;
 use App\Http\Controllers\Admin\BioLinkController;
+use App\Http\Controllers\Admin\MediaItemController;
 use App\Http\Controllers\Admin\ShortLinkController;
 use App\Models\BioLink;
+use App\Models\MediaItem;
 use App\Models\ShortLink;
 use App\Models\ShortLinkClick;
 use App\Models\BlogCommentThread;
@@ -89,6 +91,21 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::put('/{bioLink}', [BioLinkController::class, 'update'])->name('update');
         Route::patch('/{bioLink}/toggle', [BioLinkController::class, 'toggle'])->name('toggle');
         Route::delete('/{bioLink}', [BioLinkController::class, 'destroy'])->name('destroy');
+    });
+
+// Admin CRUD for slides/videos media items
+Route::middleware(['auth', 'verified', 'role:admin'])
+    ->prefix('admin/media')
+    ->name('admin.media.')
+    ->group(function () {
+        Route::get('/', [MediaItemController::class, 'index'])->name('index');
+        Route::get('/create', [MediaItemController::class, 'create'])->name('create');
+        Route::post('/', [MediaItemController::class, 'store'])->name('store');
+        Route::post('/reorder', [MediaItemController::class, 'reorder'])->name('reorder');
+        Route::get('/{mediaItem}/edit', [MediaItemController::class, 'edit'])->name('edit');
+        Route::put('/{mediaItem}', [MediaItemController::class, 'update'])->name('update');
+        Route::patch('/{mediaItem}/toggle', [MediaItemController::class, 'toggle'])->name('toggle');
+        Route::delete('/{mediaItem}', [MediaItemController::class, 'destroy'])->name('destroy');
     });
 
 // Admin CRUD for the URL shortener
@@ -348,6 +365,128 @@ Route::get('/case-studies/{slug}', function (string $slug) {
     ]);
 })->name('case-studies.show');
 
+// routes/web.php is re-required on every application boot (each test case
+// builds a fresh Application), so a bare top-level function declaration
+// would fatal with "Cannot redeclare" the second time around -- guard it.
+if (! function_exists('mediaItemYoutubeEmbedUrl')) {
+    /**
+     * Extract an 11-character YouTube video ID from a watch/short/embed URL, or
+     * null if $url isn't a recognizable YouTube link. Used by the video detail
+     * route to build a privacy-friendly youtube-nocookie embed; slides never
+     * embed, so this only matters for /videos/{slug}.
+     */
+    function mediaItemYoutubeEmbedUrl(string $url): ?string
+    {
+        $pattern = '#(?:youtube\.com/(?:watch\?v=|embed/|shorts/)|youtu\.be/)([A-Za-z0-9_-]{11})#i';
+
+        if (! preg_match($pattern, $url, $match)) {
+            return null;
+        }
+
+        return 'https://www.youtube-nocookie.com/embed/'.$match[1];
+    }
+}
+
+Route::get('/slides', function (Request $request) {
+    $siteUrl = rtrim(config('app.url', url('/')), '/');
+
+    $items = MediaItem::query()->active()->ofType('slide')
+        ->orderBy('priority')->orderByDesc('published_at')->get();
+
+    return Inertia::render('Media/Index', [
+        'type' => 'slide',
+        'items' => $items->map(fn (MediaItem $item) => [
+            'slug' => $item->slug,
+            'title' => $item->title,
+            'summary' => $item->summary,
+            'thumbnailUrl' => $item->thumbnail_url,
+            'sourceLabel' => $item->source_label,
+            'publishedAtHuman' => $item->published_at?->format('M j, Y'),
+            'detailUrl' => '/slides/'.$item->slug,
+        ]),
+        'canonicalUrl' => $siteUrl.'/slides',
+    ]);
+})->name('slides.index');
+
+Route::get('/slides/{slug}', function (string $slug) {
+    $item = MediaItem::query()->active()->ofType('slide')->where('slug', $slug)->first();
+    abort_unless($item, 404);
+    $siteUrl = rtrim(config('app.url', url('/')), '/');
+
+    $related = MediaItem::query()->active()->ofType('slide')
+        ->where('slug', '!=', $slug)
+        ->orderBy('priority')->orderByDesc('published_at')->limit(3)->get();
+
+    return Inertia::render('Media/Detail', [
+        'type' => 'slide',
+        'item' => [
+            'slug' => $item->slug,
+            'title' => $item->title,
+            'summary' => $item->summary,
+            'thumbnailUrl' => $item->thumbnail_url,
+            'sourceLabel' => $item->source_label,
+            'publishedAtHuman' => $item->published_at?->format('M j, Y'),
+            'shareUrl' => $item->share_url,
+            'embedUrl' => null, // slides never embed
+        ],
+        'related' => $related->map(fn (MediaItem $r) => [
+            'slug' => $r->slug, 'title' => $r->title,
+            'thumbnailUrl' => $r->thumbnail_url, 'detailUrl' => '/slides/'.$r->slug,
+        ]),
+        'canonicalUrl' => $siteUrl.'/slides/'.$item->slug,
+    ]);
+})->name('slides.show');
+
+Route::get('/videos', function (Request $request) {
+    $siteUrl = rtrim(config('app.url', url('/')), '/');
+
+    $items = MediaItem::query()->active()->ofType('video')
+        ->orderBy('priority')->orderByDesc('published_at')->get();
+
+    return Inertia::render('Media/Index', [
+        'type' => 'video',
+        'items' => $items->map(fn (MediaItem $item) => [
+            'slug' => $item->slug,
+            'title' => $item->title,
+            'summary' => $item->summary,
+            'thumbnailUrl' => $item->thumbnail_url,
+            'sourceLabel' => $item->source_label,
+            'publishedAtHuman' => $item->published_at?->format('M j, Y'),
+            'detailUrl' => '/videos/'.$item->slug,
+        ]),
+        'canonicalUrl' => $siteUrl.'/videos',
+    ]);
+})->name('videos.index');
+
+Route::get('/videos/{slug}', function (string $slug) {
+    $item = MediaItem::query()->active()->ofType('video')->where('slug', $slug)->first();
+    abort_unless($item, 404);
+    $siteUrl = rtrim(config('app.url', url('/')), '/');
+
+    $related = MediaItem::query()->active()->ofType('video')
+        ->where('slug', '!=', $slug)
+        ->orderBy('priority')->orderByDesc('published_at')->limit(3)->get();
+
+    return Inertia::render('Media/Detail', [
+        'type' => 'video',
+        'item' => [
+            'slug' => $item->slug,
+            'title' => $item->title,
+            'summary' => $item->summary,
+            'thumbnailUrl' => $item->thumbnail_url,
+            'sourceLabel' => $item->source_label,
+            'publishedAtHuman' => $item->published_at?->format('M j, Y'),
+            'shareUrl' => $item->share_url,
+            'embedUrl' => mediaItemYoutubeEmbedUrl($item->url),
+        ],
+        'related' => $related->map(fn (MediaItem $r) => [
+            'slug' => $r->slug, 'title' => $r->title,
+            'thumbnailUrl' => $r->thumbnail_url, 'detailUrl' => '/videos/'.$r->slug,
+        ]),
+        'canonicalUrl' => $siteUrl.'/videos/'.$item->slug,
+    ]);
+})->name('videos.show');
+
 Route::get('/blog', function (Request $request) {
     if ($request->getRequestUri() === '/blog/') {
         return redirect('/blog', 301);
@@ -524,6 +663,8 @@ Route::get('/sitemap.xml', function () {
         ['loc' => $siteUrl.'/terms', 'lastmod' => now()->toDateString()],
         ['loc' => $siteUrl.'/blog', 'lastmod' => now()->toDateString()],
         ['loc' => $siteUrl.'/case-studies', 'lastmod' => now()->toDateString()],
+        ['loc' => $siteUrl.'/slides', 'lastmod' => now()->toDateString()],
+        ['loc' => $siteUrl.'/videos', 'lastmod' => now()->toDateString()],
     ];
 
     $blogUrls = collect($blog->indexPosts())->map(fn (array $post) => [
@@ -537,7 +678,17 @@ Route::get('/sitemap.xml', function () {
         'lastmod' => substr($study['publishedAtIso'], 0, 10),
     ]);
 
-    $urls = collect($staticUrls)->merge($blogUrls)->merge($caseStudyUrls);
+    $slideUrls = MediaItem::query()->active()->ofType('slide')->get()->map(fn (MediaItem $item) => [
+        'loc' => $siteUrl.'/slides/'.$item->slug,
+        'lastmod' => ($item->published_at ?? $item->updated_at)->toDateString(),
+    ]);
+
+    $videoUrls = MediaItem::query()->active()->ofType('video')->get()->map(fn (MediaItem $item) => [
+        'loc' => $siteUrl.'/videos/'.$item->slug,
+        'lastmod' => ($item->published_at ?? $item->updated_at)->toDateString(),
+    ]);
+
+    $urls = collect($staticUrls)->merge($blogUrls)->merge($caseStudyUrls)->merge($slideUrls)->merge($videoUrls);
     $escape = fn (string $value): string => htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
 
     $entries = $urls->map(fn (array $url) => <<<XML

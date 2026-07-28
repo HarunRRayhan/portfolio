@@ -18,6 +18,8 @@ const moreItems = [
   { name: 'About', href: '/about' },
   { name: 'Products', href: '/products' },
   { name: 'Bio', href: '/bio' },
+  { name: 'Slides', href: '/slides' },
+  { name: 'Videos', href: '/videos' },
 ]
 
 export function Menubar() {
