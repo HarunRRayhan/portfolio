@@ -54,6 +54,20 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Preview URL
+    |--------------------------------------------------------------------------
+    |
+    | An optional second origin the app is reachable at besides "url" above,
+    | such as a Tailscale Serve address used to preview a local branch before
+    | it ships. When set to an "https://" URL, requests arriving on this
+    | host also get their scheme forced to https for asset/URL generation.
+    |
+    */
+
+    'preview_url' => env('PREVIEW_URL'),
+
     'build_version' => env('APP_BUILD_VERSION', 'local'),
 
     'deployment_id' => env('APP_DEPLOYMENT_ID', 'local'),
