@@ -22,13 +22,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $canonicalHost = parse_url((string) config('app.url'), PHP_URL_HOST);
+        $httpsHosts = collect([config('app.url'), config('app.preview_url')])
+            ->filter(fn ($url) => is_string($url) && str_starts_with($url, 'https://'))
+            ->map(fn ($url) => parse_url($url, PHP_URL_HOST))
+            ->filter();
 
-        if (
-            $canonicalHost !== null
-            && request()->getHost() === $canonicalHost
-            && str_starts_with((string) config('app.url'), 'https://')
-        ) {
+        if ($httpsHosts->contains(request()->getHost())) {
             URL::forceScheme('https');
         }
 
