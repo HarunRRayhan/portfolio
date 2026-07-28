@@ -11,6 +11,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Runs before session/CSRF so trailing-slash URLs are normalized to
+        // their canonical (slash-free) form with a 301 before any real work.
+        $middleware->web(prepend: [
+            \App\Http\Middleware\RedirectTrailingSlash::class,
+        ]);
+
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,

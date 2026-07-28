@@ -83,7 +83,7 @@ Everything is the same as the first alert, only change Trigger to <strong>Foreca
 <p>You need the root account for a few <a target="_blank" href="https://docs.aws.amazon.com/accounts/latest/reference/root-user-tasks.html">tasks</a>. Other than that you should not use the Root account. Perhaps, not for day-to-day tasks, lunching, and provisioning services. </p>
 <p>I always create an IAM account with admin permission. I do all of the tasks from this account except those tasks that require the root account. So, let's create an admin IAM account. </p>
 <ol>
-<li>Go to <a target="_blank" href="console.aws.amazon.com/iamv2/home#/users"><strong>Users page of IAM Console</strong></a>.</li>
+<li>Go to <a target="_blank" href="https://console.aws.amazon.com/iamv2/home#/users"><strong>Users page of IAM Console</strong></a>.</li>
 <li>Click on the <strong>Add users</strong> button from top-right corner. </li>
 <li>You will be in this page:
 <img src="/blog-assets/first-3-things-i-always-do-after-creating-a-new-aws-account/qnRC-GFHY.png" alt="CleanShot 2022-07-06 at 19.42.16@2x.png" /><ul>
