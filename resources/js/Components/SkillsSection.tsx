@@ -34,7 +34,7 @@ const skills = [
 ]
 
 const highlights = [
-    { value: '17+', label: 'years building software' },
+    { value: '15+', label: 'years building software' },
     { value: '12×', label: 'AWS certified' },
     { value: 'Lead', label: 'technical mentoring' },
 ]

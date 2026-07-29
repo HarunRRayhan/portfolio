@@ -185,7 +185,7 @@ export function ReviewSlideSection() {
                     className="mt-14 grid gap-4 sm:grid-cols-3"
                 >
                     {[
-                        { value: '120+', label: 'Happy clients' },
+                        { value: '160+', label: 'Happy clients' },
                         { value: '4.8/5', label: 'Average rating' },
                         { value: '98%', label: 'Success rate' },
                     ].map((item) => (

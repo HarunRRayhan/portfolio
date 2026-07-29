@@ -20,8 +20,8 @@ const logos = [
 ]
 
 const highlights = [
-    { label: 'Experience', value: '10+ years' },
-    { label: 'Clients', value: '120+ served' },
+    { label: 'Experience', value: '15+ years' },
+    { label: 'Clients', value: '160+ served' },
     { label: 'Focus', value: 'AWS + DevOps' },
 ]
 
