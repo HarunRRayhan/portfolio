@@ -18,7 +18,7 @@ export function AboutHero() {
           >
             <h1 className="text-4xl lg:text-5xl font-bold mb-6 text-white">About</h1>
             <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto lg:mx-0">
-              With over 17 years of experience in software engineering, cloud architecture, and DevOps, I've dedicated
+              With over 15 years of experience in software engineering, cloud architecture, and DevOps, I've dedicated
               my career to building scalable solutions and empowering teams through innovation and best practices.
             </p>
             <motion.div

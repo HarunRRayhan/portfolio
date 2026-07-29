@@ -96,4 +96,20 @@ class MediaItemTest extends TestCase
 
         $this->assertCount(0, $page['props']['items']);
     }
+
+    public function test_google_slides_edit_url_resolves_to_an_embed_url(): void
+    {
+        $embedUrl = mediaItemSlideEmbedUrl('https://docs.google.com/presentation/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/edit#slide=id.p1');
+
+        $this->assertSame(
+            'https://docs.google.com/presentation/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/embed?start=false&loop=false&delayms=3000',
+            $embedUrl
+        );
+    }
+
+    public function test_a_non_google_slides_url_does_not_resolve_to_an_embed_url(): void
+    {
+        $this->assertNull(mediaItemSlideEmbedUrl('https://example.com/deck.pdf'));
+        $this->assertNull(mediaItemSlideEmbedUrl('https://speakerdeck.com/harun/scaling-serverless'));
+    }
 }

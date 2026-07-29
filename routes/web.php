@@ -387,6 +387,27 @@ if (! function_exists('mediaItemYoutubeEmbedUrl')) {
     }
 }
 
+if (! function_exists('mediaItemSlideEmbedUrl')) {
+    /**
+     * Turn a Google Slides link (edit or Publish-to-web form) into its embed
+     * form, or null if $url isn't a recognizable Google Slides link. Used by
+     * the slide detail route; a non-Google-Slides URL falls back to the
+     * thumbnail + "View slides" button instead of an iframe.
+     */
+    function mediaItemSlideEmbedUrl(string $url): ?string
+    {
+        $pattern = '#docs\.google\.com/presentation/d/(e/)?([a-zA-Z0-9_-]+)#i';
+
+        if (! preg_match($pattern, $url, $match)) {
+            return null;
+        }
+
+        $path = $match[1].$match[2];
+
+        return "https://docs.google.com/presentation/d/{$path}/embed?start=false&loop=false&delayms=3000";
+    }
+}
+
 Route::get('/slides', function (Request $request) {
     $siteUrl = rtrim(config('app.url', url('/')), '/');
 
@@ -427,7 +448,7 @@ Route::get('/slides/{slug}', function (string $slug) {
             'sourceLabel' => $item->source_label,
             'publishedAtHuman' => $item->published_at?->format('M j, Y'),
             'shareUrl' => $item->share_url,
-            'embedUrl' => null, // slides never embed
+            'embedUrl' => mediaItemSlideEmbedUrl($item->url),
         ],
         'related' => $related->map(fn (MediaItem $r) => [
             'slug' => $r->slug, 'title' => $r->title,

@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react'
-import { ArrowLeft, CalendarDays, MonitorPlay, Presentation } from 'lucide-react'
+import { ArrowLeft, CalendarDays, ExternalLink, MonitorPlay, Presentation } from 'lucide-react'
 
 type MediaItemDetail = {
   slug: string
@@ -48,7 +48,7 @@ export default function MediaDetailPage({ type, item, related, canonicalUrl }: P
   const Icon = type === 'slide' ? Presentation : MonitorPlay
   const title = `${item.title} | Harun R. Rayhan`
   const description = item.summary || copy.fallbackDescription
-  const showEmbed = type === 'video' && item.embedUrl !== null
+  const showEmbed = item.embedUrl !== null
 
   return (
     <>
@@ -89,15 +89,26 @@ export default function MediaDetailPage({ type, item, related, canonicalUrl }: P
 
           <div className="mt-10">
             {showEmbed ? (
-              <div className="relative aspect-video overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-950">
-                <iframe
-                  src={item.embedUrl as string}
-                  title={item.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                  className="absolute inset-0 h-full w-full border-0"
-                />
-              </div>
+              <>
+                <div className="relative aspect-video overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-950">
+                  <iframe
+                    src={item.embedUrl as string}
+                    title={item.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    className="absolute inset-0 h-full w-full border-0"
+                  />
+                </div>
+                <a
+                  href={item.shareUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition-colors hover:text-slate-950"
+                >
+                  Open full screen
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              </>
             ) : (
               <div className="relative aspect-video overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-100">
                 {item.thumbnailUrl ? (
