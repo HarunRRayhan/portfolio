@@ -56,3 +56,6 @@ deploy/.env.**
 
 # Claude Code plan-mode scratch files — not app code, never deployed
 /reports/
+
+# Subagent-driven-development progress ledger — not app code, never deployed
+/.superpowers/
