@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -59,7 +60,13 @@ class BioLink extends Model
             // straight at the raw URL. Internal routes and mailto: come back
             // null from getOrCreateForUrl, which clears any short link a since
             // edited URL no longer needs one.
-            if ($link->isDirty('url')) {
+            //
+            // Guarded on the column existing: a fresh database replaying
+            // migrations from zero saves BioLink rows (seed_product_bio_links,
+            // 2026_07_21) before add_short_link_id_to_bio_links_table
+            // (2026_07_22) has run. Lightsail never hit this because
+            // migrations ran incrementally as they were added.
+            if ($link->isDirty('url') && Schema::hasColumn('bio_links', 'short_link_id')) {
                 $link->short_link_id = ShortLink::getOrCreateForUrl($link->url, $link->label)?->id;
             }
         });
