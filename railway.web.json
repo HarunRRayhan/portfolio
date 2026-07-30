@@ -5,7 +5,7 @@
   },
   "deploy": {
     "preDeployCommand": [
-      "php artisan migrate --force && php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan storage:link"
+      "mkdir -p public/build && curl -fsSL https://cdn.harun.dev/build/manifest.json -o public/build/manifest.json && php artisan migrate --force && php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan storage:link"
     ],
     "healthcheckPath": "/health",
     "healthcheckTimeout": 100,
