@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class ShortLink extends Model
@@ -111,6 +112,14 @@ class ShortLink extends Model
     public static function getOrCreateForUrl(string $url, ?string $title = null): ?self
     {
         if (! preg_match('#^https?://#i', $url)) {
+            return null;
+        }
+
+        // Guards migrations that save a BioLink before create_short_links_table
+        // has run yet (e.g. a fresh database replaying migrations from zero) --
+        // the table exists by the time the app serves real traffic, so this
+        // only ever short-circuits during that narrow migration window.
+        if (! Schema::hasTable('short_links')) {
             return null;
         }
 
