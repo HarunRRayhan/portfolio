@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\MediaItem;
+use App\Support\MediaEmbeds;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -99,7 +100,7 @@ class MediaItemTest extends TestCase
 
     public function test_google_slides_edit_url_resolves_to_an_embed_url(): void
     {
-        $embedUrl = mediaItemSlideEmbedUrl('https://docs.google.com/presentation/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/edit#slide=id.p1');
+        $embedUrl = MediaEmbeds::slideEmbedUrl('https://docs.google.com/presentation/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/edit#slide=id.p1');
 
         $this->assertSame(
             'https://docs.google.com/presentation/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/embed?start=false&loop=false&delayms=3000',
@@ -109,7 +110,51 @@ class MediaItemTest extends TestCase
 
     public function test_a_non_google_slides_url_does_not_resolve_to_an_embed_url(): void
     {
-        $this->assertNull(mediaItemSlideEmbedUrl('https://example.com/deck.pdf'));
-        $this->assertNull(mediaItemSlideEmbedUrl('https://speakerdeck.com/harun/scaling-serverless'));
+        $this->assertNull(MediaEmbeds::slideEmbedUrl('https://example.com/deck.pdf'));
+        $this->assertNull(MediaEmbeds::slideEmbedUrl('https://speakerdeck.com/harun/scaling-serverless'));
+    }
+
+    public function test_a_slide_detail_page_renders_the_embed_url_and_related_slides(): void
+    {
+        MediaItem::create([
+            'type' => 'slide',
+            'title' => 'Laravel DB Performance',
+            'slug' => 'laravel-db-performance',
+            'url' => 'https://docs.google.com/presentation/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/edit',
+            'is_active' => true,
+        ]);
+
+        $response = $this->withHeaders($this->inertiaHeaders())->get('/slides/laravel-db-performance');
+
+        $response->assertOk();
+        $page = $response->json();
+
+        $this->assertSame('Media/Detail', $page['component']);
+        $this->assertSame(
+            'https://docs.google.com/presentation/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/embed?start=false&loop=false&delayms=3000',
+            $page['props']['item']['embedUrl']
+        );
+    }
+
+    public function test_a_video_detail_page_renders_the_embed_url(): void
+    {
+        MediaItem::create([
+            'type' => 'video',
+            'title' => 'A Talk About Terraform',
+            'slug' => 'a-talk-about-terraform',
+            'url' => 'https://youtube.com/watch?v=dQw4w9WgXcQ',
+            'is_active' => true,
+        ]);
+
+        $response = $this->withHeaders($this->inertiaHeaders())->get('/videos/a-talk-about-terraform');
+
+        $response->assertOk();
+        $page = $response->json();
+
+        $this->assertSame('Media/Detail', $page['component']);
+        $this->assertSame(
+            'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ',
+            $page['props']['item']['embedUrl']
+        );
     }
 }
