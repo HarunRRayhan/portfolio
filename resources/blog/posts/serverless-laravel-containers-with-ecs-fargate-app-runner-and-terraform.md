@@ -31,7 +31,7 @@ tags:
 <sub>Photo by <a href="https://www.pexels.com/@dibert">David Dibert</a> on <a href="https://www.pexels.com/photo/green-and-gray-evergreen-cargo-ship-1117210/">Pexels</a></sub></p>
 <h2>Architecture Overview</h2>
 <p>Here's what we're building:</p>
-<p><img src="https://raw.githubusercontent.com/HarunRRayhan/blog-assets/main/covers/serverless-laravel-containers-with-ecs-fargate-app-runner-and-terraform/architecture.png" alt="Architecture Diagram — ECS Fargate and App Runner for Laravel" /></p>
+<p><img src="https://raw.githubusercontent.com/HarunRRayhan/blog-assets/main/covers/serverless-laravel-containers-with-ecs-fargate-app-runner-and-terraform/architecture.png" alt="Architecture Diagram: ECS Fargate and App Runner for Laravel" /></p>
 <p>Two paths are shown in that diagram. You'd choose one based on what your app actually needs.</p>
 <p><strong>The Fargate path</strong> is the full-featured option. Requests hit an Application Load Balancer first, which forwards traffic to ECS Fargate tasks running your Laravel app inside a Docker container. Those tasks talk to Aurora Serverless v2 for Postgres, ElastiCache Serverless for Redis, and S3 for file storage. Background processing works through SQS, which feeds messages to a separate group of Fargate tasks running <code>php artisan queue:work</code>. Both the web tasks and the worker tasks pull their container image from ECR.</p>
 <p><strong>The App Runner path</strong> is dramatically simpler. Client requests go straight to App Runner, which takes care of load balancing, TLS termination, and auto-scaling on your behalf. It's still running your container underneath, but you never touch the networking layer yourself. App Runner talks to the same backend services: Aurora, ElastiCache, and S3.</p>

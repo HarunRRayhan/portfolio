@@ -37,7 +37,7 @@ const reviews = [
     {
         id: 4,
         content:
-            'Harun is a superb professional to work with — responsive, punctual, and careful about understanding project requirements.',
+            'Harun is a superb professional to work with, responsive, punctual, and careful about understanding project requirements.',
         author: 'Joel G.',
         position: 'CEO, Trinax SG',
         rating: 5,

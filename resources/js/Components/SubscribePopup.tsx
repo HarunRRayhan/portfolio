@@ -7,7 +7,7 @@ const THEME = {
   warm: {
     backdrop: 'bg-[#2b2320]/70',
     panel: 'bg-[#fffaf6] border-[#e4d7c4]',
-    // Soft amber wash bleeding down from the top edge — echoes Bio's layered glow.
+    // Soft amber wash bleeding down from the top edge. Echoes Bio's layered glow.
     glow: 'bg-[radial-gradient(120%_90%_at_50%_-10%,rgba(217,157,89,0.20),transparent_60%)]',
     iconTile: 'bg-gradient-to-br from-[#f6ecda] to-[#f0e2cd] text-[#b8541f] ring-1 ring-inset ring-[#e4d7c4]',
     iconGlow: 'from-[#e8b374] to-[#b8541f]',

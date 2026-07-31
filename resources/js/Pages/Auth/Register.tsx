@@ -31,7 +31,7 @@ export default function Register() {
                 <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-slate-500">
                     Social sign-in
                 </h2>
-                <p className="mb-3 text-xs text-slate-400">Register with <strong>Google</strong> (admin) — GitHub sign-in is coming soon.</p>
+                <p className="mb-3 text-xs text-slate-400">Register with <strong>Google</strong> (admin). GitHub sign-in is coming soon.</p>
                 <SocialLoginButtons />
             </div>
 

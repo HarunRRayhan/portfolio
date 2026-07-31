@@ -183,7 +183,7 @@ export function HeroSectionV2() {
                                 <div className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
                                 <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/80" />
                                 <div className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" />
-                                <span className="ml-2 font-mono text-[11px] text-slate-500">systems-engineer — zsh</span>
+                                <span className="ml-2 font-mono text-[11px] text-slate-500">systems-engineer, zsh</span>
                                 <span className="ml-auto font-mono text-[10px] text-slate-600">80×24</span>
                             </div>
                             {/* Terminal body */}

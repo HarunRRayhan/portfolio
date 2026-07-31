@@ -17,7 +17,7 @@ export const SOCIAL_SHARE = [
   {
     name: 'Facebook',
     // "Share on Facebook" is a common cosmetic-filter target in ad-blocker
-    // social-widget lists — a differently worded label keeps this button
+    // social-widget lists, so a differently worded label keeps this button
     // visible without changing what it does.
     label: 'Share to Facebook' as string | undefined,
     Icon: Facebook,
@@ -44,7 +44,7 @@ export const SOCIAL_SHARE = [
   {
     name: 'Messenger',
     // The Messenger web send dialog requires a registered Facebook App ID,
-    // so this uses the app deep link instead — it opens the Messenger app
+    // so this uses the app deep link instead. It opens the Messenger app
     // on mobile (where Messenger sharing is actually used) and is a no-op
     // on desktop rather than a broken share dialog.
     label: undefined as string | undefined,

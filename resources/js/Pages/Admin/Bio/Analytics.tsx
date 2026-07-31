@@ -149,7 +149,7 @@ export default function Analytics({
             <StatTile label="Clicks all time" value={totalClicks.toLocaleString()} />
             <StatTile
               label="Top link"
-              value={topLink ? topLink.label : '—'}
+              value={topLink ? topLink.label : 'N/A'}
               hint={topLink ? `${topLink.clicks.toLocaleString()} clicks` : 'No clicks yet'}
             />
           </div>

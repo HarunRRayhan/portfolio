@@ -29,7 +29,7 @@ export function LogoSection() {
                         Work that holds up in real production environments.
                     </h2>
                     <p className="mt-3 text-base leading-7 text-slate-500">
-                        Experience across product, enterprise, and growth teams — with a focus on reliability,
+                        Experience across product, enterprise, and growth teams, with a focus on reliability,
                         clarity, and long-term maintainability.
                     </p>
                 </div>

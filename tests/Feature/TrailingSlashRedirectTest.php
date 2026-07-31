@@ -52,7 +52,7 @@ class TrailingSlashRedirectTest extends TestCase
         // to PHP over plain HTTP, so the request URI is http:// but the edge
         // sets X-Forwarded-Proto: https. Without honouring that header the
         // middleware 301s to http://, which the edge bounces a second time
-        // back to https — the 2-hop chain we are eliminating here.
+        // back to https, the 2-hop chain we are eliminating here.
         $response = $this->dispatch(
             'http://harun.dev/services/',
             server: ['HTTP_X_FORWARDED_PROTO' => 'https'],

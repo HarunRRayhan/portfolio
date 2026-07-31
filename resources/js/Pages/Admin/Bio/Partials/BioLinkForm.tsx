@@ -285,7 +285,7 @@ export default function BioLinkForm({
         {overlap.length > 0 && (
           <p className="mt-3 text-xs text-amber-600">
             {overlap.map((c) => countryName(c)).join(', ')} {overlap.length === 1 ? 'is' : 'are'} on both
-            lists and will be hidden — blocking wins.
+            lists and will be hidden. Blocking wins.
           </p>
         )}
       </fieldset>

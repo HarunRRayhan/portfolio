@@ -142,7 +142,7 @@ export default function Index({ links }: { links: BioLinkRecord[] }) {
                         onClick={() => toggleActive(link)}
                         role="switch"
                         aria-checked={link.is_active}
-                        title={link.is_active ? 'Active — click to hide' : 'Hidden — click to show'}
+                        title={link.is_active ? 'Active. Click to hide.' : 'Hidden. Click to show.'}
                         className={
                           'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition ' +
                           (link.is_active ? 'bg-emerald-500' : 'bg-gray-300')
