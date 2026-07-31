@@ -104,7 +104,7 @@ export function Menubar() {
 
         {/* Desktop nav */}
         <nav className="hidden justify-self-center lg:flex lg:w-full lg:justify-center">
-          <div className="inline-flex items-center gap-1 rounded-full border border-slate-200/80 bg-white/60 p-1 shadow-sm backdrop-blur-sm">
+          <div className="inline-flex items-center gap-1 rounded-full border border-slate-200/80 bg-white/60 p-1 shadow-sm">
             {mainNavItems.map((item) => {
               const active = isActive(item.href)
               return (
@@ -124,7 +124,16 @@ export function Menubar() {
             })}
 
             {/* More dropdown (Blog, About, Products) */}
-            <div className="relative" ref={moreRef}>
+            {/* No `relative` here on purpose: the panel below resolves its
+                `absolute` position against `header` (fixed = the nearest
+                containing block), so it centers on the full-viewport-width
+                header rather than trailing wherever "More" sits in the pill.
+                This only works because nothing between here and `header`
+                (this div, the pill, the nav) sets position/transform/filter/
+                backdrop-filter -- any of those would become the containing
+                block and re-skew the panel. The pill deliberately drops its
+                backdrop blur for this reason. */}
+            <div ref={moreRef}>
               <button
                 onClick={() => setMoreOpen(!moreOpen)}
                 onMouseEnter={() => setMoreOpen(true)}
@@ -140,10 +149,10 @@ export function Menubar() {
               </button>
               {moreOpen && (
                 <div
-                  className="absolute left-1/2 top-full z-50 mt-2 w-[38rem] max-w-[calc(100vw-2rem)] origin-top -translate-x-1/2 rounded-xl border border-slate-200 bg-white p-3 shadow-lg"
+                  className="absolute left-1/2 top-full z-50 mt-2 w-[40rem] max-w-[calc(100vw-2rem)] origin-top -translate-x-1/2 rounded-xl border border-slate-200 bg-white p-4 shadow-lg lg:w-[46rem] xl:w-[54rem]"
                   onMouseLeave={() => setMoreOpen(false)}
                 >
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-6">
                     {moreGroups.map((group) => (
                       <div key={group.title}>
                         <p className="px-2.5 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
