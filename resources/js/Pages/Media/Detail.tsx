@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react'
 import { useEffect, useState } from 'react'
-import { ArrowLeft, CalendarDays, ExternalLink, Loader2, MonitorPlay, Presentation } from 'lucide-react'
+import { ArrowLeft, CalendarDays, ExternalLink, MonitorPlay, Plane, Presentation } from 'lucide-react'
 
 type MediaItemDetail = {
   slug: string
@@ -26,6 +26,15 @@ type Props = {
   related: RelatedMediaItem[]
   canonicalUrl: string
 }
+
+// Figure-8 / infinity (∞) flightpath for the loading "holding pattern". Traced
+// by the plane via CSS offset-path; kept identical to the `.holding-plane`
+// offset-path in app.css so the plane rides the visible track. Coordinate
+// space is the fixed 300×150 instrument stage below.
+const HOLDING_PATTERN_PATH =
+  'M150 75 C150 42 122 20 90 20 C54 20 26 45 26 75 C26 105 54 130 90 130 C122 130 150 108 150 75 C150 42 178 20 210 20 C246 20 274 45 274 75 C274 105 246 130 210 130 C178 130 150 108 150 75 Z'
+
+const planeGlow = { filter: 'drop-shadow(0 0 6px rgba(251, 191, 36, 0.9))' } as const
 
 const copyByType = {
   slide: {
@@ -123,14 +132,58 @@ export default function MediaDetailPage({ type, item, related, canonicalUrl }: P
                   />
                   <div
                     aria-hidden="true"
-                    className={`pointer-events-none absolute inset-0 flex items-center justify-center bg-slate-950 transition-opacity duration-500 ${
+                    className={`pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-4 bg-slate-950 transition-opacity duration-700 ease-out sm:gap-5 ${
                       embedLoaded ? 'opacity-0' : 'opacity-100'
                     }`}
                   >
-                    <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-slate-900 via-slate-950 to-slate-800" />
-                    <div className="relative flex items-center gap-2.5 text-sm font-medium text-slate-400">
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      Loading
+                    <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900" />
+
+                    <span className="relative hidden font-mono text-[11px] font-medium uppercase tracking-[0.25em] text-amber-500/80 sm:block">
+                      Holding pattern
+                    </span>
+
+                    {/* Radar-style instrument: a fixed 300×150 stage scaled to fit. The
+                        SVG track and the offset-path plane share this coordinate space,
+                        so they stay aligned as the wrapper scales on small screens. */}
+                    <div className="relative h-[150px] w-[300px] scale-[0.62] sm:scale-100">
+                      <div className="pointer-events-none absolute left-1/2 top-1/2 h-36 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-500/10 blur-2xl" />
+                      <svg
+                        viewBox="0 0 300 150"
+                        fill="none"
+                        className="absolute inset-0 h-full w-full overflow-visible"
+                        style={{ filter: 'drop-shadow(0 0 5px rgba(251, 191, 36, 0.25))' }}
+                      >
+                        <path d={HOLDING_PATTERN_PATH} stroke="currentColor" strokeWidth={2} className="text-amber-500/20" />
+                        <path
+                          d={HOLDING_PATTERN_PATH}
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeDasharray="4 12"
+                          className="flightpath-flow text-amber-400/70"
+                        />
+                      </svg>
+                      {embedLoaded ? (
+                        <div className="plane-depart absolute left-[150px] top-[28px] -ml-2 -mt-2 h-4 w-4 text-amber-300" style={planeGlow}>
+                          <Plane className="h-full w-full" fill="currentColor" strokeWidth={1} />
+                        </div>
+                      ) : (
+                        <div className="holding-plane absolute left-0 top-0 h-4 w-4 text-amber-300" style={planeGlow}>
+                          <Plane className="h-full w-full" fill="currentColor" strokeWidth={1} />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="relative hidden whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 sm:block">
+                      Plan · Code · Build · Test · Release · Deploy · Operate · Monitor
+                    </div>
+
+                    <div className="relative flex items-center gap-2.5 px-6 text-center font-mono text-xs text-slate-300 sm:text-sm">
+                      <span className="relative flex h-2 w-2 shrink-0">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+                        <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
+                      </span>
+                      You&apos;ve entered the holding pattern. Please wait.
                     </div>
                   </div>
                 </div>
