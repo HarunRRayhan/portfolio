@@ -7,7 +7,7 @@ import { SOCIAL_SHARE } from '@/lib/shareTargets'
 
 export type ShareSheetTheme = 'warm' | 'slate'
 
-// Palette tokens per theme — 'warm' matches the bio page's cream/amber look,
+// Palette tokens per theme. 'warm' matches the bio page's cream/amber look,
 // 'slate' matches the blog pages' monochrome slate-and-white look.
 const THEME = {
   warm: {
@@ -43,7 +43,7 @@ const THEME = {
 } as const
 
 /** Shared share-sheet UI (native share, copy-link, and a scannable QR code).
- *  Renders unpositioned — the caller wraps it in its own positioned container.
+ *  Renders unpositioned, so the caller wraps it in its own positioned container.
  *  Tapping the QR (or Expand) swaps to a full-screen overlay with the same
  *  content at a larger size; Collapse returns to this inline view in place,
  *  Close dismisses the sheet everywhere. */
@@ -79,14 +79,14 @@ export function ShareSheet({
   }
 
   // Intent URLs are opened via `window.open` at click time rather than a
-  // static `href` — ad blockers' cosmetic filter lists (e.g. Fanboy's Social
+  // static `href`. Ad blockers' cosmetic filter lists (e.g. Fanboy's Social
   // Blocking List) match and hide anchors whose `href` attribute contains
   // known share-intent hosts like facebook.com/sharer or twitter.com/intent.
   // Copy-link and native-share ("More") are folded in as the first/last
   // tiles so the whole row acts like a native OS share sheet.
   //
   // Tile size in the inline dropdown is deliberately wider than the panel can
-  // fit in one go — the row is meant to end mid-tile so it reads as
+  // fit in one go, so the row is meant to end mid-tile so it reads as
   // scrollable at a glance instead of looking like a complete, static row.
   // The expanded pop-up is fixed larger still, with room to spare at `max-w-md`.
   const TILE = {

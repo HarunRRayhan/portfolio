@@ -62,8 +62,8 @@ Lambda (hrr_doc_processor)
   ▼
 Bedrock (anthropic.claude-sonnet-4-6)
   │
-  ├── DynamoDB (hrr_job_results) — job status + summary
-  └── S3 (hrr_documents/results/) — full output
+  ├── DynamoDB (hrr_job_results): job status + summary
+  └── S3 (hrr_documents/results/): full output
            │  DLQ (hrr_doc_dlq)
            └── Dead messages after 3 failures
 ```

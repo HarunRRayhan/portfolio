@@ -61,7 +61,7 @@ export default function Book() {
                 Let&rsquo;s talk about your next project.
               </h1>
               <p className="mt-4 text-lg leading-7 text-slate-500">
-                Book a 30-minute consultation. No pitch, no pressure — just a conversation about what you&rsquo;re building and how I can help.
+                Book a 30-minute consultation. No pitch, no pressure. Just a conversation about what you&rsquo;re building and how I can help.
               </p>
             </motion.div>
           </div>

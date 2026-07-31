@@ -4,7 +4,7 @@ import * as React from 'react'
 import { Link, router, usePage } from '@inertiajs/react'
 import { cn } from '@/lib/utils'
 import { Logo } from './Logo'
-import { Calendar, ChevronDown, ExternalLink, LogOut, Menu, User } from 'lucide-react'
+import { ArrowRight, Calendar, ChevronDown, ExternalLink, Link2, LogOut, Menu, Newspaper, Package, Presentation, User, UserRound, Video } from 'lucide-react'
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from '@/Components/ui/sheet'
 
 const mainNavItems = [
@@ -13,14 +13,31 @@ const mainNavItems = [
   { name: 'Services', href: '/services' },
 ]
 
-const moreItems = [
-  { name: 'Blog', href: '/blog' },
-  { name: 'About', href: '/about' },
-  { name: 'Products', href: '/products' },
-  { name: 'Bio', href: '/bio' },
-  { name: 'Slides', href: '/slides' },
-  { name: 'Videos', href: '/videos' },
+const moreGroups = [
+  {
+    title: 'Content',
+    items: [
+      { name: 'Blog', href: '/blog', icon: Newspaper, description: 'Notes on cloud, DevOps, and shipping software.' },
+      { name: 'About', href: '/about', icon: UserRound, description: 'Background, experience, and how I work.' },
+    ],
+  },
+  {
+    title: 'Work',
+    items: [
+      { name: 'Products', href: '/products', icon: Package, description: 'Tools and apps I have built and shipped.' },
+      { name: 'Bio', href: '/bio', icon: Link2, description: 'Links, profiles, and ways to reach me.' },
+    ],
+  },
+  {
+    title: 'Media',
+    items: [
+      { name: 'Slides', href: '/slides', icon: Presentation, description: 'Decks from talks and presentations.' },
+      { name: 'Videos', href: '/videos', icon: Video, description: 'Recorded talks, demos, and walkthroughs.' },
+    ],
+  },
 ]
+
+const moreItems = moreGroups.flatMap((group) => group.items)
 
 export function Menubar() {
   const [isScrolled, setIsScrolled] = React.useState(false)
@@ -123,27 +140,52 @@ export function Menubar() {
               </button>
               {moreOpen && (
                 <div
-                  className="absolute left-0 top-full z-50 mt-2 w-44 origin-top-left rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg"
+                  className="absolute left-1/2 top-full z-50 mt-2 w-[38rem] max-w-[calc(100vw-2rem)] origin-top -translate-x-1/2 rounded-xl border border-slate-200 bg-white p-3 shadow-lg"
                   onMouseLeave={() => setMoreOpen(false)}
                 >
-                  {moreItems.map((item) => {
-                    const active = isActive(item.href)
-                    return (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className={cn(
-                          'flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition',
-                          active
-                            ? 'bg-slate-100 text-slate-900'
-                            : 'text-slate-700 hover:bg-slate-100',
-                        )}
-                        onClick={() => setMoreOpen(false)}
-                      >
-                        {item.name}
-                      </Link>
-                    )
-                  })}
+                  <div className="grid grid-cols-3 gap-2">
+                    {moreGroups.map((group) => (
+                      <div key={group.title}>
+                        <p className="px-2.5 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                          {group.title}
+                        </p>
+                        <div className="flex flex-col gap-0.5">
+                          {group.items.map((item) => {
+                            const active = isActive(item.href)
+                            const Icon = item.icon
+                            return (
+                              <Link
+                                key={item.name}
+                                href={item.href}
+                                className={cn(
+                                  'group/item flex items-start gap-2.5 rounded-lg p-2.5 transition',
+                                  active ? 'bg-slate-100' : 'hover:bg-slate-100',
+                                )}
+                                onClick={() => setMoreOpen(false)}
+                              >
+                                <span
+                                  className={cn(
+                                    'mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition',
+                                    active
+                                      ? 'border-slate-900 bg-slate-900 text-white'
+                                      : 'border-slate-200 bg-white text-slate-500 group-hover/item:border-slate-300 group-hover/item:text-slate-900',
+                                  )}
+                                >
+                                  <Icon className="h-4 w-4" />
+                                </span>
+                                <span className="min-w-0">
+                                  <span className="block text-sm font-medium text-slate-900">{item.name}</span>
+                                  <span className="mt-0.5 block text-xs leading-snug text-slate-500">
+                                    {item.description}
+                                  </span>
+                                </span>
+                              </Link>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -152,9 +194,10 @@ export function Menubar() {
 
         <div className="hidden items-center gap-3 lg:flex">
           <Link href="/book">
-            <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 active:scale-[0.97]">
+            <button className="group inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 active:scale-[0.97]">
               <Calendar className="h-3.5 w-3.5" />
               Book a session
+              <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
             </button>
           </Link>
 
@@ -244,17 +287,19 @@ export function Menubar() {
                   <div className="ml-2 mt-1 flex flex-col gap-1 border-l-2 border-slate-100 pl-2">
                     {moreItems.map((item) => {
                       const active = isActive(item.href)
+                      const Icon = item.icon
                       return (
                         <Link
                           key={item.name}
                           href={item.href}
                           className={cn(
-                            'rounded-lg px-3 py-2.5 text-sm font-medium transition',
+                            'flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition',
                             active
                               ? 'bg-slate-100 text-slate-900'
                               : 'text-slate-600 hover:bg-slate-100',
                           )}
                         >
+                          <Icon className="h-4 w-4 text-slate-400" />
                           {item.name}
                         </Link>
                       )
@@ -295,9 +340,10 @@ export function Menubar() {
                 )}
                 <div className="mt-3">
                   <Link href="/book">
-                    <button className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-slate-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800">
+                    <button className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-slate-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800">
                       <Calendar className="h-4 w-4" />
                       Book a session
+                      <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
                     </button>
                   </Link>
                 </div>

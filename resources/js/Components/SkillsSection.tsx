@@ -11,7 +11,7 @@ const skills = [
         icon: Code2,
         title: 'Software engineering depth',
         description:
-            'Polyglot engineering across backend systems, product delivery, and platform work — with a bias toward practical implementation.',
+            'Polyglot engineering across backend systems, product delivery, and platform work, with a bias toward practical implementation.',
     },
     {
         icon: Cloud,
@@ -81,7 +81,7 @@ export function SkillsSection() {
                         .
                     </h2>
                     <p className="mt-4 text-base leading-7 text-slate-500 sm:text-lg">
-                        The work usually sits at the intersection of engineering, DevOps, and platform thinking —
+                        The work usually sits at the intersection of engineering, DevOps, and platform thinking,
                         so the focus is on systems that are simple to ship and easy to support.
                     </p>
                 </motion.div>
@@ -106,7 +106,7 @@ export function SkillsSection() {
                             </motion.div>
                         ))}
 
-                        {/* Quick highlights — terminal style */}
+                        {/* Quick highlights, terminal style */}
                         <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-950 sm:col-span-2">
                             {/* Terminal bar */}
                             <div className="flex items-center gap-1.5 border-b border-slate-800 px-4 py-2">

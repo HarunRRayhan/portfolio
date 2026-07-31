@@ -114,7 +114,7 @@
   }
   html {
     overscroll-behavior-y: none;
-    /* Matches Footer's bg-slate-950 — iOS Safari paints this color into the
+    /* Matches Footer's bg-slate-950. iOS Safari paints this color into the
        overscroll/toolbar-collapse region below the page, and every default
        page (PublicLayout) ends with the dark Footer, not the slate-50 wrapper
        behind it. */
@@ -123,5 +123,18 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  /* Tailwind v4 Preflight resets interactive elements to cursor: default.
+     Restore the pointer cursor for enabled buttons and links so the whole
+     site signals clickability. Disabled/aria-disabled controls keep the
+     default cursor. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  a {
+    cursor: pointer;
+  }
+  button:disabled,
+  [role="button"][aria-disabled="true"] {
+    cursor: not-allowed;
   }
 }

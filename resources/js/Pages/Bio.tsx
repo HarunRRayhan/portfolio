@@ -34,7 +34,7 @@ const faviconUrl = (url: string): string | null => {
   }
 }
 
-/** Tidy tab value for display — "default" becomes "Links". */
+/** Tidy tab value for display. "default" becomes "Links". */
 const displayTab = (tab: string): string => (tab === 'default' ? 'Links' : tab)
 
 const SOCIAL_ICONS = [
@@ -138,7 +138,7 @@ function LinkFavicon({ link, className }: { link: BioLink; className: string }) 
   return <img src={favicon} alt="" className={`${className} rounded-[3px] object-contain`} onError={() => setFailed(true)} />
 }
 
-/** Real product logos, keyed by link URL — mirrors resources/js/Pages/Products.tsx.
+/** Real product logos, keyed by link URL. Mirrors resources/js/Pages/Products.tsx.
  *  Served as plain public assets rather than the thumbnail_path/storage disk so
  *  they're available immediately on deploy, no admin upload or migration needed. */
 const PRODUCT_LOGOS: Record<string, string> = {
@@ -218,7 +218,7 @@ export default function Bio({
 }) {
   const { url } = usePage()
   const { openPopup } = useSubscribePopup()
-  // Real page URL — feeds SEO tags (og:url, canonical). Must stay the actual
+  // Real page URL. Feeds SEO tags (og:url, canonical). Must stay the actual
   // page, never the shortener redirect.
   const canonicalUrl = typeof window !== 'undefined' ? window.location.href : 'https://harun.dev/bio'
   // Shortened page URL for the "Share link" sheet's QR/copy/social links.
@@ -309,7 +309,7 @@ export default function Bio({
 
   // Paint the root canvas cream to match this page. iOS Safari uses the
   // <html> background to fill the overscroll/toolbar-collapse region, and the
-  // app default (set in app.css) is slate to match PublicLayout — without
+  // app default (set in app.css) is slate to match PublicLayout, and without
   // this override that region flashes slate instead of Bio's cream.
   useEffect(() => {
     const root = document.documentElement
@@ -475,7 +475,7 @@ export default function Bio({
               </p>
             </div>
 
-            {/* Monochrome social icon row — wraps and centers at every width
+            {/* Monochrome social icon row. Wraps and centers at every width
                 so it never gets clipped by main's overflow-hidden. */}
             {socialLinks.length > 0 && (
               <div className="mt-5 flex w-full flex-wrap items-center justify-center gap-1">
@@ -516,7 +516,7 @@ export default function Bio({
                     const isActive = group.slug === activeSlug
                     const shareId = `tab:${group.slug}` as const
                     // A divider between two inactive tabs marks where one ends
-                    // and the next begins — skipped next to the active pill,
+                    // and the next begins, skipped next to the active pill,
                     // since its own background already reads as a boundary.
                     const prevActive = idx > 0 && tabGroups[idx - 1].slug === activeSlug
                     const showDivider = idx > 0 && !isActive && !prevActive
@@ -727,5 +727,5 @@ export default function Bio({
   )
 }
 
-// Override the default PublicLayout — Bio is standalone (no site nav/footer).
+// Override the default PublicLayout. Bio is standalone (no site nav/footer).
 ;(Bio as any).layout = (page: React.ReactNode) => page
