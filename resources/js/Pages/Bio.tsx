@@ -414,10 +414,12 @@ export default function Bio({
           <div className="absolute right-0 top-0 flex items-center gap-2">
             <Link
               href="/"
-              className="flex h-10 items-center gap-1.5 rounded-full border border-[#e4d7c4] bg-[#fffaf6]/90 px-4 font-mono text-xs font-medium uppercase tracking-wider text-[#5b4a3a] shadow-sm backdrop-blur transition hover:border-[#c98a4b] hover:text-[#2b2320] focus-visible:border-[#c98a4b] focus-visible:text-[#2b2320] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f]"
+              className="group inline-flex items-center gap-1.5 rounded-sm font-mono text-xs font-medium uppercase tracking-wider text-[#5b4a3a] transition-colors hover:text-[#b8541f] focus-visible:text-[#b8541f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f]"
             >
-              <ArrowLeft className="h-4 w-4" />
-              Home
+              <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
+              <span className="underline decoration-[#5b4a3a]/40 underline-offset-4 transition-colors group-hover:decoration-[#b8541f]">
+                Home
+              </span>
             </Link>
             <button
               type="button"
