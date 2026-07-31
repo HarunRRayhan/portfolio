@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from
 import { Head, Link, usePage } from '@inertiajs/react'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { getImageUrl } from '@/lib/imageUtils'
-import { Mail, Share2, Package, Bot, PiggyBank, Wrench, MoreHorizontal } from 'lucide-react'
+import { Mail, Share2, Package, Bot, PiggyBank, Wrench, MoreHorizontal, Plane, ArrowLeft } from 'lucide-react'
 import { bioIcon, type BioIcon } from '@/lib/bioIcons'
 import { ShareSheet } from '@/Components/ShareSheet'
 import { useSubscribePopup } from '@/Components/SubscribeProvider'
@@ -61,6 +61,7 @@ const DECLARED_TABS: { slug: string; label: string; Icon: BioIcon }[] = [
   { slug: 'ai', label: 'AI/ML', Icon: Bot },
   { slug: 'cashback', label: 'Cashback', Icon: PiggyBank },
   { slug: 'tools', label: 'Tools', Icon: Wrench },
+  { slug: 'travel', label: 'Travel', Icon: Plane },
   { slug: 'others', label: 'Others', Icon: MoreHorizontal },
 ]
 
@@ -411,6 +412,13 @@ export default function Bio({
         >
           {/* Subscribe + whole-page share buttons */}
           <div className="absolute right-0 top-0 flex items-center gap-2">
+            <Link
+              href="/"
+              className="flex h-10 items-center gap-1.5 rounded-full border border-[#e4d7c4] bg-[#fffaf6]/90 px-4 font-mono text-xs font-medium uppercase tracking-wider text-[#5b4a3a] shadow-sm backdrop-blur transition hover:border-[#c98a4b] hover:text-[#2b2320] focus-visible:border-[#c98a4b] focus-visible:text-[#2b2320] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f]"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Home
+            </Link>
             <button
               type="button"
               onClick={() => openPopup('bio-header', 'warm')}
