@@ -32,7 +32,7 @@ type Props = {
 // offset-path in app.css so the plane rides the visible track. Coordinate
 // space is the fixed 300×150 instrument stage below.
 const HOLDING_PATTERN_PATH =
-  'M150 75 C150 42 122 20 90 20 C54 20 26 45 26 75 C26 105 54 130 90 130 C122 130 150 108 150 75 C150 42 178 20 210 20 C246 20 274 45 274 75 C274 105 246 130 210 130 C178 130 150 108 150 75 Z'
+  'M150 75 C214 8 274 14 274 75 C274 136 214 142 150 75 C86 8 26 14 26 75 C26 136 86 142 150 75 Z'
 
 const planeGlow = { filter: 'drop-shadow(0 0 6px rgba(251, 191, 36, 0.9))' } as const
 
