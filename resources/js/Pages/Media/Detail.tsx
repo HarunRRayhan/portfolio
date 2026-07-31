@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react'
-import { ArrowLeft, CalendarDays, ExternalLink, MonitorPlay, Presentation } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ArrowLeft, CalendarDays, ExternalLink, Loader2, MonitorPlay, Presentation } from 'lucide-react'
 
 type MediaItemDetail = {
   slug: string
@@ -49,6 +50,24 @@ export default function MediaDetailPage({ type, item, related, canonicalUrl }: P
   const title = `${item.title} | Harun R. Rayhan`
   const description = item.summary || copy.fallbackDescription
   const showEmbed = item.embedUrl !== null
+  const [embedLoaded, setEmbedLoaded] = useState(false)
+
+  // Inertia re-renders this same component when navigating between detail
+  // pages (e.g. clicking a related item), so reset the loading state whenever
+  // the embed source changes or the skeleton won't reappear for the new embed.
+  useEffect(() => {
+    setEmbedLoaded(false)
+  }, [item.embedUrl])
+
+  // Warm DNS/TLS to the embed's origins before the iframe element mounts.
+  // Slides serve the embed document from docs.google.com and pull rendered
+  // assets from docs.googleusercontent.com; YouTube serves the player from
+  // youtube-nocookie.com and thumbnails/poster from i.ytimg.com.
+  const preconnectOrigins = showEmbed
+    ? type === 'slide'
+      ? ['https://docs.google.com', 'https://docs.googleusercontent.com']
+      : ['https://www.youtube-nocookie.com', 'https://i.ytimg.com']
+    : []
 
   return (
     <>
@@ -61,6 +80,9 @@ export default function MediaDetailPage({ type, item, related, canonicalUrl }: P
         <meta property="og:url" content={canonicalUrl} />
         {item.thumbnailUrl ? <meta property="og:image" content={item.thumbnailUrl} /> : null}
         <link rel="canonical" href={canonicalUrl} />
+        {preconnectOrigins.map((origin) => (
+          <link key={origin} rel="preconnect" href={origin} />
+        ))}
       </Head>
 
       <div className="pt-24">
@@ -96,8 +118,21 @@ export default function MediaDetailPage({ type, item, related, canonicalUrl }: P
                     title={item.title}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
+                    onLoad={() => setEmbedLoaded(true)}
                     className="absolute inset-0 h-full w-full border-0"
                   />
+                  <div
+                    aria-hidden="true"
+                    className={`pointer-events-none absolute inset-0 flex items-center justify-center bg-slate-950 transition-opacity duration-500 ${
+                      embedLoaded ? 'opacity-0' : 'opacity-100'
+                    }`}
+                  >
+                    <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-slate-900 via-slate-950 to-slate-800" />
+                    <div className="relative flex items-center gap-2.5 text-sm font-medium text-slate-400">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      Loading
+                    </div>
+                  </div>
                 </div>
                 <a
                   href={item.shareUrl}
