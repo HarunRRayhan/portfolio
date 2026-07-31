@@ -63,6 +63,69 @@
   animation: accordion-up 0.2s ease-out;
 }
 
+/* Media embed "holding pattern" loading animation (Media/Detail.tsx).
+   A plane traces a DevOps infinity (figure-8) flightpath while the slide/video
+   iframe loads, then breaks out of the loop and departs when it fires onLoad.
+   The offset-path below must stay in sync with HOLDING_PATTERN_PATH in
+   Media/Detail.tsx so the plane rides the visible track. */
+@keyframes holding-orbit {
+  from {
+    offset-distance: 0%;
+  }
+  to {
+    offset-distance: 100%;
+  }
+}
+
+@keyframes flightpath-flow {
+  to {
+    stroke-dashoffset: -160;
+  }
+}
+
+@keyframes plane-depart {
+  0% {
+    transform: translate(0, 0) rotate(45deg) scale(0.9);
+    opacity: 0;
+  }
+  18% {
+    transform: translate(18px, -16px) rotate(45deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(180px, -160px) rotate(48deg) scale(1.12);
+    opacity: 0;
+  }
+}
+
+.holding-plane {
+  offset-path: path("M150 75 C150 42 122 20 90 20 C54 20 26 45 26 75 C26 105 54 130 90 130 C122 130 150 108 150 75 C150 42 178 20 210 20 C246 20 274 45 274 75 C274 105 246 130 210 130 C178 130 150 108 150 75 Z");
+  offset-rotate: auto 45deg;
+  animation: holding-orbit 5s linear infinite;
+}
+
+.flightpath-flow {
+  animation: flightpath-flow 3s linear infinite;
+}
+
+.plane-depart {
+  animation: plane-depart 0.7s cubic-bezier(0.45, 0, 0.7, 0.2) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .holding-plane {
+    animation: none;
+    offset-distance: 14%;
+  }
+  .flightpath-flow {
+    animation: none;
+  }
+  .plane-depart {
+    animation: none;
+    opacity: 0;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
