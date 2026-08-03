@@ -45,68 +45,69 @@ tags:
 <h2>One Function, One Model, One Region</h2>
 <p>Here's the actual policy I run for a summarization Lambda that only ever needs Claude Sonnet:</p>
 <pre><code class="language-hcl">resource &quot;aws_iam_policy&quot; &quot;hrr_bedrock_invoke_claude_only&quot; {
-  name        = &quot;hrr-bedrock-invoke-claude-scoped&quot;</code></pre>
-<p>policy = jsonencode({
-    Version = "2012-10-17"
+  name        = &quot;hrr-bedrock-invoke-claude-scoped&quot;
+  policy = jsonencode({
+    Version = &quot;2012-10-17&quot;
     Statement = [
       {
-        Sid      = "InvokeClaudeSonnetOnly"
-        Effect   = "Allow"
-        Action   = "bedrock:InvokeModel"
-        Resource = "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-sonnet-4-6-v1:0"
+        Sid      = &quot;InvokeClaudeSonnetOnly&quot;
+        Effect   = &quot;Allow&quot;
+        Action   = &quot;bedrock:InvokeModel&quot;
+        Resource = &quot;arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-sonnet-4-6-v1:0&quot;
         Condition = {
           StringEquals = {
-            "aws:RequestedRegion" = "us-east-1"
+            &quot;aws:RequestedRegion&quot; = &quot;us-east-1&quot;
           }
         }
       }
     ]
   })
-}</p>
-<p>resource "aws_iam_role" "hrr_summarizer_lambda" {
-  name               = "hrr-summarizer-lambda-role"
+}
+
+resource &quot;aws_iam_role&quot; &quot;hrr_summarizer_lambda&quot; {
+  name               = &quot;hrr-summarizer-lambda-role&quot;
   assume_role_policy = data.aws_iam_policy_document.hrr_lambda_assume.json
-}</p>
-<p>resource "aws_iam_role_policy_attachment" "hrr_summarizer_bedrock" {
+}
+
+resource &quot;aws_iam_role_policy_attachment&quot; &quot;hrr_summarizer_bedrock&quot; {
   role       = aws_iam_role.hrr_summarizer_lambda.name
   policy_arn = aws_iam_policy.hrr_bedrock_invoke_claude_only.arn
-}
-```</p>
+}</code></pre>
 <p>No <code>InvokeModelWithResponseStream</code> unless the function actually streams. No second model "just in case we swap providers later." If a function needs Nova Micro for a cheaper, lower-stakes task, it gets its own role with its own scoped policy pointing at the Nova ARN. Yes, that means more Terraform. It also means a compromised summarizer Lambda can ask Claude Sonnet exactly one thing and nothing else, in exactly one region, and every other model in the account is simply unreachable from that credential.</p>
 <p>The region condition matters more than people assume. Bedrock model access is enabled per region, and I've seen teams accidentally leave a model enabled in a region nobody uses for anything except cost surprises and a wider attack surface. Pinning <code>aws:RequestedRegion</code> closes that off even if the model gets enabled somewhere else later.</p>
 <h2>The Permission Boundary That Stops Privilege Escalation</h2>
 <p>Scoped policies handle the Bedrock side. They don't stop someone, or something, from attaching a second, more permissive policy to that same role later. That's what a permission boundary is for. It's a ceiling that caps what any policy attached to the role can ever grant, no matter how the role gets modified down the line.</p>
-<pre><code class="language-hcl">resource &quot;aws_iam_policy&quot; &quot;hrr_lambda_bedrock_boundary&quot; {</code></pre>
-<p>policy = jsonencode({
-    Version = "2012-10-17"
+<pre><code class="language-hcl">resource &quot;aws_iam_policy&quot; &quot;hrr_lambda_bedrock_boundary&quot; {
+  policy = jsonencode({
+    Version = &quot;2012-10-17&quot;
     Statement = [
       {
-        Sid         = "DenyNonApprovedModels"
-        Effect      = "Deny"
-        Action      = ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"]
-        NotResource = "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-sonnet-4-6-v1:0"
+        Sid         = &quot;DenyNonApprovedModels&quot;
+        Effect      = &quot;Deny&quot;
+        Action      = [&quot;bedrock:InvokeModel&quot;, &quot;bedrock:InvokeModelWithResponseStream&quot;]
+        NotResource = &quot;arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-sonnet-4-6-v1:0&quot;
       },
       {
-        Sid    = "DenyIamSelfEscalation"
-        Effect = "Deny"
+        Sid    = &quot;DenyIamSelfEscalation&quot;
+        Effect = &quot;Deny&quot;
         Action = [
-          "iam:CreatePolicy",
-          "iam:CreatePolicyVersion",
-          "iam:AttachRolePolicy",
-          "iam:PutRolePolicy",
-          "iam:DeleteRolePermissionsBoundary"
+          &quot;iam:CreatePolicy&quot;,
+          &quot;iam:CreatePolicyVersion&quot;,
+          &quot;iam:AttachRolePolicy&quot;,
+          &quot;iam:PutRolePolicy&quot;,
+          &quot;iam:DeleteRolePermissionsBoundary&quot;
         ]
-        Resource = "*"
+        Resource = &quot;*&quot;
       }
     ]
   })
-}</p>
-<p>resource "aws_iam_role" "hrr_summarizer_lambda" {
-  name                 = "hrr-summarizer-lambda-role"
+}
+
+resource &quot;aws_iam_role&quot; &quot;hrr_summarizer_lambda&quot; {
+  name                 = &quot;hrr-summarizer-lambda-role&quot;
   permissions_boundary = aws_iam_policy.hrr_lambda_bedrock_boundary.arn
   assume_role_policy   = data.aws_iam_policy_document.hrr_lambda_assume.json
-}
-```</p>
+}</code></pre>
 <p>That last statement is the one people forget. Without <code>iam:DeleteRolePermissionsBoundary</code> denied, an attacker (or an overly helpful AI coding agent, which is honestly the more likely case in my day to day) with <code>iam:*</code> access could just remove the boundary and grant itself whatever it wants. Deny that action explicitly, on every role that carries a boundary, or the boundary is decorative.</p>
 <p>I'll admit the boundary felt like overkill the first time I wrote it. Then I watched an agent try to widen a Bedrock policy to <code>Resource: "*"</code> in a PR because a test was failing and the wildcard was the fastest way to make it pass. The boundary caught it at apply time instead of at 2am in production. That's when it stopped feeling like overkill.</p>
 <h2>The CloudTrail Query That Caught the Wrong Function</h2>
@@ -126,61 +127,63 @@ tags:
 <pre><code class="language-toml">[[rules]]
 id = &quot;hardcoded-bedrock-model-arn&quot;
 description = &quot;Bedrock foundation model ARN hardcoded instead of sourced from Terraform output or env var&quot;
-regex = '''arn:aws:bedrock:[a-z0-9-]+::foundation-model/[a-zA-Z0-9\.\-:]+'''</code></pre>
-<p>[[rules.allowlist]]
-paths = ['''infra/.*\.tf''']
-```</p>
+regex = '''arn:aws:bedrock:[a-z0-9-]+::foundation-model/[a-zA-Z0-9\.\-:]+'''
+
+[[rules.allowlist]]
+paths = ['''infra/.*\.tf''']</code></pre>
 <p>The allowlist matters here. Terraform files are allowed to reference model ARNs directly, that's the source of truth. Everything else, test fixtures, seed scripts, notebooks someone left in the repo, gets flagged. It's a small rule, but it's caught more issues than I expected, mostly agent-generated test code that hardcodes whatever ARN it saw in a nearby file rather than importing the actual constant.</p>
 <h2>The CI Check That Blocks the Merge</h2>
 <p>None of the above matters if a wildcard Bedrock policy can still slip through in a PR. So the last piece is a GitHub Actions job that runs on every PR touching <code>infra/</code>, parses the Terraform plan as JSON, and fails the build if any Bedrock IAM statement grants a wildcard resource.</p>
 <pre><code class="language-yaml">name: bedrock-iam-guard
 on:
   pull_request:
-    paths:</code></pre>
-<p>jobs:
+    paths:
+jobs:
   validate-bedrock-policies:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4</p>
-<ul>
-  <li>uses: hashicorp/setup-terraform@v3</li>
-</ul>
-<ul>
-  <li>name: Terraform plan as JSON</li>
-</ul>
-<ul>
-  <li>name: Fail on wildcard Bedrock resources</li>
-</ul>
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - name: Terraform plan as JSON
+      - name: Fail on wildcard Bedrock resources</code></pre>
 <p>And the guard script itself, which walks every <code>aws_iam_policy</code> resource change in the plan and checks for wildcard resources on Bedrock actions:</p>
-<pre><code class="language-python">import json</code></pre>
-<p>plan = json.load(open(sys.argv[1]))
-violations = []</p>
-<p>for change in plan.get("resource_changes", []):
-    if change["type"] != "aws_iam_policy":
-        continue</p>
-<p>after = change["change"].get("after") or {}
-    raw_policy = after.get("policy")
+<pre><code class="language-python">import json
+
+plan = json.load(open(sys.argv[1]))
+violations = []
+
+for change in plan.get(&quot;resource_changes&quot;, []):
+    if change[&quot;type&quot;] != &quot;aws_iam_policy&quot;:
+        continue
+
+    after = change[&quot;change&quot;].get(&quot;after&quot;) or {}
+    raw_policy = after.get(&quot;policy&quot;)
     if not raw_policy:
-        continue</p>
-<p>policy = json.loads(raw_policy)
-    for stmt in policy.get("Statement", []):
-        actions = stmt.get("Action", [])
-        actions = [actions] if isinstance(actions, str) else actions</p>
-<p>resources = stmt.get("Resource", [])
-        resources = [resources] if isinstance(resources, str) else resources</p>
-<p>is_bedrock = any(a.startswith("bedrock:") for a in actions)
-        has_wildcard = "*" in resources</p>
-<p>if is_bedrock and has_wildcard:
+        continue
+
+    policy = json.loads(raw_policy)
+    for stmt in policy.get(&quot;Statement&quot;, []):
+        actions = stmt.get(&quot;Action&quot;, [])
+        actions = [actions] if isinstance(actions, str) else actions
+
+        resources = stmt.get(&quot;Resource&quot;, [])
+        resources = [resources] if isinstance(resources, str) else resources
+
+        is_bedrock = any(a.startswith(&quot;bedrock:&quot;) for a in actions)
+        has_wildcard = &quot;*&quot; in resources
+
+        if is_bedrock and has_wildcard:
             violations.append(
-                f"{change['address']}: wildcard Resource on a bedrock:* action"
-            )</p>
-<p>if violations:
-    print("Bedrock IAM guard failed:")
+                f&quot;{change['address']}: wildcard Resource on a bedrock:* action&quot;
+            )
+
+if violations:
+    print(&quot;Bedrock IAM guard failed:&quot;)
     for v in violations:
-        print(f"  - {v}")
-    sys.exit(1)</p>
-<p>print("Bedrock IAM guard passed, no wildcard resources found.")
-```</p>
+        print(f&quot;  - {v}&quot;)
+    sys.exit(1)
+
+print(&quot;Bedrock IAM guard passed, no wildcard resources found.&quot;)</code></pre>
 <p>This is the check that would have stopped the agent-generated wildcard I mentioned earlier before it ever reached a Terraform apply. It has no idea whether a scoped policy points at the right model, and it doesn't need to. All it does is turn "Resource: *" on a Bedrock action into a hard failure instead of something a reviewer has to spot by eye in a 300-line diff, which, if I'm honest, is exactly the kind of thing I miss when I'm reviewing my fifth PR of the day.</p>
 <h2>What This Actually Buys You</h2>
 <p>None of this stops a determined attacker with full account access. That's not the threat model. The threat model is the much more common one: a shared role that grew too permissive over a few sprints, a test fixture with a stale ARN, an agent that widened a policy to unblock itself, a staging function that should never have touched production data. Scoped policies, a permission boundary, a CloudTrail alert, and a CI gate close off almost all of that, and they cost nothing extra to run since Bedrock's per-token pricing doesn't change based on how tightly you've scoped the IAM around it.</p>
