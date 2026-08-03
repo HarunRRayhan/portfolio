@@ -5,7 +5,7 @@ import { Link, router, usePage } from '@inertiajs/react'
 import { cn } from '@/lib/utils'
 import { Logo } from './Logo'
 import { ArrowRight, Calendar, ChevronDown, ExternalLink, Link2, LogOut, Menu, Newspaper, Package, Presentation, User, UserRound, Video } from 'lucide-react'
-import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from '@/Components/ui/sheet'
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from '@/Components/ui/sheet'
 
 const mainNavItems = [
   { name: 'Home', href: '/' },
@@ -267,18 +267,19 @@ export function Menubar() {
                 {[...mainNavItems, { name: 'Contact', href: '/contact' }].map((item) => {
                   const active = isActive(item.href)
                   return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className={cn(
-                        'rounded-lg px-3 py-3 text-sm font-medium transition',
-                        active
-                          ? 'bg-slate-900 text-white'
-                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
-                      )}
-                    >
-                      {item.name}
-                    </Link>
+                    <SheetClose key={item.name} asChild>
+                      <Link
+                        href={item.href}
+                        className={cn(
+                          'rounded-lg px-3 py-3 text-sm font-medium transition',
+                          active
+                            ? 'bg-slate-900 text-white'
+                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+                        )}
+                      >
+                        {item.name}
+                      </Link>
+                    </SheetClose>
                   )
                 })}
               </nav>
@@ -298,19 +299,20 @@ export function Menubar() {
                       const active = isActive(item.href)
                       const Icon = item.icon
                       return (
-                        <Link
-                          key={item.name}
-                          href={item.href}
-                          className={cn(
-                            'flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition',
-                            active
-                              ? 'bg-slate-100 text-slate-900'
-                              : 'text-slate-600 hover:bg-slate-100',
-                          )}
-                        >
-                          <Icon className="h-4 w-4 text-slate-400" />
-                          {item.name}
-                        </Link>
+                        <SheetClose key={item.name} asChild>
+                          <Link
+                            href={item.href}
+                            className={cn(
+                              'flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition',
+                              active
+                                ? 'bg-slate-100 text-slate-900'
+                                : 'text-slate-600 hover:bg-slate-100',
+                            )}
+                          >
+                            <Icon className="h-4 w-4 text-slate-400" />
+                            {item.name}
+                          </Link>
+                        </SheetClose>
                       )
                     })}
                   </div>
@@ -324,37 +326,45 @@ export function Menubar() {
                       <p className="text-sm font-medium text-slate-900">{user.name ?? 'Account'}</p>
                       <p className="text-xs text-slate-500">{user.email}</p>
                     </div>
-                    <Link
-                      href="/dashboard"
-                      className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-                    >
-                      <User className="h-4 w-4" />
-                      Dashboard
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-red-200 px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      Sign out
-                    </button>
+                    <SheetClose asChild>
+                      <Link
+                        href="/dashboard"
+                        className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                      >
+                        <User className="h-4 w-4" />
+                        Dashboard
+                      </Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <button
+                        onClick={handleLogout}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-red-200 px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Sign out
+                      </button>
+                    </SheetClose>
                   </div>
                 ) : (
-                  <Link href="/login">
-                    <button className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
-                      <User className="h-4 w-4" />
-                      Sign in
-                    </button>
-                  </Link>
+                  <SheetClose asChild>
+                    <Link href="/login">
+                      <button className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                        <User className="h-4 w-4" />
+                        Sign in
+                      </button>
+                    </Link>
+                  </SheetClose>
                 )}
                 <div className="mt-3">
-                  <Link href="/book">
-                    <button className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-slate-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800">
-                      <Calendar className="h-4 w-4" />
-                      Book a session
-                      <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-                    </button>
-                  </Link>
+                  <SheetClose asChild>
+                    <Link href="/book">
+                      <button className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-slate-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800">
+                        <Calendar className="h-4 w-4" />
+                        Book a session
+                        <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                      </button>
+                    </Link>
+                  </SheetClose>
                 </div>
               </div>
             </SheetContent>
