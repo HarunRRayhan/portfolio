@@ -12,6 +12,7 @@ export type CaseStudyCardSummary = {
   techStack: string[]
   url: string
   coverImageUrl?: string | null
+  coverImageAlt?: string
 }
 
 type Props = {
@@ -141,7 +142,7 @@ export function CaseStudiesHomeSection({ studies }: HomeProps) {
                   {study.coverImageUrl ? (
                     <img
                       src={study.coverImageUrl}
-                      alt={study.codename}
+                      alt={study.coverImageAlt ?? study.codename}
                       className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                       loading="lazy"
                     />

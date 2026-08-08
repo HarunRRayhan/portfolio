@@ -13,9 +13,11 @@ export type CaseStudySummary = {
   brief: string
   techStack: string[]
   publishedAtHuman: string
+  publishedAtIso: string
   readTimeLabel: string
   url: string
   coverImageUrl?: string | null
+  coverImageAlt: string
 }
 
 type Props = {
@@ -80,7 +82,7 @@ export default function CaseStudiesIndex({ studies, canonicalUrl }: Props) {
                       {study.coverImageUrl ? (
                         <img
                           src={study.coverImageUrl}
-                          alt={study.codename}
+                          alt={study.coverImageAlt}
                           className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                           loading="lazy"
                         />

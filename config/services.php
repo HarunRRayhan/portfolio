@@ -47,6 +47,10 @@ return [
         ],
     ],
 
+    'ga4' => [
+        'measurement_id' => env('GA4_MEASUREMENT_ID'),
+    ],
+
     'maxmind' => [
         // Local GeoLite2-Country database used to geo-target bio links. When the
         // file is absent every lookup returns null and links fall back to being

@@ -112,6 +112,7 @@ class BlogRepository
             'responseCount' => $post['responseCount'],
             'replyCount' => $post['replyCount'],
             'coverImageUrl' => $post['coverImageUrl'] ?? null,
+            'coverImageAlt' => $post['coverImageAlt'] ?? $post['title'],
             'viewCount' => Cache::remember("post.views.{$post['slug']}", 3600, function () use ($post) {
                 try {
                     $row = \Illuminate\Support\Facades\DB::table('blog_post_views')

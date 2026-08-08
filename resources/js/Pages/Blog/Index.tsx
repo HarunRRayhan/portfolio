@@ -13,6 +13,7 @@ interface BlogPostSummary {
   responseCount: number
   replyCount: number
   coverImageUrl?: string | null
+  coverImageAlt: string
   viewCount: number
   tags: Array<{ name: string; slug: string }>
   url: string
@@ -128,7 +129,7 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
                     {post.coverImageUrl ? (
                       <img
                         src={post.coverImageUrl}
-                        alt={post.title}
+                        alt={post.coverImageAlt}
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                         loading="lazy"
                       />

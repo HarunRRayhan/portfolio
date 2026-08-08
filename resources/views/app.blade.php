@@ -6,6 +6,18 @@
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
+        <!-- Organization structured data -->
+        <script type="application/ld+json">
+            {!! json_encode([
+                '@context' => 'https://schema.org',
+                '@type' => 'Organization',
+                '@id' => rtrim(config('app.url'), '/').'/#organization',
+                'name' => 'Harun R. Rayhan',
+                'url' => rtrim(config('app.url'), '/'),
+                'logo' => rtrim(config('app.url'), '/').'/android-chrome-512x512.png',
+            ]) !!}
+        </script>
+
         <!-- Favicon -->
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -31,6 +43,16 @@
         @if ($isDraftBlogPost)
             <meta name="robots" content="noindex, nofollow, noarchive">
             <meta name="googlebot" content="noindex, nofollow, noarchive">
+        @endif
+
+        @if (config('services.ga4.measurement_id') && ! $isDraftBlogPost)
+            <script async src="https://www.googletagmanager.com/gtag/js?id={{ config('services.ga4.measurement_id') }}"></script>
+            <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '{{ config('services.ga4.measurement_id') }}');
+            </script>
         @endif
     </head>
     <body class="font-sans antialiased">

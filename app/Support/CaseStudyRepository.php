@@ -193,6 +193,7 @@ class CaseStudyRepository
             'readTimeInMinutes' => (int) ($study['readTimeInMinutes'] ?? $this->estimateReadMinutes($study['content']['text'] ?? '')),
             'readTimeLabel' => ((int) ($study['readTimeInMinutes'] ?? $this->estimateReadMinutes($study['content']['text'] ?? ''))).' min read',
             'coverImageUrl' => $study['coverImageUrl'] ?? null,
+            'coverImageAlt' => $study['coverImageAlt'] ?? $study['codename'] ?? $study['title'] ?? $study['slug'],
             'isDraft' => (bool) ($study['draft'] ?? false),
             'url' => $this->relativeUrl((string) $study['slug']),
             'canonicalUrl' => $this->absoluteUrl((string) $study['slug']),

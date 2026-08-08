@@ -24,6 +24,7 @@ interface BlogPostSummary {
   responseCount: number
   replyCount: number
   coverImageUrl?: string | null
+  coverImageAlt: string
   isDraft: boolean
   draftPreviewUrl?: string | null
   viewCount: number
@@ -255,7 +256,7 @@ export default function BlogPostPage({
             <article className="rounded-[2rem] border border-slate-200 bg-white shadow-[0_30px_90px_-55px_rgba(15,23,42,0.45)]">
               {coverImageUrl ? (
                 <div className="overflow-hidden rounded-t-[2rem] border-b border-slate-200 bg-slate-100">
-                  <img src={coverImageUrl} alt={post.title} className="h-[clamp(16rem,42vw,30rem)] w-full object-cover object-top" />
+                  <img src={coverImageUrl} alt={post.coverImageAlt} className="h-[clamp(16rem,42vw,30rem)] w-full object-cover object-top" />
                 </div>
               ) : (
                 <div className="rounded-t-[2rem] border-b border-slate-200 bg-[linear-gradient(180deg,#0f172a_0%,#111827_100%)] px-6 py-14 text-white sm:px-10 sm:py-16 lg:px-14 lg:py-20">
@@ -398,7 +399,7 @@ export default function BlogPostPage({
                             {related.coverImageUrl ? (
                               <img
                                 src={related.coverImageUrl}
-                                alt={related.title}
+                                alt={related.coverImageAlt}
                                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                                 loading="lazy"
                               />
