@@ -18,12 +18,37 @@ type Props = {
   study: CaseStudyDetail
   relatedStudies: CaseStudySummary[]
   canonicalUrl: string
+  siteUrl: string
 }
 
 const servicePath = (slug: string) => `/services/${slug}`
 
-export default function CaseStudyDetailPage({ study, relatedStudies, canonicalUrl }: Props) {
+export default function CaseStudyDetailPage({ study, relatedStudies, canonicalUrl, siteUrl }: Props) {
   const description = study.brief || study.problem
+  const metaImageUrl = study.coverImageUrl
+    ? study.coverImageUrl.startsWith('/')
+      ? `${siteUrl}${study.coverImageUrl}`
+      : study.coverImageUrl
+    : null
+
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: study.title,
+    description,
+    datePublished: study.publishedAtIso,
+    author: {
+      '@type': 'Person',
+      name: 'Harun R. Rayhan',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Harun R. Rayhan',
+      url: siteUrl,
+    },
+    mainEntityOfPage: canonicalUrl,
+    image: metaImageUrl ? [metaImageUrl] : undefined,
+  }
 
   return (
     <>
@@ -34,8 +59,13 @@ export default function CaseStudyDetailPage({ study, relatedStudies, canonicalUr
         <meta property="og:description" content={description} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={canonicalUrl} />
-        {study.coverImageUrl ? <meta property="og:image" content={study.coverImageUrl} /> : null}
+        {metaImageUrl ? <meta property="og:image" content={metaImageUrl} /> : null}
+        <meta name="twitter:card" content={metaImageUrl ? 'summary_large_image' : 'summary'} />
+        <meta name="twitter:title" content={study.title} />
+        <meta name="twitter:description" content={description} />
+        {metaImageUrl ? <meta name="twitter:image" content={metaImageUrl} /> : null}
         <link rel="canonical" href={canonicalUrl} />
+        <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
       </Head>
 
       <div className="pt-24">

@@ -206,7 +206,11 @@ Route::post('/bio/click', function (Request $request, CountryResolver $countries
 })->middleware('throttle:30,1')->name('bio.click');
 
 Route::get('/about', function () {
-    return Inertia::render('About');
+    $siteUrl = rtrim(config('app.url', url('/')), '/');
+
+    return Inertia::render('About', [
+        'canonicalUrl' => $siteUrl.'/about',
+    ]);
 })->name('about');
 
 Route::get('/products', function () {
@@ -363,6 +367,7 @@ Route::get('/case-studies/{slug}', function (string $slug) {
         'study' => $repo->toDetailPayload($study),
         'relatedStudies' => $repo->related($slug, 3),
         'canonicalUrl' => $repo->absoluteUrl($slug),
+        'siteUrl' => rtrim(config('app.url', url('/')), '/'),
     ]);
 })->name('case-studies.show');
 

@@ -7,7 +7,11 @@ import {FAQSection} from "@/Components/FAQSection"
 import {VolunteeringSection} from "@/Components/VolunteeringSection"
 import {getImageUrl} from "@/lib/imageUtils"
 
-export default function About() {
+type Props = {
+    canonicalUrl: string
+}
+
+export default function About({canonicalUrl}: Props) {
     return (
         <>
             <Head>
@@ -17,11 +21,11 @@ export default function About() {
                 <meta property="og:title" content="About Harun | Cloud Architect & DevOps Engineer" />
                 <meta property="og:description" content="Learn about Harun's journey, expertise in cloud architecture, DevOps engineering, and professional experience." />
                 <meta property="og:type" content="profile" />
-                <meta property="og:url" content={window.location.href} />
+                <meta property="og:url" content={canonicalUrl} />
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta name="twitter:title" content="About Harun | Cloud Architect & DevOps Engineer" />
                 <meta name="twitter:description" content="Learn about Harun's journey, expertise in cloud architecture, DevOps engineering, and professional experience." />
-                <link rel="canonical" href={window.location.href} />
+                <link rel="canonical" href={canonicalUrl} />
                 <script type="application/ld+json">
                     {JSON.stringify({
                         "@context": "https://schema.org",
