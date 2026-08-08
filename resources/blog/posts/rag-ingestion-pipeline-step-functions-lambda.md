@@ -3,7 +3,7 @@ title: "Chunk, Embed, Index: Running RAG Ingestion as a Step Functions State Mac
 slug: "rag-ingestion-pipeline-step-functions-lambda"
 brief: "A re-run of a failed ingestion job left me with duplicate vectors and worse retrieval. Here's the Step Functions state machine I built instead: a Distributed Map over chunks, retries tuned to Bedrock throttling, content-hash idempotency, and a quarantine path for documents that just won't parse."
 publishedAt: "2026-08-08T18:00:00.000Z"
-draft: true
+draft: false
 draftToken: "23e038038f5eb08160867f2e56191595"
 readTimeInMinutes: 13
 coverImageUrl: "/blog-assets/rag-ingestion-pipeline-step-functions-lambda/cover.jpg"
