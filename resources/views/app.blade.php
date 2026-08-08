@@ -11,9 +11,10 @@
             {!! json_encode([
                 '@context' => 'https://schema.org',
                 '@type' => 'Organization',
+                '@id' => rtrim(config('app.url'), '/').'/#organization',
                 'name' => 'Harun R. Rayhan',
                 'url' => rtrim(config('app.url'), '/'),
-                'logo' => rtrim(config('app.url'), '/').'/favicon-32x32.png',
+                'logo' => rtrim(config('app.url'), '/').'/android-chrome-512x512.png',
             ]) !!}
         </script>
 

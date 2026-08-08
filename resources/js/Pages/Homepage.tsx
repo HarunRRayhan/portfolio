@@ -33,10 +33,14 @@ export default function Homepage() {
                     {JSON.stringify({
                         '@context': 'https://schema.org',
                         '@type': 'Person',
+                        '@id': canonicalUrl + '#person',
                         name: 'Harun R. Rayhan',
                         jobTitle: 'Senior Software Engineer & DevOps Consultant',
                         description: 'Expert software engineer and DevOps consultant specializing in cloud architecture and AWS solutions',
                         url: canonicalUrl,
+                        worksFor: {
+                            '@id': canonicalUrl + '#organization',
+                        },
                         knowsAbout: [
                             'Software Engineering',
                             'DevOps',
