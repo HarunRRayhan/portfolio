@@ -8,7 +8,20 @@ import { Github, Linkedin, Mail, Twitter } from '@/lib/icons'
 import { Button } from '@/Components/ui/button'
 import { Logo } from '@/Components/Logo'
 
-const links = [
+type FooterLink = {
+    label: string
+    href: string
+    // Raw file responses (llms.txt, feeds) must use a plain anchor. Inertia's <Link>
+    // would try to handle them as SPA navigations and break.
+    external?: boolean
+}
+
+type FooterLinkGroup = {
+    title: string
+    items: FooterLink[]
+}
+
+const links: FooterLinkGroup[] = [
     {
         title: 'Explore',
         items: [
@@ -24,6 +37,13 @@ const links = [
         items: [
             { label: 'Privacy', href: '/privacy' },
             { label: 'Terms', href: '/terms' },
+        ],
+    },
+    {
+        title: 'For AI Agents',
+        items: [
+            { label: 'llms.txt', href: '/llms.txt', external: true },
+            { label: 'llms-full.txt', href: '/llms-full.txt', external: true },
         ],
     },
 ]
@@ -101,12 +121,21 @@ export function Footer() {
                                     <ul className="mt-4 space-y-2.5">
                                         {group.items.map((item) => (
                                             <li key={item.label}>
-                                                <Link
-                                                    href={item.href}
-                                                    className="text-sm text-slate-400 transition hover:text-white"
-                                                >
-                                                    {item.label}
-                                                </Link>
+                                                {item.external ? (
+                                                    <a
+                                                        href={item.href}
+                                                        className="text-sm text-slate-400 transition hover:text-white"
+                                                    >
+                                                        {item.label}
+                                                    </a>
+                                                ) : (
+                                                    <Link
+                                                        href={item.href}
+                                                        className="text-sm text-slate-400 transition hover:text-white"
+                                                    >
+                                                        {item.label}
+                                                    </Link>
+                                                )}
                                             </li>
                                         ))}
                                     </ul>

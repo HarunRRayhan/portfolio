@@ -704,6 +704,162 @@ TXT;
     return response($txt, 200)->header('Content-Type', 'text/plain; charset=UTF-8');
 })->name('robots');
 
+// /llms.txt and /llms-full.txt follow the llmstxt.org convention: a markdown index
+// of the site written for LLM consumption. Both are generated from the same
+// repositories that back /sitemap.xml so they never drift from what is published.
+// The service, page, and optional link sections are identical in both files, so
+// they are built once here and shared by the two route closures below.
+$llmsLinkSections = function (string $siteUrl): string {
+    $services = [
+        ['Cloud Architecture', '/services/cloud-architecture', 'Scalable, secure, and cost-effective cloud architecture design and implementation.'],
+        ['DevOps', '/services/devops', 'Modern DevOps practices that streamline development and operations workflows.'],
+        ['Infrastructure as Code', '/services/infrastructure-as-code', 'Terraform and IaC tooling for consistent, repeatable, version-controlled infrastructure.'],
+        ['Serverless Infrastructure', '/services/serverless-infrastructure', 'Serverless designs that cut operational overhead and cost while scaling on demand.'],
+        ['Automated Deployment', '/services/automated-deployment', 'CI/CD pipelines for faster, more reliable software delivery.'],
+        ['Security Consulting', '/services/security-consulting', 'Cloud security assessments and hardening across accounts, networks, and workloads.'],
+        ['Performance Optimization', '/services/performance-optimization', 'Tuning cloud infrastructure for throughput, latency, and cost efficiency.'],
+        ['Infrastructure Migration', '/services/infrastructure-migration', 'Migrations to modern, scalable platforms with minimal downtime.'],
+        ['MLOps', '/services/mlops', 'Automated machine learning workflows and the infrastructure that runs them.'],
+        ['Database Migration', '/services/database-migration', 'Database moves to cloud platforms with minimal downtime and no data loss.'],
+        ['Monitoring and Observability', '/services/monitoring-observability', 'Metrics, logs, and traces that give real insight into infrastructure and apps.'],
+        ['Database Optimization', '/services/database-optimization', 'Query, schema, and instance tuning for faster and more reliable databases.'],
+        ['AWS Cloud', '/services/aws-cloud', 'AWS consulting across compute, networking, storage, and managed services.'],
+        ['Multi-Cloud Architecture', '/services/multi-cloud-architecture', 'Architectures that use the strengths of more than one cloud provider.'],
+        ['Vibe Scaling', '/services/vibe-scaling', 'Taking an AI-built app that found real users and making it hold up under real traffic.'],
+        ['Vibe Code Migration', '/services/vibe-code-migration', 'Moving an AI-built prototype onto a production language and framework, feature for feature.'],
+    ];
+
+    $pages = [
+        ['About', '/about', 'Background, experience, and how I work with teams.'],
+        ['Contact', '/contact', 'Start a project or ask a question.'],
+        ['Bio', '/bio', 'Short bio and links.'],
+        ['Book a Call', '/book', 'Schedule a consulting call.'],
+        ['Case Studies', '/case-studies', 'Index of client engagements and their outcomes.'],
+        ['Services', '/services', 'Index of all consulting services.'],
+        ['Blog', '/blog', 'Index of all writing on cloud, DevOps, and AWS.'],
+        ['Slides', '/slides', 'Talk decks and presentations.'],
+        ['Videos', '/videos', 'Recorded talks and walkthroughs.'],
+    ];
+
+    $optional = [
+        ['Privacy Policy', '/privacy', 'How data on this site is handled.'],
+        ['Terms', '/terms', 'Terms of use for this site.'],
+        ['Blog RSS Feed', '/blog/feed.xml', 'Atom feed of blog posts.'],
+        ['Case Studies RSS Feed', '/case-studies/feed.xml', 'Atom feed of case studies.'],
+        ['Sitemap', '/sitemap.xml', 'XML sitemap of every indexable URL.'],
+        ['llms-full.txt', '/llms-full.txt', 'This index with the full text of every post and case study inlined.'],
+    ];
+
+    $render = fn (array $rows): string => collect($rows)
+        ->map(fn (array $row) => '- ['.$row[0].']('.$siteUrl.$row[1].'): '.$row[2])
+        ->implode("\n");
+
+    $serviceLinks = $render($services);
+    $pageLinks = $render($pages);
+    $optionalLinks = $render($optional);
+
+    return <<<MD
+    ## Services
+
+    {$serviceLinks}
+
+    ## Pages
+
+    {$pageLinks}
+
+    ## Optional
+
+    {$optionalLinks}
+    MD;
+};
+
+Route::get('/llms.txt', function () use ($llmsLinkSections) {
+    $siteUrl = rtrim(config('app.url', url('/')), '/');
+
+    $blog = new BlogRepository();
+    $caseStudyRepo = new CaseStudyRepository();
+
+    $blogLinks = collect($blog->indexPosts())
+        ->map(fn (array $post) => '- ['.$post['title'].']('.$post['canonicalUrl'].'): '.$post['brief'])
+        ->implode("\n");
+
+    $caseStudyLinks = collect($caseStudyRepo->indexStudies())
+        ->map(fn (array $study) => '- ['.$study['codename'].']('.$study['canonicalUrl'].'): '.$study['brief'])
+        ->implode("\n");
+
+    $linkSections = $llmsLinkSections($siteUrl);
+
+    $md = <<<MD
+    # Harun R. Rayhan
+
+    > Cloud, DevOps, and AWS consultant. I help teams design cloud architecture, automate infrastructure, and ship production systems that stay up. This file indexes the services, writing, and case studies published at {$siteUrl}.
+
+    {$linkSections}
+
+    ## Blog
+
+    {$blogLinks}
+
+    ## Case Studies
+
+    {$caseStudyLinks}
+    MD;
+
+    return response($md, 200)->header('Content-Type', 'text/markdown; charset=UTF-8');
+})->name('llms');
+
+Route::get('/llms-full.txt', function () use ($llmsLinkSections) {
+    $siteUrl = rtrim(config('app.url', url('/')), '/');
+
+    $blog = new BlogRepository();
+    $caseStudyRepo = new CaseStudyRepository();
+
+    // posts()/studies() return the raw parsed files, whose content['html'] key holds
+    // the original post body as authored (markdown for some posts, raw HTML blocks
+    // for others). Unlike indexPosts()/indexStudies() they keep the body but also
+    // include drafts, so drafts are filtered out here.
+    $blogBodies = collect($blog->posts())
+        ->reject(fn (array $post) => (bool) ($post['draft'] ?? false))
+        ->map(function (array $post) use ($blog) {
+            $url = $blog->absoluteUrl($post['slug']);
+            $body = trim((string) ($post['content']['html'] ?? ''));
+
+            return "### {$post['title']}\n\n{$url}\n\n{$body}\n\n---\n";
+        })
+        ->implode("\n");
+
+    $caseStudyBodies = collect($caseStudyRepo->studies())
+        ->reject(fn (array $study) => (bool) ($study['draft'] ?? false))
+        ->map(function (array $study) use ($caseStudyRepo) {
+            $slug = (string) $study['slug'];
+            $codename = (string) ($study['codename'] ?? $study['title'] ?? $slug);
+            $url = $caseStudyRepo->absoluteUrl($slug);
+            $body = trim((string) ($study['content']['html'] ?? ''));
+
+            return "### {$codename}\n\n{$url}\n\n{$body}\n\n---\n";
+        })
+        ->implode("\n");
+
+    $linkSections = $llmsLinkSections($siteUrl);
+
+    $md = <<<MD
+    # Harun R. Rayhan
+
+    > Cloud, DevOps, and AWS consultant. I help teams design cloud architecture, automate infrastructure, and ship production systems that stay up. This file indexes the services, writing, and case studies published at {$siteUrl}, with the full text of every post and case study inlined.
+
+    {$linkSections}
+
+    ## Blog
+
+    {$blogBodies}
+    ## Case Studies
+
+    {$caseStudyBodies}
+    MD;
+
+    return response($md, 200)->header('Content-Type', 'text/markdown; charset=UTF-8');
+})->name('llms.full');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
