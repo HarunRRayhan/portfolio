@@ -129,4 +129,13 @@ class BioLinkAnalyticsTest extends TestCase
         $this->assertSame(30, $props['days']);
         $this->assertCount(30, $props['daily']);
     }
+
+    public function test_source_is_stored_on_a_click(): void
+    {
+        $link = $this->link();
+
+        $this->click($link, ['source' => 'twitter']);
+
+        $this->assertDatabaseHas('bio_link_clicks', ['bio_link_id' => $link->id, 'source' => 'twitter']);
+    }
 }

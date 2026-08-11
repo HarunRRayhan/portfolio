@@ -15,6 +15,7 @@ class ShortLinkClick extends Model
         'country',
         'user_agent',
         'referer',
+        'source',
     ];
 
     public function shortLink(): BelongsTo
