@@ -163,6 +163,7 @@ class BioLinkController extends Controller
     {
         return $request->validate([
             'label' => ['required', 'string', 'max:255'],
+            'locale' => ['nullable', 'string', 'in:en,bn'],
             'description' => ['nullable', 'string', 'max:255'],
             'url' => ['required', 'string', 'max:2048'],
             'icon' => ['required', 'string', 'max:60'],
@@ -188,6 +189,7 @@ class BioLinkController extends Controller
         return [
             'id' => $link->id,
             'label' => $link->label,
+            'locale' => $link->locale,
             'description' => $link->description,
             'url' => $link->url,
             'icon' => $link->icon,

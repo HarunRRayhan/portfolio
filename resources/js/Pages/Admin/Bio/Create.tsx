@@ -5,6 +5,7 @@ import BioLinkForm, { type BioLinkFormData } from './Partials/BioLinkForm'
 export default function Create() {
   const { data, setData, post, processing, errors } = useForm<BioLinkFormData>({
     label: '',
+    locale: 'en',
     description: '',
     url: '',
     icon: 'link',

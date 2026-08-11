@@ -162,4 +162,26 @@ class BioLinkThumbnailTest extends TestCase
 
         $this->assertDatabaseHas('bio_links', ['label' => 'Portfolio', 'locale' => 'en']);
     }
+
+    public function test_locale_can_be_set_to_bangla_on_update(): void
+    {
+        $this->actingAs($this->admin())->post('/admin/bio', $this->payload());
+        $link = \App\Models\BioLink::first();
+
+        $this->actingAs($this->admin())
+            ->post("/admin/bio/{$link->id}", array_merge($this->payload(), [
+                '_method' => 'put',
+                'locale' => 'bn',
+            ]));
+
+        $this->assertSame('bn', $link->fresh()->locale);
+    }
+
+    public function test_an_invalid_locale_is_rejected(): void
+    {
+        $response = $this->actingAs($this->admin())->post('/admin/bio', $this->payload(['locale' => 'fr']));
+
+        $response->assertSessionHasErrors('locale');
+        $this->assertDatabaseCount('bio_links', 0);
+    }
 }
