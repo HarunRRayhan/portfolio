@@ -17,6 +17,7 @@ class AdminPanelTest extends TestCase
     {
         $user = User::factory()->create([
             'email_verified_at' => now(),
+            'role' => 'admin',
         ]);
 
         $this->actingAs($user)

@@ -62,7 +62,7 @@ class BlogCommentTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->post('/blog/how-i-make-ai-coding-agents-safe-in-a-real-aws-codebase/comments', [
+        $response = $this->actingAs($user)->post('/blog/test-fixture-permanent-draft/comments', [
             'content' => 'This is a draft comment.',
         ]);
 
