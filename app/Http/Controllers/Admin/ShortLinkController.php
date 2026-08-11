@@ -69,6 +69,7 @@ class ShortLinkController extends Controller
             ]),
             'byCountry' => $this->groupCounts((clone $clicks), 'country'),
             'byReferer' => $this->refererCounts((clone $clicks)),
+            'bySource' => $this->groupCounts((clone $clicks), 'source'),
         ]);
     }
 

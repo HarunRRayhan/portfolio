@@ -147,4 +147,24 @@ class BioLinkAnalyticsTest extends TestCase
 
         $this->assertSame('linkedin', \App\Models\BioLinkClick::first()->source);
     }
+
+    public function test_it_reports_clicks_by_source(): void
+    {
+        $link = $this->link();
+
+        $this->click($link, ['source' => 'twitter']);
+        $this->click($link, ['source' => 'twitter']);
+        $this->click($link, ['source' => 'linkedin']);
+        $this->click($link); // no source -- excluded from the breakdown
+
+        $props = $this->actingAs($this->admin())
+            ->get('/admin/bio/analytics')
+            ->assertOk()
+            ->viewData('page')['props'];
+
+        $bySource = collect($props['bySource'])->pluck('clicks', 'key');
+        $this->assertSame(2, $bySource['twitter']);
+        $this->assertSame(1, $bySource['linkedin']);
+        $this->assertArrayNotHasKey('', $bySource);
+    }
 }
