@@ -65,13 +65,16 @@ const DECLARED_TABS: { slug: string; label: string; Icon: BioIcon }[] = [
   { slug: 'others', label: 'Others', Icon: MoreHorizontal },
 ]
 
-/** POST a click event to the server (fire-and-forget with keepalive). */
+/** POST a click event to the server (fire-and-forget with keepalive). The
+ *  optional ?src= on the page URL (set by a platform-specific share link)
+ *  survives in-app browsers that strip the Referer header. */
 const trackClick = (id: number) => {
   try {
+    const src = new URLSearchParams(window.location.search).get('src')
     fetch('/bio/click', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-      body: JSON.stringify({ id }),
+      body: JSON.stringify({ id, src }),
       keepalive: true,
     })
   } catch {

@@ -32,6 +32,7 @@ interface Props {
   byLink: LinkRow[]
   byCountry: GroupRow[]
   byReferer: GroupRow[]
+  bySource: GroupRow[]
 }
 
 const RANGES = [7, 30, 90]
@@ -96,6 +97,7 @@ export default function Analytics({
   byLink,
   byCountry,
   byReferer,
+  bySource,
 }: Props) {
   const [hover, setHover] = useState<DailyPoint | null>(null)
 
@@ -201,7 +203,7 @@ export default function Analytics({
             )}
           </section>
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             <RankedList
               title="Top countries"
               rows={byCountry}
@@ -219,6 +221,13 @@ export default function Analytics({
               rows={byReferer}
               empty="No referrer data yet."
               renderLabel={(host) => host}
+            />
+
+            <RankedList
+              title="Top sources"
+              rows={bySource}
+              empty="No source data yet. Sources are tagged via a share link's ?src= parameter."
+              renderLabel={(source) => source}
             />
           </div>
 

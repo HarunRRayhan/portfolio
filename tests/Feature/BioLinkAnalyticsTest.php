@@ -129,4 +129,66 @@ class BioLinkAnalyticsTest extends TestCase
         $this->assertSame(30, $props['days']);
         $this->assertCount(30, $props['daily']);
     }
+
+    public function test_source_is_stored_on_a_click(): void
+    {
+        $link = $this->link();
+
+        $this->click($link, ['source' => 'twitter']);
+
+        $this->assertDatabaseHas('bio_link_clicks', ['bio_link_id' => $link->id, 'source' => 'twitter']);
+    }
+
+    public function test_bio_click_records_an_optional_src_param(): void
+    {
+        $link = $this->link();
+
+        $this->postJson('/bio/click', ['id' => $link->id, 'src' => 'linkedin']);
+
+        $this->assertSame('linkedin', \App\Models\BioLinkClick::first()->source);
+    }
+
+    public function test_an_overlong_src_on_bio_click_still_records_a_truncated_source(): void
+    {
+        $link = $this->link();
+
+        $this->postJson('/bio/click', ['id' => $link->id, 'src' => str_repeat('a', 100)])
+            ->assertNoContent();
+
+        $click = BioLinkClick::first();
+        $this->assertNotNull($click);
+        $this->assertSame(str_repeat('a', 60), $click->source);
+    }
+
+    public function test_a_malformed_array_src_on_bio_click_still_records_a_null_source(): void
+    {
+        $link = $this->link();
+
+        $this->postJson('/bio/click', ['id' => $link->id, 'src' => ['x']])
+            ->assertNoContent();
+
+        $click = BioLinkClick::first();
+        $this->assertNotNull($click);
+        $this->assertNull($click->source);
+    }
+
+    public function test_it_reports_clicks_by_source(): void
+    {
+        $link = $this->link();
+
+        $this->click($link, ['source' => 'twitter']);
+        $this->click($link, ['source' => 'twitter']);
+        $this->click($link, ['source' => 'linkedin']);
+        $this->click($link); // no source -- excluded from the breakdown
+
+        $props = $this->actingAs($this->admin())
+            ->get('/admin/bio/analytics')
+            ->assertOk()
+            ->viewData('page')['props'];
+
+        $bySource = collect($props['bySource'])->pluck('clicks', 'key');
+        $this->assertSame(2, $bySource['twitter']);
+        $this->assertSame(1, $bySource['linkedin']);
+        $this->assertArrayNotHasKey('', $bySource);
+    }
 }

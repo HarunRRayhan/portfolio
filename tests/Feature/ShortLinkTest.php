@@ -170,4 +170,22 @@ class ShortLinkTest extends TestCase
         $this->assertSame(1, ShortLink::count());
         $this->assertSame($existing->code, ShortLink::first()->code);
     }
+
+    public function test_a_src_query_param_is_recorded_as_the_click_source(): void
+    {
+        $link = ShortLink::create(['destination_url' => 'https://example.com/target']);
+
+        $this->get("/s/{$link->code}?src=twitter")->assertRedirect('https://example.com/target');
+
+        $this->assertSame('twitter', ShortLinkClick::first()->source);
+    }
+
+    public function test_a_missing_src_query_param_leaves_source_null(): void
+    {
+        $link = ShortLink::create(['destination_url' => 'https://example.com/target']);
+
+        $this->get("/s/{$link->code}")->assertRedirect('https://example.com/target');
+
+        $this->assertNull(ShortLinkClick::first()->source);
+    }
 }

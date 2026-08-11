@@ -59,6 +59,7 @@ class BioLinkController extends Controller
             ]),
             'byCountry' => $this->groupCounts((clone $clicks), 'country'),
             'byReferer' => $this->refererCounts((clone $clicks)),
+            'bySource' => $this->groupCounts((clone $clicks), 'source'),
         ]);
     }
 
@@ -66,6 +67,7 @@ class BioLinkController extends Controller
     {
         $data = $this->validateData($request);
         unset($data['remove_thumbnail'], $data['thumbnail']); // 'thumbnail' is the raw upload, not a column
+        $data['locale'] = $data['locale'] ?? 'en';
 
         if ($request->hasFile('thumbnail')) {
             $data['thumbnail_path'] = $request->file('thumbnail')->store('bio-thumbnails', 'public');
@@ -91,6 +93,7 @@ class BioLinkController extends Controller
         $data = $this->validateData($request);
         $removeThumbnail = (bool) ($data['remove_thumbnail'] ?? false);
         unset($data['remove_thumbnail'], $data['thumbnail']);
+        $data['locale'] = $data['locale'] ?? 'en';
 
         // A newly uploaded file always wins over "remove"; both replace the
         // old stored file, so the delete only ever targets what's on disk now.
@@ -163,6 +166,7 @@ class BioLinkController extends Controller
     {
         return $request->validate([
             'label' => ['required', 'string', 'max:255'],
+            'locale' => ['nullable', 'string', 'in:en,bn'],
             'description' => ['nullable', 'string', 'max:255'],
             'url' => ['required', 'string', 'max:2048'],
             'icon' => ['required', 'string', 'max:60'],
@@ -188,6 +192,7 @@ class BioLinkController extends Controller
         return [
             'id' => $link->id,
             'label' => $link->label,
+            'locale' => $link->locale,
             'description' => $link->description,
             'url' => $link->url,
             'icon' => $link->icon,

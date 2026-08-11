@@ -5,6 +5,7 @@ import BioLinkForm, { type BioLinkFormData } from './Partials/BioLinkForm'
 interface BioLinkRecord {
   id: number
   label: string
+  locale: string
   description: string | null
   url: string
   icon: string
@@ -22,6 +23,7 @@ interface BioLinkRecord {
 export default function Edit({ link }: { link: BioLinkRecord }) {
   const { data, setData, post, transform, processing, errors } = useForm<BioLinkFormData>({
     label: link.label,
+    locale: link.locale ?? 'en',
     description: link.description ?? '',
     url: link.url,
     icon: link.icon ?? 'link',

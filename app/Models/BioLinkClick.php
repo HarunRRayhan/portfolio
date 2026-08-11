@@ -15,6 +15,7 @@ class BioLinkClick extends Model
         'country',
         'user_agent',
         'referer',
+        'source',
     ];
 
     public function bioLink(): BelongsTo

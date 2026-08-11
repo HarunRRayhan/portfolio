@@ -10,6 +10,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 export interface BioLinkFormData {
   label: string
+  locale: string
   description: string
   url: string
   icon: string
@@ -98,6 +99,21 @@ export default function BioLinkForm({
           required
         />
         <InputError message={errors.label} className="mt-2" />
+      </div>
+
+      <div>
+        <InputLabel htmlFor="locale" value="Content language" />
+        <select
+          id="locale"
+          value={data.locale}
+          onChange={(e) => setData('locale', e.target.value)}
+          className="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+        >
+          <option value="en">English</option>
+          <option value="bn">Bangla</option>
+        </select>
+        <p className="mt-1 text-xs text-gray-500">Which bio page this link belongs to.</p>
+        <InputError message={errors.locale} className="mt-2" />
       </div>
 
       <div>
