@@ -148,6 +148,30 @@ class BioLinkAnalyticsTest extends TestCase
         $this->assertSame('linkedin', \App\Models\BioLinkClick::first()->source);
     }
 
+    public function test_an_overlong_src_on_bio_click_still_records_a_truncated_source(): void
+    {
+        $link = $this->link();
+
+        $this->postJson('/bio/click', ['id' => $link->id, 'src' => str_repeat('a', 100)])
+            ->assertNoContent();
+
+        $click = BioLinkClick::first();
+        $this->assertNotNull($click);
+        $this->assertSame(str_repeat('a', 60), $click->source);
+    }
+
+    public function test_a_malformed_array_src_on_bio_click_still_records_a_null_source(): void
+    {
+        $link = $this->link();
+
+        $this->postJson('/bio/click', ['id' => $link->id, 'src' => ['x']])
+            ->assertNoContent();
+
+        $click = BioLinkClick::first();
+        $this->assertNotNull($click);
+        $this->assertNull($click->source);
+    }
+
     public function test_it_reports_clicks_by_source(): void
     {
         $link = $this->link();

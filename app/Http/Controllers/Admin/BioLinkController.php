@@ -67,6 +67,7 @@ class BioLinkController extends Controller
     {
         $data = $this->validateData($request);
         unset($data['remove_thumbnail'], $data['thumbnail']); // 'thumbnail' is the raw upload, not a column
+        $data['locale'] = $data['locale'] ?? 'en';
 
         if ($request->hasFile('thumbnail')) {
             $data['thumbnail_path'] = $request->file('thumbnail')->store('bio-thumbnails', 'public');
@@ -92,6 +93,7 @@ class BioLinkController extends Controller
         $data = $this->validateData($request);
         $removeThumbnail = (bool) ($data['remove_thumbnail'] ?? false);
         unset($data['remove_thumbnail'], $data['thumbnail']);
+        $data['locale'] = $data['locale'] ?? 'en';
 
         // A newly uploaded file always wins over "remove"; both replace the
         // old stored file, so the delete only ever targets what's on disk now.

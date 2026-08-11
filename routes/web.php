@@ -124,9 +124,14 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::delete('/{shortLink}', [ShortLinkController::class, 'destroy'])->name('destroy');
     });
 
+// Shared by the click-recording routes below: a raw 'src' value (query or
+// body) is untrusted visitor input, so we normalize defensively rather than
+// reject it — bad input just means no source tag, never a dropped click.
+$normalizeClickSource = fn ($value): ?string => is_string($value) && $value !== '' ? mb_substr($value, 0, 60) : null;
+
 // Public short-link redirect + click tracking (no auth needed). 302 so
 // browsers/CDNs never cache the redirect and skip recording a hit.
-Route::get('/s/{code}', function (string $code, Request $request, CountryResolver $countries) {
+Route::get('/s/{code}', function (string $code, Request $request, CountryResolver $countries) use ($normalizeClickSource) {
     $link = ShortLink::query()->active()->where('code', $code)->first();
 
     abort_unless($link, 404);
@@ -139,7 +144,7 @@ Route::get('/s/{code}', function (string $code, Request $request, CountryResolve
         'country' => $country,
         'user_agent' => $request->userAgent(),
         'referer' => $request->header('referer'),
-        'source' => is_string($src = $request->query('src')) && $src !== '' ? mb_substr($src, 0, 60) : null,
+        'source' => $normalizeClickSource($request->query('src')),
     ]);
 
     return redirect()->away($link->resolveDestination($country), 302);
@@ -190,10 +195,9 @@ Route::get('/bio', function (Request $request, CountryResolver $countries) {
 });
 
 // Click tracking for bio links (no auth needed)
-Route::post('/bio/click', function (Request $request, CountryResolver $countries) {
+Route::post('/bio/click', function (Request $request, CountryResolver $countries) use ($normalizeClickSource) {
     $data = $request->validate([
         'id' => ['required', 'integer', 'exists:bio_links,id'],
-        'src' => ['nullable', 'string', 'max:60'],
     ]);
 
     App\Models\BioLinkClick::create([
@@ -202,7 +206,7 @@ Route::post('/bio/click', function (Request $request, CountryResolver $countries
         'country' => $countries->resolve($request->ip()),
         'user_agent' => $request->userAgent(),
         'referer' => $request->header('referer'),
-        'source' => $data['src'] ?? null,
+        'source' => $normalizeClickSource($request->input('src')),
     ]);
 
     return response()->noContent();

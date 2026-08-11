@@ -177,6 +177,14 @@ class BioLinkThumbnailTest extends TestCase
         $this->assertSame('bn', $link->fresh()->locale);
     }
 
+    public function test_an_empty_string_locale_still_creates_with_the_english_default(): void
+    {
+        $response = $this->actingAs($this->admin())->post('/admin/bio', $this->payload(['locale' => '']));
+
+        $response->assertRedirect(route('admin.bio.index'));
+        $this->assertDatabaseHas('bio_links', ['label' => 'Portfolio', 'locale' => 'en']);
+    }
+
     public function test_an_invalid_locale_is_rejected(): void
     {
         $response = $this->actingAs($this->admin())->post('/admin/bio', $this->payload(['locale' => 'fr']));
