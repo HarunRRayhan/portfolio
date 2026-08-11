@@ -155,4 +155,11 @@ class BioLinkThumbnailTest extends TestCase
         $this->assertTrue($link['featured']);
         $this->assertStringContainsString('bio-thumbnails/hero.jpg', $link['thumbnail_url']);
     }
+
+    public function test_a_new_bio_link_defaults_to_english_locale(): void
+    {
+        $this->actingAs($this->admin())->post('/admin/bio', $this->payload());
+
+        $this->assertDatabaseHas('bio_links', ['label' => 'Portfolio', 'locale' => 'en']);
+    }
 }
