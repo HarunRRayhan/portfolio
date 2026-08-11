@@ -139,6 +139,7 @@ Route::get('/s/{code}', function (string $code, Request $request, CountryResolve
         'country' => $country,
         'user_agent' => $request->userAgent(),
         'referer' => $request->header('referer'),
+        'source' => is_string($src = $request->query('src')) && $src !== '' ? mb_substr($src, 0, 60) : null,
     ]);
 
     return redirect()->away($link->resolveDestination($country), 302);
