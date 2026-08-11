@@ -193,6 +193,7 @@ Route::get('/bio', function (Request $request, CountryResolver $countries) {
 Route::post('/bio/click', function (Request $request, CountryResolver $countries) {
     $data = $request->validate([
         'id' => ['required', 'integer', 'exists:bio_links,id'],
+        'src' => ['nullable', 'string', 'max:60'],
     ]);
 
     App\Models\BioLinkClick::create([
@@ -201,6 +202,7 @@ Route::post('/bio/click', function (Request $request, CountryResolver $countries
         'country' => $countries->resolve($request->ip()),
         'user_agent' => $request->userAgent(),
         'referer' => $request->header('referer'),
+        'source' => $data['src'] ?? null,
     ]);
 
     return response()->noContent();

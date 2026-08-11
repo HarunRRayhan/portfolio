@@ -138,4 +138,13 @@ class BioLinkAnalyticsTest extends TestCase
 
         $this->assertDatabaseHas('bio_link_clicks', ['bio_link_id' => $link->id, 'source' => 'twitter']);
     }
+
+    public function test_bio_click_records_an_optional_src_param(): void
+    {
+        $link = $this->link();
+
+        $this->postJson('/bio/click', ['id' => $link->id, 'src' => 'linkedin']);
+
+        $this->assertSame('linkedin', \App\Models\BioLinkClick::first()->source);
+    }
 }
