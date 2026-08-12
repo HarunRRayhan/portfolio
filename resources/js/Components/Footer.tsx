@@ -50,7 +50,7 @@ const links: FooterLinkGroup[] = [
 
 const socials = [
     { href: 'https://github.com/HarunRRayhan', label: 'GitHub', icon: Github },
-    { href: 'https://x.com/HarunRRayhan', label: 'Twitter', icon: Twitter },
+    { href: 'https://x.com/harundotdev', label: 'Twitter', icon: Twitter },
     { href: 'https://www.linkedin.com/in/harunrrayhan/', label: 'LinkedIn', icon: Linkedin },
     { href: 'mailto:me@harun.dev?subject=Hello%20Harun', label: 'Email', icon: Mail },
 ]

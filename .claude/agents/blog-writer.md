@@ -55,7 +55,7 @@ format the site already renders.
    - Short, concrete sentences with real numbers, exact error messages, actual file paths — not
      adjectives.
    - End with: a short "Hope you enjoyed..." line plus a call to follow
-     `https://x.com/HarunRRayhan`. No "In summary" / "In conclusion" wrap-up before it.
+     `https://x.com/harundotdev`. No "In summary" / "In conclusion" wrap-up before it.
 
 6. **Don't rehash** a topic already covered on the blog. Grep `resources/blog/posts/*.md` titles/tags
    first if there's any doubt about overlap.

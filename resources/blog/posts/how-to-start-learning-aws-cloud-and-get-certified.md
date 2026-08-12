@@ -9,7 +9,7 @@ reactionCount: 0
 responseCount: 0
 replyCount: 0
 sourceUrl: "https://web.archive.org/web/*/https://blog.harun.dev/how-to-start-learning-aws-cloud-and-get-certified"
-coverImageUrl: "/blog-assets/how-to-start-learning-aws-cloud-and-get-certified/cover.png"
+coverImageUrl: "/blog-assets/how-to-start-learning-aws-cloud-and-get-certified/cover.jpg"
 tags:
   - name: "AWS"
     slug: "aws"
@@ -22,7 +22,7 @@ tags:
 ---
 <p>Hi 👋<br />I recently passed the last and final AWS certifications. I am now fully AWS certified with all 12 certifications under my belt. Software engineers from all different levels frequently asked me how I learned AWS and how they should get started.</p>
 <p>Of course, this article includes resources to get certified but is not limited to only certifications. Anyone from afraid of learning AWS to a professional who wants to get more AWS services knowledge will get something out of this article.</p>
-<p>This will be a Q&amp;A-style post where all the questions are collected from comments, tweets, replies, and my DM. If your question is missing, feel free to ask in the comment. If you want to stay anonymous, ask me in my <a target="_blank" href="https://twitter.com/HarunRRayhan">Twitter</a> DM.</p>
+<p>This will be a Q&amp;A-style post where all the questions are collected from comments, tweets, replies, and my DM. If your question is missing, feel free to ask in the comment. If you want to stay anonymous, ask me in my <a target="_blank" href="https://x.com/harundotdev">Twitter</a> DM.</p>
 <p>Let's get answers to your questions. ⁉️</p>
 <h2 id="heading-qandampas">Q&amp;As</h2>
 <h3 id="heading-i-am-a-newbie-how-can-i-start-learning-aws">I am a newbie; how can I start learning AWS?</h3>
@@ -78,9 +78,9 @@ tags:
 <p> Besides that, <a target="_blank" href="https://tutorialsdojo.com">TutorialsDojo</a> provides practice exam sets with detailed explanations, which I always recommend to boost your confidence.</p>
 </li>
 </ol>
-<p>Let me know on <a target="_blank" href="https://twitter.com/HarunRRayhan">Twitter</a> how you are preparing for your certification exam. And don't forget to tweet mentioning me once you pass the exam. 🚀</p>
+<p>Let me know on <a target="_blank" href="https://x.com/harundotdev">Twitter</a> how you are preparing for your certification exam. And don't forget to tweet mentioning me once you pass the exam. 🚀</p>
 <p>...</p>
 <h1 id="heading-conclusion">Conclusion</h1>
-<p>I tried to cover every question I got over the years. If you have a question not covered in this post, ask in the comment or in <a target="_blank" href="https://twitter.com/HarunRRayhan">Twitter</a>, and I will definitely answer those questions.</p>
+<p>I tried to cover every question I got over the years. If you have a question not covered in this post, ask in the comment or in <a target="_blank" href="https://x.com/harundotdev">Twitter</a>, and I will definitely answer those questions.</p>
 <p>If you want to appreciate my work, love ❤️ this post, share it with your friends, subscribe to the newsletter, and keep following updates here on the blog.</p>
-<p>I'm searching for the next topic to cover in this blog; if you have an idea, tweet me. Don't forget to follow me on <a target="_blank" href="https://twitter.com/HarunRRayhan">Twitter</a>, and I regularly tweet about AWS, Laravel, Cloud, PHP, and various other Software Engineering topics.</p>
+<p>I'm searching for the next topic to cover in this blog; if you have an idea, tweet me. Don't forget to follow me on <a target="_blank" href="https://x.com/harundotdev">Twitter</a>, and I regularly tweet about AWS, Laravel, Cloud, PHP, and various other Software Engineering topics.</p>

@@ -351,4 +351,4 @@ php artisan about
 <p>The impact here is moderate. If you're already on PHP 8.3 and your tests pass, you're probably fine. The <code>Model::unguard()</code> removal and schedule kernel changes are easy fixes. And if you installed Boost, the upgrade prompt can walk you through the rest automatically.</p>
 <p>Laravel 13 is a clear signal that the framework is moving toward AI-native PHP. The AI SDK, vector search, and MCP server aren't experiments. They're first-party packages with long-term support. Taylor and the team are betting that AI features belong in the framework, not just in third-party packages.</p>
 <p>Hope you enjoyed this rundown of Laravel 13. There's a lot here, and I'll be writing deeper dives on the AI SDK and pgvector integration in future posts.</p>
-<p>Follow me on <a href="https://x.com/HarunRRayhan">Twitter/X</a> for more Laravel and PHP content. Drop a comment if you've already upgraded or if you have questions.</p>
+<p>Follow me on <a href="https://x.com/harundotdev">Twitter/X</a> for more Laravel and PHP content. Drop a comment if you've already upgraded or if you have questions.</p>

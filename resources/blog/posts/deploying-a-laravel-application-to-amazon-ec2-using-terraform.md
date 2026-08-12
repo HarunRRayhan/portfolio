@@ -422,4 +422,4 @@ sudo systemctl restart nginx
 <h2>Wrapping Up</h2>
 <p>Look, EC2 is still a perfectly good way to run a Laravel app on AWS. Not everything needs containers or Lambda. Sometimes simple is the right answer. And with Terraform you can version control the whole setup and recreate it whenever.</p>
 <p>What we built today is a solid starting point. You could add RDS for a proper database, throw a load balancer in front for SSL termination, or use ACM for a free TLS certificate. All of that is just more Terraform on top of what you already have. Actually, I've been meaning to try Terragrunt for managing multiple environments but haven't gotten around to it yet.</p>
-<p>Hope you enjoyed this one. If you have questions or want to show me what you built on top of this setup, find me on Twitter at <a href="https://x.com/HarunRRayhan">https://x.com/HarunRRayhan</a>. Always happy to chat about this stuff.</p>
+<p>Hope you enjoyed this one. If you have questions or want to show me what you built on top of this setup, find me on Twitter at <a href="https://x.com/harundotdev">https://x.com/harundotdev</a>. Always happy to chat about this stuff.</p>

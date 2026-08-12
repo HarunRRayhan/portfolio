@@ -10,7 +10,7 @@ reactionCount: 0
 responseCount: 0
 replyCount: 0
 sourceUrl: "https://web.archive.org/web/*/https://blog.harun.dev/deploy-laravel-application-to-amazon-ec2-instance"
-coverImageUrl: "/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/cover.jpeg"
+coverImageUrl: "/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/cover.jpg"
 tags:
   - name: "ec2"
     slug: "ec2"
@@ -222,4 +222,4 @@ tags:
 <h2 id="heading-conclusion">Conclusion</h2>
 <p>This article covers the very basic things about launching an instance. If you have any query or you are stuck, feel free to ask in the comment.</p>
 <p>If you want to appreciate my work, love ❤️ this post, share it with your friends, subscribe to the newsletter, and keep following updates here on the blog.</p>
-<p>I'm searching for the next topic to cover in this blog; if you have an idea, tweet me. Don't forget to follow me on <a target="_blank" href="https://twitter.com/HarunRRayhan"><strong>Twitter</strong></a>, I regularly tweet about AWS, Laravel, Cloud, PHP, and various other Software Engineering topics.</p>
+<p>I'm searching for the next topic to cover in this blog; if you have an idea, tweet me. Don't forget to follow me on <a target="_blank" href="https://x.com/harundotdev"><strong>Twitter</strong></a>, I regularly tweet about AWS, Laravel, Cloud, PHP, and various other Software Engineering topics.</p>

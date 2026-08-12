@@ -487,4 +487,4 @@ report = checker.generate_compliance_report()
 <p>Remember that HIPAA compliance is an ongoing process, not a one-time configuration. Regular reviews, updates, and staff training are essential for maintaining compliance as your ML infrastructure evolves.</p>
 <p>By following these guidelines and best practices, healthcare organizations can confidently build and deploy machine learning solutions that improve patient care while maintaining the trust and privacy that patients deserve.</p>
 <hr />
-<p><em>Don't forget to follow me on</em> <a target="_blank" href="https://x.com/HarunRRayhan"><em>Twitter</em></a><em>, I regularly tweet about AWS, Laravel, Cloud, PHP, and various other Software Engineering topics.</em></p>
+<p><em>Don't forget to follow me on</em> <a target="_blank" href="https://x.com/harundotdev"><em>Twitter</em></a><em>, I regularly tweet about AWS, Laravel, Cloud, PHP, and various other Software Engineering topics.</em></p>

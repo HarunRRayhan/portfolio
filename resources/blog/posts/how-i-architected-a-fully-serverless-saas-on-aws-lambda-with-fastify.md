@@ -572,6 +572,6 @@ async function swaggerPlugin(fastify) {
 <p>The serverless tax is real. Cold starts, connection pooling complexity, CloudFormation verbosity. But the operational simplicity makes it worth it. No patching servers. No capacity planning. No 3 AM pages because an EC2 instance ran out of disk space. Just push to main and the pipeline handles the rest.</p>
 <p>Hope you enjoyed this deep dive. If you have questions about any part of this architecture, feel free to ask in the comments.</p>
 <hr />
-<p><em>Don't forget to follow me on <a href="https://x.com/HarunRRayhan">Twitter/X</a>, I regularly tweet about AWS, DevOps, and various other Software Engineering topics.</em></p>
+<p><em>Don't forget to follow me on <a href="https://x.com/harundotdev">Twitter/X</a>, I regularly tweet about AWS, DevOps, and various other Software Engineering topics.</em></p>
 <p><img src="https://images.pexels.com/photos/1181316/pexels-photo-1181316.jpeg?auto=compress&amp;cs=tinysrgb&amp;h=650&amp;w=940" alt="Cloud computing and serverless technology" />
 <sub>Photo by <a href="https://www.pexels.com/@divinetechygirl">Christina Morillo</a> on <a href="https://www.pexels.com/photo/engineer-holding-laptop-1181316/">Pexels</a></sub></p>

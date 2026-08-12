@@ -49,7 +49,7 @@ Fixed 1600x840 canvas, four layers:
    squares (`border-radius: 14px`), one per core technology in the post,
    3-5 badges total. See the icon library below.
 4. **Footer** — bottom bar (`bottom: 40px`, `left/right: 60px`), globe icon +
-   `harun.dev` bottom-left, X/LinkedIn/Facebook glyphs + `@HarunRRayhan`
+   `harun.dev` bottom-left, X/LinkedIn/Facebook glyphs + `@harundotdev`
    bottom-right. **Always `harun.dev`** — the old `blog.harun.dev` subdomain
    now redirects to it, so never use it in a new cover.
 

@@ -184,4 +184,4 @@ tags:
 
 <p>The MicroVM model is still the right choice for AI workloads on AWS. You get the isolation, the fast scaling, and the pay-per-use pricing. But you need to design for the platform's limits instead of fighting against them. The async pattern, reserved concurrency, and warm pool strategy turned a fragile pipeline into something I do not worry about anymore.</p>
 
-<p>Hope you enjoyed this walkthrough. If you are running similar AI workloads on Lambda and have found other patterns that work, let me know. Follow me on Twitter at <a href="https://x.com/HarunRRayhan" target="_blank">@HarunRRayhan</a> for more real world AWS stories.</p>
+<p>Hope you enjoyed this walkthrough. If you are running similar AI workloads on Lambda and have found other patterns that work, let me know. Follow me on Twitter at <a href="https://x.com/harundotdev" target="_blank">@harundotdev</a> for more real world AWS stories.</p>
