@@ -436,6 +436,6 @@ jobs:
 <p>Now go give your AI assistant something useful to do.</p>
 <p>Hope you enjoyed this walkthrough. If you're building an MCP server on AWS or have questions about any of the pieces, I'd love to hear about it.</p>
 <hr />
-<p><em>Follow me on <a href="https://x.com/HarunRRayhan">Twitter/X</a> for more posts about AWS, serverless, and building AI-powered products. I share the stuff that actually works in production.</em></p>
+<p><em>Follow me on <a href="https://x.com/harundotdev">Twitter/X</a> for more posts about AWS, serverless, and building AI-powered products. I share the stuff that actually works in production.</em></p>
 <p><img src="https://images.pexels.com/photos/6153351/pexels-photo-6153351.jpeg?auto=compress&amp;cs=tinysrgb&amp;h=650&amp;w=940" alt="Human and robot collaboration in technology" />
 <sub>Photo by <a href="https://www.pexels.com/@cottonbro">cottonbro studio</a> on <a href="https://www.pexels.com/photo/close-up-shot-of-fist-bump-6153351/">Pexels</a></sub></p>

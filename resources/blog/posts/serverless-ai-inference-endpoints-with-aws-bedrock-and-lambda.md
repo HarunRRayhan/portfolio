@@ -416,6 +416,6 @@ export const handler = async (event) =&gt; {
 <p>If I were starting a new AI feature tomorrow, this is exactly the stack I'd reach for. Get the product working first. Validate that users actually want it. Then worry about optimization later. Bedrock's on-demand pricing means you can experiment without any commitment, and if nobody uses the feature, it costs you nothing.</p>
 <p>Hope you enjoyed this one. If you're building AI features on AWS or have questions about Bedrock pricing and model selection, I'd love to hear about it.</p>
 <hr />
-<p><em>Follow me on <a href="https://x.com/HarunRRayhan">Twitter/X</a> for more posts about AWS, serverless, and building AI-powered products. I share the stuff that actually works in production.</em></p>
+<p><em>Follow me on <a href="https://x.com/harundotdev">Twitter/X</a> for more posts about AWS, serverless, and building AI-powered products. I share the stuff that actually works in production.</em></p>
 <p><img src="https://images.pexels.com/photos/574069/pexels-photo-574069.jpeg?auto=compress&amp;cs=tinysrgb&amp;h=650&amp;w=940" alt="Developer working at laptop" />
 <sub>Photo by <a href="https://www.pexels.com/@goumbik">Lukas Blazek</a> on <a href="https://www.pexels.com/photo/laptop-computer-showing-c-application-574069/">Pexels</a></sub></p>

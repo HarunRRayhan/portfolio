@@ -9,7 +9,7 @@ reactionCount: 0
 responseCount: 0
 replyCount: 0
 sourceUrl: "https://web.archive.org/web/*/https://blog.harun.dev/install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging"
-coverImageUrl: "/blog-assets/install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging/cover.png"
+coverImageUrl: "/blog-assets/install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging/cover.jpg"
 tags:
   - name: "AWS"
     slug: "aws"
@@ -126,4 +126,4 @@ sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
 </ol>
 <h2 id="heading-conclusion">Conclusion</h2>
 <p>Hope you enjoyed this article. This is the last article of the Amazon Lightsail series.  You can ask me any Lightsail-related question in the comments or on social media.</p>
-<p>You can subscribe to my newsletter to get blog updates every week. Follow me on <a target="_blank" href="https://twitter.com/HarunRRayhan">Twitter</a> and <a target="_blank" href="https://dev.to/harunrrayhan">Dev.to</a>. </p>
+<p>You can subscribe to my newsletter to get blog updates every week. Follow me on <a target="_blank" href="https://x.com/harundotdev">Twitter</a> and <a target="_blank" href="https://dev.to/harunrrayhan">Dev.to</a>. </p>

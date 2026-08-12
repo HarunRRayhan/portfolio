@@ -83,4 +83,4 @@ tags:
 
 <p>If you're sitting on something that works today and you can already feel it not surviving the next round of growth, whether that's an old framework or an app an AI wrote last week, that's the exact pattern these two services are built for. The <a href="/case-studies/polaris">Polaris case study</a> is the long version of what the move looks like.</p>
 
-<p>Hope you enjoyed this one. If you've got an app that outgrew the tool that built it, or you just want to argue about when to scale versus when to migrate, come find me on X at https://x.com/HarunRRayhan.</p>
+<p>Hope you enjoyed this one. If you've got an app that outgrew the tool that built it, or you just want to argue about when to scale versus when to migrate, come find me on X at https://x.com/harundotdev.</p>

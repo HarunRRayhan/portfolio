@@ -449,4 +449,4 @@ Hope you enjoyed this one. If you're building AI pipelines on AWS or have questi
 
 ---
 
-*Follow me on [Twitter/X](https://x.com/HarunRRayhan) for more posts about AWS, serverless, and building AI-powered products.*
+*Follow me on [Twitter/X](https://x.com/harundotdev) for more posts about AWS, serverless, and building AI-powered products.*

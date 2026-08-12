@@ -381,4 +381,4 @@ Hope you enjoyed this one. If you're building real-time AI features or have ques
 
 ---
 
-*Follow me on [Twitter/X](https://x.com/HarunRRayhan) for more posts about AWS, serverless, and building AI-powered products.*
+*Follow me on [Twitter/X](https://x.com/harundotdev) for more posts about AWS, serverless, and building AI-powered products.*

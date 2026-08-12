@@ -525,6 +525,6 @@ stripe test_helpers test_clocks advance \
 <p>Get those right and the rest is glue. The Fastify plugin pattern from the auth post extends naturally to billing. <code>request.tenantId</code> from auth, <code>request.plan</code> from billing, route handlers stay clean.</p>
 <p>Hope you enjoyed this walkthrough. If you're building something similar or have questions about any of these patterns, drop a comment below or reach out on Twitter.</p>
 <hr />
-<p><em>Follow me on <a href="https://x.com/HarunRRayhan">Twitter/X</a> for more posts about AWS, serverless architecture, and building SaaS products.</em></p>
+<p><em>Follow me on <a href="https://x.com/harundotdev">Twitter/X</a> for more posts about AWS, serverless architecture, and building SaaS products.</em></p>
 <p><img src="https://images.pexels.com/photos/3912478/pexels-photo-3912478.jpeg?auto=compress&amp;cs=tinysrgb&amp;h=650&amp;w=940" alt="Developer community" />
 <sub>Photo by <a href="https://www.pexels.com/@thisisengineering">ThisIsEngineering</a> on <a href="https://www.pexels.com/photo/engineers-designing-app-3912478/">Pexels</a></sub></p>

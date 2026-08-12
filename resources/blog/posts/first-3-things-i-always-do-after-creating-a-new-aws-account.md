@@ -8,7 +8,7 @@ reactionCount: 0
 responseCount: 1
 replyCount: 1
 sourceUrl: "https://web.archive.org/web/*/https://blog.harun.dev/first-3-things-i-always-do-after-creating-a-new-aws-account"
-coverImageUrl: "/blog-assets/first-3-things-i-always-do-after-creating-a-new-aws-account/cover.png"
+coverImageUrl: "/blog-assets/first-3-things-i-always-do-after-creating-a-new-aws-account/cover.jpg"
 tags:
   - name: "AWS"
     slug: "aws"
@@ -117,4 +117,4 @@ Everything is the same as the first alert, only change Trigger to <strong>Foreca
 <p>...</p>
 <h2 id="heading-conclusion">Conclusion</h2>
 <p>There are more things to do to save bills and tighten security of your account. But these are the first 3 things I do and doesn't require much technical knowledge. </p>
-<p>You can subscribe to my newsletter in <a target="_blank" href="https://harun.dev/blog">my blog</a>. Follow me on <a target="_blank" href="https://twitter.com/HarunRRayhan">Twitter</a> and <a target="_blank" href="https://dev.to/harunrrayhan">Dev.to</a> for regular updates. Don't hesitate to show your love by clicking Like 👍 button.</p>
+<p>You can subscribe to my newsletter in <a target="_blank" href="https://harun.dev/blog">my blog</a>. Follow me on <a target="_blank" href="https://x.com/harundotdev">Twitter</a> and <a target="_blank" href="https://dev.to/harunrrayhan">Dev.to</a> for regular updates. Don't hesitate to show your love by clicking Like 👍 button.</p>

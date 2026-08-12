@@ -497,6 +497,6 @@ async function getEmbedding(text) {
 <p>Now go build something cool with it.</p>
 <p>Hope you enjoyed this walkthrough. If you have questions about any part of the pipeline, or if you've built something similar and want to compare notes, reach out.</p>
 <hr />
-<p><em>Follow me on <a href="https://x.com/HarunRRayhan">Twitter/X</a> for more posts about AWS, serverless, and building AI products. I share what actually works in production, not just what looks good in tutorials.</em></p>
+<p><em>Follow me on <a href="https://x.com/harundotdev">Twitter/X</a> for more posts about AWS, serverless, and building AI products. I share what actually works in production, not just what looks good in tutorials.</em></p>
 <p><img src="https://images.pexels.com/photos/34920288/pexels-photo-34920288.png?auto=compress&amp;cs=tinysrgb&amp;h=650&amp;w=940" alt="Cloud computing and serverless technology" />
 <sub>Photo by <a href="https://www.pexels.com/@nicolas-foster-65973708">Nicolas  Foster</a> on <a href="https://www.pexels.com/photo/vintage-amd-motherboard-with-pci-and-agp-slots-34920288/">Pexels</a></sub></p>

@@ -587,4 +587,4 @@ EOT
 
 <p>The ingestion pipeline has been running on this shape for a while now. Documents that fail land in a queue with the reason attached instead of vanishing. Re-runs are cheap because unchanged chunks skip the embedding call. And the duplicate vector problem is structurally impossible, because <code>(document_id, chunk_index)</code> is a primary key and a run ID sweeps whatever's left over.</p>
 
-<p>Hope you enjoyed this one. If you're building RAG ingestion on AWS and you've found a better way to handle the fan-out, or you just want to argue about batch sizes, come find me on X at <a href="https://x.com/HarunRRayhan">https://x.com/HarunRRayhan</a>.</p>
+<p>Hope you enjoyed this one. If you're building RAG ingestion on AWS and you've found a better way to handle the fan-out, or you just want to argue about batch sizes, come find me on X at <a href="https://x.com/harundotdev">https://x.com/harundotdev</a>.</p>

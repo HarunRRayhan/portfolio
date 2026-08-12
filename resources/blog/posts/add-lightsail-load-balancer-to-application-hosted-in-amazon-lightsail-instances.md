@@ -10,7 +10,7 @@ reactionCount: 0
 responseCount: 0
 replyCount: 0
 sourceUrl: "https://web.archive.org/web/*/https://blog.harun.dev/add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances"
-coverImageUrl: "/blog-assets/add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances/cover.png"
+coverImageUrl: "/blog-assets/add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances/cover.jpg"
 tags:
   - name: "AWS"
     slug: "aws"
@@ -84,4 +84,4 @@ I just have one in this region. You should see all of the instances you have in 
 </li>
 </ol>
 <h2 id="heading-conclusion">Conclusion</h2>
-<p>Hope you enjoyed this short article. You can subscribe to my newsletter, and follow me on <a target="_blank" href="https://twitter.com/HarunRRayhan">Twitter</a> and <a target="_blank" href="https://dev.to/harunrrayhan">Dev.to</a>. </p>
+<p>Hope you enjoyed this short article. You can subscribe to my newsletter, and follow me on <a target="_blank" href="https://x.com/harundotdev">Twitter</a> and <a target="_blank" href="https://dev.to/harunrrayhan">Dev.to</a>. </p>

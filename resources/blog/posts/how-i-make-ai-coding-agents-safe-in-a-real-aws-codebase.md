@@ -156,4 +156,4 @@ AI coding agents are most useful when they speed up the middle of the process, n
 
 That is the real lesson. You do not make agents safe by hoping they behave. You make them safe by surrounding them with the same engineering habits that already keep the rest of your stack reliable.
 
-Hope you enjoyed this one. If you want more practical AWS and AI engineering notes, follow me on X at https://x.com/HarunRRayhan
+Hope you enjoyed this one. If you want more practical AWS and AI engineering notes, follow me on X at https://x.com/harundotdev

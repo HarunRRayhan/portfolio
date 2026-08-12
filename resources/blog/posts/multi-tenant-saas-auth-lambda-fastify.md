@@ -369,6 +369,6 @@ await app.register(rateLimit, {
 <p>Multi-tenant auth is one of those things that's straightforward in concept but full of sharp edges in practice. The Fastify plugin system makes it manageable. You write the auth logic once, register it as a plugin, and every route in your app gets tenant-aware security for free.</p>
 <p>Hope you enjoyed this walkthrough. If you're building something similar or have questions about any of these patterns, feel free to drop a comment below.</p>
 <hr />
-<p><em>Follow me on <a href="https://x.com/HarunRRayhan">Twitter/X</a> for more posts about AWS, serverless architecture, and building SaaS products.</em></p>
+<p><em>Follow me on <a href="https://x.com/harundotdev">Twitter/X</a> for more posts about AWS, serverless architecture, and building SaaS products.</em></p>
 <p><img src="https://images.pexels.com/photos/3912478/pexels-photo-3912478.jpeg?auto=compress&amp;cs=tinysrgb&amp;h=650&amp;w=940" alt="Developer community and collaboration" />
 <sub>Photo by <a href="https://www.pexels.com/@thisisengineering">ThisIsEngineering</a> on <a href="https://www.pexels.com/photo/engineers-designing-app-3912478/">Pexels</a></sub></p>

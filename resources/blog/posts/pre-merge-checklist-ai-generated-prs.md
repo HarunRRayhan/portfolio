@@ -348,7 +348,7 @@ git diff main HEAD | less
 
 <p>Build the checklist. Run it every time. Your production environment will thank you.</p>
 
-<p>Hope you enjoyed this. If you have a checklist item I missed, I would love to hear about it. Find me on X at https://x.com/HarunRRayhan and let me know.</p>
+<p>Hope you enjoyed this. If you have a checklist item I missed, I would love to hear about it. Find me on X at https://x.com/harundotdev and let me know.</p>
 
 <img src="https://images.pexels.com/photos/5474295/pexels-photo-5474295.jpeg?auto=compress&cs=tinysrgb&h=650&w=940" alt="Developer typing a checklist on a laptop" />
 <sub>Photo by <a href="https://www.pexels.com/@cottonbro">cottonbro studio</a> on <a href="https://www.pexels.com/photo/hands-on-a-laptop-keyboard-5474295/">Pexels</a></sub>

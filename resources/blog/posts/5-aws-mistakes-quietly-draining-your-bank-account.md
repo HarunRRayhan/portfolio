@@ -290,6 +290,6 @@ aws stepfunctions start-execution \
 <p>And if you're just getting started on AWS, bake these fixes into your infrastructure from day one. Set log retention policies in your CloudFormation templates. Add VPC endpoints before you deploy your first Lambda function. Run Power Tuning once a quarter. Future you will be grateful.</p>
 <p>Hope you enjoyed this breakdown. If you found a surprise on your AWS bill that I didn't cover, I'd love to hear about it in the comments.</p>
 <hr />
-<p><em>Follow me on <a href="https://x.com/HarunRRayhan">Twitter/X</a> for more AWS, DevOps, and serverless content. I share the stuff I find while auditing real infrastructure so you can avoid the same mistakes.</em></p>
+<p><em>Follow me on <a href="https://x.com/harundotdev">Twitter/X</a> for more AWS, DevOps, and serverless content. I share the stuff I find while auditing real infrastructure so you can avoid the same mistakes.</em></p>
 <p><img src="https://images.pexels.com/photos/11933549/pexels-photo-11933549.jpeg?auto=compress&amp;cs=tinysrgb&amp;h=650&amp;w=940" alt="Financial savings and budget planning" />
 <sub>Photo by <a href="https://www.pexels.com/@ann-h-45017">Ann H</a> on <a href="https://www.pexels.com/photo/photo-of-a-pink-piggy-bank-11933549/">Pexels</a></sub></p>
