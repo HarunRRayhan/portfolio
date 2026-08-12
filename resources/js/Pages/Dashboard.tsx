@@ -194,6 +194,12 @@ export default function Dashboard({ stats, recentPosts, draftPostsList }: Props)
                             >
                                 Slides & Videos
                             </Link>
+                            <Link
+                                href="/admin/api-keys"
+                                className="inline-flex items-center px-4 py-2 bg-white text-neutral-700 text-sm font-medium rounded-lg border border-neutral-200 hover:bg-neutral-50 transition-colors dark:bg-neutral-800 dark:text-neutral-200 dark:border-neutral-700 dark:hover:bg-neutral-700/50"
+                            >
+                                API Keys
+                            </Link>
                         </div>
                     </div>
                 </div>

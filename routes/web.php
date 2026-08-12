@@ -7,6 +7,7 @@ use App\Http\Controllers\BlogCommentController;
 use App\Http\Controllers\Admin\BioLinkController;
 use App\Http\Controllers\Admin\MediaItemController;
 use App\Http\Controllers\Admin\ShortLinkController;
+use App\Http\Controllers\Admin\ApiKeyController;
 use App\Models\BioLink;
 use App\Models\MediaItem;
 use App\Models\ShortLink;
@@ -122,6 +123,16 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::put('/{shortLink}', [ShortLinkController::class, 'update'])->name('update');
         Route::patch('/{shortLink}/toggle', [ShortLinkController::class, 'toggle'])->name('toggle');
         Route::delete('/{shortLink}', [ShortLinkController::class, 'destroy'])->name('destroy');
+    });
+
+// Admin management of Sanctum API keys used by the public /api/v1 endpoints
+Route::middleware(['auth', 'verified', 'role:admin'])
+    ->prefix('admin/api-keys')
+    ->name('admin.api-keys.')
+    ->group(function () {
+        Route::get('/', [ApiKeyController::class, 'index'])->name('index');
+        Route::post('/', [ApiKeyController::class, 'store'])->name('store');
+        Route::delete('/{id}', [ApiKeyController::class, 'destroy'])->name('destroy');
     });
 
 // Shared by the click-recording routes below: a raw 'src' value (query or

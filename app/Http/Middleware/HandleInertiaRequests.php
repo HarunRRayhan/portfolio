@@ -40,6 +40,12 @@ class HandleInertiaRequests extends Middleware
             ],
             'caseStudiesByService' => $byService,
             'featuredCaseStudies' => $caseStudies->featured(3),
+            // Pages already read usePage().props.flash (Contact.tsx, Bio.tsx)
+            // for the ->with('flash', [...]) convention used across admin
+            // controllers, but nothing was actually sharing it as an Inertia
+            // prop -- add it here so that convention works everywhere,
+            // including the new admin/api-keys "here's your token" flash.
+            'flash' => fn () => $request->session()->get('flash'),
         ];
     }
 }

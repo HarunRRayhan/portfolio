@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -12,6 +13,7 @@ class ShortLink extends Model
 {
     protected $fillable = [
         'code',
+        'user_id',
         'destination_url',
         'country_overrides',
         'url_hash',
@@ -177,5 +179,10 @@ class ShortLink extends Model
     public function clicks(): HasMany
     {
         return $this->hasMany(ShortLinkClick::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }
