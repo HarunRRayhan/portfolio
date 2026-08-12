@@ -3,11 +3,14 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class AdminPanelTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_admin_panel_redirects_guests(): void
     {
         $this->get(route('admin'))->assertRedirect('/login');
