@@ -82,6 +82,24 @@ class BioLink extends Model
             });
     }
 
+    /**
+     * Limit the query to links that belong on a given locale's bio page.
+     *
+     * Only the regional social platforms are locale-specific: Harun keeps a
+     * separate Bangla-audience presence on those. Everything else (LinkedIn,
+     * GitHub, website, email, and every tab link) is a single shared identity
+     * that shows on both /bio and /hrr whatever its locale column says.
+     */
+    public function scopeVisibleForLocale(Builder $query, string $locale): Builder
+    {
+        $localeSocialIcons = ['instagram', 'tiktok', 'youtube', 'facebook', 'threads', 'twitter', 'bluesky'];
+
+        return $query->where(function ($q) use ($localeSocialIcons, $locale) {
+            $q->whereNotIn('icon', $localeSocialIcons)
+              ->orWhere('locale', $locale);
+        });
+    }
+
     public function clicks(): HasMany
     {
         return $this->hasMany(BioLinkClick::class);

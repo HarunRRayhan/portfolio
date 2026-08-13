@@ -167,6 +167,7 @@ Route::get('/bio', function (Request $request, CountryResolver $countries) {
 
     $links = BioLink::query()
         ->active()
+        ->visibleForLocale('en')
         ->orderBy('priority')
         ->orderBy('id')
         ->get(['id', 'label', 'description', 'url', 'short_link_id', 'icon', 'thumbnail_path', 'featured', 'tab', 'tab_slug', 'include_countries', 'exclude_countries'])
@@ -202,6 +203,61 @@ Route::get('/bio', function (Request $request, CountryResolver $countries) {
         'links' => $links,
         'page_share_url' => $pageShareUrl,
         'tab_share_urls' => $tabShareUrls,
+        'locale' => 'en',
+    ]);
+});
+
+// Bangla-language twin of /bio. Same component and same data, minus the
+// Products tab and with the Bangla-audience social handles in place of the
+// English ones (LinkedIn/GitHub/website/email are shared, so they stay).
+Route::get('/hrr', function (Request $request, CountryResolver $countries) {
+    app()->setLocale('bn');
+
+    $country = $countries->resolve($request->ip());
+
+    $links = BioLink::query()
+        ->active()
+        ->visibleForLocale('bn')
+        // Products is English-only. Null-safe because Postgres drops rows
+        // where the comparison is NULL, which would silently hide any link
+        // saved before tab_slug was backfilled.
+        ->where(fn ($q) => $q->whereNull('tab_slug')->orWhere('tab_slug', '!=', 'products'))
+        ->orderBy('priority')
+        ->orderBy('id')
+        ->get(['id', 'label', 'description', 'url', 'short_link_id', 'icon', 'thumbnail_path', 'featured', 'tab', 'tab_slug', 'include_countries', 'exclude_countries'])
+        ->load('shortLink:id,code')
+        ->filter(fn (BioLink $link) => $link->isVisibleInCountry($country))
+        ->values()
+        ->map(fn (BioLink $link) => [
+            'id' => $link->id,
+            'label' => $link->label,
+            'description' => $link->description,
+            'url' => $link->url,
+            'share_url' => $link->shortLink?->short_url ?? $link->url,
+            'icon' => $link->icon,
+            'thumbnail_url' => $link->thumbnail_url,
+            'featured' => (bool) $link->featured,
+            'tab' => $link->tab ?? 'default',
+            'tab_slug' => $link->tab_slug ?? Str::slug($link->tab ?? 'default'),
+        ])
+        ->all();
+
+    $pageShareUrl = ShortLink::getOrCreateForUrl(url('/hrr'), 'Bio (Bangla) page')?->short_url ?? url('/hrr');
+
+    $tabShareUrls = collect($links)
+        ->pluck('tab_slug')
+        ->unique()
+        ->mapWithKeys(function (string $slug) {
+            $tabUrl = url('/hrr').'?tab='.$slug;
+
+            return [$slug => ShortLink::getOrCreateForUrl($tabUrl, "Bio (Bangla): {$slug}")?->short_url ?? $tabUrl];
+        });
+
+    return Inertia::render('Bio', [
+        'links' => $links,
+        'page_share_url' => $pageShareUrl,
+        'tab_share_urls' => $tabShareUrls,
+        'locale' => 'bn',
     ]);
 });
 
@@ -751,6 +807,7 @@ $llmsLinkSections = function (string $siteUrl): string {
         ['About', '/about', 'Background, experience, and how I work with teams.'],
         ['Contact', '/contact', 'Start a project or ask a question.'],
         ['Bio', '/bio', 'Short bio and links.'],
+        ['Bio (Bangla)', '/hrr', 'Bangla bio and links.'],
         ['Book a Call', '/book', 'Schedule a consulting call.'],
         ['Case Studies', '/case-studies', 'Index of client engagements and their outcomes.'],
         ['Services', '/services', 'Index of all consulting services.'],

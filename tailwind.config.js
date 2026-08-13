@@ -36,6 +36,10 @@ export default {
     			mono: [
     				'"JetBrains Mono"',
                     ...defaultTheme.fontFamily.mono
+                ],
+    			bengali: [
+    				'"Hind Siliguri"',
+                    ...defaultTheme.fontFamily.sans
                 ]
     		},
     		colors: {
