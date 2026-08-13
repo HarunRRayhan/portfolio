@@ -211,6 +211,8 @@ Route::get('/bio', function (Request $request, CountryResolver $countries) {
 // Products tab and with the Bangla-audience social handles in place of the
 // English ones (LinkedIn/GitHub/website/email are shared, so they stay).
 Route::get('/hrr', function (Request $request, CountryResolver $countries) {
+    app()->setLocale('bn');
+
     $country = $countries->resolve($request->ip());
 
     $links = BioLink::query()
