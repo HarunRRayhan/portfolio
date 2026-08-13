@@ -34,8 +34,46 @@ const faviconUrl = (url: string): string | null => {
   }
 }
 
-/** Tidy tab value for display. "default" becomes "Links". */
-const displayTab = (tab: string): string => (tab === 'default' ? 'Links' : tab)
+type BioLocale = 'en' | 'bn'
+
+// Every hardcoded string on the page, per locale. /bio renders `en`, /hrr
+// renders `bn`. Anything sourced from the database (link labels, tab names
+// typed by hand in the admin) is already locale-tagged there, so it isn't
+// duplicated here.
+const COPY: Record<BioLocale, Record<string, string>> = {
+  en: {
+    title: 'Harun R. Rayhan | Bio',
+    description: "Harun R. Rayhan's bio page with quick links to his portfolio, blog, contact details, and social profiles.",
+    shareDescription: "Quick links to Harun R. Rayhan's portfolio, blog, contact details, and social profiles.",
+    keywords: 'Harun R. Rayhan, bio, portfolio, AWS DevOps, CloudOps, links',
+    eyebrow: 'Harun.dev bio',
+    tagline: 'Software Engineer turning Entrepreneur',
+    subtitle: 'DevOps · AI / ML · AWS · CloudOps · Infrastructure Automation',
+    home: 'Home',
+    subscribe: 'Subscribe',
+    linksFallback: 'Links',
+    comingSoon: 'Coming soon.',
+    footerBlurb: 'Thanks for stopping by. New tools and posts land here first.',
+  },
+  bn: {
+    title: 'Harun R. Rayhan | বায়ো',
+    description: 'হারুন আর রায়হানের বায়ো পেজ, যেখানে পাবেন পোর্টফোলিও, ব্লগ, যোগাযোগের তথ্য এবং সোশ্যাল মিডিয়া প্রোফাইলের দ্রুত লিংক।',
+    shareDescription: 'হারুন আর রায়হানের বায়ো পেজ, যেখানে পাবেন পোর্টফোলিও, ব্লগ, যোগাযোগের তথ্য এবং সোশ্যাল মিডিয়া প্রোফাইলের দ্রুত লিংক।',
+    keywords: 'হারুন আর রায়হান, বায়ো, পোর্টফোলিও, এডাব্লিউএস ডেভঅপস, ক্লাউডঅপস, লিংক',
+    eyebrow: 'Harun.dev বায়ো',
+    tagline: 'সফটওয়্যার ইঞ্জিনিয়ার থেকে উদ্যোক্তা',
+    subtitle: 'ডেভঅপস · এআই/এমএল · এডাব্লিউএস · ক্লাউডঅপস · ইনফ্রাস্ট্রাকচার অটোমেশন',
+    home: 'হোম',
+    subscribe: 'সাবস্ক্রাইব',
+    linksFallback: 'লিংক',
+    comingSoon: 'শীঘ্রই আসছে।',
+    footerBlurb: 'ঘুরে দেখার জন্য ধন্যবাদ। নতুন টুলস আর পোস্ট সবার আগে এখানেই আসবে।',
+  },
+}
+
+/** Tidy tab value for display. "default" becomes the locale's "Links". */
+const displayTab = (tab: string, locale: BioLocale = 'en'): string =>
+  tab === 'default' ? COPY[locale].linksFallback : tab
 
 const SOCIAL_ICONS = [
   'instagram',
@@ -56,14 +94,25 @@ const SOCIAL_TRAILING = ['globe', 'mail']
 
 // Tabs that always render in this fixed order, even before they have links.
 // A declared tab with no links shows a "Coming soon" panel instead of hiding.
-const DECLARED_TABS: { slug: string; label: string; Icon: BioIcon }[] = [
-  { slug: 'products', label: 'Products', Icon: Package },
-  { slug: 'ai', label: 'AI/ML', Icon: Bot },
-  { slug: 'cashback', label: 'Cashback', Icon: PiggyBank },
-  { slug: 'tools', label: 'Tools', Icon: Wrench },
-  { slug: 'travel', label: 'Travel', Icon: Plane },
-  { slug: 'others', label: 'Others', Icon: MoreHorizontal },
-]
+// Products is English-only: the Bangla page drops it entirely, matching the
+// route's own tab_slug exclusion.
+const declaredTabs = (locale: BioLocale): { slug: string; label: string; Icon: BioIcon }[] =>
+  locale === 'bn'
+    ? [
+        { slug: 'ai', label: 'এআই/এমএল', Icon: Bot },
+        { slug: 'cashback', label: 'ক্যাশব্যাক', Icon: PiggyBank },
+        { slug: 'tools', label: 'টুলস', Icon: Wrench },
+        { slug: 'travel', label: 'ভ্রমণ', Icon: Plane },
+        { slug: 'others', label: 'অন্যান্য', Icon: MoreHorizontal },
+      ]
+    : [
+        { slug: 'products', label: 'Products', Icon: Package },
+        { slug: 'ai', label: 'AI/ML', Icon: Bot },
+        { slug: 'cashback', label: 'Cashback', Icon: PiggyBank },
+        { slug: 'tools', label: 'Tools', Icon: Wrench },
+        { slug: 'travel', label: 'Travel', Icon: Plane },
+        { slug: 'others', label: 'Others', Icon: MoreHorizontal },
+      ]
 
 /** POST a click event to the server (fire-and-forget with keepalive). The
  *  optional ?src= on the page URL (set by a platform-specific share link)
@@ -214,16 +263,24 @@ export default function Bio({
   links = [],
   page_share_url: pageShareUrl,
   tab_share_urls: tabShareUrls = {},
+  locale = 'en',
 }: {
   links?: BioLink[]
   page_share_url?: string
   tab_share_urls?: Record<string, string>
+  locale?: BioLocale
 }) {
   const { url } = usePage()
   const { openPopup } = useSubscribePopup()
+  const t = COPY[locale]
+  // JetBrains Mono has no Bengali glyphs, so the Bangla page swaps the mono
+  // face for Hind Siliguri everywhere mono is used. The display serif on the
+  // name heading stays put: that stays Latin in both locales.
+  const monoFont = locale === 'bn' ? 'font-bengali' : 'font-mono'
   // Real page URL. Feeds SEO tags (og:url, canonical). Must stay the actual
   // page, never the shortener redirect.
-  const canonicalUrl = typeof window !== 'undefined' ? window.location.href : 'https://harun.dev/bio'
+  const canonicalUrl =
+    typeof window !== 'undefined' ? window.location.href : `https://harun.dev${locale === 'bn' ? '/hrr' : '/bio'}`
   // Shortened page URL for the "Share link" sheet's QR/copy/social links.
   const pageShareLinkUrl = pageShareUrl ?? canonicalUrl
   // og:image/twitter:image need a fully-qualified URL. getImageUrl() already
@@ -253,7 +310,7 @@ export default function Bio({
   const tabMap = new Map<string, TabGroup>()
   // Seed the always-visible declared tabs first (empty until links land),
   // so e.g. "AI Tools" shows a "Coming soon" panel instead of disappearing.
-  for (const declared of DECLARED_TABS) {
+  for (const declared of declaredTabs(locale)) {
     const group: TabGroup = { slug: declared.slug, label: declared.label, Icon: declared.Icon, links: [] }
     tabMap.set(declared.slug, group)
     tabGroups.push(group)
@@ -372,28 +429,19 @@ export default function Bio({
   return (
     <>
       <Head>
-        <title>Harun R. Rayhan | Bio</title>
-        <meta
-          name="description"
-          content="Harun R. Rayhan's bio page with quick links to his portfolio, blog, contact details, and social profiles."
-        />
-        <meta name="keywords" content="Harun R. Rayhan, bio, portfolio, AWS DevOps, CloudOps, links" />
-        <meta property="og:title" content="Harun R. Rayhan | Bio" />
-        <meta
-          property="og:description"
-          content="Quick links to Harun R. Rayhan's portfolio, blog, contact details, and social profiles."
-        />
+        <title>{t.title}</title>
+        <meta name="description" content={t.description} />
+        <meta name="keywords" content={t.keywords} />
+        <meta property="og:title" content={t.title} />
+        <meta property="og:description" content={t.shareDescription} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={ogImageUrl} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Harun R. Rayhan | Bio" />
-        <meta
-          name="twitter:description"
-          content="Quick links to Harun R. Rayhan's portfolio, blog, contact details, and social profiles."
-        />
+        <meta name="twitter:title" content={t.title} />
+        <meta name="twitter:description" content={t.shareDescription} />
         <meta name="twitter:image" content={ogImageUrl} />
         <link rel="canonical" href={canonicalUrl} />
       </Head>
@@ -417,11 +465,11 @@ export default function Bio({
           <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-3">
             <Link
               href="/"
-              className="group inline-flex shrink-0 items-center gap-1.5 rounded-sm font-mono text-xs font-medium uppercase tracking-wider text-[#5b4a3a] transition-colors hover:text-[#b8541f] focus-visible:text-[#b8541f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f]"
+              className={`group inline-flex shrink-0 items-center gap-1.5 rounded-sm ${monoFont} text-xs font-medium uppercase tracking-wider text-[#5b4a3a] transition-colors hover:text-[#b8541f] focus-visible:text-[#b8541f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f]`}
             >
               <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
               <span className="underline decoration-[#5b4a3a]/40 underline-offset-4 transition-colors group-hover:decoration-[#b8541f]">
-                Home
+                {t.home}
               </span>
             </Link>
 
@@ -429,10 +477,10 @@ export default function Bio({
               <button
                 type="button"
                 onClick={() => openPopup('bio-header', 'warm')}
-                className="flex h-10 items-center gap-1.5 rounded-full border border-[#e4d7c4] bg-[#fffaf6]/90 px-4 font-mono text-xs font-medium uppercase tracking-wider text-[#5b4a3a] shadow-sm backdrop-blur transition hover:border-[#c98a4b] hover:text-[#2b2320] focus-visible:border-[#c98a4b] focus-visible:text-[#2b2320] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f]"
+                className={`flex h-10 items-center gap-1.5 rounded-full border border-[#e4d7c4] bg-[#fffaf6]/90 px-4 ${monoFont} text-xs font-medium uppercase tracking-wider text-[#5b4a3a] shadow-sm backdrop-blur transition hover:border-[#c98a4b] hover:text-[#2b2320] focus-visible:border-[#c98a4b] focus-visible:text-[#2b2320] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f]`}
               >
                 <Mail className="h-4 w-4" />
-                Subscribe
+                {t.subscribe}
               </button>
 
               <div className="relative" ref={openMenu === 'page' ? menuRef : null}>
@@ -469,17 +517,17 @@ export default function Bio({
             </div>
 
             <div className="mt-5 space-y-1.5">
-              <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.32em] text-[#b8541f]">
-                Harun.dev bio
+              <p className={`${monoFont} text-[11px] font-semibold uppercase tracking-[0.32em] text-[#b8541f]`}>
+                {t.eyebrow}
               </p>
               <h1 className="font-display text-3xl font-semibold tracking-tight text-[#2b2320] sm:text-4xl">
                 Harun R. Rayhan
               </h1>
-              <p className="font-mono text-sm font-semibold text-[#3a2f27] sm:text-base">
-                Software Engineer turning Entrepreneur
+              <p className={`${monoFont} text-sm font-semibold text-[#3a2f27] sm:text-base`}>
+                {t.tagline}
               </p>
-              <p className="font-mono text-xs text-[#6b5d4f] sm:text-sm">
-                DevOps · AI / ML · AWS · CloudOps · Infrastructure Automation
+              <p className={`${monoFont} text-xs text-[#6b5d4f] sm:text-sm`}>
+                {t.subtitle}
               </p>
             </div>
 
@@ -502,7 +550,7 @@ export default function Bio({
                       <Icon className="h-[26px] w-[26px] sm:h-[22px] sm:w-[22px]" />
                       <span
                         role="tooltip"
-                        className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-[#2b2320] px-2 py-1 font-mono text-[10px] font-medium text-[#f7f1e8] opacity-0 shadow-md transition-opacity duration-150 [@media(hover:hover)]:group-hover:opacity-100 group-focus-visible:opacity-100"
+                        className={`pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-[#2b2320] px-2 py-1 ${monoFont} text-[10px] font-medium text-[#f7f1e8] opacity-0 shadow-md transition-opacity duration-150 [@media(hover:hover)]:group-hover:opacity-100 group-focus-visible:opacity-100`}
                       >
                         {link.label}
                       </span>
@@ -539,7 +587,7 @@ export default function Bio({
                           // Fixed to ~26.4% of the strip's own width (not
                           // flex-1) so three full tabs plus two-thirds of a
                           // fourth show at once, signaling more via scroll.
-                          className={`relative flex w-[26.4%] shrink-0 items-center justify-center whitespace-nowrap rounded-full font-mono text-xs font-bold uppercase tracking-wider transition sm:text-[13px] ${
+                          className={`relative flex w-[26.4%] shrink-0 items-center justify-center whitespace-nowrap rounded-full ${monoFont} text-xs font-bold uppercase tracking-wider transition sm:text-[13px] ${
                             isActive
                               ? 'bg-[#2b2320] text-[#f7f1e8] shadow-sm'
                               : 'text-[#6b5d4f] hover:bg-[#f1e6d3] hover:text-[#2b2320]'
@@ -555,7 +603,7 @@ export default function Bio({
                             className="flex flex-1 items-center justify-center gap-1.5 rounded-full px-2.5 py-2 uppercase tracking-wider focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f]"
                           >
                             <group.Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                            <span className="truncate">{displayTab(group.label)}</span>
+                            <span className="truncate">{displayTab(group.label, locale)}</span>
                           </button>
 
                           {/* Share button (visible on the active tab, a sibling
@@ -565,10 +613,10 @@ export default function Bio({
                             <button
                               type="button"
                               onClick={() => setOpenMenu(openMenu === shareId ? null : shareId)}
-                              aria-label={`Share ${displayTab(group.label)}`}
+                              aria-label={`Share ${displayTab(group.label, locale)}`}
                               aria-haspopup="menu"
                               aria-expanded={openMenu === shareId}
-                              title={`Share ${displayTab(group.label)}`}
+                              title={`Share ${displayTab(group.label, locale)}`}
                               className="mr-2 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded opacity-70 transition hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f] sm:h-4 sm:w-4"
                             >
                               <Share2 className="h-3 w-3" />
@@ -599,7 +647,7 @@ export default function Bio({
                           style={{ left: `clamp(9rem, ${tabCaretPct}%, calc(100% - 9rem))`, transform: 'translateX(-50%)' }}
                         >
                           <ShareSheet
-                            title={displayTab(tabMap.get(openSlug)?.label ?? '')}
+                            title={displayTab(tabMap.get(openSlug)?.label ?? '', locale)}
                             url={tabShareUrl(openSlug)}
                             shareTitle="Harun R. Rayhan"
                             onClose={() => setOpenMenu(null)}
@@ -612,7 +660,7 @@ export default function Bio({
             )}
 
             {/* Link cards for the active tab */}
-            <nav aria-label={`${displayTab(activeGroup?.label ?? 'Links')} links`} className="mt-6 grid w-full grid-cols-1 gap-3">
+            <nav aria-label={`${displayTab(activeGroup?.label ?? 'default', locale)} links`} className="mt-6 grid w-full grid-cols-1 gap-3">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeSlug}
@@ -645,7 +693,7 @@ export default function Bio({
                         <div className="flex items-stretch border-t border-[#e4d7c4]">
                           <span className="pointer-events-none flex flex-1 items-center gap-2.5 px-4 py-3">
                             <LinkFavicon link={link} className="h-4 w-4 shrink-0 text-[#8a6a45]" />
-                            <span className="truncate font-mono text-sm font-medium text-[#2b2320]">
+                            <span className={`truncate ${monoFont} text-sm font-medium text-[#2b2320]`}>
                               {link.label}
                             </span>
                           </span>
@@ -681,7 +729,7 @@ export default function Bio({
                             <LinkIcon link={link} />
                             {link.description ? (
                               <span className="min-w-0 flex-1 text-left">
-                                <span className="block truncate font-mono text-sm font-medium text-[#2b2320]">
+                                <span className={`block truncate ${monoFont} text-sm font-medium text-[#2b2320]`}>
                                   {link.label}
                                 </span>
                                 <span className="block truncate text-xs text-[#6b5d4f]">
@@ -689,7 +737,7 @@ export default function Bio({
                                 </span>
                               </span>
                             ) : (
-                              <span className="truncate font-mono text-sm font-medium text-[#2b2320]">
+                              <span className={`truncate ${monoFont} text-sm font-medium text-[#2b2320]`}>
                                 {link.label}
                               </span>
                             )}
@@ -710,16 +758,16 @@ export default function Bio({
               </AnimatePresence>
 
               {currentLinks.length === 0 && (
-                <p className="rounded-2xl border border-dashed border-[#e4d7c4] px-4 py-6 text-center font-mono text-sm text-[#6b5d4f]">
-                  Coming soon.
+                <p className={`rounded-2xl border border-dashed border-[#e4d7c4] px-4 py-6 text-center ${monoFont} text-sm text-[#6b5d4f]`}>
+                  {t.comingSoon}
                 </p>
               )}
             </nav>
           </div>
 
-          <footer className="mt-10 space-y-3 pb-6 text-center font-mono text-xs text-[#6b5d4f]">
+          <footer className={`mt-10 space-y-3 pb-6 text-center ${monoFont} text-xs text-[#6b5d4f]`}>
             <p className="mx-auto max-w-xs">
-              Thanks for stopping by. New tools and posts land here first.
+              {t.footerBlurb}
             </p>
             <p>
               <a href="https://harun.dev" className="transition hover:text-[#b8541f]">
