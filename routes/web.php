@@ -50,6 +50,21 @@ $renderDashboard = function () {
     $publishedPosts = array_values(array_filter($posts, fn (array $post) => ! (bool) ($post['draft'] ?? false)));
     $draftPosts = array_values(array_filter($posts, fn (array $post) => (bool) ($post['draft'] ?? false)));
 
+    $postsByMonth = [];
+    foreach ($publishedPosts as $post) {
+        $month = Carbon::parse($post['publishedAt'])->format('Y-m');
+        $postsByMonth[$month] = ($postsByMonth[$month] ?? 0) + 1;
+    }
+
+    $postsTrend = [];
+    for ($i = 5; $i >= 0; $i--) {
+        $month = Carbon::now()->subMonths($i);
+        $postsTrend[] = [
+            'label' => $month->format('M'),
+            'count' => $postsByMonth[$month->format('Y-m')] ?? 0,
+        ];
+    }
+
     return Inertia::render('Dashboard', [
         'stats' => [
             'totalPosts' => count($posts),
@@ -68,6 +83,7 @@ $renderDashboard = function () {
             'readTimeLabel' => (string) ($post['readTimeLabel'] ?? ''),
             'draftPreviewUrl' => $blog->previewUrl((string) $post['slug']),
         ], $draftPosts),
+        'postsTrend' => $postsTrend,
     ]);
 };
 
