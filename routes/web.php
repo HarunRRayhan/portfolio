@@ -95,6 +95,9 @@ Route::get('/admin', fn () => redirect()->route('dashboard'))
     ->middleware(['auth', 'verified', 'role:admin'])
     ->name('admin');
 
+// Legacy bookmark support: the dashboard used to live at /dashboard.
+Route::redirect('/dashboard', '/admin/dashboard');
+
 // Admin CRUD for link-in-bio entries
 Route::middleware(['auth', 'verified', 'role:admin'])
     ->prefix('admin/bio')

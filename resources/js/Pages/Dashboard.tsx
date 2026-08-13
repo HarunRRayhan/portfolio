@@ -315,7 +315,7 @@ export default function Dashboard({ stats, panelStatus, panelStatusDetail, recen
                         </CardHeader>
                         <CardContent className="flex-1 divide-y p-0">
                             {recentPosts.length > 0 ? recentPosts.map((post) => (
-                                <Link
+                                <a
                                     key={post.slug}
                                     href={post.url}
                                     target="_blank"
@@ -353,7 +353,7 @@ export default function Dashboard({ stats, panelStatus, panelStatusDetail, recen
                                     </div>
 
                                     <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-                                </Link>
+                                </a>
                             )) : (
                                 <EmptyState icon={Inbox} message="No published posts yet." />
                             )}

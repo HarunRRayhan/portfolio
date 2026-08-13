@@ -24,7 +24,7 @@ class AdminPanelTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->get(route('admin'))
+            ->get(route('dashboard'))
             ->assertOk()
             ->assertInertia(function (Assert $page): void {
                 $page->component('Dashboard')
@@ -33,5 +33,17 @@ class AdminPanelTest extends TestCase
                     ->has('recentPosts')
                     ->has('draftPostsList');
             });
+    }
+
+    public function test_admin_panel_redirects_verified_users_to_dashboard(): void
+    {
+        $user = User::factory()->create([
+            'email_verified_at' => now(),
+            'role' => 'admin',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('admin'))
+            ->assertRedirect(route('dashboard'));
     }
 }
