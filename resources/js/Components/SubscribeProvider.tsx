@@ -10,7 +10,7 @@ const DISMISS_KEY = 'subscribe-popup-dismissed'
 
 /** Admin/authenticated pages (sidebar layout) never show the subscribe popup. */
 function isAdminPath(pathname: string) {
-  return pathname === '/dashboard' || pathname === '/profile' || pathname.startsWith('/admin')
+  return pathname === '/profile' || pathname.startsWith('/admin')
 }
 
 function useIsAdminArea() {

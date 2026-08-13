@@ -169,7 +169,7 @@ function SidebarUser() {
 
 function SidebarBrand() {
     return (
-        <Link href="/" className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+        <Link href="/" target="_blank" rel="noopener noreferrer" className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
             <ApplicationLogo className="block h-8 w-auto fill-current text-foreground" />
             <span className="text-sm font-semibold text-foreground">
                 Harun R. Rayhan

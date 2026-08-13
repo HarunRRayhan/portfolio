@@ -224,7 +224,7 @@ export function Menubar() {
               {profileOpen && (
                 <div className="absolute right-0 top-full z-50 mt-2 w-48 origin-top-right rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg">
                   <Link
-                    href="/dashboard"
+                    href={route('dashboard')}
                     className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100"
                     onClick={() => setProfileOpen(false)}
                   >
@@ -328,7 +328,7 @@ export function Menubar() {
                     </div>
                     <SheetClose asChild>
                       <Link
-                        href="/dashboard"
+                        href={route('dashboard')}
                         className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                       >
                         <User className="h-4 w-4" />
