@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useState, ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from 'react'
+import { router } from '@inertiajs/react'
 import { Toaster } from 'sonner'
 import { SubscribePopup } from '@/Components/SubscribePopup'
 import { SubscribeTheme } from '@/Components/SubscribeForm'
@@ -6,6 +7,23 @@ import { useIdleSubscribe } from '@/hooks/useIdleSubscribe'
 
 const IDLE_MS = 60_000
 const DISMISS_KEY = 'subscribe-popup-dismissed'
+
+/** Admin/authenticated pages (sidebar layout) never show the subscribe popup. */
+function isAdminPath(pathname: string) {
+  return pathname === '/dashboard' || pathname === '/profile' || pathname.startsWith('/admin')
+}
+
+function useIsAdminArea() {
+  const [isAdmin, setIsAdmin] = useState(() => isAdminPath(window.location.pathname))
+
+  useEffect(() => {
+    return router.on('navigate', (event) => {
+      setIsAdmin(isAdminPath(new URL(event.detail.page.url, window.location.origin).pathname))
+    })
+  }, [])
+
+  return isAdmin
+}
 
 type SubscribeContextValue = {
   openPopup: (source: string, theme?: SubscribeTheme) => void
@@ -22,15 +40,17 @@ export function useSubscribePopup() {
 /** Mounted once around the whole app (see app.tsx) so the idle popup and the
  *  toast host cover every page, including Bio, which renders its own layout. */
 export function SubscribeProvider({ children }: { children: ReactNode }) {
+  const isAdminArea = useIsAdminArea()
   const [open, setOpen] = useState(false)
   const [source, setSource] = useState('idle-popup')
   const [theme, setTheme] = useState<SubscribeTheme>('slate')
 
   const openPopup = useCallback((nextSource: string, nextTheme: SubscribeTheme = 'slate') => {
+    if (isAdminArea) return
     setSource(nextSource)
     setTheme(nextTheme)
     setOpen(true)
-  }, [])
+  }, [isAdminArea])
 
   const closePopup = useCallback(() => {
     setOpen(false)
@@ -43,7 +63,7 @@ export function SubscribeProvider({ children }: { children: ReactNode }) {
     <SubscribeContext.Provider value={{ openPopup }}>
       {children}
       <Toaster position="top-right" richColors />
-      <SubscribePopup open={open} onClose={closePopup} source={source} theme={theme} />
+      {!isAdminArea && <SubscribePopup open={open} onClose={closePopup} source={source} theme={theme} />}
     </SubscribeContext.Provider>
   )
 }
