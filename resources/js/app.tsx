@@ -17,8 +17,12 @@ createInertiaApp({
     resolve: async (name) => {
         const page = (await pages[`./Pages/${name}.tsx`]()).default;
 
-        // Apply PublicLayout as default for all pages unless they specify their own
-        if (!page.layout) {
+        // Admin/authenticated pages render their own AuthenticatedLayout (sidebar nav)
+        // and don't need the public marketing Menubar/Footer.
+        const isAdminArea = name === 'Dashboard' || name === 'Profile/Edit' || name.startsWith('Admin/');
+
+        // Apply PublicLayout as default for all other pages unless they specify their own
+        if (!page.layout && !isAdminArea) {
             page.layout = PublicLayout
         }
 
