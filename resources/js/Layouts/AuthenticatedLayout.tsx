@@ -187,7 +187,7 @@ export default function Authenticated({
     return (
         <div className="flex min-h-screen bg-muted/30">
             {/* Desktop sidebar */}
-            <aside className="hidden w-64 shrink-0 flex-col border-r bg-background lg:flex">
+            <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r bg-background lg:flex">
                 <SidebarBrand />
                 <NavList />
                 <SidebarUser />
