@@ -1,6 +1,24 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Head, Link } from '@inertiajs/react';
 import { getImageUrl } from "@/lib/imageUtils";
+import {
+    Area,
+    AreaChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from 'recharts';
+import {
+    CheckCircle2,
+    Eye,
+    FileText,
+    Image as ImageIcon,
+    KeyRound,
+    Link2,
+    PenLine,
+} from 'lucide-react';
 
 interface PostSummary {
     title: string;
@@ -21,15 +39,55 @@ interface DashboardStats {
     previewReadyDrafts: number;
 }
 
+interface PostsTrendPoint {
+    label: string;
+    count: number;
+}
+
 interface Props {
     stats: DashboardStats;
     panelStatus: string;
     panelStatusDetail: string;
     recentPosts: PostSummary[];
     draftPostsList: PostSummary[];
+    postsTrend: PostsTrendPoint[];
 }
 
-export default function Dashboard({ stats, recentPosts, draftPostsList }: Props) {
+const statCards = (stats: DashboardStats) => [
+    {
+        label: 'Total Posts',
+        value: stats.totalPosts,
+        icon: FileText,
+        badgeClassName: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+    },
+    {
+        label: 'Published',
+        value: stats.publishedPosts,
+        icon: CheckCircle2,
+        badgeClassName: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400',
+    },
+    {
+        label: 'Drafts',
+        value: stats.draftPosts,
+        icon: PenLine,
+        badgeClassName: 'bg-amber-100 text-amber-600 dark:bg-amber-950 dark:text-amber-400',
+    },
+    {
+        label: 'Preview Ready',
+        value: stats.previewReadyDrafts,
+        icon: Eye,
+        badgeClassName: 'bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-400',
+    },
+];
+
+const quickActions = [
+    { label: 'View All Posts', href: '/admin', icon: FileText },
+    { label: 'Short Links', href: '/admin/short', icon: Link2 },
+    { label: 'Slides & Videos', href: '/admin/media', icon: ImageIcon },
+    { label: 'API Keys', href: '/admin/api-keys', icon: KeyRound },
+];
+
+export default function Dashboard({ stats, recentPosts, draftPostsList, postsTrend }: Props) {
     return (
         <AuthenticatedLayout
             header={
@@ -80,63 +138,111 @@ export default function Dashboard({ stats, recentPosts, draftPostsList }: Props)
 
             <div className="py-6 sm:py-12">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-6">
+                    {/* Posts Published trend */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-base font-semibold">Posts Published</CardTitle>
+                            <p className="text-sm text-muted-foreground">Published posts per month, last 6 months</p>
+                        </CardHeader>
+                        <CardContent className="h-64 pl-0">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={postsTrend} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="postsTrendFill" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.35} />
+                                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <XAxis
+                                        dataKey="label"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                                    />
+                                    <YAxis
+                                        allowDecimals={false}
+                                        axisLine={false}
+                                        tickLine={false}
+                                        width={28}
+                                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{
+                                            backgroundColor: 'hsl(var(--card))',
+                                            borderColor: 'hsl(var(--border))',
+                                            borderRadius: 8,
+                                            fontSize: 12,
+                                        }}
+                                        labelStyle={{ color: 'hsl(var(--foreground))' }}
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="count"
+                                        stroke="hsl(var(--primary))"
+                                        strokeWidth={2}
+                                        fill="url(#postsTrendFill)"
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
+
                     {/* Stats Cards */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        <div className="bg-white dark:bg-neutral-800 shadow-sm rounded-lg p-4 sm:p-6 border border-neutral-200 dark:border-neutral-700">
-                            <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Total Posts</p>
-                            <p className="text-2xl sm:text-3xl font-semibold text-neutral-900 dark:text-white mt-1">{stats.totalPosts}</p>
-                        </div>
-                        <div className="bg-white dark:bg-neutral-800 shadow-sm rounded-lg p-4 sm:p-6 border border-neutral-200 dark:border-neutral-700">
-                            <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Published</p>
-                            <p className="text-2xl sm:text-3xl font-semibold text-emerald-600 dark:text-emerald-400 mt-1">{stats.publishedPosts}</p>
-                        </div>
-                        <div className="bg-white dark:bg-neutral-800 shadow-sm rounded-lg p-4 sm:p-6 border border-neutral-200 dark:border-neutral-700">
-                            <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Drafts</p>
-                            <p className="text-2xl sm:text-3xl font-semibold text-amber-600 dark:text-amber-400 mt-1">{stats.draftPosts}</p>
-                        </div>
-                        <div className="bg-white dark:bg-neutral-800 shadow-sm rounded-lg p-4 sm:p-6 border border-neutral-200 dark:border-neutral-700">
-                            <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Preview Ready</p>
-                            <p className="text-2xl sm:text-3xl font-semibold text-blue-600 dark:text-blue-400 mt-1">{stats.previewReadyDrafts}</p>
-                        </div>
+                        {statCards(stats).map((stat) => {
+                            const Icon = stat.icon;
+
+                            return (
+                                <Card key={stat.label}>
+                                    <CardContent className="p-4 sm:p-6">
+                                        <div className={`inline-flex h-9 w-9 items-center justify-center rounded-lg ${stat.badgeClassName}`}>
+                                            <Icon className="h-5 w-5" />
+                                        </div>
+                                        <p className="text-2xl sm:text-3xl font-semibold text-foreground mt-3">{stat.value}</p>
+                                        <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
+                                    </CardContent>
+                                </Card>
+                            );
+                        })}
                     </div>
 
                     {/* Recent Published Posts */}
-                    <div className="bg-white dark:bg-neutral-800 shadow-sm rounded-lg border border-neutral-200 dark:border-neutral-700">
-                        <div className="px-4 sm:px-6 py-4 border-b border-neutral-200 dark:border-neutral-700">
-                            <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">Recent Published Posts</h3>
-                        </div>
-                        <div className="divide-y divide-neutral-200 dark:divide-neutral-700">
+                    <Card>
+                        <CardHeader className="border-b">
+                            <CardTitle className="text-lg font-semibold">Recent Published Posts</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0 divide-y">
                             {recentPosts.length > 0 ? recentPosts.map((post) => (
                                 <Link
                                     key={post.slug}
                                     href={post.url}
-                                    className="block px-4 sm:px-6 py-4 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors"
+                                    className="block px-4 sm:px-6 py-4 hover:bg-muted/50 transition-colors"
                                 >
                                     <div className="flex items-start justify-between gap-4">
                                         <div className="min-w-0 flex-1">
-                                            <p className="text-sm font-medium text-neutral-900 dark:text-white truncate">{post.title}</p>
-                                            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 line-clamp-1">{post.brief}</p>
+                                            <p className="text-sm font-medium text-foreground truncate">{post.title}</p>
+                                            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{post.brief}</p>
                                         </div>
                                         <div className="flex items-center gap-3 shrink-0">
-                                            <span className="text-xs text-neutral-400 dark:text-neutral-500">{post.publishedAtHuman}</span>
-                                            <span className="text-xs text-neutral-400 dark:text-neutral-500">{post.readTimeLabel}</span>
+                                            <span className="text-xs text-muted-foreground">{post.publishedAtHuman}</span>
+                                            <span className="text-xs text-muted-foreground">{post.readTimeLabel}</span>
                                         </div>
                                     </div>
                                 </Link>
                             )) : (
-                                <div className="px-4 sm:px-6 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
+                                <div className="px-4 sm:px-6 py-8 text-center text-sm text-muted-foreground">
                                     No published posts yet.
                                 </div>
                             )}
-                        </div>
-                    </div>
+                        </CardContent>
+                    </Card>
 
                     {/* Draft Posts */}
-                    <div className="bg-white dark:bg-neutral-800 shadow-sm rounded-lg border border-neutral-200 dark:border-neutral-700">
-                        <div className="px-4 sm:px-6 py-4 border-b border-neutral-200 dark:border-neutral-700">
-                            <h3 className="text-lg font-semibold text-amber-600 dark:text-amber-400">Draft Posts</h3>
-                        </div>
-                        <div className="divide-y divide-neutral-200 dark:divide-neutral-700">
+                    <Card>
+                        <CardHeader className="border-b">
+                            <CardTitle className="text-lg font-semibold text-amber-600 dark:text-amber-400">Draft Posts</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0 divide-y">
                             {draftPostsList.length > 0 ? draftPostsList.map((post) => (
                                 <div
                                     key={post.slug}
@@ -144,8 +250,8 @@ export default function Dashboard({ stats, recentPosts, draftPostsList }: Props)
                                 >
                                     <div className="flex items-start justify-between gap-4">
                                         <div className="min-w-0 flex-1">
-                                            <p className="text-sm font-medium text-neutral-900 dark:text-white">{post.title}</p>
-                                            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 line-clamp-1">{post.brief}</p>
+                                            <p className="text-sm font-medium text-foreground">{post.title}</p>
+                                            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{post.brief}</p>
                                             <div className="flex items-center gap-3 mt-1.5">
                                                 <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">{post.readTimeLabel}</span>
                                                 {post.draftPreviewUrl && (
@@ -163,45 +269,38 @@ export default function Dashboard({ stats, recentPosts, draftPostsList }: Props)
                                     </div>
                                 </div>
                             )) : (
-                                <div className="px-4 sm:px-6 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
+                                <div className="px-4 sm:px-6 py-8 text-center text-sm text-muted-foreground">
                                     No draft posts.
                                 </div>
                             )}
-                        </div>
-                    </div>
+                        </CardContent>
+                    </Card>
 
                     {/* Quick Actions */}
-                    <div className="bg-white dark:bg-neutral-800 shadow-sm rounded-lg border border-neutral-200 dark:border-neutral-700">
-                        <div className="px-4 sm:px-6 py-4 border-b border-neutral-200 dark:border-neutral-700">
-                            <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">Quick Actions</h3>
-                        </div>
-                        <div className="px-4 sm:px-6 py-4 flex flex-wrap gap-3">
-                            <Link
-                                href="/admin"
-                                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                            >
-                                View All Posts
-                            </Link>
-                            <Link
-                                href="/admin/short"
-                                className="inline-flex items-center px-4 py-2 bg-white text-neutral-700 text-sm font-medium rounded-lg border border-neutral-200 hover:bg-neutral-50 transition-colors dark:bg-neutral-800 dark:text-neutral-200 dark:border-neutral-700 dark:hover:bg-neutral-700/50"
-                            >
-                                Short Links
-                            </Link>
-                            <Link
-                                href="/admin/media"
-                                className="inline-flex items-center px-4 py-2 bg-white text-neutral-700 text-sm font-medium rounded-lg border border-neutral-200 hover:bg-neutral-50 transition-colors dark:bg-neutral-800 dark:text-neutral-200 dark:border-neutral-700 dark:hover:bg-neutral-700/50"
-                            >
-                                Slides & Videos
-                            </Link>
-                            <Link
-                                href="/admin/api-keys"
-                                className="inline-flex items-center px-4 py-2 bg-white text-neutral-700 text-sm font-medium rounded-lg border border-neutral-200 hover:bg-neutral-50 transition-colors dark:bg-neutral-800 dark:text-neutral-200 dark:border-neutral-700 dark:hover:bg-neutral-700/50"
-                            >
-                                API Keys
-                            </Link>
-                        </div>
-                    </div>
+                    <Card>
+                        <CardHeader className="border-b">
+                            <CardTitle className="text-lg font-semibold">Manage</CardTitle>
+                            <p className="text-sm text-muted-foreground">Quick shortcuts to the rest of the admin area</p>
+                        </CardHeader>
+                        <CardContent className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 sm:p-6">
+                            {quickActions.map((action) => {
+                                const Icon = action.icon;
+
+                                return (
+                                    <Link
+                                        key={action.label}
+                                        href={action.href}
+                                        className="flex flex-col items-center gap-2 rounded-lg border bg-card px-4 py-5 text-center transition-colors hover:bg-muted/50"
+                                    >
+                                        <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                                            <Icon className="h-5 w-5" />
+                                        </span>
+                                        <span className="text-sm font-medium text-foreground">{action.label}</span>
+                                    </Link>
+                                );
+                            })}
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
         </AuthenticatedLayout>
