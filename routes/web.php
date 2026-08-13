@@ -42,8 +42,8 @@ Route::get('/', function () {
     return Inertia::render('Homepage');
 })->name('home');
 
-// The same admin dashboard view is served at both /dashboard and /admin, so
-// the payload-building logic lives in one closure shared by both routes.
+// The admin dashboard view is served at /admin/dashboard; /admin itself just
+// redirects there. The payload-building logic lives in this closure.
 $renderDashboard = function () {
     $blog = new BlogRepository();
     $posts = $blog->posts();
@@ -87,13 +87,16 @@ $renderDashboard = function () {
     ]);
 };
 
-Route::get('/dashboard', $renderDashboard)
+Route::get('/admin/dashboard', $renderDashboard)
     ->middleware(['auth', 'verified', 'role:admin'])
     ->name('dashboard');
 
-Route::get('/admin', $renderDashboard)
+Route::get('/admin', fn () => redirect()->route('dashboard'))
     ->middleware(['auth', 'verified', 'role:admin'])
     ->name('admin');
+
+// Legacy bookmark support: the dashboard used to live at /dashboard.
+Route::redirect('/dashboard', '/admin/dashboard');
 
 // Admin CRUD for link-in-bio entries
 Route::middleware(['auth', 'verified', 'role:admin'])
