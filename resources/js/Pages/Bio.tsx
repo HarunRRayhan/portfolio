@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from
 import { Head, Link, usePage } from '@inertiajs/react'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { getImageUrl } from '@/lib/imageUtils'
-import { Mail, Share2, Package, Bot, PiggyBank, Wrench, MoreHorizontal, Plane, ArrowLeft } from 'lucide-react'
+import { Mail, Share2, Package, Bot, PiggyBank, Wrench, MoreHorizontal, Plane, ArrowLeft, Languages } from 'lucide-react'
 import { bioIcon, type BioIcon } from '@/lib/bioIcons'
 import { ShareSheet } from '@/Components/ShareSheet'
 import { useSubscribePopup } from '@/Components/SubscribeProvider'
@@ -278,6 +278,13 @@ export default function Bio({
   // face for Hind Siliguri everywhere mono is used. The display serif on the
   // name heading stays put: that stays Latin in both locales.
   const monoFont = locale === 'bn' ? 'font-bengali' : 'font-mono'
+  // Mutual switcher between /bio and /hrr. The label is always set in its
+  // own script's font, regardless of which page it's rendered on, so
+  // "বাংলা" reads correctly even in the Latin-only English page.
+  const otherLocale: BioLocale = locale === 'bn' ? 'en' : 'bn'
+  const otherLocaleHref = otherLocale === 'bn' ? '/hrr' : '/bio'
+  const otherLocaleLabel = otherLocale === 'bn' ? 'বাংলা' : 'English'
+  const otherLocaleFont = otherLocale === 'bn' ? 'font-bengali' : 'font-mono'
   // Real page URL. Feeds SEO tags (og:url, canonical). Must stay the actual
   // page, never the shortener redirect.
   const canonicalUrl =
@@ -462,17 +469,29 @@ export default function Bio({
           transition={{ duration: 0.6, ease: 'easeOut' }}
           className="relative mx-auto flex min-h-[calc(100svh-6rem)] w-full max-w-xl flex-col items-center pt-12"
         >
-          {/* Header: Home sits top-left; Subscribe + whole-page share stay paired top-right */}
+          {/* Header: Home + language switch sit top-left; Subscribe + whole-page share stay paired top-right */}
           <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-3">
-            <Link
-              href="/"
-              className={`group inline-flex shrink-0 items-center gap-1.5 rounded-sm ${monoFont} text-xs font-medium uppercase tracking-wider text-[#5b4a3a] transition-colors hover:text-[#b8541f] focus-visible:text-[#b8541f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f]`}
-            >
-              <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
-              <span className="underline decoration-[#5b4a3a]/40 underline-offset-4 transition-colors group-hover:decoration-[#b8541f]">
-                {t.home}
-              </span>
-            </Link>
+            <div className="flex min-w-0 items-center gap-3">
+              <Link
+                href="/"
+                className={`group inline-flex shrink-0 items-center gap-1.5 rounded-sm ${monoFont} text-xs font-medium uppercase tracking-wider text-[#5b4a3a] transition-colors hover:text-[#b8541f] focus-visible:text-[#b8541f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f]`}
+              >
+                <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
+                <span className="underline decoration-[#5b4a3a]/40 underline-offset-4 transition-colors group-hover:decoration-[#b8541f]">
+                  {t.home}
+                </span>
+              </Link>
+
+              <Link
+                href={otherLocaleHref}
+                className={`group inline-flex shrink-0 items-center gap-1.5 rounded-sm ${otherLocaleFont} text-xs font-medium uppercase tracking-wider text-[#5b4a3a] transition-colors hover:text-[#b8541f] focus-visible:text-[#b8541f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f]`}
+              >
+                <Languages className="h-3.5 w-3.5" />
+                <span className="underline decoration-[#5b4a3a]/40 underline-offset-4 transition-colors group-hover:decoration-[#b8541f]">
+                  {otherLocaleLabel}
+                </span>
+              </Link>
+            </div>
 
             <div className="flex items-center gap-2">
               <button
