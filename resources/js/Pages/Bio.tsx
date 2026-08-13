@@ -280,7 +280,7 @@ export default function Bio({
   const monoFont = locale === 'bn' ? 'font-bengali' : 'font-mono'
   // Mutual switcher between /bio and /hrr. The label is always set in its
   // own script's font, regardless of which page it's rendered on, so
-  // "বাংলা" reads correctly even in the Latin-only English page.
+  // "বাংলা প্রোফাইল" reads correctly even in the Latin-only English page.
   const otherLocale: BioLocale = locale === 'bn' ? 'en' : 'bn'
   const otherLocaleHref = otherLocale === 'bn' ? '/hrr' : '/bio'
   const otherLocaleLabel = otherLocale === 'bn' ? 'বাংলা প্রোফাইল' : 'English profile'
