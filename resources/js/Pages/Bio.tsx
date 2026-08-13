@@ -81,6 +81,7 @@ const SOCIAL_ICONS = [
   'youtube',
   'facebook',
   'threads',
+  'bluesky',
   'github',
   'linkedin',
   'twitter',

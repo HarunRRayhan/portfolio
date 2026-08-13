@@ -4,24 +4,25 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Seeds the Bangla (/hrr) social row with placeholders.
+ * Seeds the Bangla (/hrr) social row with Harun's real handles.
  *
- * The URLs here are deliberately fake and every row lands inactive, so nothing
- * shows on /hrr until Harun supplies his real Bangla-audience handles. Once he
- * does, update each row's label/url and flip is_active to true, either through
- * /admin/bio or in a follow-up migration. Rows are written straight through the
- * query builder rather than the model so the saving hook doesn't mint short
- * links for URLs that are about to change.
+ * Every row is live: these are the actual Bangla-audience accounts, labelled in
+ * Bangla, and each lands active so /hrr renders the full seven icon row
+ * (Facebook, Instagram, TikTok, YouTube, X, Threads, Bluesky). The shared
+ * identities (LinkedIn, GitHub, website, email) are untouched and keep showing
+ * on both locales. Rows are written straight through the query builder rather
+ * than the model so the saving hook doesn't mint short links during migration.
  */
 return new class extends Migration
 {
-    private const PLACEHOLDER_URLS = [
-        'instagram' => 'https://instagram.com/TODO_BANGLA_HANDLE',
-        'tiktok' => 'https://tiktok.com/@TODO_BANGLA_HANDLE',
-        'youtube' => 'https://youtube.com/@TODO_BANGLA_HANDLE',
-        'facebook' => 'https://facebook.com/TODO_BANGLA_HANDLE',
-        'threads' => 'https://threads.net/@TODO_BANGLA_HANDLE',
-        'twitter' => 'https://x.com/TODO_BANGLA_HANDLE',
+    private const SOCIAL_LINKS = [
+        'facebook' => ['ফেসবুক', 'https://facebook.com/HarunRRayhan'],
+        'instagram' => ['ইনস্টাগ্রাম', 'https://instagram.com/harunrrayhan'],
+        'tiktok' => ['টিকটক', 'https://tiktok.com/@harunrrayhan'],
+        'youtube' => ['ইউটিউব', 'https://youtube.com/@skillupwithharun'],
+        'twitter' => ['টুইটার', 'https://x.com/HarunRRayhan'],
+        'threads' => ['থ্রেডস', 'https://threads.net/@harunrrayhan'],
+        'bluesky' => ['ব্লুস্কাই', 'https://bsky.app/profile/harunrrayhan.bsky.social'],
     ];
 
     public function up(): void
@@ -32,17 +33,17 @@ return new class extends Migration
 
         $now = now();
 
-        DB::table('bio_links')->insert(collect(self::PLACEHOLDER_URLS)
-            ->map(fn (string $url, string $icon) => [
-                'label' => ucfirst($icon).' (Bangla)',
+        DB::table('bio_links')->insert(collect(self::SOCIAL_LINKS)
+            ->map(fn (array $link, string $icon) => [
+                'label' => $link[0],
                 'locale' => 'bn',
-                'url' => $url,
+                'url' => $link[1],
                 'tab' => 'default',
                 'tab_slug' => 'default',
                 'icon' => $icon,
                 'featured' => false,
                 'priority' => 0,
-                'is_active' => false,
+                'is_active' => true,
                 'created_at' => $now,
                 'updated_at' => $now,
             ])
@@ -58,7 +59,7 @@ return new class extends Migration
 
         DB::table('bio_links')
             ->where('locale', 'bn')
-            ->whereIn('url', array_values(self::PLACEHOLDER_URLS))
+            ->whereIn('url', array_column(self::SOCIAL_LINKS, 1))
             ->delete();
     }
 };

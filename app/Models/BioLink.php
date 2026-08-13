@@ -92,7 +92,7 @@ class BioLink extends Model
      */
     public function scopeVisibleForLocale(Builder $query, string $locale): Builder
     {
-        $localeSocialIcons = ['instagram', 'tiktok', 'youtube', 'facebook', 'threads', 'twitter'];
+        $localeSocialIcons = ['instagram', 'tiktok', 'youtube', 'facebook', 'threads', 'twitter', 'bluesky'];
 
         return $query->where(function ($q) use ($localeSocialIcons, $locale) {
             $q->whereNotIn('icon', $localeSocialIcons)
