@@ -99,7 +99,7 @@ If `<worktree-path>` is the main checkout itself (`/Users/rayhan/Code/haruns-por
 2. Symlink `node_modules`, `vendor`, `.env` from the main checkout into the worktree, skipping any that are already correct symlinks. Refuse to clobber a real file/dir that isn't already our symlink (surface an error instead — this protects against overwriting someone's in-progress local install).
 3. Allocate `backend_port`/`vite_port` from the registry (skip if this path already has an entry).
 4. Run `php artisan package:discover --ansi` in the worktree to populate `bootstrap/cache/*.php` fresh. `storage/` needs no copying — git already ships the full directory skeleton per worktree (only contents are gitignored); it fills in naturally on first request.
-5. Launch, in the background, with `APP_URL`/`ASSET_URL` exported to the Tailscale URL for this slug and `PORT`/`VITE_BASE_PATH`/Vite origin env vars set accordingly:
+5. Launch, in the background, with `APP_URL`/`ASSET_URL` exported to the Tailscale URL for this slug and `VITE_PUBLIC_ORIGIN` set to the `--vite` mount's URL:
    - `php artisan serve --port=$BACKEND_PORT`
    - `php artisan queue:listen --tries=1`
    - `php artisan pail --timeout=0`
@@ -143,13 +143,12 @@ This also covers machine reboot (step 1 above runs on startup too, and neither t
 
 ### 4.5 `vite.config.js` change
 
-Small, backward-compatible addition — reads optional env vars and falls back to today's behavior when they're unset:
+Small, backward-compatible addition — reads one optional env var and falls back to today's behavior when it's unset. No `base` path override needed: the `/{slug}--vite` mount strips its own prefix before forwarding (verified, §6), so Vite's dev server always receives root-relative requests regardless of which mount fronts it — only the *origin* Laravel injects into the HTML needs to change, which is the officially-documented laravel-vite-plugin mechanism for exposing a dev server through a tunnel (the same approach used for ngrok/similar):
 
 ```js
-base: process.env.VITE_BASE_PATH || '/',
 server: process.env.VITE_PUBLIC_ORIGIN ? {
   origin: process.env.VITE_PUBLIC_ORIGIN,
-  hmr: { protocol: 'wss', host: new URL(process.env.VITE_PUBLIC_ORIGIN).host, clientPort: 443 },
+  hmr: { protocol: 'wss', host: new URL(process.env.VITE_PUBLIC_ORIGIN).hostname, clientPort: 443 },
 } : undefined,
 ```
 
@@ -211,7 +210,7 @@ New:
 - `scripts/tailscale-dev/install-herdr-plugin.sh` — symlinks the above into `~/.herdr/plugins/tailscale-portfolio/` (the fixed location herdr reads plugins from, same as `guard-main`); a one-time, explicit, human-run step, not something any other script runs on its own
 
 Modified:
-- `vite.config.js` (optional-env-var base/origin/HMR config, §4.5)
+- `vite.config.js` (optional-env-var origin/HMR config, §4.5)
 - `.gitignore` (add `.tailscale-slug`)
 
 Untouched:
