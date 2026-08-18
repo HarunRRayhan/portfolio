@@ -86,7 +86,7 @@ A single JSON file, `~/.config/herdr/plugins/config/tailscale-portfolio/registry
 ```
 
 - Main is a fixed entry with fixed ports (8000/5173 — its existing defaults), always present.
-- Worktree ports are allocated from fixed ranges (backend `8100–8199`, vite `5180–5279`) by scanning the registry for the first unused pair. 100 concurrent worktrees is far beyond realistic use.
+- Worktree ports are allocated from fixed ranges (backend `8200–8299`, vite `5180–5279`) by scanning the registry for the first unused pair. Chosen clear of the ports already in live use on this machine by the sibling `personal-content`/`linkedin-posts` tailscale-serve setups (`8137`, `8140`, `9010`, the `550xx` range). 100 concurrent worktrees is far beyond realistic use. Allocation is a starting point, not a guarantee — see §6 for the bind-failure fallback.
 - The registry is the only place port/slug/PID state lives outside the worktree itself — rebuilding it (e.g. after a crash) means re-running provisioning for every path still on disk.
 - The generated slug is also written to a gitignored `.tailscale-slug` file inside the worktree, so re-running provisioning against an existing worktree is idempotent (reuses the slug instead of minting a new one).
 
