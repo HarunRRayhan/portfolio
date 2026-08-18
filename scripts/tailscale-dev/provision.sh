@@ -49,7 +49,11 @@ else
     VITE_PORT=$(registry::alloc_port "$VITE_PORT_START" "$VITE_PORT_END" vite_port) \
       || { echo "tailscale-dev: no free vite port in range" >&2; exit 1; }
   fi
-  (cd "$TARGET" && php artisan package:discover --ansi) || {
+  # Redirect stdout only (stderr stays visible for real failures) — the
+  # interface contract is "prints the checkout's URL on stdout", and this
+  # command's own --ansi banner would otherwise land on stdout ahead of it
+  # on every run, breaking any caller that does APP_URL=$(provision.sh ...).
+  (cd "$TARGET" && php artisan package:discover --ansi >/dev/null) || {
     echo "tailscale-dev: php artisan package:discover failed in $TARGET" >&2
     exit 1
   }
@@ -69,6 +73,13 @@ prior_pid=$(registry::get "$TARGET" | jq -r '.pid // empty')
 # Bind the ports before registering them with tailscale serve. Registering
 # first reserves the port for tailscale and makes the dev server's own
 # bind() fail with EADDRINUSE.
+#
+# stdout/stderr are redirected to a log file, not inherited from this script:
+# any backgrounded grandchild that keeps our stdout fd open (which all four
+# of these do, since none of them exit on their own) would otherwise make a
+# caller's `$(provision.sh ...)` command substitution block forever waiting
+# for that fd to close, even though this script itself returns immediately.
+mkdir -p "$TARGET/storage/logs"
 (
   cd "$TARGET" && \
   APP_URL="$APP_URL" ASSET_URL="$APP_URL" VITE_PUBLIC_ORIGIN="$VITE_PUBLIC_ORIGIN" \
@@ -78,8 +89,8 @@ prior_pid=$(registry::get "$TARGET" | jq -r '.pid // empty')
     "php artisan serve --port=$BACKEND_PORT" \
     "php artisan queue:listen --tries=1" \
     "php artisan pail --timeout=0" \
-    "npm run dev -- --port=$VITE_PORT"
-) &
+    "npm run dev -- --port=$VITE_PORT --host=127.0.0.1"
+) >>"$TARGET/storage/logs/tailscale-dev.log" 2>&1 &
 GROUP_PID=$!
 disown
 
