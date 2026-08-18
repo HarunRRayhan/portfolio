@@ -74,16 +74,18 @@ A single JSON file, `~/.config/herdr/plugins/config/tailscale-portfolio/registry
     "slug": "harun.dev",
     "backend_port": 8000,
     "vite_port": 5173,
-    "pids": { "serve": 1234, "queue": 1235, "pail": 1236, "vite": 1237 }
+    "pid": 1234
   },
   "/Users/rayhan/.herdr/worktrees/haruns-portfolio/setup-tailscale-with-worktress": {
     "slug": "a3f9k2-harun.dev",
-    "backend_port": 8101,
+    "backend_port": 8201,
     "vite_port": 5181,
-    "pids": { "serve": 2234, "queue": 2235, "pail": 2236, "vite": 2237 }
+    "pid": 2234
   }
 }
 ```
+
+`pid` is a single PID for the whole `concurrently`-grouped process (serve + queue:listen + pail + vite dev server run together as one group, the same tool and pattern `composer.json`'s own `dev` script already uses) — not four separate PIDs. `concurrently` forwards `SIGTERM` to all of its children by default, so killing that one PID (with a `pkill -P` fallback for stragglers, §4.3) tears down the whole group cleanly. This mirrors the proven pattern already in production use on this machine for a sibling project (`crontinel`'s `dev-tailscale-up.sh`/`dev-tailscale-down.sh`), which tracks one grouped PID per workspace the same way.
 
 - Main is a fixed entry with fixed ports (8000/5173 — its existing defaults), always present.
 - Worktree ports are allocated from fixed ranges (backend `8200–8299`, vite `5180–5279`) by scanning the registry for the first unused pair. Chosen clear of the ports already in live use on this machine by the sibling `personal-content`/`linkedin-posts` tailscale-serve setups (`8137`, `8140`, `9010`, the `550xx` range). 100 concurrent worktrees is far beyond realistic use. Allocation is a starting point, not a guarantee — see §6 for the bind-failure fallback.
@@ -105,13 +107,13 @@ If `<worktree-path>` is the main checkout itself (`/Users/rayhan/Code/haruns-por
    - `php artisan pail --timeout=0`
    - `npm run dev -- --port=$VITE_PORT`
 
-   Record each PID in the registry.
+   Run as one `npx concurrently` group (backgrounded, matching `composer.json`'s `dev` script) and record its single PID in the registry.
 6. `tailscale serve --bg --set-path=/$SLUG http://127.0.0.1:$BACKEND_PORT` and `--set-path=/$SLUG--vite http://127.0.0.1:$VITE_PORT`.
 7. Print the final URL.
 
 ### 4.3 Teardown script — `scripts/tailscale-dev/teardown.sh <worktree-path>`
 
-Reverse of provisioning: kill the recorded PIDs (process-group kill, not just the parent, so `npm run dev`'s child esbuild/vite processes don't linger), clear both `tailscale serve` mounts for the slug, remove the registry entry. Leaves the symlinks and `.tailscale-slug` file in place — harmless, and `git worktree remove` deletes the whole directory anyway.
+Reverse of provisioning: kill the recorded group PID (`SIGTERM`, then a `pkill -P`/`SIGKILL` fallback so `npm run dev`'s child esbuild/vite processes don't linger if `concurrently` itself didn't forward the signal in time), clear both `tailscale serve` mounts for the slug, remove the registry entry. Leaves the symlinks and `.tailscale-slug` file in place — harmless, and `git worktree remove` deletes the whole directory anyway.
 
 ### 4.4 herdr plugin — `~/.herdr/plugins/tailscale-portfolio/`
 
@@ -173,7 +175,7 @@ herdr creates worktree
       symlink node_modules, vendor, .env
       ports ← allocate from registry
       php artisan package:discover
-      start backend/queue/pail/vite, record PIDs
+      start backend/queue/pail/vite as one concurrently group, record its PID
       tailscale serve --set-path=/<slug> ...
       tailscale serve --set-path=/<slug>--vite ...
   → URL printed / available immediately
