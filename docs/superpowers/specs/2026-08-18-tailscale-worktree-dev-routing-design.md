@@ -115,7 +115,9 @@ Reverse of provisioning: kill the recorded PIDs (process-group kill, not just th
 
 ### 4.4 herdr plugin — `~/.herdr/plugins/tailscale-portfolio/`
 
-New plugin, following the existing `guard-main` plugin's shape (`herdr-plugin.toml` + shell scripts reading `HERDR_PLUGIN_EVENT_JSON`):
+Source lives in-repo at `scripts/tailscale-dev/herdr-plugin/` (version-controlled, reviewable in the same PRs as the scripts it drives) and gets symlinked into herdr's fixed plugin location by a one-time, explicitly-run `scripts/tailscale-dev/install-herdr-plugin.sh` — nothing else writes to `~/.herdr/` on its own.
+
+New plugin, following the existing `guard-main` plugin's shape (`herdr-plugin.toml` + a shell script), but **diffing `git worktree list` against the registry rather than parsing `HERDR_PLUGIN_EVENT_JSON`.** `guard-main`'s own `worktree.created`/`worktree.removed` handlers don't trust the event payload for per-worktree detail either — they re-run a full relist (`label.sh all`, backed by `herdr workspace list`) rather than parse per-event fields, because the payload shape isn't guaranteed stable across event types. This design follows that same precedent, using `git worktree list --porcelain` (a stable, documented git command) as the source of truth instead:
 
 ```toml
 [[startup]]
@@ -123,15 +125,19 @@ command = ["bash", "-c", "exec bash \"$HERDR_PLUGIN_ROOT/reconcile.sh\""]
 
 [[events]]
 on = "worktree.created"
-command = ["bash", "-c", "exec bash \"$HERDR_PLUGIN_ROOT/on-created.sh\""]
+command = ["bash", "-c", "exec bash \"$HERDR_PLUGIN_ROOT/reconcile.sh\""]
 
 [[events]]
 on = "worktree.removed"
-command = ["bash", "-c", "exec bash \"$HERDR_PLUGIN_ROOT/on-removed.sh\""]
+command = ["bash", "-c", "exec bash \"$HERDR_PLUGIN_ROOT/reconcile.sh\""]
 ```
 
-- `on-created.sh` / `on-removed.sh` extract the worktree path from `HERDR_PLUGIN_EVENT_JSON` and call `provision.sh` / `teardown.sh`.
-- `reconcile.sh` runs on herdr startup (covers machine reboot, since neither the background dev processes nor `tailscale serve` config survive one): ensures main is provisioned, and re-provisions every path still recorded in the registry that still exists on disk; prunes registry entries whose path no longer exists.
+All three triggers (startup, and both events) run the same `reconcile.sh`:
+1. `git -C <main-checkout> worktree list --porcelain` → the current, ground-truth set of checkout paths (main plus every live worktree).
+2. Any path in that set missing from the registry → `provision.sh <path>`.
+3. Any registry entry whose path is missing from that set → `teardown.sh <path>`.
+
+This also covers machine reboot (step 1 above runs on startup too, and neither the background dev processes nor `tailscale serve` config survive one) and the case of a worktree removed without going through herdr (§6) — both are just "the registry doesn't match `git worktree list` anymore," handled by the same diff.
 
 **This is the only automatic trigger, and it only exists if `herdr` is installed and running.** A worktree created with a plain `git worktree add`, or on a machine without this plugin installed, is never seen by `herdr` and so no event ever fires for it — nothing is auto-provisioned, and nothing breaks either, since `provision.sh`/`teardown.sh` don't assume herdr exists at runtime (they take a plain path argument). herdr is purely the trigger; anyone not using it can still call the scripts by hand (`scripts/tailscale-dev/provision.sh <path>`), or just not use this feature at all.
 
@@ -162,8 +168,8 @@ No `.env` file edits, ever. `APP_URL` and `ASSET_URL` are exported as shell envi
 ```
 herdr creates worktree
   → worktree.created event fires
-  → on-created.sh reads path from HERDR_PLUGIN_EVENT_JSON
-  → provision.sh <path>
+  → reconcile.sh: git worktree list --porcelain, diff against registry
+  → new path found → provision.sh <path>
       slug ← mint or reuse
       symlink node_modules, vendor, .env
       ports ← allocate from registry
@@ -200,7 +206,8 @@ New:
 - `scripts/tailscale-dev/teardown.sh`
 - `scripts/tailscale-dev/url.sh`
 - `scripts/tailscale-dev/lib.sh` (shared slug/port/registry helpers)
-- `~/.herdr/plugins/tailscale-portfolio/herdr-plugin.toml`, `reconcile.sh`, `on-created.sh`, `on-removed.sh`
+- `scripts/tailscale-dev/herdr-plugin/herdr-plugin.toml`, `reconcile.sh` — plugin source, version-controlled in-repo
+- `scripts/tailscale-dev/install-herdr-plugin.sh` — symlinks the above into `~/.herdr/plugins/tailscale-portfolio/` (the fixed location herdr reads plugins from, same as `guard-main`); a one-time, explicit, human-run step, not something any other script runs on its own
 
 Modified:
 - `vite.config.js` (optional-env-var base/origin/HMR config, §4.5)
