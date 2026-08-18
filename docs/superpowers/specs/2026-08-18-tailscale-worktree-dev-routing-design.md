@@ -27,6 +27,13 @@ Worktree lifecycle (creation and removal) is driven automatically by a new `herd
 - Solving cross-worktree DB isolation. All worktrees share main's Postgres dev database (a consequence of symlinking `.env`); a migration run in one worktree affects all of them. Acceptable for solo local dev; not addressed further here.
 - Handling worktrees whose branch has diverged `package.json`/`composer.json` from main. The symlink will point at dependencies that don't match; the escape hatch is manually breaking the symlink and installing locally in that one worktree.
 - Production routing/deployment — this is local-machine dev tooling only, unrelated to `docker/traefik-dynamic.yml` or the Railway deploy path.
+- Working for anyone not using `herdr`. Automatic provisioning is wired into `herdr`'s plugin events on purpose (§4.4) — it is not a general "any git worktree" solution. See §4.4.
+
+## 2.1 Scope: development-only, herdr-only
+
+Everything in this design lives under `scripts/tailscale-dev/` and `~/.herdr/plugins/tailscale-portfolio/` — entirely separate from `deploy/`, `docker/`, and CI, and never touched by them. `provision.sh`/`teardown.sh` refuse to run unless the target's `.env` resolves `APP_ENV=local`, as a canary against ever pointing this at anything but a local dev checkout. Nothing here is invoked by a deploy, a GitHub Action, or any production path.
+
+Automatic triggering is `herdr`-only by design (§4.4) — this is dev-environment convenience tooling built around the worktree manager Harun actually uses, not a generic git-worktree feature.
 
 ## 3. Architecture
 
@@ -85,8 +92,9 @@ A single JSON file, `~/.config/herdr/plugins/config/tailscale-portfolio/registry
 
 ### 4.2 Provisioning script — `scripts/tailscale-dev/provision.sh <worktree-path>`
 
-If `<worktree-path>` is the main checkout itself (`/Users/rayhan/Code/haruns-portfolio`), steps 1–2 and 4 are skipped — main already owns its real `node_modules`/`vendor`/`.env`/`bootstrap/cache`, nothing to symlink or regenerate. It always uses the fixed `harun.dev` slug and 8000/5173 ports (§4.1) and only needs steps 3, 5, 6, 7.
+If `<worktree-path>` is the main checkout itself (`/Users/rayhan/Code/haruns-portfolio`), steps 1–2 and 4 are skipped — main already owns its real `node_modules`/`vendor`/`.env`/`bootstrap/cache`, nothing to symlink or regenerate. It always uses the fixed `harun.dev` slug and 8000/5173 ports (§4.1) and only needs steps 0, 3, 5, 6, 7.
 
+0. Refuse to proceed unless `APP_ENV=local` in the (symlinked or real) `.env` this checkout resolves to — the canary from §2.1 against ever running this against anything but a local dev checkout.
 1. If `.tailscale-slug` doesn't exist in the worktree, generate a 6-char lowercase-alphanumeric id (retry on registry collision) and write it.
 2. Symlink `node_modules`, `vendor`, `.env` from the main checkout into the worktree, skipping any that are already correct symlinks. Refuse to clobber a real file/dir that isn't already our symlink (surface an error instead — this protects against overwriting someone's in-progress local install).
 3. Allocate `backend_port`/`vite_port` from the registry (skip if this path already has an entry).
@@ -124,6 +132,8 @@ command = ["bash", "-c", "exec bash \"$HERDR_PLUGIN_ROOT/on-removed.sh\""]
 
 - `on-created.sh` / `on-removed.sh` extract the worktree path from `HERDR_PLUGIN_EVENT_JSON` and call `provision.sh` / `teardown.sh`.
 - `reconcile.sh` runs on herdr startup (covers machine reboot, since neither the background dev processes nor `tailscale serve` config survive one): ensures main is provisioned, and re-provisions every path still recorded in the registry that still exists on disk; prunes registry entries whose path no longer exists.
+
+**This is the only automatic trigger, and it only exists if `herdr` is installed and running.** A worktree created with a plain `git worktree add`, or on a machine without this plugin installed, is never seen by `herdr` and so no event ever fires for it — nothing is auto-provisioned, and nothing breaks either, since `provision.sh`/`teardown.sh` don't assume herdr exists at runtime (they take a plain path argument). herdr is purely the trigger; anyone not using it can still call the scripts by hand (`scripts/tailscale-dev/provision.sh <path>`), or just not use this feature at all.
 
 ### 4.5 `vite.config.js` change
 
