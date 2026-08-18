@@ -8,6 +8,7 @@
 # MaxMind GeoLite2 database, fetched by `php artisan geoip:update`
 /storage/app/geoip
 /vendor
+.tailscale-slug
 .env
 .env.testing
 .env.backup
