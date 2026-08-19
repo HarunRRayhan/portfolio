@@ -16,8 +16,7 @@ REPO_SCRIPTS_DIR="$(cd -- "$SCRIPT_DIR/.." &>/dev/null && pwd)"
 # shellcheck source=../lib.sh
 source "$REPO_SCRIPTS_DIR/lib.sh"
 
-worktree_list=$(git -C "$MAIN_REPO" worktree list --porcelain)
-if [[ $? -ne 0 ]]; then
+if ! worktree_list=$(git -C "$MAIN_REPO" worktree list --porcelain); then
   echo "tailscale-dev: git worktree list --porcelain failed -- aborting reconcile (refusing to treat this as \"nothing is checked out\")" >&2
   exit 1
 fi
