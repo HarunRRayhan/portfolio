@@ -51,15 +51,15 @@ resource "cloudflare_dns_record" "cdn_cname" {
   ttl     = 1
 }
 
-# STALE: content still references the now-terminated Lightsail static IP.
-# The apex now actually serves via Railway behind Cloudflare proxy; this
-# resource's value needs to be reconciled (or removed) against real
-# Terraform state by someone with backend credentials.
+# Apex now serves via Railway behind the Cloudflare proxy (verified live
+# against the Cloudflare API 2026-08-19). Resource address kept as
+# "root_a" even though it's a CNAME now, to avoid a destroy/create on
+# next apply — renaming would need a `terraform state mv` first.
 resource "cloudflare_dns_record" "root_a" {
   zone_id = var.cloudflare_zone_id
   name    = "@"
-  type    = "A"
-  content = "107.23.221.70" # was aws_lightsail_static_ip.portfolio.ip_address
+  type    = "CNAME"
+  content = "0iyhmk4h.up.railway.app"
   proxied = true
   ttl     = 1
 }

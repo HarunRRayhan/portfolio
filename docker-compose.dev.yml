@@ -1,6 +1,5 @@
-# Local development database only. Production runs the blue/green stack in
-# docker/docker-compose.yml, where the app reaches Postgres over the internal
-# network as host "db". Here we publish the port so artisan can run on the host.
+# Local development database only. Production runs on Railway and does not
+# use Docker Compose. Here we publish the port so artisan can run on the host.
 #
 #   docker compose -f docker-compose.dev.yml up -d
 #   php artisan migrate
