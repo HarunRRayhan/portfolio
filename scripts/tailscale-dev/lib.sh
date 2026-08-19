@@ -5,6 +5,17 @@
 
 set -uo pipefail
 
+# herdr invokes plugin commands (worktree.created/worktree.removed/startup)
+# with a PATH that doesn't reliably include Homebrew or /usr/local/bin --
+# confirmed live: an interactive shell finds tailscale at /usr/local/bin, but
+# the same lookup failed when this file was sourced from a herdr-invoked
+# reconcile.sh, while jq (/opt/homebrew/bin) resolved fine in that same
+# invocation. Prepend both so provisioning doesn't depend on the caller's PATH.
+for dir in /opt/homebrew/bin /usr/local/bin; do
+  [[ ":$PATH:" == *":$dir:"* ]] || PATH="$dir:$PATH"
+done
+export PATH
+
 : "${MAIN_REPO:=/Users/rayhan/Code/haruns-portfolio}"
 : "${TAILSCALE_DEV_REGISTRY:=$HOME/.config/herdr/plugins/config/tailscale-portfolio/registry.json}"
 
