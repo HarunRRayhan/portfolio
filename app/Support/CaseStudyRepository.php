@@ -192,7 +192,7 @@ class CaseStudyRepository
             'publishedAtIso' => Carbon::parse($study['publishedAt'])->toAtomString(),
             'readTimeInMinutes' => (int) ($study['readTimeInMinutes'] ?? $this->estimateReadMinutes($study['content']['text'] ?? '')),
             'readTimeLabel' => ((int) ($study['readTimeInMinutes'] ?? $this->estimateReadMinutes($study['content']['text'] ?? ''))).' min read',
-            'coverImageUrl' => $study['coverImageUrl'] ?? null,
+            'coverImageUrl' => $this->resolveCoverImageUrl($study['coverImageUrl'] ?? null),
             'coverImageAlt' => $study['coverImageAlt'] ?? $study['codename'] ?? $study['title'] ?? $study['slug'],
             'isDraft' => (bool) ($study['draft'] ?? false),
             'url' => $this->relativeUrl((string) $study['slug']),
@@ -294,6 +294,36 @@ class CaseStudyRepository
                 'text' => $text,
             ],
         ]);
+    }
+
+    /**
+     * Locally-hosted covers are stored in frontmatter as root-relative paths
+     * (e.g. /case-studies-assets/{slug}/cover.jpg). The browser resolves those
+     * against the bare hostname, so they 404 whenever the app is mounted under
+     * a path prefix rather than at the domain root (the tailscale worktree dev
+     * proxy serves each checkout from https://<host>/<slug>-harun.dev). Running
+     * them through asset() pins them to the app's own root instead. Older case
+     * studies may store full absolute URLs; those are already resolvable and
+     * pass through untouched.
+     */
+    private function resolveCoverImageUrl(mixed $url): ?string
+    {
+        if (! is_string($url)) {
+            return null;
+        }
+
+        $url = trim($url);
+
+        if ($url === '') {
+            return null;
+        }
+
+        // Absolute, protocol-relative, and inline data URLs need no rewriting.
+        if (preg_match('#^(?:[a-z][a-z0-9+.-]*:)?//#i', $url) === 1 || str_starts_with($url, 'data:')) {
+            return $url;
+        }
+
+        return asset($url);
     }
 
     private function contentText(string $html): string

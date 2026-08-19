@@ -111,7 +111,7 @@ class BlogRepository
             'reactionCount' => $post['reactionCount'],
             'responseCount' => $post['responseCount'],
             'replyCount' => $post['replyCount'],
-            'coverImageUrl' => $post['coverImageUrl'] ?? null,
+            'coverImageUrl' => $this->resolveCoverImageUrl($post['coverImageUrl'] ?? null),
             'coverImageAlt' => $post['coverImageAlt'] ?? $post['title'],
             'viewCount' => Cache::remember("post.views.{$post['slug']}", 3600, function () use ($post) {
                 try {
@@ -299,6 +299,36 @@ class BlogRepository
         $sourceUrl = rtrim((string) $publication['url'], '/').'/'.$slug;
 
         return 'https://web.archive.org/web/*/'.$sourceUrl;
+    }
+
+    /**
+     * Locally-hosted covers are stored in frontmatter as root-relative paths
+     * (e.g. /blog-assets/{slug}/cover.jpg). The browser resolves those against
+     * the bare hostname, so they 404 whenever the app is mounted under a path
+     * prefix rather than at the domain root (the tailscale worktree dev proxy
+     * serves each checkout from https://<host>/<slug>-harun.dev). Running them
+     * through asset() pins them to the app's own root instead. Older posts
+     * store full GitHub-raw URLs; those are already resolvable and pass through
+     * untouched.
+     */
+    private function resolveCoverImageUrl(mixed $url): ?string
+    {
+        if (! is_string($url)) {
+            return null;
+        }
+
+        $url = trim($url);
+
+        if ($url === '') {
+            return null;
+        }
+
+        // Absolute, protocol-relative, and inline data URLs need no rewriting.
+        if (preg_match('#^(?:[a-z][a-z0-9+.-]*:)?//#i', $url) === 1 || str_starts_with($url, 'data:')) {
+            return $url;
+        }
+
+        return asset($url);
     }
 
     private function contentText(string $html): string
