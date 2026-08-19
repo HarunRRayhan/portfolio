@@ -10,6 +10,7 @@ export default defineConfig({
         laravel({
             input: 'resources/js/app.tsx',
             refresh: true,
+            detectTls: process.env.VITE_PUBLIC_ORIGIN ? false : undefined,
         }),
         react(),
     ],

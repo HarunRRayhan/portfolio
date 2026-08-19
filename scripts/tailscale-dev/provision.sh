@@ -13,8 +13,6 @@ usage() { echo "Usage: $(basename "$0") <worktree-path>" >&2; exit 1; }
 
 TARGET=$(cd "$1" 2>/dev/null && pwd) || { echo "tailscale-dev: no such directory: $1" >&2; exit 1; }
 
-guard::require_local_env
-
 IS_MAIN=false
 [[ "$TARGET" == "$MAIN_REPO" ]] && IS_MAIN=true
 
@@ -28,10 +26,15 @@ if [[ "$IS_MAIN" == false ]]; then
       echo "tailscale-dev: refusing to clobber existing $dst (not a symlink we own)" >&2
       exit 1
     else
-      ln -s "$src" "$dst"
+      ln -s "$src" "$dst" || { echo "tailscale-dev: failed to symlink $dst -> $src" >&2; exit 1; }
     fi
   done
 fi
+
+# Checked after the symlink step above: a non-main worktree has no .env of
+# its own until node_modules/vendor/.env are symlinked in; checking before
+# that would always fail. Main's own .env is already present either way.
+guard::require_local_env "$TARGET"
 
 SLUG=$(slug::for_path "$TARGET")
 
@@ -60,13 +63,13 @@ else
 fi
 
 APP_URL=$(ts::url_for_slug "$SLUG")
-VITE_PUBLIC_ORIGIN=$(ts::vite_url_for_slug "$SLUG")
+VITE_PUBLIC_ORIGIN=$(ts::vite_url_for_port "$VITE_PORT")
 
 # Defensive: clear any mount/process left over from a run that ended without
 # going through teardown.sh — tailscale serve state and the registry both
 # persist independently of whether the process that set them is still alive.
 tailscale serve --set-path="/$SLUG" off >/dev/null 2>&1 || true
-tailscale serve --set-path="/${SLUG}--vite" off >/dev/null 2>&1 || true
+tailscale serve --https="$VITE_PORT" off >/dev/null 2>&1 || true
 prior_pid=$(registry::get "$TARGET" | jq -r '.pid // empty')
 [[ -n "$prior_pid" ]] && proc::kill_group "$prior_pid"
 
@@ -94,19 +97,38 @@ mkdir -p "$TARGET/storage/logs"
 GROUP_PID=$!
 disown
 
+LOG_FILE="$TARGET/storage/logs/tailscale-dev.log"
+
+# Catch an immediate failure (e.g. npx/concurrently not found) rather than
+# waiting the full port timeout for something that already died.
+sleep 0.5
+if ! kill -0 "$GROUP_PID" 2>/dev/null; then
+  echo "tailscale-dev: dev server group died immediately after launch -- see $LOG_FILE" >&2
+  exit 1
+fi
+
 if ! net::wait_for_port "$BACKEND_PORT" 30; then
-  echo "tailscale-dev: backend port $BACKEND_PORT did not come up in time" >&2
+  echo "tailscale-dev: backend port $BACKEND_PORT did not come up in time -- see $LOG_FILE" >&2
   proc::kill_group "$GROUP_PID"
   exit 1
 fi
 if ! net::wait_for_port "$VITE_PORT" 30; then
-  echo "tailscale-dev: vite port $VITE_PORT did not come up in time" >&2
+  echo "tailscale-dev: vite port $VITE_PORT did not come up in time -- see $LOG_FILE" >&2
   proc::kill_group "$GROUP_PID"
   exit 1
 fi
 
-tailscale serve --bg --set-path="/$SLUG" "http://127.0.0.1:$BACKEND_PORT" >/dev/null
-tailscale serve --bg --set-path="/${SLUG}--vite" "http://127.0.0.1:$VITE_PORT" >/dev/null
+if ! tailscale serve --bg --set-path="/$SLUG" "http://127.0.0.1:$BACKEND_PORT" >/dev/null; then
+  echo "tailscale-dev: failed to mount app at /$SLUG" >&2
+  proc::kill_group "$GROUP_PID"
+  exit 1
+fi
+if ! tailscale serve --bg --https="$VITE_PORT" "http://127.0.0.1:$VITE_PORT" >/dev/null; then
+  echo "tailscale-dev: failed to mount vite at :$VITE_PORT" >&2
+  tailscale serve --set-path="/$SLUG" off >/dev/null 2>&1 || true
+  proc::kill_group "$GROUP_PID"
+  exit 1
+fi
 
 registry::set "$TARGET" "$(jq -n \
   --arg slug "$SLUG" \

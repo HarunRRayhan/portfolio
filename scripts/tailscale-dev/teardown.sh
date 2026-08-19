@@ -23,10 +23,12 @@ fi
 
 SLUG=$(jq -r '.slug' <<<"$entry")
 PID=$(jq -r '.pid' <<<"$entry")
+VITE_PORT=$(jq -r '.vite_port' <<<"$entry")
 
 proc::kill_group "$PID"
 tailscale serve --set-path="/$SLUG" off >/dev/null 2>&1 || true
-tailscale serve --set-path="/${SLUG}--vite" off >/dev/null 2>&1 || true
+tailscale serve --https="$VITE_PORT" off >/dev/null 2>&1 || true
+rm -f "$TARGET/public/hot"
 registry::remove "$TARGET"
 
 echo "tailscale-dev: torn down $SLUG ($TARGET)"

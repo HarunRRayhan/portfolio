@@ -63,10 +63,10 @@ echo "APP_ENV=local" > "$MAIN_REPO/.env"
 val=$(env::read_var "$MAIN_REPO/.env" "APP_ENV")
 assert_eq "$val" "local" "env::read_var reads APP_ENV"
 
-if (guard::require_local_env) 2>/dev/null; then pass "guard::require_local_env passes when APP_ENV=local"; else fail "guard::require_local_env should have passed"; fi
+if (guard::require_local_env "$MAIN_REPO") 2>/dev/null; then pass "guard::require_local_env passes when APP_ENV=local"; else fail "guard::require_local_env should have passed"; fi
 
 echo "APP_ENV=production" > "$MAIN_REPO/.env"
-if (guard::require_local_env) 2>/dev/null; then fail "guard::require_local_env should have refused APP_ENV=production"; else pass "guard::require_local_env refuses APP_ENV=production"; fi
+if (guard::require_local_env "$MAIN_REPO") 2>/dev/null; then fail "guard::require_local_env should have refused APP_ENV=production"; else pass "guard::require_local_env refuses APP_ENV=production"; fi
 echo "APP_ENV=local" > "$MAIN_REPO/.env"
 
 echo "--- net::wait_for_port ---"
@@ -83,15 +83,34 @@ wait "$PROBE_PID" 2>/dev/null
 if net::wait_for_port 58999 2; then fail "net::wait_for_port should have timed out on a dead port"; else pass "net::wait_for_port times out on a port nobody is listening on"; fi
 
 echo "--- proc::kill_group ---"
-( sleep 60 & sleep 60 & wait ) &
+# 4-level-deep tree (GROUP_PID -> branch -> sub-subshell -> sleep), mirroring
+# the real concurrently -> grouped-process -> php-S/node grandchild shape.
+(
+  (
+    ( sleep 60 & sleep 60 & wait ) &
+    wait
+  ) &
+  (
+    ( sleep 60 & sleep 60 & wait ) &
+    wait
+  ) &
+  wait
+) &
 GROUP_PID=$!
 sleep 1
-child_count_before=$(pgrep -P "$GROUP_PID" | wc -l | tr -d ' ')
-assert_eq "$child_count_before" "2" "proc test setup has two sleep children"
+descendants_before=()
+while IFS= read -r d; do
+  [[ -n "$d" ]] && descendants_before+=("$d")
+done < <(proc::descendants "$GROUP_PID")
+assert_eq "${#descendants_before[@]}" "8" "proc test setup has a 4-level-deep tree (8 descendants)"
 proc::kill_group "$GROUP_PID"
 sleep 1
 if kill -0 "$GROUP_PID" 2>/dev/null; then fail "proc::kill_group left the group PID alive"; else pass "proc::kill_group killed the group PID"; fi
-if pgrep -P "$GROUP_PID" >/dev/null 2>&1; then fail "proc::kill_group left orphaned children"; else pass "proc::kill_group killed the children too"; fi
+still_alive=0
+for d in "${descendants_before[@]}"; do
+  kill -0 "$d" 2>/dev/null && still_alive=$((still_alive + 1))
+done
+if (( still_alive == 0 )); then pass "proc::kill_group killed the full 4-level descendant tree"; else fail "proc::kill_group left $still_alive descendant(s) from the deep tree alive"; fi
 
 echo "--- tailscale hostname (real, needs tailscaled running) ---"
 host=$(ts::hostname)

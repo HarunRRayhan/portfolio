@@ -16,14 +16,25 @@ REPO_SCRIPTS_DIR="$(cd -- "$SCRIPT_DIR/.." &>/dev/null && pwd)"
 # shellcheck source=../lib.sh
 source "$REPO_SCRIPTS_DIR/lib.sh"
 
-current_paths=$(git -C "$MAIN_REPO" worktree list --porcelain | awk '/^worktree /{print substr($0, 10)}')
+worktree_list=$(git -C "$MAIN_REPO" worktree list --porcelain)
+if [[ $? -ne 0 ]]; then
+  echo "tailscale-dev: git worktree list --porcelain failed -- aborting reconcile (refusing to treat this as \"nothing is checked out\")" >&2
+  exit 1
+fi
+current_paths=$(awk '/^worktree /{print substr($0, 10)}' <<<"$worktree_list")
 registered_paths=$(registry::all_paths)
 
 while IFS= read -r path; do
   [[ -z "$path" ]] && continue
   if ! grep -qxF "$path" <<<"$registered_paths"; then
-    echo "tailscale-dev: provisioning $path"
+    echo "tailscale-dev: provisioning $path (not yet registered)"
     "$REPO_SCRIPTS_DIR/provision.sh" "$path" || echo "tailscale-dev: provisioning $path failed" >&2
+    continue
+  fi
+  pid=$(registry::get "$path" | jq -r '.pid // empty')
+  if [[ -n "$pid" ]] && ! kill -0 "$pid" 2>/dev/null; then
+    echo "tailscale-dev: re-provisioning $path (registered pid $pid is dead)"
+    "$REPO_SCRIPTS_DIR/provision.sh" "$path" || echo "tailscale-dev: re-provisioning $path failed" >&2
   fi
 done <<<"$current_paths"
 

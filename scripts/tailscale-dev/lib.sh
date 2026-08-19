@@ -59,7 +59,7 @@ registry::alloc_port() {
   file=$(registry::file)
   used=$(jq -r --arg f "$field" '[.[][$f]] | .[]' "$file")
   for ((p = start; p <= end; p++)); do
-    if ! grep -qx "$p" <<<"$used"; then
+    if ! grep -qx "$p" <<<"$used" && ! net::port_in_use "$p"; then
       echo "$p"
       return 0
     fi
@@ -103,8 +103,8 @@ ts::url_for_slug() {
   echo "https://$(ts::hostname)/${1}"
 }
 
-ts::vite_url_for_slug() {
-  echo "https://$(ts::hostname)/${1}--vite"
+ts::vite_url_for_port() {
+  echo "https://$(ts::hostname):${1}"
 }
 
 # --- env ------------------------------------------------------------------
@@ -116,10 +116,11 @@ env::read_var() {
 }
 
 guard::require_local_env() {
+  local path="$1"
   local app_env
-  app_env=$(env::read_var "$MAIN_REPO/.env" "APP_ENV" || true)
+  app_env=$(env::read_var "$path/.env" "APP_ENV" || true)
   if [[ "$app_env" != "local" ]]; then
-    echo "tailscale-dev: refusing to run — $MAIN_REPO/.env has APP_ENV='$app_env', not 'local'" >&2
+    echo "tailscale-dev: refusing to run — $path/.env has APP_ENV='$app_env', not 'local'" >&2
     exit 1
   fi
 }
@@ -139,20 +140,36 @@ net::wait_for_port() {
   return 1
 }
 
+net::port_in_use() {
+  local port="$1"
+  if (exec 3<>"/dev/tcp/127.0.0.1/$port") 2>/dev/null; then
+    exec 3<&- 3>&-
+    return 0
+  fi
+  return 1
+}
+
+proc::descendants() {
+  local pid="$1" children child
+  children=$(pgrep -P "$pid" 2>/dev/null || true)
+  for child in $children; do
+    echo "$child"
+    proc::descendants "$child"
+  done
+}
+
 proc::kill_group() {
   local pid="$1"
   [[ -z "$pid" ]] && return 0
-  local children
-  children=$(pgrep -P "$pid" 2>/dev/null || true)
-  kill -TERM "$pid" 2>/dev/null || true
-  [[ -n "$children" ]] && kill -TERM $children 2>/dev/null
+  local all_pids
+  all_pids="$pid $(proc::descendants "$pid")"
+  kill -TERM $all_pids 2>/dev/null
   local waited=0
   while (( waited < 10 )); do
     kill -0 "$pid" 2>/dev/null || break
     sleep 0.5
     waited=$((waited + 1))
   done
-  [[ -n "$children" ]] && kill -9 $children 2>/dev/null
-  kill -9 "$pid" 2>/dev/null || true
+  kill -9 $all_pids 2>/dev/null
   return 0
 }

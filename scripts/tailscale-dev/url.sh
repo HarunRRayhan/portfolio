@@ -16,11 +16,12 @@ SCRIPT_DIR="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 source "$SCRIPT_DIR/lib.sh"
 
 print_entry() {
-  local path="$1" entry slug pid status
+  local path="$1" entry slug pid vite_port status
   entry=$(registry::get "$path")
   [[ -z "$entry" ]] && return 1
   slug=$(jq -r '.slug' <<<"$entry")
   pid=$(jq -r '.pid' <<<"$entry")
+  vite_port=$(jq -r '.vite_port' <<<"$entry")
   if kill -0 "$pid" 2>/dev/null; then
     status="running (pid $pid)"
   else
@@ -28,7 +29,7 @@ print_entry() {
   fi
   echo "$path"
   echo "  $(ts::url_for_slug "$slug")"
-  echo "  $(ts::vite_url_for_slug "$slug") (vite)"
+  echo "  $(ts::vite_url_for_port "$vite_port") (vite)"
   echo "  status: $status"
 }
 
