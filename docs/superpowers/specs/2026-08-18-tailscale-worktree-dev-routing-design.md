@@ -12,7 +12,7 @@ Give every local checkout of this repo — the main working copy and every `herd
 
 `mx.ewe-ulmer.ts.net` is this machine's (`Haruns-M2Max`) MagicDNS name on Harun's tailnet — `{ts_device_domain}` in the original request.
 
-Worktree lifecycle (creation and removal) is driven automatically by a new `herdr` plugin. Provisioning symlinks the parts of a worktree that don't meaningfully vary by branch (`node_modules`, `vendor`, `.env`) back to the main checkout instead of reinstalling them, regenerates the parts that do vary by branch (`bootstrap/cache`), and starts the dev servers and Tailscale routes needed to serve that worktree independently.
+Worktree lifecycle (creation and removal) is driven automatically by a new `herdr` plugin. Provisioning symlinks the gitignored, local-only parts of a worktree that are necessary but never committed (`node_modules`, `vendor`, `.env`, `.claude/settings.local.json`) back to the main checkout instead of reinstalling them, regenerates the parts that do vary by branch (`bootstrap/cache`), and starts the dev servers and Tailscale routes needed to serve that worktree independently.
 
 ## 2. Goals / Non-Goals
 
@@ -55,7 +55,7 @@ Any tailnet device (phone, other laptop)
         ▼
   scripts/tailscale-dev/{provision,teardown}.sh
         │
-        ├── symlinks: node_modules, vendor, .env  → main checkout's copies
+        ├── symlinks: node_modules, vendor, .env, .claude/settings.local.json → main checkout's copies
         ├── regenerates: bootstrap/cache/*.php     (php artisan package:discover)
         ├── allocates: backend_port, vite_port     (registry.json)
         └── launches: artisan serve / queue:listen / pail / vite, records PIDs
@@ -98,7 +98,7 @@ A single JSON file, `~/.config/herdr/plugins/config/tailscale-portfolio/registry
 If `<worktree-path>` is the main checkout itself (`/Users/rayhan/Code/haruns-portfolio`), steps 1–2 and 5 are skipped — main already owns its real `node_modules`/`vendor`/`.env`/`bootstrap/cache`, nothing to symlink or regenerate. It always uses the fixed `harun.dev` slug and 8000/5173 ports (§4.1) and only needs steps 3–8.
 
 1. If `.tailscale-slug` doesn't exist in the worktree, generate a 6-char lowercase-alphanumeric id (retry on registry collision) and write it.
-2. Symlink `node_modules`, `vendor`, `.env` from the main checkout into the worktree, skipping any that are already correct symlinks. Refuse to clobber a real file/dir that isn't already our symlink (surface an error instead — this protects against overwriting someone's in-progress local install).
+2. Symlink `node_modules`, `vendor`, `.env`, `.claude/settings.local.json` from the main checkout into the worktree, skipping any that are already correct symlinks. Refuse to clobber a real file/dir that isn't already our symlink (surface an error instead — this protects against overwriting someone's in-progress local install). General rule for adding to this list: gitignored, local-only files that a worktree genuinely needs but that don't meaningfully vary by branch. It excludes anything that legitimately should differ per checkout (`.tailscale-slug`, `public/hot`, `storage/`, `bootstrap/cache`) and anything deploy/production-credential-related (never symlinked, regardless of gitignore status).
 3. Refuse to proceed unless `APP_ENV=local` in the `.env` this checkout now resolves to (for non-main, that means *after* step 2's symlink — checking beforehand would always fail, since the worktree has no `.env` yet; for main, its own real `.env` is already present, no ordering issue). This is the canary from §2.1 against ever running this against anything but a local dev checkout, and — per §9's final-review finding — it must check the checkout actually being provisioned, not always `$MAIN_REPO/.env` unconditionally, or it can never fail for the case it exists to catch.
 4. Allocate `backend_port`/`vite_port` from the registry (skip if this path already has an entry). Before allocating a *new* pair, probe that the candidate port isn't already bound by something outside this tool's own tracking (§9) — the registry only knows about ports *it* handed out, not the rest of the system.
 5. Run `php artisan package:discover --ansi` in the worktree to populate `bootstrap/cache/*.php` fresh. `storage/` needs no copying — git already ships the full directory skeleton per worktree (only contents are gitignored); it fills in naturally on first request.

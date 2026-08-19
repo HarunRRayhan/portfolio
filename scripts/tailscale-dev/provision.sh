@@ -17,7 +17,7 @@ IS_MAIN=false
 [[ "$TARGET" == "$MAIN_REPO" ]] && IS_MAIN=true
 
 if [[ "$IS_MAIN" == false ]]; then
-  for item in node_modules vendor .env; do
+  for item in node_modules vendor .env .claude/settings.local.json; do
     src="$MAIN_REPO/$item"
     dst="$TARGET/$item"
     if [[ -L "$dst" ]]; then
