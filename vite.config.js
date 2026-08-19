@@ -13,4 +13,12 @@ export default defineConfig({
         }),
         react(),
     ],
+    server: process.env.VITE_PUBLIC_ORIGIN ? {
+        origin: process.env.VITE_PUBLIC_ORIGIN,
+        hmr: {
+            protocol: 'wss',
+            host: new URL(process.env.VITE_PUBLIC_ORIGIN).hostname,
+            clientPort: 443,
+        },
+    } : undefined,
 });
