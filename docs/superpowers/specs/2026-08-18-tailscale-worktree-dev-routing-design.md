@@ -39,14 +39,15 @@ Automatic triggering is `herdr`-only by design (§4.4) — this is dev-environme
 
 ```
 Any tailnet device (phone, other laptop)
-  → https://mx.ewe-ulmer.ts.net/harun.dev            (main)
-  → https://mx.ewe-ulmer.ts.net/{slug}-harun.dev      (worktree)
+  → https://mx.ewe-ulmer.ts.net/harun.dev            (main, app)
+  → https://mx.ewe-ulmer.ts.net/{slug}-harun.dev      (worktree, app)
+  → https://mx.ewe-ulmer.ts.net:{vite_port}           (that checkout's vite dev server)
         │
         ▼
-  tailscale serve  (path-mounted reverse proxy, native TLS on this device)
+  tailscale serve  (path-mounted app + port-mounted vite, native TLS on this device)
         │
-        ├── /{slug}-harun.dev            → http://127.0.0.1:{backend_port}   (php artisan serve)
-        └── /{slug}-harun.dev--vite      → http://127.0.0.1:{vite_port}      (vite dev server)
+        ├── /{slug}-harun.dev  → http://127.0.0.1:{backend_port}   (php artisan serve)
+        └── :{vite_port}       → http://127.0.0.1:{vite_port}      (vite dev server)
         │
         ▼
   herdr (worktree.created / worktree.removed / startup events)
@@ -60,7 +61,7 @@ Any tailnet device (phone, other laptop)
         └── launches: artisan serve / queue:listen / pail / vite, records PIDs
 ```
 
-Two `tailscale serve` mounts per checkout, not one, because Vite's dev server needs its own origin for asset/HMR URLs to resolve correctly — trying to serve both app and Vite assets under a single path is what breaks HMR in most reverse-proxied Vite setups. `/{slug}-harun.dev--vite` exists purely so Vite's `server.origin` and HMR client can point somewhere that survives the proxy hop.
+**Revision (post-implementation, final review finding — see §9):** the app backend is path-mounted (`--set-path`), but Vite's dev server gets its own **port**-mounted `tailscale serve --https=<port>` instead of a second path mount. The original two-path-mounts design (`/{slug}-harun.dev--vite`) was live-tested during the final whole-branch review and confirmed broken: `tailscale serve --set-path` strips the mount prefix before forwarding (correct, and necessary for the app backend), but Vite's own module graph resolves import specifiers as root-relative URLs against the *browser's origin*, not the mount path — so every module past the entry script 404s, and HMR's websocket targets the unmounted device root. A port mount sidesteps this: Vite gets a real, unprefixed origin (`https://mx.ewe-ulmer.ts.net:{vite_port}`), so its root-relative module graph resolves correctly with no prefix-stripping involved at all. This also matches a pattern already proven working on this machine (a sibling project's own Tailscale-exposed Vite dev server uses a port mount, not a path mount, for exactly this reason). The app itself stays path-mounted, matching the original request — only Vite's own internal, never-directly-visited dev-server URL changed shape. `vite_port` (already allocated per checkout, §4.1) is reused as both the external `tailscale serve --https=` port and Vite's own local bind port — no new port range needed.
 
 ## 4. Components
 
@@ -94,26 +95,26 @@ A single JSON file, `~/.config/herdr/plugins/config/tailscale-portfolio/registry
 
 ### 4.2 Provisioning script — `scripts/tailscale-dev/provision.sh <worktree-path>`
 
-If `<worktree-path>` is the main checkout itself (`/Users/rayhan/Code/haruns-portfolio`), steps 1–2 and 4 are skipped — main already owns its real `node_modules`/`vendor`/`.env`/`bootstrap/cache`, nothing to symlink or regenerate. It always uses the fixed `harun.dev` slug and 8000/5173 ports (§4.1) and only needs steps 0, 3, 5, 6, 7.
+If `<worktree-path>` is the main checkout itself (`/Users/rayhan/Code/haruns-portfolio`), steps 1–2 and 5 are skipped — main already owns its real `node_modules`/`vendor`/`.env`/`bootstrap/cache`, nothing to symlink or regenerate. It always uses the fixed `harun.dev` slug and 8000/5173 ports (§4.1) and only needs steps 3–8.
 
-0. Refuse to proceed unless `APP_ENV=local` in the (symlinked or real) `.env` this checkout resolves to — the canary from §2.1 against ever running this against anything but a local dev checkout.
 1. If `.tailscale-slug` doesn't exist in the worktree, generate a 6-char lowercase-alphanumeric id (retry on registry collision) and write it.
 2. Symlink `node_modules`, `vendor`, `.env` from the main checkout into the worktree, skipping any that are already correct symlinks. Refuse to clobber a real file/dir that isn't already our symlink (surface an error instead — this protects against overwriting someone's in-progress local install).
-3. Allocate `backend_port`/`vite_port` from the registry (skip if this path already has an entry).
-4. Run `php artisan package:discover --ansi` in the worktree to populate `bootstrap/cache/*.php` fresh. `storage/` needs no copying — git already ships the full directory skeleton per worktree (only contents are gitignored); it fills in naturally on first request.
-5. Launch, in the background, with `APP_URL`/`ASSET_URL` exported to the Tailscale URL for this slug and `VITE_PUBLIC_ORIGIN` set to the `--vite` mount's URL:
+3. Refuse to proceed unless `APP_ENV=local` in the `.env` this checkout now resolves to (for non-main, that means *after* step 2's symlink — checking beforehand would always fail, since the worktree has no `.env` yet; for main, its own real `.env` is already present, no ordering issue). This is the canary from §2.1 against ever running this against anything but a local dev checkout, and — per §9's final-review finding — it must check the checkout actually being provisioned, not always `$MAIN_REPO/.env` unconditionally, or it can never fail for the case it exists to catch.
+4. Allocate `backend_port`/`vite_port` from the registry (skip if this path already has an entry). Before allocating a *new* pair, probe that the candidate port isn't already bound by something outside this tool's own tracking (§9) — the registry only knows about ports *it* handed out, not the rest of the system.
+5. Run `php artisan package:discover --ansi` in the worktree to populate `bootstrap/cache/*.php` fresh. `storage/` needs no copying — git already ships the full directory skeleton per worktree (only contents are gitignored); it fills in naturally on first request.
+6. Launch, in the background, with `APP_URL`/`ASSET_URL` exported to the Tailscale URL for this slug and `VITE_PUBLIC_ORIGIN` set to `https://<hostname>:$VITE_PORT` (§3's revision):
    - `php artisan serve --port=$BACKEND_PORT`
    - `php artisan queue:listen --tries=1`
    - `php artisan pail --timeout=0`
    - `npm run dev -- --port=$VITE_PORT`
 
-   Run as one `npx concurrently` group (backgrounded, matching `composer.json`'s `dev` script) and record its single PID in the registry.
-6. `tailscale serve --bg --set-path=/$SLUG http://127.0.0.1:$BACKEND_PORT` and `--set-path=/$SLUG--vite http://127.0.0.1:$VITE_PORT`.
-7. Print the final URL.
+   Run as one `npx concurrently` group (backgrounded, matching `composer.json`'s `dev` script) and record its single PID in the registry. Check the group actually started (§9) rather than trusting a bare background launch.
+7. `tailscale serve --bg --set-path=/$SLUG http://127.0.0.1:$BACKEND_PORT` and `tailscale serve --bg --https=$VITE_PORT http://127.0.0.1:$VITE_PORT` — check both exit successfully (§9) rather than recording a registry entry for a mount that silently failed.
+8. Print the final URL.
 
 ### 4.3 Teardown script — `scripts/tailscale-dev/teardown.sh <worktree-path>`
 
-Reverse of provisioning: kill the recorded group PID (`SIGTERM`, then a `pkill -P`/`SIGKILL` fallback so `npm run dev`'s child esbuild/vite processes don't linger if `concurrently` itself didn't forward the signal in time), clear both `tailscale serve` mounts for the slug, remove the registry entry. Leaves the symlinks and `.tailscale-slug` file in place — harmless, and `git worktree remove` deletes the whole directory anyway.
+Reverse of provisioning: kill the recorded group PID and its **full descendant tree** (§9 — a single level of `pgrep -P` isn't enough; the real process tree is `concurrently` → four grouped processes → `php -S`/`node` grandchildren, and those grandchildren are the ones actually holding the ports), clear both `tailscale serve` mounts (`--set-path=/$SLUG off` and `--https=$VITE_PORT off`), remove the registry entry, and remove `$TARGET/public/hot` (§9 — Vite writes this file on start and it isn't reliably cleaned up by killing Vite via signal; left behind, it silently forces Laravel into "dev assets" mode against a server that no longer exists, breaking that checkout's *ordinary*, non-Tailscale local URL too). Leaves the symlinks and `.tailscale-slug` file in place — harmless, and `git worktree remove` deletes the whole directory anyway.
 
 ### 4.4 herdr plugin — `~/.herdr/plugins/tailscale-portfolio/`
 
@@ -145,7 +146,7 @@ This also covers machine reboot (step 1 above runs on startup too, and neither t
 
 ### 4.5 `vite.config.js` change
 
-Small, backward-compatible addition — reads one optional env var and falls back to today's behavior when it's unset. No `base` path override needed: the `/{slug}--vite` mount strips its own prefix before forwarding (verified, §6), so Vite's dev server always receives root-relative requests regardless of which mount fronts it — only the *origin* Laravel injects into the HTML needs to change, which is the officially-documented laravel-vite-plugin mechanism for exposing a dev server through a tunnel (the same approach used for ngrok/similar):
+Small, backward-compatible addition — reads one optional env var and falls back to today's behavior when it's unset. No `base` path override needed: with the §3 revision, Vite's dev server is port-mounted, not path-mounted, so it always sees a real, unprefixed origin — only the *origin* Laravel injects into the HTML needs to change, which is the officially-documented laravel-vite-plugin mechanism for exposing a dev server through a tunnel (the same approach used for ngrok/similar). The `detectTls` override (added per §9) stops laravel-vite-plugin's Herd/Valet auto-detection from binding Vite as HTTPS on some machines/checkouts — its target here is always the plain-HTTP local port `provision.sh` itself binds and `tailscale serve --https=<port>` proxies to:
 
 ```js
 server: process.env.VITE_PUBLIC_ORIGIN ? {
@@ -153,12 +154,16 @@ server: process.env.VITE_PUBLIC_ORIGIN ? {
   hmr: { protocol: 'wss', host: new URL(process.env.VITE_PUBLIC_ORIGIN).hostname, clientPort: 443 },
 } : undefined,
 ```
+and, in the `laravel()` plugin call:
+```js
+detectTls: process.env.VITE_PUBLIC_ORIGIN ? false : undefined,
+```
 
-Plain local dev (`composer run dev` outside of this tooling) is unaffected.
+Plain local dev (`composer run dev` outside of this tooling) is unaffected — both are no-ops when `VITE_PUBLIC_ORIGIN` is unset.
 
 ### 4.6 URL lookup — `scripts/tailscale-dev/url.sh [worktree-path]`
 
-Read-only. Looks up `worktree-path` (defaults to `$PWD`) in the registry and prints its URL (`https://mx.ewe-ulmer.ts.net/<slug>` and the `--vite` variant) plus whether its recorded PIDs are still alive. No side effects — never provisions or recreates anything, just reports current state. Also exposed as a herdr `[[actions]]` entry (`herdr-plugin.toml`, same pattern as `guard-main`'s `new-worktree` action) so the URL can be pulled up from herdr's UI without a terminal.
+Read-only. Looks up `worktree-path` (defaults to `$PWD`) in the registry and prints its URL (`https://mx.ewe-ulmer.ts.net/<slug>` for the app, `https://mx.ewe-ulmer.ts.net:<vite_port>` for Vite, per the §3 revision) plus whether its recorded PID is still alive. No side effects — never provisions or recreates anything, just reports current state. Also exposed as a herdr `[[actions]]` entry (`herdr-plugin.toml`, same pattern as `guard-main`'s `new-worktree` action) so the URL can be pulled up from herdr's UI without a terminal.
 
 ### 4.7 Laravel env handling
 
@@ -189,7 +194,7 @@ herdr creates worktree
 - **Worktree removed without going through herdr** (e.g. manual `git worktree remove`): the registry entry and Tailscale mount would leak until the next `reconcile.sh` run, which prunes entries whose path no longer exists on disk.
 - **Dependency drift**: documented non-goal (§2) — symlinked deps silently go stale if a worktree's branch changes `package.json`/`composer.json`. No automated detection; the fix is manual.
 - **Hardcoded root-relative links break out of the mount (confirmed, accepted).** Verified empirically: `tailscale serve --set-path=/foo` strips `/foo` before forwarding to the backend (a probe server behind the mount saw `/sub/page` for a request to `/foo/sub/page`), which is what makes the whole routing scheme work — but it also means the backend has no idea it's mounted under a path unless told (handled via `APP_URL`/`ASSET_URL`, §4.7). Anything driven by Laravel's `route()`/Ziggy respects that and resolves correctly. Literal hardcoded links in the React app — confirmed present in `resources/js/Pages/Bio.tsx`, `Products.tsx`, `Services.tsx` (e.g. `<Link href="/contact">`) — don't go through that mechanism, so clicking one navigates to `https://mx.ewe-ulmer.ts.net/contact`, outside any mount, and 404s. Affects main (mounted at `/harun.dev`, not `/`) too, not just worktrees. Direct URL loads, page refreshes, and route()-driven links are all unaffected. Decided: leave as-is — auditing/fixing every hardcoded link is a separate, unrelated frontend change, not part of this infra work.
-- **Vite HMR through the path-mounted proxy**: whether `tailscale serve`'s reverse proxy forwards the WebSocket upgrade cleanly through a `--set-path` mount remains unverified (path-stripping itself is now confirmed above; the HMR websocket upgrade specifically has not been tested). Will be smoke-tested early in implementation. If it doesn't work cleanly, the fallback for that path is serving Vite's production build output instead of the dev server (loses live HMR for that worktree only; doesn't change the rest of the design).
+- **Vite HMR through the path-mounted proxy — superseded, see §3 and §9.** The original plan here (a second `--set-path` mount for Vite) was implemented, then live-tested during the final whole-branch review, and found broken: Vite's module graph resolves as root-relative against the browser's origin, not the mount path, so imports past the entry script 404 and HMR's websocket targets the unmounted device root. Fixed by switching Vite to a port-mounted (`--https=<port>`) tailscale serve target instead of a path mount — full details in §3's revision and §9.
 
 ## 7. Testing / validation plan
 
@@ -217,3 +222,30 @@ Modified:
 
 Untouched:
 - `.env`, `docker-compose.dev.yml`, production Traefik/Railway config — none of this design touches deploy or production routing.
+
+## 9. Post-implementation: final whole-branch review findings
+
+All six tasks (§8's file inventory) were individually implemented and reviewed against this spec, each passing real end-to-end testing (real processes, real Tailscale mounts) — see the SDD ledger for the full history. A final whole-branch review, dispatched after all six tasks passed individually, went further: it actually fetched URLs from the live, running system rather than trusting `curl -sI` on the HTML entry point alone, and found the primary feature goal ("Live Vite HMR works through the Tailscale route") did not work despite every individual task passing its own tests. This section records what was found and the fix directive for each; §3, §4.2, §4.3, and §4.5 above already reflect the target state.
+
+**Root cause of the headline break, and the fix (Critical):** the original two-path-mount design was live-tested and found broken — Vite's module graph and HMR websocket resolve as root-relative against the *browser's origin*, not the mount path, so everything past the entry script 404s regardless of how correctly the mount itself strips its prefix. Fixed by giving Vite its own port-mounted `tailscale serve --https=<port>` target instead of a second path mount (§3's revision) — confirmed to sidestep the failure class entirely rather than patch around it, and matches a pattern already proven working elsewhere on this machine. The app backend's path mount is untouched; only Vite's own internal, never-directly-visited URL changed shape.
+
+**Main's `--vite` mount also 502'd (Critical), for a second, independent reason:** on some checkouts (dependent on the directory's basename matching a Laravel Herd/Valet TLS certificate), laravel-vite-plugin's TLS auto-detection binds Vite as HTTPS locally while `provision.sh` mounts it as an HTTP target — silently basename-dependent, would recur on any future worktree whose folder name happens to collide with a Herd cert. Fixed via `detectTls: false` in `vite.config.js`'s `laravel()` call, scoped to only when `VITE_PUBLIC_ORIGIN` is set (§4.5).
+
+**Other Important findings, all fixed as part of the same pass:**
+- `teardown.sh` didn't remove `public/hot` — left behind, it silently forces Laravel into "dev assets" mode against a dead server, breaking that checkout's *ordinary* non-Tailscale local URL too. Now removed in teardown (§4.3).
+- `reconcile.sh` only reconciled against *presence* in the registry, not liveness — a dead process (crash, `--kill-others` taking a group down) left a registry entry with a dead PID that nothing ever re-provisioned, and a full reboot (registry survives, everything else doesn't) was a no-op instead of the recovery path §6 already claimed it was. Fixed: the provision loop in `reconcile.sh` now also re-provisions any registered path whose recorded PID fails `kill -0`, not just paths missing from the registry entirely.
+- `reconcile.sh` didn't check `git worktree list`'s exit status — a transient git failure read as "every registered checkout is gone" and tore all of them down, on every herdr startup and worktree event. Fixed: abort with an error instead of proceeding on an empty/failed listing.
+- `proc::kill_group` (`lib.sh`) only reached one level of children via `pgrep -P`. The real process tree is four levels deep (`concurrently` → four grouped processes → the `php -S`/`node` grandchildren that actually hold the ports), so a slow signal handoff could leave orphaned processes squatting on ports after teardown. Fixed: walk and capture the full descendant tree before signaling anything (not just direct children), same reparenting-safety principle as before, one level deeper.
+- Port allocation (`registry::alloc_port`) only checked the registry, never the actual system — a stale orphan (or any unrelated process) holding an allocated port made provisioning "succeed" silently against the wrong service. Fixed: probe the candidate port for an existing listener before allocating it.
+- `provision.sh` didn't check the exit status of `tailscale serve --bg` or the `ln -s` symlink calls (no script in this feature uses `set -e`) — a failed mount or symlink fell through to a registry entry claiming success. Fixed: both are now checked, aborting provisioning with a clear error on failure.
+- `guard::require_local_env` always read `$MAIN_REPO/.env`, regardless of which path was being provisioned — so it could never actually fail for the case §2.1 describes (pointing this at something that isn't a local dev checkout), because it never looked at the target. Fixed: re-pointed at the checkout actually being provisioned, after the symlink step for non-main targets (§4.2 step 3).
+- `install-herdr-plugin.sh` treated a *dangling* symlink (e.g. after this worktree is removed post-merge) the same as a symlink pointing somewhere else — refusing to reinstall rather than offering to replace it, which is exactly the state a normal "merge, then delete this worktree" flow leaves the plugin in. Fixed: detect a dangling symlink specifically and replace it rather than refusing.
+
+**Two rulings made during implementation, reassessed by the final review and left standing:**
+- `/Users/rayhan/Code/haruns-portfolio/.env`'s `APP_ENV` was permanently changed from `production` to `local` (Task 2), with explicit confirmation from the human partner, asked twice — once before the change and again after `project_local_verification_workflow.md` surfaced context that this repo's normal workflow deliberately never touches `APP_ENV`. The final review assessed the change itself as defensible (a laptop dev checkout labeled `production` was the real anomaly) but noted it was solving a symptom of the `guard::require_local_env` bug fixed above — pointing the guard at the right file would have unblocked provisioning without touching main's `.env` at all. Left standing (reverting now would just re-block for no gain); the guard fix above is the substantive correction.
+- `scripts/tailscale-dev/url.sh` (Task 4, already individually approved) was modified again during Task 6 to fix a real bash bug (logical `cd ..` doesn't resolve symlinks) reachable only through Task 6's own new plugin-symlink invocation path. The final review independently re-verified the diagnosis and fix and confirmed this was the correct scope call — the bug's surface didn't exist until Task 6 introduced it, so escalating instead of fixing directly would have added latency with no risk reduction.
+
+**Deferred, accepted as-is (not fixed):**
+- No locking on the registry file — three herdr triggers can all invoke `reconcile.sh`; overlapping runs could theoretically race on a read-modify-write. Low risk for solo single-user use; not worth the complexity of a lock file for this tool's actual usage pattern.
+- Every checkout's path mounts share one Tailscale device origin alongside pre-existing, unrelated personal-tool mounts (already true before this feature). Acceptable for a single-user tailnet; would need reconsideration if this device's tailnet were ever shared more broadly.
+- Minor stylistic/robustness notes (log rotation, a couple of untested trivial helper functions, inconsistent `cd -P`/`pwd -P` idiom choice between two scripts doing the same fix) — recorded in the SDD ledger, not repeated here; none block correctness.
