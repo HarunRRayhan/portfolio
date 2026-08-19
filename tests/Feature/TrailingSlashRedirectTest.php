@@ -48,7 +48,7 @@ class TrailingSlashRedirectTest extends TestCase
     #[Test]
     public function it_redirects_to_https_in_one_hop_when_the_edge_forwards_https(): void
     {
-        // Production: Cloudflare/Traefik terminate TLS and forward the request
+        // Production: Cloudflare/Railway terminate TLS and forward the request
         // to PHP over plain HTTP, so the request URI is http:// but the edge
         // sets X-Forwarded-Proto: https. Without honouring that header the
         // middleware 301s to http://, which the edge bounces a second time

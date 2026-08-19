@@ -30,12 +30,12 @@ class RedirectTrailingSlash
             if ($path !== '/' && str_ends_with($path, '/')) {
                 $query = $request->getQueryString();
 
-                // TLS is terminated at the edge (Cloudflare/Traefik) and the
+                // TLS is terminated at the edge (Cloudflare/Railway) and the
                 // request reaches PHP over plain HTTP, so $request->url() would
                 // report the scheme as "http" and 301 to an http:// target. The
                 // edge then bounces that a SECOND time back to https, producing
                 // the 2-hop chain crawlers penalize. The edge tells us the real
-                // client-facing scheme via X-Forwarded-Proto (Traefik forwards
+                // client-facing scheme via X-Forwarded-Proto (the edge forwards
                 // "https" for TLS-terminated requests), so honour that to emit
                 // the correct https:// canonical in a single hop. Fall back to
                 // the request's own scheme for local dev over plain http, where

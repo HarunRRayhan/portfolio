@@ -1,9 +1,5 @@
 terraform {
   required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
     cloudflare = {
       source  = "cloudflare/cloudflare"
       version = "~> 5.4"
@@ -17,66 +13,9 @@ terraform {
   }
 }
 
-provider "aws" {
-  region     = var.aws_region
-  access_key = var.aws_access_key
-  secret_key = var.aws_secret_key
-}
-
 provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
-
-# AWS Lightsail instance
-resource "aws_lightsail_instance" "portfolio" {
-  name              = "portfolio-server-new"
-  availability_zone = "${var.aws_region}a"
-  blueprint_id      = var.aws_lightsail_blueprint_id
-  bundle_id         = var.aws_lightsail_bundle_id
-  key_pair_name     = aws_lightsail_key_pair.portfolio.name
-  user_data         = file("${path.module}/user_data.sh")
-}
-
-# SSH key pair for Lightsail
-resource "aws_lightsail_key_pair" "portfolio" {
-  name = "portfolio-key"
-}
-
-# Static IP for Lightsail instance
-resource "aws_lightsail_static_ip" "portfolio" {
-  name = "portfolio-static-ip"
-}
-
-resource "aws_lightsail_static_ip_attachment" "portfolio" {
-  static_ip_name = aws_lightsail_static_ip.portfolio.name
-  instance_name  = aws_lightsail_instance.portfolio.name
-}
-
-# Firewall rules
-resource "aws_lightsail_instance_public_ports" "portfolio" {
-  instance_name = aws_lightsail_instance.portfolio.name
-
-  port_info {
-    protocol  = "tcp"
-    from_port = 80
-    to_port   = 80
-  }
-
-  port_info {
-    protocol  = "tcp"
-    from_port = 443
-    to_port   = 443
-  }
-
-  port_info {
-    protocol  = "tcp"
-    from_port = 22
-    to_port   = 22
-  }
-}
-
-# Cloudflare DNS record
-# Removed cloudflare_record.portfolio resource to avoid DNS record conflict
 
 resource "random_id" "bucket_suffix" {
   byte_length = 4 # 8 hex characters
@@ -112,11 +51,15 @@ resource "cloudflare_dns_record" "cdn_cname" {
   ttl     = 1
 }
 
+# STALE: content still references the now-terminated Lightsail static IP.
+# The apex now actually serves via Railway behind Cloudflare proxy; this
+# resource's value needs to be reconciled (or removed) against real
+# Terraform state by someone with backend credentials.
 resource "cloudflare_dns_record" "root_a" {
   zone_id = var.cloudflare_zone_id
   name    = "@"
   type    = "A"
-  content = aws_lightsail_static_ip.portfolio.ip_address
+  content = "107.23.221.70" # was aws_lightsail_static_ip.portfolio.ip_address
   proxied = true
   ttl     = 1
 }
