@@ -969,7 +969,7 @@ Route::get('/terms', function () {
     return Inertia::render('Terms');
 })->name('terms');
 
-// Health check endpoint for blue-green deployment
+// Health check endpoint used by Railway's deployment healthcheck
 Route::get('/health', function () {
     $app = config('app');
 

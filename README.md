@@ -62,45 +62,19 @@ This portfolio showcases Harun R. Rayhan's services as a DevOps Engineer, Cloud 
 
 ## Deployment
 
-This project uses a **blue-green zero-downtime deployment** strategy with GitHub Actions for CI/CD.
+The app deploys via **Railway's native GitHub integration**: every push to `main` triggers a Railway build (using its Railpack builder, no Dockerfile involved) and rollout, with Railway managing TLS and edge routing behind Cloudflare.
 
-### Automatic Deployment
-
-Deployments are triggered automatically on:
-- **Push Events**: Direct pushes to `main` or `features/deploy-with-traefik` branches
-- **Pull Request Merges**: When pull requests are merged into `main` branch
-- **Manual Dispatch**: Manual workflow trigger via GitHub UI
-
-The system includes intelligent logic to only deploy on actual PR merges, not just closed pull requests.
-
-### Manual Deployment
-
-You can also deploy manually using the deployment scripts:
-
-```bash
-# Check current deployment status
-./deploy/cicd/status.sh
-
-# Deploy to opposite environment (automatic detection)
-./deploy/cicd/blue-green-deploy.sh
-
-# Deploy to specific environment
-./deploy/cicd/blue-green-deploy.sh blue
-./deploy/cicd/blue-green-deploy.sh green
-```
+A separate GitHub Actions workflow, [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml), runs on the same push to `main` (or manual dispatch) to build the frontend assets, sync them to a Cloudflare R2 bucket, and purge the Cloudflare CDN cache. It only handles static assets — the application itself is deployed independently by Railway.
 
 ### Infrastructure
 
 - **Production URL**: https://harun.dev
 - **Hidden admin panel**: `harun.dev/admin` (not linked in the public UI)
 - **Bio landing page**: `harun.dev/bio`
-- **Deployment Strategy**: Blue-Green with Traefik load balancer
-- **Container Orchestration**: Docker Compose
-- **SSL/TLS**: Automatic Let's Encrypt certificates
-- **CDN**: Cloudflare
-- **Triggers**: Push, PR merge, and manual dispatch
-
-For detailed deployment documentation, see [deploy/cicd/README-BLUE-GREEN.md](deploy/cicd/README-BLUE-GREEN.md).
+- **Application hosting**: Railway
+- **Static assets / CDN**: Cloudflare R2 + Cloudflare CDN
+- **DNS/edge**: Cloudflare
+- **Triggers**: Push to `main`, or manual workflow dispatch (for the asset sync)
 
 ## Contributing
 
