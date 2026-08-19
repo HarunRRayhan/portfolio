@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -16,7 +17,18 @@ return Application::configure(basePath: dirname(__DIR__))
         // request that reaches PHP is plain HTTP from that proxy's point of
         // view. Trust it so getScheme()/URL::forceScheme() and the client
         // IP resolve correctly instead of generating http:// asset URLs.
-        $middleware->trustProxies(at: '*');
+        // Headers are scoped to FOR/PORT/PROTO (+AWS_ELB, which is just
+        // those three) rather than the framework default, which also trusts
+        // HOST and PREFIX — that would let a spoofed X-Forwarded-Host
+        // control the host Laravel thinks it's on, including the links the
+        // password-reset email builds from the request host.
+        $middleware->trustProxies(
+            at: '*',
+            headers: Request::HEADER_X_FORWARDED_FOR
+                | Request::HEADER_X_FORWARDED_PORT
+                | Request::HEADER_X_FORWARDED_PROTO
+                | Request::HEADER_X_FORWARDED_AWS_ELB,
+        );
 
         // Runs before session/CSRF so trailing-slash URLs are normalized to
         // their canonical (slash-free) form with a 301 before any real work.

@@ -258,12 +258,14 @@ const hrr_handler = createMcpHandler(() =&gt; {
     { capabilities: { tools: {} } }
   );
 
-  server.tool(
+  server.registerTool(
     "get_user_stats",
-    "Get activity statistics for a specific user including login count, API calls, and last active date",
     {
-      userId: z.string().describe("The user ID to look up"),
-      period: z.enum(["7d", "30d", "90d"]).describe("Time period for the stats"),
+      description: "Get activity statistics for a specific user including login count, API calls, and last active date",
+      inputSchema: z.object({
+        userId: z.string().describe("The user ID to look up"),
+        period: z.enum(["7d", "30d", "90d"]).describe("Time period for the stats"),
+      }),
     },
     async ({ userId, period }) =&gt; {
       const stats = await fetchUserStats(userId, period);
@@ -316,7 +318,7 @@ export const handler = async (event) =&gt; {
 };
 </code></pre>
 
-<p>The tool definitions came over unchanged. The Zod schemas, the descriptions I spent hours tuning, the business logic behind them, all of it survived. What I deleted was transport plumbing: the manual construct, the <code>server.connect(transport)</code>, the <code>finally</code> block closing both. That's the code the spec change made unnecessary, and it's the code I'd got wrong twice.</p>
+<p>The schemas and business logic came over unchanged; only the registration call changed shape. The Zod schemas, the descriptions I spent hours tuning, the business logic behind them, all of it survived. What I deleted was transport plumbing: the manual construct, the <code>server.connect(transport)</code>, the <code>finally</code> block closing both. That's the code the spec change made unnecessary, and it's the code I'd got wrong twice.</p>
 
 <p>My bearer-token check stayed exactly where it was, in front of everything. Nothing in 2026-07-28 changes how you authenticate a request. It does deprecate OAuth Dynamic Client Registration in favor of Client ID Metadata Documents, but that's a concern for servers doing real OAuth, not for one API key in an environment variable.</p>
 
