@@ -219,7 +219,7 @@ function hrr_methodNotAllowed(event) {
 
 <p>The v2 SDK's handler validates all three on every modern request, so if you're using it you get this behavior without writing it. Which is exactly why I stopped writing it. There's also <code>-32022</code> for <code>UnsupportedProtocolVersion</code>, which returns the list of versions you do support so the client can retry instead of guessing.</p>
 
-<p>One detail that'll bite you if you hand-roll the comparison: <code>Mcp-Name</code> values that aren't plain ASCII get Base64-encoded with a sentinel wrapper, <code>=?UTF-8?B?{value}?=</code> (an RFC 2047 encoded-word — charset, then <code>B</code> for base64, then the payload). Decode before comparing, or every tool with a non-ASCII name in its arguments fails validation.</p>
+<p>One detail that'll bite you if you hand-roll the comparison: <code>Mcp-Name</code> values that aren't plain ASCII get Base64-encoded with a sentinel wrapper, <code>=?base64?{value}?=</code>. It's lowercase, there's no charset field, and it's not an RFC 2047 encoded-word despite looking like one — the spec just uses those two markers to say "what follows is Base64." Decode before comparing, or every tool with a non-ASCII name in its arguments fails validation.</p>
 
 <h2>Break 5: subscriptions/listen can't live behind an HTTP API</h2>
 
@@ -274,6 +274,30 @@ const hrr_handler = createMcpHandler(() =&gt; {
   return server;
 });
 
+// createMcpHandler's .fetch() expects a web-standard Request and returns a
+// Response. API Gateway hands Lambda a proxy event instead, so these two
+// convert both ways. The SDK ships toNodeHandler() for Express/Fastify/Hono/
+// raw http, but nothing Lambda-specific, so this is the small adapter that's
+// left to write by hand.
+function hrr_toWebRequest(event) {
+  const host = event.headers?.host ?? event.requestContext.domainName;
+  const query = event.rawQueryString ? `?${event.rawQueryString}` : "";
+
+  return new Request(`https://${host}${event.rawPath}${query}`, {
+    method: event.requestContext.http.method,
+    headers: event.headers,
+    body: event.isBase64Encoded ? Buffer.from(event.body, "base64") : event.body,
+  });
+}
+
+async function hrr_toApiGatewayResponse(response) {
+  return {
+    statusCode: response.status,
+    headers: Object.fromEntries(response.headers),
+    body: await response.text(),
+  };
+}
+
 export const handler = async (event) =&gt; {
   const notAllowed = hrr_methodNotAllowed(event);
   if (notAllowed) return notAllowed;
@@ -287,7 +311,8 @@ export const handler = async (event) =&gt; {
     };
   }
 
-  return hrr_handler.fetch(event);
+  const response = await hrr_handler.fetch(hrr_toWebRequest(event));
+  return hrr_toApiGatewayResponse(response);
 };
 </code></pre>
 
@@ -295,7 +320,7 @@ export const handler = async (event) =&gt; {
 
 <p>My bearer-token check stayed exactly where it was, in front of everything. Nothing in 2026-07-28 changes how you authenticate a request. It does deprecate OAuth Dynamic Client Registration in favor of Client ID Metadata Documents, but that's a concern for servers doing real OAuth, not for one API key in an environment variable.</p>
 
-<p>If you need cross-call state, and I don't, the replacement for sessions is <code>requestState</code>: an opaque string the server mints and the client echoes back byte for byte on a retry. The SDK ships an HMAC-SHA256 codec for sealing it. It's a signed cookie in JSON-RPC clothing, and for Lambda that's a much better fit than a session ID that implies an instance remembers you.</p>
+<p>One thing worth being precise about, because it's easy to mistake for a session replacement: <code>requestState</code> is not general cross-call state, and my three tools don't touch it. It's scoped to Multi Round-Trip Requests specifically — the opaque string a server can attach to an <code>InputRequiredResult</code> when it needs more input (an elicitation, a sampling call) before it can finish a request. The client echoes it back byte for byte, but only on the retry of that exact request; the spec says outright it <strong>MUST NOT</strong> be used for any other request the client happens to be sending in parallel. If the value can influence authorization or business logic, the server has to protect its integrity — the spec's own wording is "e.g. HMAC or AEAD," not one mandated algorithm — and reject anything that fails verification. The SDK ships a codec for sealing it. Think of it less as a session and more as a claim check for one unfinished request, and for Lambda that's still a better fit than a session ID that implies an instance remembers you.</p>
 
 <h2>What the migration actually improved</h2>
 

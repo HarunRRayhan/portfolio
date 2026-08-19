@@ -12,6 +12,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Railway/Cloudflare terminate TLS in front of the app, so the
+        // request that reaches PHP is plain HTTP from that proxy's point of
+        // view. Trust it so getScheme()/URL::forceScheme() and the client
+        // IP resolve correctly instead of generating http:// asset URLs.
+        $middleware->trustProxies(at: '*');
+
         // Runs before session/CSRF so trailing-slash URLs are normalized to
         // their canonical (slash-free) form with a 301 before any real work.
         $middleware->web(prepend: [
