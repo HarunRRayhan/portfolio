@@ -92,7 +92,7 @@ mkdir -p "$TARGET/storage/logs"
     "php artisan serve --port=$BACKEND_PORT" \
     "php artisan queue:listen --tries=1" \
     "php artisan pail --timeout=0" \
-    "npm run dev -- --port=$VITE_PORT --host=127.0.0.1"
+    "npm run dev -- --port=$VITE_PORT --host=127.0.0.1 --strictPort"
 ) >>"$TARGET/storage/logs/tailscale-dev.log" 2>&1 &
 GROUP_PID=$!
 disown
