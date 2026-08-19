@@ -4,7 +4,14 @@
 
 set -uo pipefail
 
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+# -P (physical) matters here: the herdr plugin action invokes this script as
+# "$HERDR_PLUGIN_ROOT/../url.sh", and $HERDR_PLUGIN_ROOT is itself the
+# ~/.herdr/plugins/tailscale-portfolio symlink installed by
+# install-herdr-plugin.sh. Bash's logical `cd` strips ".." textually rather
+# than resolving symlinks first, so a plain `cd .../tailscale-portfolio/..`
+# lands in the symlink's own apparent parent (~/.herdr/plugins) instead of
+# this repo's scripts/tailscale-dev, and lib.sh fails to source.
+SCRIPT_DIR="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 # shellcheck source=./lib.sh
 source "$SCRIPT_DIR/lib.sh"
 
