@@ -119,7 +119,7 @@ class BioLink extends Model
      *
      * A null $country means the lookup failed. Include rules then fail closed
      * (we cannot prove the visitor qualifies) while exclude rules fail open (we
-     * cannot prove they don't), so a missing GeoLite2 database degrades to
+     * cannot prove they don't), so a missing Cf-Ipcountry header degrades to
      * showing the unrestricted links instead of emptying the page.
      */
     public function isVisibleInCountry(?string $country): bool
