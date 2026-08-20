@@ -161,7 +161,13 @@ Route::middleware(['auth', 'verified', 'role:admin'])
     ->name('admin.newsletter.')
     ->group(function () {
         Route::get('/', [AdminNewsletterController::class, 'index'])->name('index');
-        Route::get('/{subscriber}/reveal', [AdminNewsletterController::class, 'reveal'])->name('reveal');
+        // POST, not GET: reveal() writes an audit-log entry and consumes
+        // throttle budget, so it needs CSRF protection -- a GET here could
+        // be triggered by an admin's browser just following a link.
+        Route::post('/{subscriber}/reveal', [AdminNewsletterController::class, 'reveal'])
+            ->where('subscriber', '[0-9]{1,18}')
+            ->middleware('throttle:30,1')
+            ->name('reveal');
     });
 
 // Shared by the click-recording routes below: a raw 'src' value (query or

@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, Link } from '@inertiajs/react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 import { Eye, EyeOff, Mail } from 'lucide-react'
 
@@ -23,6 +23,7 @@ interface Paginated<T> {
   links: PaginationLink[]
   current_page: number
   last_page: number
+  total: number
 }
 
 function formatDate(value: string | null) {
@@ -31,43 +32,63 @@ function formatDate(value: string | null) {
 }
 
 function EmailCell({ subscriber }: { subscriber: SubscriberRow }) {
-  const [revealedEmail, setRevealedEmail] = useState<string | null>(null)
+  const [email, setEmail] = useState<string | null>(null)
   const [revealing, setRevealing] = useState(false)
+  const [failed, setFailed] = useState(false)
+  const mounted = useRef(true)
+
+  useEffect(() => {
+    return () => {
+      mounted.current = false
+    }
+  }, [])
 
   const toggle = async () => {
-    if (revealedEmail) {
-      setRevealedEmail(null)
+    // Hiding drops the fetched address from memory rather than caching it,
+    // so a revealed email doesn't linger client-side once tucked away.
+    if (email !== null) {
+      setEmail(null)
       return
     }
 
     setRevealing(true)
+    setFailed(false)
     try {
-      const { data } = await axios.get<{ email: string }>(route('admin.newsletter.reveal', subscriber.id))
-      setRevealedEmail(data.email)
+      const { data } = await axios.post<{ email: string }>(route('admin.newsletter.reveal', subscriber.id))
+      if (!mounted.current) return
+      setEmail(data.email)
+    } catch (err) {
+      if (!mounted.current) return
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
+        window.location.href = route('login')
+        return
+      }
+      setFailed(true)
     } finally {
-      setRevealing(false)
+      if (mounted.current) setRevealing(false)
     }
   }
 
   return (
     <div className="flex items-center gap-2">
-      <span className="font-mono text-sm text-gray-800">
-        {revealedEmail ?? subscriber.masked_email}
-      </span>
+      <span className="font-mono text-sm text-gray-800">{email ?? subscriber.masked_email}</span>
       <button
         type="button"
         onClick={toggle}
         disabled={revealing}
-        title={revealedEmail ? 'Hide email' : 'Show email'}
+        title={email !== null ? 'Hide email' : 'Show email'}
         className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50"
       >
-        {revealedEmail ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        {email !== null ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
       </button>
+      {failed && <span className="text-xs text-red-500">Couldn&apos;t load</span>}
     </div>
   )
 }
 
-export default function Index({ subscribers, total }: { subscribers: Paginated<SubscriberRow>; total: number }) {
+export default function Index({ subscribers }: { subscribers: Paginated<SubscriberRow> }) {
+  const total = subscribers.total
+
   return (
     <AuthenticatedLayout
       header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Newsletter</h2>}
@@ -89,7 +110,18 @@ export default function Index({ subscribers, total }: { subscribers: Paginated<S
           <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
             {subscribers.data.length === 0 ? (
               <div className="px-6 py-16 text-center">
-                <p className="text-sm text-gray-500">No subscribers yet.</p>
+                <p className="text-sm text-gray-500">
+                  {total === 0 ? 'No subscribers yet.' : 'No subscribers on this page.'}
+                </p>
+                {total > 0 && (
+                  <Link
+                    href={route('admin.newsletter.index')}
+                    preserveScroll
+                    className="mt-3 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                  >
+                    Back to first page
+                  </Link>
+                )}
               </div>
             ) : (
               <table className="min-w-full divide-y divide-gray-100">
@@ -117,7 +149,7 @@ export default function Index({ subscribers, total }: { subscribers: Paginated<S
             )}
           </div>
 
-          {subscribers.last_page > 1 && (
+          {subscribers.data.length > 0 && subscribers.last_page > 1 && (
             <nav className="flex flex-wrap items-center justify-center gap-1">
               {subscribers.links.map((link, index) => {
                 const label = link.label.replace('&laquo;', '«').replace('&raquo;', '»')
