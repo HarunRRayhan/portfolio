@@ -11,6 +11,7 @@ import {
     LayoutDashboard,
     Link2,
     LogOut,
+    Mail,
     Menu,
     User,
 } from 'lucide-react';
@@ -73,6 +74,12 @@ function useNavSections(): NavSection[] {
                     href: route('admin.short.analytics'),
                     icon: BarChart3,
                     active: route().current('admin.short.analytics'),
+                },
+                {
+                    label: 'Newsletter',
+                    href: route('admin.newsletter.index'),
+                    icon: Mail,
+                    active: route().current('admin.newsletter.index'),
                 },
             ],
         },

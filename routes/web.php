@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\BioLinkController;
 use App\Http\Controllers\Admin\MediaItemController;
 use App\Http\Controllers\Admin\ShortLinkController;
 use App\Http\Controllers\Admin\ApiKeyController;
+use App\Http\Controllers\Admin\NewsletterController as AdminNewsletterController;
 use App\Models\BioLink;
 use App\Models\MediaItem;
 use App\Models\ShortLink;
@@ -152,6 +153,15 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::get('/', [ApiKeyController::class, 'index'])->name('index');
         Route::post('/', [ApiKeyController::class, 'store'])->name('store');
         Route::delete('/{id}', [ApiKeyController::class, 'destroy'])->name('destroy');
+    });
+
+// Admin read-only view of newsletter subscribers
+Route::middleware(['auth', 'verified', 'role:admin'])
+    ->prefix('admin/newsletter')
+    ->name('admin.newsletter.')
+    ->group(function () {
+        Route::get('/', [AdminNewsletterController::class, 'index'])->name('index');
+        Route::get('/{subscriber}/reveal', [AdminNewsletterController::class, 'reveal'])->name('reveal');
     });
 
 // Shared by the click-recording routes below: a raw 'src' value (query or
