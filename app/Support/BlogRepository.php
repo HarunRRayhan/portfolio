@@ -19,6 +19,19 @@ class BlogRepository
     private const CACHE_TTL_MINUTES = 15;
 
     /**
+     * The cache store (`database`, a shared Postgres DB per §2.1 of the
+     * tailscale-dev design doc) is shared by every worktree checkout running
+     * as the same OS user. Scoping the key by base_path() keeps each
+     * checkout's dev server reading/writing its own cached post list instead
+     * of clobbering another worktree's, which otherwise produces phantom
+     * 404s for posts that only exist in one worktree's resources/blog/posts/.
+     */
+    public static function cacheKey(): string
+    {
+        return self::CACHE_KEY.'.'.md5(base_path());
+    }
+
+    /**
      * @var array<string, mixed>|null
      */
     private ?array $data = null;
@@ -193,7 +206,7 @@ class BlogRepository
             return $this->data;
         }
 
-        $this->data = Cache::remember(self::CACHE_KEY, now()->addMinutes(self::CACHE_TTL_MINUTES), function (): array {
+        $this->data = Cache::remember(self::cacheKey(), now()->addMinutes(self::CACHE_TTL_MINUTES), function (): array {
             $publication = $this->loadPublication();
             $posts = collect(glob(resource_path(self::CONTENT_DIR.'/*.md')) ?: [])
                 ->map(fn (string $path) => $this->parsePostFile($path, $publication))

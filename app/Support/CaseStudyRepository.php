@@ -16,6 +16,17 @@ class CaseStudyRepository
     private const CACHE_TTL_MINUTES = 15;
 
     /**
+     * See BlogRepository::cacheKey() -- same rationale: the `database` cache
+     * store is a shared Postgres DB across every worktree checkout, so the
+     * key is scoped by base_path() to keep each checkout's cached case study
+     * list independent of the others.
+     */
+    public static function cacheKey(): string
+    {
+        return self::CACHE_KEY.'.'.md5(base_path());
+    }
+
+    /**
      * @var array<int, array<string, mixed>>|null
      */
     private ?array $studies = null;
@@ -230,7 +241,7 @@ class CaseStudyRepository
             return $this->studies;
         }
 
-        $this->studies = Cache::remember(self::CACHE_KEY, now()->addMinutes(self::CACHE_TTL_MINUTES), function (): array {
+        $this->studies = Cache::remember(self::cacheKey(), now()->addMinutes(self::CACHE_TTL_MINUTES), function (): array {
             $paths = glob(resource_path(self::CONTENT_DIR.'/[!_.]*.md')) ?: [];
 
             if ($paths === []) {

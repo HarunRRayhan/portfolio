@@ -17,7 +17,7 @@ IS_MAIN=false
 [[ "$TARGET" == "$MAIN_REPO" ]] && IS_MAIN=true
 
 if [[ "$IS_MAIN" == false ]]; then
-  for item in node_modules vendor .env .claude/settings.local.json; do
+  for item in node_modules .env .claude/settings.local.json; do
     src="$MAIN_REPO/$item"
     dst="$TARGET/$item"
     if [[ -L "$dst" ]]; then
@@ -29,6 +29,35 @@ if [[ "$IS_MAIN" == false ]]; then
       ln -s "$src" "$dst" || { echo "tailscale-dev: failed to symlink $dst -> $src" >&2; exit 1; }
     fi
   done
+
+  # vendor/ is deliberately NOT symlinked (unlike node_modules/.env above).
+  # PHP's __DIR__ resolves through symlinks, so a symlinked vendor/ makes
+  # Composer's generated vendor/autoload_psr4.php compute its base directory
+  # from the *resolved* main-checkout path, mapping the App\ namespace to
+  # the main checkout's app/ instead of this worktree's own -- any backend
+  # PHP change made here is silently invisible to this worktree's own dev
+  # server. Instead, give this worktree a real, independent vendor/ via
+  # `composer install` against its own composer.lock (never `composer
+  # update` -- dependencies must stay identical to whatever's on this
+  # branch). Composer's global package cache means this is normally fast
+  # even though it's a full install.
+  vendor_dst="$TARGET/vendor"
+  if [[ -L "$vendor_dst" ]]; then
+    # Migrate away from a stale symlink left by an older version of this
+    # script (pre-dating the fix above).
+    rm "$vendor_dst" || { echo "tailscale-dev: failed to remove stale vendor symlink at $vendor_dst" >&2; exit 1; }
+  fi
+  if [[ -e "$vendor_dst" && ! -d "$vendor_dst" ]]; then
+    echo "tailscale-dev: refusing to clobber existing $vendor_dst (not a directory)" >&2
+    exit 1
+  fi
+  if [[ ! -d "$vendor_dst" ]]; then
+    echo "tailscale-dev: running composer install in $TARGET (independent vendor/, using its own composer.lock)..." >&2
+    if ! (cd "$TARGET" && composer install --no-interaction --no-ansi --prefer-dist --no-progress); then
+      echo "tailscale-dev: composer install failed in $TARGET -- see output above" >&2
+      exit 1
+    fi
+  fi
 fi
 
 # Checked after the symlink step above: a non-main worktree has no .env of

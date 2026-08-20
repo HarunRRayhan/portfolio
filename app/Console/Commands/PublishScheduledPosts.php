@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Support\BlogRepository;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Carbon;
@@ -67,7 +68,7 @@ class PublishScheduledPosts extends Command
 
         if ($published) {
             try {
-                Cache::forget('blog.repository.payload');
+                Cache::forget(BlogRepository::cacheKey());
                 $this->info(sprintf('Published %d post(s). Blog cache cleared.', count($published)));
             } catch (\Throwable $e) {
                 $this->warn(sprintf('Published %d post(s). Could not clear cache: %s', count($published), $e->getMessage()));
