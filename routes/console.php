@@ -3,10 +3,13 @@
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote')->hourly();
+
+Schedule::command('geoip:update')->weekly()->onOneServer();
 
 Artisan::command('seo:ping-sitemap {--url= : Sitemap URL to ping}', function () {
     $defaultSiteUrl = rtrim(config('app.url', url('/')), '/');
