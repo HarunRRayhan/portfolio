@@ -51,7 +51,7 @@ if [[ "$IS_MAIN" == false ]]; then
     echo "tailscale-dev: refusing to clobber existing $vendor_dst (not a directory)" >&2
     exit 1
   fi
-  if [[ ! -d "$vendor_dst" ]]; then
+  if [[ ! -f "$vendor_dst/autoload.php" ]]; then
     echo "tailscale-dev: running composer install in $TARGET (independent vendor/, using its own composer.lock)..." >&2
     if ! (cd "$TARGET" && composer install --no-interaction --no-ansi --prefer-dist --no-progress); then
       echo "tailscale-dev: composer install failed in $TARGET -- see output above" >&2
@@ -61,8 +61,8 @@ if [[ "$IS_MAIN" == false ]]; then
 fi
 
 # Checked after the symlink step above: a non-main worktree has no .env of
-# its own until node_modules/vendor/.env are symlinked in; checking before
-# that would always fail. Main's own .env is already present either way.
+# its own until node_modules/.env are symlinked in; checking before that
+# would always fail. Main's own .env is already present either way.
 guard::require_local_env "$TARGET"
 
 SLUG=$(slug::for_path "$TARGET")
