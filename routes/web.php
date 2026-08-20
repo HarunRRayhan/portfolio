@@ -166,7 +166,7 @@ Route::get('/s/{code}', function (string $code, Request $request, CountryResolve
 
     abort_unless($link, 404);
 
-    $country = $countries->resolve($request->ip());
+    $country = $countries->resolve($request);
 
     ShortLinkClick::create([
         'short_link_id' => $link->id,
@@ -182,7 +182,7 @@ Route::get('/s/{code}', function (string $code, Request $request, CountryResolve
 
 // Public link-in-bio landing page (DB-driven, no auth)
 Route::get('/bio', function (Request $request, CountryResolver $countries) {
-    $country = $countries->resolve($request->ip());
+    $country = $countries->resolve($request);
 
     $links = BioLink::query()
         ->active()
@@ -232,7 +232,7 @@ Route::get('/bio', function (Request $request, CountryResolver $countries) {
 Route::get('/hrr', function (Request $request, CountryResolver $countries) {
     app()->setLocale('bn');
 
-    $country = $countries->resolve($request->ip());
+    $country = $countries->resolve($request);
 
     $links = BioLink::query()
         ->active()
@@ -289,7 +289,7 @@ Route::post('/bio/click', function (Request $request, CountryResolver $countries
     App\Models\BioLinkClick::create([
         'bio_link_id' => $data['id'],
         'ip_address' => $request->ip(),
-        'country' => $countries->resolve($request->ip()),
+        'country' => $countries->resolve($request),
         'user_agent' => $request->userAgent(),
         'referer' => $request->header('referer'),
         'source' => $normalizeClickSource($request->input('src')),

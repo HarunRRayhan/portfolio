@@ -1,4 +1,4 @@
-// ISO 3166-1 alpha-2 codes, matching what MaxMind's GeoLite2-Country database
+// ISO 3166-1 alpha-2 codes, matching what Cloudflare's Cf-Ipcountry header
 // returns. Only the codes live here -- display names come from Intl.DisplayNames
 // so we neither ship a name table nor have to translate one.
 export const COUNTRY_CODES = [

@@ -247,7 +247,7 @@ export default function Analytics({
             <RankedList
               title="Top countries"
               rows={byCountry}
-              empty="No country data yet. Countries resolve once the GeoLite2 database is installed."
+              empty="No country data yet. Countries resolve automatically once a click comes through the live site."
               renderLabel={(code) => (
                 <span className="inline-flex items-center gap-2">
                   <span aria-hidden="true">{countryFlag(code)}</span>

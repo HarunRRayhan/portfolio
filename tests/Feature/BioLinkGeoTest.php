@@ -61,7 +61,7 @@ class BioLinkGeoTest extends TestCase
      * When geo lookup fails we cannot prove the visitor is in the include list,
      * so include-restricted links stay hidden. Exclusion cannot be proven either,
      * so an exclude-only link still shows -- failing open on exclude keeps a
-     * missing GeoLite2 database from silently emptying the page.
+     * missing Cf-Ipcountry header from silently emptying the page.
      */
     public function test_unknown_country_hides_include_restricted_links_but_not_excluded_ones(): void
     {
