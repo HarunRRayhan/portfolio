@@ -4,26 +4,29 @@ Code now emits crawler-visible meta, a complete sitemap, and valid Organization 
 
 ## Cloudflare bot preferences (`harun.dev`)
 
-Goal: answer engines can cite the site; training-only bots stay blocked.
+Goal: AI search and agents can cite the site, models may train on it, junk scrapers are not specially invited. Bot Fight Mode stays off so Googlebot is not challenged.
 
-1. Open Cloudflare → `harun.dev` → **AI Crawl Control** / **Bot preferences** (or **Scrape Shield** → AI bots, depending on the current dashboard label).
+1. Open Cloudflare → `harun.dev` → **Security Settings** → **Configure AI bot policies**.
 2. Set:
-   - **Search:** allow (Googlebot and Bingbot must stay allowed)
-   - **Agents / AI-input:** allow (OAI-SearchBot, ChatGPT-User, PerplexityBot, Claude-User)
-   - **Training:** block (GPTBot, Google-Extended, ClaudeBot, CCBot, Bytespider)
-3. If a **Content signal `use`** control exists, set it to **full** so models may quote with attribution. Keep `ai-train=no`.
-4. Confirm Bot Fight Mode / Super Bot Fight Mode is not challenging Googlebot.
+   - **Search:** allow
+   - **Agents / AI-input:** allow
+   - **Training:** allow
+3. Turn **off** Cloudflare managed `robots.txt` so it does not inject `ai-train=no` or trainer `Disallow`s.
+4. Confirm Bot Fight Mode / Super Bot Fight Mode is off.
 5. Leave the Railway `*.up.railway.app` hostname unpublished (see `CLAUDE.md`).
+
+API fields (zone `bot_management`): `ai_search`, `ai_user`, and `ai_training` all `disabled` (disabled = do not block). `ai_bots_protection` `disabled`. `is_robots_txt_managed` `false`. `fight_mode` `false`.
 
 Verify:
 
 ```bash
 curl -sS https://harun.dev/robots.txt
+curl -sS -o /dev/null -w '%{http_code}' -A 'ChatGPT-User' https://harun.dev/
 ```
 
-Trainers should still be `Disallow: /`. Answer-bot user agents should not be. `Google-Extended` remaining disallowed is correct (Gemini training, not AI Overviews).
+`robots.txt` should Allow all user-agents, point at the sitemap and `/llms.txt`, and must not `Disallow` GPTBot / ClaudeBot / Google-Extended. Answer and training user-agents should get HTTP 200.
 
-The Laravel `robots.txt` only adds the sitemap line and an llms.txt hint. Cloudflare prepends its managed block; do not try to override trainers from the app.
+The Laravel `robots.txt` is the live file once managed robots.txt is off.
 
 ## Google Search Console (after deploy)
 

@@ -174,6 +174,6 @@ class SiteSeoTest extends TestCase
 
         $this->assertStringContainsString('Sitemap: '.$siteUrl.'/sitemap.xml', $body);
         $this->assertStringContainsString($siteUrl.'/llms.txt', $body);
-        $this->assertStringContainsString('Do not use this content for training', $body);
+        $this->assertStringContainsString('Training and retrieval are welcome if you link back', $body);
     }
 }
