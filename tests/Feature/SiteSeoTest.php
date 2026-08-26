@@ -201,6 +201,24 @@ class SiteSeoTest extends TestCase
     }
 
     #[Test]
+    public function bio_and_hrr_first_html_titles_match_the_react_head_copy(): void
+    {
+        $bio = $this->get('/bio')->assertOk()->getContent();
+        $this->assertStringContainsString('<title>Harun R. Rayhan | Bio</title>', $bio);
+        $this->assertStringContainsString(
+            'name="description" content="Harun R. Rayhan&#039;s bio page with quick links to his portfolio, blog, contact details, and social profiles."',
+            $bio,
+        );
+
+        $hrr = $this->get('/hrr')->assertOk()->getContent();
+        $this->assertStringContainsString('<title>Harun R. Rayhan | বায়ো</title>', $hrr);
+        $this->assertStringContainsString(
+            'হারুন আর রায়হানের বায়ো পেজ, যেখানে পাবেন পোর্টফোলিও, ব্লগ, যোগাযোগের তথ্য এবং সোশ্যাল মিডিয়া প্রোফাইলের দ্রুত লিংক।',
+            $hrr,
+        );
+    }
+
+    #[Test]
     public function public_page_titles_do_not_use_laravel_as_a_suffix(): void
     {
         foreach (['/', '/blog', '/services/devops', '/blog/production-ai-code-review-for-terraform-and-lambda-prs'] as $path) {
