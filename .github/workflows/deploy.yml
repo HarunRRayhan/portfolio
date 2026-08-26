@@ -35,7 +35,7 @@ jobs:
 
       - name: Build Frontend Assets
         env:
-          VITE_APP_NAME: ${{ vars.VITE_APP_NAME }}
+          VITE_APP_NAME: ${{ vars.VITE_APP_NAME != '' && vars.VITE_APP_NAME || 'Harun R. Rayhan' }}
           VITE_ASSET_BASE_URL: ${{ vars.VITE_ASSET_BASE_URL }}
           VITE_BOOKING_URL: ${{ vars.VITE_BOOKING_URL }}
           VITE_BOOKING_EMBED_URL: ${{ vars.VITE_BOOKING_EMBED_URL }}

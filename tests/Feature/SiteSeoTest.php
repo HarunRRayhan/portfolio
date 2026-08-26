@@ -201,6 +201,39 @@ class SiteSeoTest extends TestCase
     }
 
     #[Test]
+    public function public_page_titles_do_not_use_laravel_as_a_suffix(): void
+    {
+        foreach (['/', '/blog', '/services/devops', '/blog/production-ai-code-review-for-terraform-and-lambda-prs'] as $path) {
+            $html = $this->get($path)->assertOk()->getContent();
+
+            $this->assertDoesNotMatchRegularExpression(
+                '/<title>[^<]*-\s*Laravel\s*<\/title>/',
+                $html,
+                $path.' first HTML must not append - Laravel',
+            );
+        }
+    }
+
+    #[Test]
+    public function inertia_title_callback_does_not_append_laravel_after_hydrate(): void
+    {
+        $source = file_get_contents(base_path('resources/js/app.tsx'));
+
+        $this->assertIsString($source);
+        $this->assertStringNotContainsString(
+            "|| 'Laravel'",
+            $source,
+            'VITE_APP_NAME must not fall back to Laravel when the Vite env is empty',
+        );
+        $this->assertDoesNotMatchRegularExpression(
+            '/title:\s*\(title\)\s*=>\s*`\$\{title\} - \$\{appName\}`/',
+            $source,
+            'Inertia must not wrap every Head title with - ${appName}',
+        );
+        $this->assertStringContainsString('resolveDocumentTitle', $source);
+    }
+
+    #[Test]
     public function it_emits_article_json_ld_on_a_case_study_in_the_first_html(): void
     {
         $siteUrl = rtrim(config('app.url', url('/')), '/');
