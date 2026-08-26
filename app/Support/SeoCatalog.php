@@ -59,6 +59,19 @@ final class SeoCatalog
         return self::assetUrl('/images/og/bio.jpg');
     }
 
+    private static function absoluteAssetUrl(?string $path): ?string
+    {
+        if ($path === null || $path === '') {
+            return null;
+        }
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        return self::assetUrl($path);
+    }
+
     public static function siteName(): string
     {
         return 'Harun R. Rayhan';
@@ -361,26 +374,101 @@ final class SeoCatalog
         ];
     }
 
-    public static function forBlogPost(string $title, string $description, string $canonicalUrl, ?string $ogImage, bool $noindex = false): SeoMeta
-    {
+    /**
+     * @return array<string, mixed>
+     */
+    public static function articleGraph(
+        string $type,
+        string $headline,
+        string $description,
+        string $canonicalUrl,
+        ?string $datePublished = null,
+        ?string $image = null,
+        string $publisherName = 'Harun R. Rayhan',
+        ?string $publisherUrl = null,
+    ): array {
+        $publisherUrl = rtrim($publisherUrl ?? SiteCatalog::siteUrl(), '/');
+        $absoluteImage = self::absoluteAssetUrl($image);
+
+        $graph = [
+            '@context' => 'https://schema.org',
+            '@type' => $type,
+            'headline' => $headline,
+            'description' => $description,
+            'author' => [
+                '@type' => 'Person',
+                'name' => 'Harun R. Rayhan',
+            ],
+            'publisher' => [
+                '@type' => 'Organization',
+                'name' => $publisherName,
+                'url' => $publisherUrl,
+            ],
+            'mainEntityOfPage' => $canonicalUrl,
+        ];
+
+        if ($datePublished !== null && $datePublished !== '') {
+            $graph['datePublished'] = $datePublished;
+        }
+
+        if ($absoluteImage !== null) {
+            $graph['image'] = [$absoluteImage];
+        }
+
+        return $graph;
+    }
+
+    public static function forBlogPost(
+        string $title,
+        string $description,
+        string $canonicalUrl,
+        ?string $ogImage,
+        bool $noindex = false,
+        ?string $datePublished = null,
+        ?string $publisherName = null,
+        ?string $publisherUrl = null,
+    ): SeoMeta {
         return new SeoMeta(
             title: $title.' | Harun\'s Blog',
             description: $description,
             canonicalUrl: $canonicalUrl,
             ogImage: $ogImage,
             ogType: 'article',
+            jsonLd: [self::articleGraph(
+                'BlogPosting',
+                $title,
+                $description,
+                $canonicalUrl,
+                $datePublished,
+                $ogImage,
+                $publisherName ?? 'Harun R. Rayhan',
+                $publisherUrl,
+            )],
             noindex: $noindex,
         );
     }
 
-    public static function forCaseStudy(string $title, string $description, string $canonicalUrl, ?string $ogImage): SeoMeta
-    {
+    public static function forCaseStudy(
+        string $title,
+        string $description,
+        string $canonicalUrl,
+        ?string $ogImage,
+        ?string $datePublished = null,
+    ): SeoMeta {
         return new SeoMeta(
             title: $title.' | Case Studies',
             description: $description,
             canonicalUrl: $canonicalUrl,
             ogImage: $ogImage,
             ogType: 'article',
+            jsonLd: [self::articleGraph(
+                'Article',
+                $title,
+                $description,
+                $canonicalUrl,
+                $datePublished,
+                $ogImage,
+            )],
         );
     }
 

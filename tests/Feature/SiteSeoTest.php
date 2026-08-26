@@ -176,4 +176,50 @@ class SiteSeoTest extends TestCase
         $this->assertStringContainsString($siteUrl.'/llms.txt', $body);
         $this->assertStringContainsString('Training and retrieval are welcome if you link back', $body);
     }
+
+    #[Test]
+    public function it_emits_blog_posting_json_ld_in_the_first_html(): void
+    {
+        $siteUrl = rtrim(config('app.url', url('/')), '/');
+        $canonical = $siteUrl.'/blog/production-ai-code-review-for-terraform-and-lambda-prs';
+
+        $response = $this->get('/blog/production-ai-code-review-for-terraform-and-lambda-prs');
+        $response->assertOk();
+
+        $graphs = $this->jsonLdGraphs($response->getContent());
+        $article = collect($graphs)->first(
+            fn (array $graph) => ($graph['@type'] ?? null) === 'BlogPosting',
+        );
+
+        $this->assertNotNull($article, 'Blog post first HTML must include BlogPosting JSON-LD');
+        $this->assertSame(1, collect($graphs)->where('@type', 'BlogPosting')->count());
+        $this->assertSame('https://schema.org', $article['@context'] ?? null);
+        $this->assertSame('How I Review Terraform and Lambda PRs with AI Before They Merge', $article['headline'] ?? null);
+        $this->assertSame($canonical, $article['mainEntityOfPage'] ?? null);
+        $this->assertSame('Harun R. Rayhan', $article['author']['name'] ?? null);
+        $this->assertNotEmpty($article['datePublished'] ?? null);
+    }
+
+    #[Test]
+    public function it_emits_article_json_ld_on_a_case_study_in_the_first_html(): void
+    {
+        $siteUrl = rtrim(config('app.url', url('/')), '/');
+        $canonical = $siteUrl.'/case-studies/polaris';
+
+        $response = $this->get('/case-studies/polaris');
+        $response->assertOk();
+
+        $graphs = $this->jsonLdGraphs($response->getContent());
+        $article = collect($graphs)->first(
+            fn (array $graph) => ($graph['@type'] ?? null) === 'Article',
+        );
+
+        $this->assertNotNull($article, 'Case study first HTML must include Article JSON-LD');
+        $this->assertSame(1, collect($graphs)->where('@type', 'Article')->count());
+        $this->assertSame('https://schema.org', $article['@context'] ?? null);
+        $this->assertSame('Polaris: Migrating a 15-Year-Old ERP Off Zend Framework 1', $article['headline'] ?? null);
+        $this->assertSame($canonical, $article['mainEntityOfPage'] ?? null);
+        $this->assertSame('Harun R. Rayhan', $article['author']['name'] ?? null);
+        $this->assertNotEmpty($article['datePublished'] ?? null);
+    }
 }

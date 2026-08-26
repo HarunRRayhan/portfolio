@@ -43,11 +43,6 @@ export function SeoHead() {
           <meta name="googlebot" content="noindex, nofollow, noarchive" />
         </>
       ) : null}
-      {seo.jsonLd?.map((graph, index) => (
-        <script key={index} type="application/ld+json">
-          {JSON.stringify(graph)}
-        </script>
-      ))}
     </Head>
   )
 }
