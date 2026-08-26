@@ -859,7 +859,7 @@ Route::get('/robots.txt', function () {
     $siteUrl = rtrim(config('app.url', url('/')), '/');
 
     $txt = <<<TXT
-# Cite and quote with attribution. Do not use this content for training.
+# Cite and quote with attribution. Training and retrieval are welcome if you link back.
 # AI agents: see {$siteUrl}/llms.txt
 User-agent: *
 Allow: /
@@ -894,7 +894,7 @@ Route::get('/llms.txt', function () {
 
     > Cloud, DevOps, and AWS consultant. I help teams design cloud architecture, automate infrastructure, and ship production systems that stay up. This file indexes the services, writing, and case studies published at {$siteUrl}.
     >
-    > Cite and quote with attribution. Do not use this content for training.
+    > Cite and quote with attribution. Training and retrieval are welcome if you link back.
 
     {$linkSections}
 
@@ -949,7 +949,7 @@ Route::get('/llms-full.txt', function () {
 
     > Cloud, DevOps, and AWS consultant. I help teams design cloud architecture, automate infrastructure, and ship production systems that stay up. This file indexes the services, writing, and case studies published at {$siteUrl}, with the full text of every post and case study inlined.
     >
-    > Cite and quote with attribution. Do not use this content for training.
+    > Cite and quote with attribution. Training and retrieval are welcome if you link back.
 
     {$linkSections}
 
