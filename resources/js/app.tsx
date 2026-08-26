@@ -5,15 +5,15 @@ import { createInertiaApp, type ResolvedComponent } from '@inertiajs/react';
 import { createRoot } from 'react-dom/client';
 import PublicLayout from './Layouts/PublicLayout';
 import { SubscribeProvider } from './Components/SubscribeProvider';
+import { resolveDocumentTitle } from './lib/documentTitle';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 const pages = import.meta.glob('./Pages/**/*.tsx') as Record<
     string,
     () => Promise<{ default: ResolvedComponent }>
 >;
 
 createInertiaApp({
-    title: (title) => `${title} - ${appName}`,
+    title: (title) => resolveDocumentTitle(title ?? '', import.meta.env.VITE_APP_NAME),
     resolve: async (name) => {
         const page = (await pages[`./Pages/${name}.tsx`]()).default;
 
