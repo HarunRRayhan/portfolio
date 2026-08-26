@@ -7,15 +7,13 @@ import PublicLayout from './Layouts/PublicLayout';
 import { SubscribeProvider } from './Components/SubscribeProvider';
 import { resolveDocumentTitle } from './lib/documentTitle';
 
-const configuredName = (import.meta.env.VITE_APP_NAME ?? '').trim();
-const siteName = configuredName === '' || configuredName === 'Laravel' ? undefined : configuredName;
 const pages = import.meta.glob('./Pages/**/*.tsx') as Record<
     string,
     () => Promise<{ default: ResolvedComponent }>
 >;
 
 createInertiaApp({
-    title: (title) => resolveDocumentTitle(title ?? '', siteName),
+    title: (title) => resolveDocumentTitle(title ?? '', import.meta.env.VITE_APP_NAME),
     resolve: async (name) => {
         const page = (await pages[`./Pages/${name}.tsx`]()).default;
 

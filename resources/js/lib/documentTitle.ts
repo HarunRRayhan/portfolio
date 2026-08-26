@@ -1,8 +1,18 @@
 export const SITE_NAME = 'Harun R. Rayhan';
 
-export function resolveDocumentTitle(title: string, siteName = SITE_NAME): string {
+function resolveSiteName(siteName?: string): string {
+    const brand = (siteName ?? '').trim();
+
+    if (brand === '' || brand.toLowerCase() === 'laravel') {
+        return SITE_NAME;
+    }
+
+    return brand;
+}
+
+export function resolveDocumentTitle(title: string, siteName?: string): string {
     const trimmed = title.trim();
-    const brand = siteName.trim() === '' ? SITE_NAME : siteName;
+    const brand = resolveSiteName(siteName);
 
     if (trimmed === '') {
         return brand;

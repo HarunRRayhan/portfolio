@@ -211,6 +211,11 @@ class SiteSeoTest extends TestCase
                 $html,
                 $path.' first HTML must not append - Laravel',
             );
+            $this->assertMatchesRegularExpression(
+                '/<title>[^<]*Harun[^<]*<\/title>/',
+                $html,
+                $path.' first HTML title must stay branded',
+            );
         }
     }
 
