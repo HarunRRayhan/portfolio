@@ -68,7 +68,7 @@ const staggerChildren = {
   animate: { transition: { staggerChildren: 0.1 } },
 }
 
-export default function MLOps() {
+export default function MLOps({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
       <Head>
@@ -80,7 +80,7 @@ export default function MLOps() {
         <meta property="og:title" content="MLOps & Machine Learning Operations Services | Harun R. Rayhan" />
         <meta property="og:description" content="Expert MLOps services. Streamline your machine learning operations with automated pipelines, model deployment, and monitoring solutions." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={window.location.href} />
+        <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={getImageUrl("/service-assets/mlops/hero.jpg")} />
 
         {/* Twitter Card Tags */}
@@ -90,7 +90,7 @@ export default function MLOps() {
         <meta name="twitter:image" content={getImageUrl("/service-assets/mlops/hero.jpg")} />
         
         {/* Canonical URL */}
-        <link rel="canonical" href={window.location.href} />
+        <link rel="canonical" href={canonicalUrl} />
 
         {/* JSON-LD Structured Data */}
         <script type="application/ld+json">

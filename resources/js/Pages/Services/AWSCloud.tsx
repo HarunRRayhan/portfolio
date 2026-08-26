@@ -66,7 +66,7 @@ const staggerChildren = {
   animate: { transition: { staggerChildren: 0.1 } },
 }
 
-export default function AWSCloud() {
+export default function AWSCloud({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
       <Head>
@@ -78,7 +78,7 @@ export default function AWSCloud() {
         <meta property="og:title" content="AWS Cloud Services & Solutions | Harun R. Rayhan" />
         <meta property="og:description" content="Expert AWS cloud solutions and consulting services. Leverage the full power of Amazon Web Services with our certified professionals for scalable, secure, and cost-effective cloud infrastructure." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={window.location.href} />
+        <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={getImageUrl("/service-assets/aws-cloud/hero.jpg")} />
 
         {/* Twitter Card Tags */}
@@ -88,7 +88,7 @@ export default function AWSCloud() {
         <meta name="twitter:image" content={getImageUrl("/service-assets/aws-cloud/hero.jpg")} />
         
         {/* Canonical URL */}
-        <link rel="canonical" href={window.location.href} />
+        <link rel="canonical" href={canonicalUrl} />
 
         {/* JSON-LD Structured Data */}
         <script type="application/ld+json">

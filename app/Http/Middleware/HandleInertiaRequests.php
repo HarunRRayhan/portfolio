@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Support\CaseStudyRepository;
+use App\Support\SeoCatalog;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -30,8 +31,10 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        $caseStudies = new CaseStudyRepository();
+        $caseStudies = new CaseStudyRepository;
         $byService = $caseStudies->groupedByServiceSlug();
+
+        $seo = SeoCatalog::forRequest($request);
 
         return [
             ...parent::share($request),
@@ -46,6 +49,8 @@ class HandleInertiaRequests extends Middleware
             // prop -- add it here so that convention works everywhere,
             // including the new admin/api-keys "here's your token" flash.
             'flash' => fn () => $request->session()->get('flash'),
+            'seo' => $seo?->toArray(),
+            'canonicalUrl' => $seo?->canonicalUrl,
         ];
     }
 }

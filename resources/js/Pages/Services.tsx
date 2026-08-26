@@ -163,7 +163,7 @@ const faqs = [
     },
 ]
 
-export default function ServicesPage() {
+export default function ServicesPage({ canonicalUrl }: { canonicalUrl?: string }) {
     return (
         <>
             <Head>
@@ -175,7 +175,7 @@ export default function ServicesPage() {
                 <meta property="og:title" content="Professional Cloud & DevOps Services | Harun's Portfolio" />
                 <meta property="og:description" content="Expert cloud computing, DevOps, and software engineering services including AWS, Infrastructure as Code, CI/CD, security consulting, and performance optimization." />
                 <meta property="og:type" content="website" />
-                <meta property="og:url" content={window.location.href} />
+                <meta property="og:url" content={canonicalUrl} />
                 <meta property="og:image" content={getImageUrl("/service-assets/services/hero.jpg")} />
 
                 {/* Twitter Card Tags */}
@@ -185,7 +185,7 @@ export default function ServicesPage() {
                 <meta name="twitter:image" content={getImageUrl("/service-assets/services/hero.jpg")} />
 
                 {/* Canonical URL */}
-                <link rel="canonical" href={window.location.href} />
+                <link rel="canonical" href={canonicalUrl} />
 
                 {/* JSON-LD Structured Data */}
                 <script type="application/ld+json">

@@ -68,7 +68,7 @@ const staggerChildren = {
   animate: { transition: { staggerChildren: 0.1 } },
 }
 
-export default function ServerlessInfrastructure() {
+export default function ServerlessInfrastructure({ canonicalUrl }: { canonicalUrl?: string }) {
   const [isVisible, setIsVisible] = useState(false)
   const sectionRef = useRef(null)
 
@@ -102,7 +102,7 @@ export default function ServerlessInfrastructure() {
         <meta property="og:title" content="Serverless Infrastructure Services | Harun R. Rayhan" />
         <meta property="og:description" content="Expert serverless architecture and implementation services. Build scalable, cost-effective applications using AWS Lambda, Azure Functions, and other serverless technologies." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={window.location.href} />
+        <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={getImageUrl("/service-assets/serverless-infrastructure/hero.jpg")} />
 
         {/* Twitter Card Tags */}
@@ -112,7 +112,7 @@ export default function ServerlessInfrastructure() {
         <meta name="twitter:image" content={getImageUrl("/service-assets/serverless-infrastructure/hero.jpg")} />
 
         {/* Canonical URL */}
-        <link rel="canonical" href={window.location.href} />
+        <link rel="canonical" href={canonicalUrl} />
 
         {/* JSON-LD Structured Data */}
         <script type="application/ld+json">

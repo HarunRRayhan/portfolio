@@ -265,11 +265,13 @@ export default function Bio({
   page_share_url: pageShareUrl,
   tab_share_urls: tabShareUrls = {},
   locale = 'en',
+  canonicalUrl: canonicalUrlProp,
 }: {
   links?: BioLink[]
   page_share_url?: string
   tab_share_urls?: Record<string, string>
   locale?: BioLocale
+  canonicalUrl?: string
 }) {
   const { url } = usePage()
   const { openPopup } = useSubscribePopup()
@@ -287,8 +289,7 @@ export default function Bio({
   const otherLocaleFont = otherLocale === 'bn' ? 'font-bengali' : 'font-mono'
   // Real page URL. Feeds SEO tags (og:url, canonical). Must stay the actual
   // page, never the shortener redirect.
-  const canonicalUrl =
-    typeof window !== 'undefined' ? window.location.href : `https://harun.dev${locale === 'bn' ? '/hrr' : '/bio'}`
+  const canonicalUrl = canonicalUrlProp ?? `https://harun.dev${locale === 'bn' ? '/hrr' : '/bio'}`
   // Shortened page URL for the "Share link" sheet's QR/copy/social links.
   const pageShareLinkUrl = pageShareUrl ?? canonicalUrl
   // og:image/twitter:image need a fully-qualified URL. getImageUrl() already

@@ -8,11 +8,10 @@ import { ReviewSlideSection } from "@/Components/ReviewSlideSection"
 import { usePage } from "@inertiajs/react"
 import type { CaseStudyCardSummary } from "@/Components/CaseStudiesSections"
 
-const canonicalUrl = 'https://harun.dev/'
-
 export default function Homepage() {
-    const { featuredCaseStudies } = usePage().props as {
+    const { featuredCaseStudies, canonicalUrl = '/' } = usePage().props as {
         featuredCaseStudies?: CaseStudyCardSummary[]
+        canonicalUrl?: string
     }
 
     return (
@@ -38,6 +37,11 @@ export default function Homepage() {
                         jobTitle: 'Senior Software Engineer & DevOps Consultant',
                         description: 'Expert software engineer and DevOps consultant specializing in cloud architecture and AWS solutions',
                         url: canonicalUrl,
+                        sameAs: [
+                            'https://github.com/HarunRRayhan',
+                            'https://www.linkedin.com/in/harunrrayhan/',
+                            'https://x.com/harundotdev',
+                        ],
                         worksFor: {
                             '@id': canonicalUrl + '#organization',
                         },

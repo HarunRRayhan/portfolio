@@ -3,6 +3,7 @@
 ## Checklists
 - [Full blog migration checklist](./checklists/blog-migration-checklist.md)
 - [Blog migration operator checklist](./checklists/blog-migration-operator-checklist.md)
+- [Search Console and AI crawler checklist](./checklists/search-console-ai-seo.md)
 
 ## Plans
 - [Harun blog migration plan](./plans/harun-blog-migration-plan.md)

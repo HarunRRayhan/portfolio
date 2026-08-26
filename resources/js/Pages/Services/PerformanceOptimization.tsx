@@ -68,7 +68,10 @@ const staggerChildren = {
   animate: { transition: { staggerChildren: 0.1 } },
 }
 
-export default function PerformanceOptimization() {
+export default function PerformanceOptimization({ canonicalUrl }: { canonicalUrl?: string }) {
+  const ogImagePath = getImageUrl("/service-assets/performance-optimization/hero.jpg")
+  const ogImageUrl = ogImagePath.startsWith("http") ? ogImagePath : `https://harun.dev${ogImagePath}`
+
   return (
     <>
       <Head>
@@ -80,17 +83,17 @@ export default function PerformanceOptimization() {
         <meta property="og:title" content="Cloud Performance Optimization Services | Harun R. Rayhan" />
         <meta property="og:description" content="Expert cloud performance optimization services. Enhance your cloud infrastructure efficiency, reduce costs, and improve application performance through advanced optimization techniques." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={window.location.href} />
-        <meta property="og:image" content={`${window.location.origin}${getImageUrl("/service-assets/performance-optimization/hero.jpg")}`} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:image" content={ogImageUrl} />
 
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Cloud Performance Optimization Services | Harun R. Rayhan" />
         <meta name="twitter:description" content="Expert cloud performance optimization services. Enhance your cloud infrastructure efficiency, reduce costs, and improve application performance through advanced optimization techniques." />
-        <meta name="twitter:image" content={`${window.location.origin}${getImageUrl("/service-assets/performance-optimization/hero.jpg")}`} />
+        <meta name="twitter:image" content={ogImageUrl} />
         
         {/* Canonical URL */}
-        <link rel="canonical" href={window.location.href} />
+        <link rel="canonical" href={canonicalUrl} />
 
         {/* JSON-LD Structured Data */}
         <script type="application/ld+json">

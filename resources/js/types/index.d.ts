@@ -1,3 +1,5 @@
+import type { SeoPayload } from '@/Components/SeoHead'
+
 export interface User {
     id: number;
     name: string;
@@ -11,4 +13,6 @@ export type PageProps<
     auth: {
         user: User;
     };
+    seo?: SeoPayload | null;
+    canonicalUrl?: string;
 };

@@ -61,7 +61,7 @@ const staggerChildren = {
   animate: { transition: { staggerChildren: 0.1 } },
 }
 
-export default function MultiCloudArchitecture() {
+export default function MultiCloudArchitecture({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
       <Head>
@@ -73,7 +73,7 @@ export default function MultiCloudArchitecture() {
         <meta property="og:title" content="Multi-Cloud Architecture Services | Harun R. Rayhan" />
         <meta property="og:description" content="Expert multi-cloud architecture and implementation services. Design and manage efficient cloud solutions across AWS, Azure, Google Cloud, and other providers." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={window.location.href} />
+        <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={getImageUrl("/service-assets/multi-cloud-architecture/hero.jpg")} />
 
         {/* Twitter Card Tags */}
@@ -83,7 +83,7 @@ export default function MultiCloudArchitecture() {
         <meta name="twitter:image" content={getImageUrl("/service-assets/multi-cloud-architecture/hero.jpg")} />
         
         {/* Canonical URL */}
-        <link rel="canonical" href={window.location.href} />
+        <link rel="canonical" href={canonicalUrl} />
 
         {/* JSON-LD Structured Data */}
         <script type="application/ld+json">

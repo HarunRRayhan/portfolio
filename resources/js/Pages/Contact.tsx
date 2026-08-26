@@ -41,7 +41,7 @@ interface PageProps extends InertiaPageProps {
     };
 }
 
-export default function Contact() {
+export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
     const { flash } = usePage<PageProps>().props
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
@@ -179,7 +179,7 @@ export default function Contact() {
                 <meta property="og:title" content="Contact Harun | Cloud & DevOps Consulting Services" />
                 <meta property="og:description" content="Get in touch for expert cloud computing and DevOps consulting services. Let's discuss your project needs in AWS, infrastructure automation, CI/CD, or any other cloud services." />
                 <meta property="og:type" content="website" />
-                <meta property="og:url" content={window.location.href} />
+                <meta property="og:url" content={canonicalUrl} />
                 
                 {/* Twitter Card Tags */}
                 <meta name="twitter:card" content="summary_large_image" />
@@ -187,7 +187,7 @@ export default function Contact() {
                 <meta name="twitter:description" content="Get in touch for expert cloud computing and DevOps consulting services. Let's discuss your project needs in AWS, infrastructure automation, CI/CD, or any other cloud services." />
                 
                 {/* Canonical URL */}
-                <link rel="canonical" href={window.location.href} />
+                <link rel="canonical" href={canonicalUrl} />
 
                 {/* JSON-LD Structured Data */}
                 <script type="application/ld+json">

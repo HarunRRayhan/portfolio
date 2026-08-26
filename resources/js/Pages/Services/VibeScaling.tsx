@@ -71,7 +71,7 @@ const staggerChildren = {
   animate: { transition: { staggerChildren: 0.1 } },
 }
 
-export default function VibeScaling() {
+export default function VibeScaling({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
       <Head>
@@ -83,7 +83,7 @@ export default function VibeScaling() {
         <meta property="og:title" content="Vibe Scaler: Scale Your AI-Built App | Harun R. Rayhan" />
         <meta property="og:description" content="You built your app fast with AI coding tools and it found real users. We scale it in place: performance under load, database fixes, monitoring, and reliability, no rewrite required." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={window.location.href} />
+        <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={getImageUrl("/service-assets/vibe-scaling/hero.jpg")} />
 
         {/* Twitter Card Tags */}
@@ -93,7 +93,7 @@ export default function VibeScaling() {
         <meta name="twitter:image" content={getImageUrl("/service-assets/vibe-scaling/hero.jpg")} />
 
         {/* Canonical URL */}
-        <link rel="canonical" href={window.location.href} />
+        <link rel="canonical" href={canonicalUrl} />
 
         {/* JSON-LD Structured Data */}
         <script type="application/ld+json">

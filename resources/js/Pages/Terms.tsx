@@ -4,7 +4,7 @@ import { Container } from '@/Components/ui/container'
 import { ScrollText } from 'lucide-react'
 import { getImageUrl } from "@/lib/imageUtils"
 
-export default function Terms() {
+export default function Terms({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
       <Head>
@@ -16,7 +16,7 @@ export default function Terms() {
         <meta property="og:title" content="Terms of Service | Harun's Portfolio" />
         <meta property="og:description" content="Terms of service and conditions for using Harun's Portfolio website and services." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={window.location.href} />
+        <meta property="og:url" content={canonicalUrl} />
         
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
@@ -24,7 +24,7 @@ export default function Terms() {
         <meta name="twitter:description" content="Terms of service and conditions for using Harun's Portfolio website and services." />
         
         {/* Canonical URL */}
-        <link rel="canonical" href={window.location.href} />
+        <link rel="canonical" href={canonicalUrl} />
 
         {/* JSON-LD Structured Data */}
         <script type="application/ld+json">

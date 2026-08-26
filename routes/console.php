@@ -14,26 +14,18 @@ Artisan::command('seo:ping-sitemap {--url= : Sitemap URL to ping}', function () 
         $defaultSiteUrl = 'https://harun.dev';
     }
 
-    $sitemapUrl = $this->option('url') ?: $defaultSiteUrl . '/sitemap.xml';
-    $endpoints = [
-        'Google' => 'https://www.google.com/ping?sitemap=' . urlencode($sitemapUrl),
-        'Bing' => 'https://www.bing.com/ping?sitemap=' . urlencode($sitemapUrl),
-    ];
+    $sitemapUrl = $this->option('url') ?: $defaultSiteUrl.'/sitemap.xml';
 
-    $this->info("Pinging search engines with sitemap: {$sitemapUrl}");
-
-    foreach ($endpoints as $name => $endpoint) {
-        try {
-            $response = Http::timeout(20)->get($endpoint);
-            $status = $response->status();
-            $ok = $response->successful() ? 'ok' : 'not-ok';
-            $this->line("- {$name}: {$ok} (HTTP {$status})");
-        } catch (\Throwable $e) {
-            $this->error("- {$name}: failed ({$e->getMessage()})");
-        }
-    }
-
-    $this->line('Sitemap URLs to submit in Google Search Console:');
+    $this->info('Google retired /ping?sitemap=. Resubmit the sitemap in Search Console:');
     $this->line("- {$sitemapUrl}");
-    $this->line('- ' . preg_replace('#/sitemap\.xml$#', '/robots.txt', $sitemapUrl));
-})->purpose('Ping search engines with the current sitemap URL');
+    $this->line('- Property: sc-domain:harun.dev');
+    $this->line('- Then URL-inspect https://harun.dev/services/devops and one blog post.');
+
+    try {
+        $response = Http::timeout(20)->get('https://www.bing.com/ping?sitemap='.urlencode($sitemapUrl));
+        $ok = $response->successful() ? 'ok' : 'not-ok';
+        $this->line("- Bing ping: {$ok} (HTTP {$response->status()})");
+    } catch (Throwable $e) {
+        $this->error("- Bing ping: failed ({$e->getMessage()})");
+    }
+})->purpose('Remind GSC sitemap resubmit and ping Bing');

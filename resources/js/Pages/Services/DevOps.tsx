@@ -83,7 +83,7 @@ const staggerChildren = {
   animate: { transition: { staggerChildren: 0.1 } },
 }
 
-export default function DevOpsPage() {
+export default function DevOpsPage({ canonicalUrl }: { canonicalUrl?: string }) {
   const [isVisible, setIsVisible] = useState(false)
   const sectionRef = useRef(null)
 
@@ -123,7 +123,7 @@ export default function DevOpsPage() {
         <meta property="og:title" content="DevOps Implementation & Consulting Services | Harun R. Rayhan" />
         <meta property="og:description" content="Transform your development and operations with expert DevOps consulting services. Implement CI/CD pipelines, automation, and modern DevOps practices to accelerate your software delivery." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={window.location.href} />
+        <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={ogImageUrl} />
         <meta property="og:image:width" content="1600" />
         <meta property="og:image:height" content="840" />
@@ -135,7 +135,7 @@ export default function DevOpsPage() {
         <meta name="twitter:image" content={ogImageUrl} />
 
         {/* Canonical URL */}
-        <link rel="canonical" href={window.location.href} />
+        <link rel="canonical" href={canonicalUrl} />
 
         {/* JSON-LD Structured Data */}
         <script type="application/ld+json">

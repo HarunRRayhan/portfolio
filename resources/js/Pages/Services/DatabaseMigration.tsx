@@ -51,7 +51,7 @@ const staggerChildren = {
   animate: { transition: { staggerChildren: 0.1 } },
 }
 
-export default function DatabaseMigration() {
+export default function DatabaseMigration({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
       <Head>
@@ -63,7 +63,7 @@ export default function DatabaseMigration() {
         <meta property="og:title" content="Database Migration Services | Harun R. Rayhan" />
         <meta property="og:description" content="Expert database migration services. Seamlessly migrate your databases to modern platforms with minimal downtime and zero data loss." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={window.location.href} />
+        <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={getImageUrl("/service-assets/database-migration/hero.jpg")} />
 
         {/* Twitter Card Tags */}
@@ -73,7 +73,7 @@ export default function DatabaseMigration() {
         <meta name="twitter:image" content={getImageUrl("/service-assets/database-migration/hero.jpg")} />
         
         {/* Canonical URL */}
-        <link rel="canonical" href={window.location.href} />
+        <link rel="canonical" href={canonicalUrl} />
 
         {/* JSON-LD Structured Data */}
         <script type="application/ld+json">
