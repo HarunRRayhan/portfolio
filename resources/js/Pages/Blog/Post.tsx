@@ -175,7 +175,6 @@ function enhanceCodeBlocks(root: HTMLElement) {
 }
 
 export default function BlogPostPage({
-  publication,
   post,
   relatedPosts,
   canonicalUrl,
@@ -194,25 +193,6 @@ export default function BlogPostPage({
     : null
   const relatedTags = buildRelatedTagList(relatedPosts.length > 0 ? relatedPosts : [post])
   const relatedRailPosts = relatedPosts.length > 1 ? [...relatedPosts, ...relatedPosts] : relatedPosts
-
-  const structuredData = {
-    '@context': 'https://schema.org',
-    '@type': 'BlogPosting',
-    headline: post.title,
-    description,
-    datePublished: post.publishedAtIso,
-    author: {
-      '@type': 'Person',
-      name: 'Harun R. Rayhan',
-    },
-    publisher: {
-      '@type': 'Organization',
-      name: publication.title,
-      url: publication.url,
-    },
-    mainEntityOfPage: canonicalUrl,
-    image: metaImageUrl ? [metaImageUrl] : undefined,
-  }
 
   useEffect(() => {
     if (!contentRef.current) {
@@ -248,7 +228,6 @@ export default function BlogPostPage({
         {isDraft ? <meta name="robots" content="noindex, nofollow, noarchive" /> : null}
         {isDraft ? <meta name="googlebot" content="noindex, nofollow, noarchive" /> : null}
         <link rel="canonical" href={canonicalUrl} />
-        <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
       </Head>
 
       <div className="pt-24">

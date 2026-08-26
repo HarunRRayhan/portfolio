@@ -485,6 +485,7 @@ Route::get('/case-studies/{slug}', function (string $slug) {
         (string) ($detail['brief'] ?? ''),
         $canonicalUrl,
         isset($detail['coverImageUrl']) ? (string) $detail['coverImageUrl'] : null,
+        isset($detail['publishedAtIso']) ? (string) $detail['publishedAtIso'] : null,
     );
 
     return Inertia::render('CaseStudies/Detail', [
@@ -692,12 +693,16 @@ Route::get('/blog/{slug}/draft/{previewToken}', function (Request $request, stri
 
     $payload = $blog->toPostPagePayload($post);
     $canonicalUrl = $blog->absoluteUrl($slug);
+    $publication = $blog->publication();
     $seo = SeoCatalog::forBlogPost(
         (string) $payload['title'],
         (string) $payload['brief'],
         $canonicalUrl,
         isset($payload['coverImageUrl']) ? (string) $payload['coverImageUrl'] : null,
         true,
+        isset($payload['publishedAtIso']) ? (string) $payload['publishedAtIso'] : null,
+        isset($publication['title']) ? (string) $publication['title'] : null,
+        isset($publication['url']) ? (string) $publication['url'] : null,
     );
 
     $response = Inertia::render('Blog/Post', [
@@ -780,11 +785,16 @@ Route::get('/blog/{slug}', function (Request $request, string $slug) {
 
     $payload = $blog->toPostPagePayload($post);
     $canonicalUrl = $blog->absoluteUrl($slug);
+    $publication = $blog->publication();
     $seo = SeoCatalog::forBlogPost(
         (string) $payload['title'],
         (string) $payload['brief'],
         $canonicalUrl,
         isset($payload['coverImageUrl']) ? (string) $payload['coverImageUrl'] : null,
+        false,
+        isset($payload['publishedAtIso']) ? (string) $payload['publishedAtIso'] : null,
+        isset($publication['title']) ? (string) $publication['title'] : null,
+        isset($publication['url']) ? (string) $publication['url'] : null,
     );
 
     $response = Inertia::render('Blog/Post', [

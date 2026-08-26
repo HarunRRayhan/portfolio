@@ -31,25 +31,6 @@ export default function CaseStudyDetailPage({ study, relatedStudies, canonicalUr
       : study.coverImageUrl
     : null
 
-  const structuredData = {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: study.title,
-    description,
-    datePublished: study.publishedAtIso,
-    author: {
-      '@type': 'Person',
-      name: 'Harun R. Rayhan',
-    },
-    publisher: {
-      '@type': 'Organization',
-      name: 'Harun R. Rayhan',
-      url: siteUrl,
-    },
-    mainEntityOfPage: canonicalUrl,
-    image: metaImageUrl ? [metaImageUrl] : undefined,
-  }
-
   return (
     <>
       <Head>
@@ -65,7 +46,6 @@ export default function CaseStudyDetailPage({ study, relatedStudies, canonicalUr
         <meta name="twitter:description" content={description} />
         {metaImageUrl ? <meta name="twitter:image" content={metaImageUrl} /> : null}
         <link rel="canonical" href={canonicalUrl} />
-        <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
       </Head>
 
       <div className="pt-24">
