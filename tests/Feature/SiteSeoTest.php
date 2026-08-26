@@ -192,6 +192,7 @@ class SiteSeoTest extends TestCase
         );
 
         $this->assertNotNull($article, 'Blog post first HTML must include BlogPosting JSON-LD');
+        $this->assertSame(1, collect($graphs)->where('@type', 'BlogPosting')->count());
         $this->assertSame('https://schema.org', $article['@context'] ?? null);
         $this->assertSame('How I Review Terraform and Lambda PRs with AI Before They Merge', $article['headline'] ?? null);
         $this->assertSame($canonical, $article['mainEntityOfPage'] ?? null);
@@ -214,6 +215,7 @@ class SiteSeoTest extends TestCase
         );
 
         $this->assertNotNull($article, 'Case study first HTML must include Article JSON-LD');
+        $this->assertSame(1, collect($graphs)->where('@type', 'Article')->count());
         $this->assertSame('https://schema.org', $article['@context'] ?? null);
         $this->assertSame('Polaris: Migrating a 15-Year-Old ERP Off Zend Framework 1', $article['headline'] ?? null);
         $this->assertSame($canonical, $article['mainEntityOfPage'] ?? null);
