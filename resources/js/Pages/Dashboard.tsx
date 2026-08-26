@@ -59,6 +59,7 @@ interface Props {
     recentPosts: PostSummary[];
     draftPostsList: PostSummary[];
     postsTrend: PostsTrendPoint[];
+    canonicalUrl?: string;
 }
 
 const statCards = (stats: DashboardStats) => [
@@ -118,7 +119,7 @@ function EmptyState({ icon: Icon, message }: { icon: typeof Inbox; message: stri
     );
 }
 
-export default function Dashboard({ stats, panelStatus, panelStatusDetail, recentPosts, draftPostsList, postsTrend }: Props) {
+export default function Dashboard({ stats, panelStatus, panelStatusDetail, recentPosts, draftPostsList, postsTrend, canonicalUrl }: Props) {
     const trendTotal = postsTrend.reduce((sum, point) => sum + point.count, 0);
 
     return (
@@ -147,7 +148,7 @@ export default function Dashboard({ stats, panelStatus, panelStatusDetail, recen
                 <meta property="og:title" content="Dashboard | Harun R. Rayhan - Cloud & DevOps Services" />
                 <meta property="og:description" content="Access your personal dashboard to manage your cloud and DevOps services, view project status, and track consultations." />
                 <meta property="og:type" content="website" />
-                <meta property="og:url" content={window.location.href} />
+                <meta property="og:url" content={canonicalUrl} />
 
                 {/* Twitter Card Tags */}
                 <meta name="twitter:card" content="summary_large_image" />
@@ -155,7 +156,7 @@ export default function Dashboard({ stats, panelStatus, panelStatusDetail, recen
                 <meta name="twitter:description" content="Access your personal dashboard to manage your cloud and DevOps services, view project status, and track consultations." />
 
                 {/* Canonical URL */}
-                <link rel="canonical" href={window.location.href} />
+                <link rel="canonical" href={canonicalUrl} />
 
                 {/* JSON-LD Structured Data */}
                 <script type="application/ld+json">
@@ -171,7 +172,7 @@ export default function Dashboard({ stats, panelStatus, panelStatusDetail, recen
                                 "@type": "ListItem",
                                 "position": 1,
                                 "name": "Dashboard",
-                                "item": window.location.href
+                                item: canonicalUrl
                             }]
                         }
                     })}

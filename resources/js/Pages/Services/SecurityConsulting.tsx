@@ -78,7 +78,7 @@ const staggerChildren = {
   animate: { transition: { staggerChildren: 0.1 } },
 }
 
-export default function SecurityConsulting() {
+export default function SecurityConsulting({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
       <Head>
@@ -90,7 +90,7 @@ export default function SecurityConsulting() {
         <meta property="og:title" content="Security Consulting & Implementation Services | Harun R. Rayhan" />
         <meta property="og:description" content="Expert security consulting services. Protect your infrastructure and applications with comprehensive security assessments, implementation, and best practices." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={window.location.href} />
+        <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={getImageUrl("/service-assets/security-consulting/hero.jpg")} />
 
         {/* Twitter Card Tags */}
@@ -100,7 +100,7 @@ export default function SecurityConsulting() {
         <meta name="twitter:image" content={getImageUrl("/service-assets/security-consulting/hero.jpg")} />
 
         {/* Canonical URL */}
-        <link rel="canonical" href={window.location.href} />
+        <link rel="canonical" href={canonicalUrl} />
 
         {/* JSON-LD Structured Data */}
         <script type="application/ld+json">

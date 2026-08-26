@@ -4,19 +4,17 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
-
-        <!-- Organization structured data -->
-        <script type="application/ld+json">
-            {!! json_encode([
-                '@context' => 'https://schema.org',
-                '@type' => 'Organization',
-                '@id' => rtrim(config('app.url'), '/').'/#organization',
-                'name' => 'Harun R. Rayhan',
-                'url' => rtrim(config('app.url'), '/'),
-                'logo' => rtrim(config('app.url'), '/').'/android-chrome-512x512.png',
-            ]) !!}
-        </script>
+        @php
+            // Built in @php so Blade's @context directive cannot rewrite the JSON keys.
+            $organizationJsonLd = \App\Support\SeoMeta::organizationGraph();
+            $seo = data_get($page, 'props.seo');
+        @endphp
+        @if (is_array($seo))
+            @include('partials.seo-meta', ['seo' => $seo])
+        @else
+            <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        @endif
+        <script type="application/ld+json">{!! json_encode($organizationJsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 
         <!-- Favicon -->
         <link rel="icon" href="/favicon.ico" sizes="any">

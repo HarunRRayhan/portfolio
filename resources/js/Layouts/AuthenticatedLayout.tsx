@@ -4,6 +4,7 @@ import {
     SheetContent,
 } from '@/Components/ui/sheet';
 import { Link, usePage } from '@inertiajs/react';
+import { SeoHead } from '@/Components/SeoHead';
 import {
     BarChart3,
     Image,
@@ -186,6 +187,7 @@ export default function Authenticated({
 
     return (
         <div className="flex min-h-screen bg-muted/30">
+            <SeoHead />
             {/* Desktop sidebar */}
             <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r bg-background lg:flex">
                 <SidebarBrand />

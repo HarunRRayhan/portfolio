@@ -68,7 +68,7 @@ const staggerChildren = {
   animate: { transition: { staggerChildren: 0.1 } },
 }
 
-export default function AutomatedDeployment() {
+export default function AutomatedDeployment({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
       <Head>
@@ -80,7 +80,7 @@ export default function AutomatedDeployment() {
         <meta property="og:title" content="Automated Deployment & CI/CD Services | Harun R. Rayhan" />
         <meta property="og:description" content="Expert automated deployment and CI/CD implementation services. Streamline your software delivery pipeline with efficient automation and reliable deployment processes." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={window.location.href} />
+        <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={getImageUrl("/service-assets/automated-deployment/hero.jpg")} />
 
         {/* Twitter Card Tags */}
@@ -90,7 +90,7 @@ export default function AutomatedDeployment() {
         <meta name="twitter:image" content={getImageUrl("/service-assets/automated-deployment/hero.jpg")} />
         
         {/* Canonical URL */}
-        <link rel="canonical" href={window.location.href} />
+        <link rel="canonical" href={canonicalUrl} />
 
         {/* JSON-LD Structured Data */}
         <script type="application/ld+json">

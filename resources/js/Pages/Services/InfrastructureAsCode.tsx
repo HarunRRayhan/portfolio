@@ -68,7 +68,7 @@ const staggerChildren = {
   animate: { transition: { staggerChildren: 0.1 } },
 }
 
-export default function InfrastructureAsCodePage() {
+export default function InfrastructureAsCodePage({ canonicalUrl }: { canonicalUrl?: string }) {
   const [isVisible, setIsVisible] = useState(false)
   const sectionRef = useRef(null)
 
@@ -102,7 +102,7 @@ export default function InfrastructureAsCodePage() {
         <meta property="og:title" content="Infrastructure as Code (IaC) Services | Harun R. Rayhan" />
         <meta property="og:description" content="Expert Infrastructure as Code (IaC) services using Terraform, AWS CDK, and other modern tools. Automate your infrastructure deployment and management for better efficiency and reliability." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={window.location.href} />
+        <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={getImageUrl("/service-assets/infrastructure-as-code/hero.jpg")} />
 
         {/* Twitter Card Tags */}
@@ -112,7 +112,7 @@ export default function InfrastructureAsCodePage() {
         <meta name="twitter:image" content={getImageUrl("/service-assets/infrastructure-as-code/hero.jpg")} />
 
         {/* Canonical URL */}
-        <link rel="canonical" href={window.location.href} />
+        <link rel="canonical" href={canonicalUrl} />
 
         {/* JSON-LD Structured Data */}
         <script type="application/ld+json">

@@ -68,7 +68,7 @@ const staggerChildren = {
   animate: { transition: { staggerChildren: 0.1 } },
 }
 
-export default function DatabaseOptimization() {
+export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
       <Head>
@@ -80,7 +80,7 @@ export default function DatabaseOptimization() {
         <meta property="og:title" content="Database Performance Optimization Services | Harun R. Rayhan" />
         <meta property="og:description" content="Expert database optimization services. Enhance your database performance, improve query efficiency, and optimize resource utilization for better scalability." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={window.location.href} />
+        <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={getImageUrl("/service-assets/database-optimization/hero.jpg")} />
 
         {/* Twitter Card Tags */}
@@ -90,7 +90,7 @@ export default function DatabaseOptimization() {
         <meta name="twitter:image" content={getImageUrl("/service-assets/database-optimization/hero.jpg")} />
 
         {/* Canonical URL */}
-        <link rel="canonical" href={window.location.href} />
+        <link rel="canonical" href={canonicalUrl} />
 
         {/* JSON-LD Structured Data */}
         <script type="application/ld+json">

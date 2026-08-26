@@ -1,27 +1,30 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\ContactController;
-use App\Http\Controllers\NewsletterController;
-use App\Http\Controllers\BlogCommentController;
+use App\Http\Controllers\Admin\ApiKeyController;
 use App\Http\Controllers\Admin\BioLinkController;
 use App\Http\Controllers\Admin\MediaItemController;
-use App\Http\Controllers\Admin\ShortLinkController;
-use App\Http\Controllers\Admin\ApiKeyController;
 use App\Http\Controllers\Admin\NewsletterController as AdminNewsletterController;
+use App\Http\Controllers\Admin\ShortLinkController;
+use App\Http\Controllers\BlogCommentController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\NewsletterController;
+use App\Http\Controllers\ProfileController;
 use App\Models\BioLink;
+use App\Models\BioLinkClick;
+use App\Models\BlogCommentThread;
 use App\Models\MediaItem;
 use App\Models\ShortLink;
 use App\Models\ShortLinkClick;
-use App\Models\BlogCommentThread;
+use App\Services\CountryResolver;
 use App\Support\BlogRepository;
 use App\Support\CaseStudyRepository;
 use App\Support\MediaEmbeds;
-use App\Services\CountryResolver;
-use Illuminate\Foundation\Application;
+use App\Support\SeoCatalog;
+use App\Support\SiteCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -46,7 +49,7 @@ Route::get('/', function () {
 // The admin dashboard view is served at /admin/dashboard; /admin itself just
 // redirects there. The payload-building logic lives in this closure.
 $renderDashboard = function () {
-    $blog = new BlogRepository();
+    $blog = new BlogRepository;
     $posts = $blog->posts();
     $publishedPosts = array_values(array_filter($posts, fn (array $post) => ! (bool) ($post['draft'] ?? false)));
     $draftPosts = array_values(array_filter($posts, fn (array $post) => (bool) ($post['draft'] ?? false)));
@@ -302,7 +305,7 @@ Route::post('/bio/click', function (Request $request, CountryResolver $countries
         'id' => ['required', 'integer', 'exists:bio_links,id'],
     ]);
 
-    App\Models\BioLinkClick::create([
+    BioLinkClick::create([
         'bio_link_id' => $data['id'],
         'ip_address' => $request->ip(),
         'country' => $countries->resolve($request),
@@ -415,17 +418,20 @@ Route::get('/case-studies', function (Request $request) {
         return redirect('/case-studies', 301);
     }
 
-    $repo = new CaseStudyRepository();
+    $repo = new CaseStudyRepository;
     $siteUrl = rtrim(config('app.url', url('/')), '/');
+
+    $seo = SeoCatalog::forPath('/case-studies');
 
     return Inertia::render('CaseStudies/Index', [
         'studies' => $repo->indexStudies(),
         'canonicalUrl' => $siteUrl.'/case-studies',
+        'seo' => $seo?->toArray(),
     ]);
 })->name('case-studies.index');
 
 Route::get('/case-studies/feed.xml', function () {
-    $repo = new CaseStudyRepository();
+    $repo = new CaseStudyRepository;
     $studies = array_slice($repo->indexStudies(), 0, 20);
     $escape = fn (string $value): string => htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
     $siteUrl = rtrim(config('app.url', url('/')), '/');
@@ -463,7 +469,7 @@ XML;
 })->name('case-studies.feed');
 
 Route::get('/case-studies/{slug}', function (string $slug) {
-    $repo = new CaseStudyRepository();
+    $repo = new CaseStudyRepository;
     $study = $repo->find($slug);
 
     abort_unless($study, 404);
@@ -472,11 +478,21 @@ Route::get('/case-studies/{slug}', function (string $slug) {
         abort(404);
     }
 
+    $detail = $repo->toDetailPayload($study);
+    $canonicalUrl = $repo->absoluteUrl($slug);
+    $seo = SeoCatalog::forCaseStudy(
+        (string) $detail['title'],
+        (string) ($detail['brief'] ?? ''),
+        $canonicalUrl,
+        isset($detail['coverImageUrl']) ? (string) $detail['coverImageUrl'] : null,
+    );
+
     return Inertia::render('CaseStudies/Detail', [
-        'study' => $repo->toDetailPayload($study),
+        'study' => $detail,
         'relatedStudies' => $repo->related($slug, 3),
-        'canonicalUrl' => $repo->absoluteUrl($slug),
+        'canonicalUrl' => $canonicalUrl,
         'siteUrl' => rtrim(config('app.url', url('/')), '/'),
+        'seo' => $seo->toArray(),
     ]);
 })->name('case-studies.show');
 
@@ -498,6 +514,11 @@ Route::get('/slides', function (Request $request) {
             'detailUrl' => '/slides/'.$item->slug,
         ]),
         'canonicalUrl' => $siteUrl.'/slides',
+        'seo' => SeoCatalog::forMedia(
+            'Slides | Harun R. Rayhan',
+            'Talk decks and presentations on cloud, DevOps, and AWS.',
+            $siteUrl.'/slides',
+        )->toArray(),
     ]);
 })->name('slides.index');
 
@@ -527,6 +548,12 @@ Route::get('/slides/{slug}', function (string $slug) {
             'thumbnailUrl' => $r->thumbnail_url, 'detailUrl' => '/slides/'.$r->slug,
         ]),
         'canonicalUrl' => $siteUrl.'/slides/'.$item->slug,
+        'seo' => SeoCatalog::forMedia(
+            $item->title,
+            (string) ($item->summary ?? $item->title),
+            $siteUrl.'/slides/'.$item->slug,
+            $item->thumbnail_url,
+        )->toArray(),
     ]);
 })->name('slides.show');
 
@@ -548,6 +575,11 @@ Route::get('/videos', function (Request $request) {
             'detailUrl' => '/videos/'.$item->slug,
         ]),
         'canonicalUrl' => $siteUrl.'/videos',
+        'seo' => SeoCatalog::forMedia(
+            'Videos | Harun R. Rayhan',
+            'Recorded talks and walkthroughs on cloud, DevOps, and AWS.',
+            $siteUrl.'/videos',
+        )->toArray(),
     ]);
 })->name('videos.index');
 
@@ -577,6 +609,12 @@ Route::get('/videos/{slug}', function (string $slug) {
             'thumbnailUrl' => $r->thumbnail_url, 'detailUrl' => '/videos/'.$r->slug,
         ]),
         'canonicalUrl' => $siteUrl.'/videos/'.$item->slug,
+        'seo' => SeoCatalog::forMedia(
+            $item->title,
+            (string) ($item->summary ?? $item->title),
+            $siteUrl.'/videos/'.$item->slug,
+            $item->thumbnail_url,
+        )->toArray(),
     ]);
 })->name('videos.show');
 
@@ -585,18 +623,21 @@ Route::get('/blog', function (Request $request) {
         return redirect('/blog', 301);
     }
 
-    $blog = new BlogRepository();
+    $blog = new BlogRepository;
     $siteUrl = rtrim(config('app.url', url('/')), '/');
+
+    $seo = SeoCatalog::forPath('/blog');
 
     return Inertia::render('Blog/Index', [
         'publication' => $blog->publication(),
         'posts' => $blog->indexPosts(),
         'canonicalUrl' => $siteUrl.'/blog',
+        'seo' => $seo?->toArray(),
     ]);
 })->name('blog.index');
 
 Route::get('/blog/feed.xml', function () {
-    $blog = new BlogRepository();
+    $blog = new BlogRepository;
     $publication = $blog->publication();
     $posts = array_slice($blog->indexPosts(), 0, 20);
     $escape = fn (string $value): string => htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
@@ -608,13 +649,13 @@ Route::get('/blog/feed.xml', function () {
         $description = $post['brief'];
         $pubDate = Carbon::parse($post['publishedAt'])->toRfc2822String();
 
-        return "<item>"
+        return '<item>'
             ."<title>{$escape($post['title'])}</title>"
             ."<link>{$escape($postUrl)}</link>"
             ."<guid isPermaLink=\"true\">{$escape($postUrl)}</guid>"
             ."<pubDate>{$escape($pubDate)}</pubDate>"
             ."<description>{$escape($description)}</description>"
-            ."</item>";
+            .'</item>';
     })->implode('');
 
     $xml = <<<XML
@@ -635,7 +676,7 @@ XML;
 })->name('blog.feed');
 
 Route::get('/blog/{slug}/draft/{previewToken}', function (Request $request, string $slug, string $previewToken) {
-    $blog = new BlogRepository();
+    $blog = new BlogRepository;
     $post = $blog->find($slug);
 
     abort_unless($post, 404);
@@ -649,14 +690,25 @@ Route::get('/blog/{slug}/draft/{previewToken}', function (Request $request, stri
         abort(404);
     }
 
+    $payload = $blog->toPostPagePayload($post);
+    $canonicalUrl = $blog->absoluteUrl($slug);
+    $seo = SeoCatalog::forBlogPost(
+        (string) $payload['title'],
+        (string) $payload['brief'],
+        $canonicalUrl,
+        isset($payload['coverImageUrl']) ? (string) $payload['coverImageUrl'] : null,
+        true,
+    );
+
     $response = Inertia::render('Blog/Post', [
         'publication' => $blog->publication(),
-        'post' => $blog->toPostPagePayload($post),
+        'post' => $payload,
         'relatedPosts' => $blog->related($slug, 3),
-        'canonicalUrl' => $blog->absoluteUrl($slug),
+        'canonicalUrl' => $canonicalUrl,
         'siteUrl' => rtrim(request()->root(), '/'),
         'commentCount' => 0,
         'comments' => [],
+        'seo' => $seo->toArray(),
     ]);
 
     return $response;
@@ -664,28 +716,29 @@ Route::get('/blog/{slug}/draft/{previewToken}', function (Request $request, stri
 
 // Track blog post views
 Route::post('/blog/{slug}/view', function (string $slug) {
-    $blog = new \App\Support\BlogRepository();
+    $blog = new BlogRepository;
     $post = $blog->find($slug);
     abort_unless($post, 404);
     if ((bool) ($post['draft'] ?? false)) {
         abort(404);
     }
     // Persist to database immediately, warm the cache
-    $now = \Illuminate\Support\Carbon::now();
-    \Illuminate\Support\Facades\DB::table('blog_post_views')->upsert(
+    $now = Carbon::now();
+    DB::table('blog_post_views')->upsert(
         ['slug' => $slug, 'count' => 1, 'created_at' => $now, 'updated_at' => $now],
         'slug',
-        ['count' => \Illuminate\Support\Facades\DB::raw('blog_post_views.count + 1'), 'updated_at' => $now]
+        ['count' => DB::raw('blog_post_views.count + 1'), 'updated_at' => $now]
     );
-    $viewRow = \Illuminate\Support\Facades\DB::table('blog_post_views')->where('slug', $slug)->first(['count']);
+    $viewRow = DB::table('blog_post_views')->where('slug', $slug)->first(['count']);
     $count = $viewRow ? (int) $viewRow->count : 0;
-    \Illuminate\Support\Facades\Cache::put("post.views.".$slug, $count, 3600);
+    Cache::put('post.views.'.$slug, $count, 3600);
+
     return response()->json(['views' => $count]);
 })->middleware('throttle:30,1')->name('blog.view');
 
 // Blog post
 Route::get('/blog/{slug}', function (Request $request, string $slug) {
-    $blog = new BlogRepository();
+    $blog = new BlogRepository;
     $post = $blog->find($slug);
 
     abort_unless($post, 404);
@@ -721,18 +774,28 @@ Route::get('/blog/{slug}', function (Request $request, string $slug) {
 
         $commentCount = $commentPayload['count'];
         $comments = $commentPayload['comments'];
-    } catch (\Throwable $exception) {
+    } catch (Throwable $exception) {
         report($exception);
     }
 
+    $payload = $blog->toPostPagePayload($post);
+    $canonicalUrl = $blog->absoluteUrl($slug);
+    $seo = SeoCatalog::forBlogPost(
+        (string) $payload['title'],
+        (string) $payload['brief'],
+        $canonicalUrl,
+        isset($payload['coverImageUrl']) ? (string) $payload['coverImageUrl'] : null,
+    );
+
     $response = Inertia::render('Blog/Post', [
         'publication' => $blog->publication(),
-        'post' => $blog->toPostPagePayload($post),
+        'post' => $payload,
         'relatedPosts' => $blog->related($slug, 3),
-        'canonicalUrl' => $blog->absoluteUrl($slug),
+        'canonicalUrl' => $canonicalUrl,
         'siteUrl' => rtrim(request()->root(), '/'),
         'commentCount' => $commentCount,
         'comments' => $comments,
+        'seo' => $seo->toArray(),
     ]);
 
     return $response;
@@ -743,29 +806,20 @@ Route::post('/blog/{slug}/comments', [BlogCommentController::class, 'store'])
     ->name('blog.comments.store');
 
 Route::get('/sitemap.xml', function () {
-    $blog = new BlogRepository();
+    $blog = new BlogRepository;
     $siteUrl = rtrim(config('app.url', url('/')), '/');
 
-    $staticUrls = [
-        ['loc' => $siteUrl.'/', 'lastmod' => now()->toDateString()],
-        ['loc' => $siteUrl.'/about', 'lastmod' => now()->toDateString()],
-        ['loc' => $siteUrl.'/services', 'lastmod' => now()->toDateString()],
-        ['loc' => $siteUrl.'/book', 'lastmod' => now()->toDateString()],
-        ['loc' => $siteUrl.'/contact', 'lastmod' => now()->toDateString()],
-        ['loc' => $siteUrl.'/privacy', 'lastmod' => now()->toDateString()],
-        ['loc' => $siteUrl.'/terms', 'lastmod' => now()->toDateString()],
-        ['loc' => $siteUrl.'/blog', 'lastmod' => now()->toDateString()],
-        ['loc' => $siteUrl.'/case-studies', 'lastmod' => now()->toDateString()],
-        ['loc' => $siteUrl.'/slides', 'lastmod' => now()->toDateString()],
-        ['loc' => $siteUrl.'/videos', 'lastmod' => now()->toDateString()],
-    ];
+    $staticUrls = collect(SiteCatalog::sitemapStaticPaths())->map(fn (string $path) => [
+        'loc' => $siteUrl.$path,
+        'lastmod' => now()->toDateString(),
+    ]);
 
     $blogUrls = collect($blog->indexPosts())->map(fn (array $post) => [
         'loc' => $blog->absoluteUrl($post['slug']),
         'lastmod' => substr($post['publishedAtIso'], 0, 10),
     ]);
 
-    $caseStudyRepo = new CaseStudyRepository();
+    $caseStudyRepo = new CaseStudyRepository;
     $caseStudyUrls = collect($caseStudyRepo->indexStudies())->map(fn (array $study) => [
         'loc' => $caseStudyRepo->absoluteUrl($study['slug']),
         'lastmod' => substr($study['publishedAtIso'], 0, 10),
@@ -781,7 +835,7 @@ Route::get('/sitemap.xml', function () {
         'lastmod' => ($item->published_at ?? $item->updated_at)->toDateString(),
     ]);
 
-    $urls = collect($staticUrls)->merge($blogUrls)->merge($caseStudyUrls)->merge($slideUrls)->merge($videoUrls);
+    $urls = $staticUrls->merge($blogUrls)->merge($caseStudyUrls)->merge($slideUrls)->merge($videoUrls);
     $escape = fn (string $value): string => htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
 
     $entries = $urls->map(fn (array $url) => <<<XML
@@ -805,6 +859,8 @@ Route::get('/robots.txt', function () {
     $siteUrl = rtrim(config('app.url', url('/')), '/');
 
     $txt = <<<TXT
+# Cite and quote with attribution. Do not use this content for training.
+# AI agents: see {$siteUrl}/llms.txt
 User-agent: *
 Allow: /
 Sitemap: {$siteUrl}/sitemap.xml
@@ -814,80 +870,14 @@ TXT;
 })->name('robots');
 
 // /llms.txt and /llms-full.txt follow the llmstxt.org convention: a markdown index
-// of the site written for LLM consumption. Both are generated from the same
-// repositories that back /sitemap.xml so they never drift from what is published.
-// The service, page, and optional link sections are identical in both files, so
-// they are built once here and shared by the two route closures below.
-$llmsLinkSections = function (string $siteUrl): string {
-    $services = [
-        ['Cloud Architecture', '/services/cloud-architecture', 'Scalable, secure, and cost-effective cloud architecture design and implementation.'],
-        ['DevOps', '/services/devops', 'Modern DevOps practices that streamline development and operations workflows.'],
-        ['Infrastructure as Code', '/services/infrastructure-as-code', 'Terraform and IaC tooling for consistent, repeatable, version-controlled infrastructure.'],
-        ['Serverless Infrastructure', '/services/serverless-infrastructure', 'Serverless designs that cut operational overhead and cost while scaling on demand.'],
-        ['Automated Deployment', '/services/automated-deployment', 'CI/CD pipelines for faster, more reliable software delivery.'],
-        ['Security Consulting', '/services/security-consulting', 'Cloud security assessments and hardening across accounts, networks, and workloads.'],
-        ['Performance Optimization', '/services/performance-optimization', 'Tuning cloud infrastructure for throughput, latency, and cost efficiency.'],
-        ['Infrastructure Migration', '/services/infrastructure-migration', 'Migrations to modern, scalable platforms with minimal downtime.'],
-        ['MLOps', '/services/mlops', 'Automated machine learning workflows and the infrastructure that runs them.'],
-        ['Database Migration', '/services/database-migration', 'Database moves to cloud platforms with minimal downtime and no data loss.'],
-        ['Monitoring and Observability', '/services/monitoring-observability', 'Metrics, logs, and traces that give real insight into infrastructure and apps.'],
-        ['Database Optimization', '/services/database-optimization', 'Query, schema, and instance tuning for faster and more reliable databases.'],
-        ['AWS Cloud', '/services/aws-cloud', 'AWS consulting across compute, networking, storage, and managed services.'],
-        ['Multi-Cloud Architecture', '/services/multi-cloud-architecture', 'Architectures that use the strengths of more than one cloud provider.'],
-        ['Vibe Scaling', '/services/vibe-scaling', 'Taking an AI-built app that found real users and making it hold up under real traffic.'],
-        ['Vibe Code Migration', '/services/vibe-code-migration', 'Moving an AI-built prototype onto a production language and framework, feature for feature.'],
-    ];
+// of the site written for LLM consumption. Both are generated from SiteCatalog
+// (same lists as /sitemap.xml) so they never drift from what is published.
 
-    $pages = [
-        ['About', '/about', 'Background, experience, and how I work with teams.'],
-        ['Contact', '/contact', 'Start a project or ask a question.'],
-        ['Bio', '/bio', 'Short bio and links.'],
-        ['Bio (Bangla)', '/hrr', 'Bangla bio and links.'],
-        ['Book a Call', '/book', 'Schedule a consulting call.'],
-        ['Case Studies', '/case-studies', 'Index of client engagements and their outcomes.'],
-        ['Services', '/services', 'Index of all consulting services.'],
-        ['Blog', '/blog', 'Index of all writing on cloud, DevOps, and AWS.'],
-        ['Slides', '/slides', 'Talk decks and presentations.'],
-        ['Videos', '/videos', 'Recorded talks and walkthroughs.'],
-    ];
-
-    $optional = [
-        ['Privacy Policy', '/privacy', 'How data on this site is handled.'],
-        ['Terms', '/terms', 'Terms of use for this site.'],
-        ['Blog RSS Feed', '/blog/feed.xml', 'Atom feed of blog posts.'],
-        ['Case Studies RSS Feed', '/case-studies/feed.xml', 'Atom feed of case studies.'],
-        ['Sitemap', '/sitemap.xml', 'XML sitemap of every indexable URL.'],
-        ['llms-full.txt', '/llms-full.txt', 'This index with the full text of every post and case study inlined.'],
-    ];
-
-    $render = fn (array $rows): string => collect($rows)
-        ->map(fn (array $row) => '- ['.$row[0].']('.$siteUrl.$row[1].'): '.$row[2])
-        ->implode("\n");
-
-    $serviceLinks = $render($services);
-    $pageLinks = $render($pages);
-    $optionalLinks = $render($optional);
-
-    return <<<MD
-    ## Services
-
-    {$serviceLinks}
-
-    ## Pages
-
-    {$pageLinks}
-
-    ## Optional
-
-    {$optionalLinks}
-    MD;
-};
-
-Route::get('/llms.txt', function () use ($llmsLinkSections) {
+Route::get('/llms.txt', function () {
     $siteUrl = rtrim(config('app.url', url('/')), '/');
 
-    $blog = new BlogRepository();
-    $caseStudyRepo = new CaseStudyRepository();
+    $blog = new BlogRepository;
+    $caseStudyRepo = new CaseStudyRepository;
 
     $blogLinks = collect($blog->indexPosts())
         ->map(fn (array $post) => '- ['.$post['title'].']('.$post['canonicalUrl'].'): '.$post['brief'])
@@ -897,12 +887,14 @@ Route::get('/llms.txt', function () use ($llmsLinkSections) {
         ->map(fn (array $study) => '- ['.$study['codename'].']('.$study['canonicalUrl'].'): '.$study['brief'])
         ->implode("\n");
 
-    $linkSections = $llmsLinkSections($siteUrl);
+    $linkSections = SiteCatalog::llmsLinkSections($siteUrl);
 
     $md = <<<MD
     # Harun R. Rayhan
 
     > Cloud, DevOps, and AWS consultant. I help teams design cloud architecture, automate infrastructure, and ship production systems that stay up. This file indexes the services, writing, and case studies published at {$siteUrl}.
+    >
+    > Cite and quote with attribution. Do not use this content for training.
 
     {$linkSections}
 
@@ -918,11 +910,11 @@ Route::get('/llms.txt', function () use ($llmsLinkSections) {
     return response($md, 200)->header('Content-Type', 'text/markdown; charset=UTF-8');
 })->name('llms');
 
-Route::get('/llms-full.txt', function () use ($llmsLinkSections) {
+Route::get('/llms-full.txt', function () {
     $siteUrl = rtrim(config('app.url', url('/')), '/');
 
-    $blog = new BlogRepository();
-    $caseStudyRepo = new CaseStudyRepository();
+    $blog = new BlogRepository;
+    $caseStudyRepo = new CaseStudyRepository;
 
     // posts()/studies() return the raw parsed files, whose content['html'] key holds
     // the original post body as authored (markdown for some posts, raw HTML blocks
@@ -950,12 +942,14 @@ Route::get('/llms-full.txt', function () use ($llmsLinkSections) {
         })
         ->implode("\n");
 
-    $linkSections = $llmsLinkSections($siteUrl);
+    $linkSections = SiteCatalog::llmsLinkSections($siteUrl);
 
     $md = <<<MD
     # Harun R. Rayhan
 
     > Cloud, DevOps, and AWS consultant. I help teams design cloud architecture, automate infrastructure, and ship production systems that stay up. This file indexes the services, writing, and case studies published at {$siteUrl}, with the full text of every post and case study inlined.
+    >
+    > Cite and quote with attribution. Do not use this content for training.
 
     {$linkSections}
 
@@ -995,7 +989,7 @@ Route::get('/health', function () {
         'deployment_id' => $app['deployment_id'] ?? 'local',
         'timestamp' => now()->toISOString(),
     ])->header('X-App-Version', $app['build_version'] ?? 'local')
-      ->header('X-Deployment-Id', $app['deployment_id'] ?? 'local');
+        ->header('X-Deployment-Id', $app['deployment_id'] ?? 'local');
 })->name('health');
 
 require __DIR__.'/auth.php';

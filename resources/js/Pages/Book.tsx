@@ -5,7 +5,7 @@ import { Head } from '@inertiajs/react'
 const defaultEmbedUrl = 'https://calendar.google.com/calendar/appointments/schedules/AcZssZ2WP1vzheZr36_dTSwJ5V6xIrm3bxGnItNcqTCzLxpya9p-yA_mH6uSaKhGA98iTicoYyAoNL7n?gv=true'
 const embedUrl = import.meta.env.VITE_BOOKING_EMBED_URL?.trim() || defaultEmbedUrl
 
-export default function Book() {
+export default function Book({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
       <Head>
@@ -15,11 +15,11 @@ export default function Book() {
         <meta property="og:title" content="Book a Consultation | Cloud & DevOps Expert - Harun R. Rayhan" />
         <meta property="og:description" content="Book a 30-minute consultation to discuss cloud architecture, DevOps, or infrastructure automation. Powered by Google Calendar appointment schedules." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={window.location.href} />
+        <meta property="og:url" content={canonicalUrl} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Book a Consultation | Cloud & DevOps Expert - Harun R. Rayhan" />
         <meta name="twitter:description" content="Book a 30-minute consultation to discuss cloud architecture, DevOps, or infrastructure automation. Powered by Google Calendar appointment schedules." />
-        <link rel="canonical" href={window.location.href} />
+        <link rel="canonical" href={canonicalUrl} />
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",

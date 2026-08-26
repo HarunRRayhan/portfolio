@@ -71,7 +71,7 @@ const staggerChildren = {
   animate: { transition: { staggerChildren: 0.1 } },
 }
 
-export default function VibeCodeMigration() {
+export default function VibeCodeMigration({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
       <Head>
@@ -83,7 +83,7 @@ export default function VibeCodeMigration() {
         <meta property="og:title" content="Vibe Code Migration: Port Your AI-Built App to a Production Stack | Harun R. Rayhan" />
         <meta property="og:description" content="Your prototype found real users, but the stack it started on cannot be its permanent home. We port it to a production language and framework, feature for feature, without losing data or the users you already have." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={window.location.href} />
+        <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={getImageUrl("/service-assets/vibe-code-migration/hero.jpg")} />
 
         {/* Twitter Card Tags */}
@@ -93,7 +93,7 @@ export default function VibeCodeMigration() {
         <meta name="twitter:image" content={getImageUrl("/service-assets/vibe-code-migration/hero.jpg")} />
 
         {/* Canonical URL */}
-        <link rel="canonical" href={window.location.href} />
+        <link rel="canonical" href={canonicalUrl} />
 
         {/* JSON-LD Structured Data */}
         <script type="application/ld+json">

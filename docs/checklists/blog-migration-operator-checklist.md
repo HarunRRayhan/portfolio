@@ -72,6 +72,7 @@
 - Keep watching for broken asset requests
 - Keep watching for canonical mistakes in previews
 - Keep watching for SEO or ranking issues
-- Run `php artisan seo:ping-sitemap` after deploys or major content updates
+- Run `php artisan seo:ping-sitemap` after deploys or major content updates (prints GSC resubmit steps; Google ping is retired)
 - Submit/refresh `https://harun.dev/sitemap.xml` in Google Search Console after verification and important updates
+- After Cloudflare AI bot changes, confirm `https://harun.dev/robots.txt` still blocks trainers and allows answer crawlers (see [search-console-ai-seo.md](./search-console-ai-seo.md))
 - Keep the redirect in place indefinitely

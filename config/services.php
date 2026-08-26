@@ -51,4 +51,8 @@ return [
         'measurement_id' => env('GA4_MEASUREMENT_ID'),
     ],
 
+    'assets' => [
+        'base_url' => env('VITE_ASSET_BASE_URL', env('ASSET_URL')),
+    ],
+
 ];

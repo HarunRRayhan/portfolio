@@ -68,7 +68,7 @@ const staggerChildren = {
   animate: { transition: { staggerChildren: 0.1 } },
 }
 
-export default function MonitoringObservability() {
+export default function MonitoringObservability({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
       <Head>
@@ -80,7 +80,7 @@ export default function MonitoringObservability() {
         <meta property="og:title" content="Monitoring & Observability Services | Harun R. Rayhan" />
         <meta property="og:description" content="Expert monitoring and observability services. Gain deep insights into your systems with comprehensive monitoring, logging, and observability solutions." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={window.location.href} />
+        <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={getImageUrl("/service-assets/monitoring-observability/hero.jpg")} />
 
         {/* Twitter Card Tags */}
@@ -90,7 +90,7 @@ export default function MonitoringObservability() {
         <meta name="twitter:image" content={getImageUrl("/service-assets/monitoring-observability/hero.jpg")} />
 
         {/* Canonical URL */}
-        <link rel="canonical" href={window.location.href} />
+        <link rel="canonical" href={canonicalUrl} />
 
         {/* JSON-LD Structured Data */}
         <script type="application/ld+json">
