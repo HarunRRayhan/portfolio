@@ -126,15 +126,15 @@ final class SeoCatalog
         );
 
         $pages['/bio'] = new SeoMeta(
-            title: 'Harun R. Rayhan',
-            description: 'Cloud, DevOps, and AWS consultant. Links, writing, and how to get in touch.',
+            title: 'Harun R. Rayhan | Bio',
+            description: "Harun R. Rayhan's bio page with quick links to his portfolio, blog, contact details, and social profiles.",
             canonicalUrl: $siteUrl.'/bio',
             ogImage: self::assetUrl('/images/og/bio.jpg'),
         );
 
         $pages['/hrr'] = new SeoMeta(
-            title: 'হারুন আর. রায়হান',
-            description: 'ক্লাউড, DevOps এবং AWS কনসালট্যান্ট। লিংক, লেখা, এবং যোগাযোগ।',
+            title: 'Harun R. Rayhan | বায়ো',
+            description: 'হারুন আর রায়হানের বায়ো পেজ, যেখানে পাবেন পোর্টফোলিও, ব্লগ, যোগাযোগের তথ্য এবং সোশ্যাল মিডিয়া প্রোফাইলের দ্রুত লিংক।',
             canonicalUrl: $siteUrl.'/hrr',
             ogImage: self::assetUrl('/images/og/bio.jpg'),
         );

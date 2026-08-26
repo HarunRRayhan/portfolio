@@ -37,4 +37,4 @@ Property: `sc-domain:harun.dev`
 3. URL Inspection → one published blog post → confirm Article/meta and no `noindex`.
 4. Coverage: the 16 `/services/*` URLs, `/bio`, `/hrr`, and `/products` should start appearing over the next crawl cycle.
 
-`php artisan seo:ping-sitemap` prints these same GSC steps and pings Bing. Google retired `/ping?sitemap=`.
+`php artisan seo:ping-sitemap` prints the GSC and Bing Webmaster resubmit steps. Google and Bing both retired `/ping?sitemap=`.
