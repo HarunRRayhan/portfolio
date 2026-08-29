@@ -74,6 +74,9 @@ recognizable across posts:
 - **IAM / lock-down** — darker purple or near-black square, a padlock glyph.
 - **S3** — green square, a bucket glyph.
 - **DynamoDB** — indigo/blue square, a stacked-disks glyph.
+- **RAG / citations / retrieval** — cyan `#0ea5b9` square, a document page (folded
+  corner + 3 text lines) with a magnifier overlapping its bottom-right corner. Fill
+  the magnifier circle with the badge color so the text lines don't show through it.
 
 For any technology not in this list, design a new simple line-art SVG
 (stroke-width 2.2-2.8, white stroke or fill, viewBox 40-44) in a color not
