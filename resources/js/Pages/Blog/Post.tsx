@@ -174,6 +174,43 @@ function enhanceCodeBlocks(root: HTMLElement) {
   })
 }
 
+function enhanceTables(root: HTMLElement) {
+  const tables = Array.from(root.querySelectorAll('table'))
+
+  tables.forEach((table) => {
+    if (table.dataset.enhanced === 'true') {
+      return
+    }
+
+    table.dataset.enhanced = 'true'
+    table.className =
+      'w-full min-w-[36rem] border-collapse text-[0.95rem] leading-6 text-slate-700'
+
+    table.querySelectorAll('th').forEach((th) => {
+      th.className =
+        'border border-slate-200 bg-slate-50 px-3.5 py-3 text-left align-top font-semibold text-slate-950'
+    })
+
+    table.querySelectorAll('td').forEach((td) => {
+      td.className = 'border border-slate-200 px-3.5 py-3 align-top text-slate-700'
+    })
+
+    table.querySelectorAll('tbody tr:nth-child(even)').forEach((tr) => {
+      tr.classList.add('bg-slate-50/70')
+    })
+
+    const shell = document.createElement('div')
+    shell.className =
+      'my-8 overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm'
+
+    if (table.parentNode) {
+      table.parentNode.insertBefore(shell, table)
+    }
+
+    shell.append(table)
+  })
+}
+
 export default function BlogPostPage({
   post,
   relatedPosts,
@@ -200,6 +237,7 @@ export default function BlogPostPage({
     }
 
     enhanceCodeBlocks(contentRef.current)
+    enhanceTables(contentRef.current)
   }, [post.slug, post.contentHtml])
 
   // Track page view
@@ -343,7 +381,7 @@ export default function BlogPostPage({
               <div className="px-6 py-8 md:px-8 lg:px-10">
                 <div ref={contentRef} className="mx-auto max-w-[78ch]">
                   <div
-                    className="blog-content text-[1.05rem] leading-8 text-slate-700 [&_a]:font-medium [&_a]:text-slate-900 [&_a]:underline [&_a]:underline-offset-4 [&_blockquote]:my-8 [&_blockquote]:rounded-r-2xl [&_blockquote]:border-l-4 [&_blockquote]:border-slate-300 [&_blockquote]:bg-slate-50 [&_blockquote]:px-5 [&_blockquote]:py-4 [&_blockquote]:not-italic [&_blockquote]:text-slate-700 [&_code]:rounded [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.95em] [&_h2]:mt-14 [&_h2]:mb-4 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-slate-950 [&_h3]:mt-10 [&_h3]:mb-3 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:tracking-tight [&_h3]:text-slate-950 [&_img]:my-8 [&_img]:rounded-2xl [&_img]:border [&_img]:border-slate-200 [&_img]:shadow-sm [&_li]:my-2 [&_ol]:my-6 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-6 [&_p]:my-5 [&_pre]:my-0 [&_pre]:overflow-x-auto [&_pre]:bg-transparent [&_pre]:p-4 [&_pre]:text-slate-100 [&_pre]:font-mono [&_pre]:text-[0.95rem] [&_pre]:leading-7 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-inherit [&_pre_code]:whitespace-pre-wrap [&_pre_code]:break-words [&_ul]:my-6 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6"
+                    className="blog-content text-[1.05rem] leading-8 text-slate-700 [&_a]:font-medium [&_a]:text-slate-900 [&_a]:underline [&_a]:underline-offset-4 [&_blockquote]:my-8 [&_blockquote]:rounded-r-2xl [&_blockquote]:border-l-4 [&_blockquote]:border-slate-300 [&_blockquote]:bg-slate-50 [&_blockquote]:px-5 [&_blockquote]:py-4 [&_blockquote]:not-italic [&_blockquote]:text-slate-700 [&_code]:rounded [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.95em] [&_h2]:mt-14 [&_h2]:mb-4 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-slate-950 [&_h3]:mt-10 [&_h3]:mb-3 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:tracking-tight [&_h3]:text-slate-950 [&_img]:my-8 [&_img]:rounded-2xl [&_img]:border [&_img]:border-slate-200 [&_img]:shadow-sm [&_li]:my-2 [&_ol]:my-6 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-6 [&_p]:my-5 [&_pre]:my-0 [&_pre]:overflow-x-auto [&_pre]:bg-transparent [&_pre]:p-4 [&_pre]:text-slate-100 [&_pre]:font-mono [&_pre]:text-[0.95rem] [&_pre]:leading-7 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-inherit [&_pre_code]:whitespace-pre-wrap [&_pre_code]:break-words [&_table]:my-8 [&_table]:w-full [&_table]:min-w-[36rem] [&_table]:border-collapse [&_table]:text-[0.95rem] [&_table]:leading-6 [&_td]:border [&_td]:border-slate-200 [&_td]:px-3.5 [&_td]:py-3 [&_td]:align-top [&_td]:text-slate-700 [&_th]:border [&_th]:border-slate-200 [&_th]:bg-slate-50 [&_th]:px-3.5 [&_th]:py-3 [&_th]:text-left [&_th]:align-top [&_th]:font-semibold [&_th]:text-slate-950 [&_ul]:my-6 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6"
                     dangerouslySetInnerHTML={{ __html: post.contentHtml }}
                   />
                 </div>
