@@ -39,8 +39,15 @@ seeded with an admin user.
    ```bash
    npm run build
    ```
+   If `tsc` fails on a missing dep (e.g. `recharts`), install what's in
+   `package.json` first (`npm install`), then rebuild. Do not commit
+   `public/build/` (gitignored); production picks up assets from the
+   "Build and Sync Assets to R2" workflow after merge.
 
-4. **Serve and drive it with a real browser** (Playwright MCP tools):
+4. **Serve and drive it with a real browser** (headless Playwright; see the
+   browser-automation skill). Prefer the Playwright MCP configured
+   headless, or `npx playwright` with `headless: true`. Do not use a headed
+   Chrome MCP for routine checks.
    ```bash
    php artisan serve --port=8321
    ```
@@ -54,13 +61,30 @@ seeded with an admin user.
    verification — screenshots have been flaky in this environment (timeout
    waiting for fonts to load).
 
+   **Tailscale / Vite HMR trap:** if `.env` (or a concurrent `herdr`
+   tailscale-dev session) points the page at a remote Vite client
+   (`mx.ewe-ulmer.ts.net`, `@vite/client` WebSocket errors, React
+   "Invalid hook call"), hydrate will fail and the DOM may look empty even
+   though SSR HTML is fine. For content checks, either:
+   - `curl` the URL and assert on SSR HTML, or
+   - ensure `public/build` exists and the page is loading `/build/assets/...`
+     from the same origin (not a remote Vite URL).
+
+   **Blog cache:** `BlogRepository` caches the post list ~15 minutes
+   (keyed per `base_path()`). After flipping `draft` / editing a post file,
+   run `php artisan cache:clear` before verifying `/blog/{slug}` or you'll
+   see stale 404s / old drafts.
+
 5. **Always clean up**, even if the check found a problem:
    ```bash
    pkill -f "artisan serve --port=8321"
    mv .env.verify-backup .env
    rm -rf .playwright-mcp
    ```
-   Confirm `DB_CONNECTION=pgsql` is restored before moving on.
+   Confirm `DB_CONNECTION=pgsql` is restored before moving on. Keep the
+   artisan serve process attached to a durable background shell
+   (`block_until_ms: 0`) if another tool needs to hit it; a bare `&` in a
+   one-shot shell often dies before the browser connects.
 
 ## Why this matters here
 
