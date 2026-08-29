@@ -19,3 +19,17 @@ The auto-mode classifier blocks these Railway/infra actions from Bash even after
 - `railway connect` (DB tunnel)
 
 `gh pr merge` is sometimes blocked too, inconsistently — one retry often succeeds; if it doesn't, ask the user to merge.
+
+## Blog
+
+- **Weekly topic shortlist** lives outside this repo at
+  `~/Code/blog-writer/output/weekly-shortlist-YYYY-MM-DD.md`. When asked what
+  to post, show the scored top 10 with a one-line angle each, wait for a
+  number, then draft. Don't default-pick and write in the same turn. Details
+  are in `.claude/agents/blog-writer.md`.
+- **HTML tables in posts are supported.** `resources/js/Pages/Blog/Post.tsx`
+  styles `<table>` (borders, padding, zebra rows, horizontal scroll shell).
+  Prefer a real table over a smashed plain-text comparison.
+- **Frontend assets after merge** ship via the GitHub Action
+  "Build and Sync Assets to R2". A merged CSS/JS change is not live on
+  harun.dev until that workflow finishes and Cloudflare cache is purged.
