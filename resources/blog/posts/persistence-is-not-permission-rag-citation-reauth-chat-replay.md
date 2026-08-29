@@ -3,8 +3,6 @@ title: "Persistence Is Not Permission: Re-Auth RAG Citations on Chat Replay"
 slug: "persistence-is-not-permission-rag-citation-reauth-chat-replay"
 brief: "A contractor lost access to a folder in March and could still read the source cards from it in September, because our chat history endpoint served citations that had been authorized once, at write time, and never again. Here's the fix on API Gateway, Lambda, DynamoDB, and pgvector: store citation refs instead of blobs, re-run the live entitlement check on every history read, tombstone what the caller can no longer see, and fail closed on both unknown and denied sessions."
 publishedAt: "2026-08-29T18:00:00.000Z"
-draft: true
-draftToken: "04916b2b6a29152cebe25427a0cff649"
 readTimeInMinutes: 15
 coverImageUrl: "/blog-assets/persistence-is-not-permission-rag-citation-reauth-chat-replay/cover.jpg"
 reactionCount: 0
