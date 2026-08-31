@@ -1,69 +1,55 @@
 # CDN Image Usage Guide
 
-This document explains how to use the CDN URL for local image references in production.
+How static media reaches `cdn.harun.dev` without breaking hashed JS/CSS.
 
-## Overview
+## Hard rule: media CDN ≠ Laravel `ASSET_URL`
 
-The project now includes a utility to automatically use CDN URLs for local image references in production. This means that in development, images will be served from the local server, but in production, they will be served from a CDN.
+| Env | Purpose |
+|-----|---------|
+| `CDN_ASSET_URL` | Laravel media (`App\Support\Cdn`) — covers, blog/service/case-study assets, OG images |
+| `VITE_ASSET_BASE_URL` | Baked into the Vite client for `getImageUrl()` / `<Image>` |
+| `ASSET_URL` | **Leave empty in production** |
 
-## How It Works
+Setting Laravel `ASSET_URL=https://cdn.harun.dev` makes `@vite` / `asset('/build/...')` point at R2. GHA builds and Railway’s `public/build` can diverge → **blank site / hash mismatch**. JS and CSS must stay **same-origin** on `harun.dev/build/...`.
 
-1. A utility function `getImageUrl()` has been added to `/resources/js/lib/imageUtils.ts`
-2. A wrapper component `Image` has been added to `/resources/js/Components/Image.tsx`
-3. The CDN URL is configured in the `.env` file using the `VITE_CDN_URL` variable
-4. In production, the deployment script will use the CDN URL for local image references
+Production behavior: `vite.config.js` and deploy.yml fall back to `https://cdn.harun.dev` for client media when `VITE_ASSET_BASE_URL` is empty. `App\Support\Cdn` uses `CDN_ASSET_URL`, then `VITE_ASSET_BASE_URL`, then `ASSET_URL`; when all are empty, media stays same-origin. `Cdn::url()` never rewrites paths under `build/`.
 
-## Usage
+## What lives on the CDN
 
-### Option 1: Use the Image Component (Recommended)
+Synced by “Build and Sync Assets to R2”:
 
-Replace your existing `<img>` tags with the `<Image>` component:
+- `public/build` (also on R2 historically; **browsers load `/build` from origin**)
+- `public/fonts`, `public/images`
+- `public/blog-assets`, `public/service-assets`, `public/case-studies-assets`
 
-```tsx
-import { Image } from '../Components/Image';
+Cache purge after sync is **prefix/host purge for `cdn.harun.dev` only** — never `purge_everything` (that blows HTML/edge cache on `harun.dev`).
 
-// Before
-<img src="/images/aws-certifications.png" alt="AWS Certifications" />
-
-// After
-<Image src="/images/aws-certifications.png" alt="AWS Certifications" />
-```
-
-### Option 2: Use the getImageUrl Function
-
-If you need more control or can't use the Image component:
+## Frontend
 
 ```tsx
-import { getImageUrl } from '../lib/imageUtils';
+import { getImageUrl } from '@/lib/imageUtils';
+// or
+import { Image } from '@/Components/Image';
 
-// Before
-<img src="/images/aws-certifications.png" alt="AWS Certifications" />
-
-// After
-<img src={getImageUrl('/images/aws-certifications.png')} alt="AWS Certifications" />
+<img src={getImageUrl('/images/aws-certifications.webp')} alt="..." />
+<Image src="/images/clients/alen.webp" alt="..." />
 ```
 
-## Configuration
+Local/dev with empty `VITE_ASSET_BASE_URL` → root-relative paths. Prefer compressed **webp/jpeg**; keep filenames stable so CDN URLs and frontmatter stay valid.
 
-1. In development, set `VITE_CDN_URL=` (empty) in your `.env` file to use local paths
-2. In production, set `VITE_CDN_URL=https://cdn.harun.dev` (or your actual CDN URL) in your `.env.appprod` file
+## Backend / markdown HTML
 
-## CDN Setup
+- Covers and SEO assets: `Cdn::url()` / `SeoCatalog::assetUrl()`
+- In-post HTML: `Cdn::rewriteHtml()` rewrites root-relative `/blog-assets|service-assets|case-studies-assets|images/...` only
+- After changing rewrite behavior, bump `BlogRepository` / `CaseStudyRepository` cache key suffixes so the database cache does not serve stale HTML for up to 15 minutes
 
-To complete the setup, you need to:
+## Verify live
 
-1. Configure your CDN to serve files from your server's `/public` directory
-2. Update your deployment script to upload static assets to the CDN
-3. Ensure your CDN is properly caching static assets
-
-## Deployment
-
-The deployment script already includes integration with Cloudflare for CDN caching and AWS S3/R2 bucket for storing build assets. The script has been updated to use the CDN URL for local image references in production.
-
-## Existing Integration
-
-Your project already includes:
-- AWS S3/R2 bucket integration for storing build assets
-- Cloudflare CDN integration for caching
-
-This new utility leverages these existing integrations to provide a seamless experience for using CDN URLs in production.
+```bash
+# Media from CDN
+curl -sL https://harun.dev/ | rg -o 'cdn\.harun\.dev/[^" ]+' | head
+# JS still same-origin
+curl -sL https://harun.dev/ | rg -o 'src="[^"]*build/assets/[^"]+' | head
+# No ASSET_URL foot-gun
+curl -sL https://harun.dev/ | rg 'cdn\.harun\.dev/build' || echo 'good: no cdn/build'
+```
