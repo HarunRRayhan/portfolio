@@ -1,0 +1,115 @@
+<?php
+
+namespace App\Http\Controllers\Consultation;
+
+use App\Http\Controllers\Controller;
+use App\Models\ConsultationCoupon;
+use App\Models\ConsultationTier;
+use App\Services\Consultation\AvailabilityService;
+use App\Services\Consultation\BookingWorkflowService;
+use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class BookController extends Controller
+{
+    public function show(): Response
+    {
+        $tiers = ConsultationTier::query()->active()->get()->map->toPublicArray()->values();
+
+        return Inertia::render('Book', [
+            'tiers' => $tiers,
+            'stripeConfigured' => filled(config('stripe.key')),
+            'minLeadHours' => (int) config('consultation.min_lead_hours', 48),
+            'bufferMinutes' => (int) config('consultation.buffer_minutes', 15),
+        ]);
+    }
+
+    public function availability(Request $request, AvailabilityService $availability): JsonResponse
+    {
+        $data = $request->validate([
+            'tier' => ['required', 'string'],
+            'from' => ['nullable', 'date'],
+            'to' => ['nullable', 'date'],
+        ]);
+
+        $tier = ConsultationTier::query()->active()->where('slug', $data['tier'])->firstOrFail();
+        $from = isset($data['from']) ? Carbon::parse($data['from'])->utc() : null;
+        $to = isset($data['to']) ? Carbon::parse($data['to'])->utc() : null;
+
+        return response()->json([
+            'slots' => $availability->availableSlots($tier, $from, $to),
+        ]);
+    }
+
+    public function validateCoupon(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'code' => ['required', 'string'],
+            'tier' => ['required', 'string'],
+        ]);
+
+        $tier = ConsultationTier::query()->active()->where('slug', $data['tier'])->firstOrFail();
+        $coupon = ConsultationCoupon::query()
+            ->whereRaw('lower(code) = ?', [strtolower(trim($data['code']))])
+            ->first();
+
+        if (! $coupon || ! $coupon->isValidForTier($tier->slug)) {
+            return response()->json(['valid' => false, 'message' => 'Invalid coupon for this plan.'], 422);
+        }
+
+        return response()->json([
+            'valid' => true,
+            'percent_off' => $coupon->percent_off,
+            'amount_due_cents' => $coupon->discountedAmountCents((int) $tier->price_cents),
+        ]);
+    }
+
+    public function store(Request $request, BookingWorkflowService $workflow): RedirectResponse
+    {
+        $data = $request->validate([
+            'tier' => ['required', 'string'],
+            'client_name' => ['required', 'string', 'max:120'],
+            'client_email' => ['required', 'email', 'max:255'],
+            'notes' => ['nullable', 'string', 'max:5000'],
+            'starts_at' => ['required', 'date'],
+            'coupon_code' => ['nullable', 'string', 'max:64'],
+        ]);
+
+        $tier = ConsultationTier::query()->active()->where('slug', $data['tier'])->firstOrFail();
+        $coupon = null;
+
+        if (! empty($data['coupon_code'])) {
+            $coupon = ConsultationCoupon::query()
+                ->whereRaw('lower(code) = ?', [strtolower(trim($data['coupon_code']))])
+                ->first();
+
+            if (! $coupon || ! $coupon->isValidForTier($tier->slug)) {
+                return back()->withErrors(['coupon_code' => 'Invalid coupon for this plan.'])->withInput();
+            }
+        }
+
+        try {
+            $result = $workflow->requestBooking(
+                $tier,
+                $data['client_name'],
+                $data['client_email'],
+                $data['notes'] ?? null,
+                Carbon::parse($data['starts_at'])->utc(),
+                $coupon,
+            );
+        } catch (\InvalidArgumentException $e) {
+            return back()->withErrors(['starts_at' => $e->getMessage()])->withInput();
+        }
+
+        return redirect()
+            ->to($result['booking']->accessUrl($result['plain_token']))
+            ->with('flash', [
+                'type' => 'success',
+                'message' => 'Request submitted. We’ll email you when it’s reviewed.',
+            ]);
+    }
+}

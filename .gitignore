@@ -60,3 +60,4 @@ deploy/.env.**
 
 # Subagent-driven-development progress ledger — not app code, never deployed
 /.superpowers/
+.playwright-mcp/

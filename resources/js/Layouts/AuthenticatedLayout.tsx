@@ -7,6 +7,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { SeoHead } from '@/Components/SeoHead';
 import {
     BarChart3,
+    Calendar,
     Image,
     KeyRound,
     LayoutDashboard,
@@ -14,6 +15,7 @@ import {
     LogOut,
     Mail,
     Menu,
+    Ticket,
     User,
 } from 'lucide-react';
 import { PropsWithChildren, ReactNode, useState } from 'react';
@@ -82,11 +84,29 @@ function useNavSections(): NavSection[] {
                     icon: Mail,
                     active: route().current('admin.newsletter.index'),
                 },
+                {
+                    label: 'Consultations',
+                    href: '/admin/consultations/bookings',
+                    icon: Calendar,
+                    active: route().current('admin.consultations.bookings.*'),
+                },
+                {
+                    label: 'Coupons',
+                    href: '/admin/consultations/coupons',
+                    icon: Ticket,
+                    active: route().current('admin.consultations.coupons.*'),
+                },
             ],
         },
         {
             label: 'Account',
             items: [
+                {
+                    label: 'Availability',
+                    href: '/admin/consultations/availability',
+                    icon: Calendar,
+                    active: route().current('admin.consultations.availability.*') || route().current('admin.consultations.google.*'),
+                },
                 {
                     label: 'API Keys',
                     href: route('admin.api-keys.index'),
