@@ -99,12 +99,14 @@ jobs:
           echo "Static assets uploaded to Cloudflare R2"
 
       - name: Purge Cloudflare Cache
+        env:
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CDN_HOST: ${{ vars.CDN_HOST }}
         run: |
           echo "Purging Cloudflare CDN asset prefixes (not purge_everything)..."
-          CLOUDFLARE_ZONE_ID="${{ secrets.CLOUDFLARE_ZONE_ID }}"
-          CLOUDFLARE_API_TOKEN="${{ secrets.CLOUDFLARE_API_TOKEN }}"
           # Keep HTML/edge cache for harun.dev; only invalidate hashed/static asset hosts+prefixes.
-          CDN_HOST="${{ vars.CDN_HOST != '' && vars.CDN_HOST || 'cdn.harun.dev' }}"
+          CDN_HOST="${CDN_HOST:-cdn.harun.dev}"
 
           if [[ -n "$CLOUDFLARE_ZONE_ID" && -n "$CLOUDFLARE_API_TOKEN" ]]; then
             response=$(curl -sS -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/purge_cache" \
