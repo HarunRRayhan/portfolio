@@ -15,9 +15,15 @@ class BlogRepository
 
     private const PUBLICATION_PATH = 'blog/publication.yml';
 
-    private const CACHE_KEY = 'blog.repository.payload.cdn1';
+    /**
+     * Metadata-only payload (no post HTML). Bumped from cdn1 so old fat
+     * database-cache rows are abandoned after deploy.
+     */
+    private const CACHE_KEY = 'blog.repository.payload.meta1';
 
     private const CACHE_TTL_MINUTES = 15;
+
+    private const VIEWS_MAP_TTL_SECONDS = 300;
 
     /**
      * The cache store (`database`, a shared Postgres DB per §2.1 of the
@@ -30,6 +36,11 @@ class BlogRepository
     public static function cacheKey(): string
     {
         return self::CACHE_KEY.'.'.md5(base_path());
+    }
+
+    public static function viewsMapCacheKey(): string
+    {
+        return 'blog.views.map.'.md5(base_path());
     }
 
     /**
@@ -46,6 +57,8 @@ class BlogRepository
     }
 
     /**
+     * Metadata for every post (no HTML body). Use withContent() when the body is needed.
+     *
      * @return array<int, array<string, mixed>>
      */
     public function posts(): array
@@ -67,7 +80,11 @@ class BlogRepository
         );
 
         return $posts
-            ->map(fn (array $post) => $this->summarizePost($post, $viewCounts[$post['slug']] ?? 0))
+            ->map(fn (array $post) => $this->summarizePost(
+                $post,
+                $viewCounts[$post['slug']] ?? 0,
+                useShortShareUrl: false,
+            ))
             ->all();
     }
 
@@ -90,7 +107,7 @@ class BlogRepository
             ->reject(fn (array $post) => (bool) ($post['draft'] ?? false))
             ->sortByDesc('publishedAt')
             ->take($limit)
-            ->map(fn (array $post) => $this->summarizePost($post))
+            ->map(fn (array $post) => $this->summarizePost($post, useShortShareUrl: false))
             ->values()
             ->all();
     }
@@ -113,10 +130,61 @@ class BlogRepository
     }
 
     /**
+     * Attach HTML (and plain-text) body from the on-disk markdown file.
+     * Index/list paths never call this, so the shared DB cache stays small.
+     *
+     * @param  array<string, mixed>  $post
      * @return array<string, mixed>
      */
-    public function summarizePost(array $post, ?int $viewCount = null): array
+    public function withContent(array $post): array
     {
+        if (isset($post['content']['html']) && is_string($post['content']['html'])) {
+            return $post;
+        }
+
+        $relative = $post['contentPath'] ?? null;
+
+        if (! is_string($relative) || $relative === '') {
+            throw new RuntimeException('Blog post is missing contentPath; cannot hydrate body.');
+        }
+
+        $path = resource_path($relative);
+
+        if (! is_file($path)) {
+            throw new RuntimeException("Blog post content file missing: {$path}");
+        }
+
+        $contents = file_get_contents($path);
+
+        if ($contents === false) {
+            throw new RuntimeException("Unable to read blog post file: {$path}");
+        }
+
+        if (! preg_match('/^---\R(.*?)\R---\R(.*)\z/s', $contents, $matches)) {
+            throw new RuntimeException("Blog post file has invalid frontmatter: {$path}");
+        }
+
+        $body = trim($matches[2]);
+
+        if ($body === '') {
+            throw new RuntimeException("Blog post file has empty content body: {$path}");
+        }
+
+        $post['content'] = [
+            'html' => Cdn::rewriteHtml($body),
+            'text' => $this->contentText($body),
+        ];
+
+        return $post;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function summarizePost(array $post, ?int $viewCount = null, bool $useShortShareUrl = true): array
+    {
+        $absoluteUrl = $this->absoluteUrl($post['slug']);
+
         return [
             'title' => $post['title'],
             'slug' => $post['slug'],
@@ -152,8 +220,8 @@ class BlogRepository
                 ->values()
                 ->all(),
             'url' => $this->relativeUrl($post['slug']),
-            'canonicalUrl' => $this->absoluteUrl($post['slug']),
-            'shareUrl' => $this->shareUrl($post),
+            'canonicalUrl' => $absoluteUrl,
+            'shareUrl' => $useShortShareUrl ? $this->shareUrl($post) : $absoluteUrl,
             'sourceUrl' => $post['sourceUrl'] ?? $this->sourceUrl($post['slug']),
         ];
     }
@@ -163,6 +231,7 @@ class BlogRepository
      */
     public function toPostPagePayload(array $post): array
     {
+        $post = $this->withContent($post);
         $summary = $this->summarizePost($post);
 
         return array_merge($summary, [
@@ -227,8 +296,6 @@ class BlogRepository
         return $this->data;
     }
 
-
-
     /**
      * @return array<string, mixed>
      */
@@ -250,6 +317,8 @@ class BlogRepository
     }
 
     /**
+     * Parse frontmatter only. HTML stays on disk until withContent().
+     *
      * @return array<string, mixed>
      */
     private function parsePostFile(string $path, array $publication): array
@@ -270,13 +339,12 @@ class BlogRepository
             throw new RuntimeException("Blog post file has unexpected metadata: {$path}");
         }
 
-        $body = trim($matches[2]);
-
-        if ($body === '') {
+        if (trim($matches[2]) === '') {
             throw new RuntimeException("Blog post file has empty content body: {$path}");
         }
 
         $slug = (string) $meta['slug'];
+        $basename = basename($path);
 
         return array_merge($meta, [
             'publishedAt' => (string) $meta['publishedAt'],
@@ -301,10 +369,7 @@ class BlogRepository
                 ->values()
                 ->all(),
             'sourceUrl' => (string) ($meta['sourceUrl'] ?? $this->sourceUrlFromPublication($publication, $slug)),
-            'content' => [
-                'html' => Cdn::rewriteHtml($body),
-                'text' => $this->contentText($body),
-            ],
+            'contentPath' => self::CONTENT_DIR.'/'.$basename,
         ]);
     }
 
@@ -346,8 +411,8 @@ class BlogRepository
     }
 
     /**
-     * Load view counts for many posts in one query (blog index), and warm the
-     * per-slug cache used by individual post pages.
+     * Load view counts for many posts in one query (blog index). Cached as a
+     * single map so the database cache store is not hit once per slug.
      *
      * @param  list<string>  $slugs
      * @return array<string, int>
@@ -360,25 +425,29 @@ class BlogRepository
             return [];
         }
 
-        $counts = array_fill_keys($slugs, 0);
+        /** @var array<string, int> $cached */
+        $cached = Cache::remember(
+            self::viewsMapCacheKey(),
+            self::VIEWS_MAP_TTL_SECONDS,
+            function (): array {
+                try {
+                    return DB::table('blog_post_views')
+                        ->pluck('count', 'slug')
+                        ->map(fn ($count) => (int) $count)
+                        ->all();
+                } catch (\Throwable) {
+                    return [];
+                }
+            },
+        );
 
-        try {
-            $rows = DB::table('blog_post_views')
-                ->whereIn('slug', $slugs)
-                ->get(['slug', 'count']);
-        } catch (\Throwable) {
-            return $counts;
+        $result = array_fill_keys($slugs, 0);
+
+        foreach ($slugs as $slug) {
+            $result[$slug] = (int) ($cached[$slug] ?? 0);
         }
 
-        foreach ($rows as $row) {
-            $counts[$row->slug] = (int) $row->count;
-        }
-
-        foreach ($counts as $slug => $count) {
-            Cache::put("post.views.{$slug}", $count, 3600);
-        }
-
-        return $counts;
+        return $result;
     }
 
     private function contentText(string $html): string

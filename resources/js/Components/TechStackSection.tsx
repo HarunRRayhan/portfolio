@@ -9,7 +9,7 @@ const technologies = [
     { name: 'Linux', logo: getImageUrl('/images/tech/linux.svg') },
     { name: 'AWS', logo: getImageUrl('/images/tech/aws.svg') },
     { name: 'Terraform', logo: getImageUrl('/images/tech/terraform.svg') },
-    { name: 'Docker', logo: getImageUrl('/images/tech/docker.png') },
+    { name: 'Docker', logo: getImageUrl('/images/tech/docker.webp') },
     { name: 'Kubernetes', logo: getImageUrl('/images/tech/kubernetes.svg') },
     { name: 'Jenkins', logo: getImageUrl('/images/tech/jenkins.svg') },
     { name: 'GitHub Actions', logo: getImageUrl('/images/tech/github-actions.svg') },

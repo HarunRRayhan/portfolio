@@ -989,13 +989,12 @@ Route::get('/llms-full.txt', function () {
     $blog = new BlogRepository;
     $caseStudyRepo = new CaseStudyRepository;
 
-    // posts()/studies() return the raw parsed files, whose content['html'] key holds
-    // the original post body as authored (markdown for some posts, raw HTML blocks
-    // for others). Unlike indexPosts()/indexStudies() they keep the body but also
-    // include drafts, so drafts are filtered out here.
+    // posts() is metadata-only; hydrate HTML from disk for the full export.
+    // Drafts are filtered out (same as the public index).
     $blogBodies = collect($blog->posts())
         ->reject(fn (array $post) => (bool) ($post['draft'] ?? false))
         ->map(function (array $post) use ($blog) {
+            $post = $blog->withContent($post);
             $url = $blog->absoluteUrl($post['slug']);
             $body = trim((string) ($post['content']['html'] ?? ''));
 

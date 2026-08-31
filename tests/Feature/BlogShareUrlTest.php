@@ -13,7 +13,19 @@ class BlogShareUrlTest extends TestCase
 
     private const SLUG = 'production-ai-code-review-for-terraform-and-lambda-prs';
 
-    public function test_blog_index_exposes_a_shortened_share_url(): void
+    public function test_blog_index_cards_use_canonical_share_url(): void
+    {
+        $response = $this->get('/blog');
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->has('posts.0.shareUrl')
+            ->where('posts.0.shareUrl', fn (string $shareUrl) => ! str_contains($shareUrl, '/s/'))
+            ->where('posts.0.shareUrl', fn (string $shareUrl) => str_starts_with($shareUrl, 'http'))
+        );
+    }
+
+    public function test_summarize_post_exposes_a_shortened_share_url(): void
     {
         $blog = app(BlogRepository::class);
         $post = $blog->find(self::SLUG);
