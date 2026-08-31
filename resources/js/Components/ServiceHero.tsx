@@ -24,6 +24,10 @@ export function ServiceHero({ icon: Icon, title, description, backgroundImage }:
             src={getImageUrl(backgroundImage)}
             alt=""
             aria-hidden="true"
+            width={1600}
+            height={840}
+            fetchPriority="high"
+            decoding="async"
             className="absolute inset-0 h-full w-full object-cover"
           />
           <div

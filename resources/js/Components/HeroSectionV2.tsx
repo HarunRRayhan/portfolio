@@ -249,7 +249,15 @@ export function HeroSectionV2() {
                                         key={logo.name}
                                         className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 py-1"
                                     >
-                                        <img src={logo.image} alt={logo.name} className="h-4 w-4" />
+                                        <img
+                                            src={logo.image}
+                                            alt={logo.name}
+                                            width={16}
+                                            height={16}
+                                            loading="lazy"
+                                            decoding="async"
+                                            className="h-4 w-4"
+                                        />
                                         <span className="font-mono text-[11px] font-medium text-slate-600">
                                             {logo.name}
                                         </span>

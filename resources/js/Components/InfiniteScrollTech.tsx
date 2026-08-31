@@ -55,6 +55,8 @@ export function InfiniteScrollTech({ technologies, backgroundColor = "#F8F9FA" }
                     alt={`${tech.name} logo`}
                     width={64}
                     height={64}
+                    loading="lazy"
+                    decoding="async"
                     className="w-16 h-16 object-contain"
                   />
                   <span className="text-sm font-medium text-gray-600">{tech.name}</span>

@@ -45,10 +45,14 @@ export function AboutHero() {
           >
             <div className="relative">
               <img
-                src={getImageUrl("/images/profile/harun-profile.jpeg")}
+                src={getImageUrl("/images/profile/harun-profile.webp")}
                 alt="Harun R. Rayhan - Software Engineer and Cloud Architect"
+                width={320}
+                height={320}
                 className="h-56 w-56 rounded-full border-4 border-white/20 object-cover shadow-2xl sm:h-72 sm:w-72 lg:h-80 lg:w-80"
                 loading="eager"
+                fetchPriority="high"
+                decoding="async"
               />
             </div>
           </motion.div>

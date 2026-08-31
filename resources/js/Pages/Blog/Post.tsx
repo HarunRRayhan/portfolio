@@ -2,8 +2,6 @@
 
 import { Head, Link } from '@inertiajs/react'
 import { useEffect, useMemo, useRef } from 'react'
-import hljs from 'highlight.js/lib/common'
-import 'highlight.js/styles/github-dark.css'
 import { BlogDiscussion } from '@/Components/BlogDiscussion'
 import { ShareButton } from '@/Components/ShareButton'
 import { ArrowRight, BookOpen, CalendarDays, ChevronDown, Clock3, Eye, MessageCircle, Share2, Sparkles, Tag } from 'lucide-react'
@@ -37,7 +35,6 @@ interface BlogPostSummary {
 
 interface BlogPost extends BlogPostSummary {
   contentHtml: string
-  contentText: string
 }
 
 interface BlogCommentUser {
@@ -96,8 +93,17 @@ function getCodeLanguage(code: HTMLElement): string {
   return match[1].replace(/-/g, ' ')
 }
 
-function enhanceCodeBlocks(root: HTMLElement) {
+async function enhanceCodeBlocks(root: HTMLElement) {
   const blocks = Array.from(root.querySelectorAll('pre'))
+
+  if (blocks.length === 0) {
+    return
+  }
+
+  const [{ default: hljs }] = await Promise.all([
+    import('highlight.js/lib/common'),
+    import('highlight.js/styles/github-dark.css'),
+  ])
 
   blocks.forEach((pre) => {
     if (pre.dataset.enhanced === 'true') {
@@ -174,6 +180,17 @@ function enhanceCodeBlocks(root: HTMLElement) {
   })
 }
 
+function enhanceContentImages(root: HTMLElement) {
+  root.querySelectorAll('img').forEach((img) => {
+    if (!img.hasAttribute('loading')) {
+      img.loading = 'lazy'
+    }
+    if (!img.hasAttribute('decoding')) {
+      img.decoding = 'async'
+    }
+  })
+}
+
 function enhanceTables(root: HTMLElement) {
   const tables = Array.from(root.querySelectorAll('table'))
 
@@ -236,8 +253,9 @@ export default function BlogPostPage({
       return
     }
 
-    enhanceCodeBlocks(contentRef.current)
+    void enhanceCodeBlocks(contentRef.current)
     enhanceTables(contentRef.current)
+    enhanceContentImages(contentRef.current)
   }, [post.slug, post.contentHtml])
 
   // Track page view
