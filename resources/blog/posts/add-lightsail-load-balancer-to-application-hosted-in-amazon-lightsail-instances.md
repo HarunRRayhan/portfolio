@@ -35,7 +35,7 @@ tags:
 <img src="/blog-assets/add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances/YhPj7TMSKh.png" alt="CleanShot 2022-05-28 at 16.02.40@2x.png" /></p>
 </li>
 <li><p>You are in the Create a Load balancer screen like this 👇
-<img src="/blog-assets/add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances/ZhwhaDAYk.png" alt="CleanShot 2022-05-28 at 16.04.46@2x.png" /></p>
+<img src="/blog-assets/add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances/ZhwhaDAYk.jpg" alt="CleanShot 2022-05-28 at 16.04.46@2x.png" /></p>
 <ul>
 <li>A. Change your region to where your instances are. My instances are in Virginia.</li>
 <li>B. Give it a name, and</li>
@@ -51,11 +51,11 @@ tags:
 <img src="/blog-assets/add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances/IrgiatFzx.png" alt="CleanShot 2022-05-28 at 16.13.01@2x.png" /></p>
 </li>
 <li><p>Our load balancer doesn't have any attached instance(s) yet, we are going to attach one or more. Select your instance in the Target instances section.
-<img src="/blog-assets/add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances/tow7uBR8v.png" alt="CleanShot 2022-05-28 at 16.15.02@2x.png" />
+<img src="/blog-assets/add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances/tow7uBR8v.jpg" alt="CleanShot 2022-05-28 at 16.15.02@2x.png" />
 I just have one in this region. You should see all of the instances you have in the region where the load balancer is provisioned. </p>
 </li>
 <li><p>Confirm the attachment of your instance
-<img src="/blog-assets/add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances/-HlrPCaJl.png" alt="CleanShot 2022-05-28 at 16.19.15@2x.png" /></p>
+<img src="/blog-assets/add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances/-HlrPCaJl.jpg" alt="CleanShot 2022-05-28 at 16.19.15@2x.png" /></p>
 </li>
 <li><p>Do the same process until you attached all of your target instances. </p>
 </li>
@@ -76,7 +76,7 @@ I just have one in this region. You should see all of the instances you have in 
 <h2 id="heading-enable-https">Enable HTTPS</h2>
 <ol>
 <li>Go to the <strong>Inbound traffic</strong> tab of your Load balancer setting.
-<img src="/blog-assets/add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances/badvd2GAs.png" alt="CleanShot 2022-05-28 at 16.35.34@2x.png" /><ul>
+<img src="/blog-assets/add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances/badvd2GAs.jpg" alt="CleanShot 2022-05-28 at 16.35.34@2x.png" /><ul>
 <li>A. Create an SSL certificate for your domain by clicking the <strong>Create certificate +</strong> button.</li>
 <li>B. You should see all of the created certificates in the <strong>SSL/TLS certificate</strong> list and select the one you just created. </li>
 <li>C. Optionally, you can Redirect from HTTP to HTTPS. (After enabling the HTTPS).</li>

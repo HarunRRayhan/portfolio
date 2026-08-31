@@ -77,6 +77,10 @@ jobs:
 
             aws s3 sync public/fonts "s3://$R2_BUCKET_NAME/fonts" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
             aws s3 sync public/images "s3://$R2_BUCKET_NAME/images" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+            # Marketing media served via cdn.harun.dev / getImageUrl / asset CDN — keep in sync with origin.
+            aws s3 sync public/blog-assets "s3://$R2_BUCKET_NAME/blog-assets" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+            aws s3 sync public/service-assets "s3://$R2_BUCKET_NAME/service-assets" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+            aws s3 sync public/case-studies-assets "s3://$R2_BUCKET_NAME/case-studies-assets" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
           }
 
           max_attempts=3
@@ -96,16 +100,27 @@ jobs:
 
       - name: Purge Cloudflare Cache
         run: |
-          echo "Purging Cloudflare cache..."
+          echo "Purging Cloudflare CDN asset prefixes (not purge_everything)..."
           CLOUDFLARE_ZONE_ID="${{ secrets.CLOUDFLARE_ZONE_ID }}"
           CLOUDFLARE_API_TOKEN="${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          # Keep HTML/edge cache for harun.dev; only invalidate hashed/static asset hosts+prefixes.
+          CDN_HOST="${{ vars.CDN_HOST != '' && vars.CDN_HOST || 'cdn.harun.dev' }}"
 
           if [[ -n "$CLOUDFLARE_ZONE_ID" && -n "$CLOUDFLARE_API_TOKEN" ]]; then
-            curl -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/purge_cache" \
+            response=$(curl -sS -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/purge_cache" \
               -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
               -H "Content-Type: application/json" \
-              --data '{"purge_everything":true}'
-            echo "CDN cache purged"
+              --data "{\"prefixes\":[\"$CDN_HOST/build\",\"$CDN_HOST/fonts\",\"$CDN_HOST/images\",\"$CDN_HOST/blog-assets\",\"$CDN_HOST/service-assets\",\"$CDN_HOST/case-studies-assets\"]}")
+            echo "$response"
+            if echo "$response" | grep -q '"success":true'; then
+              echo "CDN asset prefixes purged for $CDN_HOST"
+            else
+              echo "Prefix purge failed; falling back to hostname purge for $CDN_HOST"
+              curl -sS -X POST "https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/purge_cache" \
+                -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+                -H "Content-Type: application/json" \
+                --data "{\"hosts\":[\"$CDN_HOST\"]}"
+            fi
           else
             echo "Warning: Cloudflare credentials not found, skipping cache purge"
           fi
@@ -128,7 +143,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### What this workflow does" >> $GITHUB_STEP_SUMMARY
           echo "- NPM build and asset compilation" >> $GITHUB_STEP_SUMMARY
-          echo "- Cloudflare R2 asset upload (build, fonts, images)" >> $GITHUB_STEP_SUMMARY
-          echo "- CDN cache purge" >> $GITHUB_STEP_SUMMARY
+          echo "- Cloudflare R2 asset upload (build, fonts, images, blog-assets, service-assets, case-studies-assets)" >> $GITHUB_STEP_SUMMARY
+          echo "- CDN prefix/host purge for cdn.harun.dev (not purge_everything)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "The application itself is deployed independently by Railway's native GitHub integration on the same push." >> $GITHUB_STEP_SUMMARY

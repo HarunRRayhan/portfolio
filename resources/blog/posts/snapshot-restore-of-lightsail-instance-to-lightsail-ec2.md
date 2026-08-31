@@ -8,7 +8,7 @@ reactionCount: 0
 responseCount: 0
 replyCount: 0
 sourceUrl: "https://web.archive.org/web/*/https://blog.harun.dev/snapshot-restore-of-lightsail-instance-to-lightsail-ec2"
-coverImageUrl: "/blog-assets/snapshot-restore-of-lightsail-instance-to-lightsail-ec2/cover.png"
+coverImageUrl: "/blog-assets/snapshot-restore-of-lightsail-instance-to-lightsail-ec2/cover.jpg"
 tags:
   - name: "AWS"
     slug: "aws"
@@ -110,7 +110,7 @@ It will take some time if this is the first snapshot of the instance, size is an
 <img src="/blog-assets/snapshot-restore-of-lightsail-instance-to-lightsail-ec2/WWWDZ_9xk.png" alt="CleanShot 2022-05-12 at 19.34.19@2x.png" /></p>
 </li>
 <li><p>You will see a traditional EC2 Lunch page:
-<img src="/blog-assets/snapshot-restore-of-lightsail-instance-to-lightsail-ec2/wxsZxlGt6.png" alt="CleanShot 2022-05-12 at 19.44.03@2x.png" />
+<img src="/blog-assets/snapshot-restore-of-lightsail-instance-to-lightsail-ec2/wxsZxlGt6.jpg" alt="CleanShot 2022-05-12 at 19.44.03@2x.png" />
 (A) Give your instance a name. (B) Choose an instance type, for my case, it's free tier eligible t2.micro. (C) Choose existing key pair or create a new one. You need it to log in via SSH. (D) Check the ports you want to open, in my case I selected all of them. </p>
 </li>
 </ol>

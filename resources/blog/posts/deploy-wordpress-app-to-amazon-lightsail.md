@@ -10,7 +10,7 @@ reactionCount: 0
 responseCount: 0
 replyCount: 0
 sourceUrl: "https://web.archive.org/web/*/https://blog.harun.dev/deploy-wordpress-app-to-amazon-lightsail"
-coverImageUrl: "/blog-assets/deploy-wordpress-app-to-amazon-lightsail/cover.png"
+coverImageUrl: "/blog-assets/deploy-wordpress-app-to-amazon-lightsail/cover.jpg"
 tags:
   - name: "AWS"
     slug: "aws"
@@ -40,14 +40,14 @@ tags:
 <img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/t7Kzr_AGl.png" alt="CleanShot 2022-04-27 at 18.04.31@2x.png" /></p>
 </li>
 <li><p>Let's choose <strong>Instance location</strong>, <strong>platform</strong>, and <strong>blueprint</strong>:
-<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/SsoaPiAKt.png" alt="CleanShot 2022-04-27 at 18.20.07@2x.png" />
+<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/SsoaPiAKt.jpg" alt="CleanShot 2022-04-27 at 18.20.07@2x.png" />
 A. Click the link to change location and availability zone (AZ) if not what you want. I recommend selecting a location closer to your customers.
 B. Choose the <strong>Linux/Unix</strong> platform.
 C. Select the <strong>Apps + OS</strong> from the blueprint.
 D. Now choose <strong>WordPress</strong> from the app list. <em>Not the multisite one</em>.</p>
 </li>
 <li><p>Now scroll down to <strong>Choose your instance plan</strong> section. I chose a free-tier plan and only one instance. Here is my setup:
-<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/8eZaPa-e5.png" alt="CleanShot 2022-04-27 at 19.04.37@2x.png" /></p>
+<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/8eZaPa-e5.jpg" alt="CleanShot 2022-04-27 at 19.04.37@2x.png" /></p>
 </li>
 <li><p>Finally scroll to the bottom of the page and click the <strong>Create instance</strong> button. Wait for the status to become <strong><em>Running</em></strong>. Congratulations, your instance has launched 🚀</p>
 </li>
@@ -61,7 +61,7 @@ D. Now choose <strong>WordPress</strong> from the app list. <em>Not the multisit
 <ol>
 <li>Click on your application instance name to see the details of your instance. </li>
 <li>Click on <strong>+ Create static IP</strong> from here:
-<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/qL0v8VIuH.png" alt="CleanShot 2022-04-27 at 19.35.25@2x.png" /></li>
+<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/qL0v8VIuH.jpg" alt="CleanShot 2022-04-27 at 19.35.25@2x.png" /></li>
 <li>Add a meaningful name and click Create:
 <img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/wMDiRyzMD.png" alt="CleanShot 2022-04-27 at 19.42.36@2x.png" /><blockquote>
 <p>⚠️ Warning: You are allowed to assign 5 static IPs for free. You will be charged for static IP that is not attached to a running instance. </p>
@@ -98,13 +98,13 @@ ssh -i <span class="hljs-string">"&lt;path/to/your-lightsail-key&gt;.pem"</span>
 <h1 id="heading-add-a-domain">Add a Domain</h1>
 <ol>
 <li>Go to the <strong>Home</strong> page. Click on the <strong>Networking</strong> tab and then hit <strong>Create DNS zone</strong> button
-<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/POkz7myRi.png" alt="CleanShot 2022-04-28 at 04.57.42@2x.png" /></li>
+<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/POkz7myRi.jpg" alt="CleanShot 2022-04-28 at 04.57.42@2x.png" /></li>
 <li>Add your domain name. Scroll to the bottom and click the <strong>Create DNS zone</strong> button
-<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/fz1N3wW4u.png" alt="CleanShot 2022-04-28 at 05.03.10@2x.png" /></li>
+<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/fz1N3wW4u.jpg" alt="CleanShot 2022-04-28 at 05.03.10@2x.png" /></li>
 <li>Add these name server records in your domain control panel (ex. Namecheap, GoDaddy). You might have different records than mine
 <img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/Y_EVt8m18.png" alt="CleanShot 2022-04-28 at 05.09.00@2x.png" /></li>
 <li>Now to the good part. Click <strong>+ Add Record</strong> button. Add your instance and click on tick icon to save.
-<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/pp15TFvIg.png" alt="CleanShot 2022-04-28 at 05.13.07@2x.png" /><blockquote>
+<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/pp15TFvIg.jpg" alt="CleanShot 2022-04-28 at 05.13.07@2x.png" /><blockquote>
 <p>⚠️ It may take few minutes to days to propagate DNS records. </p>
 </blockquote>
 </li>
@@ -117,7 +117,7 @@ ssh -i <span class="hljs-string">"&lt;path/to/your-lightsail-key&gt;.pem"</span>
 <pre><code class="lang-bash">cat stack/wordpress/wp-config.php
 </code></pre>
 <p>Use DB credentials to connect to DB, and replace <code>localhost</code> with the instance's public IP. Connect to your DB via SSH (recommended) or add the <code>3306</code> port here:
-<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/vdJ8wmLh2.png" alt="CleanShot 2022-04-27 at 20.40.01@2x.png" /></p>
+<img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/vdJ8wmLh2.jpg" alt="CleanShot 2022-04-27 at 20.40.01@2x.png" /></p>
 <blockquote>
 <p>ℹ️ Don't forget to change the domain name in <code>siteurl</code> and <code>home</code> rows of <code>wp_options</code> table.</p>
 </blockquote>
