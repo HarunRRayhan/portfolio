@@ -12,7 +12,7 @@ How static media reaches `cdn.harun.dev` without breaking hashed JS/CSS.
 
 Setting Laravel `ASSET_URL=https://cdn.harun.dev` makes `@vite` / `asset('/build/...')` point at R2. GHA builds and Railway’s `public/build` can diverge → **blank site / hash mismatch**. JS and CSS must stay **same-origin** on `harun.dev/build/...`.
 
-Production defaults (when env is empty): `App\Support\Cdn` and deploy.yml fall back to `https://cdn.harun.dev` for media only. `Cdn::url()` never rewrites paths under `build/`.
+Production behavior: `vite.config.js` and deploy.yml fall back to `https://cdn.harun.dev` for client media when `VITE_ASSET_BASE_URL` is empty. `App\Support\Cdn` uses `CDN_ASSET_URL`, then `VITE_ASSET_BASE_URL`, then `ASSET_URL`; when all are empty, media stays same-origin. `Cdn::url()` never rewrites paths under `build/`.
 
 ## What lives on the CDN
 
