@@ -15,7 +15,7 @@ const reviews = [
         author: 'Alen B.',
         position: 'CEO & Co-Founder, Social HP',
         rating: 5,
-        image: getImageUrl('/images/clients/alen.png'),
+        image: getImageUrl('/images/clients/alen.webp'),
     },
     {
         id: 2,
