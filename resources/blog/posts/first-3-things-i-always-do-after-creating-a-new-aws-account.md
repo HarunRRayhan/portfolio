@@ -29,7 +29,7 @@ tags:
 <li>Click on the "<strong>Create Budget</strong>" button.</li>
 <li>Choose the first option, "<strong>Cost budget - Recommended</strong>" from the next page.</li>
 <li>From the next page:
-<img src="/blog-assets/first-3-things-i-always-do-after-creating-a-new-aws-account/bIPTXFqTW.png" alt="CleanShot 2022-07-04 at 20.33.25@2x.png" /><ul>
+<img src="/blog-assets/first-3-things-i-always-do-after-creating-a-new-aws-account/bIPTXFqTW.jpg" alt="CleanShot 2022-07-04 at 20.33.25@2x.png" /><ul>
 <li>A. Give it a name.</li>
 <li>B. Set the Period as <strong>Month</strong> for this demo, but you can choose any other period.</li>
 <li>C. Set Budget renewal type as <strong>Recurring budget</strong></li>
@@ -41,7 +41,7 @@ tags:
 <li>From the next page, click on the "<strong>Add an alert threshold</strong>. Going to set a couple of alerts.
 <img src="/blog-assets/first-3-things-i-always-do-after-creating-a-new-aws-account/yGqNrA0Eu.png" alt="CleanShot 2022-07-04 at 20.43.58@2x.png" /></li>
 <li>Let's set an actual budget alert:
-<img src="/blog-assets/first-3-things-i-always-do-after-creating-a-new-aws-account/ic5styUxa.png" alt="CleanShot 2022-07-04 at 20.48.00@2x.png" /><ul>
+<img src="/blog-assets/first-3-things-i-always-do-after-creating-a-new-aws-account/ic5styUxa.jpg" alt="CleanShot 2022-07-04 at 20.48.00@2x.png" /><ul>
 <li>A. Choose <strong>80</strong> from the threshold.</li>
 <li>B. Select <strong>Actual</strong> from the trigger</li>
 <li>C. Put as many real and active emails as necessary. (⚠️ please add active email to save yourself from disaster).</li>
@@ -63,7 +63,7 @@ Everything is the same as the first alert, only change Trigger to <strong>Foreca
 <ol>
 <li>Go to <a target="_blank" href="https://console.aws.amazon.com/iam/home#/security_credentials$mfa"><strong>Security Credentials of IAM Console</strong></a></li>
 <li>Click on the "Assign MFA device"
-<img src="/blog-assets/first-3-things-i-always-do-after-creating-a-new-aws-account/G47bzXcts.png" alt="CleanShot 2022-07-06 at 18.45.13@2x.png" /></li>
+<img src="/blog-assets/first-3-things-i-always-do-after-creating-a-new-aws-account/G47bzXcts.jpg" alt="CleanShot 2022-07-06 at 18.45.13@2x.png" /></li>
 <li>Choose <strong>Virtual MFA device</strong> from the popup</li>
 <li>You can choose either of these apps: Authy, Duo Mobile, LastPass Authenticator, Microsoft Authenticator, Google Authenticator, Symantec VIP. My personal choice is Authy.</li>
 <li>Click on the "Show QR code" from the next popup and scan it from your MFA app. Then enter two codes (one after another). And then click the "Assign MFA" button.
@@ -86,7 +86,7 @@ Everything is the same as the first alert, only change Trigger to <strong>Foreca
 <li>Go to <a target="_blank" href="https://console.aws.amazon.com/iamv2/home#/users"><strong>Users page of IAM Console</strong></a>.</li>
 <li>Click on the <strong>Add users</strong> button from top-right corner. </li>
 <li>You will be in this page:
-<img src="/blog-assets/first-3-things-i-always-do-after-creating-a-new-aws-account/qnRC-GFHY.png" alt="CleanShot 2022-07-06 at 19.42.16@2x.png" /><ul>
+<img src="/blog-assets/first-3-things-i-always-do-after-creating-a-new-aws-account/qnRC-GFHY.jpg" alt="CleanShot 2022-07-06 at 19.42.16@2x.png" /><ul>
 <li>A. Choose an username</li>
 <li>B. Chosse access type. I need both CLI and AWS Console access</li>
 <li>C. You can enter your custom password or choose auto generated.</li>
@@ -95,7 +95,7 @@ Everything is the same as the first alert, only change Trigger to <strong>Foreca
 </ul>
 </li>
 <li>You are in the permission page:
-<img src="/blog-assets/first-3-things-i-always-do-after-creating-a-new-aws-account/bHYj1c_6X.png" alt="CleanShot 2022-07-06 at 19.50.04@2x.png" /><ul>
+<img src="/blog-assets/first-3-things-i-always-do-after-creating-a-new-aws-account/bHYj1c_6X.jpg" alt="CleanShot 2022-07-06 at 19.50.04@2x.png" /><ul>
 <li>A. Choose <strong>Attach existing policies directly</strong> from the top options</li>
 <li>B. Search for the <strong>AdministratorAccess</strong> role</li>
 <li>C. Choose the <strong>AdministratorAccess</strong> role</li>

@@ -31,7 +31,7 @@ tags:
 <ol>
 <li>Go to <a target="_blank" href="https://console.aws.amazon.com/iam/">IAM Console</a>.</li>
 <li>Click on the <strong>Users</strong> menu from the navigation panel and then click on the <strong>Add Users</strong> button.
-<img src="/blog-assets/install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging/iecpnlBpe.png" alt="CleanShot 2022-06-03 at 18.45.52@2x.png" /></li>
+<img src="/blog-assets/install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging/iecpnlBpe.jpg" alt="CleanShot 2022-06-03 at 18.45.52@2x.png" /></li>
 <li>You will be in the <strong>Add user</strong> screen:
 <img src="/blog-assets/install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging/FtOVvkhW4.png" alt="CleanShot 2022-06-03 at 18.49.18@2x.png" /><ul>
 <li>A. Give it a name. For me, it's <strong>LightsailCloudWatchAgent</strong>.</li>
@@ -91,7 +91,7 @@ sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
 <pre><code class="lang-bash">sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-config-wizard
 </code></pre>
 <p>Input your choices as I did. Check the arrow mark. You can choose your own or follow mine.
-<img src="/blog-assets/install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging/sOZrTU36D.png" alt="CleanShot 2022-06-04 at 10.03.13@2x.png" /></p>
+<img src="/blog-assets/install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging/sOZrTU36D.jpg" alt="CleanShot 2022-06-04 at 10.03.13@2x.png" /></p>
 </li>
 <li><p>Give AWS Access to the Agent. Run this: </p>
 <pre><code class="lang-bash">sudo vim /opt/aws/amazon-cloudwatch-agent/etc/common-config.toml
@@ -122,7 +122,7 @@ sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
 <li>Choose CWAgent.</li>
 <li>Choose any <strong>ImageId, InstanceId, InstanceType</strong>.</li>
 <li>Select the checkbox to display metrics on the graph. Here is mine:
-<img src="/blog-assets/install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging/SZyZfXUjn.png" alt="CleanShot 2022-06-04 at 10.08.02@2x.png" /></li>
+<img src="/blog-assets/install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging/SZyZfXUjn.jpg" alt="CleanShot 2022-06-04 at 10.08.02@2x.png" /></li>
 </ol>
 <h2 id="heading-conclusion">Conclusion</h2>
 <p>Hope you enjoyed this article. This is the last article of the Amazon Lightsail series.  You can ask me any Lightsail-related question in the comments or on social media.</p>

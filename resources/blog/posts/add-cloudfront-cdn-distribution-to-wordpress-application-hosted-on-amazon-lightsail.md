@@ -10,7 +10,7 @@ reactionCount: 0
 responseCount: 1
 replyCount: 1
 sourceUrl: "https://web.archive.org/web/*/https://blog.harun.dev/add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail"
-coverImageUrl: "/blog-assets/add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail/cover.png"
+coverImageUrl: "/blog-assets/add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail/cover.jpg"
 tags:
   - name: "AWS"
     slug: "aws"
@@ -53,14 +53,14 @@ In CDN, Lots of small servers run closer to your customer. Content gets cached t
 <img src="/blog-assets/add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail/W12TgIi-k.png" alt="Amazon Lightsail CDN Distribution Origin" /></p>
 </li>
 <li><p>Hit <strong>Yes, apply</strong> to apply the predefined WordPress settings
-<img src="/blog-assets/add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail/piEvwljg1.png" alt="Amazon Lightsail CDN Distribution WordPress" /></p>
+<img src="/blog-assets/add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail/piEvwljg1.jpg" alt="Amazon Lightsail CDN Distribution WordPress" /></p>
 </li>
 <li><p>Now, (A) choose a plan. (B) Give it a name and (C) Hit <strong>Create Distribution</strong> button
-<img src="/blog-assets/add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail/Sf65bVVmN.png" alt="CleanShot 2022-05-09 at 20.37.34@2x.png" /></p>
+<img src="/blog-assets/add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail/Sf65bVVmN.jpg" alt="CleanShot 2022-05-09 at 20.37.34@2x.png" /></p>
 </li>
 </ol>
 <p>Woohoo 🎉 Your first distribution is created. Wait for a while to be available. After getting done, you will see this 👇
-<img src="/blog-assets/add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail/3BeQBMUzu.png" alt="Amazon Lightsail CDN Cloudfront Distribution " />
+<img src="/blog-assets/add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail/3BeQBMUzu.jpg" alt="Amazon Lightsail CDN Cloudfront Distribution " />
 (A) Your domain for the distribution. You can access the site using this URL.</p>
 <h2 id="heading-domain">Domain</h2>
 <h3 id="heading-update-the-domain-in-db">Update the Domain in DB</h3>
