@@ -1,26 +1,22 @@
 /**
- * Utility function to get the correct image URL based on environment
- * In production, it will use the asset base URL for local images
- * In development, it will use the local path
+ * Utility function to get the correct image URL based on environment.
+ * In production, local media paths are served from the CDN (R2).
+ * /build assets stay same-origin via the Laravel Vite manifest — do not use this for JS/CSS.
  */
 export function getImageUrl(path: string): string {
-  // If the path is already an absolute URL, return it as is
   if (path.startsWith('http://') || path.startsWith('https://')) {
-    return path;
+    return path
   }
 
-  // If we're in production, use the asset base URL
   if (import.meta.env.PROD) {
-    const assetBaseUrl = import.meta.env.VITE_ASSET_BASE_URL || '';
-    
-    // If asset base URL is configured, use it
+    const assetBaseUrl =
+      import.meta.env.VITE_ASSET_BASE_URL || 'https://cdn.harun.dev'
+
     if (assetBaseUrl) {
-      // Remove leading slash if present to avoid double slashes
-      const cleanPath = path.startsWith('/') ? path.substring(1) : path;
-      return `${assetBaseUrl}/${cleanPath}`;
+      const cleanPath = path.startsWith('/') ? path.substring(1) : path
+      return `${assetBaseUrl.replace(/\/$/, '')}/${cleanPath}`
     }
   }
 
-  // In development or if asset base URL is not configured, use the local path
-  return path;
+  return path
 }

@@ -13,7 +13,12 @@ const publicUrl = publicOrigin ? new URL(publicOrigin) : null;
 
 export default defineConfig({
     define: {
-        'import.meta.env.VITE_ASSET_BASE_URL': JSON.stringify(process.env.VITE_ASSET_BASE_URL),
+        // Default media CDN for production builds when the env var is unset
+        // (common when GitHub Actions repo vars are empty). Keep ASSET_URL off
+        // Railway so /build JS stays same-origin.
+        'import.meta.env.VITE_ASSET_BASE_URL': JSON.stringify(
+            process.env.VITE_ASSET_BASE_URL || 'https://cdn.harun.dev',
+        ),
     },
     plugins: [
         laravel({

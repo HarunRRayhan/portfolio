@@ -15,7 +15,7 @@ class BlogRepository
 
     private const PUBLICATION_PATH = 'blog/publication.yml';
 
-    private const CACHE_KEY = 'blog.repository.payload';
+    private const CACHE_KEY = 'blog.repository.payload.cdn1';
 
     private const CACHE_TTL_MINUTES = 15;
 
@@ -302,7 +302,7 @@ class BlogRepository
                 ->all(),
             'sourceUrl' => (string) ($meta['sourceUrl'] ?? $this->sourceUrlFromPublication($publication, $slug)),
             'content' => [
-                'html' => $body,
+                'html' => Cdn::rewriteHtml($body),
                 'text' => $this->contentText($body),
             ],
         ]);
@@ -320,13 +320,10 @@ class BlogRepository
 
     /**
      * Locally-hosted covers are stored in frontmatter as root-relative paths
-     * (e.g. /blog-assets/{slug}/cover.jpg). The browser resolves those against
-     * the bare hostname, so they 404 whenever the app is mounted under a path
-     * prefix rather than at the domain root (the tailscale worktree dev proxy
-     * serves each checkout from https://<host>/<slug>-harun.dev). Running them
-     * through asset() pins them to the app's own root instead. Older posts
-     * store full GitHub-raw URLs; those are already resolvable and pass through
-     * untouched.
+     * (e.g. /blog-assets/{slug}/cover.jpg). Prefer the media CDN in production
+     * so LCP images are not served from the Railway origin. Absolute GitHub-raw
+     * URLs pass through untouched. Falls back to asset() when no CDN is configured
+     * (local/dev), which also keeps path-prefixed Tailscale worktree mounts working.
      */
     private function resolveCoverImageUrl(mixed $url): ?string
     {
@@ -345,7 +342,7 @@ class BlogRepository
             return $url;
         }
 
-        return asset($url);
+        return Cdn::url($url);
     }
 
     /**
