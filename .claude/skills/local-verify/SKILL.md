@@ -70,10 +70,12 @@ seeded with an admin user.
    - ensure `public/build` exists and the page is loading `/build/assets/...`
      from the same origin (not a remote Vite URL).
 
-   **Blog cache:** `BlogRepository` caches the post list ~15 minutes
-   (keyed per `base_path()`). After flipping `draft` / editing a post file,
-   run `php artisan cache:clear` before verifying `/blog/{slug}` or you'll
-   see stale 404s / old drafts.
+   **Blog cache:** `BlogRepository` caches **metadata only** ~15 minutes
+   (keyed per `base_path()`, currently `blog.repository.payload.meta1.*`).
+   HTML bodies are read from disk on post pages via `withContent()`. After
+   flipping `draft` / editing frontmatter or the on-disk body, run
+   `php artisan cache:clear` before verifying `/blog` or `/blog/{slug}` or
+   you'll see stale 404s / old drafts / old titles.
 
 5. **Always clean up**, even if the check found a problem:
    ```bash

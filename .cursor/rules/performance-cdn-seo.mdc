@@ -1,0 +1,25 @@
+---
+description: Performance, CDN, and SEO constraints for harun.dev speed work
+alwaysApply: true
+---
+
+# Performance / CDN / SEO
+
+## Do
+
+- Put **media** (images, blog/service/case-study assets, OG) on `cdn.harun.dev` via `CDN_ASSET_URL` / `VITE_ASSET_BASE_URL` and `App\Support\Cdn` / `getImageUrl()`.
+- Keep **`/build` JS/CSS same-origin** on Railway (`ASSET_URL` empty). Never point Laravel `ASSET_URL` at the CDN.
+- Prefer compressing media and leaner server work over Inertia SSR or a Next.js rewrite when SEO meta already ships in Blade.
+- After merging frontend/media changes, wait for **Build and Sync Assets to R2** (prefix purge only — not `purge_everything`).
+- For `/blog` list cost: cache **metadata only** in `BlogRepository`; hydrate HTML with `withContent()` on post pages; avoid per-post short-link / view-cache N+1 on the index.
+
+## Don't
+
+- Don't set production `ASSET_URL=https://cdn.harun.dev` (hashed asset mismatch / blank app).
+- Don't purge Cloudflare **everything** on deploy; purge `cdn.harun.dev` prefixes only.
+- Don't strip Blade SEO (title, canonical, OG, JSON-LD) or weaken auth/CSP for speed.
+- Don't assume R2 has new files until the GHA sync finishes — origin can still 200 with stale or missing CDN objects.
+
+## SEO note
+
+Crawlers get meta + JSON-LD from the first HTML response. Empty `#app` + Inertia JSON is acceptable for this site; SSR is optional UX, not an SEO requirement.

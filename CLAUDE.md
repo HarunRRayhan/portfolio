@@ -20,6 +20,32 @@ The auto-mode classifier blocks these Railway/infra actions from Bash even after
 
 `gh pr merge` is sometimes blocked too, inconsistently — one retry often succeeds; if it doesn't, ask the user to merge.
 
+## Performance / CDN / SEO
+
+- **Media CDN vs same-origin `/build`:** Serve images and blog/service/case-study
+  assets from `https://cdn.harun.dev` (`CDN_ASSET_URL` / `VITE_ASSET_BASE_URL`,
+  `App\Support\Cdn`, `getImageUrl()`). Keep Vite JS/CSS on **`harun.dev/build`**
+  (leave Laravel `ASSET_URL` empty). Pointing `ASSET_URL` at the CDN caused a
+  production hash mismatch / blank app — do not repeat. Details:
+  `docs/cdn-image-usage.md`.
+- **Deploy cache purge:** GHA syncs `build`/`fonts`/`images`/`blog-assets`/
+  `service-assets`/`case-studies-assets` to R2, then purges **prefixes on
+  `cdn.harun.dev` only**. Never restore `purge_everything` — it nukes HTML edge
+  cache on `harun.dev` for no gain on hashed assets.
+- **SEO does not require Inertia SSR here.** Title, description, canonical, OG,
+  and JSON-LD already ship in the Blade first response; empty `#app` is fine for
+  crawlers. Prefer weight cuts + CDN + leaner PHP over SSR/Next rewrites unless
+  first-paint UX is still bad after those.
+- **`/blog` TTFB:** `BlogRepository` caches **metadata only** (~15 min,
+  key `blog.repository.payload.meta1.*`). Full HTML is hydrated on demand via
+  `withContent()` for post pages / `llms-full`. Index cards use canonical URLs
+  for `shareUrl` (short `/s/...` links stay on post pages). View counts use one
+  `blog.views.map.*` cache — do not reintroduce per-slug `Cache::put` storms on
+  the index. With `CACHE_STORE=database`, a fat HTML blob in cache was the main
+  `/blog` vs homepage gap.
+- **Security while speeding up:** Only rewrite public media paths; do not move
+  secrets, sessions, or `/build` onto the CDN; do not weaken auth/CSP for speed.
+
 ## Blog
 
 - **Weekly topic shortlist** lives outside this repo at
@@ -30,6 +56,8 @@ The auto-mode classifier blocks these Railway/infra actions from Bash even after
 - **HTML tables in posts are supported.** `resources/js/Pages/Blog/Post.tsx`
   styles `<table>` (borders, padding, zebra rows, horizontal scroll shell).
   Prefer a real table over a smashed plain-text comparison.
-- **Frontend assets after merge** ship via the GitHub Action
-  "Build and Sync Assets to R2". A merged CSS/JS change is not live on
-  harun.dev until that workflow finishes and Cloudflare cache is purged.
+- **Frontend / media after merge** ship via the GitHub Action
+  "Build and Sync Assets to R2". A merged CSS/JS/image change is not fully live
+  on harun.dev until that workflow finishes (and CDN prefixes are purged).
+  Railway deploys PHP independently — BlogRepository/TTFB fixes can go live
+  before R2 finishes.
