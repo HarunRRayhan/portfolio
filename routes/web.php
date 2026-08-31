@@ -2,10 +2,17 @@
 
 use App\Http\Controllers\Admin\ApiKeyController;
 use App\Http\Controllers\Admin\BioLinkController;
+use App\Http\Controllers\Admin\Consultation\AvailabilityController as ConsultationAvailabilityController;
+use App\Http\Controllers\Admin\Consultation\BookingController as ConsultationBookingController;
+use App\Http\Controllers\Admin\Consultation\CouponController as ConsultationCouponController;
+use App\Http\Controllers\Admin\Consultation\GoogleOAuthController as ConsultationGoogleOAuthController;
 use App\Http\Controllers\Admin\MediaItemController;
 use App\Http\Controllers\Admin\NewsletterController as AdminNewsletterController;
 use App\Http\Controllers\Admin\ShortLinkController;
 use App\Http\Controllers\BlogCommentController;
+use App\Http\Controllers\Consultation\BookController;
+use App\Http\Controllers\Consultation\BookingAccessController;
+use App\Http\Controllers\Consultation\StripeWebhookController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\ProfileController;
@@ -171,6 +178,33 @@ Route::middleware(['auth', 'verified', 'role:admin'])
             ->where('subscriber', '[0-9]{1,18}')
             ->middleware('throttle:30,1')
             ->name('reveal');
+    });
+
+// Paid consultation admin
+Route::middleware(['auth', 'verified', 'role:admin'])
+    ->prefix('admin/consultations')
+    ->name('admin.consultations.')
+    ->group(function () {
+        Route::get('/bookings', [ConsultationBookingController::class, 'index'])->name('bookings.index');
+        Route::get('/bookings/{booking}', [ConsultationBookingController::class, 'show'])->name('bookings.show');
+        Route::post('/bookings/{booking}/approve', [ConsultationBookingController::class, 'approve'])->name('bookings.approve');
+        Route::post('/bookings/{booking}/decline', [ConsultationBookingController::class, 'decline'])->name('bookings.decline');
+        Route::post('/bookings/{booking}/propose-reschedule', [ConsultationBookingController::class, 'proposeReschedule'])->name('bookings.propose-reschedule');
+        Route::post('/bookings/{booking}/approve-cancel', [ConsultationBookingController::class, 'approveCancel'])->name('bookings.approve-cancel');
+        Route::post('/bookings/{booking}/deny-cancel', [ConsultationBookingController::class, 'denyCancel'])->name('bookings.deny-cancel');
+        Route::post('/bookings/{booking}/deny-reschedule', [ConsultationBookingController::class, 'denyReschedule'])->name('bookings.deny-reschedule');
+
+        Route::get('/availability', [ConsultationAvailabilityController::class, 'edit'])->name('availability.edit');
+        Route::put('/availability', [ConsultationAvailabilityController::class, 'update'])->name('availability.update');
+
+        Route::get('/coupons', [ConsultationCouponController::class, 'index'])->name('coupons.index');
+        Route::post('/coupons', [ConsultationCouponController::class, 'store'])->name('coupons.store');
+        Route::put('/coupons/{coupon}', [ConsultationCouponController::class, 'update'])->name('coupons.update');
+        Route::delete('/coupons/{coupon}', [ConsultationCouponController::class, 'destroy'])->name('coupons.destroy');
+
+        Route::get('/google/redirect', [ConsultationGoogleOAuthController::class, 'redirect'])->name('google.redirect');
+        Route::get('/google/callback', [ConsultationGoogleOAuthController::class, 'callback'])->name('google.callback');
+        Route::post('/google/disconnect', [ConsultationGoogleOAuthController::class, 'disconnect'])->name('google.disconnect');
     });
 
 // Shared by the click-recording routes below: a raw 'src' value (query or
@@ -397,9 +431,38 @@ Route::get('/services/vibe-code-migration', function () {
     return Inertia::render('Services/VibeCodeMigration');
 })->name('services.vibe-code-migration');
 
-Route::get('/book', function () {
-    return Inertia::render('Book');
-})->name('book');
+Route::get('/book', [BookController::class, 'show'])->name('book');
+Route::get('/book/availability', [BookController::class, 'availability'])
+    ->middleware('throttle:60,1')
+    ->name('book.availability');
+Route::post('/book/coupon', [BookController::class, 'validateCoupon'])
+    ->middleware('throttle:30,1')
+    ->name('book.coupon');
+Route::post('/book', [BookController::class, 'store'])
+    ->middleware('throttle:10,1')
+    ->name('book.store');
+
+Route::get('/book/b/{publicId}', [BookingAccessController::class, 'show'])
+    ->where('publicId', '[0-9a-z]{20,32}')
+    ->name('book.status');
+Route::post('/book/b/{publicId}/pay', [BookingAccessController::class, 'pay'])
+    ->where('publicId', '[0-9a-z]{20,32}')
+    ->middleware('throttle:20,1')
+    ->name('book.pay');
+Route::post('/book/b/{publicId}/cancel', [BookingAccessController::class, 'requestCancel'])
+    ->where('publicId', '[0-9a-z]{20,32}')
+    ->middleware('throttle:10,1')
+    ->name('book.cancel');
+Route::post('/book/b/{publicId}/reschedule', [BookingAccessController::class, 'requestReschedule'])
+    ->where('publicId', '[0-9a-z]{20,32}')
+    ->middleware('throttle:10,1')
+    ->name('book.reschedule');
+Route::post('/book/b/{publicId}/pick-proposed', [BookingAccessController::class, 'pickProposed'])
+    ->where('publicId', '[0-9a-z]{20,32}')
+    ->middleware('throttle:10,1')
+    ->name('book.pick-proposed');
+
+Route::post('/stripe/webhook', StripeWebhookController::class)->name('stripe.webhook');
 
 Route::get('/contact', function () {
     return Inertia::render('Contact');

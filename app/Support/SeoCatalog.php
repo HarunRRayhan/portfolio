@@ -115,7 +115,7 @@ final class SeoCatalog
 
         $pages['/book'] = new SeoMeta(
             title: 'Book a Consultation | Cloud & DevOps Expert - Harun R. Rayhan',
-            description: 'Book a 30-minute consultation to discuss cloud architecture, DevOps, or infrastructure automation. Powered by Google Calendar appointment schedules.',
+            description: 'Book a paid DevOps consultation (Light, Pro, or Max). Request a slot, get approval, then pay with Stripe. Synced with Google Calendar.',
             canonicalUrl: $siteUrl.'/book',
         );
 

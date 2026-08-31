@@ -1,7 +1,9 @@
 <?php
 
+use App\Services\Consultation\BookingWorkflowService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -24,3 +26,11 @@ Artisan::command('seo:ping-sitemap {--url= : Sitemap URL to ping}', function () 
     $this->line('- https://www.bing.com/webmasters/sitemaps');
     $this->line("- robots.txt already lists {$sitemapUrl}");
 })->purpose('Remind GSC and Bing Webmaster sitemap resubmit steps');
+
+Artisan::command('consultations:expire', function (BookingWorkflowService $workflow) {
+    $holds = $workflow->expireStaleHolds();
+    $unpaid = $workflow->expireUnpaidPastDeadline();
+    $this->info("Expired {$holds} holds and {$unpaid} unpaid bookings.");
+})->purpose('Expire stale consultation holds and unpaid payment deadlines');
+
+Schedule::command('consultations:expire')->everyFiveMinutes();

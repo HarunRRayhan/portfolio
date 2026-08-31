@@ -49,7 +49,7 @@ final class SiteCatalog
             ['Contact', '/contact', 'Start a project or ask a question.'],
             ['Bio', '/bio', 'Short bio and links.'],
             ['Bio (Bangla)', '/hrr', 'Bangla bio and links.'],
-            ['Book a Call', '/book', 'Schedule a consulting call.'],
+            ['Book a Call', '/book', 'Book a paid DevOps consultation.'],
             ['Products', '/products', 'Tools and products I build, including Crontinel.'],
             ['Case Studies', '/case-studies', 'Index of client engagements and their outcomes.'],
             ['Services', '/services', 'Index of all consulting services.'],

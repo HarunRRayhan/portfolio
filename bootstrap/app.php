@@ -1,8 +1,12 @@
 <?php
 
+use App\Http\Middleware\CheckRole;
+use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\RedirectTrailingSlash;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -33,22 +37,23 @@ return Application::configure(basePath: dirname(__DIR__))
         // Runs before session/CSRF so trailing-slash URLs are normalized to
         // their canonical (slash-free) form with a 301 before any real work.
         $middleware->web(prepend: [
-            \App\Http\Middleware\RedirectTrailingSlash::class,
+            RedirectTrailingSlash::class,
         ]);
 
         $middleware->web(append: [
-            \App\Http\Middleware\HandleInertiaRequests::class,
-            \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
+            HandleInertiaRequests::class,
+            AddLinkHeadersForPreloadedAssets::class,
         ]);
 
         $middleware->alias([
-            'role' => \App\Http\Middleware\CheckRole::class,
+            'role' => CheckRole::class,
         ]);
 
         // These endpoints are called without a CSRF token (client-side beacons).
         $middleware->validateCsrfTokens(except: [
             'blog/*/view',
             'bio/click',
+            'stripe/webhook',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
