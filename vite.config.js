@@ -13,7 +13,12 @@ const publicUrl = publicOrigin ? new URL(publicOrigin) : null;
 
 export default defineConfig({
     define: {
-        'import.meta.env.VITE_ASSET_BASE_URL': JSON.stringify(process.env.VITE_ASSET_BASE_URL),
+        // Default media CDN for production builds when the env var is unset
+        // (common when GitHub Actions repo vars are empty). Keep ASSET_URL off
+        // Railway so /build JS stays same-origin.
+        'import.meta.env.VITE_ASSET_BASE_URL': JSON.stringify(
+            process.env.VITE_ASSET_BASE_URL || 'https://cdn.harun.dev',
+        ),
     },
     plugins: [
         laravel({
@@ -23,6 +28,23 @@ export default defineConfig({
         }),
         react(),
     ],
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (id.includes('node_modules/framer-motion')) {
+                        return 'framer-motion'
+                    }
+                    if (id.includes('node_modules/highlight.js')) {
+                        return 'highlight'
+                    }
+                    if (id.includes('node_modules/recharts')) {
+                        return 'recharts'
+                    }
+                },
+            },
+        },
+    },
     server: publicUrl ? {
         origin: publicOrigin,
         // Must be set explicitly. laravel-vite-plugin falls back to

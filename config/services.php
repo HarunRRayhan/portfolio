@@ -52,7 +52,12 @@ return [
     ],
 
     'assets' => [
-        'base_url' => env('VITE_ASSET_BASE_URL', env('ASSET_URL')),
+        // Media CDN only. Keep ASSET_URL empty on Railway so /build JS/CSS stay same-origin
+        // (GHA and Railway Vite hashes diverge). Prefer CDN_ASSET_URL.
+        'base_url' => env('CDN_ASSET_URL')
+            ?: env('VITE_ASSET_BASE_URL')
+            ?: env('ASSET_URL')
+            ?: (env('APP_ENV') === 'production' ? 'https://cdn.harun.dev' : ''),
     ],
 
 ];

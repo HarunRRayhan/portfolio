@@ -38,7 +38,7 @@ tags:
 <p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/f185a3cd-3c01-45c1-bcdf-f730d19f4ee1.png" alt class="image--center mx-auto" /></p>
 </li>
 <li><p>Now, go to EC2 Console, and click on the <strong>Key Pairs</strong> button under Network &amp; Security:</p>
-<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/0afbea3f-8b48-4d7f-9c8e-9f0711b7f250.png" alt class="image--center mx-auto" /></p>
+<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/0afbea3f-8b48-4d7f-9c8e-9f0711b7f250.jpg" alt class="image--center mx-auto" /></p>
 </li>
 <li><p>Click on <strong>Create key pairs</strong> from the top-right corner:</p>
 <p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/fa05c0e6-aa34-4d0a-8334-f80d01f8485f.png" alt class="image--center mx-auto" /></p>
@@ -56,24 +56,24 @@ tags:
 <p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/c66b8705-addd-4f4d-8262-b122293bd813.png" alt class="image--center mx-auto" /></p>
 </li>
 <li><p>Now you are on the Lunch instance page:</p>
-<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/f3f5d1c6-86cc-43b2-b200-1787d5779190.png" alt class="image--center mx-auto" /></p>
+<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/f3f5d1c6-86cc-43b2-b200-1787d5779190.jpg" alt class="image--center mx-auto" /></p>
 <p> A. Give your instance a name<br /> B. Select Ubuntu<br /> C. Select "Ubuntu Server 22.04 LTS" AMI</p>
 </li>
 <li><p>In the next section:</p>
-<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/aaa75dbd-6169-4f63-a88d-7503c3fb1095.png" alt class="image--center mx-auto" /></p>
+<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/aaa75dbd-6169-4f63-a88d-7503c3fb1095.jpg" alt class="image--center mx-auto" /></p>
 <p> D. Select the instance type; I selected a free-tier eligible "t2.micro".<br /> E. Select the key pairs you selected previously.</p>
 </li>
 <li><p>Select all of these three checkboxes:</p>
-<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/cf9d94dd-b3d3-4351-9be2-0ed7eb0ea287.png" alt class="image--center mx-auto" /></p>
+<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/cf9d94dd-b3d3-4351-9be2-0ed7eb0ea287.jpg" alt class="image--center mx-auto" /></p>
 </li>
 <li><p>Keep everything else as it is and click on the <strong>Lunch instance</strong> button from the right sidebar's summary widget:</p>
 <p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/61648364-cbc7-4928-b757-0b95c2d1d6a2.png" alt class="image--center mx-auto" /></p>
 </li>
 <li><p>And then click the <strong>View all instances</strong> button:</p>
-<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/c408bc78-4f45-45c5-9604-a6d556219b75.png" alt class="image--center mx-auto" /></p>
+<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/c408bc78-4f45-45c5-9604-a6d556219b75.jpg" alt class="image--center mx-auto" /></p>
 </li>
 <li><p>Wait until <strong>Status checks</strong> turn <strong>2/2 checks passed</strong> and copy <code>public_ip</code> in a safe place:</p>
-<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/80863972-9bf7-48d0-b371-57b096cc10e0.png" alt class="image--center mx-auto" /></p>
+<p> <img src="/blog-assets/deploy-laravel-application-to-amazon-ec2-instance/80863972-9bf7-48d0-b371-57b096cc10e0.jpg" alt class="image--center mx-auto" /></p>
 </li>
 </ol>
 <h2 id="heading-connect-to-the-instance-via-ssh">Connect to the instance via SSH</h2>

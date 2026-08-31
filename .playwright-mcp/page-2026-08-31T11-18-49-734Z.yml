@@ -1,0 +1,181 @@
+- generic [active] [ref=e1]:
+  - text: "Deprecated: Constant PDO::MYSQL_ATTR_SSL_CA is deprecated since 8.5, use Pdo\\Mysql::ATTR_SSL_CA instead in /Users/rayhan/.herdr/worktrees/haruns-portfolio/paid-consultation/config/database.php on line 61 Deprecated: Constant PDO::MYSQL_ATTR_SSL_CA is deprecated since 8.5, use Pdo\\Mysql::ATTR_SSL_CA instead in /Users/rayhan/.herdr/worktrees/haruns-portfolio/paid-consultation/config/database.php on line 81"
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - generic [ref=e5]: Internal Server Error
+      - button "Copy as Markdown" [ref=e11] [cursor=pointer]
+    - generic [ref=e18]:
+      - generic [ref=e19]:
+        - heading "Illuminate\\Database\\QueryException" [level=1] [ref=e20]
+        - generic [ref=e21]: vendor/laravel/framework/src/Illuminate/Database/Connection.php:841
+        - paragraph [ref=e23]: "SQLSTATE[HY000] [14] unable to open database file (Connection: sqlite, Database: , SQL: select * from \"cache\" where \"key\" in (harun_r_rayhan_cache_case_studies.repository.payload.2160cdc78c99e40013ab8d75b318bb4a))"
+      - generic [ref=e24]:
+        - generic [ref=e25]:
+          - generic [ref=e26]:
+            - generic [ref=e27]: LARAVEL
+            - generic [ref=e28]: 13.11.2
+          - generic [ref=e29]:
+            - generic [ref=e30]: PHP
+            - generic [ref=e31]: 8.5.9
+        - generic [ref=e32]: UNHANDLED
+        - generic [ref=e36]: CODE 14
+      - generic [ref=e38]:
+        - generic [ref=e39]: "500"
+        - generic [ref=e43]: GET
+        - generic [ref=e47]: http://127.0.0.1:8321/book
+        - button [ref=e48] [cursor=pointer]
+    - generic [ref=e53]:
+      - generic [ref=e54]:
+        - generic [ref=e55]:
+          - heading "Exception trace" [level=3] [ref=e60]
+          - link "1 previous exception" [ref=e61] [cursor=pointer]:
+            - /url: "#previous-exceptions"
+        - generic [ref=e62]:
+          - generic [ref=e64] [cursor=pointer]:
+            - generic [ref=e69]: 11 vendor frames
+            - button [ref=e70]
+          - generic [ref=e75]:
+            - generic [ref=e76] [cursor=pointer]:
+              - generic [ref=e79]:
+                - code [ref=e83]:
+                  - generic [ref=e84]: Illuminate\Support\Facades\Facade::__callStatic(string, array)
+                - generic [ref=e85]: app/Support/CaseStudyRepository.php:244
+              - button [ref=e88]
+            - code [ref=e97]:
+              - generic [ref=e98]: "239 {"
+              - generic [ref=e99]: "240 if ($this->studies !== null) {"
+              - generic [ref=e100]: 241 return $this->studies;
+              - generic [ref=e101]: "242 }"
+              - generic [ref=e102]: "243"
+              - generic [ref=e103]: "244 $this->studies = Cache::remember(self::cacheKey(), now()->addMinutes(self::CACHE_TTL_MINUTES), function (): array {"
+              - generic [ref=e104]: "245 $paths = glob(resource_path(self::CONTENT_DIR.'/[!_.]*.md')) ?: [];"
+              - generic [ref=e105]: "246"
+              - generic [ref=e106]: "247 if ($paths === []) {"
+              - generic [ref=e107]: 248 return [];
+              - generic [ref=e108]: "249 }"
+              - generic [ref=e109]: "250"
+              - generic [ref=e110]: 251 return collect($paths)
+              - generic [ref=e111]: 252 ->map(fn (string $path) => $this->parseFile($path))
+              - generic [ref=e112]: 253 ->sortByDesc(fn (array $study) => Carbon::parse($study['publishedAt'])->timestamp)
+              - generic [ref=e113]: 254 ->values()
+              - generic [ref=e114]: 255 ->all();
+              - generic [ref=e115]: "256"
+          - generic [ref=e117] [cursor=pointer]:
+            - generic [ref=e120]:
+              - code [ref=e124]:
+                - generic [ref=e125]: App\Support\CaseStudyRepository->load()
+              - generic [ref=e126]: app/Support/CaseStudyRepository.php:39
+            - button [ref=e129]
+          - generic [ref=e135] [cursor=pointer]:
+            - generic [ref=e138]:
+              - code [ref=e142]:
+                - generic [ref=e143]: App\Support\CaseStudyRepository->studies()
+              - generic [ref=e144]: app/Support/CaseStudyRepository.php:47
+            - button [ref=e147]
+          - generic [ref=e153] [cursor=pointer]:
+            - generic [ref=e156]:
+              - code [ref=e160]:
+                - generic [ref=e161]: App\Support\CaseStudyRepository->indexStudies()
+              - generic [ref=e162]: app/Support/CaseStudyRepository.php:95
+            - button [ref=e165]
+          - generic [ref=e171] [cursor=pointer]:
+            - generic [ref=e174]:
+              - code [ref=e178]:
+                - generic [ref=e179]: App\Support\CaseStudyRepository->groupedByServiceSlug()
+              - generic [ref=e180]: app/Http/Middleware/HandleInertiaRequests.php:35
+            - button [ref=e183]
+          - generic [ref=e189] [cursor=pointer]:
+            - generic [ref=e194]: 15 vendor frames
+            - button [ref=e195]
+          - generic [ref=e201] [cursor=pointer]:
+            - generic [ref=e204]:
+              - code [ref=e208]:
+                - generic [ref=e209]: "Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(object(Illuminate\\Http\\Request))"
+              - generic [ref=e210]: app/Http/Middleware/RedirectTrailingSlash.php:55
+            - button [ref=e213]
+          - generic [ref=e219] [cursor=pointer]:
+            - generic [ref=e224]: 32 vendor frames
+            - button [ref=e225]
+          - generic [ref=e231] [cursor=pointer]:
+            - generic [ref=e234]:
+              - code [ref=e238]:
+                - generic [ref=e239]: Illuminate\Foundation\Application->handleRequest(object(Illuminate\Http\Request))
+              - generic [ref=e240]: public/index.php:17
+            - button [ref=e243]
+          - generic [ref=e249] [cursor=pointer]:
+            - generic [ref=e254]: 1 vendor frame
+            - button [ref=e255]
+      - generic [ref=e260]:
+        - heading "Previous exception" [level=3] [ref=e266]
+        - generic [ref=e270] [cursor=pointer]:
+          - generic [ref=e271]:
+            - heading "PDOException" [level=4] [ref=e272]
+            - paragraph [ref=e273]: SQLSTATE[HY000] [14] unable to open database file
+          - button [ref=e274]
+      - generic [ref=e279]:
+        - heading "Queries" [level=3] [ref=e285]
+        - generic [ref=e286]: // No queries executed
+    - generic [ref=e289]:
+      - generic [ref=e290]:
+        - heading "Headers" [level=2] [ref=e291]
+        - generic [ref=e292]:
+          - generic [ref=e293]:
+            - generic [ref=e294]: host
+            - generic [ref=e296]: 127.0.0.1:8321
+          - generic [ref=e297]:
+            - generic [ref=e298]: connection
+            - generic [ref=e300]: keep-alive
+          - generic [ref=e301]:
+            - generic [ref=e302]: sec-ch-ua
+            - generic [ref=e304]: "\"Chromium\";v=\"152\", \"Not?A_Brand\";v=\"24\", \"Google Chrome\";v=\"152\""
+          - generic [ref=e305]:
+            - generic [ref=e306]: sec-ch-ua-mobile
+            - generic [ref=e308]: "?0"
+          - generic [ref=e309]:
+            - generic [ref=e310]: sec-ch-ua-platform
+            - generic [ref=e312]: "\"macOS\""
+          - generic [ref=e313]:
+            - generic [ref=e314]: upgrade-insecure-requests
+            - generic [ref=e316]: "1"
+          - generic [ref=e317]:
+            - generic [ref=e318]: user-agent
+            - generic [ref=e320]: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36
+          - generic [ref=e321]:
+            - generic [ref=e322]: accept
+            - generic [ref=e324]: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+          - generic [ref=e325]:
+            - generic [ref=e326]: sec-fetch-site
+            - generic [ref=e328]: none
+          - generic [ref=e329]:
+            - generic [ref=e330]: sec-fetch-mode
+            - generic [ref=e332]: navigate
+          - generic [ref=e333]:
+            - generic [ref=e334]: sec-fetch-user
+            - generic [ref=e336]: "?1"
+          - generic [ref=e337]:
+            - generic [ref=e338]: sec-fetch-dest
+            - generic [ref=e340]: document
+          - generic [ref=e341]:
+            - generic [ref=e342]: accept-encoding
+            - generic [ref=e344]: gzip, deflate, br, zstd
+          - generic [ref=e345]:
+            - generic [ref=e346]: accept-language
+            - generic [ref=e348]: en-US,en;q=0.9
+      - generic [ref=e349]:
+        - heading "Body" [level=2] [ref=e350]
+        - generic [ref=e351]: // No request body
+      - generic [ref=e352]:
+        - heading "Routing" [level=2] [ref=e353]
+        - generic [ref=e354]:
+          - generic [ref=e355]:
+            - generic [ref=e356]: controller
+            - generic [ref=e358]: App\Http\Controllers\Consultation\BookController@show
+          - generic [ref=e359]:
+            - generic [ref=e360]: route name
+            - generic [ref=e362]: book
+          - generic [ref=e363]:
+            - generic [ref=e364]: middleware
+            - generic [ref=e366]: web
+      - generic [ref=e367]:
+        - heading "Routing parameters" [level=2] [ref=e368]
+        - generic [ref=e369]: // No routing parameters

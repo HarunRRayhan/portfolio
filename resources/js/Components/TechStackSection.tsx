@@ -65,6 +65,10 @@ export function TechStackSection() {
                                 <img
                                     src={tech.logo}
                                     alt={tech.name}
+                                    width={32}
+                                    height={32}
+                                    loading="lazy"
+                                    decoding="async"
                                     className="h-8 w-8 object-contain"
                                 />
                                 <span className="text-sm font-medium text-slate-300">{tech.name}</span>

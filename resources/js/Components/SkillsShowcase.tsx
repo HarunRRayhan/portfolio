@@ -90,8 +90,12 @@ const skills: Skill[] = [
 const FireIcon = () => (
   <div className="w-6 h-6 relative group-hover:scale-125 transition-transform duration-300">
     <img
-      src={getImageUrl("/images/icons/fire.gif")}
+      src={getImageUrl("/images/icons/fire-sm.webp")}
       alt="Hot skill indicator"
+      width={24}
+      height={24}
+      loading="lazy"
+      decoding="async"
       className="w-full h-full object-contain"
     />
   </div>

@@ -44,14 +44,7 @@ final class SeoCatalog
 
     public static function assetUrl(string $path): string
     {
-        $path = '/'.ltrim($path, '/');
-        $cdn = rtrim((string) config('services.assets.base_url', ''), '/');
-
-        if ($cdn !== '') {
-            return $cdn.$path;
-        }
-
-        return SiteCatalog::siteUrl().$path;
+        return Cdn::url($path);
     }
 
     public static function defaultOgImage(): string

@@ -11,7 +11,7 @@ class CaseStudyRepository
 {
     private const CONTENT_DIR = 'case-studies';
 
-    private const CACHE_KEY = 'case_studies.repository.payload';
+    private const CACHE_KEY = 'case_studies.repository.payload.cdn1';
 
     private const CACHE_TTL_MINUTES = 15;
 
@@ -301,7 +301,7 @@ class CaseStudyRepository
             'coverImageUrl' => $meta['coverImageUrl'] ?? '/case-studies-assets/'.$slug.'/cover.jpg',
             'serviceSlugs' => CaseStudyServiceMap::slugsForLabels($serviceLabels),
             'content' => [
-                'html' => $body,
+                'html' => Cdn::rewriteHtml($body),
                 'text' => $text,
             ],
         ]);
@@ -309,13 +309,8 @@ class CaseStudyRepository
 
     /**
      * Locally-hosted covers are stored in frontmatter as root-relative paths
-     * (e.g. /case-studies-assets/{slug}/cover.jpg). The browser resolves those
-     * against the bare hostname, so they 404 whenever the app is mounted under
-     * a path prefix rather than at the domain root (the tailscale worktree dev
-     * proxy serves each checkout from https://<host>/<slug>-harun.dev). Running
-     * them through asset() pins them to the app's own root instead. Older case
-     * studies may store full absolute URLs; those are already resolvable and
-     * pass through untouched.
+     * (e.g. /case-studies-assets/{slug}/cover.jpg). Prefer the media CDN in
+     * production. Absolute URLs pass through untouched.
      */
     private function resolveCoverImageUrl(mixed $url): ?string
     {
@@ -334,7 +329,7 @@ class CaseStudyRepository
             return $url;
         }
 
-        return asset($url);
+        return Cdn::url($url);
     }
 
     private function contentText(string $html): string
