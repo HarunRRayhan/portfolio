@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\ShortLink;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Symfony\Component\Yaml\Yaml;
 
@@ -57,10 +58,16 @@ class BlogRepository
      */
     public function indexPosts(): array
     {
-        return collect($this->posts())
+        $posts = collect($this->posts())
             ->reject(fn (array $post) => (bool) ($post['draft'] ?? false))
-            ->map(fn (array $post) => $this->summarizePost($post))
-            ->values()
+            ->values();
+
+        $viewCounts = $this->viewCountsBySlug(
+            $posts->pluck('slug')->filter()->values()->all()
+        );
+
+        return $posts
+            ->map(fn (array $post) => $this->summarizePost($post, $viewCounts[$post['slug']] ?? 0))
             ->all();
     }
 
@@ -108,10 +115,8 @@ class BlogRepository
     /**
      * @return array<string, mixed>
      */
-    public function summarizePost(array $post): array
+    public function summarizePost(array $post, ?int $viewCount = null): array
     {
-        $contentHtml = $post['content']['html'] ?? '';
-
         return [
             'title' => $post['title'],
             'slug' => $post['slug'],
@@ -126,9 +131,9 @@ class BlogRepository
             'replyCount' => $post['replyCount'],
             'coverImageUrl' => $this->resolveCoverImageUrl($post['coverImageUrl'] ?? null),
             'coverImageAlt' => $post['coverImageAlt'] ?? $post['title'],
-            'viewCount' => Cache::remember("post.views.{$post['slug']}", 3600, function () use ($post) {
+            'viewCount' => $viewCount ?? Cache::remember("post.views.{$post['slug']}", 3600, function () use ($post) {
                 try {
-                    $row = \Illuminate\Support\Facades\DB::table('blog_post_views')
+                    $row = DB::table('blog_post_views')
                         ->where('slug', $post['slug'])
                         ->first(['count']);
 
@@ -150,7 +155,6 @@ class BlogRepository
             'canonicalUrl' => $this->absoluteUrl($post['slug']),
             'shareUrl' => $this->shareUrl($post),
             'sourceUrl' => $post['sourceUrl'] ?? $this->sourceUrl($post['slug']),
-            'contentText' => $this->contentText($contentHtml),
         ];
     }
 
@@ -342,6 +346,42 @@ class BlogRepository
         }
 
         return asset($url);
+    }
+
+    /**
+     * Load view counts for many posts in one query (blog index), and warm the
+     * per-slug cache used by individual post pages.
+     *
+     * @param  list<string>  $slugs
+     * @return array<string, int>
+     */
+    private function viewCountsBySlug(array $slugs): array
+    {
+        $slugs = array_values(array_unique(array_filter($slugs, fn ($slug) => is_string($slug) && $slug !== '')));
+
+        if ($slugs === []) {
+            return [];
+        }
+
+        $counts = array_fill_keys($slugs, 0);
+
+        try {
+            $rows = DB::table('blog_post_views')
+                ->whereIn('slug', $slugs)
+                ->get(['slug', 'count']);
+        } catch (\Throwable) {
+            return $counts;
+        }
+
+        foreach ($rows as $row) {
+            $counts[$row->slug] = (int) $row->count;
+        }
+
+        foreach ($counts as $slug => $count) {
+            Cache::put("post.views.{$slug}", $count, 3600);
+        }
+
+        return $counts;
     }
 
     private function contentText(string $html): string

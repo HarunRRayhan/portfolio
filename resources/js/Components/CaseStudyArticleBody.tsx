@@ -1,6 +1,4 @@
 import { useEffect, useRef } from 'react'
-import hljs from 'highlight.js/lib/common'
-import 'highlight.js/styles/github-dark.css'
 
 function getCodeLanguage(code: HTMLElement): string {
   if (code.dataset.language) {
@@ -17,8 +15,17 @@ function getCodeLanguage(code: HTMLElement): string {
   return match[1].replace(/-/g, ' ')
 }
 
-function enhanceCodeBlocks(root: HTMLElement) {
+async function enhanceCodeBlocks(root: HTMLElement) {
   const blocks = Array.from(root.querySelectorAll('pre'))
+
+  if (blocks.length === 0) {
+    return
+  }
+
+  const [{ default: hljs }] = await Promise.all([
+    import('highlight.js/lib/common'),
+    import('highlight.js/styles/github-dark.css'),
+  ])
 
   blocks.forEach((pre) => {
     if (pre.dataset.enhanced === 'true') {
@@ -80,7 +87,7 @@ export function CaseStudyArticleBody({ html, slug, className }: Props) {
       return
     }
 
-    enhanceCodeBlocks(ref.current)
+    void enhanceCodeBlocks(ref.current)
   }, [html, slug])
 
   return (

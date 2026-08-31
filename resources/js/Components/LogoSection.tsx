@@ -52,6 +52,10 @@ export function LogoSection() {
                                 <img
                                     src={company.logo}
                                     alt={company.name}
+                                    width={140}
+                                    height={36}
+                                    loading="lazy"
+                                    decoding="async"
                                     className="max-h-9 w-auto object-contain grayscale opacity-60 transition duration-300 hover:opacity-100 hover:grayscale-0"
                                 />
                             </div>
