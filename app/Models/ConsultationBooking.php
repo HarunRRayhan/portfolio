@@ -25,6 +25,8 @@ class ConsultationBooking extends Model
 
     public const STATUS_RESCHEDULE_REQUESTED = 'reschedule_requested';
 
+    public const STATUS_PAID_RESCHEDULE_PENDING_APPROVAL = 'paid_reschedule_pending_approval';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     protected $fillable = [
@@ -42,14 +44,23 @@ class ConsultationBooking extends Model
         'amount_due_cents',
         'currency',
         'stripe_checkout_session_id',
+        'stripe_checkout_idempotency_key',
         'stripe_payment_intent_id',
+        'stripe_refund_id',
+        'stripe_refunded_at',
+        'stripe_refund_attempted_at',
+        'stripe_refund_idempotency_key',
         'google_event_id',
         'google_meet_space_name',
         'meet_link',
         'hold_expires_at',
         'payment_due_at',
         'access_token_hash',
+        'access_token_expires_at',
         'proposed_slots',
+        'reschedule_original_starts_at',
+        'reschedule_original_ends_at',
+        'reschedule_hold_event_id',
         'admin_note',
         'decline_block_title',
         'confirmed_at',
@@ -61,6 +72,11 @@ class ConsultationBooking extends Model
         'ends_at' => 'datetime',
         'hold_expires_at' => 'datetime',
         'payment_due_at' => 'datetime',
+        'stripe_refunded_at' => 'datetime',
+        'stripe_refund_attempted_at' => 'datetime',
+        'access_token_expires_at' => 'datetime',
+        'reschedule_original_starts_at' => 'datetime',
+        'reschedule_original_ends_at' => 'datetime',
         'confirmed_at' => 'datetime',
         'cancelled_at' => 'datetime',
         'proposed_slots' => 'array',
@@ -108,6 +124,7 @@ class ConsultationBooking extends Model
             self::STATUS_PENDING_APPROVAL,
             self::STATUS_AWAITING_PAYMENT,
             self::STATUS_RESCHEDULE_PROPOSED,
+            self::STATUS_PAID_RESCHEDULE_PENDING_APPROVAL,
             self::STATUS_CANCEL_REQUESTED,
             self::STATUS_RESCHEDULE_REQUESTED,
             self::STATUS_CONFIRMED,

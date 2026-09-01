@@ -2,11 +2,14 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class SiteSeoTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
      * @return list<array<string, mixed>>
      */

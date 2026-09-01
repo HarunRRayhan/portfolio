@@ -70,6 +70,7 @@ export default function Book({
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null)
   const [slots, setSlots] = useState<Slot[]>([])
   const [slotsLoading, setSlotsLoading] = useState(false)
+  const [couponLoading, setCouponLoading] = useState(false)
   const [couponMsg, setCouponMsg] = useState<string | null>(null)
   const [discountedCents, setDiscountedCents] = useState<number | null>(null)
 
@@ -116,23 +117,32 @@ export default function Book({
   const applyCoupon = async () => {
     if (!selectedSlug || !form.data.coupon_code.trim()) return
     setCouponMsg(null)
-    const res = await fetch('/book/coupon', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'X-CSRF-TOKEN': csrfToken(),
-      },
-      body: JSON.stringify({ code: form.data.coupon_code, tier: selectedSlug }),
-    })
-    const data = await res.json().catch(() => ({}))
-    if (!res.ok) {
+    setCouponLoading(true)
+
+    try {
+      const res = await fetch('/book/coupon', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': csrfToken(),
+        },
+        body: JSON.stringify({ code: form.data.coupon_code, tier: selectedSlug }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setDiscountedCents(null)
+        setCouponMsg(data.message ?? 'Invalid coupon')
+        return
+      }
+      setDiscountedCents(data.amount_due_cents)
+      setCouponMsg(`${data.percent_off}% off applied`)
+    } catch {
       setDiscountedCents(null)
-      setCouponMsg(data.message ?? 'Invalid coupon')
-      return
+      setCouponMsg('Unable to validate coupon right now')
+    } finally {
+      setCouponLoading(false)
     }
-    setDiscountedCents(data.amount_due_cents)
-    setCouponMsg(`${data.percent_off}% off applied`)
   }
 
   const submit = (e: FormEvent) => {
@@ -333,7 +343,11 @@ export default function Book({
                     <div className="flex gap-2">
                       <input
                         value={form.data.coupon_code}
-                        onChange={(e) => form.setData('coupon_code', e.target.value)}
+                        onChange={(e) => {
+                          form.setData('coupon_code', e.target.value)
+                          setDiscountedCents(null)
+                          setCouponMsg(null)
+                        }}
                         className="min-w-0 flex-1 border border-slate-200 px-3 py-2 uppercase text-slate-900 outline-none ring-slate-400 focus:ring-2"
                         placeholder="CODE"
                       />
@@ -342,7 +356,7 @@ export default function Book({
                         onClick={applyCoupon}
                         className="shrink-0 border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                       >
-                        Apply
+                        {couponLoading ? 'Checking…' : 'Apply'}
                       </button>
                     </div>
                     {couponMsg && <p className="mt-1 text-xs text-slate-600">{couponMsg}</p>}

@@ -17,6 +17,7 @@ class BookPageTest extends TestCase
         $response = $this->get('/book');
 
         $response->assertOk();
+        $response->assertSee('<meta name="csrf-token"', false);
         $response->assertInertia(fn ($page) => $page
             ->component('Book')
             ->has('tiers', 3));

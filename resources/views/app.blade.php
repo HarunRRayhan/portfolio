@@ -3,6 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
 
         @php
             // Built in @php so Blade's @context directive cannot rewrite the JSON keys.
@@ -47,13 +48,14 @@
         @inertiaHead
         @php
             $isDraftBlogPost = ($page['component'] ?? null) === 'Blog/Post' && data_get($page, 'props.post.isDraft');
+            $isBookingStatus = ($page['component'] ?? null) === 'Book/Status';
         @endphp
         @if ($isDraftBlogPost)
             <meta name="robots" content="noindex, nofollow, noarchive">
             <meta name="googlebot" content="noindex, nofollow, noarchive">
         @endif
 
-        @if (config('services.ga4.measurement_id') && ! $isDraftBlogPost)
+        @if (config('services.ga4.measurement_id') && ! $isDraftBlogPost && ! $isBookingStatus)
             <script async src="https://www.googletagmanager.com/gtag/js?id={{ config('services.ga4.measurement_id') }}"></script>
             <script>
                 window.dataLayer = window.dataLayer || [];

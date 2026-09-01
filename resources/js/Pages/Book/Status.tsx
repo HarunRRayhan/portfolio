@@ -41,6 +41,7 @@ const statusLabel: Record<string, string> = {
   confirmed: 'Confirmed',
   declined: 'Declined',
   reschedule_proposed: 'Pick a new time',
+  paid_reschedule_pending_approval: 'New time pending approval',
   expired: 'Expired',
   cancel_requested: 'Cancel requested',
   reschedule_requested: 'Reschedule requested',
@@ -49,12 +50,10 @@ const statusLabel: Record<string, string> = {
 
 export default function Status({
   booking,
-  token,
   flashPaid,
   flashCancelledCheckout,
 }: {
   booking: Booking
-  token: string
   flashPaid?: boolean
   flashCancelledCheckout?: boolean
 }) {
@@ -63,21 +62,21 @@ export default function Status({
   const flash = (page.props.flash ?? null) as { type?: string; message?: string } | null
 
   const pay = () => {
-    router.post(`/book/b/${booking.public_id}/pay`, { token })
+    router.post(`/book/b/${booking.public_id}/pay`)
   }
 
   const cancel = () => {
     if (!confirm('Request cancellation? Harun will review it.')) return
-    router.post(`/book/b/${booking.public_id}/cancel`, { token })
+    router.post(`/book/b/${booking.public_id}/cancel`)
   }
 
   const reschedule = (e: FormEvent) => {
     e.preventDefault()
-    router.post(`/book/b/${booking.public_id}/reschedule`, { token, note })
+    router.post(`/book/b/${booking.public_id}/reschedule`, { note })
   }
 
   const pick = (startsAt: string) => {
-    router.post(`/book/b/${booking.public_id}/pick-proposed`, { token, starts_at: startsAt })
+    router.post(`/book/b/${booking.public_id}/pick-proposed`, { starts_at: startsAt })
   }
 
   return (

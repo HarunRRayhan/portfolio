@@ -14,6 +14,16 @@ return [
 
     'slot_interval_minutes' => 15,
 
+    'availability_horizon_days' => 28,
+
+    'access_token_days' => 90,
+
+    'stripe_checkout_min_minutes' => 31,
+
+    'stripe_webhook_processing_timeout_minutes' => 10,
+
+    'reschedule_hold_hours' => 48,
+
     'default_schedule_timezone' => env('CONSULTATION_SCHEDULE_TIMEZONE', 'UTC'),
 
     'calendar_id' => env('CONSULTATION_GOOGLE_CALENDAR_ID', 'primary'),

@@ -8,6 +8,7 @@ use Google\Client as GoogleClient;
 use Google\Service\Calendar;
 use Google\Service\Calendar\Event;
 use Google\Service\Calendar\EventDateTime;
+use Google\Service\Meet;
 use Google\Service\Oauth2;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -34,9 +35,15 @@ class GoogleCalendarService
         return $client;
     }
 
-    public function authorizationUrl(): string
+    public function authorizationUrl(?string $state = null): string
     {
-        return $this->oauthClient()->createAuthUrl();
+        $client = $this->oauthClient();
+
+        if ($state) {
+            $client->setState($state);
+        }
+
+        return $client->createAuthUrl();
     }
 
     public function handleCallback(string $code): ConsultationGoogleCredential
@@ -124,20 +131,76 @@ class GoogleCalendarService
     }
 
     /**
+     * @param  string|list<string>|null  $excludeEventId
      * @return list<array{start: Carbon, end: Carbon}>
      */
-    public function busyPeriods(Carbon $timeMin, Carbon $timeMax): array
+    public function busyPeriods(Carbon $timeMin, Carbon $timeMax, string|array|null $excludeEventId = null): array
     {
         $calendar = $this->calendar();
 
         if (! $calendar) {
+            if ($this->isConnected()) {
+                throw new \RuntimeException('Google Calendar is temporarily unavailable.');
+            }
+
             return [];
         }
 
         $cred = ConsultationGoogleCredential::current();
         $calendarId = $cred?->calendar_id ?: 'primary';
+        $excludedEventIds = is_array($excludeEventId)
+            ? array_values(array_filter($excludeEventId, 'is_string'))
+            : ($excludeEventId ? [$excludeEventId] : []);
 
         try {
+            if ($excludedEventIds) {
+                $periods = [];
+                $pageToken = null;
+
+                do {
+                    $params = [
+                        'timeMin' => $timeMin->copy()->utc()->toRfc3339String(),
+                        'timeMax' => $timeMax->copy()->utc()->toRfc3339String(),
+                        'singleEvents' => true,
+                        'showDeleted' => false,
+                        'orderBy' => 'startTime',
+                    ];
+                    if ($pageToken) {
+                        $params['pageToken'] = $pageToken;
+                    }
+
+                    $events = $calendar->events->listEvents($calendarId, $params);
+
+                    foreach ($events->getItems() ?? [] as $event) {
+                        if (
+                            in_array($event->getId(), $excludedEventIds, true)
+                            || $event->getStatus() === 'cancelled'
+                            || $event->getTransparency() === 'transparent'
+                        ) {
+                            continue;
+                        }
+
+                        $start = $event->getStart();
+                        $end = $event->getEnd();
+                        $startAt = $start?->getDateTime() ?: $start?->getDate();
+                        $endAt = $end?->getDateTime() ?: $end?->getDate();
+
+                        if (! $startAt || ! $endAt) {
+                            continue;
+                        }
+
+                        $periods[] = [
+                            'start' => Carbon::parse($startAt)->utc(),
+                            'end' => Carbon::parse($endAt)->utc(),
+                        ];
+                    }
+
+                    $pageToken = $events->getNextPageToken();
+                } while ($pageToken);
+
+                return $periods;
+            }
+
             $freebusy = $calendar->freebusy->query(new Calendar\FreeBusyRequest([
                 'timeMin' => $timeMin->copy()->utc()->toRfc3339String(),
                 'timeMax' => $timeMax->copy()->utc()->toRfc3339String(),
@@ -159,13 +222,28 @@ class GoogleCalendarService
         } catch (\Throwable $e) {
             Log::error('Google freebusy failed', ['error' => $e->getMessage()]);
 
-            return [];
+            throw new \RuntimeException('Google Calendar availability could not be checked.', 0, $e);
         }
     }
 
-    public function createHoldEvent(string $summary, Carbon $start, Carbon $end, string $description = ''): ?string
-    {
-        return $this->upsertEvent(null, $summary, $start, $end, $description, transparency: 'opaque', status: 'tentative', withMeet: false);
+    public function createHoldEvent(
+        string $summary,
+        Carbon $start,
+        Carbon $end,
+        string $description = '',
+        ?string $idempotencyKey = null,
+    ): ?string {
+        return $this->upsertEvent(
+            null,
+            $summary,
+            $start,
+            $end,
+            $description,
+            transparency: 'opaque',
+            status: 'tentative',
+            withMeet: false,
+            idempotencyKey: $idempotencyKey,
+        );
     }
 
     public function createConfirmedEvent(
@@ -175,8 +253,20 @@ class GoogleCalendarService
         string $description,
         string $attendeeEmail,
         bool $withMeet = true,
+        ?string $idempotencyKey = null,
     ): ?array {
-        $eventId = $this->upsertEvent(null, $summary, $start, $end, $description, 'opaque', 'confirmed', $withMeet, $attendeeEmail);
+        $eventId = $this->upsertEvent(
+            null,
+            $summary,
+            $start,
+            $end,
+            $description,
+            'opaque',
+            'confirmed',
+            $withMeet,
+            $attendeeEmail,
+            $idempotencyKey,
+        );
 
         if (! $eventId) {
             return null;
@@ -218,16 +308,16 @@ class GoogleCalendarService
         return $this->upsertEvent($eventId, $summary, $start, $end, $description, 'opaque', $status, $withMeet, $attendeeEmail);
     }
 
-    public function deleteEvent(?string $eventId): void
+    public function deleteEvent(?string $eventId): bool
     {
         if (! $eventId) {
-            return;
+            return true;
         }
 
         $calendar = $this->calendar();
 
         if (! $calendar) {
-            return;
+            return ! $this->isConnected();
         }
 
         $cred = ConsultationGoogleCredential::current();
@@ -235,32 +325,40 @@ class GoogleCalendarService
 
         try {
             $calendar->events->delete($calendarId, $eventId);
+
+            return true;
         } catch (\Throwable $e) {
+            if (in_array((int) $e->getCode(), [404, 410], true)) {
+                return true;
+            }
+
             Log::warning('Failed to delete Google event', ['event' => $eventId, 'error' => $e->getMessage()]);
+
+            return false;
         }
     }
 
-    public function enableMeetAutoRecording(?string $meetLink, ?string $conferenceId = null): bool
+    public function enableMeetAutoRecording(?string $meetLink, ?string $conferenceId = null): ?string
     {
         $client = $this->authenticatedClient();
 
         if (! $client || (! $meetLink && ! $conferenceId)) {
-            return false;
+            return null;
         }
 
-        $spaceName = $this->resolveMeetSpaceName($meetLink, $conferenceId);
+        $spaceName = $this->resolveMeetSpaceName($meetLink, $conferenceId, $client);
 
         if (! $spaceName) {
             Log::warning('Could not resolve Meet space for auto-recording');
 
-            return false;
+            return null;
         }
 
         $token = $client->getAccessToken();
         $accessToken = is_array($token) ? ($token['access_token'] ?? null) : null;
 
         if (! $accessToken) {
-            return false;
+            return null;
         }
 
         $response = Http::withToken($accessToken)
@@ -281,29 +379,51 @@ class GoogleCalendarService
                 'body' => $response->body(),
             ]);
 
-            return false;
+            return null;
         }
 
-        return true;
+        return $spaceName;
     }
 
-    protected function resolveMeetSpaceName(?string $meetLink, ?string $conferenceId): ?string
+    protected function resolveMeetSpaceName(?string $meetLink, ?string $conferenceId, ?GoogleClient $client = null): ?string
     {
+        $candidate = null;
+
         if ($conferenceId) {
-            // Conference IDs from Calendar are often the meeting code; Meet spaces use spaces/{id}.
             if (str_starts_with($conferenceId, 'spaces/')) {
-                return $conferenceId;
+                $candidate = $conferenceId;
             }
         }
 
-        if ($meetLink && preg_match('#meet\.google\.com/([a-z0-9\-]+)#i', $meetLink, $m)) {
-            // Look up space by meeting code via Meet API spaces.get? — list is not available by code.
-            // Create/get: spaces are named spaces/{space_id}. For Calendar-created Meet links,
-            // patching via meeting code requires resolving. Use spaces.get with alias.
-            return 'spaces/'.$m[1];
+        if (! $candidate && $meetLink && preg_match('#meet\.google\.com/([a-z0-9\-]+)#i', $meetLink, $m)) {
+            $candidate = 'spaces/'.$m[1];
         }
 
-        return $conferenceId ? 'spaces/'.$conferenceId : null;
+        if (! $candidate && $conferenceId) {
+            $candidate = 'spaces/'.$conferenceId;
+        }
+
+        if (! $candidate) {
+            return null;
+        }
+
+        $client ??= $this->authenticatedClient();
+        if (! $client) {
+            return null;
+        }
+
+        try {
+            $space = (new Meet($client))->spaces->get($candidate);
+
+            return $space->getName() ?: null;
+        } catch (\Throwable $e) {
+            Log::warning('Could not resolve Meet space resource', [
+                'candidate' => $candidate,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
     }
 
     protected function upsertEvent(
@@ -316,6 +436,7 @@ class GoogleCalendarService
         string $status,
         bool $withMeet,
         ?string $attendeeEmail = null,
+        ?string $idempotencyKey = null,
     ): ?string {
         $calendar = $this->calendar();
 
@@ -341,6 +462,14 @@ class GoogleCalendarService
             ]),
         ]);
 
+        $stableEventId = $eventId === null && $idempotencyKey !== null
+            ? $this->stableEventId($idempotencyKey)
+            : null;
+
+        if ($stableEventId) {
+            $event->setId($stableEventId);
+        }
+
         if ($attendeeEmail) {
             $event->setAttendees([
                 new Calendar\EventAttendee(['email' => $attendeeEmail]),
@@ -352,7 +481,9 @@ class GoogleCalendarService
         if ($withMeet && ! $eventId) {
             $event->setConferenceData(new Calendar\ConferenceData([
                 'createRequest' => [
-                    'requestId' => uniqid('meet_', true),
+                    'requestId' => $idempotencyKey
+                        ? 'consultation-meet-'.substr(hash('sha256', $idempotencyKey), 0, 40)
+                        : uniqid('meet_', true),
                     'conferenceSolutionKey' => ['type' => 'hangoutsMeet'],
                 ],
             ]));
@@ -370,9 +501,48 @@ class GoogleCalendarService
 
             return $created->getId();
         } catch (\Throwable $e) {
+            if ($stableEventId && (int) $e->getCode() === 409) {
+                try {
+                    $existing = $calendar->events->get($calendarId, $stableEventId);
+
+                    if (! $this->eventMatches($existing, $summary, $start, $end)) {
+                        Log::error('Google Calendar idempotent event has unexpected contents', [
+                            'event' => $stableEventId,
+                        ]);
+
+                        return null;
+                    }
+
+                    return $existing->getId();
+                } catch (\Throwable $lookupException) {
+                    Log::warning('Google Calendar idempotent event lookup failed', [
+                        'event' => $stableEventId,
+                        'error' => $lookupException->getMessage(),
+                    ]);
+                }
+            }
+
             Log::error('Google Calendar event upsert failed', ['error' => $e->getMessage()]);
 
             return null;
         }
+    }
+
+    protected function stableEventId(string $idempotencyKey): string
+    {
+        // Calendar event IDs use lowercase base32hex characters only.
+        return 'consultation'.substr(hash('sha256', $idempotencyKey), 0, 48);
+    }
+
+    protected function eventMatches(Event $event, string $summary, Carbon $start, Carbon $end): bool
+    {
+        $eventStart = $event->getStart()?->getDateTime();
+        $eventEnd = $event->getEnd()?->getDateTime();
+
+        return $event->getSummary() === $summary
+            && $eventStart !== null
+            && $eventEnd !== null
+            && Carbon::parse($eventStart)->utc()->timestamp === $start->copy()->utc()->timestamp
+            && Carbon::parse($eventEnd)->utc()->timestamp === $end->copy()->utc()->timestamp;
     }
 }

@@ -6,12 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Services\Consultation\GoogleCalendarService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class GoogleOAuthController extends Controller
 {
-    public function redirect(GoogleCalendarService $google): RedirectResponse
+    public function redirect(Request $request, GoogleCalendarService $google): RedirectResponse
     {
-        return redirect()->away($google->authorizationUrl());
+        $state = Str::random(40);
+        $request->session()->put('consultation_google_oauth_state', $state);
+
+        return redirect()->away($google->authorizationUrl($state));
     }
 
     public function callback(Request $request, GoogleCalendarService $google): RedirectResponse
@@ -20,6 +24,16 @@ class GoogleOAuthController extends Controller
             return redirect()->route('admin.consultations.availability.edit')->with('flash', [
                 'type' => 'error',
                 'message' => 'Google connection cancelled.',
+            ]);
+        }
+
+        $expectedState = (string) $request->session()->pull('consultation_google_oauth_state', '');
+        $providedState = $request->string('state')->toString();
+
+        if ($expectedState === '' || $providedState === '' || ! hash_equals($expectedState, $providedState)) {
+            return redirect()->route('admin.consultations.availability.edit')->with('flash', [
+                'type' => 'error',
+                'message' => 'Invalid Google auth state. Please try connecting again.',
             ]);
         }
 
