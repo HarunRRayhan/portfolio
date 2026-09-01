@@ -57,6 +57,8 @@ class BookingController extends Controller
             $workflow->approve($booking, $data['admin_note'] ?? null);
         } catch (\InvalidArgumentException $e) {
             return back()->with('flash', ['type' => 'error', 'message' => $e->getMessage()]);
+        } catch (\RuntimeException) {
+            return back()->with('flash', ['type' => 'error', 'message' => 'Approval could not be completed. Please try again.']);
         }
 
         return back()->with('flash', ['type' => 'success', 'message' => 'Booking approved.']);
@@ -79,6 +81,8 @@ class BookingController extends Controller
             );
         } catch (\InvalidArgumentException $e) {
             return back()->with('flash', ['type' => 'error', 'message' => $e->getMessage()]);
+        } catch (\RuntimeException) {
+            return back()->with('flash', ['type' => 'error', 'message' => 'The decline could not be completed. Please try again.']);
         }
 
         return back()->with('flash', ['type' => 'success', 'message' => 'Booking declined.']);
@@ -108,6 +112,8 @@ class BookingController extends Controller
             $workflow->approveCancel($booking);
         } catch (\InvalidArgumentException $e) {
             return back()->with('flash', ['type' => 'error', 'message' => $e->getMessage()]);
+        } catch (\RuntimeException) {
+            return back()->with('flash', ['type' => 'error', 'message' => 'Cancellation could not be completed. Please try again.']);
         }
 
         return back()->with('flash', ['type' => 'success', 'message' => 'Cancellation approved.']);

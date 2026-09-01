@@ -37,6 +37,7 @@ export default function Index({
     'awaiting_payment',
     'confirmed',
     'reschedule_proposed',
+    'paid_reschedule_pending_approval',
     'cancel_requested',
     'reschedule_requested',
     'declined',

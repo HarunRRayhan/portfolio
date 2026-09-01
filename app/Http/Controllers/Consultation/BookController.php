@@ -7,6 +7,7 @@ use App\Models\ConsultationCoupon;
 use App\Models\ConsultationTier;
 use App\Services\Consultation\AvailabilityService;
 use App\Services\Consultation\BookingWorkflowService;
+use App\Services\Consultation\StripeCheckoutService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -16,13 +17,13 @@ use Inertia\Response;
 
 class BookController extends Controller
 {
-    public function show(): Response
+    public function show(StripeCheckoutService $stripe): Response
     {
         $tiers = ConsultationTier::query()->active()->get()->map->toPublicArray()->values();
 
         return Inertia::render('Book', [
             'tiers' => $tiers,
-            'stripeConfigured' => filled(config('stripe.key')),
+            'stripeConfigured' => $stripe->configured(),
             'minLeadHours' => (int) config('consultation.min_lead_hours', 48),
             'bufferMinutes' => (int) config('consultation.buffer_minutes', 15),
         ]);
@@ -103,6 +104,8 @@ class BookController extends Controller
             );
         } catch (\InvalidArgumentException $e) {
             return back()->withErrors(['starts_at' => $e->getMessage()])->withInput();
+        } catch (\RuntimeException) {
+            return back()->withErrors(['starts_at' => 'That slot is temporarily unavailable. Please try again.'])->withInput();
         }
 
         return redirect()

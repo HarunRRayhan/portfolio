@@ -10,6 +10,7 @@ use App\Services\Consultation\GoogleCalendarService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -39,13 +40,37 @@ class AvailabilityController extends Controller
             'windows' => ['present', 'array'],
             'windows.*.weekday' => ['required', 'integer', 'between:0,6'],
             'windows.*.start_time' => ['required', 'date_format:H:i'],
-            'windows.*.end_time' => ['required', 'date_format:H:i'],
+            'windows.*.end_time' => ['required', 'date_format:H:i', 'after:windows.*.start_time'],
             'windows.*.is_active' => ['sometimes', 'boolean'],
         ]);
 
-        ConsultationSetting::setValue('schedule_timezone', $data['schedule_timezone']);
+        $windowsByWeekday = collect($data['windows'])
+            ->filter(fn (array $window): bool => (bool) ($window['is_active'] ?? true))
+            ->groupBy('weekday');
+
+        foreach ($windowsByWeekday as $windows) {
+            $previousEnd = null;
+
+            foreach ($windows->sortBy('start_time') as $window) {
+                if ($previousEnd !== null && $window['start_time'] < $previousEnd) {
+                    throw ValidationException::withMessages([
+                        'windows' => 'Active availability windows cannot overlap on the same day.',
+                    ]);
+                }
+
+                $previousEnd = max($previousEnd ?? $window['end_time'], $window['end_time']);
+            }
+        }
 
         DB::transaction(function () use ($data) {
+            $setting = ConsultationSetting::query()
+                ->where('key', 'schedule_timezone')
+                ->lockForUpdate()
+                ->firstOrFail();
+            $setting->value = $data['schedule_timezone'];
+            $setting->save();
+            cache()->forget('consultation_setting:schedule_timezone');
+
             ConsultationAvailabilityWindow::query()->delete();
 
             foreach ($data['windows'] as $window) {

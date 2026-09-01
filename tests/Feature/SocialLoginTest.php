@@ -19,7 +19,7 @@ class SocialLoginTest extends TestCase
             'redirect' => 'http://localhost/auth/github/callback',
         ]);
 
-        $response = $this->get('/auth/github?redirect=' . urlencode('http://localhost/blog/example#discussion'));
+        $response = $this->get('/auth/github?redirect='.urlencode('http://localhost/blog/example#discussion'));
 
         $response->assertRedirect();
 
@@ -40,6 +40,7 @@ class SocialLoginTest extends TestCase
 
     public function test_github_callback_creates_or_logs_in_the_user(): void
     {
+        config()->set('app.url', 'http://localhost');
         config()->set('services.github', [
             'client_id' => 'github-client-id',
             'client_secret' => 'github-client-secret',
@@ -67,14 +68,14 @@ class SocialLoginTest extends TestCase
             ]),
         ]);
 
-        $redirectResponse = $this->get('/auth/github?redirect=' . urlencode('http://localhost/blog/example#discussion'));
+        $redirectResponse = $this->get('/auth/github?redirect='.urlencode('http://localhost/blog/example#discussion'));
         $redirectLocation = $redirectResponse->headers->get('Location');
         $this->assertNotFalse($redirectLocation);
 
         $redirectUrl = parse_url($redirectLocation);
         parse_str($redirectUrl['query'] ?? '', $redirectQuery);
 
-        $callbackResponse = $this->get('/auth/github/callback?code=test-code&state=' . ($redirectQuery['state'] ?? ''));
+        $callbackResponse = $this->get('/auth/github/callback?code=test-code&state='.($redirectQuery['state'] ?? ''));
 
         $callbackResponse->assertRedirect('http://localhost/blog/example#discussion');
         $this->assertAuthenticated();

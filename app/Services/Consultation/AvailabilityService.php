@@ -20,11 +20,25 @@ class AvailabilityService
     public function availableSlots(ConsultationTier $tier, ?Carbon $from = null, ?Carbon $to = null, ?int $excludeBookingId = null): array
     {
         $from = ($from ?? now('UTC'))->copy()->utc();
-        $to = ($to ?? now('UTC')->addDays(28))->copy()->utc();
+        $to = ($to ?? now('UTC')->addDays((int) config('consultation.availability_horizon_days', 28)))->copy()->utc();
+
+        if ($to->lte($from)) {
+            return [];
+        }
+
+        $horizonDays = max(1, (int) config('consultation.availability_horizon_days', 28));
+        $horizonEnd = now('UTC')->addDays($horizonDays);
+        if ($to->gt($from->copy()->addDays($horizonDays)) || $to->gt($horizonEnd)) {
+            return [];
+        }
 
         $minStart = now('UTC')->addHours((int) config('consultation.min_lead_hours', 48));
         if ($from->lt($minStart)) {
             $from = $minStart->copy();
+        }
+
+        if ($to->lte($from)) {
+            return [];
         }
 
         $duration = (int) $tier->duration_minutes;
@@ -74,7 +88,7 @@ class AvailabilityService
                         continue;
                     }
 
-                    $slots[] = [
+                    $slots[$slotStart->toIso8601String()] = [
                         'start' => $slotStart->toIso8601String(),
                         'end' => $slotEnd->toIso8601String(),
                     ];
@@ -84,7 +98,7 @@ class AvailabilityService
             $day->addDay();
         }
 
-        return $slots;
+        return array_values($slots);
     }
 
     public function isSlotAvailable(
@@ -102,6 +116,10 @@ class AvailabilityService
         }
 
         if ($endsAt->lte($startsAt)) {
+            return false;
+        }
+
+        if ($endsAt->gt(now('UTC')->addDays(max(1, (int) config('consultation.availability_horizon_days', 28))))) {
             return false;
         }
 
@@ -141,6 +159,7 @@ class AvailabilityService
             ->active()
             ->where('weekday', (int) $localStart->dayOfWeek)
             ->get();
+        $intervalSeconds = max(1, (int) config('consultation.slot_interval_minutes', 15) * 60);
 
         foreach ($windows as $window) {
             $windowStart = Carbon::parse(
@@ -152,7 +171,11 @@ class AvailabilityService
                 $timezone
             );
 
-            if ($localStart->gte($windowStart) && $localEnd->lte($windowEnd)) {
+            if (
+                $localStart->gte($windowStart)
+                && $localEnd->lte($windowEnd)
+                && $windowStart->diffInSeconds($localStart) % $intervalSeconds === 0
+            ) {
                 return true;
             }
         }
@@ -165,19 +188,45 @@ class AvailabilityService
      */
     protected function collectBusyPeriods(Carbon $from, Carbon $to, ?int $excludeBookingId): array
     {
-        $busy = $this->google->busyPeriods($from, $to);
-
-        $holdingStatuses = [
-            ConsultationBooking::STATUS_PENDING_APPROVAL,
-            ConsultationBooking::STATUS_AWAITING_PAYMENT,
-            ConsultationBooking::STATUS_RESCHEDULE_PROPOSED,
-            ConsultationBooking::STATUS_CANCEL_REQUESTED,
-            ConsultationBooking::STATUS_RESCHEDULE_REQUESTED,
-            ConsultationBooking::STATUS_CONFIRMED,
-        ];
+        $excludedGoogleEventIds = $excludeBookingId
+            ? ConsultationBooking::query()
+                ->whereKey($excludeBookingId)
+                ->get(['google_event_id', 'reschedule_hold_event_id'])
+                ->flatMap(fn (ConsultationBooking $booking) => [
+                    $booking->google_event_id,
+                    $booking->reschedule_hold_event_id,
+                ])
+                ->filter()
+                ->values()
+                ->all()
+            : [];
+        $excludedGoogleEventId = count($excludedGoogleEventIds) === 1
+            ? $excludedGoogleEventIds[0]
+            : $excludedGoogleEventIds;
 
         $query = ConsultationBooking::query()
-            ->whereIn('status', $holdingStatuses)
+            ->where(function ($query) {
+                $query->where('status', ConsultationBooking::STATUS_CONFIRMED)
+                    ->orWhere('status', ConsultationBooking::STATUS_CANCEL_REQUESTED)
+                    ->orWhere('status', ConsultationBooking::STATUS_RESCHEDULE_REQUESTED)
+                    ->orWhere(function ($query) {
+                        $query->whereIn('status', [
+                            ConsultationBooking::STATUS_PENDING_APPROVAL,
+                            ConsultationBooking::STATUS_RESCHEDULE_PROPOSED,
+                            ConsultationBooking::STATUS_PAID_RESCHEDULE_PENDING_APPROVAL,
+                        ])->where(function ($query) {
+                            $query->whereNull('hold_expires_at')
+                                ->orWhere('hold_expires_at', '>', now('UTC'));
+                        });
+                    })
+                    ->orWhere(function ($query) {
+                        $query->where('status', ConsultationBooking::STATUS_AWAITING_PAYMENT)
+                            ->where(function ($query) {
+                                $query->whereNull('payment_due_at')
+                                    ->orWhere('payment_due_at', '>', now('UTC'));
+                            });
+                    });
+            })
             ->where('starts_at', '<', $to)
             ->where('ends_at', '>', $from);
 
@@ -185,7 +234,12 @@ class AvailabilityService
             $query->where('id', '!=', $excludeBookingId);
         }
 
-        foreach ($query->get(['starts_at', 'ends_at']) as $booking) {
+        $bookings = $query->get(['id', 'starts_at', 'ends_at', 'google_event_id']);
+        $busy = $excludedGoogleEventIds
+            ? $this->google->busyPeriods($from, $to, $excludedGoogleEventId)
+            : $this->google->busyPeriods($from, $to);
+
+        foreach ($bookings as $booking) {
             $busy[] = [
                 'start' => $booking->starts_at->copy()->utc(),
                 'end' => $booking->ends_at->copy()->utc(),

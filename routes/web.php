@@ -445,6 +445,10 @@ Route::post('/book', [BookController::class, 'store'])
 Route::get('/book/b/{publicId}', [BookingAccessController::class, 'show'])
     ->where('publicId', '[0-9a-z]{20,32}')
     ->name('book.status');
+Route::get('/book/b/{publicId}/stripe-return', [BookingAccessController::class, 'stripeReturn'])
+    ->where('publicId', '[0-9a-z]{20,32}')
+    ->middleware('signed')
+    ->name('book.stripe-return');
 Route::post('/book/b/{publicId}/pay', [BookingAccessController::class, 'pay'])
     ->where('publicId', '[0-9a-z]{20,32}')
     ->middleware('throttle:20,1')

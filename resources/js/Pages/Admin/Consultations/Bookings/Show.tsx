@@ -133,7 +133,9 @@ export default function Show({
               )}
             </div>
 
-            {(booking.status === 'pending_approval' || booking.status === 'reschedule_requested') && (
+            {(booking.status === 'pending_approval' ||
+              booking.status === 'reschedule_requested' ||
+              booking.status === 'paid_reschedule_pending_approval') && (
               <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm space-y-4">
                 <h3 className="font-semibold text-gray-900">Review</h3>
                 <textarea
@@ -143,7 +145,7 @@ export default function Show({
                   className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm"
                   rows={2}
                 />
-                {booking.status === 'pending_approval' && (
+                {(booking.status === 'pending_approval' || booking.status === 'paid_reschedule_pending_approval') && (
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
@@ -157,7 +159,7 @@ export default function Show({
                       onClick={decline}
                       className="rounded-md bg-rose-600 px-4 py-2 text-sm font-medium text-white hover:bg-rose-700"
                     >
-                      Decline
+                      {booking.status === 'paid_reschedule_pending_approval' ? 'Decline new time' : 'Decline'}
                     </button>
                   </div>
                 )}
@@ -182,28 +184,30 @@ export default function Show({
                   </div>
                 )}
 
-                <form onSubmit={propose} className="space-y-3 border-t border-gray-100 pt-4">
-                  <p className="text-sm font-medium text-gray-800">Propose alternate times</p>
-                  <div className="grid max-h-48 gap-1 overflow-y-auto sm:grid-cols-2">
-                    {slots.slice(0, 40).map((s) => (
-                      <label key={s.start} className="flex items-center gap-2 text-xs text-gray-700">
-                        <input
-                          type="checkbox"
-                          checked={selectedPropose.includes(s.start)}
-                          onChange={() => togglePropose(s.start)}
-                        />
-                        {formatLocal(s.start)}
-                      </label>
-                    ))}
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={selectedPropose.length === 0}
-                    className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
-                  >
-                    Send proposed times
-                  </button>
-                </form>
+                {(booking.status === 'pending_approval' || booking.status === 'reschedule_requested') && (
+                  <form onSubmit={propose} className="space-y-3 border-t border-gray-100 pt-4">
+                    <p className="text-sm font-medium text-gray-800">Propose alternate times</p>
+                    <div className="grid max-h-48 gap-1 overflow-y-auto sm:grid-cols-2">
+                      {slots.slice(0, 40).map((s) => (
+                        <label key={s.start} className="flex items-center gap-2 text-xs text-gray-700">
+                          <input
+                            type="checkbox"
+                            checked={selectedPropose.includes(s.start)}
+                            onChange={() => togglePropose(s.start)}
+                          />
+                          {formatLocal(s.start)}
+                        </label>
+                      ))}
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={selectedPropose.length === 0}
+                      className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
+                    >
+                      Send proposed times
+                    </button>
+                  </form>
+                )}
               </div>
             )}
 

@@ -5,6 +5,7 @@ import {
 } from '@/Components/ui/sheet';
 import { Link, usePage } from '@inertiajs/react';
 import { SeoHead } from '@/Components/SeoHead';
+import type { PageProps } from '@/types';
 import {
     BarChart3,
     Calendar,
@@ -30,6 +31,37 @@ interface NavItem {
 interface NavSection {
     label: string;
     items: NavItem[];
+}
+
+type SharedPageProps = PageProps<{
+    flash?: {
+        type?: 'success' | 'error' | string;
+        message?: string;
+    } | null;
+}>;
+
+function FlashMessage() {
+    const { flash } = usePage<SharedPageProps>().props;
+
+    if (!flash?.message) {
+        return null;
+    }
+
+    const isError = flash.type === 'error';
+
+    return (
+        <div
+            className={
+                'border px-4 py-3 text-sm ' +
+                (isError
+                    ? 'border-red-200 bg-red-50 text-red-800'
+                    : 'border-emerald-200 bg-emerald-50 text-emerald-800')
+            }
+            role="status"
+        >
+            {flash.message}
+        </div>
+    );
 }
 
 function useNavSections(): NavSection[] {
@@ -237,7 +269,14 @@ export default function Authenticated({
                     <div className="min-w-0 flex-1">{header}</div>
                 </div>
 
-                <main className="flex-1">{children}</main>
+                <main className="flex-1">
+                    <div className="px-4 pt-4 sm:px-6 lg:px-8">
+                        <div className="mx-auto max-w-5xl">
+                            <FlashMessage />
+                        </div>
+                    </div>
+                    {children}
+                </main>
             </div>
         </div>
     );
