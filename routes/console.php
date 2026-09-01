@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Consultation\StripeWebhookController;
+use App\Models\ConsultationBooking;
 use App\Models\ConsultationStripeWebhookEvent;
 use App\Services\Consultation\BookingWorkflowService;
 use App\Services\Consultation\ConsultationGoogleOperationService;
@@ -58,6 +59,31 @@ Artisan::command('consultations:retry-refunds {--limit=50}', function (BookingWo
     $count = $workflow->retryPendingRefunds(max(1, (int) $this->option('limit')));
     $this->info("Recovered {$count} consultation refunds.");
 })->purpose('Retry failed consultation cancellation refunds');
+
+Artisan::command('consultations:audit-refunds {--limit=50}', function () {
+    $bookings = ConsultationBooking::query()
+        ->whereIn('status', [
+            ConsultationBooking::STATUS_CANCEL_REQUESTED,
+            ConsultationBooking::STATUS_CANCELLED,
+        ])
+        ->whereNotNull('stripe_payment_intent_id')
+        ->whereNotNull('stripe_refunded_at')
+        ->whereNull('stripe_refund_id')
+        ->orderBy('id')
+        ->limit(max(1, (int) $this->option('limit')))
+        ->get(['id', 'public_id', 'stripe_payment_intent_id', 'stripe_refunded_at']);
+
+    if ($bookings->isEmpty()) {
+        $this->info('No consultation refund records need manual review.');
+
+        return;
+    }
+
+    $this->warn('These records have a refund timestamp but no Stripe refund ID. Verify them in Stripe before retrying:');
+    foreach ($bookings as $booking) {
+        $this->line("{$booking->public_id} payment_intent={$booking->stripe_payment_intent_id} refunded_at={$booking->stripe_refunded_at}");
+    }
+})->purpose('List consultation refunds that need manual Stripe verification');
 
 Artisan::command('consultations:retry-stripe-webhooks {--limit=25}', function (StripeWebhookController $controller) {
     $events = ConsultationStripeWebhookEvent::query()

@@ -113,6 +113,52 @@ class ConsultationStripeReconciliationTest extends TestCase
         $this->assertDatabaseCount('consultation_stripe_checkout_attempts', 0);
     }
 
+    public function test_reconciliation_does_not_persist_a_token_after_checkout_rotation(): void
+    {
+        Mail::fake();
+
+        $booking = $this->booking([
+            'stripe_checkout_session_id' => 'cs_old_reconcile',
+            'stripe_checkout_idempotency_key' => 'consultation-checkout-old',
+            'access_token_hash' => hash('sha256', 'current-token'),
+        ]);
+        ConsultationStripeCheckoutAttempt::create([
+            'consultation_booking_id' => $booking->id,
+            'idempotency_key' => 'consultation-checkout-old',
+            'access_token' => 'old-token',
+            'stripe_checkout_session_id' => 'cs_old_reconcile',
+            'status' => ConsultationStripeCheckoutAttempt::STATUS_CREATED,
+            'attempts' => 1,
+            'completed_at' => now('UTC'),
+        ]);
+        $session = Session::constructFrom([
+            'id' => 'cs_old_reconcile',
+            'status' => 'open',
+            'url' => 'https://checkout.stripe.test/cs_old_reconcile',
+            'payment_status' => 'unpaid',
+        ]);
+
+        $stripe = $this->createMock(StripeCheckoutService::class);
+        $stripe->method('configured')->willReturn(true);
+        $stripe->expects($this->once())
+            ->method('retrieveCheckoutSession')
+            ->with('cs_old_reconcile')
+            ->willReturnCallback(function () use ($booking, $session): Session {
+                $booking->forceFill([
+                    'stripe_checkout_session_id' => 'cs_new_reconcile',
+                    'stripe_checkout_idempotency_key' => 'consultation-checkout-new',
+                ])->save();
+
+                return $session;
+            });
+        $this->app->instance(StripeCheckoutService::class, $stripe);
+
+        $this->assertSame(0, app(ConsultationStripeReconciliationService::class)->reconcile());
+        $fresh = $booking->fresh();
+        $this->assertSame(hash('sha256', 'current-token'), $fresh->access_token_hash);
+        $this->assertSame(0, $fresh->notifications()->count());
+    }
+
     public function test_a_missing_stripe_session_is_rotated_and_recreated(): void
     {
         Mail::fake();

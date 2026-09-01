@@ -6,6 +6,7 @@ use App\Http\Controllers\Consultation\StripeWebhookController;
 use App\Mail\Consultation\StripeWebhookUnmatchedMail;
 use App\Models\ConsultationBooking;
 use App\Models\ConsultationNotification;
+use App\Models\ConsultationStripeCheckoutAttempt;
 use App\Models\ConsultationStripeWebhookEvent;
 use App\Models\ConsultationTier;
 use App\Services\Consultation\BookingWorkflowService;
@@ -104,6 +105,91 @@ class ConsultationStripeWebhookTest extends TestCase
             'status' => ConsultationStripeWebhookEvent::STATUS_PROCESSED,
         ]);
         $this->assertSame('cs_webhook', $booking->fresh()->stripe_checkout_rejected_session_id);
+    }
+
+    public function test_a_superseded_session_is_resolved_from_the_attempt_ledger_before_refund(): void
+    {
+        config([
+            'stripe.key' => 'pk_test',
+            'stripe.secret' => 'sk_test',
+        ]);
+        $booking = $this->awaitingPaymentBooking();
+        $booking->forceFill(['stripe_checkout_session_id' => null])->save();
+        ConsultationStripeCheckoutAttempt::create([
+            'consultation_booking_id' => $booking->id,
+            'idempotency_key' => 'consultation-checkout-old',
+            'access_token' => '',
+            'stripe_checkout_session_id' => 'cs_webhook',
+            'status' => ConsultationStripeCheckoutAttempt::STATUS_SUPERSEDED,
+            'attempts' => 1,
+            'completed_at' => now('UTC'),
+        ]);
+        ApiRequestor::setHttpClient(new class implements ClientInterface
+        {
+            public function request($method, $absUrl, $headers, $params, $hasFile, $apiMode = 'v1', $maxNetworkRetries = null)
+            {
+                return [json_encode(['id' => 'rejected_superseded'], JSON_THROW_ON_ERROR), 200, []];
+            }
+        });
+
+        $this->postWebhook($this->stripePayload($booking, 'evt_superseded'))->assertOk();
+
+        $this->assertDatabaseHas('consultation_stripe_webhook_events', [
+            'event_id' => 'evt_superseded',
+            'status' => ConsultationStripeWebhookEvent::STATUS_PROCESSED,
+            'consultation_booking_id' => $booking->id,
+        ]);
+        $this->assertDatabaseHas('consultation_bookings', [
+            'id' => $booking->id,
+            'status' => ConsultationBooking::STATUS_AWAITING_PAYMENT,
+            'stripe_checkout_rejected_session_id' => 'cs_webhook',
+        ]);
+    }
+
+    public function test_a_paid_superseded_session_is_refunded_without_touching_the_current_checkout(): void
+    {
+        config([
+            'stripe.key' => 'pk_test',
+            'stripe.secret' => 'sk_test',
+        ]);
+        $booking = $this->awaitingPaymentBooking();
+        $booking->forceFill([
+            'stripe_checkout_session_id' => 'cs_new',
+            'stripe_checkout_idempotency_key' => 'consultation-checkout-new',
+            'stripe_payment_intent_id' => 'pi_new',
+        ])->save();
+        ConsultationStripeCheckoutAttempt::create([
+            'consultation_booking_id' => $booking->id,
+            'idempotency_key' => 'consultation-checkout-old',
+            'access_token' => 'old-token',
+            'stripe_checkout_session_id' => 'cs_old',
+            'status' => ConsultationStripeCheckoutAttempt::STATUS_SUPERSEDED,
+            'attempts' => 1,
+            'completed_at' => now('UTC'),
+        ]);
+        ApiRequestor::setHttpClient(new class implements ClientInterface
+        {
+            public function request($method, $absUrl, $headers, $params, $hasFile, $apiMode = 'v1', $maxNetworkRetries = null)
+            {
+                return [json_encode(['id' => 're_stale_paid'], JSON_THROW_ON_ERROR), 200, []];
+            }
+        });
+
+        $this->postWebhook($this->stripePayload(
+            $booking,
+            'evt_stale_paid',
+            $booking->amount_due_cents,
+            'paid',
+            'cs_old',
+            'pi_old',
+        ))->assertOk();
+
+        $fresh = $booking->fresh();
+        $this->assertSame(ConsultationBooking::STATUS_AWAITING_PAYMENT, $fresh->status);
+        $this->assertSame('cs_new', $fresh->stripe_checkout_session_id);
+        $this->assertSame('pi_new', $fresh->stripe_payment_intent_id);
+        $this->assertSame('cs_old', $fresh->stripe_checkout_rejected_session_id);
+        $this->assertNull($fresh->stripe_paid_at);
     }
 
     public function test_an_async_checkout_completion_waits_for_payment_without_rejecting_the_session(): void
@@ -263,6 +349,8 @@ class ConsultationStripeWebhookTest extends TestCase
         string $eventId,
         ?int $amountTotal = null,
         string $paymentStatus = 'paid',
+        string $sessionId = 'cs_webhook',
+        ?string $paymentIntentId = 'pi_webhook',
     ): string {
         return json_encode([
             'id' => $eventId,
@@ -273,13 +361,13 @@ class ConsultationStripeWebhookTest extends TestCase
             'type' => 'checkout.session.completed',
             'data' => [
                 'object' => [
-                    'id' => 'cs_webhook',
+                    'id' => $sessionId,
                     'object' => 'checkout.session',
                     'client_reference_id' => $booking?->public_id,
                     'metadata' => [
                         'booking_public_id' => $booking?->public_id,
                     ],
-                    'payment_intent' => 'pi_webhook',
+                    'payment_intent' => $paymentIntentId,
                     'payment_status' => $paymentStatus,
                     'amount_total' => $amountTotal ?? $booking?->amount_due_cents,
                     'currency' => 'usd',
