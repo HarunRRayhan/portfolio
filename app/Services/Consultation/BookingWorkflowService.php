@@ -441,12 +441,16 @@ class BookingWorkflowService
         return $booking->fresh(['tier']);
     }
 
-    public function clientPickProposedSlot(ConsultationBooking $booking, Carbon $startsAt): ConsultationBooking
-    {
+    public function clientPickProposedSlot(
+        ConsultationBooking $booking,
+        Carbon $startsAt,
+        ?int $expectedGeneration = null,
+        ?int $operationId = null,
+    ): ConsultationBooking {
         $targetGeneration = null;
 
         try {
-            $booking = DB::transaction(function () use ($booking, $startsAt, &$targetGeneration) {
+            $booking = DB::transaction(function () use ($booking, $startsAt, $expectedGeneration, $operationId, &$targetGeneration) {
                 $this->lockReservation();
 
                 $booking = ConsultationBooking::query()
@@ -456,6 +460,10 @@ class BookingWorkflowService
 
                 if ($booking->status !== ConsultationBooking::STATUS_RESCHEDULE_PROPOSED) {
                     throw new \InvalidArgumentException('No proposed slots to pick.');
+                }
+
+                if ($expectedGeneration !== null && $expectedGeneration !== ((int) $booking->google_generation + 1)) {
+                    throw new \InvalidArgumentException('The proposed slot has been superseded by a newer time slot.');
                 }
 
                 $startsAt = $startsAt->copy()->utc();
@@ -520,7 +528,7 @@ class BookingWorkflowService
                     $booking->google_event_id = $eventId;
                 }
                 $booking->save();
-                $this->googleOperations->supersedeForBooking($booking);
+                $this->googleOperations->supersedeForBooking($booking, $operationId);
                 $pickEvent = $booking->recordEvent('client_picked_proposed_slot', 'client', ['start' => $iso]);
 
                 $this->notifications->enqueue(
@@ -534,10 +542,12 @@ class BookingWorkflowService
                 return $booking->fresh(['tier']);
             });
         } catch (\Throwable $e) {
-            $this->recordGoogleFailure($booking, 'client_pick', [
-                'starts_at' => $startsAt->copy()->utc()->toIso8601String(),
-                'google_generation' => $targetGeneration ?? ((int) $booking->google_generation + 1),
-            ], $e);
+            if ($operationId === null) {
+                $this->recordGoogleFailure($booking, 'client_pick', [
+                    'starts_at' => $startsAt->copy()->utc()->toIso8601String(),
+                    'google_generation' => $targetGeneration ?? ((int) $booking->google_generation + 1),
+                ], $e);
+            }
 
             throw $e;
         }
@@ -1105,7 +1115,14 @@ class BookingWorkflowService
     public function retryPendingRefunds(int $limit = 50): int
     {
         $bookings = ConsultationBooking::query()
-            ->where('status', ConsultationBooking::STATUS_CANCEL_REQUESTED)
+            ->where(function ($query) {
+                $query->where('status', ConsultationBooking::STATUS_CANCEL_REQUESTED)
+                    ->orWhere(function ($query) {
+                        $query->where('status', ConsultationBooking::STATUS_CANCELLED)
+                            ->whereNotNull('stripe_refund_attempted_at')
+                            ->whereNull('stripe_refund_id');
+                    });
+            })
             ->whereNotNull('stripe_payment_intent_id')
             ->where(function ($query) {
                 $query->whereNotNull('stripe_refund_attempted_at')
@@ -1126,7 +1143,10 @@ class BookingWorkflowService
                 $current = DB::transaction(function () use ($booking): ?ConsultationBooking {
                     $current = ConsultationBooking::query()->lockForUpdate()->find($booking->id);
 
-                    if (! $current || $current->status !== ConsultationBooking::STATUS_CANCEL_REQUESTED) {
+                    if (! $current || ! in_array($current->status, [
+                        ConsultationBooking::STATUS_CANCEL_REQUESTED,
+                        ConsultationBooking::STATUS_CANCELLED,
+                    ], true)) {
                         return null;
                     }
 
@@ -1163,7 +1183,10 @@ class BookingWorkflowService
                     DB::transaction(function () use ($current, $refundId): void {
                         $locked = ConsultationBooking::query()->lockForUpdate()->findOrFail($current->id);
 
-                        if ($locked->status !== ConsultationBooking::STATUS_CANCEL_REQUESTED) {
+                        if (! in_array($locked->status, [
+                            ConsultationBooking::STATUS_CANCEL_REQUESTED,
+                            ConsultationBooking::STATUS_CANCELLED,
+                        ], true)) {
                             return;
                         }
 
@@ -1176,6 +1199,10 @@ class BookingWorkflowService
                     $refundCompleted = true;
                     $recovered++;
                     $current = $current->fresh(['tier']);
+                }
+
+                if ($current->status === ConsultationBooking::STATUS_CANCELLED) {
+                    continue;
                 }
 
                 // A refund may have succeeded before the prior cancellation
@@ -1490,7 +1517,10 @@ class BookingWorkflowService
     {
         ConsultationBooking::query()
             ->whereKey($booking->id)
-            ->where('status', ConsultationBooking::STATUS_CANCEL_REQUESTED)
+            ->whereIn('status', [
+                ConsultationBooking::STATUS_CANCEL_REQUESTED,
+                ConsultationBooking::STATUS_CANCELLED,
+            ])
             ->whereNull('stripe_refund_id')
             ->update([
                 'stripe_refund_last_error' => mb_substr($exception->getMessage(), 0, 2000),

@@ -195,10 +195,25 @@ class StripeCheckoutService
                 'idempotency_key' => $booking->stripe_checkout_idempotency_key,
             ]);
 
-            DB::transaction(function () use ($booking, $session) {
+            $this->bindAttemptSession($attempt, (string) $session->id);
+
+            DB::transaction(function () use ($booking, $session, $attempt) {
                 $current = ConsultationBooking::query()
                     ->lockForUpdate()
                     ->findOrFail($booking->id);
+
+                $currentAttempt = ConsultationStripeCheckoutAttempt::query()
+                    ->lockForUpdate()
+                    ->find($attempt->id);
+
+                if (
+                    ! $currentAttempt
+                    || $currentAttempt->status !== ConsultationStripeCheckoutAttempt::STATUS_PROCESSING
+                    || $currentAttempt->attempts !== $attempt->attempts
+                    || $currentAttempt->idempotency_key !== $current->stripe_checkout_idempotency_key
+                ) {
+                    throw new \RuntimeException('The Stripe checkout attempt was superseded.');
+                }
 
                 if ($current->stripe_checkout_session_id && $current->stripe_checkout_session_id !== $session->id) {
                     throw new \RuntimeException('A different Stripe checkout session is already attached.');
@@ -325,6 +340,7 @@ class StripeCheckoutService
                 $attempt = ConsultationStripeCheckoutAttempt::create([
                     'consultation_booking_id' => $current->id,
                     'idempotency_key' => $current->stripe_checkout_idempotency_key,
+                    'stripe_checkout_session_id' => $current->stripe_checkout_session_id,
                     // An existing session may have been created before the
                     // attempt ledger existed, so its URL may contain a
                     // different token. Never replace the booking token until
@@ -336,6 +352,11 @@ class StripeCheckoutService
             } elseif (! $current->stripe_checkout_session_id && ! filled($attempt->access_token) && $plainToken !== '') {
                 // Preserve the first token used to build an immutable Stripe URL.
                 $attempt->access_token = $plainToken;
+                $attempt->save();
+            }
+
+            if ($attempt->stripe_checkout_session_id === null && $current->stripe_checkout_session_id) {
+                $attempt->stripe_checkout_session_id = $current->stripe_checkout_session_id;
                 $attempt->save();
             }
 
@@ -367,6 +388,18 @@ class StripeCheckoutService
                 'last_error' => null,
                 'next_attempt_at' => null,
                 'completed_at' => now('UTC'),
+                'updated_at' => now('UTC'),
+            ]);
+    }
+
+    protected function bindAttemptSession(ConsultationStripeCheckoutAttempt $attempt, string $sessionId): void
+    {
+        ConsultationStripeCheckoutAttempt::query()
+            ->whereKey($attempt->id)
+            ->where('status', ConsultationStripeCheckoutAttempt::STATUS_PROCESSING)
+            ->where('attempts', $attempt->attempts)
+            ->update([
+                'stripe_checkout_session_id' => $sessionId,
                 'updated_at' => now('UTC'),
             ]);
     }

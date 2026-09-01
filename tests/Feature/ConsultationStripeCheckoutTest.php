@@ -138,7 +138,9 @@ class ConsultationStripeCheckoutTest extends TestCase
             app(StripeCheckoutService::class)->createCheckoutUrl($booking, 'new-token'),
         );
         $this->assertSame(hash('sha256', 'legacy-token'), $booking->fresh()->access_token_hash);
-        $this->assertSame('', (string) $booking->fresh()->stripeCheckoutAttempts()->latest('id')->firstOrFail()->access_token);
+        $attempt = $booking->fresh()->stripeCheckoutAttempts()->latest('id')->firstOrFail();
+        $this->assertSame('', (string) $attempt->access_token);
+        $this->assertSame('cs_legacy', $attempt->stripe_checkout_session_id);
     }
 
     public function test_signed_stripe_return_grants_only_the_current_booking_session(): void

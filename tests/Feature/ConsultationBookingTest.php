@@ -977,6 +977,124 @@ class ConsultationBookingTest extends TestCase
         $this->assertSame(ConsultationBooking::STATUS_CANCEL_REQUESTED, $unapproved->fresh()->status);
     }
 
+    public function test_refund_recovery_backfill_marks_only_legacy_approved_cancellations(): void
+    {
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $approved = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Legacy approved cancellation',
+            'client_email' => 'legacy-approved@example.com',
+            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
+            'ends_at' => now('UTC')->addDays(3)->setTime(10, 30),
+            'status' => ConsultationBooking::STATUS_CANCEL_REQUESTED,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'stripe_payment_intent_id' => 'pi_legacy_approved',
+            'access_token_hash' => hash('sha256', 'legacy-approved'),
+        ]);
+        $approved->recordEvent('cancel_approved', 'admin');
+
+        $pending = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Legacy pending cancellation',
+            'client_email' => 'legacy-pending@example.com',
+            'starts_at' => now('UTC')->addDays(4)->setTime(10, 0),
+            'ends_at' => now('UTC')->addDays(4)->setTime(10, 30),
+            'status' => ConsultationBooking::STATUS_CANCEL_REQUESTED,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'stripe_payment_intent_id' => 'pi_legacy_pending',
+            'access_token_hash' => hash('sha256', 'legacy-pending'),
+        ]);
+
+        $cancelled = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Legacy completed cancellation',
+            'client_email' => 'legacy-completed@example.com',
+            'starts_at' => now('UTC')->addDays(5)->setTime(10, 0),
+            'ends_at' => now('UTC')->addDays(5)->setTime(10, 30),
+            'status' => ConsultationBooking::STATUS_CANCELLED,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'stripe_payment_intent_id' => 'pi_legacy_completed',
+            'cancelled_at' => now('UTC')->subHour(),
+            'access_token_hash' => hash('sha256', 'legacy-completed'),
+        ]);
+        $cancelled->recordEvent('cancel_approved', 'admin');
+
+        $migration = require base_path('database/migrations/2026_09_01_100800_backfill_consultation_refund_recovery.php');
+        $migration->up();
+
+        $freshApproved = $approved->fresh();
+        $this->assertNotNull($freshApproved->stripe_refund_attempted_at);
+        $this->assertSame(
+            'consultation-booking-'.$approved->id.'-refund',
+            $freshApproved->stripe_refund_idempotency_key,
+        );
+        $this->assertNull($pending->fresh()->stripe_refund_attempted_at);
+        $this->assertNotNull($cancelled->fresh()->stripe_refund_attempted_at);
+    }
+
+    public function test_a_legacy_cancelled_booking_refund_is_retried_without_reopening_cancellation(): void
+    {
+        $stripe = $this->createMock(StripeCheckoutService::class);
+        $stripe->expects($this->once())->method('refundBooking')->willReturn('re_legacy');
+        $this->app->instance(StripeCheckoutService::class, $stripe);
+
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $booking = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Legacy refund retry',
+            'client_email' => 'legacy-refund-retry@example.com',
+            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
+            'ends_at' => now('UTC')->addDays(3)->setTime(10, 30),
+            'status' => ConsultationBooking::STATUS_CANCELLED,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'stripe_payment_intent_id' => 'pi_legacy_retry',
+            'stripe_refund_attempted_at' => now('UTC')->subMinute(),
+            'stripe_refund_idempotency_key' => 'consultation-booking-legacy-refund',
+            'cancelled_at' => now('UTC')->subHour(),
+            'access_token_hash' => hash('sha256', 'legacy-refund-retry'),
+        ]);
+
+        $this->assertSame(1, $this->app->make(BookingWorkflowService::class)->retryPendingRefunds());
+        $fresh = $booking->fresh();
+        $this->assertSame(ConsultationBooking::STATUS_CANCELLED, $fresh->status);
+        $this->assertSame('re_legacy', $fresh->stripe_refund_id);
+    }
+
+    public function test_a_refund_timestamp_without_an_id_is_left_for_manual_audit(): void
+    {
+        $stripe = $this->createMock(StripeCheckoutService::class);
+        $stripe->expects($this->never())->method('refundBooking');
+        $this->app->instance(StripeCheckoutService::class, $stripe);
+
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $booking = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Manual refund audit',
+            'client_email' => 'manual-refund-audit@example.com',
+            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
+            'ends_at' => now('UTC')->addDays(3)->setTime(10, 30),
+            'status' => ConsultationBooking::STATUS_CANCELLED,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'stripe_payment_intent_id' => 'pi_manual_audit',
+            'stripe_refunded_at' => now('UTC')->subHour(),
+            'cancelled_at' => now('UTC')->subHour(),
+            'access_token_hash' => hash('sha256', 'manual-refund-audit'),
+        ]);
+
+        $this->assertSame(0, $this->app->make(BookingWorkflowService::class)->retryPendingRefunds());
+        $this->assertNull($booking->fresh()->stripe_refund_id);
+    }
+
     public function test_a_failed_google_transition_is_replayed_by_the_operation_worker(): void
     {
         Mail::fake();
@@ -1100,6 +1218,179 @@ class ConsultationBookingTest extends TestCase
                 'ends_at' => $booking->ends_at->toIso8601String(),
                 'google_generation' => 0,
             ],
+            'status' => ConsultationGoogleOperation::STATUS_FAILED,
+            'attempts' => 1,
+            'available_at' => now('UTC')->subMinute(),
+        ]);
+
+        $this->assertSame(
+            0,
+            app(ConsultationGoogleOperationService::class)->retryDue(
+                app(BookingWorkflowService::class),
+            ),
+        );
+        $this->assertSame(
+            ConsultationGoogleOperation::STATUS_NEEDS_ATTENTION,
+            $operation->fresh()->status,
+        );
+    }
+
+    public function test_a_client_pick_retry_from_an_old_generation_is_not_sent_to_google(): void
+    {
+        $google = $this->createMock(GoogleCalendarService::class);
+        $google->expects($this->never())->method('createHoldEvent');
+        $this->app->instance(GoogleCalendarService::class, $google);
+
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $startsAt = now('UTC')->addDays(4)->setTime(10, 0);
+        $booking = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Old client pick',
+            'client_email' => 'old-client-pick@example.com',
+            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
+            'ends_at' => now('UTC')->addDays(3)->setTime(10, 30),
+            'status' => ConsultationBooking::STATUS_RESCHEDULE_PROPOSED,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'google_generation' => 1,
+            'proposed_slots' => [[
+                'start' => $startsAt->toIso8601String(),
+                'end' => $startsAt->copy()->addMinutes(30)->toIso8601String(),
+            ]],
+            'hold_expires_at' => now('UTC')->addDay(),
+            'access_token_hash' => hash('sha256', 'old-client-pick'),
+        ]);
+        $operation = ConsultationGoogleOperation::create([
+            'consultation_booking_id' => $booking->id,
+            'operation_key' => 'consultation-booking-'.$booking->id.'-google-client_pick-g1-old',
+            'operation' => 'client_pick',
+            'payload' => [
+                'starts_at' => $startsAt->toIso8601String(),
+                'google_generation' => 1,
+            ],
+            'status' => ConsultationGoogleOperation::STATUS_FAILED,
+            'attempts' => 1,
+            'available_at' => now('UTC')->subMinute(),
+        ]);
+
+        $this->assertSame(
+            0,
+            app(ConsultationGoogleOperationService::class)->retryDue(
+                app(BookingWorkflowService::class),
+            ),
+        );
+        $this->assertSame(
+            ConsultationGoogleOperation::STATUS_NEEDS_ATTENTION,
+            $operation->fresh()->status,
+        );
+        $this->assertSame(1, $booking->fresh()->google_generation);
+        $this->assertSame(1, $booking->googleOperations()->count());
+    }
+
+    public function test_a_current_generation_client_pick_retry_completes_and_supersedes_older_operations(): void
+    {
+        Mail::fake();
+
+        $originalStartsAt = now('UTC')->addDays(3)->setTime(10, 0);
+        $newStartsAt = $originalStartsAt->copy()->addDay();
+        ConsultationAvailabilityWindow::create([
+            'weekday' => $newStartsAt->dayOfWeek,
+            'start_time' => '09:00:00',
+            'end_time' => '12:00:00',
+            'is_active' => true,
+        ]);
+
+        $google = $this->createMock(GoogleCalendarService::class);
+        $google->expects($this->once())->method('busyPeriods')->willReturn([]);
+        $google->expects($this->once())
+            ->method('createHoldEvent')
+            ->willReturn('current-generation-hold');
+        $google->method('isConnected')->willReturn(true);
+        $this->app->instance(GoogleCalendarService::class, $google);
+
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $booking = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Current generation retry',
+            'client_email' => 'current-generation@example.com',
+            'starts_at' => $originalStartsAt,
+            'ends_at' => $originalStartsAt->copy()->addMinutes($tier->duration_minutes),
+            'status' => ConsultationBooking::STATUS_RESCHEDULE_PROPOSED,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'stripe_payment_intent_id' => 'pi_current_generation',
+            'confirmed_at' => now('UTC')->subDay(),
+            'google_event_id' => 'original-current-generation',
+            'google_generation' => 0,
+            'proposed_slots' => [[
+                'start' => $newStartsAt->toIso8601String(),
+                'end' => $newStartsAt->copy()->addMinutes($tier->duration_minutes)->toIso8601String(),
+            ]],
+            'hold_expires_at' => now('UTC')->addDay(),
+            'access_token_hash' => hash('sha256', 'current-generation-token'),
+        ]);
+        $operation = ConsultationGoogleOperation::create([
+            'consultation_booking_id' => $booking->id,
+            'operation_key' => 'consultation-booking-'.$booking->id.'-google-client_pick-g1-current',
+            'operation' => 'client_pick',
+            'payload' => [
+                'starts_at' => $newStartsAt->toIso8601String(),
+                'google_generation' => 1,
+            ],
+            'status' => ConsultationGoogleOperation::STATUS_FAILED,
+            'attempts' => 1,
+            'available_at' => now('UTC')->subMinute(),
+        ]);
+
+        $this->assertSame(
+            1,
+            app(ConsultationGoogleOperationService::class)->retryDue(
+                app(BookingWorkflowService::class),
+            ),
+        );
+        $this->assertSame(
+            ConsultationGoogleOperation::STATUS_SUCCEEDED,
+            $operation->fresh()->status,
+        );
+        $this->assertSame(1, $booking->fresh()->google_generation);
+        $this->assertSame(
+            ConsultationBooking::STATUS_PAID_RESCHEDULE_PENDING_APPROVAL,
+            $booking->fresh()->status,
+        );
+    }
+
+    public function test_a_legacy_client_pick_retry_without_a_generation_fence_needs_attention(): void
+    {
+        $google = $this->createMock(GoogleCalendarService::class);
+        $google->expects($this->never())->method('createHoldEvent');
+        $this->app->instance(GoogleCalendarService::class, $google);
+
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $startsAt = now('UTC')->addDays(4)->setTime(11, 0);
+        $booking = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Legacy client pick',
+            'client_email' => 'legacy-client-pick@example.com',
+            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
+            'ends_at' => now('UTC')->addDays(3)->setTime(10, 30),
+            'status' => ConsultationBooking::STATUS_RESCHEDULE_PROPOSED,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'proposed_slots' => [[
+                'start' => $startsAt->toIso8601String(),
+                'end' => $startsAt->copy()->addMinutes(30)->toIso8601String(),
+            ]],
+            'hold_expires_at' => now('UTC')->addDay(),
+            'access_token_hash' => hash('sha256', 'legacy-client-pick'),
+        ]);
+        $operation = ConsultationGoogleOperation::create([
+            'consultation_booking_id' => $booking->id,
+            'operation_key' => 'consultation-booking-'.$booking->id.'-google-client_pick-legacy',
+            'operation' => 'client_pick',
+            'payload' => ['starts_at' => $startsAt->toIso8601String()],
             'status' => ConsultationGoogleOperation::STATUS_FAILED,
             'attempts' => 1,
             'available_at' => now('UTC')->subMinute(),

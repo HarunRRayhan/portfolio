@@ -40,6 +40,11 @@ Subscribe to `checkout.session.completed` and
 `STRIPE_WEBHOOK_SECRET`. The webhook ledger is idempotent, and the scheduler
 also reconciles sessions that Stripe delivered while the app was unavailable.
 
+The refund-recovery backfill only marks paid `cancel_requested` bookings and
+legacy `cancelled` bookings that have a persisted `cancel_approved` event.
+Ordinary cancellation requests are deliberately left for an administrator to
+approve.
+
 ## Google Calendar
 
 Add the callback URL to the OAuth client, deploy the variables, then open
@@ -57,12 +62,16 @@ php artisan consultations:reconcile-stripe
 php artisan consultations:retry-google
 php artisan consultations:retry-notifications
 php artisan consultations:retry-refunds
+php artisan consultations:audit-refunds
 php artisan consultations:retry-stripe-webhooks
 php artisan consultations:expire
 ```
 
 To force one stored webhook through the handler again, run
 `php artisan consultations:replay-stripe-webhook EVENT_ID`.
+
+`consultations:audit-refunds` lists paid cancellations with a refund timestamp
+but no Stripe refund ID. Check those records in Stripe before retrying them.
 
 The scheduler service should run continuously with
 `php artisan schedule:run --no-interaction`. The optional worker service uses

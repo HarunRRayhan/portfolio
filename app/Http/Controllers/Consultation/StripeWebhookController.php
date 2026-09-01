@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Consultation;
 use App\Http\Controllers\Controller;
 use App\Models\ConsultationBooking;
 use App\Models\ConsultationNotification;
+use App\Models\ConsultationStripeCheckoutAttempt;
 use App\Models\ConsultationStripeWebhookEvent;
 use App\Services\Consultation\BookingWorkflowService;
 use App\Services\Consultation\ConsultationNotificationService;
@@ -198,8 +199,17 @@ class StripeWebhookController extends Controller
             ? ConsultationBooking::query()->where('stripe_checkout_session_id', $sessionId)->first()
             : null;
 
-        if (! $booking && is_string($publicId) && $publicId !== '') {
-            $booking = ConsultationBooking::query()->where('public_id', $publicId)->first();
+        if (! $booking && $sessionId !== '') {
+            $attempt = ConsultationStripeCheckoutAttempt::query()
+                ->with('booking')
+                ->where('stripe_checkout_session_id', $sessionId)
+                ->latest('id')
+                ->first();
+            $booking = $attempt?->booking;
+
+            if ($booking && is_string($publicId) && $publicId !== '' && $booking->public_id !== $publicId) {
+                $booking = null;
+            }
         }
 
         if (! $booking) {

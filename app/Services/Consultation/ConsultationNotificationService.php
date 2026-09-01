@@ -226,6 +226,13 @@ class ConsultationNotificationService
         $tokenHash = $payload['activate_access_token_hash'] ?? null;
         $proposalEventId = $payload['proposal_event_id'] ?? null;
 
+        if ($proposalEventId === null && $notification->consultation_booking_id) {
+            $pattern = '/^consultation-booking-'.preg_quote((string) $notification->consultation_booking_id, '/').'-event-(\d+)-reschedule-proposed$/';
+            if (preg_match($pattern, $notification->deduplication_key, $matches) === 1) {
+                $proposalEventId = (int) $matches[1];
+            }
+        }
+
         if (! is_string($tokenHash) || $tokenHash === '' || ! $notification->consultation_booking_id) {
             return;
         }
@@ -236,6 +243,10 @@ class ConsultationNotificationService
 
         if (! $booking || $booking->status !== ConsultationBooking::STATUS_RESCHEDULE_PROPOSED) {
             return;
+        }
+
+        if ($proposalEventId === null) {
+            $proposalEventId = $this->legacyProposalEventId($notification, $booking);
         }
 
         $latestProposalEventId = $booking->events()
@@ -254,6 +265,52 @@ class ConsultationNotificationService
         $booking->access_token_hash = $tokenHash;
         $booking->access_token_expires_at = $payload['activate_access_token_expires_at'] ?? $booking->access_token_expires_at;
         $booking->save();
+    }
+
+    protected function legacyProposalEventId(
+        ConsultationNotification $notification,
+        ConsultationBooking $booking,
+    ): ?int {
+        $eventKeyPattern = '/^consultation-booking-'.preg_quote((string) $booking->id, '/').'-event-(\d+)-reschedule-proposed$/';
+        if (preg_match($eventKeyPattern, $notification->deduplication_key, $matches) === 1) {
+            return (int) $matches[1];
+        }
+
+        if ($notification->deduplication_key !== 'consultation-booking-'.$booking->id.'-reschedule-proposed') {
+            return null;
+        }
+
+        $events = $booking->events()
+            ->where('event', 'reschedule_proposed')
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get(['id', 'created_at'])
+            ->values();
+
+        if ($events->count() === 1) {
+            return (int) $events->first()->id;
+        }
+
+        if (! $notification->created_at || $events->isEmpty()) {
+            return null;
+        }
+
+        $precedingEvents = $events->filter(function ($event) use ($notification): bool {
+            return $event->created_at && $event->created_at->lte($notification->created_at);
+        });
+
+        if ($precedingEvents->isEmpty()) {
+            return null;
+        }
+
+        $latestPrecedingEvent = $precedingEvents->last();
+        $candidates = $precedingEvents->filter(function ($event) use ($latestPrecedingEvent): bool {
+            return $event->created_at->equalTo($latestPrecedingEvent->created_at);
+        });
+
+        return $candidates->count() === 1
+            ? (int) $candidates->first()->id
+            : null;
     }
 
     protected function mailable(ConsultationNotification $notification): object

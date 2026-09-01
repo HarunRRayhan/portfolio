@@ -94,11 +94,14 @@ class ConsultationGoogleOperationService
         return $completed;
     }
 
-    public function supersedeForBooking(ConsultationBooking $booking): int
+    public function supersedeForBooking(ConsultationBooking $booking, ?int $exceptOperationId = null): int
     {
         return ConsultationGoogleOperation::query()
             ->where('consultation_booking_id', $booking->id)
-            ->where('operation', 'hold')
+            ->whereIn('operation', ['hold', 'client_pick'])
+            ->when($exceptOperationId !== null, function ($query) use ($exceptOperationId) {
+                $query->where('id', '!=', $exceptOperationId);
+            })
             ->whereIn('status', [
                 ConsultationGoogleOperation::STATUS_PENDING,
                 ConsultationGoogleOperation::STATUS_PROCESSING,
@@ -128,6 +131,15 @@ class ConsultationGoogleOperationService
 
         try {
             $payload = $claimed->payload ?? [];
+            $clientPickGeneration = null;
+            if ($claimed->operation === 'client_pick') {
+                $generation = $payload['google_generation'] ?? $payload['generation'] ?? null;
+                if (! is_int($generation) && (! is_string($generation) || ! ctype_digit($generation))) {
+                    throw new \InvalidArgumentException('The client slot pick has no generation fence.');
+                }
+
+                $clientPickGeneration = (int) $generation;
+            }
 
             match ($claimed->operation) {
                 'hold' => $workflow->retryCreateHold($booking, $payload),
@@ -141,6 +153,8 @@ class ConsultationGoogleOperationService
                 'client_pick' => $workflow->clientPickProposedSlot(
                     $booking,
                     Carbon::parse((string) $payload['starts_at'])->utc(),
+                    $clientPickGeneration,
+                    $claimed->id,
                 ),
                 'mark_paid' => $workflow->markPaidFromStripe(
                     $booking,

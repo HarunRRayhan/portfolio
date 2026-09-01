@@ -3,6 +3,7 @@
 namespace App\Services\Consultation;
 
 use App\Models\ConsultationBooking;
+use App\Models\ConsultationNotification;
 use App\Models\ConsultationStripeCheckoutAttempt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -80,9 +81,12 @@ class ConsultationStripeReconciliationService
             return false;
         }
 
+        $sessionId = (string) $booking->stripe_checkout_session_id;
+        $idempotencyKey = $booking->stripe_checkout_idempotency_key;
+
         if ($booking->stripe_checkout_session_id) {
             try {
-                $session = $this->stripe->retrieveCheckoutSession($booking->stripe_checkout_session_id);
+                $session = $this->stripe->retrieveCheckoutSession($sessionId);
             } catch (InvalidRequestException $e) {
                 if ($e->getStripeCode() !== 'resource_missing') {
                     throw $e;
@@ -146,10 +150,13 @@ class ConsultationStripeReconciliationService
 
                 if (($session->status ?? null) !== 'expired' && filled($session->url)) {
                     $token = $this->checkoutToken($booking);
-                    if ($token !== null) {
-                        $booking = $this->persistAccessToken($booking, $token);
+                    $booking = $this->persistAccessToken($booking, $token, $sessionId, $idempotencyKey);
+                    if (! $booking || $booking->status !== ConsultationBooking::STATUS_AWAITING_PAYMENT) {
+                        return false;
                     }
-                    $this->queuePaymentMail($booking, $token, (string) $session->url, (string) $session->id);
+                    if (! $this->queuePaymentMail($booking, $token, (string) $session->url, $sessionId, $idempotencyKey)) {
+                        return false;
+                    }
 
                     return true;
                 }
@@ -164,12 +171,18 @@ class ConsultationStripeReconciliationService
 
         $booking = $booking->fresh(['tier']);
         $canonicalToken = $this->checkoutToken($booking);
+        $checkoutSessionId = $booking->stripe_checkout_session_id;
+        $checkoutIdempotencyKey = $booking->stripe_checkout_idempotency_key;
 
-        $booking = DB::transaction(function () use ($booking, $canonicalToken): ConsultationBooking {
+        $booking = DB::transaction(function () use ($booking, $canonicalToken, $checkoutSessionId, $checkoutIdempotencyKey): ?ConsultationBooking {
             $current = ConsultationBooking::query()->lockForUpdate()->findOrFail($booking->id);
 
-            if ($current->status !== ConsultationBooking::STATUS_AWAITING_PAYMENT) {
-                return $current;
+            if (
+                $current->status !== ConsultationBooking::STATUS_AWAITING_PAYMENT
+                || $current->stripe_checkout_session_id !== $checkoutSessionId
+                || $current->stripe_checkout_idempotency_key !== $checkoutIdempotencyKey
+            ) {
+                return null;
             }
 
             if ($canonicalToken !== null) {
@@ -183,11 +196,19 @@ class ConsultationStripeReconciliationService
             return $current->fresh(['tier']);
         });
 
-        if ($booking->status !== ConsultationBooking::STATUS_AWAITING_PAYMENT || ! $booking->stripe_checkout_session_id) {
+        if (! $booking || ! $booking->stripe_checkout_session_id) {
             return false;
         }
 
-        $this->queuePaymentMail($booking, $canonicalToken, $checkoutUrl, $booking->stripe_checkout_session_id);
+        if (! $this->queuePaymentMail(
+            $booking,
+            $canonicalToken,
+            $checkoutUrl,
+            $checkoutSessionId,
+            $checkoutIdempotencyKey,
+        )) {
+            return false;
+        }
 
         return true;
     }
@@ -212,12 +233,24 @@ class ConsultationStripeReconciliationService
         return null;
     }
 
-    protected function persistAccessToken(ConsultationBooking $booking, ?string $token): ConsultationBooking
-    {
-        return DB::transaction(function () use ($booking, $token): ConsultationBooking {
+    protected function persistAccessToken(
+        ConsultationBooking $booking,
+        ?string $token,
+        string $sessionId,
+        ?string $idempotencyKey,
+    ): ?ConsultationBooking {
+        return DB::transaction(function () use ($booking, $token, $sessionId, $idempotencyKey): ?ConsultationBooking {
             $current = ConsultationBooking::query()->lockForUpdate()->findOrFail($booking->id);
 
-            if ($current->status === ConsultationBooking::STATUS_AWAITING_PAYMENT && $token !== null) {
+            if (
+                $current->status !== ConsultationBooking::STATUS_AWAITING_PAYMENT
+                || $current->stripe_checkout_session_id !== $sessionId
+                || $current->stripe_checkout_idempotency_key !== $idempotencyKey
+            ) {
+                return null;
+            }
+
+            if ($token !== null) {
                 $current->access_token_hash = hash('sha256', $token);
                 $current->access_token_expires_at = $current->ends_at?->copy()->addDays((int) config('consultation.access_token_days', 90));
                 $current->save();
@@ -232,19 +265,41 @@ class ConsultationStripeReconciliationService
         ?string $token,
         string $checkoutUrl,
         string $sessionId,
-    ): void {
-        $booking = $booking->fresh(['tier']);
-        $this->notifications->enqueue(
-            $booking,
-            $booking->client_email,
-            ConsultationNotificationService::TYPE_AWAITING_PAYMENT,
-            [
-                'plain_token' => $token,
-                'checkout_url' => $checkoutUrl,
-            ],
-            'consultation-booking-'.$booking->id.'-awaiting-payment-'.$sessionId,
-        );
+        ?string $idempotencyKey,
+    ): bool {
+        $notification = DB::transaction(function () use ($booking, $token, $checkoutUrl, $sessionId, $idempotencyKey): ?ConsultationNotification {
+            $current = ConsultationBooking::query()
+                ->with('tier')
+                ->lockForUpdate()
+                ->findOrFail($booking->id);
+
+            if (
+                $current->status !== ConsultationBooking::STATUS_AWAITING_PAYMENT
+                || $current->stripe_checkout_session_id !== $sessionId
+                || $current->stripe_checkout_idempotency_key !== $idempotencyKey
+            ) {
+                return null;
+            }
+
+            return $this->notifications->enqueue(
+                $current,
+                $current->client_email,
+                ConsultationNotificationService::TYPE_AWAITING_PAYMENT,
+                [
+                    'plain_token' => $token,
+                    'checkout_url' => $checkoutUrl,
+                ],
+                'consultation-booking-'.$current->id.'-awaiting-payment-'.$sessionId,
+            );
+        });
+
+        if (! $notification) {
+            return false;
+        }
+
         $this->notifications->deliverDueForBooking($booking->id);
+
+        return true;
     }
 
     protected function isPaid(Session $session): bool

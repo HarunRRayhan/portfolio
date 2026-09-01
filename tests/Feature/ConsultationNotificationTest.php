@@ -68,6 +68,62 @@ class ConsultationNotificationTest extends TestCase
         $this->assertSame($newHash, $booking->fresh()->access_token_hash);
     }
 
+    public function test_a_generic_legacy_reschedule_mail_uses_its_only_proposal_event(): void
+    {
+        Mail::fake();
+        $booking = $this->booking([
+            'status' => ConsultationBooking::STATUS_RESCHEDULE_PROPOSED,
+            'access_token_hash' => hash('sha256', 'old-token'),
+        ]);
+        $booking->recordEvent('reschedule_proposed', 'admin');
+        $newHash = hash('sha256', 'generic-legacy-token');
+        $notification = app(ConsultationNotificationService::class)->enqueue(
+            $booking,
+            $booking->client_email,
+            ConsultationNotificationService::TYPE_RESCHEDULE_PROPOSED,
+            [
+                'plain_token' => 'generic-legacy-token',
+                'activate_access_token_hash' => $newHash,
+            ],
+            'consultation-booking-'.$booking->id.'-reschedule-proposed',
+        );
+
+        $this->assertTrue(app(ConsultationNotificationService::class)->deliver($notification));
+        $this->assertSame($newHash, $booking->fresh()->access_token_hash);
+    }
+
+    public function test_a_generic_legacy_reschedule_mail_with_multiple_proposals_is_not_activated(): void
+    {
+        Mail::fake();
+        $booking = $this->booking([
+            'status' => ConsultationBooking::STATUS_RESCHEDULE_PROPOSED,
+            'access_token_hash' => hash('sha256', 'current-token'),
+        ]);
+        $proposalTime = now('UTC')->subMinute()->startOfSecond();
+        $booking->recordEvent('reschedule_proposed', 'admin');
+        $booking->recordEvent('reschedule_proposed', 'admin');
+        $booking->events()
+            ->where('event', 'reschedule_proposed')
+            ->update([
+                'created_at' => $proposalTime,
+                'updated_at' => $proposalTime,
+            ]);
+        $newHash = hash('sha256', 'ambiguous-legacy-token');
+        $notification = app(ConsultationNotificationService::class)->enqueue(
+            $booking,
+            $booking->client_email,
+            ConsultationNotificationService::TYPE_RESCHEDULE_PROPOSED,
+            [
+                'plain_token' => 'ambiguous-legacy-token',
+                'activate_access_token_hash' => $newHash,
+            ],
+            'consultation-booking-'.$booking->id.'-reschedule-proposed',
+        );
+
+        $this->assertTrue(app(ConsultationNotificationService::class)->deliver($notification));
+        $this->assertSame(hash('sha256', 'current-token'), $booking->fresh()->access_token_hash);
+    }
+
     public function test_a_delayed_older_reschedule_mail_cannot_activate_its_token(): void
     {
         Mail::fake();
@@ -106,6 +162,30 @@ class ConsultationNotificationTest extends TestCase
         $this->assertSame(hash('sha256', 'current-token'), $booking->fresh()->access_token_hash);
         $this->assertTrue($notifications->deliver($newNotification));
         $this->assertSame(hash('sha256', 'new-token'), $booking->fresh()->access_token_hash);
+    }
+
+    public function test_a_legacy_reschedule_mail_derives_its_proposal_event_from_the_deduplication_key(): void
+    {
+        Mail::fake();
+        $booking = $this->booking([
+            'status' => ConsultationBooking::STATUS_RESCHEDULE_PROPOSED,
+            'access_token_hash' => hash('sha256', 'old-token'),
+        ]);
+        $proposal = $booking->recordEvent('reschedule_proposed', 'admin');
+        $newHash = hash('sha256', 'legacy-new-token');
+        $notification = app(ConsultationNotificationService::class)->enqueue(
+            $booking,
+            $booking->client_email,
+            ConsultationNotificationService::TYPE_RESCHEDULE_PROPOSED,
+            [
+                'plain_token' => 'legacy-new-token',
+                'activate_access_token_hash' => $newHash,
+            ],
+            'consultation-booking-'.$booking->id.'-event-'.$proposal->id.'-reschedule-proposed',
+        );
+
+        $this->assertTrue(app(ConsultationNotificationService::class)->deliver($notification));
+        $this->assertSame($newHash, $booking->fresh()->access_token_hash);
     }
 
     /** @param array<string, mixed> $overrides */
