@@ -11,8 +11,10 @@ type Booking = {
   notes: string | null
   starts_at: string
   ends_at: string
+  list_price_cents: number
   amount_due_cents: number
   discount_percent: number
+  campaign_discount_cents: number
   hold_expires_at: string | null
   payment_due_at: string | null
   meet_link: string | null
@@ -113,8 +115,15 @@ export default function Show({
                 </a>
               </p>
               <p>
+                <span className="text-gray-400">List price · </span>$
+                {(booking.list_price_cents / 100).toFixed(2)}
+              </p>
+              <p>
                 <span className="text-gray-400">Amount · </span>$
                 {(booking.amount_due_cents / 100).toFixed(2)}
+                {booking.campaign_discount_cents > 0
+                  ? ` · $${(booking.campaign_discount_cents / 100).toFixed(2)} launch discount`
+                  : ''}
                 {booking.coupon_code ? ` · coupon ${booking.coupon_code}` : ''}
               </p>
               {booking.notes && (

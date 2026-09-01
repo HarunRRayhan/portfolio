@@ -7,6 +7,7 @@ use App\Models\ConsultationCoupon;
 use App\Models\ConsultationTier;
 use App\Services\Consultation\AvailabilityService;
 use App\Services\Consultation\BookingWorkflowService;
+use App\Services\Consultation\ConsultationLaunchPromotionService;
 use App\Services\Consultation\StripeCheckoutService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -17,7 +18,7 @@ use Inertia\Response;
 
 class BookController extends Controller
 {
-    public function show(StripeCheckoutService $stripe): Response
+    public function show(StripeCheckoutService $stripe, ConsultationLaunchPromotionService $promotion): Response
     {
         $tiers = ConsultationTier::query()->active()->get()->map->toPublicArray()->values();
 
@@ -26,6 +27,11 @@ class BookController extends Controller
             'stripeConfigured' => $stripe->configured(),
             'minLeadHours' => (int) config('consultation.min_lead_hours', 48),
             'bufferMinutes' => (int) config('consultation.buffer_minutes', 15),
+            'launchPromotion' => [
+                'discount_cents' => $promotion->discountCents(),
+                'limit' => $promotion->limit(),
+                'remaining_bookings' => $promotion->remaining(),
+            ],
         ]);
     }
 
@@ -46,7 +52,7 @@ class BookController extends Controller
         ]);
     }
 
-    public function validateCoupon(Request $request): JsonResponse
+    public function validateCoupon(Request $request, ConsultationLaunchPromotionService $promotion): JsonResponse
     {
         $data = $request->validate([
             'code' => ['required', 'string'],
@@ -62,10 +68,13 @@ class BookController extends Controller
             return response()->json(['valid' => false, 'message' => 'Invalid coupon for this plan.'], 422);
         }
 
+        $pricing = $promotion->preview((int) $tier->price_cents, $coupon);
+
         return response()->json([
             'valid' => true,
             'percent_off' => $coupon->percent_off,
-            'amount_due_cents' => $coupon->discountedAmountCents((int) $tier->price_cents),
+            'campaign_discount_cents' => $pricing['campaign_discount_cents'],
+            'amount_due_cents' => $pricing['amount_due_cents'],
         ]);
     }
 

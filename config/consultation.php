@@ -24,6 +24,12 @@ return [
 
     'stripe_reconciliation_retry_minutes' => 5,
 
+    'launch_promotion' => [
+        'discount_cents' => 10000,
+        'limit' => 1000,
+        'counter_key' => 'consultation_booking_promotion_claimed_count',
+    ],
+
     'notification_processing_timeout_minutes' => 10,
 
     'google_operation_processing_timeout_minutes' => 10,

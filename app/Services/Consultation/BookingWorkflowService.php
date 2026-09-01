@@ -21,6 +21,7 @@ class BookingWorkflowService
         protected StripeCheckoutService $stripe,
         protected ConsultationNotificationService $notifications,
         protected ConsultationGoogleOperationService $googleOperations,
+        protected ConsultationLaunchPromotionService $launchPromotion,
     ) {}
 
     /**
@@ -58,8 +59,10 @@ class BookingWorkflowService
             }
 
             $listPrice = (int) $tier->price_cents;
+            $campaignDiscount = $this->launchPromotion->claim($listPrice);
+            $discountedPrice = max(0, $listPrice - $campaignDiscount);
             $discount = $coupon ? (int) $coupon->percent_off : 0;
-            $amountDue = $coupon ? $coupon->discountedAmountCents($listPrice) : $listPrice;
+            $amountDue = $coupon ? $coupon->discountedAmountCents($discountedPrice) : $discountedPrice;
 
             $booking = ConsultationBooking::create([
                 'consultation_tier_id' => $tier->id,
@@ -72,6 +75,7 @@ class BookingWorkflowService
                 'status' => ConsultationBooking::STATUS_PENDING_APPROVAL,
                 'list_price_cents' => $listPrice,
                 'discount_percent' => $discount,
+                'campaign_discount_cents' => $campaignDiscount,
                 'amount_due_cents' => $amountDue,
                 'currency' => config('consultation.currency', 'usd'),
                 'hold_expires_at' => now('UTC')->addHours((int) config('consultation.hold_hours', 48)),

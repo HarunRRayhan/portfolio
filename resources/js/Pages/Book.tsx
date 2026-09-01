@@ -19,6 +19,12 @@ type Tier = {
 
 type Slot = { start: string; end: string }
 
+type LaunchPromotion = {
+  discount_cents: number
+  limit: number
+  remaining_bookings: number
+}
+
 const accentBySlug: Record<string, { border: string; button: string; ring: string }> = {
   light: {
     border: 'border-t-slate-700 border-b-slate-700',
@@ -51,6 +57,10 @@ function formatLocal(iso: string): string {
   }
 }
 
+function formatCents(cents: number): string {
+  return `$${(cents / 100).toFixed(cents % 100 ? 2 : 0)}`
+}
+
 function csrfToken(): string {
   return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? ''
 }
@@ -59,12 +69,14 @@ export default function Book({
   tiers,
   canonicalUrl,
   minLeadHours = 48,
+  launchPromotion,
 }: {
   tiers: Tier[]
   canonicalUrl?: string
   stripeConfigured?: boolean
   minLeadHours?: number
   bufferMinutes?: number
+  launchPromotion?: LaunchPromotion
 }) {
   const [step, setStep] = useState<'plans' | 'details'>('plans')
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null)
@@ -73,6 +85,11 @@ export default function Book({
   const [couponLoading, setCouponLoading] = useState(false)
   const [couponMsg, setCouponMsg] = useState<string | null>(null)
   const [discountedCents, setDiscountedCents] = useState<number | null>(null)
+  const [campaignDiscountCents, setCampaignDiscountCents] = useState(0)
+
+  const launchAvailable =
+    (launchPromotion?.remaining_bookings ?? 0) > 0 && (launchPromotion?.discount_cents ?? 0) > 0
+  const launchDiscountDisplay = formatCents(launchPromotion?.discount_cents ?? 0)
 
   const selected = useMemo(
     () => tiers.find((t) => t.slug === selectedSlug) ?? null,
@@ -110,6 +127,9 @@ export default function Book({
     form.setData('tier', tier.slug)
     form.setData('starts_at', '')
     setDiscountedCents(null)
+    setCampaignDiscountCents(
+      launchAvailable ? Math.min(tier.price_cents, launchPromotion?.discount_cents ?? 0) : 0,
+    )
     setCouponMsg(null)
     setStep('details')
   }
@@ -136,6 +156,7 @@ export default function Book({
         return
       }
       setDiscountedCents(data.amount_due_cents)
+      setCampaignDiscountCents(data.campaign_discount_cents ?? 0)
       setCouponMsg(`${data.percent_off}% off applied`)
     } catch {
       setDiscountedCents(null)
@@ -153,9 +174,15 @@ export default function Book({
   const offersLd = tiers.map((t) => ({
     '@type': 'Offer',
     name: t.name,
-    price: (t.price_cents / 100).toFixed(2),
+    price: (
+      (launchAvailable ? Math.max(0, t.price_cents - (launchPromotion?.discount_cents ?? 0)) : t.price_cents) / 100
+    ).toFixed(2),
     priceCurrency: 'USD',
   }))
+
+  const selectedAmountCents = selected
+    ? Math.max(0, selected.price_cents - campaignDiscountCents)
+    : null
 
   return (
     <>
@@ -163,12 +190,12 @@ export default function Book({
         <title>Book a Consultation | Cloud & DevOps Expert - Harun R. Rayhan</title>
         <meta
           name="description"
-          content="Book a paid DevOps consultation — Light, Pro, or Max. Request a slot, get approval, then pay securely with Stripe."
+          content="Book a paid DevOps consultation — Light, Pro, or Max. The first 1,000 booking requests get $100 off before any valid coupon is applied."
         />
         <meta property="og:title" content="Book a Consultation | Cloud & DevOps Expert - Harun R. Rayhan" />
         <meta
           property="og:description"
-          content="Paid DevOps consultations with approval, Google Calendar sync, and Stripe checkout."
+          content="Paid DevOps consultations with approval, Google Calendar sync, Stripe checkout, and $100 off for the first 1,000 booking requests."
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={canonicalUrl} />
@@ -207,9 +234,15 @@ export default function Book({
               DevOps consultations that ship clarity
             </motion.h1>
             <p className="mt-4 text-lg leading-7 text-slate-500">
-              Pick a plan, request a slot (≥{minLeadHours}h ahead). I approve, then you pay via Stripe —
-              nothing goes on the calendar as confirmed until both happen.
+              Pick a plan, request a slot (≥{minLeadHours}h ahead). I approve, then you pay via Stripe.
+              Nothing goes on the calendar as confirmed until both happen.
             </p>
+            {launchAvailable && (
+              <p className="mt-4 text-sm font-medium text-emerald-700">
+                Launch offer: the first {launchPromotion?.limit.toLocaleString() ?? 1000} booking requests get {launchDiscountDisplay} off.
+                Valid percentage coupons stack after this discount.
+              </p>
+            )}
           </div>
         </div>
       </section>
@@ -237,9 +270,20 @@ export default function Book({
                           {tier.name}
                         </p>
                         <p className="mt-3 text-4xl font-bold tracking-tight text-slate-900">
-                          {tier.price_display}
+                          {launchAvailable ? (
+                            <>
+                              <span className="text-slate-400 line-through">{tier.price_display}</span>
+                              {' '}
+                              <span className="ml-2">
+                                {formatCents(Math.max(0, tier.price_cents - (launchPromotion?.discount_cents ?? 0)))}
+                              </span>
+                            </>
+                          ) : (
+                            tier.price_display
+                          )}
                           <span className="ml-1 text-base font-medium text-slate-400">/ one time</span>
                         </p>
+                        {launchAvailable && <p className="mt-1 text-xs font-medium text-emerald-700">{launchDiscountDisplay} off launch pricing</p>}
                         <p className="mt-1 text-sm text-slate-500">{tier.duration_minutes} minutes</p>
                       </div>
                       <ul className="flex-1 border-t border-slate-100 px-6">
@@ -296,8 +340,10 @@ export default function Book({
                     </p>
                     <p className="mt-1 text-2xl font-bold text-slate-900">
                       {discountedCents !== null
-                        ? `$${(discountedCents / 100).toFixed(discountedCents % 100 ? 2 : 0)}`
-                        : selected?.price_display}{' '}
+                        ? formatCents(discountedCents)
+                        : selectedAmountCents !== null
+                          ? formatCents(selectedAmountCents)
+                          : selected?.price_display}{' '}
                       <span className="text-base font-medium text-slate-400">
                         · {selected?.duration_minutes} min
                       </span>
@@ -406,7 +452,7 @@ export default function Book({
                     Request this slot
                   </button>
                   <p className="text-center text-xs text-slate-400">
-                    Requesting does not charge you. After approval you’ll get a Stripe link (unless the coupon is 100% off).
+                    Requesting does not charge you. The launch discount is checked when you submit. After approval you’ll get a Stripe link (unless the coupon is 100% off).
                   </p>
                 </form>
               </motion.div>

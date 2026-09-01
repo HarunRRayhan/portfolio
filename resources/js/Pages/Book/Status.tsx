@@ -16,8 +16,10 @@ type Booking = {
   notes: string | null
   starts_at: string
   ends_at: string
+  list_price_cents: number
   amount_due_cents: number
   discount_percent: number
+  campaign_discount_cents: number
   payment_due_at: string | null
   payment_received?: boolean
   meet_link: string | null
@@ -116,11 +118,26 @@ export default function Status({
               <span className="text-slate-400">When · </span>
               {formatLocal(booking.starts_at)}
             </p>
+            {booking.campaign_discount_cents > 0 && (
+              <p>
+                <span className="text-slate-400">List price · </span>
+                ${(booking.list_price_cents / 100).toFixed(2)}
+              </p>
+            )}
             <p>
               <span className="text-slate-400">Amount · </span>
               ${(booking.amount_due_cents / 100).toFixed(2)}
-              {booking.discount_percent > 0 ? ` (${booking.discount_percent}% off)` : ''}
             </p>
+            {booking.campaign_discount_cents > 0 && (
+              <p>
+                <span className="text-slate-400">Launch discount · </span>-${(booking.campaign_discount_cents / 100).toFixed(2)}
+              </p>
+            )}
+            {booking.discount_percent > 0 && (
+              <p>
+                <span className="text-slate-400">Coupon · </span>{booking.discount_percent}% off
+              </p>
+            )}
             {booking.payment_due_at && booking.status === 'awaiting_payment' && (
               <p>
                 <span className="text-slate-400">Pay by · </span>

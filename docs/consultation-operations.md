@@ -73,6 +73,13 @@ To force one stored webhook through the handler again, run
 `consultations:audit-refunds` lists paid cancellations with a refund timestamp
 but no Stripe refund ID. Check those records in Stripe before retrying them.
 
+## Launch promotion
+
+The first 1,000 public booking requests receive $100 off the list price. A
+valid percentage coupon is applied after that discount. The migration creates
+the `consultation_booking_promotion_claimed_count` setting; don't reset it
+manually while the promotion is running.
+
 The scheduler service should run continuously with
 `php artisan schedule:run --no-interaction`. The optional worker service uses
 `railway.worker.json`; keep it pointed at the same PostgreSQL database as

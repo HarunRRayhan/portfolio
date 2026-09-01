@@ -9,10 +9,12 @@ use App\Models\ConsultationAvailabilityWindow;
 use App\Models\ConsultationBooking;
 use App\Models\ConsultationCoupon;
 use App\Models\ConsultationGoogleOperation;
+use App\Models\ConsultationSetting;
 use App\Models\ConsultationStripeCheckoutAttempt;
 use App\Models\ConsultationTier;
 use App\Services\Consultation\BookingWorkflowService;
 use App\Services\Consultation\ConsultationGoogleOperationService;
+use App\Services\Consultation\ConsultationNotificationService;
 use App\Services\Consultation\GoogleCalendarService;
 use App\Services\Consultation\StripeCheckoutService;
 use Carbon\Carbon;
@@ -23,6 +25,169 @@ use Tests\TestCase;
 class ConsultationBookingTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_first_thousand_booking_requests_receive_the_launch_discount(): void
+    {
+        Mail::fake();
+
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $result = $this->app->make(BookingWorkflowService::class)->requestBooking(
+            $tier,
+            'Launch customer',
+            'launch@example.com',
+            null,
+            $this->nextWeekdayAt(10),
+        );
+
+        $booking = $result['booking']->fresh();
+
+        $this->assertSame(24900, $booking->list_price_cents);
+        $this->assertSame(10000, $booking->campaign_discount_cents);
+        $this->assertSame(0, $booking->discount_percent);
+        $this->assertSame(14900, $booking->amount_due_cents);
+        $this->assertSame('1', ConsultationSetting::query()
+            ->where('key', 'consultation_booking_promotion_claimed_count')
+            ->value('value'));
+    }
+
+    public function test_launch_discount_is_applied_before_a_percentage_coupon(): void
+    {
+        Mail::fake();
+
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $coupon = ConsultationCoupon::create([
+            'code' => 'STACK20',
+            'percent_off' => 20,
+            'tier_slugs' => [$tier->slug],
+            'is_active' => true,
+        ]);
+
+        $result = $this->app->make(BookingWorkflowService::class)->requestBooking(
+            $tier,
+            'Stacked discount customer',
+            'stacked@example.com',
+            null,
+            $this->nextWeekdayAt(20),
+            $coupon,
+        );
+
+        $booking = $result['booking']->fresh();
+
+        $this->assertSame(10000, $booking->campaign_discount_cents);
+        $this->assertSame(20, $booking->discount_percent);
+        $this->assertSame(11920, $booking->amount_due_cents);
+        $this->assertSame('1', ConsultationSetting::query()
+            ->where('key', 'consultation_booking_promotion_claimed_count')
+            ->value('value'));
+    }
+
+    public function test_only_the_first_thousand_requests_claim_the_launch_discount(): void
+    {
+        Mail::fake();
+        ConsultationSetting::setValue('consultation_booking_promotion_claimed_count', '999');
+
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $workflow = $this->app->make(BookingWorkflowService::class);
+        $first = $workflow->requestBooking(
+            $tier,
+            'Customer one',
+            'customer-one@example.com',
+            null,
+            $this->nextWeekdayAt(10),
+        )['booking']->fresh();
+        $second = $workflow->requestBooking(
+            $tier,
+            'Customer two',
+            'customer-two@example.com',
+            null,
+            $this->nextWeekdayAt(10)->addWeek(),
+        )['booking']->fresh();
+
+        $this->assertSame(10000, $first->campaign_discount_cents);
+        $this->assertSame(0, $second->campaign_discount_cents);
+        $this->assertSame(14900, $first->amount_due_cents);
+        $this->assertSame(24900, $second->amount_due_cents);
+        $this->assertSame('1000', ConsultationSetting::query()
+            ->where('key', 'consultation_booking_promotion_claimed_count')
+            ->value('value'));
+    }
+
+    public function test_invalid_coupon_does_not_consume_a_launch_discount_claim(): void
+    {
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $coupon = ConsultationCoupon::create([
+            'code' => 'INACTIVE20',
+            'percent_off' => 20,
+            'tier_slugs' => [$tier->slug],
+            'is_active' => false,
+        ]);
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        try {
+            $this->app->make(BookingWorkflowService::class)->requestBooking(
+                $tier,
+                'Invalid coupon customer',
+                'invalid-coupon@example.com',
+                null,
+                $this->nextWeekdayAt(10),
+                $coupon,
+            );
+        } finally {
+            $this->assertSame('0', ConsultationSetting::query()
+                ->where('key', 'consultation_booking_promotion_claimed_count')
+                ->value('value'));
+            $this->assertDatabaseCount('consultation_bookings', 0);
+        }
+    }
+
+    public function test_missing_launch_counter_fails_closed(): void
+    {
+        Mail::fake();
+        ConsultationSetting::query()
+            ->where('key', 'consultation_booking_promotion_claimed_count')
+            ->delete();
+
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $booking = $this->app->make(BookingWorkflowService::class)->requestBooking(
+            $tier,
+            'Counter recovery customer',
+            'counter-recovery@example.com',
+            null,
+            $this->nextWeekdayAt(10),
+        )['booking']->fresh();
+
+        $this->assertSame(0, $booking->campaign_discount_cents);
+        $this->assertSame(24900, $booking->amount_due_cents);
+    }
+
+    public function test_failed_booking_transaction_restores_the_launch_discount_claim(): void
+    {
+        $notifications = $this->createMock(ConsultationNotificationService::class);
+        $notifications->expects($this->once())
+            ->method('enqueue')
+            ->willThrowException(new \RuntimeException('notification failure'));
+        $this->app->instance(ConsultationNotificationService::class, $notifications);
+
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+
+        $this->expectException(\RuntimeException::class);
+
+        try {
+            $this->app->make(BookingWorkflowService::class)->requestBooking(
+                $tier,
+                'Rollback customer',
+                'rollback@example.com',
+                null,
+                $this->nextWeekdayAt(10),
+            );
+        } finally {
+            $this->assertSame('0', ConsultationSetting::query()
+                ->where('key', 'consultation_booking_promotion_claimed_count')
+                ->value('value'));
+            $this->assertDatabaseCount('consultation_bookings', 0);
+        }
+    }
 
     public function test_payment_confirmation_keeps_the_payment_access_token_valid(): void
     {
@@ -1406,5 +1571,16 @@ class ConsultationBookingTest extends TestCase
             ConsultationGoogleOperation::STATUS_NEEDS_ATTENTION,
             $operation->fresh()->status,
         );
+    }
+
+    private function nextWeekdayAt(int $hour): Carbon
+    {
+        $startsAt = now('UTC')->addDays(3)->setTime($hour, 0);
+
+        while ($startsAt->isWeekend()) {
+            $startsAt->addDay();
+        }
+
+        return $startsAt;
     }
 }
