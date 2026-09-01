@@ -8,8 +8,10 @@ use App\Mail\Consultation\BookingRescheduleDeniedMail;
 use App\Models\ConsultationAvailabilityWindow;
 use App\Models\ConsultationBooking;
 use App\Models\ConsultationCoupon;
+use App\Models\ConsultationGoogleOperation;
 use App\Models\ConsultationTier;
 use App\Services\Consultation\BookingWorkflowService;
+use App\Services\Consultation\ConsultationGoogleOperationService;
 use App\Services\Consultation\GoogleCalendarService;
 use App\Services\Consultation\StripeCheckoutService;
 use Carbon\Carbon;
@@ -296,6 +298,7 @@ class ConsultationBookingTest extends TestCase
             'discount_percent' => 20,
             'amount_due_cents' => $coupon->discountedAmountCents($tier->price_cents),
             'currency' => 'usd',
+            'stripe_paid_at' => now('UTC'),
             'access_token_hash' => hash('sha256', 'coupon-limit'),
         ]);
 
@@ -343,10 +346,10 @@ class ConsultationBookingTest extends TestCase
         try {
             $this->app->make(BookingWorkflowService::class)->markPaidFromStripe($booking, 'cs_calendar', 'pi_calendar');
         } finally {
-            $this->assertSame(
-                ConsultationBooking::STATUS_AWAITING_PAYMENT,
-                $booking->fresh()->status,
-            );
+            $fresh = $booking->fresh();
+            $this->assertSame(ConsultationBooking::STATUS_AWAITING_PAYMENT, $fresh->status);
+            $this->assertNotNull($fresh->stripe_paid_at);
+            $this->assertSame(0, $this->app->make(BookingWorkflowService::class)->expireUnpaidPastDeadline());
         }
     }
 
@@ -788,5 +791,98 @@ class ConsultationBookingTest extends TestCase
                 $this->assertStringContainsString('refund has started', $e->getMessage());
             }
         }
+    }
+
+    public function test_a_failed_google_transition_is_replayed_by_the_operation_worker(): void
+    {
+        Mail::fake();
+
+        $google = $this->createMock(GoogleCalendarService::class);
+        $google->expects($this->once())
+            ->method('updateEvent')
+            ->with(
+                'retry-hold',
+                'Blocked time',
+                $this->isInstanceOf(Carbon::class),
+                $this->isInstanceOf(Carbon::class),
+                'Blocked after declining a consultation request.',
+                'confirmed',
+            )
+            ->willReturn('retry-hold');
+        $google->method('isConnected')->willReturn(true);
+        $this->app->instance(GoogleCalendarService::class, $google);
+
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $booking = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Google operation retry',
+            'client_email' => 'google-operation@example.com',
+            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
+            'ends_at' => now('UTC')->addDays(3)->setTime(10, 30),
+            'status' => ConsultationBooking::STATUS_PENDING_APPROVAL,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'google_event_id' => 'retry-hold',
+            'access_token_hash' => hash('sha256', 'google-operation-retry'),
+        ]);
+        $operation = ConsultationGoogleOperation::create([
+            'consultation_booking_id' => $booking->id,
+            'operation_key' => 'consultation-booking-'.$booking->id.'-google-decline',
+            'operation' => 'decline',
+            'payload' => [
+                'block_slot' => true,
+                'task_title' => 'Blocked time',
+            ],
+            'status' => ConsultationGoogleOperation::STATUS_FAILED,
+            'attempts' => 1,
+            'available_at' => now('UTC')->subMinute(),
+        ]);
+
+        $this->assertSame(
+            1,
+            app(ConsultationGoogleOperationService::class)->retryDue(
+                app(BookingWorkflowService::class),
+            ),
+        );
+        $this->assertSame(ConsultationBooking::STATUS_DECLINED, $booking->fresh()->status);
+        $this->assertSame(
+            ConsultationGoogleOperation::STATUS_SUCCEEDED,
+            $operation->fresh()->status,
+        );
+    }
+
+    public function test_a_google_hold_failure_keeps_the_booking_and_queues_a_retry(): void
+    {
+        Mail::fake();
+
+        $startsAt = now('UTC')->addDays(3)->setTime(10, 0);
+        ConsultationAvailabilityWindow::create([
+            'weekday' => $startsAt->dayOfWeek,
+            'start_time' => '09:00:00',
+            'end_time' => '12:00:00',
+        ]);
+
+        $google = $this->createMock(GoogleCalendarService::class);
+        $google->expects($this->once())->method('isConnected')->willReturn(true);
+        $google->expects($this->once())->method('busyPeriods')->willReturn([]);
+        $google->expects($this->once())->method('createHoldEvent')->willReturn(null);
+        $this->app->instance(GoogleCalendarService::class, $google);
+
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $result = $this->app->make(BookingWorkflowService::class)->requestBooking(
+            $tier,
+            'Hold retry client',
+            'hold-retry@example.com',
+            null,
+            $startsAt,
+        );
+
+        $this->assertSame(ConsultationBooking::STATUS_PENDING_APPROVAL, $result['booking']->status);
+        $this->assertDatabaseHas('consultation_google_operations', [
+            'consultation_booking_id' => $result['booking']->id,
+            'operation' => 'hold',
+            'status' => ConsultationGoogleOperation::STATUS_FAILED,
+        ]);
     }
 }

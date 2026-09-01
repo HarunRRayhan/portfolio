@@ -2,11 +2,19 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\Consultation\StripeWebhookController;
+use App\Mail\Consultation\StripeWebhookUnmatchedMail;
 use App\Models\ConsultationBooking;
+use App\Models\ConsultationNotification;
 use App\Models\ConsultationStripeWebhookEvent;
 use App\Models\ConsultationTier;
 use App\Services\Consultation\BookingWorkflowService;
+use App\Services\Consultation\ConsultationNotificationService;
+use App\Services\Consultation\StripeCheckoutService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
+use Stripe\ApiRequestor;
+use Stripe\HttpClient\ClientInterface;
 use Tests\TestCase;
 
 class ConsultationStripeWebhookTest extends TestCase
@@ -20,6 +28,13 @@ class ConsultationStripeWebhookTest extends TestCase
         parent::setUp();
 
         config(['stripe.webhook_secret' => self::SIGNING_SECRET]);
+    }
+
+    protected function tearDown(): void
+    {
+        ApiRequestor::setHttpClient(null);
+
+        parent::tearDown();
     }
 
     public function test_invalid_webhook_signature_is_rejected_without_recording_an_event(): void
@@ -61,6 +76,34 @@ class ConsultationStripeWebhookTest extends TestCase
             'attempts' => 1,
             'consultation_booking_id' => $booking->id,
         ]);
+    }
+
+    public function test_a_rejected_payment_is_refunded_and_the_webhook_is_completed(): void
+    {
+        config([
+            'stripe.key' => 'pk_test',
+            'stripe.secret' => 'sk_test',
+        ]);
+        $booking = $this->awaitingPaymentBooking();
+        $workflow = $this->createMock(BookingWorkflowService::class);
+        $workflow->expects($this->never())->method('markPaidFromStripe');
+        $this->app->instance(BookingWorkflowService::class, $workflow);
+        ApiRequestor::setHttpClient(new class implements ClientInterface
+        {
+            public function request($method, $absUrl, $headers, $params, $hasFile, $apiMode = 'v1', $maxNetworkRetries = null)
+            {
+                return [json_encode(['id' => 'rejected_refund'], JSON_THROW_ON_ERROR), 200, []];
+            }
+        });
+
+        $payload = $this->stripePayload($booking, 'evt_rejected', $booking->amount_due_cents - 1);
+
+        $this->postWebhook($payload)->assertOk();
+        $this->assertDatabaseHas('consultation_stripe_webhook_events', [
+            'event_id' => 'evt_rejected',
+            'status' => ConsultationStripeWebhookEvent::STATUS_PROCESSED,
+        ]);
+        $this->assertSame('cs_webhook', $booking->fresh()->stripe_checkout_rejected_session_id);
     }
 
     public function test_a_failed_webhook_can_be_retried_and_is_not_lost(): void
@@ -110,6 +153,72 @@ class ConsultationStripeWebhookTest extends TestCase
         $this->postWebhook($this->stripePayload(null, 'evt_in_flight'))->assertStatus(500);
     }
 
+    public function test_a_valid_paid_event_without_a_booking_is_acknowledged_and_alerts_the_admin(): void
+    {
+        Mail::fake();
+
+        $this->postWebhook($this->stripePayload(null, 'evt_unmatched'))->assertOk();
+        $this->postWebhook($this->stripePayload(null, 'evt_unmatched'))->assertOk();
+
+        $this->assertDatabaseHas('consultation_stripe_webhook_events', [
+            'event_id' => 'evt_unmatched',
+            'status' => ConsultationStripeWebhookEvent::STATUS_UNMATCHED,
+            'stripe_checkout_session_id' => 'cs_webhook',
+        ]);
+        $this->assertDatabaseHas('consultation_notifications', [
+            'deduplication_key' => 'consultation-stripe-webhook-evt_unmatched-unmatched',
+            'mail_type' => ConsultationNotificationService::TYPE_STRIPE_WEBHOOK_UNMATCHED,
+            'status' => ConsultationNotification::STATUS_SENT,
+        ]);
+        Mail::assertSent(StripeWebhookUnmatchedMail::class);
+        $this->assertDatabaseCount('consultation_notifications', 1);
+        $this->assertNotNull(
+            ConsultationStripeWebhookEvent::query()
+                ->where('event_id', 'evt_unmatched')
+                ->value('processed_at'),
+        );
+    }
+
+    public function test_a_failed_event_can_be_replayed_from_its_encrypted_ledger_payload(): void
+    {
+        $booking = $this->awaitingPaymentBooking();
+        $calls = 0;
+        $workflow = $this->createMock(BookingWorkflowService::class);
+        $workflow->expects($this->exactly(2))
+            ->method('markPaidFromStripe')
+            ->willReturnCallback(function () use ($booking, &$calls) {
+                $calls++;
+
+                if ($calls === 1) {
+                    throw new \RuntimeException('temporary confirmation failure');
+                }
+
+                return $booking;
+            });
+        $this->app->instance(BookingWorkflowService::class, $workflow);
+
+        $payload = $this->stripePayload($booking, 'evt_replay');
+        $this->postWebhook($payload)->assertStatus(500);
+
+        $ledgerEvent = ConsultationStripeWebhookEvent::query()
+            ->where('event_id', 'evt_replay')
+            ->firstOrFail();
+        $this->assertSame($payload, $ledgerEvent->payload);
+
+        $this->assertTrue(app(StripeWebhookController::class)->replayEvent(
+            $ledgerEvent,
+            app(StripeCheckoutService::class),
+            app(BookingWorkflowService::class),
+            app(ConsultationNotificationService::class),
+            true,
+        ));
+        $this->assertDatabaseHas('consultation_stripe_webhook_events', [
+            'event_id' => 'evt_replay',
+            'status' => ConsultationStripeWebhookEvent::STATUS_PROCESSED,
+            'attempts' => 2,
+        ]);
+    }
+
     private function awaitingPaymentBooking(): ConsultationBooking
     {
         $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
@@ -131,7 +240,7 @@ class ConsultationStripeWebhookTest extends TestCase
         ]);
     }
 
-    private function stripePayload(?ConsultationBooking $booking, string $eventId): string
+    private function stripePayload(?ConsultationBooking $booking, string $eventId, ?int $amountTotal = null): string
     {
         return json_encode([
             'id' => $eventId,
@@ -150,7 +259,7 @@ class ConsultationStripeWebhookTest extends TestCase
                     ],
                     'payment_intent' => 'pi_webhook',
                     'payment_status' => 'paid',
-                    'amount_total' => $booking?->amount_due_cents,
+                    'amount_total' => $amountTotal ?? $booking?->amount_due_cents,
                     'currency' => 'usd',
                 ],
             ],

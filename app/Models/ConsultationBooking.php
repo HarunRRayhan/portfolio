@@ -45,7 +45,13 @@ class ConsultationBooking extends Model
         'currency',
         'stripe_checkout_session_id',
         'stripe_checkout_idempotency_key',
+        'stripe_checkout_attempted_at',
+        'stripe_checkout_next_attempt_at',
+        'stripe_checkout_last_error',
+        'stripe_checkout_rejected_session_id',
+        'stripe_checkout_checked_at',
         'stripe_payment_intent_id',
+        'stripe_paid_at',
         'stripe_refund_id',
         'stripe_refunded_at',
         'stripe_refund_attempted_at',
@@ -74,6 +80,10 @@ class ConsultationBooking extends Model
         'payment_due_at' => 'datetime',
         'stripe_refunded_at' => 'datetime',
         'stripe_refund_attempted_at' => 'datetime',
+        'stripe_checkout_attempted_at' => 'datetime',
+        'stripe_checkout_next_attempt_at' => 'datetime',
+        'stripe_paid_at' => 'datetime',
+        'stripe_checkout_checked_at' => 'datetime',
         'access_token_expires_at' => 'datetime',
         'reschedule_original_starts_at' => 'datetime',
         'reschedule_original_ends_at' => 'datetime',
@@ -109,9 +119,24 @@ class ConsultationBooking extends Model
         return $this->hasMany(ConsultationBookingEvent::class);
     }
 
-    public function recordEvent(string $event, ?string $actor = null, ?array $meta = null): void
+    public function notifications(): HasMany
     {
-        $this->events()->create([
+        return $this->hasMany(ConsultationNotification::class);
+    }
+
+    public function googleOperations(): HasMany
+    {
+        return $this->hasMany(ConsultationGoogleOperation::class);
+    }
+
+    public function stripeCheckoutAttempts(): HasMany
+    {
+        return $this->hasMany(ConsultationStripeCheckoutAttempt::class);
+    }
+
+    public function recordEvent(string $event, ?string $actor = null, ?array $meta = null): ConsultationBookingEvent
+    {
+        return $this->events()->create([
             'event' => $event,
             'actor' => $actor,
             'meta' => $meta,
@@ -154,6 +179,12 @@ class ConsultationBooking extends Model
             'amount_due_cents' => $this->amount_due_cents,
             'hold_expires_at' => $this->hold_expires_at?->utc()->toIso8601String(),
             'payment_due_at' => $this->payment_due_at?->utc()->toIso8601String(),
+            'stripe_checkout_session_id' => $this->stripe_checkout_session_id,
+            'stripe_checkout_last_error' => $this->stripe_checkout_last_error,
+            'stripe_checkout_next_attempt_at' => $this->stripe_checkout_next_attempt_at?->utc()->toIso8601String(),
+            'stripe_checkout_rejected_session_id' => $this->stripe_checkout_rejected_session_id,
+            'stripe_paid_at' => $this->stripe_paid_at?->utc()->toIso8601String(),
+            'stripe_checkout_checked_at' => $this->stripe_checkout_checked_at?->utc()->toIso8601String(),
             'meet_link' => $this->meet_link,
             'admin_note' => $this->admin_note,
             'proposed_slots' => $this->proposed_slots,
@@ -178,6 +209,7 @@ class ConsultationBooking extends Model
             'amount_due_cents' => $this->amount_due_cents,
             'discount_percent' => $this->discount_percent,
             'payment_due_at' => $this->payment_due_at?->utc()->toIso8601String(),
+            'payment_received' => $this->stripe_paid_at !== null || $this->status === self::STATUS_CONFIRMED,
             'meet_link' => $this->status === self::STATUS_CONFIRMED ? $this->meet_link : null,
             'proposed_slots' => $this->proposed_slots,
             'tier' => $this->tier?->toPublicArray(),

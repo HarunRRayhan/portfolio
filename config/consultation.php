@@ -22,6 +22,12 @@ return [
 
     'stripe_webhook_processing_timeout_minutes' => 10,
 
+    'stripe_reconciliation_retry_minutes' => 5,
+
+    'notification_processing_timeout_minutes' => 10,
+
+    'google_operation_processing_timeout_minutes' => 10,
+
     'reschedule_hold_hours' => 48,
 
     'default_schedule_timezone' => env('CONSULTATION_SCHEDULE_TIMEZONE', 'UTC'),

@@ -19,6 +19,7 @@ type Booking = {
   amount_due_cents: number
   discount_percent: number
   payment_due_at: string | null
+  payment_received?: boolean
   meet_link: string | null
   proposed_slots: { start: string; end: string }[] | null
   tier: Tier | null
@@ -90,7 +91,12 @@ export default function Status({
             {booking.tier?.name ?? 'Consultation'}
           </h1>
           <p className="mt-2 text-slate-500">
-            Status: <span className="font-medium text-slate-800">{statusLabel[booking.status] ?? booking.status}</span>
+            Status:{' '}
+            <span className="font-medium text-slate-800">
+              {booking.status === 'awaiting_payment' && booking.payment_received
+                ? 'Payment received, confirming'
+                : statusLabel[booking.status] ?? booking.status}
+            </span>
           </p>
         </div>
       </section>
@@ -131,7 +137,7 @@ export default function Status({
             )}
           </div>
 
-          {booking.status === 'awaiting_payment' && (
+          {booking.status === 'awaiting_payment' && !booking.payment_received && (
             <button
               type="button"
               onClick={pay}

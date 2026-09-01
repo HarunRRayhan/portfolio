@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\ConsultationBooking;
+use App\Models\ConsultationStripeCheckoutAttempt;
 use App\Models\ConsultationTier;
 use App\Services\Consultation\StripeCheckoutService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -83,6 +84,12 @@ class ConsultationStripeCheckoutTest extends TestCase
             'id' => $booking->id,
             'stripe_checkout_session_id' => 'cs_stable',
             'stripe_checkout_idempotency_key' => 'consultation-checkout-'.$booking->id,
+        ]);
+        $this->assertDatabaseHas('consultation_stripe_checkout_attempts', [
+            'consultation_booking_id' => $booking->id,
+            'idempotency_key' => 'consultation-checkout-'.$booking->id,
+            'stripe_checkout_session_id' => 'cs_stable',
+            'status' => ConsultationStripeCheckoutAttempt::STATUS_CREATED,
         ]);
     }
 }

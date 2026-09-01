@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Consultation;
 
 use App\Http\Controllers\Controller;
 use App\Models\ConsultationBooking;
+use App\Models\ConsultationNotification;
 use App\Models\ConsultationStripeWebhookEvent;
 use App\Services\Consultation\BookingWorkflowService;
+use App\Services\Consultation\ConsultationNotificationService;
 use App\Services\Consultation\StripeCheckoutService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Stripe\Checkout\Session;
@@ -17,8 +20,12 @@ use Stripe\Event;
 
 class StripeWebhookController extends Controller
 {
-    public function __invoke(Request $request, StripeCheckoutService $stripe, BookingWorkflowService $workflow): Response
-    {
+    public function __invoke(
+        Request $request,
+        StripeCheckoutService $stripe,
+        BookingWorkflowService $workflow,
+        ConsultationNotificationService $notifications,
+    ): Response {
         $payload = $request->getContent();
         $signature = $request->header('Stripe-Signature', '');
 
@@ -35,13 +42,13 @@ class StripeWebhookController extends Controller
             return response('Invalid event', 400);
         }
 
-        $claim = $this->claimEvent($eventId, (string) $event->type);
+        $claim = $this->claimEvent($eventId, (string) $event->type, $payload);
         if ($claim['event'] === null) {
             return response($claim['retry'] ? 'Retry later' : 'ok', $claim['retry'] ? 500 : 200);
         }
 
         try {
-            $this->processEvent($event, $stripe, $workflow, $claim['event']);
+            $this->processEvent($event, $stripe, $workflow, $notifications, $claim['event']);
             $this->markProcessed($claim['event']);
 
             return response('ok', 200);
@@ -56,12 +63,57 @@ class StripeWebhookController extends Controller
         }
     }
 
+    public function replayEvent(
+        ConsultationStripeWebhookEvent $webhookEvent,
+        StripeCheckoutService $stripe,
+        BookingWorkflowService $workflow,
+        ConsultationNotificationService $notifications,
+        bool $force = false,
+    ): bool {
+        $payload = $webhookEvent->payload;
+        if (! is_string($payload) || $payload === '') {
+            throw new \RuntimeException('The webhook payload was not stored and cannot be replayed.');
+        }
+
+        if ($force) {
+            DB::transaction(function () use ($webhookEvent): void {
+                $current = ConsultationStripeWebhookEvent::query()->lockForUpdate()->findOrFail($webhookEvent->id);
+                $current->forceFill([
+                    'status' => ConsultationStripeWebhookEvent::STATUS_FAILED,
+                    'last_error' => null,
+                    'next_attempt_at' => null,
+                    'processed_at' => null,
+                    'updated_at' => now('UTC')->subMinutes((int) config('consultation.stripe_webhook_processing_timeout_minutes', 10) + 1),
+                ])->save();
+            });
+        }
+
+        $decoded = json_decode($payload, true, 512, JSON_THROW_ON_ERROR);
+        $event = Event::constructFrom($decoded);
+        $claim = $this->claimEvent($webhookEvent->event_id, (string) $event->type, $payload);
+
+        if ($claim['event'] === null) {
+            return false;
+        }
+
+        try {
+            $this->processEvent($event, $stripe, $workflow, $notifications, $claim['event']);
+            $this->markProcessed($claim['event']);
+
+            return true;
+        } catch (\Throwable $e) {
+            $this->markFailed($claim['event'], $e);
+
+            throw $e;
+        }
+    }
+
     /**
      * @return array{event: ?ConsultationStripeWebhookEvent, retry: bool}
      */
-    protected function claimEvent(string $eventId, string $type): array
+    protected function claimEvent(string $eventId, string $type, ?string $payload = null): array
     {
-        return DB::transaction(function () use ($eventId, $type): array {
+        return DB::transaction(function () use ($eventId, $type, $payload): array {
             $now = now('UTC');
 
             DB::table('consultation_stripe_webhook_events')->insertOrIgnore([
@@ -69,6 +121,7 @@ class StripeWebhookController extends Controller
                 'type' => $type,
                 'status' => ConsultationStripeWebhookEvent::STATUS_PROCESSING,
                 'attempts' => 0,
+                'payload' => $payload !== null ? Crypt::encryptString($payload) : null,
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);
@@ -78,7 +131,17 @@ class StripeWebhookController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
 
+            if ($payload !== null && $webhookEvent->payload === null) {
+                $webhookEvent->forceFill([
+                    'payload' => Crypt::encryptString($payload),
+                ])->save();
+            }
+
             if ($webhookEvent->status === ConsultationStripeWebhookEvent::STATUS_PROCESSED) {
+                return ['event' => null, 'retry' => false];
+            }
+
+            if ($webhookEvent->status === ConsultationStripeWebhookEvent::STATUS_UNMATCHED) {
                 return ['event' => null, 'retry' => false];
             }
 
@@ -95,6 +158,7 @@ class StripeWebhookController extends Controller
                 'status' => ConsultationStripeWebhookEvent::STATUS_PROCESSING,
                 'attempts' => $webhookEvent->attempts + 1,
                 'last_error' => null,
+                'next_attempt_at' => null,
                 'processed_at' => null,
             ])->save();
 
@@ -106,6 +170,7 @@ class StripeWebhookController extends Controller
         Event $event,
         StripeCheckoutService $stripe,
         BookingWorkflowService $workflow,
+        ConsultationNotificationService $notifications,
         ConsultationStripeWebhookEvent $webhookEvent,
     ): void {
         if (! in_array($event->type, [
@@ -128,20 +193,39 @@ class StripeWebhookController extends Controller
             ? ($metadata['booking_public_id'] ?? null)
             : (is_object($metadata) ? ($metadata->booking_public_id ?? null) : null);
         $publicId = $session->client_reference_id ?: $metadataPublicId;
+        $sessionId = (string) ($session->id ?? '');
+        $booking = $sessionId !== ''
+            ? ConsultationBooking::query()->where('stripe_checkout_session_id', $sessionId)->first()
+            : null;
 
-        if (! is_string($publicId) || $publicId === '') {
-            return;
+        if (! $booking && is_string($publicId) && $publicId !== '') {
+            $booking = ConsultationBooking::query()->where('public_id', $publicId)->first();
         }
 
-        $booking = ConsultationBooking::query()->where('public_id', $publicId)->first();
         if (! $booking) {
+            $this->markUnmatched(
+                $webhookEvent,
+                $notifications,
+                is_string($publicId) && $publicId !== ''
+                    ? 'No consultation booking matched the supplied booking reference.'
+                    : 'The event did not include a booking reference.',
+                $sessionId,
+                is_string($publicId) && $publicId !== '' ? $publicId : null,
+            );
+
             return;
         }
 
-        $webhookEvent->forceFill(['consultation_booking_id' => $booking->id])->save();
+        $publicId = $booking->public_id;
+
+        $webhookEvent->forceFill([
+            'consultation_booking_id' => $booking->id,
+            'booking_public_id' => $publicId,
+            'stripe_checkout_session_id' => $sessionId ?: null,
+        ])->save();
 
         if ($booking->amount_due_cents > 0 && $paymentStatus !== 'paid') {
-            $this->refundRejectedPayment($stripe, null, $publicId, $session, 'payment was not marked paid');
+            $this->refundRejectedPayment($stripe, null, $publicId, $session, 'payment was not marked paid', $booking);
 
             return;
         }
@@ -156,7 +240,7 @@ class StripeWebhookController extends Controller
         }
 
         if ($booking->stripe_checkout_session_id && $booking->stripe_checkout_session_id !== $session->id) {
-            $this->refundRejectedPayment($stripe, $paymentIntentId, $publicId, $session, 'stale checkout session');
+            $this->refundRejectedPayment($stripe, $paymentIntentId, $publicId, $session, 'stale checkout session', $booking);
 
             return;
         }
@@ -166,7 +250,7 @@ class StripeWebhookController extends Controller
         }
 
         if ($session->amount_total !== null && (int) $session->amount_total !== $booking->amount_due_cents) {
-            $this->refundRejectedPayment($stripe, $paymentIntentId, $publicId, $session, 'unexpected amount');
+            $this->refundRejectedPayment($stripe, $paymentIntentId, $publicId, $session, 'unexpected amount', $booking);
 
             return;
         }
@@ -176,7 +260,7 @@ class StripeWebhookController extends Controller
         }
 
         if ($session->currency && strtolower((string) $session->currency) !== strtolower($booking->currency)) {
-            $this->refundRejectedPayment($stripe, $paymentIntentId, $publicId, $session, 'unexpected currency');
+            $this->refundRejectedPayment($stripe, $paymentIntentId, $publicId, $session, 'unexpected currency', $booking);
 
             return;
         }
@@ -193,7 +277,7 @@ class StripeWebhookController extends Controller
                 'error' => $e->getMessage(),
             ]);
 
-            $this->refundRejectedPayment($stripe, $paymentIntentId, $publicId, $session, $e->getMessage());
+            $this->refundRejectedPayment($stripe, $paymentIntentId, $publicId, $session, $e->getMessage(), $booking);
         }
     }
 
@@ -203,6 +287,7 @@ class StripeWebhookController extends Controller
         string $publicId,
         Session $session,
         string $reason,
+        ?ConsultationBooking $booking = null,
     ): void {
         Log::warning('Refunding rejected Stripe consultation payment', [
             'booking' => $publicId,
@@ -211,6 +296,15 @@ class StripeWebhookController extends Controller
         ]);
 
         if (! is_string($paymentIntentId) || $paymentIntentId === '') {
+            if ($booking) {
+                ConsultationBooking::query()
+                    ->whereKey($booking->id)
+                    ->update([
+                        'stripe_checkout_rejected_session_id' => (string) $session->id,
+                        'updated_at' => now('UTC'),
+                    ]);
+            }
+
             return;
         }
 
@@ -219,6 +313,15 @@ class StripeWebhookController extends Controller
                 $paymentIntentId,
                 'consultation-invalid-payment-'.$session->id,
             );
+
+            if ($booking) {
+                ConsultationBooking::query()
+                    ->whereKey($booking->id)
+                    ->update([
+                        'stripe_checkout_rejected_session_id' => (string) $session->id,
+                        'updated_at' => now('UTC'),
+                    ]);
+            }
         } catch (\Throwable $e) {
             Log::error('Rejected Stripe consultation payment could not be refunded', [
                 'booking' => $publicId,
@@ -232,19 +335,82 @@ class StripeWebhookController extends Controller
 
     protected function markProcessed(ConsultationStripeWebhookEvent $webhookEvent): void
     {
+        if ($webhookEvent->status === ConsultationStripeWebhookEvent::STATUS_UNMATCHED) {
+            ConsultationStripeWebhookEvent::query()
+                ->whereKey($webhookEvent->id)
+                ->where('attempts', $webhookEvent->attempts)
+                ->where('status', ConsultationStripeWebhookEvent::STATUS_UNMATCHED)
+                ->update([
+                    'processed_at' => now('UTC'),
+                    'next_attempt_at' => null,
+                    'updated_at' => now('UTC'),
+                ]);
+
+            return;
+        }
+
         $this->sameAttemptQuery($webhookEvent)->update([
             'status' => ConsultationStripeWebhookEvent::STATUS_PROCESSED,
             'last_error' => null,
+            'next_attempt_at' => null,
             'processed_at' => now('UTC'),
             'updated_at' => now('UTC'),
         ]);
     }
 
+    protected function markUnmatched(
+        ConsultationStripeWebhookEvent $webhookEvent,
+        ConsultationNotificationService $notifications,
+        string $reason,
+        ?string $sessionId,
+        ?string $bookingPublicId,
+    ): void {
+        $notification = DB::transaction(function () use (
+            $webhookEvent,
+            $notifications,
+            $reason,
+            $sessionId,
+            $bookingPublicId,
+        ): ConsultationNotification {
+            $current = ConsultationStripeWebhookEvent::query()->lockForUpdate()->findOrFail($webhookEvent->id);
+            $current->forceFill([
+                'status' => ConsultationStripeWebhookEvent::STATUS_UNMATCHED,
+                'stripe_checkout_session_id' => $sessionId ?: null,
+                'booking_public_id' => $bookingPublicId,
+                'last_error' => $reason,
+                'unmatched_at' => now('UTC'),
+            ])->save();
+
+            return $notifications->enqueue(
+                null,
+                config('mail.to.address'),
+                ConsultationNotificationService::TYPE_STRIPE_WEBHOOK_UNMATCHED,
+                [
+                    'event_id' => $current->event_id,
+                    'event_type' => $current->type,
+                    'reason' => $reason,
+                    'session_id' => $sessionId,
+                    'booking_public_id' => $bookingPublicId,
+                ],
+                'consultation-stripe-webhook-'.$current->event_id.'-unmatched',
+            );
+        });
+
+        $webhookEvent->forceFill([
+            'status' => ConsultationStripeWebhookEvent::STATUS_UNMATCHED,
+        ]);
+
+        $notifications->deliver($notification);
+    }
+
     protected function markFailed(ConsultationStripeWebhookEvent $webhookEvent, \Throwable $exception): void
     {
+        $delay = min(60 * 24, max(5, 2 ** min($webhookEvent->attempts, 8)));
+
         $this->sameAttemptQuery($webhookEvent)->update([
             'status' => ConsultationStripeWebhookEvent::STATUS_FAILED,
             'last_error' => mb_substr($exception->getMessage(), 0, 2000),
+            'next_attempt_at' => now('UTC')->addMinutes($delay),
             'updated_at' => now('UTC'),
         ]);
     }
