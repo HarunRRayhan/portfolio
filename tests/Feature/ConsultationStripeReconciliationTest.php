@@ -14,6 +14,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Stripe\ApiRequestor;
 use Stripe\Checkout\Session;
+use Stripe\Exception\InvalidRequestException;
 use Stripe\HttpClient\ClientInterface;
 use Tests\TestCase;
 
@@ -86,6 +87,74 @@ class ConsultationStripeReconciliationTest extends TestCase
             'status' => ConsultationNotification::STATUS_SENT,
         ]);
         $this->assertNotSame(hash('sha256', 'old-token'), $booking->fresh()->access_token_hash);
+    }
+
+    public function test_an_existing_checkout_without_a_ledger_attempt_keeps_the_existing_access_token(): void
+    {
+        Mail::fake();
+        $booking = $this->booking(['stripe_checkout_session_id' => 'cs_legacy_reconcile']);
+        $session = Session::constructFrom([
+            'id' => 'cs_legacy_reconcile',
+            'status' => 'open',
+            'url' => 'https://checkout.stripe.test/cs_legacy_reconcile',
+            'payment_status' => 'unpaid',
+        ]);
+
+        $stripe = $this->createMock(StripeCheckoutService::class);
+        $stripe->method('configured')->willReturn(true);
+        $stripe->expects($this->once())
+            ->method('retrieveCheckoutSession')
+            ->with('cs_legacy_reconcile')
+            ->willReturn($session);
+        $this->app->instance(StripeCheckoutService::class, $stripe);
+
+        $this->assertSame(1, app(ConsultationStripeReconciliationService::class)->reconcile());
+        $this->assertSame(hash('sha256', 'old-token'), $booking->fresh()->access_token_hash);
+        $this->assertDatabaseCount('consultation_stripe_checkout_attempts', 0);
+    }
+
+    public function test_a_missing_stripe_session_is_rotated_and_recreated(): void
+    {
+        Mail::fake();
+        config([
+            'stripe.key' => 'pk_test',
+            'stripe.secret' => 'sk_test',
+        ]);
+        $booking = $this->booking(['stripe_checkout_session_id' => 'cs_missing']);
+
+        $client = new class implements ClientInterface
+        {
+            public int $getRequests = 0;
+
+            public function request($method, $absUrl, $headers, $params, $hasFile, $apiMode = 'v1', $maxNetworkRetries = null)
+            {
+                if (strtolower((string) $method) === 'get') {
+                    $this->getRequests++;
+                    throw InvalidRequestException::factory(
+                        'No such checkout session',
+                        404,
+                        null,
+                        ['error' => ['code' => 'resource_missing']],
+                        [],
+                        'resource_missing',
+                    );
+                }
+
+                return [json_encode([
+                    'id' => 'cs_replacement',
+                    'object' => 'checkout.session',
+                    'status' => 'open',
+                    'url' => 'https://checkout.stripe.test/cs_replacement',
+                    'payment_status' => 'unpaid',
+                ]), 200, []];
+            }
+        };
+        ApiRequestor::setHttpClient($client);
+
+        $this->assertSame(1, app(ConsultationStripeReconciliationService::class)->reconcile());
+        $this->assertSame('cs_replacement', $booking->fresh()->stripe_checkout_session_id);
+        $this->assertNotSame(hash('sha256', 'old-token'), $booking->fresh()->access_token_hash);
+        $this->assertSame(2, $client->getRequests);
     }
 
     public function test_a_paid_checkout_for_an_expired_booking_is_refunded(): void

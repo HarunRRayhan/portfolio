@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Exceptions\ConsultationGoogleException;
 use App\Services\Consultation\GoogleCalendarService;
 use Carbon\Carbon;
 use Google\Service\Calendar;
@@ -71,6 +72,28 @@ class ConsultationGoogleCalendarTest extends TestCase
         );
 
         $this->assertSame($stableEventId, $result);
+    }
+
+    public function test_confirmed_event_lookup_failures_use_the_retryable_google_exception(): void
+    {
+        $events = $this->createMock(Events::class);
+        $events->expects($this->once())
+            ->method('insert')
+            ->willReturn(new Event(['id' => 'confirmed-event']));
+        $events->expects($this->once())
+            ->method('get')
+            ->willThrowException(new Exception('temporary calendar failure', 503));
+
+        $service = $this->serviceWithEvents($events);
+
+        $this->expectException(ConsultationGoogleException::class);
+        $service->createConfirmedEvent(
+            'Confirmed consultation',
+            Carbon::now('UTC')->addDays(3),
+            Carbon::now('UTC')->addDays(3)->addMinutes(30),
+            'Details',
+            'client@example.com',
+        );
     }
 
     private function serviceWithEvents(Events $events): GoogleCalendarService

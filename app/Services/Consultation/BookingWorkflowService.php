@@ -2,9 +2,11 @@
 
 namespace App\Services\Consultation;
 
+use App\Exceptions\ConsultationGoogleException;
 use App\Models\ConsultationBooking;
 use App\Models\ConsultationCoupon;
 use App\Models\ConsultationSetting;
+use App\Models\ConsultationStripeCheckoutAttempt;
 use App\Models\ConsultationTier;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -90,6 +92,7 @@ class BookingWorkflowService
                         'starts_at' => $startsAt->toIso8601String(),
                         'ends_at' => $endsAt->toIso8601String(),
                         'description' => "Pending consultation request from {$name} <{$email}>",
+                        'google_generation' => 0,
                         'idempotency_key' => 'consultation-booking-'.$booking->id.'-hold',
                     ],
                 );
@@ -209,13 +212,22 @@ class BookingWorkflowService
         // Keep the approval committed while Stripe is unavailable. The
         // existing client token remains usable until checkout is created.
         $plainToken = Str::random(48);
-        $checkoutUrl = $this->stripe->createCheckoutUrl($approval['booking'], $plainToken);
+        $checkoutBooking = $approval['booking']->fresh(['tier', 'coupon']);
+        $checkoutUrl = $this->stripe->createCheckoutUrl($checkoutBooking, $plainToken);
 
         if (! $checkoutUrl) {
             throw new \RuntimeException('Stripe checkout could not be created.');
         }
 
-        $result = DB::transaction(function () use ($approval, $plainToken, $checkoutUrl) {
+        $checkoutBooking = $checkoutBooking->fresh(['tier', 'coupon']);
+        $paymentToken = $this->checkoutAttemptToken($checkoutBooking);
+        if ($paymentToken === null && ! $checkoutBooking->stripe_checkout_session_id) {
+            // Keep mocked or legacy checkout integrations usable when no
+            // attempt row can record the token.
+            $paymentToken = $plainToken;
+        }
+
+        $result = DB::transaction(function () use ($approval, $paymentToken, $checkoutUrl) {
             $booking = ConsultationBooking::query()
                 ->with(['tier', 'coupon'])
                 ->lockForUpdate()
@@ -232,8 +244,10 @@ class BookingWorkflowService
                 throw new \RuntimeException('Booking is no longer awaiting payment.');
             }
 
-            $booking->access_token_hash = hash('sha256', $plainToken);
-            $booking->access_token_expires_at = $this->accessTokenExpiresAt($booking);
+            if ($paymentToken !== null) {
+                $booking->access_token_hash = hash('sha256', $paymentToken);
+                $booking->access_token_expires_at = $this->accessTokenExpiresAt($booking);
+            }
             $booking->save();
 
             $this->notifications->enqueue(
@@ -241,7 +255,7 @@ class BookingWorkflowService
                 $booking->client_email,
                 ConsultationNotificationService::TYPE_AWAITING_PAYMENT,
                 [
-                    'plain_token' => $plainToken,
+                    'plain_token' => $paymentToken,
                     'checkout_url' => $checkoutUrl,
                 ],
                 'consultation-booking-'.$booking->id.'-awaiting-payment-'.$booking->stripe_checkout_session_id,
@@ -414,6 +428,7 @@ class BookingWorkflowService
                     'plain_token' => $plainToken,
                     'activate_access_token_hash' => hash('sha256', $plainToken),
                     'activate_access_token_expires_at' => $this->accessTokenExpiresAt($booking)?->toIso8601String(),
+                    'proposal_event_id' => $proposalEvent->id,
                 ],
                 'consultation-booking-'.$booking->id.'-event-'.$proposalEvent->id.'-reschedule-proposed',
             );
@@ -428,8 +443,10 @@ class BookingWorkflowService
 
     public function clientPickProposedSlot(ConsultationBooking $booking, Carbon $startsAt): ConsultationBooking
     {
+        $targetGeneration = null;
+
         try {
-            $booking = DB::transaction(function () use ($booking, $startsAt) {
+            $booking = DB::transaction(function () use ($booking, $startsAt, &$targetGeneration) {
                 $this->lockReservation();
 
                 $booking = ConsultationBooking::query()
@@ -467,8 +484,10 @@ class BookingWorkflowService
 
                 $originalStartsAt = $booking->starts_at;
                 $originalEndsAt = $booking->ends_at;
+                $targetGeneration = (int) $booking->google_generation + 1;
                 $booking->starts_at = $startsAt;
                 $booking->ends_at = $endsAt;
+                $booking->google_generation = $targetGeneration;
                 $booking->proposed_slots = null;
                 $booking->status = $wasPreviouslyConfirmed
                     ? ConsultationBooking::STATUS_PAID_RESCHEDULE_PENDING_APPROVAL
@@ -501,6 +520,7 @@ class BookingWorkflowService
                     $booking->google_event_id = $eventId;
                 }
                 $booking->save();
+                $this->googleOperations->supersedeForBooking($booking);
                 $pickEvent = $booking->recordEvent('client_picked_proposed_slot', 'client', ['start' => $iso]);
 
                 $this->notifications->enqueue(
@@ -516,6 +536,7 @@ class BookingWorkflowService
         } catch (\Throwable $e) {
             $this->recordGoogleFailure($booking, 'client_pick', [
                 'starts_at' => $startsAt->copy()->utc()->toIso8601String(),
+                'google_generation' => $targetGeneration ?? ((int) $booking->google_generation + 1),
             ], $e);
 
             throw $e;
@@ -732,6 +753,15 @@ class BookingWorkflowService
             throw new \InvalidArgumentException('The consultation hold has expired.');
         }
 
+        $expectedGeneration = (int) ($payload['google_generation'] ?? $payload['generation'] ?? 0);
+        if ((int) $current->google_generation !== $expectedGeneration) {
+            throw new \InvalidArgumentException('The consultation hold has been superseded by a newer time slot.');
+        }
+
+        if ($current->google_event_id) {
+            return $current->google_event_id;
+        }
+
         $eventId = $this->google->createHoldEvent(
             (string) ($payload['summary'] ?? 'Consultation hold'),
             Carbon::parse((string) ($payload['starts_at'] ?? $current->starts_at))->utc(),
@@ -744,11 +774,18 @@ class BookingWorkflowService
             throw new \RuntimeException('Google Calendar could not create the booking hold.');
         }
 
-        $attached = DB::transaction(function () use ($current, $eventId): bool {
+        $attached = DB::transaction(function () use ($current, $eventId, $expectedGeneration): bool {
             $locked = ConsultationBooking::query()->lockForUpdate()->findOrFail($current->id);
 
-            if ($locked->status !== ConsultationBooking::STATUS_PENDING_APPROVAL) {
+            if (
+                $locked->status !== ConsultationBooking::STATUS_PENDING_APPROVAL
+                || (int) $locked->google_generation !== $expectedGeneration
+            ) {
                 return false;
+            }
+
+            if ($locked->google_event_id) {
+                return $locked->google_event_id === $eventId;
             }
 
             if (! $locked->google_event_id) {
@@ -760,9 +797,12 @@ class BookingWorkflowService
         });
 
         if (! $attached) {
-            $deleted = $this->google->deleteEvent($eventId);
-            if ($this->google->isConnected() && ! $deleted) {
-                throw new \RuntimeException('Google Calendar could not clean up the stale consultation hold.');
+            $latest = $current->fresh();
+            if ($latest->google_event_id !== $eventId) {
+                $deleted = $this->google->deleteEvent($eventId);
+                if ($this->google->isConnected() && ! $deleted) {
+                    throw new \RuntimeException('Google Calendar could not clean up the stale consultation hold.');
+                }
             }
 
             return null;
@@ -783,6 +823,17 @@ class BookingWorkflowService
                 ->with('tier')
                 ->lockForUpdate()
                 ->findOrFail($booking->id);
+
+            if (
+                $booking->stripe_checkout_rejected_session_id === $sessionId
+                || ConsultationStripeCheckoutAttempt::query()
+                    ->where('consultation_booking_id', $booking->id)
+                    ->where('stripe_checkout_session_id', $sessionId)
+                    ->where('status', ConsultationStripeCheckoutAttempt::STATUS_SUPERSEDED)
+                    ->exists()
+            ) {
+                throw new \InvalidArgumentException('Stripe checkout session was already rejected.');
+            }
 
             if ($booking->confirmed_at !== null) {
                 if ($booking->amount_due_cents > 0 && $booking->stripe_checkout_session_id !== $sessionId) {
@@ -825,6 +876,64 @@ class BookingWorkflowService
         });
 
         return $this->confirmBooking($booking, 'stripe');
+    }
+
+    public function resetRejectedStripePayment(
+        ConsultationBooking $booking,
+        string $sessionId,
+        ?string $paymentIntentId,
+        string $reason,
+    ): bool {
+        return DB::transaction(function () use ($booking, $sessionId, $paymentIntentId, $reason): bool {
+            $current = ConsultationBooking::query()->lockForUpdate()->findOrFail($booking->id);
+            $sessionMatches = $current->stripe_checkout_session_id === $sessionId;
+            $paymentMatches = $paymentIntentId === null
+                || $current->stripe_payment_intent_id === null
+                || $current->stripe_payment_intent_id === $paymentIntentId;
+            $previousIdempotencyKey = $current->stripe_checkout_idempotency_key;
+
+            $current->stripe_checkout_rejected_session_id = $sessionId;
+            $current->stripe_checkout_checked_at = now('UTC');
+
+            if ($sessionMatches && $paymentMatches && $current->status === ConsultationBooking::STATUS_AWAITING_PAYMENT) {
+                $current->stripe_checkout_session_id = null;
+                $current->stripe_payment_intent_id = null;
+                $current->stripe_paid_at = null;
+                $current->stripe_checkout_idempotency_key = 'consultation-checkout-retry-'.substr(
+                    hash('sha256', $current->id.'-'.$sessionId),
+                    0,
+                    48,
+                );
+                $current->stripe_checkout_last_error = mb_substr($reason, 0, 2000);
+                $current->stripe_checkout_next_attempt_at = null;
+            }
+
+            $current->save();
+
+            ConsultationStripeCheckoutAttempt::query()
+                ->where('consultation_booking_id', $current->id)
+                ->where(function ($query) use ($sessionId, $sessionMatches, $previousIdempotencyKey) {
+                    $query->where('stripe_checkout_session_id', $sessionId);
+                    if ($sessionMatches && $previousIdempotencyKey) {
+                        $query->orWhere('idempotency_key', $previousIdempotencyKey);
+                    }
+                })
+                ->whereIn('status', [
+                    ConsultationStripeCheckoutAttempt::STATUS_PENDING,
+                    ConsultationStripeCheckoutAttempt::STATUS_PROCESSING,
+                    ConsultationStripeCheckoutAttempt::STATUS_CREATED,
+                    ConsultationStripeCheckoutAttempt::STATUS_FAILED,
+                ])
+                ->update([
+                    'status' => ConsultationStripeCheckoutAttempt::STATUS_SUPERSEDED,
+                    'last_error' => mb_substr($reason, 0, 2000),
+                    'next_attempt_at' => null,
+                    'completed_at' => now('UTC'),
+                    'updated_at' => now('UTC'),
+                ]);
+
+            return $sessionMatches && $paymentMatches;
+        });
     }
 
     public function requestCancel(ConsultationBooking $booking): ConsultationBooking
@@ -912,9 +1021,19 @@ class BookingWorkflowService
             });
 
             if ($booking->stripe_payment_intent_id && ! $booking->stripe_refund_id) {
-                $refundId = $this->stripe->refundBooking($booking);
+                try {
+                    $refundId = $this->stripe->refundBooking($booking);
+                } catch (\Throwable $e) {
+                    $this->recordRefundFailure($booking, $e);
+
+                    throw $e;
+                }
+
                 if (! $refundId) {
-                    throw new \RuntimeException('Stripe refund could not be created.');
+                    $exception = new \RuntimeException('Stripe refund could not be created.');
+                    $this->recordRefundFailure($booking, $exception);
+
+                    throw $exception;
                 }
 
                 $booking = DB::transaction(function () use ($booking, $refundId) {
@@ -928,6 +1047,7 @@ class BookingWorkflowService
 
                     $booking->stripe_refund_id ??= $refundId;
                     $booking->stripe_refunded_at ??= now('UTC');
+                    $booking->stripe_refund_last_error = null;
                     $booking->save();
 
                     return $booking->fresh(['tier']);
@@ -980,6 +1100,100 @@ class BookingWorkflowService
 
             throw $e;
         }
+    }
+
+    public function retryPendingRefunds(int $limit = 50): int
+    {
+        $bookings = ConsultationBooking::query()
+            ->where('status', ConsultationBooking::STATUS_CANCEL_REQUESTED)
+            ->whereNotNull('stripe_payment_intent_id')
+            ->where(function ($query) {
+                $query->whereNotNull('stripe_refund_attempted_at')
+                    ->orWhereNotNull('stripe_refund_id')
+                    ->orWhereNotNull('stripe_refund_last_error');
+            })
+            ->orderBy('id')
+            ->limit($limit)
+            ->get();
+
+        $recovered = 0;
+
+        foreach ($bookings as $booking) {
+            $refundCompleted = false;
+            $refundNeeded = false;
+
+            try {
+                $current = DB::transaction(function () use ($booking): ?ConsultationBooking {
+                    $current = ConsultationBooking::query()->lockForUpdate()->find($booking->id);
+
+                    if (! $current || $current->status !== ConsultationBooking::STATUS_CANCEL_REQUESTED) {
+                        return null;
+                    }
+
+                    if (! $current->stripe_refund_id) {
+                        $current->stripe_refund_attempted_at ??= now('UTC');
+                        $current->stripe_refund_idempotency_key ??= 'consultation-booking-'.$current->id.'-refund';
+                        $current->save();
+                    }
+
+                    return $current->fresh(['tier']);
+                });
+
+                if (! $current) {
+                    continue;
+                }
+
+                $refundNeeded = ! $current->stripe_refund_id;
+                if ($refundNeeded) {
+                    try {
+                        $refundId = $this->stripe->refundBooking($current);
+                    } catch (\Throwable $e) {
+                        $this->recordRefundFailure($current, $e);
+
+                        continue;
+                    }
+
+                    if (! $refundId) {
+                        $exception = new \RuntimeException('Stripe refund could not be created.');
+                        $this->recordRefundFailure($current, $exception);
+
+                        continue;
+                    }
+
+                    DB::transaction(function () use ($current, $refundId): void {
+                        $locked = ConsultationBooking::query()->lockForUpdate()->findOrFail($current->id);
+
+                        if ($locked->status !== ConsultationBooking::STATUS_CANCEL_REQUESTED) {
+                            return;
+                        }
+
+                        $locked->stripe_refund_id ??= $refundId;
+                        $locked->stripe_refunded_at ??= now('UTC');
+                        $locked->stripe_refund_last_error = null;
+                        $locked->save();
+                    });
+
+                    $refundCompleted = true;
+                    $recovered++;
+                    $current = $current->fresh(['tier']);
+                }
+
+                // A refund may have succeeded before the prior cancellation
+                // attempt failed while releasing Google Calendar.
+                $this->approveCancel($current);
+            } catch (\Throwable $e) {
+                if ($refundNeeded && ! $refundCompleted) {
+                    $this->recordRefundFailure($booking, $e);
+                }
+
+                Log::warning('Pending consultation cancellation could not be completed', [
+                    'booking' => $booking->public_id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return $recovered;
     }
 
     public function denyCancel(ConsultationBooking $booking): ConsultationBooking
@@ -1272,11 +1486,45 @@ class BookingWorkflowService
         }
     }
 
+    protected function recordRefundFailure(ConsultationBooking $booking, \Throwable $exception): void
+    {
+        ConsultationBooking::query()
+            ->whereKey($booking->id)
+            ->where('status', ConsultationBooking::STATUS_CANCEL_REQUESTED)
+            ->whereNull('stripe_refund_id')
+            ->update([
+                'stripe_refund_last_error' => mb_substr($exception->getMessage(), 0, 2000),
+                'updated_at' => now('UTC'),
+            ]);
+    }
+
+    protected function checkoutAttemptToken(ConsultationBooking $booking): ?string
+    {
+        if (! $booking->stripe_checkout_idempotency_key) {
+            return null;
+        }
+
+        $attempt = $booking->stripeCheckoutAttempts()
+            ->where('idempotency_key', $booking->stripe_checkout_idempotency_key)
+            ->latest('id')
+            ->first();
+
+        return $attempt && filled($attempt->access_token)
+            ? (string) $attempt->access_token
+            : null;
+    }
+
     protected function isGoogleFailure(\Throwable $exception): bool
     {
+        if ($exception instanceof ConsultationGoogleException) {
+            return true;
+        }
+
         $message = strtolower($exception->getMessage());
 
-        return str_contains($message, 'google calendar') || str_contains($message, 'google meet');
+        return str_contains($message, 'google calendar')
+            || str_contains($message, 'google meet')
+            || ($exception->getPrevious() !== null && $this->isGoogleFailure($exception->getPrevious()));
     }
 
     protected function accessTokenExpiresAt(ConsultationBooking $booking): ?Carbon

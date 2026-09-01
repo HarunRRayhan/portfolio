@@ -68,6 +68,46 @@ class ConsultationNotificationTest extends TestCase
         $this->assertSame($newHash, $booking->fresh()->access_token_hash);
     }
 
+    public function test_a_delayed_older_reschedule_mail_cannot_activate_its_token(): void
+    {
+        Mail::fake();
+        $booking = $this->booking([
+            'status' => ConsultationBooking::STATUS_RESCHEDULE_PROPOSED,
+            'access_token_hash' => hash('sha256', 'current-token'),
+        ]);
+        $oldProposal = $booking->recordEvent('reschedule_proposed', 'admin');
+        $newProposal = $booking->recordEvent('reschedule_proposed', 'admin');
+
+        $notifications = app(ConsultationNotificationService::class);
+        $oldNotification = $notifications->enqueue(
+            $booking,
+            $booking->client_email,
+            ConsultationNotificationService::TYPE_RESCHEDULE_PROPOSED,
+            [
+                'plain_token' => 'old-token',
+                'activate_access_token_hash' => hash('sha256', 'old-token'),
+                'proposal_event_id' => $oldProposal->id,
+            ],
+            'consultation-booking-'.$booking->id.'-old-proposal',
+        );
+        $newNotification = $notifications->enqueue(
+            $booking,
+            $booking->client_email,
+            ConsultationNotificationService::TYPE_RESCHEDULE_PROPOSED,
+            [
+                'plain_token' => 'new-token',
+                'activate_access_token_hash' => hash('sha256', 'new-token'),
+                'proposal_event_id' => $newProposal->id,
+            ],
+            'consultation-booking-'.$booking->id.'-new-proposal',
+        );
+
+        $this->assertTrue($notifications->deliver($oldNotification));
+        $this->assertSame(hash('sha256', 'current-token'), $booking->fresh()->access_token_hash);
+        $this->assertTrue($notifications->deliver($newNotification));
+        $this->assertSame(hash('sha256', 'new-token'), $booking->fresh()->access_token_hash);
+    }
+
     /** @param array<string, mixed> $overrides */
     private function booking(array $overrides = []): ConsultationBooking
     {

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Stripe\Checkout\Session;
+use Stripe\Exception\InvalidRequestException;
 
 class ConsultationStripeReconciliationService
 {
@@ -80,74 +81,101 @@ class ConsultationStripeReconciliationService
         }
 
         if ($booking->stripe_checkout_session_id) {
-            $session = $this->stripe->retrieveCheckoutSession($booking->stripe_checkout_session_id);
-            $this->markCheckoutChecked($booking);
+            try {
+                $session = $this->stripe->retrieveCheckoutSession($booking->stripe_checkout_session_id);
+            } catch (InvalidRequestException $e) {
+                if ($e->getStripeCode() !== 'resource_missing') {
+                    throw $e;
+                }
 
-            if ($booking->status === ConsultationBooking::STATUS_EXPIRED) {
+                if ($booking->status === ConsultationBooking::STATUS_EXPIRED) {
+                    $this->markRejectedCheckout($booking, $booking->stripe_checkout_session_id);
+
+                    return true;
+                }
+
+                // Stripe can lose an expired session before the scheduler sees
+                // it. Let checkout creation rotate the missing session and
+                // persist a replacement attempt.
+                $session = null;
+            }
+
+            if ($session) {
+                $this->markCheckoutChecked($booking);
+
+                if ($booking->status === ConsultationBooking::STATUS_EXPIRED) {
+                    if ($this->isPaid($session)) {
+                        $this->assertSessionMatchesBooking($booking, $session);
+                        $this->refundRejectedPayment($session, 'booking expired before payment reconciliation', $booking);
+
+                        return true;
+                    }
+
+                    if (! in_array((string) ($session->status ?? ''), ['complete', 'expired'], true)) {
+                        throw new \RuntimeException('The expired booking still has an open Stripe checkout.');
+                    }
+
+                    $this->markRejectedCheckout($booking, (string) $session->id);
+
+                    return true;
+                }
+
                 if ($this->isPaid($session)) {
                     $this->assertSessionMatchesBooking($booking, $session);
-                    $this->refundRejectedPayment($session, 'booking expired before payment reconciliation', $booking);
+                    $paymentIntentId = $this->paymentIntentId($session);
+
+                    try {
+                        $this->workflow->markPaidFromStripe(
+                            $booking,
+                            $session->id,
+                            $paymentIntentId,
+                        );
+                    } catch (\InvalidArgumentException $e) {
+                        $this->refundRejectedPayment(
+                            $session,
+                            'booking could not accept the payment: '.$e->getMessage(),
+                            $booking,
+                        );
+
+                        return true;
+                    }
+                    $this->notifications->deliverDueForBooking($booking->id);
 
                     return true;
                 }
 
-                if (! in_array((string) ($session->status ?? ''), ['complete', 'expired'], true)) {
-                    throw new \RuntimeException('The expired booking still has an open Stripe checkout.');
-                }
-
-                $this->markRejectedCheckout($booking, (string) $session->id);
-
-                return true;
-            }
-
-            if ($this->isPaid($session)) {
-                $this->assertSessionMatchesBooking($booking, $session);
-                $paymentIntentId = $this->paymentIntentId($session);
-
-                try {
-                    $this->workflow->markPaidFromStripe(
-                        $booking,
-                        $session->id,
-                        $paymentIntentId,
-                    );
-                } catch (\InvalidArgumentException $e) {
-                    $this->refundRejectedPayment(
-                        $session,
-                        'booking could not accept the payment: '.$e->getMessage(),
-                        $booking,
-                    );
+                if (($session->status ?? null) !== 'expired' && filled($session->url)) {
+                    $token = $this->checkoutToken($booking);
+                    if ($token !== null) {
+                        $booking = $this->persistAccessToken($booking, $token);
+                    }
+                    $this->queuePaymentMail($booking, $token, (string) $session->url, (string) $session->id);
 
                     return true;
                 }
-                $this->notifications->deliverDueForBooking($booking->id);
-
-                return true;
-            }
-
-            if (($session->status ?? null) !== 'expired' && filled($session->url)) {
-                $token = $this->checkoutToken($booking);
-                $booking = $this->persistAccessToken($booking, $token);
-                $this->queuePaymentMail($booking, $token, (string) $session->url, (string) $session->id);
-
-                return true;
             }
         }
 
-        $token = $this->checkoutToken($booking);
+        $token = $this->checkoutToken($booking) ?? Str::random(48);
         $checkoutUrl = $this->stripe->createCheckoutUrl($booking, $token);
         if (! $checkoutUrl) {
             return false;
         }
 
-        $booking = DB::transaction(function () use ($booking, $token): ConsultationBooking {
+        $booking = $booking->fresh(['tier']);
+        $canonicalToken = $this->checkoutToken($booking);
+
+        $booking = DB::transaction(function () use ($booking, $canonicalToken): ConsultationBooking {
             $current = ConsultationBooking::query()->lockForUpdate()->findOrFail($booking->id);
 
             if ($current->status !== ConsultationBooking::STATUS_AWAITING_PAYMENT) {
                 return $current;
             }
 
-            $current->access_token_hash = hash('sha256', $token);
-            $current->access_token_expires_at = $current->ends_at?->copy()->addDays((int) config('consultation.access_token_days', 90));
+            if ($canonicalToken !== null) {
+                $current->access_token_hash = hash('sha256', $canonicalToken);
+                $current->access_token_expires_at = $current->ends_at?->copy()->addDays((int) config('consultation.access_token_days', 90));
+            }
             $current->stripe_checkout_last_error = null;
             $current->stripe_checkout_next_attempt_at = null;
             $current->save();
@@ -159,12 +187,12 @@ class ConsultationStripeReconciliationService
             return false;
         }
 
-        $this->queuePaymentMail($booking, $token, $checkoutUrl, $booking->stripe_checkout_session_id);
+        $this->queuePaymentMail($booking, $canonicalToken, $checkoutUrl, $booking->stripe_checkout_session_id);
 
         return true;
     }
 
-    protected function checkoutToken(ConsultationBooking $booking): string
+    protected function checkoutToken(ConsultationBooking $booking): ?string
     {
         $query = ConsultationStripeCheckoutAttempt::query()
             ->where('consultation_booking_id', $booking->id);
@@ -181,15 +209,15 @@ class ConsultationStripeReconciliationService
             return (string) $attempt->access_token;
         }
 
-        return Str::random(48);
+        return null;
     }
 
-    protected function persistAccessToken(ConsultationBooking $booking, string $token): ConsultationBooking
+    protected function persistAccessToken(ConsultationBooking $booking, ?string $token): ConsultationBooking
     {
         return DB::transaction(function () use ($booking, $token): ConsultationBooking {
             $current = ConsultationBooking::query()->lockForUpdate()->findOrFail($booking->id);
 
-            if ($current->status === ConsultationBooking::STATUS_AWAITING_PAYMENT) {
+            if ($current->status === ConsultationBooking::STATUS_AWAITING_PAYMENT && $token !== null) {
                 $current->access_token_hash = hash('sha256', $token);
                 $current->access_token_expires_at = $current->ends_at?->copy()->addDays((int) config('consultation.access_token_days', 90));
                 $current->save();
@@ -201,7 +229,7 @@ class ConsultationStripeReconciliationService
 
     protected function queuePaymentMail(
         ConsultationBooking $booking,
-        string $token,
+        ?string $token,
         string $checkoutUrl,
         string $sessionId,
     ): void {
@@ -286,6 +314,12 @@ class ConsultationStripeReconciliationService
                         'stripe_checkout_rejected_session_id' => (string) $session->id,
                         'updated_at' => now('UTC'),
                     ]);
+                $this->workflow->resetRejectedStripePayment(
+                    $booking,
+                    (string) $session->id,
+                    $paymentIntentId,
+                    $reason,
+                );
             }
         } catch (\Throwable $e) {
             throw new \RuntimeException('Rejected Stripe payment could not be refunded.', 0, $e);

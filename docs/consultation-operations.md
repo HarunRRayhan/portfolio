@@ -56,6 +56,7 @@ php artisan migrate:status
 php artisan consultations:reconcile-stripe
 php artisan consultations:retry-google
 php artisan consultations:retry-notifications
+php artisan consultations:retry-refunds
 php artisan consultations:retry-stripe-webhooks
 php artisan consultations:expire
 ```

@@ -6,6 +6,7 @@ use App\Models\ConsultationBooking;
 use App\Models\ConsultationStripeCheckoutAttempt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 use Stripe\Checkout\Session;
 use Stripe\Event;
 use Stripe\Exception\InvalidRequestException;
@@ -151,21 +152,22 @@ class StripeCheckoutService
             return $current;
         });
 
-        $statusUrl = url('/book/b/'.$booking->public_id);
-        $success = $statusUrl.'?'.http_build_query(array_filter([
-            'token' => $plainToken !== '' ? $plainToken : null,
-            'paid' => 1,
-        ], fn ($value): bool => $value !== null));
-        $cancel = $statusUrl.'?'.http_build_query(array_filter([
-            'token' => $plainToken !== '' ? $plainToken : null,
-            'cancelled_checkout' => 1,
-        ], fn ($value): bool => $value !== null));
-
         $now = now('UTC');
         $expiresAt = $now->copy()->addHours(23);
         if ($booking->payment_due_at && $booking->payment_due_at->lessThan($expiresAt)) {
             $expiresAt = $booking->payment_due_at->copy();
         }
+        $returnExpiresAt = $expiresAt->copy()->addMinutes(15);
+        $success = URL::temporarySignedRoute(
+            'book.stripe-return',
+            $returnExpiresAt,
+            ['publicId' => $booking->public_id, 'return' => 'paid'],
+        );
+        $cancel = URL::temporarySignedRoute(
+            'book.stripe-return',
+            $returnExpiresAt,
+            ['publicId' => $booking->public_id, 'return' => 'cancelled_checkout'],
+        );
 
         try {
             $session = Session::create([
@@ -260,6 +262,7 @@ class StripeCheckoutService
 
         $booking->stripe_refund_id = $refundId;
         $booking->stripe_refunded_at = now('UTC');
+        $booking->stripe_refund_last_error = null;
         $booking->save();
 
         return $refundId;
@@ -322,10 +325,18 @@ class StripeCheckoutService
                 $attempt = ConsultationStripeCheckoutAttempt::create([
                     'consultation_booking_id' => $current->id,
                     'idempotency_key' => $current->stripe_checkout_idempotency_key,
-                    'access_token' => $plainToken,
+                    // An existing session may have been created before the
+                    // attempt ledger existed, so its URL may contain a
+                    // different token. Never replace the booking token until
+                    // a new session is actually created with this attempt.
+                    'access_token' => $current->stripe_checkout_session_id ? '' : $plainToken,
                     'status' => ConsultationStripeCheckoutAttempt::STATUS_PENDING,
                     'next_attempt_at' => now('UTC'),
                 ]);
+            } elseif (! $current->stripe_checkout_session_id && ! filled($attempt->access_token) && $plainToken !== '') {
+                // Preserve the first token used to build an immutable Stripe URL.
+                $attempt->access_token = $plainToken;
+                $attempt->save();
             }
 
             $current->stripe_checkout_attempted_at = now('UTC');

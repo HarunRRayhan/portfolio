@@ -106,6 +106,24 @@ class ConsultationStripeWebhookTest extends TestCase
         $this->assertSame('cs_webhook', $booking->fresh()->stripe_checkout_rejected_session_id);
     }
 
+    public function test_an_async_checkout_completion_waits_for_payment_without_rejecting_the_session(): void
+    {
+        $booking = $this->awaitingPaymentBooking();
+        $workflow = $this->createMock(BookingWorkflowService::class);
+        $workflow->expects($this->never())->method('markPaidFromStripe');
+        $this->app->instance(BookingWorkflowService::class, $workflow);
+
+        $payload = $this->stripePayload($booking, 'evt_async_pending', null, 'unpaid');
+
+        $this->postWebhook($payload)->assertOk();
+        $this->assertDatabaseHas('consultation_stripe_webhook_events', [
+            'event_id' => 'evt_async_pending',
+            'status' => ConsultationStripeWebhookEvent::STATUS_PROCESSED,
+        ]);
+        $this->assertNull($booking->fresh()->stripe_checkout_rejected_session_id);
+        $this->assertSame('cs_webhook', $booking->fresh()->stripe_checkout_session_id);
+    }
+
     public function test_a_failed_webhook_can_be_retried_and_is_not_lost(): void
     {
         $booking = $this->awaitingPaymentBooking();
@@ -240,8 +258,12 @@ class ConsultationStripeWebhookTest extends TestCase
         ]);
     }
 
-    private function stripePayload(?ConsultationBooking $booking, string $eventId, ?int $amountTotal = null): string
-    {
+    private function stripePayload(
+        ?ConsultationBooking $booking,
+        string $eventId,
+        ?int $amountTotal = null,
+        string $paymentStatus = 'paid',
+    ): string {
         return json_encode([
             'id' => $eventId,
             'object' => 'event',
@@ -258,7 +280,7 @@ class ConsultationStripeWebhookTest extends TestCase
                         'booking_public_id' => $booking?->public_id,
                     ],
                     'payment_intent' => 'pi_webhook',
-                    'payment_status' => 'paid',
+                    'payment_status' => $paymentStatus,
                     'amount_total' => $amountTotal ?? $booking?->amount_due_cents,
                     'currency' => 'usd',
                 ],

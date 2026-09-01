@@ -48,6 +48,24 @@ class BookingAccessController extends Controller
         ]);
     }
 
+    public function stripeReturn(Request $request, string $publicId): RedirectResponse
+    {
+        $booking = ConsultationBooking::query()->where('public_id', $publicId)->firstOrFail();
+        $returnType = (string) $request->query('return', '');
+
+        if (! in_array($returnType, ['paid', 'cancelled_checkout'], true)) {
+            abort(404);
+        }
+
+        $request->session()->put($this->accessSessionKey($publicId), $booking->access_token_hash);
+
+        return redirect()->route('book.status', array_filter([
+            'publicId' => $publicId,
+            'paid' => $returnType === 'paid' ? 1 : null,
+            'cancelled_checkout' => $returnType === 'cancelled_checkout' ? 1 : null,
+        ], fn ($value): bool => $value !== null));
+    }
+
     public function pay(Request $request, string $publicId, BookingWorkflowService $workflow, StripeCheckoutService $stripe): RedirectResponse
     {
         $booking = ConsultationBooking::query()->where('public_id', $publicId)->firstOrFail();

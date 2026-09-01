@@ -224,6 +224,7 @@ class ConsultationNotificationService
     {
         $payload = $notification->payload ?? [];
         $tokenHash = $payload['activate_access_token_hash'] ?? null;
+        $proposalEventId = $payload['proposal_event_id'] ?? null;
 
         if (! is_string($tokenHash) || $tokenHash === '' || ! $notification->consultation_booking_id) {
             return;
@@ -234,6 +235,19 @@ class ConsultationNotificationService
             ->find($notification->consultation_booking_id);
 
         if (! $booking || $booking->status !== ConsultationBooking::STATUS_RESCHEDULE_PROPOSED) {
+            return;
+        }
+
+        $latestProposalEventId = $booking->events()
+            ->where('event', 'reschedule_proposed')
+            ->latest('id')
+            ->value('id');
+
+        if (
+            ($proposalEventId !== null && ! is_numeric($proposalEventId))
+            || ($proposalEventId !== null && (int) $latestProposalEventId !== (int) $proposalEventId)
+            || ($proposalEventId === null && $latestProposalEventId !== null)
+        ) {
             return;
         }
 

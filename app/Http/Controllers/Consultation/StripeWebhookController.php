@@ -218,15 +218,21 @@ class StripeWebhookController extends Controller
 
         $publicId = $booking->public_id;
 
-        $webhookEvent->forceFill([
+        $claimedContextUpdated = $this->sameAttemptQuery($webhookEvent)->update([
             'consultation_booking_id' => $booking->id,
             'booking_public_id' => $publicId,
             'stripe_checkout_session_id' => $sessionId ?: null,
-        ])->save();
+            'updated_at' => now('UTC'),
+        ]);
+
+        if ($claimedContextUpdated !== 1) {
+            return;
+        }
 
         if ($booking->amount_due_cents > 0 && $paymentStatus !== 'paid') {
-            $this->refundRejectedPayment($stripe, null, $publicId, $session, 'payment was not marked paid', $booking);
-
+            // Checkout can be completed before an asynchronous payment settles.
+            // Wait for async_payment_succeeded or reconciliation instead of
+            // treating the still-pending session as a rejected payment.
             return;
         }
 
@@ -240,7 +246,7 @@ class StripeWebhookController extends Controller
         }
 
         if ($booking->stripe_checkout_session_id && $booking->stripe_checkout_session_id !== $session->id) {
-            $this->refundRejectedPayment($stripe, $paymentIntentId, $publicId, $session, 'stale checkout session', $booking);
+            $this->refundRejectedPayment($stripe, $workflow, $paymentIntentId, $publicId, $session, 'stale checkout session', $booking);
 
             return;
         }
@@ -250,7 +256,7 @@ class StripeWebhookController extends Controller
         }
 
         if ($session->amount_total !== null && (int) $session->amount_total !== $booking->amount_due_cents) {
-            $this->refundRejectedPayment($stripe, $paymentIntentId, $publicId, $session, 'unexpected amount', $booking);
+            $this->refundRejectedPayment($stripe, $workflow, $paymentIntentId, $publicId, $session, 'unexpected amount', $booking);
 
             return;
         }
@@ -260,7 +266,7 @@ class StripeWebhookController extends Controller
         }
 
         if ($session->currency && strtolower((string) $session->currency) !== strtolower($booking->currency)) {
-            $this->refundRejectedPayment($stripe, $paymentIntentId, $publicId, $session, 'unexpected currency', $booking);
+            $this->refundRejectedPayment($stripe, $workflow, $paymentIntentId, $publicId, $session, 'unexpected currency', $booking);
 
             return;
         }
@@ -277,12 +283,13 @@ class StripeWebhookController extends Controller
                 'error' => $e->getMessage(),
             ]);
 
-            $this->refundRejectedPayment($stripe, $paymentIntentId, $publicId, $session, $e->getMessage(), $booking);
+            $this->refundRejectedPayment($stripe, $workflow, $paymentIntentId, $publicId, $session, $e->getMessage(), $booking);
         }
     }
 
     protected function refundRejectedPayment(
         StripeCheckoutService $stripe,
+        BookingWorkflowService $workflow,
         mixed $paymentIntentId,
         string $publicId,
         Session $session,
@@ -321,6 +328,12 @@ class StripeWebhookController extends Controller
                         'stripe_checkout_rejected_session_id' => (string) $session->id,
                         'updated_at' => now('UTC'),
                     ]);
+                $workflow->resetRejectedStripePayment(
+                    $booking,
+                    (string) $session->id,
+                    $paymentIntentId,
+                    $reason,
+                );
             }
         } catch (\Throwable $e) {
             Log::error('Rejected Stripe consultation payment could not be refunded', [
@@ -371,16 +384,30 @@ class StripeWebhookController extends Controller
             $reason,
             $sessionId,
             $bookingPublicId,
-        ): ConsultationNotification {
-            $current = ConsultationStripeWebhookEvent::query()->lockForUpdate()->findOrFail($webhookEvent->id);
-            $current->forceFill([
-                'status' => ConsultationStripeWebhookEvent::STATUS_UNMATCHED,
-                'stripe_checkout_session_id' => $sessionId ?: null,
-                'booking_public_id' => $bookingPublicId,
-                'last_error' => $reason,
-                'unmatched_at' => now('UTC'),
-            ])->save();
+        ): ?ConsultationNotification {
+            $updated = ConsultationStripeWebhookEvent::query()
+                ->whereKey($webhookEvent->id)
+                ->where('attempts', $webhookEvent->attempts)
+                ->where('status', ConsultationStripeWebhookEvent::STATUS_PROCESSING)
+                ->update([
+                    'status' => ConsultationStripeWebhookEvent::STATUS_UNMATCHED,
+                    'stripe_checkout_session_id' => $sessionId ?: null,
+                    'booking_public_id' => $bookingPublicId,
+                    'last_error' => $reason,
+                    'unmatched_at' => now('UTC'),
+                    'updated_at' => now('UTC'),
+                ]);
 
+            if ($updated !== 1) {
+                return null;
+            }
+
+            $current = ConsultationStripeWebhookEvent::query()->findOrFail($webhookEvent->id);
+
+            /*
+             * The notification is inserted only by the claim that changed
+             * the ledger row, so an expired worker cannot alert twice.
+             */
             return $notifications->enqueue(
                 null,
                 config('mail.to.address'),
@@ -395,6 +422,10 @@ class StripeWebhookController extends Controller
                 'consultation-stripe-webhook-'.$current->event_id.'-unmatched',
             );
         });
+
+        if (! $notification) {
+            return;
+        }
 
         $webhookEvent->forceFill([
             'status' => ConsultationStripeWebhookEvent::STATUS_UNMATCHED,

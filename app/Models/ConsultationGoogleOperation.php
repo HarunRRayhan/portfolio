@@ -17,6 +17,8 @@ class ConsultationGoogleOperation extends Model
 
     public const STATUS_NEEDS_ATTENTION = 'needs_attention';
 
+    public const STATUS_SUPERSEDED = 'superseded';
+
     protected $fillable = [
         'consultation_booking_id',
         'operation_key',

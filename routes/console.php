@@ -54,6 +54,11 @@ Artisan::command('consultations:retry-notifications {--limit=100}', function (Co
     $this->info("Delivered {$count} consultation notifications.");
 })->purpose('Retry failed consultation email notifications');
 
+Artisan::command('consultations:retry-refunds {--limit=50}', function (BookingWorkflowService $workflow) {
+    $count = $workflow->retryPendingRefunds(max(1, (int) $this->option('limit')));
+    $this->info("Recovered {$count} consultation refunds.");
+})->purpose('Retry failed consultation cancellation refunds');
+
 Artisan::command('consultations:retry-stripe-webhooks {--limit=25}', function (StripeWebhookController $controller) {
     $events = ConsultationStripeWebhookEvent::query()
         ->where('status', ConsultationStripeWebhookEvent::STATUS_FAILED)
@@ -96,6 +101,10 @@ Schedule::command('consultations:retry-google')
     ->onOneServer();
 Schedule::command('consultations:retry-notifications')
     ->everyMinute()
+    ->withoutOverlapping()
+    ->onOneServer();
+Schedule::command('consultations:retry-refunds')
+    ->everyFiveMinutes()
     ->withoutOverlapping()
     ->onOneServer();
 Schedule::command('consultations:retry-stripe-webhooks')

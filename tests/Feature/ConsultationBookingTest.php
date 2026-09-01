@@ -9,6 +9,7 @@ use App\Models\ConsultationAvailabilityWindow;
 use App\Models\ConsultationBooking;
 use App\Models\ConsultationCoupon;
 use App\Models\ConsultationGoogleOperation;
+use App\Models\ConsultationStripeCheckoutAttempt;
 use App\Models\ConsultationTier;
 use App\Services\Consultation\BookingWorkflowService;
 use App\Services\Consultation\ConsultationGoogleOperationService;
@@ -241,6 +242,70 @@ class ConsultationBookingTest extends TestCase
         }
     }
 
+    public function test_approval_uses_the_existing_checkout_attempt_token_when_checkout_wins_a_race(): void
+    {
+        Mail::fake();
+
+        $startsAt = now('UTC')->addDays(3)->setTime(10, 0);
+        ConsultationAvailabilityWindow::create([
+            'weekday' => $startsAt->dayOfWeek,
+            'start_time' => '09:00:00',
+            'end_time' => '12:00:00',
+            'is_active' => true,
+        ]);
+
+        $google = $this->createStub(GoogleCalendarService::class);
+        $google->method('busyPeriods')->willReturn([]);
+        $google->method('isConnected')->willReturn(false);
+        $this->app->instance(GoogleCalendarService::class, $google);
+
+        $stripe = $this->createMock(StripeCheckoutService::class);
+        $stripe->expects($this->once())->method('configured')->willReturn(true);
+        $stripe->expects($this->once())
+            ->method('createCheckoutUrl')
+            ->willReturnCallback(function (ConsultationBooking $checkoutBooking): string {
+                $checkoutBooking->forceFill([
+                    'stripe_checkout_session_id' => 'cs_race',
+                    'stripe_checkout_idempotency_key' => 'consultation-checkout-race',
+                ])->save();
+                ConsultationStripeCheckoutAttempt::create([
+                    'consultation_booking_id' => $checkoutBooking->id,
+                    'idempotency_key' => 'consultation-checkout-race',
+                    'access_token' => 'existing-checkout-token',
+                    'stripe_checkout_session_id' => 'cs_race',
+                    'status' => ConsultationStripeCheckoutAttempt::STATUS_CREATED,
+                    'attempts' => 1,
+                    'completed_at' => now('UTC'),
+                ]);
+
+                return 'https://checkout.stripe.test/cs_race';
+            });
+        $this->app->instance(StripeCheckoutService::class, $stripe);
+
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $booking = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Approval race',
+            'client_email' => 'approval-race@example.com',
+            'starts_at' => $startsAt,
+            'ends_at' => $startsAt->copy()->addMinutes($tier->duration_minutes),
+            'status' => ConsultationBooking::STATUS_PENDING_APPROVAL,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'hold_expires_at' => now('UTC')->addHours(48),
+            'payment_due_at' => $startsAt->copy()->subDay(),
+            'access_token_hash' => hash('sha256', 'original-approval-token'),
+        ]);
+
+        $this->app->make(BookingWorkflowService::class)->approve($booking);
+
+        $this->assertSame(
+            hash('sha256', 'existing-checkout-token'),
+            $booking->fresh()->access_token_hash,
+        );
+    }
+
     public function test_late_stripe_payment_does_not_confirm_the_booking(): void
     {
         $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
@@ -270,6 +335,53 @@ class ConsultationBookingTest extends TestCase
                 ConsultationBooking::STATUS_AWAITING_PAYMENT,
                 $booking->fresh()->status,
             );
+        }
+    }
+
+    public function test_a_refunded_rejected_payment_clears_paid_state_and_rotates_checkout(): void
+    {
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $booking = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Rejected payment',
+            'client_email' => 'rejected-payment@example.com',
+            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
+            'ends_at' => now('UTC')->addDays(3)->setTime(10, 30),
+            'status' => ConsultationBooking::STATUS_AWAITING_PAYMENT,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'stripe_checkout_session_id' => 'cs_rejected',
+            'stripe_payment_intent_id' => 'pi_rejected',
+            'stripe_paid_at' => now('UTC'),
+            'payment_due_at' => now('UTC')->addDay(),
+            'access_token_hash' => hash('sha256', 'rejected-token'),
+        ]);
+        $booking->forceFill([
+            'stripe_checkout_idempotency_key' => 'consultation-checkout-'.$booking->id,
+        ])->save();
+
+        $workflow = $this->app->make(BookingWorkflowService::class);
+        $this->assertTrue($workflow->resetRejectedStripePayment(
+            $booking,
+            'cs_rejected',
+            'pi_rejected',
+            'coupon was no longer available',
+        ));
+
+        $fresh = $booking->fresh();
+        $this->assertSame(ConsultationBooking::STATUS_AWAITING_PAYMENT, $fresh->status);
+        $this->assertNull($fresh->stripe_checkout_session_id);
+        $this->assertNull($fresh->stripe_payment_intent_id);
+        $this->assertNull($fresh->stripe_paid_at);
+        $this->assertSame('cs_rejected', $fresh->stripe_checkout_rejected_session_id);
+        $this->assertNotSame('consultation-checkout-'.$booking->id, $fresh->stripe_checkout_idempotency_key);
+
+        try {
+            $workflow->markPaidFromStripe($fresh, 'cs_rejected', 'pi_rejected');
+            $this->fail('A rejected Stripe session must not be accepted later.');
+        } catch (\InvalidArgumentException $e) {
+            $this->assertSame('Stripe checkout session was already rejected.', $e->getMessage());
         }
     }
 
@@ -793,6 +905,78 @@ class ConsultationBookingTest extends TestCase
         }
     }
 
+    public function test_a_failed_cancellation_refund_is_retried_without_auto_approving_new_requests(): void
+    {
+        Mail::fake();
+
+        $google = $this->createMock(GoogleCalendarService::class);
+        $google->expects($this->once())->method('deleteEvent')->with('retry-cancel-event')->willReturn(true);
+        $google->method('isConnected')->willReturn(false);
+        $this->app->instance(GoogleCalendarService::class, $google);
+
+        $refundCalls = 0;
+        $stripe = $this->createMock(StripeCheckoutService::class);
+        $stripe->expects($this->exactly(2))
+            ->method('refundBooking')
+            ->willReturnCallback(function () use (&$refundCalls): string {
+                $refundCalls++;
+                if ($refundCalls === 1) {
+                    throw new \RuntimeException('Stripe is temporarily unavailable.');
+                }
+
+                return 're_retry';
+            });
+        $this->app->instance(StripeCheckoutService::class, $stripe);
+
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $booking = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Refund retry',
+            'client_email' => 'refund-retry@example.com',
+            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
+            'ends_at' => now('UTC')->addDays(3)->setTime(10, 30),
+            'status' => ConsultationBooking::STATUS_CANCEL_REQUESTED,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'stripe_payment_intent_id' => 'pi_retry',
+            'google_event_id' => 'retry-cancel-event',
+            'access_token_hash' => hash('sha256', 'refund-retry'),
+        ]);
+
+        try {
+            $this->app->make(BookingWorkflowService::class)->approveCancel($booking);
+            $this->fail('The first refund attempt should fail.');
+        } catch (\RuntimeException $e) {
+            $this->assertSame('Stripe is temporarily unavailable.', $e->getMessage());
+        }
+
+        $failed = $booking->fresh();
+        $this->assertSame(ConsultationBooking::STATUS_CANCEL_REQUESTED, $failed->status);
+        $this->assertSame('Stripe is temporarily unavailable.', $failed->stripe_refund_last_error);
+
+        $this->assertSame(1, $this->app->make(BookingWorkflowService::class)->retryPendingRefunds());
+        $this->assertSame(ConsultationBooking::STATUS_CANCELLED, $booking->fresh()->status);
+        $this->assertNull($booking->fresh()->stripe_refund_last_error);
+
+        $unapproved = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Still pending cancellation',
+            'client_email' => 'still-pending@example.com',
+            'starts_at' => now('UTC')->addDays(4)->setTime(10, 0),
+            'ends_at' => now('UTC')->addDays(4)->setTime(10, 30),
+            'status' => ConsultationBooking::STATUS_CANCEL_REQUESTED,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'stripe_payment_intent_id' => 'pi_unapproved',
+            'access_token_hash' => hash('sha256', 'still-pending'),
+        ]);
+
+        $this->assertSame(0, $this->app->make(BookingWorkflowService::class)->retryPendingRefunds());
+        $this->assertSame(ConsultationBooking::STATUS_CANCEL_REQUESTED, $unapproved->fresh()->status);
+    }
+
     public function test_a_failed_google_transition_is_replayed_by_the_operation_worker(): void
     {
         Mail::fake();
@@ -884,5 +1068,52 @@ class ConsultationBookingTest extends TestCase
             'operation' => 'hold',
             'status' => ConsultationGoogleOperation::STATUS_FAILED,
         ]);
+    }
+
+    public function test_a_hold_retry_from_an_old_slot_is_not_sent_to_google(): void
+    {
+        $google = $this->createMock(GoogleCalendarService::class);
+        $google->expects($this->never())->method('createHoldEvent');
+        $this->app->instance(GoogleCalendarService::class, $google);
+
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $booking = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Old hold retry',
+            'client_email' => 'old-hold@example.com',
+            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
+            'ends_at' => now('UTC')->addDays(3)->setTime(10, 30),
+            'status' => ConsultationBooking::STATUS_PENDING_APPROVAL,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'google_generation' => 1,
+            'hold_expires_at' => now('UTC')->addDay(),
+            'access_token_hash' => hash('sha256', 'old-hold-retry'),
+        ]);
+        $operation = ConsultationGoogleOperation::create([
+            'consultation_booking_id' => $booking->id,
+            'operation_key' => 'consultation-booking-'.$booking->id.'-google-hold-g0',
+            'operation' => 'hold',
+            'payload' => [
+                'starts_at' => $booking->starts_at->toIso8601String(),
+                'ends_at' => $booking->ends_at->toIso8601String(),
+                'google_generation' => 0,
+            ],
+            'status' => ConsultationGoogleOperation::STATUS_FAILED,
+            'attempts' => 1,
+            'available_at' => now('UTC')->subMinute(),
+        ]);
+
+        $this->assertSame(
+            0,
+            app(ConsultationGoogleOperationService::class)->retryDue(
+                app(BookingWorkflowService::class),
+            ),
+        );
+        $this->assertSame(
+            ConsultationGoogleOperation::STATUS_NEEDS_ATTENTION,
+            $operation->fresh()->status,
+        );
     }
 }

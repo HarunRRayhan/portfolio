@@ -94,6 +94,24 @@ class ConsultationGoogleOperationService
         return $completed;
     }
 
+    public function supersedeForBooking(ConsultationBooking $booking): int
+    {
+        return ConsultationGoogleOperation::query()
+            ->where('consultation_booking_id', $booking->id)
+            ->where('operation', 'hold')
+            ->whereIn('status', [
+                ConsultationGoogleOperation::STATUS_PENDING,
+                ConsultationGoogleOperation::STATUS_PROCESSING,
+                ConsultationGoogleOperation::STATUS_FAILED,
+            ])
+            ->update([
+                'status' => ConsultationGoogleOperation::STATUS_SUPERSEDED,
+                'available_at' => null,
+                'completed_at' => now('UTC'),
+                'updated_at' => now('UTC'),
+            ]);
+    }
+
     public function run(ConsultationGoogleOperation $operation, BookingWorkflowService $workflow): bool
     {
         $claimed = $this->claim($operation->id);
@@ -250,9 +268,14 @@ class ConsultationGoogleOperationService
 
     protected function operationKey(ConsultationBooking $booking, string $operation, array $payload): string
     {
-        $suffix = $operation === 'client_pick'
-            ? '-'.substr(hash('sha256', (string) ($payload['starts_at'] ?? '')), 0, 16)
-            : '';
+        $suffix = '';
+        if (in_array($operation, ['hold', 'client_pick'], true)) {
+            $generation = (int) ($payload['google_generation'] ?? $payload['generation'] ?? 0);
+            $suffix .= '-g'.$generation;
+        }
+        if ($operation === 'client_pick') {
+            $suffix .= '-'.substr(hash('sha256', (string) ($payload['starts_at'] ?? '')), 0, 16);
+        }
 
         return 'consultation-booking-'.$booking->id.'-google-'.$operation.$suffix;
     }

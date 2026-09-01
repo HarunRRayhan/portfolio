@@ -56,6 +56,8 @@ class ConsultationBooking extends Model
         'stripe_refunded_at',
         'stripe_refund_attempted_at',
         'stripe_refund_idempotency_key',
+        'stripe_refund_last_error',
+        'google_generation',
         'google_event_id',
         'google_meet_space_name',
         'meet_link',
@@ -93,6 +95,7 @@ class ConsultationBooking extends Model
         'list_price_cents' => 'integer',
         'discount_percent' => 'integer',
         'amount_due_cents' => 'integer',
+        'google_generation' => 'integer',
     ];
 
     protected static function booted(): void
@@ -185,6 +188,8 @@ class ConsultationBooking extends Model
             'stripe_checkout_rejected_session_id' => $this->stripe_checkout_rejected_session_id,
             'stripe_paid_at' => $this->stripe_paid_at?->utc()->toIso8601String(),
             'stripe_checkout_checked_at' => $this->stripe_checkout_checked_at?->utc()->toIso8601String(),
+            'stripe_refund_last_error' => $this->stripe_refund_last_error,
+            'google_generation' => $this->google_generation,
             'meet_link' => $this->meet_link,
             'admin_note' => $this->admin_note,
             'proposed_slots' => $this->proposed_slots,

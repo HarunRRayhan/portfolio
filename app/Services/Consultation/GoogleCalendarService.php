@@ -2,6 +2,7 @@
 
 namespace App\Services\Consultation;
 
+use App\Exceptions\ConsultationGoogleException;
 use App\Models\ConsultationGoogleCredential;
 use Carbon\Carbon;
 use Google\Client as GoogleClient;
@@ -136,11 +137,17 @@ class GoogleCalendarService
      */
     public function busyPeriods(Carbon $timeMin, Carbon $timeMax, string|array|null $excludeEventId = null): array
     {
-        $calendar = $this->calendar();
+        try {
+            $calendar = $this->calendar();
+        } catch (\Throwable $e) {
+            Log::error('Google Calendar client could not be created', ['error' => $e->getMessage()]);
+
+            throw new ConsultationGoogleException('Google Calendar availability could not be checked.', 0, $e);
+        }
 
         if (! $calendar) {
             if ($this->isConnected()) {
-                throw new \RuntimeException('Google Calendar is temporarily unavailable.');
+                throw new ConsultationGoogleException('Google Calendar is temporarily unavailable.');
             }
 
             return [];
@@ -222,7 +229,7 @@ class GoogleCalendarService
         } catch (\Throwable $e) {
             Log::error('Google freebusy failed', ['error' => $e->getMessage()]);
 
-            throw new \RuntimeException('Google Calendar availability could not be checked.', 0, $e);
+            throw new ConsultationGoogleException('Google Calendar availability could not be checked.', 0, $e);
         }
     }
 
@@ -272,10 +279,25 @@ class GoogleCalendarService
             return null;
         }
 
-        $calendar = $this->calendar();
-        $cred = ConsultationGoogleCredential::current();
-        $calendarId = $cred?->calendar_id ?: 'primary';
-        $event = $calendar?->events->get($calendarId, $eventId);
+        try {
+            $calendar = $this->calendar();
+            if (! $calendar) {
+                throw new ConsultationGoogleException('Google Calendar confirmed event could not be read.');
+            }
+
+            $cred = ConsultationGoogleCredential::current();
+            $calendarId = $cred?->calendar_id ?: 'primary';
+            $event = $calendar->events->get($calendarId, $eventId);
+        } catch (ConsultationGoogleException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            Log::error('Google Calendar confirmed event lookup failed', [
+                'event' => $eventId,
+                'error' => $e->getMessage(),
+            ]);
+
+            throw new ConsultationGoogleException('Google Calendar confirmed event could not be read.', 0, $e);
+        }
         $meetLink = $event?->getHangoutLink();
         $spaceName = null;
 
@@ -314,10 +336,23 @@ class GoogleCalendarService
             return true;
         }
 
-        $calendar = $this->calendar();
+        try {
+            $calendar = $this->calendar();
+        } catch (\Throwable $e) {
+            Log::warning('Google Calendar client could not be created for event deletion', [
+                'event' => $eventId,
+                'error' => $e->getMessage(),
+            ]);
+
+            throw new ConsultationGoogleException('Google Calendar event deletion failed.', 0, $e);
+        }
 
         if (! $calendar) {
-            return ! $this->isConnected();
+            if ($this->isConnected()) {
+                throw new ConsultationGoogleException('Google Calendar event deletion failed.');
+            }
+
+            return true;
         }
 
         $cred = ConsultationGoogleCredential::current();
@@ -334,7 +369,7 @@ class GoogleCalendarService
 
             Log::warning('Failed to delete Google event', ['event' => $eventId, 'error' => $e->getMessage()]);
 
-            return false;
+            throw new ConsultationGoogleException('Google Calendar event deletion failed.', 0, $e);
         }
     }
 
@@ -438,9 +473,17 @@ class GoogleCalendarService
         ?string $attendeeEmail = null,
         ?string $idempotencyKey = null,
     ): ?string {
-        $calendar = $this->calendar();
+        try {
+            $calendar = $this->calendar();
+        } catch (\Throwable $e) {
+            throw new ConsultationGoogleException('Google Calendar event upsert failed.', 0, $e);
+        }
 
         if (! $calendar) {
+            if ($this->isConnected()) {
+                throw new ConsultationGoogleException('Google Calendar event upsert failed.');
+            }
+
             return null;
         }
 
@@ -524,7 +567,7 @@ class GoogleCalendarService
 
             Log::error('Google Calendar event upsert failed', ['error' => $e->getMessage()]);
 
-            return null;
+            throw new ConsultationGoogleException('Google Calendar event upsert failed.', 0, $e);
         }
     }
 
