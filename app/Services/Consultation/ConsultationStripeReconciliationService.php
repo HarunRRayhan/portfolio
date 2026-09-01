@@ -91,6 +91,10 @@ class ConsultationStripeReconciliationService
                     return true;
                 }
 
+                if (! in_array((string) ($session->status ?? ''), ['complete', 'expired'], true)) {
+                    throw new \RuntimeException('The expired booking still has an open Stripe checkout.');
+                }
+
                 $this->markRejectedCheckout($booking, (string) $session->id);
 
                 return true;

@@ -191,6 +191,34 @@ class ConsultationStripeReconciliationTest extends TestCase
         $this->assertSame('cs_expired_unpaid', $booking->fresh()->stripe_checkout_rejected_session_id);
     }
 
+    public function test_an_expired_booking_with_an_open_checkout_remains_retryable(): void
+    {
+        $booking = $this->booking([
+            'status' => ConsultationBooking::STATUS_EXPIRED,
+            'stripe_checkout_session_id' => 'cs_expired_open',
+        ]);
+        $session = Session::constructFrom([
+            'id' => 'cs_expired_open',
+            'status' => 'open',
+            'payment_status' => 'unpaid',
+            'url' => 'https://checkout.stripe.test/cs_expired_open',
+        ]);
+
+        $stripe = $this->createMock(StripeCheckoutService::class);
+        $stripe->method('configured')->willReturn(true);
+        $stripe->expects($this->once())
+            ->method('retrieveCheckoutSession')
+            ->with('cs_expired_open')
+            ->willReturn($session);
+
+        $this->app->instance(StripeCheckoutService::class, $stripe);
+
+        $this->assertSame(0, app(ConsultationStripeReconciliationService::class)->reconcile());
+        $fresh = $booking->fresh();
+        $this->assertNull($fresh->stripe_checkout_rejected_session_id);
+        $this->assertNotNull($fresh->stripe_checkout_next_attempt_at);
+    }
+
     private function booking(array $overrides = []): ConsultationBooking
     {
         $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
