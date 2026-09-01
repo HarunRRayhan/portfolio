@@ -27,19 +27,19 @@ type LaunchPromotion = {
 
 const accentBySlug: Record<string, { border: string; button: string; ring: string }> = {
   light: {
-    border: 'border-t-slate-700 border-b-slate-700',
-    button: 'bg-slate-800 hover:bg-slate-900',
-    ring: 'ring-slate-800',
+    border: 'border-t-slate-300 border-b-slate-300',
+    button: 'bg-slate-900 hover:bg-slate-800',
+    ring: 'ring-slate-300',
   },
   pro: {
-    border: 'border-t-sky-500 border-b-sky-500',
-    button: 'bg-sky-500 hover:bg-sky-600',
-    ring: 'ring-sky-500',
+    border: 'border-t-amber-300 border-b-amber-300',
+    button: 'bg-slate-800 hover:bg-slate-900',
+    ring: 'ring-amber-300',
   },
   max: {
-    border: 'border-t-emerald-600 border-b-emerald-600',
-    button: 'bg-emerald-600 hover:bg-emerald-700',
-    ring: 'ring-emerald-600',
+    border: 'border-t-amber-600 border-b-amber-600',
+    button: 'bg-amber-600 hover:bg-amber-700',
+    ring: 'ring-amber-600',
   },
 }
 
@@ -190,12 +190,12 @@ export default function Book({
         <title>Book a Consultation | Cloud & DevOps Expert - Harun R. Rayhan</title>
         <meta
           name="description"
-          content="Book a paid DevOps consultation — Light, Pro, or Max. The first 1,000 booking requests get $100 off before any valid coupon is applied."
+          content="Book a paid DevOps consultation — Light, Pro, or Max. The first 100 booking requests get $100 off before any valid coupon is applied."
         />
         <meta property="og:title" content="Book a Consultation | Cloud & DevOps Expert - Harun R. Rayhan" />
         <meta
           property="og:description"
-          content="Paid DevOps consultations with approval, Google Calendar sync, Stripe checkout, and $100 off for the first 1,000 booking requests."
+          content="Paid DevOps consultations with approval, Google Calendar sync, Stripe checkout, and $100 off for the first 100 booking requests."
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={canonicalUrl} />
@@ -217,7 +217,7 @@ export default function Book({
       </Head>
 
       <section className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-b from-slate-50 via-white to-slate-50">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(14,165,233,0.08),_transparent_55%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(245,158,11,0.08),_transparent_55%)]" />
         <div className="container relative mx-auto py-16 sm:py-20 lg:py-24">
           <div className="mx-auto max-w-2xl text-center">
             <div className="mb-4 inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white/80 px-3 py-1.5 shadow-sm">
@@ -238,8 +238,8 @@ export default function Book({
               Nothing goes on the calendar as confirmed until both happen.
             </p>
             {launchAvailable && (
-              <p className="mt-4 text-sm font-medium text-emerald-700">
-                Launch offer: the first {launchPromotion?.limit.toLocaleString() ?? 1000} booking requests get {launchDiscountDisplay} off.
+              <p className="mt-4 text-sm font-medium text-amber-700">
+                Launch offer: the first {launchPromotion?.limit.toLocaleString() ?? 100} booking requests get {launchDiscountDisplay} off.
                 Valid percentage coupons stack after this discount.
               </p>
             )}
@@ -260,11 +260,17 @@ export default function Book({
               >
                 {tiers.map((tier) => {
                   const accent = accentBySlug[tier.slug] ?? accentBySlug.light
+                  const isRecommended = tier.slug === 'max'
                   return (
                     <div
                       key={tier.slug}
-                      className={`flex flex-col border border-slate-200 bg-white ${accent.border} border-t-[3px] border-b-[3px]`}
+                      className={`relative flex flex-col border border-slate-200 bg-white ${accent.border} border-t-[3px] border-b-[3px] ${isRecommended ? `ring-2 ${accent.ring} ring-offset-2` : ''}`}
                     >
+                      {isRecommended && (
+                        <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-amber-600 px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-white shadow-sm">
+                          Recommended
+                        </span>
+                      )}
                       <div className="px-6 pb-4 pt-8 text-center">
                         <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
                           {tier.name}
@@ -283,7 +289,7 @@ export default function Book({
                           )}
                           <span className="ml-1 text-base font-medium text-slate-400">/ one time</span>
                         </p>
-                        {launchAvailable && <p className="mt-1 text-xs font-medium text-emerald-700">{launchDiscountDisplay} off launch pricing</p>}
+                        {launchAvailable && <p className="mt-1 text-xs font-medium text-amber-700">{launchDiscountDisplay} off launch pricing</p>}
                         <p className="mt-1 text-sm text-slate-500">{tier.duration_minutes} minutes</p>
                       </div>
                       <ul className="flex-1 border-t border-slate-100 px-6">
@@ -294,7 +300,7 @@ export default function Book({
                           >
                             <span
                               className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
-                                f.included ? 'bg-sky-400 text-white' : 'bg-rose-500 text-white'
+                                f.included ? 'bg-amber-500 text-white' : 'bg-rose-500 text-white'
                               }`}
                             >
                               {f.included ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}

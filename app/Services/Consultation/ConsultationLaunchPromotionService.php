@@ -55,7 +55,7 @@ class ConsultationLaunchPromotionService
 
     public function limit(): int
     {
-        return max(0, (int) config('consultation.launch_promotion.limit', 1000));
+        return max(0, (int) config('consultation.launch_promotion.limit', 100));
     }
 
     public function remaining(): int

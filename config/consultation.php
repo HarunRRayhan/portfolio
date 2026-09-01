@@ -26,7 +26,7 @@ return [
 
     'launch_promotion' => [
         'discount_cents' => 10000,
-        'limit' => 1000,
+        'limit' => 100,
         'counter_key' => 'consultation_booking_promotion_claimed_count',
     ],
 
