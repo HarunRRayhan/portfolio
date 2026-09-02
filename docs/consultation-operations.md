@@ -36,7 +36,8 @@ https://harun.dev/stripe/webhook
 ```
 
 Subscribe to `checkout.session.completed` and
-`checkout.session.async_payment_succeeded`. Copy the endpoint signing secret to
+`checkout.session.async_payment_succeeded`, and
+`checkout.session.async_payment_failed`. Copy the endpoint signing secret to
 `STRIPE_WEBHOOK_SECRET`. The webhook ledger is idempotent, and the scheduler
 also reconciles sessions that Stripe delivered while the app was unavailable.
 

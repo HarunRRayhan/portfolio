@@ -224,14 +224,6 @@ class ConsultationNotificationService
     {
         $payload = $notification->payload ?? [];
         $tokenHash = $payload['activate_access_token_hash'] ?? null;
-        $proposalEventId = $payload['proposal_event_id'] ?? null;
-
-        if ($proposalEventId === null && $notification->consultation_booking_id) {
-            $pattern = '/^consultation-booking-'.preg_quote((string) $notification->consultation_booking_id, '/').'-event-(\d+)-reschedule-proposed$/';
-            if (preg_match($pattern, $notification->deduplication_key, $matches) === 1) {
-                $proposalEventId = (int) $matches[1];
-            }
-        }
 
         if (! is_string($tokenHash) || $tokenHash === '' || ! $notification->consultation_booking_id) {
             return;
@@ -241,8 +233,49 @@ class ConsultationNotificationService
             ->lockForUpdate()
             ->find($notification->consultation_booking_id);
 
-        if (! $booking || $booking->status !== ConsultationBooking::STATUS_RESCHEDULE_PROPOSED) {
+        if (! $booking) {
             return;
+        }
+
+        if ($notification->mail_type === self::TYPE_AWAITING_PAYMENT) {
+            $sessionId = $payload['stripe_checkout_session_id'] ?? null;
+            $idempotencyKey = $payload['stripe_checkout_idempotency_key'] ?? null;
+
+            if (
+                ! is_string($sessionId)
+                || $sessionId === ''
+                || ! in_array($booking->status, [
+                    ConsultationBooking::STATUS_AWAITING_PAYMENT,
+                    ConsultationBooking::STATUS_CONFIRMED,
+                ], true)
+                || $booking->stripe_checkout_session_id !== $sessionId
+                || (is_string($idempotencyKey) && $booking->stripe_checkout_idempotency_key !== $idempotencyKey)
+            ) {
+                return;
+            }
+
+            $booking->access_token_hash = $tokenHash;
+            $booking->access_token_expires_at = $payload['activate_access_token_expires_at'] ?? $booking->access_token_expires_at;
+            $booking->save();
+
+            return;
+        }
+
+        if ($notification->mail_type !== self::TYPE_RESCHEDULE_PROPOSED) {
+            return;
+        }
+
+        if ($booking->status !== ConsultationBooking::STATUS_RESCHEDULE_PROPOSED) {
+            return;
+        }
+
+        $proposalEventId = $payload['proposal_event_id'] ?? null;
+
+        if ($proposalEventId === null) {
+            $pattern = '/^consultation-booking-'.preg_quote((string) $notification->consultation_booking_id, '/').'-event-(\d+)-reschedule-proposed$/';
+            if (preg_match($pattern, $notification->deduplication_key, $matches) === 1) {
+                $proposalEventId = (int) $matches[1];
+            }
         }
 
         if ($proposalEventId === null) {

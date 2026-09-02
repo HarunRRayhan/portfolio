@@ -248,20 +248,22 @@ class BookingWorkflowService
                 throw new \RuntimeException('Booking is no longer awaiting payment.');
             }
 
+            $notificationPayload = [
+                'plain_token' => $paymentToken,
+                'checkout_url' => $checkoutUrl,
+            ];
             if ($paymentToken !== null) {
-                $booking->access_token_hash = hash('sha256', $paymentToken);
-                $booking->access_token_expires_at = $this->accessTokenExpiresAt($booking);
+                $notificationPayload['activate_access_token_hash'] = hash('sha256', $paymentToken);
+                $notificationPayload['activate_access_token_expires_at'] = $this->accessTokenExpiresAt($booking)?->toIso8601String();
+                $notificationPayload['stripe_checkout_session_id'] = $booking->stripe_checkout_session_id;
+                $notificationPayload['stripe_checkout_idempotency_key'] = $booking->stripe_checkout_idempotency_key;
             }
-            $booking->save();
 
             $this->notifications->enqueue(
                 $booking,
                 $booking->client_email,
                 ConsultationNotificationService::TYPE_AWAITING_PAYMENT,
-                [
-                    'plain_token' => $paymentToken,
-                    'checkout_url' => $checkoutUrl,
-                ],
+                $notificationPayload,
                 'consultation-booking-'.$booking->id.'-awaiting-payment-'.$booking->stripe_checkout_session_id,
             );
 
@@ -300,17 +302,23 @@ class BookingWorkflowService
 
                 if ($isPaidReschedule) {
                     $deleted = $this->google->deleteEvent($booking->reschedule_hold_event_id);
-                    if ($this->google->isConnected() && ! $deleted) {
+                    if (! $deleted) {
                         throw new \RuntimeException('Google Calendar could not release the proposed reschedule hold.');
                     }
 
                     $booking->starts_at = $booking->reschedule_original_starts_at ?? $booking->starts_at;
                     $booking->ends_at = $booking->reschedule_original_ends_at ?? $booking->ends_at;
+                    $booking->payment_due_at = $booking->reschedule_original_payment_due_at
+                        ?? $booking->starts_at?->copy()->subHours((int) config('consultation.payment_cutoff_hours', 24));
+                    $booking->access_token_expires_at = $booking->reschedule_original_access_token_expires_at
+                        ?? $this->accessTokenExpiresAt($booking);
                     $booking->status = ConsultationBooking::STATUS_CONFIRMED;
                     $booking->proposed_slots = null;
                     $booking->hold_expires_at = null;
                     $booking->reschedule_original_starts_at = null;
                     $booking->reschedule_original_ends_at = null;
+                    $booking->reschedule_original_payment_due_at = null;
+                    $booking->reschedule_original_access_token_expires_at = null;
                     $booking->reschedule_hold_event_id = null;
                     $booking->decline_block_title = null;
                     $booking->save();
@@ -341,7 +349,7 @@ class BookingWorkflowService
                             'confirmed',
                         );
 
-                        if ($this->google->isConnected() && ! $updatedEventId) {
+                        if (! $updatedEventId) {
                             throw new \RuntimeException('Google Calendar could not keep the declined slot blocked.');
                         }
                     } else {
@@ -353,13 +361,13 @@ class BookingWorkflowService
                             'consultation-booking-'.$booking->id.'-declined-block',
                         );
 
-                        if ($this->google->isConnected() && ! $booking->google_event_id) {
+                        if (! $booking->google_event_id) {
                             throw new \RuntimeException('Google Calendar could not block the declined slot.');
                         }
                     }
                 } else {
                     $deleted = $this->google->deleteEvent($booking->google_event_id);
-                    if ($this->google->isConnected() && ! $deleted) {
+                    if (! $deleted) {
                         throw new \RuntimeException('Google Calendar could not release the declined booking hold.');
                     }
 
@@ -417,6 +425,10 @@ class BookingWorkflowService
                 throw new \InvalidArgumentException('Cannot propose reschedule for this booking.');
             }
 
+            if ($booking->hold_expires_at && $booking->hold_expires_at->isPast()) {
+                throw new \InvalidArgumentException('This booking hold has expired. Ask the client to pick a later time.');
+            }
+
             $booking->status = ConsultationBooking::STATUS_RESCHEDULE_PROPOSED;
             $booking->proposed_slots = $slots;
             $booking->admin_note = $adminNote;
@@ -466,6 +478,10 @@ class BookingWorkflowService
                     throw new \InvalidArgumentException('No proposed slots to pick.');
                 }
 
+                if ($booking->hold_expires_at && $booking->hold_expires_at->isPast()) {
+                    throw new \InvalidArgumentException('This reschedule proposal has expired. Ask the client to request a new time.');
+                }
+
                 if ($expectedGeneration !== null && $expectedGeneration !== ((int) $booking->google_generation + 1)) {
                     throw new \InvalidArgumentException('The proposed slot has been superseded by a newer time slot.');
                 }
@@ -489,16 +505,19 @@ class BookingWorkflowService
                 $wasPreviouslyConfirmed = $booking->confirmed_at !== null;
                 if (! $wasPreviouslyConfirmed) {
                     $deleted = $this->google->deleteEvent($booking->google_event_id);
-                    if ($this->google->isConnected() && ! $deleted) {
+                    if (! $deleted) {
                         throw new \RuntimeException('Google Calendar could not release the previous booking hold.');
                     }
                 }
 
                 $originalStartsAt = $booking->starts_at;
                 $originalEndsAt = $booking->ends_at;
+                $originalPaymentDueAt = $booking->payment_due_at;
+                $originalAccessTokenExpiresAt = $booking->access_token_expires_at;
                 $targetGeneration = (int) $booking->google_generation + 1;
                 $booking->starts_at = $startsAt;
                 $booking->ends_at = $endsAt;
+                $booking->access_token_expires_at = $this->accessTokenExpiresAt($booking);
                 $booking->google_generation = $targetGeneration;
                 $booking->proposed_slots = null;
                 $booking->status = $wasPreviouslyConfirmed
@@ -527,9 +546,13 @@ class BookingWorkflowService
                 if ($wasPreviouslyConfirmed) {
                     $booking->reschedule_original_starts_at = $originalStartsAt;
                     $booking->reschedule_original_ends_at = $originalEndsAt;
+                    $booking->reschedule_original_payment_due_at = $originalPaymentDueAt;
+                    $booking->reschedule_original_access_token_expires_at = $originalAccessTokenExpiresAt;
                     $booking->reschedule_hold_event_id = $eventId;
                 } else {
                     $booking->google_event_id = $eventId;
+                    $booking->reschedule_original_payment_due_at = null;
+                    $booking->reschedule_original_access_token_expires_at = null;
                 }
                 $booking->save();
                 $this->googleOperations->supersedeForBooking($booking, $operationId);
@@ -629,6 +652,7 @@ class BookingWorkflowService
         $tier = $booking->tier;
         $summary = $tier->name.' — '.$booking->client_name;
         $description = trim(($booking->notes ?? '')."\n\nClient: {$booking->client_email}");
+        $googleConnected = $this->google->isConnected();
 
         if (! $wasPreviouslyConfirmed && $booking->consultation_coupon_id) {
             $this->redeemCoupon($booking);
@@ -649,7 +673,7 @@ class BookingWorkflowService
             idempotencyKey: $confirmationKey,
         );
 
-        if ($this->google->isConnected() && (! $created || empty($created['event_id']) || empty($created['meet_link']))) {
+        if ($googleConnected && (! $created || empty($created['event_id']))) {
             throw new \RuntimeException('Google Calendar could not create the confirmed consultation.');
         }
 
@@ -662,7 +686,7 @@ class BookingWorkflowService
             }
 
             $deleted = $this->google->deleteEvent($eventId);
-            if ($this->google->isConnected() && ! $deleted) {
+            if (! $deleted) {
                 throw new \RuntimeException('Google Calendar could not release the booking hold.');
             }
         }
@@ -672,13 +696,28 @@ class BookingWorkflowService
         $booking->google_event_id = $created['event_id'] ?? null;
         $booking->reschedule_original_starts_at = null;
         $booking->reschedule_original_ends_at = null;
+        $booking->reschedule_original_payment_due_at = null;
+        $booking->reschedule_original_access_token_expires_at = null;
         $booking->reschedule_hold_event_id = null;
         $booking->hold_expires_at = null;
         $booking->meet_link = $created['meet_link'] ?? null;
         $booking->google_meet_space_name = null;
+        $booking->access_token_expires_at = $this->accessTokenExpiresAt($booking);
         $booking->save();
 
-        if ($tier->includes_recording && $this->google->isConnected()) {
+        if ($googleConnected && ! $booking->meet_link) {
+            $this->googleOperations->queue(
+                $booking,
+                'meet_link',
+                [
+                    'event_id' => $booking->google_event_id,
+                    'conference_id' => $created['conference_id'] ?? null,
+                ],
+                'Google Meet link is still being created.',
+            );
+        }
+
+        if ($tier->includes_recording && $googleConnected && $booking->meet_link) {
             try {
                 $spaceName = $this->google->enableMeetAutoRecording($booking->meet_link, $created['conference_id'] ?? null);
                 if ($spaceName) {
@@ -716,15 +755,86 @@ class BookingWorkflowService
         }
 
         $confirmationEvent = $booking->recordEvent('confirmed', $actor);
-        $this->notifications->enqueue(
-            $booking,
-            $booking->client_email,
-            ConsultationNotificationService::TYPE_CONFIRMED,
-            [],
-            'consultation-booking-'.$booking->id.'-event-'.$confirmationEvent->id.'-confirmed',
-        );
+        if (! $googleConnected || $booking->meet_link) {
+            $this->notifications->enqueue(
+                $booking,
+                $booking->client_email,
+                ConsultationNotificationService::TYPE_CONFIRMED,
+                [],
+                'consultation-booking-'.$booking->id.'-event-'.$confirmationEvent->id.'-confirmed',
+            );
+        }
 
         return $booking->fresh(['tier']);
+    }
+
+    /** @param array{event_id?: string, conference_id?: ?string} $payload */
+    public function retryConfirmedMeet(ConsultationBooking $booking, array $payload): void
+    {
+        $current = $booking->fresh(['tier']);
+
+        if ($current->status !== ConsultationBooking::STATUS_CONFIRMED) {
+            throw new \InvalidArgumentException('The consultation is no longer confirmed.');
+        }
+
+        $eventId = (string) ($payload['event_id'] ?? $current->google_event_id ?? '');
+        if ($eventId === '' || $current->google_event_id !== $eventId) {
+            throw new \InvalidArgumentException('The confirmed consultation event has been superseded.');
+        }
+
+        $details = $this->google->confirmedEventDetails($eventId);
+        $meetLink = is_array($details) ? ($details['meet_link'] ?? null) : null;
+        if (! is_string($meetLink) || $meetLink === '') {
+            throw new ConsultationGoogleException('Google Meet link is still being created.');
+        }
+
+        $conferenceId = is_array($details) ? ($details['conference_id'] ?? null) : null;
+        $booking = DB::transaction(function () use ($current, $eventId, $meetLink, $conferenceId, $payload): ?ConsultationBooking {
+            $locked = ConsultationBooking::query()
+                ->with('tier')
+                ->lockForUpdate()
+                ->findOrFail($current->id);
+
+            if ($locked->status !== ConsultationBooking::STATUS_CONFIRMED || $locked->google_event_id !== $eventId) {
+                return null;
+            }
+
+            $locked->meet_link = $meetLink;
+            $locked->save();
+
+            $confirmationEventId = $locked->events()
+                ->where('event', 'confirmed')
+                ->latest('id')
+                ->value('id');
+            $confirmationKey = $confirmationEventId
+                ? 'consultation-booking-'.$locked->id.'-event-'.$confirmationEventId.'-confirmed'
+                : 'consultation-booking-'.$locked->id.'-confirmed';
+            $this->notifications->enqueue(
+                $locked,
+                $locked->client_email,
+                ConsultationNotificationService::TYPE_CONFIRMED,
+                [],
+                $confirmationKey,
+            );
+
+            if ($locked->tier->includes_recording && ! $locked->google_meet_space_name) {
+                $this->googleOperations->queue(
+                    $locked,
+                    'meet_recording',
+                    [
+                        'meet_link' => $meetLink,
+                        'conference_id' => $conferenceId ?? ($payload['conference_id'] ?? null),
+                    ],
+                    'Meet auto-recording was not enabled.',
+                );
+            }
+
+            return $locked->fresh(['tier']);
+        });
+
+        if ($booking) {
+            $this->notifications->deliverDueForBooking($booking->id);
+        }
     }
 
     /** @param array{meet_link?: ?string, conference_id?: ?string} $payload */
@@ -814,7 +924,7 @@ class BookingWorkflowService
             $latest = $current->fresh();
             if ($latest->google_event_id !== $eventId) {
                 $deleted = $this->google->deleteEvent($eventId);
-                if ($this->google->isConnected() && ! $deleted) {
+                if (! $deleted) {
                     throw new \RuntimeException('Google Calendar could not clean up the stale consultation hold.');
                 }
             }
@@ -830,9 +940,13 @@ class BookingWorkflowService
         return $this->expireBooking($booking);
     }
 
-    public function markPaidFromStripe(ConsultationBooking $booking, string $sessionId, ?string $paymentIntentId): ConsultationBooking
-    {
-        $booking = DB::transaction(function () use ($booking, $sessionId, $paymentIntentId): ConsultationBooking {
+    public function markPaidFromStripe(
+        ConsultationBooking $booking,
+        string $sessionId,
+        ?string $paymentIntentId,
+        ?Carbon $paidAt = null,
+    ): ConsultationBooking {
+        $booking = DB::transaction(function () use ($booking, $sessionId, $paymentIntentId, $paidAt): ConsultationBooking {
             $booking = ConsultationBooking::query()
                 ->with('tier')
                 ->lockForUpdate()
@@ -865,7 +979,13 @@ class BookingWorkflowService
                 throw new \InvalidArgumentException('Booking is not awaiting payment.');
             }
 
-            if (! $booking->stripe_paid_at && $booking->payment_due_at && $booking->payment_due_at->isPast()) {
+            $paymentTimestamp = $paidAt?->copy()->utc();
+            if (
+                ! $booking->stripe_paid_at
+                && $booking->payment_due_at
+                && (($paymentTimestamp && $paymentTimestamp->isAfter($booking->payment_due_at))
+                    || (! $paymentTimestamp && $booking->payment_due_at->isPast()))
+            ) {
                 throw new \InvalidArgumentException('The payment deadline for this booking has passed.');
             }
 
@@ -883,13 +1003,73 @@ class BookingWorkflowService
 
             $booking->stripe_checkout_session_id = $sessionId;
             $booking->stripe_payment_intent_id = $paymentIntentId ?: $booking->stripe_payment_intent_id;
-            $booking->stripe_paid_at ??= now('UTC');
+            $booking->stripe_paid_at ??= $paymentTimestamp ?: now('UTC');
             $booking->save();
 
             return $booking->fresh(['tier']);
         });
 
         return $this->confirmBooking($booking, 'stripe');
+    }
+
+    public function resetFailedStripePayment(
+        ConsultationBooking $booking,
+        string $sessionId,
+        ?string $paymentIntentId,
+        string $reason,
+    ): bool {
+        return DB::transaction(function () use ($booking, $sessionId, $paymentIntentId, $reason): bool {
+            $current = ConsultationBooking::query()->lockForUpdate()->findOrFail($booking->id);
+
+            if (
+                $current->status !== ConsultationBooking::STATUS_AWAITING_PAYMENT
+                || $current->stripe_checkout_session_id !== $sessionId
+                || ($current->stripe_payment_intent_id
+                    && $paymentIntentId
+                    && $current->stripe_payment_intent_id !== $paymentIntentId)
+            ) {
+                return false;
+            }
+
+            $previousIdempotencyKey = $current->stripe_checkout_idempotency_key;
+            $current->stripe_checkout_rejected_session_id = $sessionId;
+            $current->stripe_checkout_checked_at = now('UTC');
+            $current->stripe_checkout_session_id = null;
+            $current->stripe_payment_intent_id = null;
+            $current->stripe_paid_at = null;
+            $current->stripe_checkout_idempotency_key = 'consultation-checkout-retry-'.substr(
+                hash('sha256', $current->id.'-'.$sessionId),
+                0,
+                48,
+            );
+            $current->stripe_checkout_last_error = mb_substr($reason, 0, 2000);
+            $current->stripe_checkout_next_attempt_at = null;
+            $current->save();
+
+            ConsultationStripeCheckoutAttempt::query()
+                ->where('consultation_booking_id', $current->id)
+                ->where(function ($query) use ($sessionId, $previousIdempotencyKey) {
+                    $query->where('stripe_checkout_session_id', $sessionId);
+                    if ($previousIdempotencyKey) {
+                        $query->orWhere('idempotency_key', $previousIdempotencyKey);
+                    }
+                })
+                ->whereIn('status', [
+                    ConsultationStripeCheckoutAttempt::STATUS_PENDING,
+                    ConsultationStripeCheckoutAttempt::STATUS_PROCESSING,
+                    ConsultationStripeCheckoutAttempt::STATUS_CREATED,
+                    ConsultationStripeCheckoutAttempt::STATUS_FAILED,
+                ])
+                ->update([
+                    'status' => ConsultationStripeCheckoutAttempt::STATUS_SUPERSEDED,
+                    'last_error' => mb_substr($reason, 0, 2000),
+                    'next_attempt_at' => null,
+                    'completed_at' => now('UTC'),
+                    'updated_at' => now('UTC'),
+                ]);
+
+            return true;
+        });
     }
 
     public function resetRejectedStripePayment(
@@ -1025,11 +1205,12 @@ class BookingWorkflowService
                     throw new \InvalidArgumentException('No cancel request pending.');
                 }
 
+                $booking->cancel_approval_started_at ??= now('UTC');
                 if ($booking->stripe_payment_intent_id && ! $booking->stripe_refund_id) {
                     $booking->stripe_refund_attempted_at ??= now('UTC');
                     $booking->stripe_refund_idempotency_key ??= 'consultation-booking-'.$booking->id.'-refund';
-                    $booking->save();
                 }
+                $booking->save();
 
                 return $booking->fresh(['tier']);
             });
@@ -1069,7 +1250,7 @@ class BookingWorkflowService
             }
 
             $deleted = $this->google->deleteEvent($booking->google_event_id);
-            if ($this->google->isConnected() && ! $deleted) {
+            if (! $deleted) {
                 throw new \RuntimeException('Google Calendar could not release the cancelled consultation.');
             }
 
@@ -1242,6 +1423,10 @@ class BookingWorkflowService
                 throw new \InvalidArgumentException('Cancellation refund has started and cannot be denied.');
             }
 
+            if ($booking->cancel_approval_started_at) {
+                throw new \InvalidArgumentException('Cancellation approval has started and cannot be denied.');
+            }
+
             $booking->status = ConsultationBooking::STATUS_CONFIRMED;
             $booking->save();
             $decisionEvent = $booking->recordEvent('cancel_denied', 'admin');
@@ -1381,17 +1566,23 @@ class BookingWorkflowService
 
             if ($isPaidReschedule) {
                 $deleted = $this->google->deleteEvent($booking->reschedule_hold_event_id);
-                if ($this->google->isConnected() && ! $deleted) {
+                if (! $deleted) {
                     throw new \RuntimeException('Google Calendar could not release the expired reschedule hold.');
                 }
 
                 $booking->starts_at = $booking->reschedule_original_starts_at ?? $booking->starts_at;
                 $booking->ends_at = $booking->reschedule_original_ends_at ?? $booking->ends_at;
+                $booking->payment_due_at = $booking->reschedule_original_payment_due_at
+                    ?? $booking->starts_at?->copy()->subHours((int) config('consultation.payment_cutoff_hours', 24));
+                $booking->access_token_expires_at = $booking->reschedule_original_access_token_expires_at
+                    ?? $this->accessTokenExpiresAt($booking);
                 $booking->status = ConsultationBooking::STATUS_CONFIRMED;
                 $booking->proposed_slots = null;
                 $booking->hold_expires_at = null;
                 $booking->reschedule_original_starts_at = null;
                 $booking->reschedule_original_ends_at = null;
+                $booking->reschedule_original_payment_due_at = null;
+                $booking->reschedule_original_access_token_expires_at = null;
                 $booking->reschedule_hold_event_id = null;
                 $booking->save();
                 $expiryEvent = $booking->recordEvent('reschedule_expired', 'system');
@@ -1410,7 +1601,7 @@ class BookingWorkflowService
             }
 
             $deleted = $this->google->deleteEvent($booking->google_event_id);
-            if ($this->google->isConnected() && ! $deleted) {
+            if (! $deleted) {
                 throw new \RuntimeException('Google Calendar could not release the expired booking hold.');
             }
 

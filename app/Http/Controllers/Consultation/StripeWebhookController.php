@@ -10,6 +10,7 @@ use App\Models\ConsultationStripeWebhookEvent;
 use App\Services\Consultation\BookingWorkflowService;
 use App\Services\Consultation\ConsultationNotificationService;
 use App\Services\Consultation\StripeCheckoutService;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -177,6 +178,7 @@ class StripeWebhookController extends Controller
         if (! in_array($event->type, [
             'checkout.session.completed',
             'checkout.session.async_payment_succeeded',
+            'checkout.session.async_payment_failed',
         ], true)) {
             return;
         }
@@ -184,10 +186,6 @@ class StripeWebhookController extends Controller
         /** @var Session $session */
         $session = $event->data->object;
         $paymentStatus = (string) ($session->payment_status ?? '');
-
-        if (! in_array($paymentStatus, ['paid', 'no_payment_required'], true)) {
-            return;
-        }
 
         $metadata = $session->metadata;
         $metadataPublicId = is_array($metadata)
@@ -239,6 +237,30 @@ class StripeWebhookController extends Controller
             return;
         }
 
+        if ($event->type === 'checkout.session.async_payment_failed') {
+            if ($booking->stripe_checkout_session_id !== $sessionId) {
+                return;
+            }
+
+            $paymentIntent = $session->payment_intent;
+            $paymentIntentId = is_string($paymentIntent)
+                ? $paymentIntent
+                : (is_object($paymentIntent) ? ($paymentIntent->id ?? null) : null);
+
+            $workflow->resetFailedStripePayment(
+                $booking,
+                $sessionId,
+                $paymentIntentId,
+                'Stripe asynchronous payment failed.',
+            );
+
+            return;
+        }
+
+        if (! in_array($paymentStatus, ['paid', 'no_payment_required'], true)) {
+            return;
+        }
+
         if ($booking->amount_due_cents > 0 && $paymentStatus !== 'paid') {
             // Checkout can be completed before an asynchronous payment settles.
             // Wait for async_payment_succeeded or reconciliation instead of
@@ -286,6 +308,7 @@ class StripeWebhookController extends Controller
                 $booking,
                 $session->id,
                 $paymentIntentId,
+                $this->eventCreatedAt($event),
             );
         } catch (\InvalidArgumentException $e) {
             Log::warning('Stripe booking event was not applicable', [
@@ -454,6 +477,13 @@ class StripeWebhookController extends Controller
             'next_attempt_at' => now('UTC')->addMinutes($delay),
             'updated_at' => now('UTC'),
         ]);
+    }
+
+    protected function eventCreatedAt(Event $event): ?Carbon
+    {
+        $timestamp = (int) ($event->created ?? 0);
+
+        return $timestamp > 0 ? Carbon::createFromTimestamp($timestamp, 'UTC') : null;
     }
 
     /** @return Builder<ConsultationStripeWebhookEvent> */

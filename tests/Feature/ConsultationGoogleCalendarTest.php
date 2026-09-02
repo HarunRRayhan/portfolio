@@ -42,6 +42,14 @@ class ConsultationGoogleCalendarTest extends TestCase
         $this->assertSame($stableEventId, $result);
     }
 
+    public function test_event_deletion_fails_closed_when_calendar_is_disconnected(): void
+    {
+        $this->expectException(ConsultationGoogleException::class);
+        $this->expectExceptionMessage('disconnected');
+
+        app(GoogleCalendarService::class)->deleteEvent('orphaned-event');
+    }
+
     public function test_a_google_event_conflict_is_resolved_by_fetching_the_stable_event(): void
     {
         $stableEventId = 'consultation'.substr(hash('sha256', 'retry-key'), 0, 48);

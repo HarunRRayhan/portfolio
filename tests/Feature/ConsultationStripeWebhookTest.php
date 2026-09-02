@@ -210,6 +210,47 @@ class ConsultationStripeWebhookTest extends TestCase
         $this->assertSame('cs_webhook', $booking->fresh()->stripe_checkout_session_id);
     }
 
+    public function test_an_async_payment_failure_releases_the_checkout_for_retry(): void
+    {
+        $booking = $this->awaitingPaymentBooking();
+        $booking->forceFill([
+            'stripe_checkout_idempotency_key' => 'consultation-checkout-old',
+        ])->save();
+        $attempt = ConsultationStripeCheckoutAttempt::create([
+            'consultation_booking_id' => $booking->id,
+            'idempotency_key' => 'consultation-checkout-old',
+            'access_token' => 'webhook-token',
+            'stripe_checkout_session_id' => 'cs_webhook',
+            'status' => ConsultationStripeCheckoutAttempt::STATUS_CREATED,
+            'attempts' => 1,
+            'completed_at' => now('UTC'),
+        ]);
+
+        $payload = $this->stripePayload(
+            $booking,
+            'evt_async_failed',
+            null,
+            'unpaid',
+            'cs_webhook',
+            'pi_webhook',
+            'checkout.session.async_payment_failed',
+        );
+
+        $this->postWebhook($payload)->assertOk();
+
+        $fresh = $booking->fresh();
+        $this->assertSame(ConsultationBooking::STATUS_AWAITING_PAYMENT, $fresh->status);
+        $this->assertNull($fresh->stripe_checkout_session_id);
+        $this->assertNull($fresh->stripe_payment_intent_id);
+        $this->assertNull($fresh->stripe_paid_at);
+        $this->assertSame('cs_webhook', $fresh->stripe_checkout_rejected_session_id);
+        $this->assertNotSame('consultation-checkout-old', $fresh->stripe_checkout_idempotency_key);
+        $this->assertSame(
+            ConsultationStripeCheckoutAttempt::STATUS_SUPERSEDED,
+            $attempt->fresh()->status,
+        );
+    }
+
     public function test_a_failed_webhook_can_be_retried_and_is_not_lost(): void
     {
         $booking = $this->awaitingPaymentBooking();
@@ -351,6 +392,7 @@ class ConsultationStripeWebhookTest extends TestCase
         string $paymentStatus = 'paid',
         string $sessionId = 'cs_webhook',
         ?string $paymentIntentId = 'pi_webhook',
+        string $eventType = 'checkout.session.completed',
     ): string {
         return json_encode([
             'id' => $eventId,
@@ -358,7 +400,7 @@ class ConsultationStripeWebhookTest extends TestCase
             'created' => now('UTC')->timestamp,
             'livemode' => false,
             'pending_webhooks' => 1,
-            'type' => 'checkout.session.completed',
+            'type' => $eventType,
             'data' => [
                 'object' => [
                     'id' => $sessionId,

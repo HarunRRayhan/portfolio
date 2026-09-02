@@ -5,6 +5,7 @@ namespace App\Services\Consultation;
 use App\Models\ConsultationBooking;
 use App\Models\ConsultationNotification;
 use App\Models\ConsultationStripeCheckoutAttempt;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -133,6 +134,7 @@ class ConsultationStripeReconciliationService
                             $booking,
                             $session->id,
                             $paymentIntentId,
+                            $this->paymentCompletedAt($session),
                         );
                     } catch (\InvalidArgumentException $e) {
                         $this->refundRejectedPayment(
@@ -148,12 +150,15 @@ class ConsultationStripeReconciliationService
                     return true;
                 }
 
+                if (($session->status ?? null) === 'complete') {
+                    // The Checkout Session can complete while an asynchronous
+                    // payment is still settling. Wait for Stripe's succeeded
+                    // event instead of creating a second checkout.
+                    return false;
+                }
+
                 if (($session->status ?? null) !== 'expired' && filled($session->url)) {
                     $token = $this->checkoutToken($booking);
-                    $booking = $this->persistAccessToken($booking, $token, $sessionId, $idempotencyKey);
-                    if (! $booking || $booking->status !== ConsultationBooking::STATUS_AWAITING_PAYMENT) {
-                        return false;
-                    }
                     if (! $this->queuePaymentMail($booking, $token, (string) $session->url, $sessionId, $idempotencyKey)) {
                         return false;
                     }
@@ -174,7 +179,7 @@ class ConsultationStripeReconciliationService
         $checkoutSessionId = $booking->stripe_checkout_session_id;
         $checkoutIdempotencyKey = $booking->stripe_checkout_idempotency_key;
 
-        $booking = DB::transaction(function () use ($booking, $canonicalToken, $checkoutSessionId, $checkoutIdempotencyKey): ?ConsultationBooking {
+        $booking = DB::transaction(function () use ($booking, $checkoutSessionId, $checkoutIdempotencyKey): ?ConsultationBooking {
             $current = ConsultationBooking::query()->lockForUpdate()->findOrFail($booking->id);
 
             if (
@@ -185,10 +190,6 @@ class ConsultationStripeReconciliationService
                 return null;
             }
 
-            if ($canonicalToken !== null) {
-                $current->access_token_hash = hash('sha256', $canonicalToken);
-                $current->access_token_expires_at = $current->ends_at?->copy()->addDays((int) config('consultation.access_token_days', 90));
-            }
             $current->stripe_checkout_last_error = null;
             $current->stripe_checkout_next_attempt_at = null;
             $current->save();
@@ -233,33 +234,6 @@ class ConsultationStripeReconciliationService
         return null;
     }
 
-    protected function persistAccessToken(
-        ConsultationBooking $booking,
-        ?string $token,
-        string $sessionId,
-        ?string $idempotencyKey,
-    ): ?ConsultationBooking {
-        return DB::transaction(function () use ($booking, $token, $sessionId, $idempotencyKey): ?ConsultationBooking {
-            $current = ConsultationBooking::query()->lockForUpdate()->findOrFail($booking->id);
-
-            if (
-                $current->status !== ConsultationBooking::STATUS_AWAITING_PAYMENT
-                || $current->stripe_checkout_session_id !== $sessionId
-                || $current->stripe_checkout_idempotency_key !== $idempotencyKey
-            ) {
-                return null;
-            }
-
-            if ($token !== null) {
-                $current->access_token_hash = hash('sha256', $token);
-                $current->access_token_expires_at = $current->ends_at?->copy()->addDays((int) config('consultation.access_token_days', 90));
-                $current->save();
-            }
-
-            return $current->fresh(['tier']);
-        });
-    }
-
     protected function queuePaymentMail(
         ConsultationBooking $booking,
         ?string $token,
@@ -281,14 +255,22 @@ class ConsultationStripeReconciliationService
                 return null;
             }
 
+            $payload = [
+                'plain_token' => $token,
+                'checkout_url' => $checkoutUrl,
+            ];
+            if ($token !== null) {
+                $payload['activate_access_token_hash'] = hash('sha256', $token);
+                $payload['activate_access_token_expires_at'] = $current->ends_at?->copy()->addDays((int) config('consultation.access_token_days', 90))->toIso8601String();
+                $payload['stripe_checkout_session_id'] = $sessionId;
+                $payload['stripe_checkout_idempotency_key'] = $idempotencyKey;
+            }
+
             return $this->notifications->enqueue(
                 $current,
                 $current->client_email,
                 ConsultationNotificationService::TYPE_AWAITING_PAYMENT,
-                [
-                    'plain_token' => $token,
-                    'checkout_url' => $checkoutUrl,
-                ],
+                $payload,
                 'consultation-booking-'.$current->id.'-awaiting-payment-'.$sessionId,
             );
         });
@@ -314,6 +296,15 @@ class ConsultationStripeReconciliationService
         return is_string($paymentIntent)
             ? $paymentIntent
             : (is_object($paymentIntent) ? ($paymentIntent->id ?? null) : null);
+    }
+
+    protected function paymentCompletedAt(Session $session): ?Carbon
+    {
+        $paymentIntent = $session->payment_intent;
+        $latestCharge = is_object($paymentIntent) ? ($paymentIntent->latest_charge ?? null) : null;
+        $timestamp = is_object($latestCharge) ? (int) ($latestCharge->created ?? 0) : 0;
+
+        return $timestamp > 0 ? Carbon::createFromTimestamp($timestamp, 'UTC') : null;
     }
 
     protected function assertSessionMatchesBooking(ConsultationBooking $booking, Session $session): void

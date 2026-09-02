@@ -291,7 +291,9 @@ class StripeCheckoutService
 
         Stripe::setApiKey(config('stripe.secret'));
 
-        return Session::retrieve($sessionId);
+        return Session::retrieve($sessionId, [
+            'expand' => ['payment_intent.latest_charge'],
+        ]);
     }
 
     public function refundPaymentIntent(string $paymentIntentId, ?string $idempotencyKey = null): string

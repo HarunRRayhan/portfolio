@@ -44,6 +44,39 @@ class ConsultationNotificationTest extends TestCase
         Mail::assertSent(BookingPendingClientMail::class);
     }
 
+    public function test_a_failed_payment_notification_does_not_activate_its_access_token(): void
+    {
+        $booking = $this->booking([
+            'status' => ConsultationBooking::STATUS_AWAITING_PAYMENT,
+            'stripe_checkout_session_id' => 'cs_notification_retry',
+            'stripe_checkout_idempotency_key' => 'consultation-checkout-notification-retry',
+        ]);
+        $newHash = hash('sha256', 'new-payment-token');
+        $notification = app(ConsultationNotificationService::class)->enqueue(
+            $booking,
+            $booking->client_email,
+            ConsultationNotificationService::TYPE_AWAITING_PAYMENT,
+            [
+                'plain_token' => 'new-payment-token',
+                'checkout_url' => 'https://checkout.stripe.test/cs_notification_retry',
+                'activate_access_token_hash' => $newHash,
+                'activate_access_token_expires_at' => now('UTC')->addDays(30)->toIso8601String(),
+                'stripe_checkout_session_id' => 'cs_notification_retry',
+                'stripe_checkout_idempotency_key' => 'consultation-checkout-notification-retry',
+            ],
+            'consultation-booking-'.$booking->id.'-awaiting-payment-cs_notification_retry',
+        );
+
+        Mail::shouldReceive('to')
+            ->once()
+            ->andThrow(new \RuntimeException('mail outage'));
+
+        $this->assertFalse(app(ConsultationNotificationService::class)->deliver($notification));
+        $fresh = $booking->fresh();
+        $this->assertSame(hash('sha256', 'old-token'), $fresh->access_token_hash);
+        $this->assertSame(ConsultationNotification::STATUS_FAILED, $notification->fresh()->status);
+    }
+
     public function test_reschedule_access_token_is_activated_only_after_the_mail_is_sent(): void
     {
         Mail::fake();

@@ -26,7 +26,7 @@ class ConsultationBookingTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_first_thousand_booking_requests_receive_the_launch_discount(): void
+    public function test_first_hundred_booking_requests_receive_the_launch_discount(): void
     {
         Mail::fake();
 
@@ -194,7 +194,7 @@ class ConsultationBookingTest extends TestCase
         Mail::fake();
 
         $google = $this->createMock(GoogleCalendarService::class);
-        $google->expects($this->once())->method('deleteEvent')->with('hold-event');
+        $google->expects($this->once())->method('deleteEvent')->with('hold-event')->willReturn(true);
         $google->expects($this->once())->method('createConfirmedEvent')->willReturn([
             'event_id' => 'confirmed-event',
             'meet_link' => 'https://meet.google.com/test-room',
@@ -254,7 +254,7 @@ class ConsultationBookingTest extends TestCase
 
         $google = $this->createMock(GoogleCalendarService::class);
         $google->method('busyPeriods')->willReturn([]);
-        $google->expects($this->once())->method('deleteEvent')->with('old-event');
+        $google->expects($this->once())->method('deleteEvent')->with('old-event')->willReturn(true);
         $google->expects($this->once())->method('createConfirmedEvent')->willReturn([
             'event_id' => 'new-event',
             'meet_link' => 'https://meet.google.com/new-room',
@@ -503,6 +503,38 @@ class ConsultationBookingTest extends TestCase
         }
     }
 
+    public function test_a_delayed_webhook_accepts_payment_completed_before_the_deadline(): void
+    {
+        Mail::fake();
+
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $dueAt = now('UTC')->subMinute();
+        $paidAt = $dueAt->copy()->subMinute();
+        $booking = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Delayed payment',
+            'client_email' => 'delayed@example.com',
+            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
+            'ends_at' => now('UTC')->addDays(3)->setTime(10, 30),
+            'status' => ConsultationBooking::STATUS_AWAITING_PAYMENT,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'payment_due_at' => $dueAt,
+            'access_token_hash' => hash('sha256', 'delayed-payment'),
+        ]);
+
+        $result = $this->app->make(BookingWorkflowService::class)->markPaidFromStripe(
+            $booking,
+            'cs_delayed',
+            'pi_delayed',
+            $paidAt,
+        );
+
+        $this->assertSame(ConsultationBooking::STATUS_CONFIRMED, $result->status);
+        $this->assertSame($paidAt->timestamp, $result->stripe_paid_at->timestamp);
+    }
+
     public function test_a_refunded_rejected_payment_clears_paid_state_and_rotates_checkout(): void
     {
         $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
@@ -630,6 +662,63 @@ class ConsultationBookingTest extends TestCase
         }
     }
 
+    public function test_pending_google_meet_is_completed_before_confirmation_mail_is_sent(): void
+    {
+        Mail::fake();
+
+        $google = $this->createMock(GoogleCalendarService::class);
+        $google->method('isConnected')->willReturn(true);
+        $google->expects($this->once())->method('createConfirmedEvent')->willReturn([
+            'event_id' => 'pending-meet-event',
+            'meet_link' => null,
+            'conference_id' => 'pending-conference',
+        ]);
+        $google->expects($this->once())->method('confirmedEventDetails')->with('pending-meet-event')->willReturn([
+            'event_id' => 'pending-meet-event',
+            'meet_link' => 'https://meet.google.com/pending-room',
+            'conference_id' => 'pending-conference',
+        ]);
+        $this->app->instance(GoogleCalendarService::class, $google);
+
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $booking = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Pending Meet',
+            'client_email' => 'pending-meet@example.com',
+            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
+            'ends_at' => now('UTC')->addDays(3)->setTime(10, 30),
+            'status' => ConsultationBooking::STATUS_AWAITING_PAYMENT,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'stripe_checkout_session_id' => 'cs_pending_meet',
+            'stripe_payment_intent_id' => 'pi_pending_meet',
+            'stripe_paid_at' => now('UTC'),
+            'payment_due_at' => now('UTC')->addDay(),
+            'access_token_hash' => hash('sha256', 'pending-meet-token'),
+        ]);
+
+        $workflow = $this->app->make(BookingWorkflowService::class);
+        $result = $workflow->confirmBooking($booking);
+
+        $this->assertSame(ConsultationBooking::STATUS_CONFIRMED, $result->status);
+        $this->assertNull($result->meet_link);
+        $this->assertDatabaseHas('consultation_google_operations', [
+            'consultation_booking_id' => $booking->id,
+            'operation' => 'meet_link',
+            'status' => ConsultationGoogleOperation::STATUS_PENDING,
+        ]);
+        Mail::assertNotSent(BookingConfirmedMail::class);
+
+        $this->assertSame(1, app(ConsultationGoogleOperationService::class)->retryDue($workflow));
+        $this->assertSame('https://meet.google.com/pending-room', $booking->fresh()->meet_link);
+        $this->assertSame(
+            ConsultationGoogleOperation::STATUS_SUCCEEDED,
+            $booking->googleOperations()->where('operation', 'meet_link')->firstOrFail()->status,
+        );
+        Mail::assertSent(BookingConfirmedMail::class);
+    }
+
     public function test_approved_cancellation_refunds_the_payment_before_cancelling(): void
     {
         Mail::fake();
@@ -692,6 +781,46 @@ class ConsultationBookingTest extends TestCase
         Mail::assertSent(BookingCancellationDeniedMail::class, fn ($mail) => $mail->booking->is($booking));
     }
 
+    public function test_cancellation_approval_fence_blocks_denial_while_calendar_cleanup_is_pending(): void
+    {
+        $google = $this->createMock(GoogleCalendarService::class);
+        $google->expects($this->once())->method('deleteEvent')->with('pending-cancel-event')->willReturn(false);
+        $this->app->instance(GoogleCalendarService::class, $google);
+
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $booking = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Pending cancellation',
+            'client_email' => 'pending-cancellation@example.com',
+            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
+            'ends_at' => now('UTC')->addDays(3)->setTime(10, 30),
+            'status' => ConsultationBooking::STATUS_CANCEL_REQUESTED,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => 0,
+            'currency' => 'usd',
+            'google_event_id' => 'pending-cancel-event',
+            'access_token_hash' => hash('sha256', 'pending-cancellation'),
+        ]);
+
+        try {
+            $this->app->make(BookingWorkflowService::class)->approveCancel($booking);
+            $this->fail('Cancellation approval should wait for calendar cleanup.');
+        } catch (\RuntimeException $e) {
+            $this->assertStringContainsString('release the cancelled consultation', $e->getMessage());
+        }
+
+        $fresh = $booking->fresh();
+        $this->assertSame(ConsultationBooking::STATUS_CANCEL_REQUESTED, $fresh->status);
+        $this->assertNotNull($fresh->cancel_approval_started_at);
+
+        try {
+            $this->app->make(BookingWorkflowService::class)->denyCancel($fresh);
+            $this->fail('Cancellation denial must not race approval cleanup.');
+        } catch (\InvalidArgumentException $e) {
+            $this->assertSame('Cancellation approval has started and cannot be denied.', $e->getMessage());
+        }
+    }
+
     public function test_denied_reschedule_notifies_the_client_and_keeps_the_booking_confirmed(): void
     {
         Mail::fake();
@@ -750,6 +879,38 @@ class ConsultationBookingTest extends TestCase
         }
     }
 
+    public function test_decline_does_not_claim_a_slot_is_blocked_when_google_is_disconnected(): void
+    {
+        $google = $this->createMock(GoogleCalendarService::class);
+        $google->method('isConnected')->willReturn(false);
+        $google->expects($this->once())->method('createHoldEvent')->willReturn(null);
+        $this->app->instance(GoogleCalendarService::class, $google);
+
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $startsAt = now('UTC')->addDays(3)->setTime(10, 0);
+        $booking = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Disconnected calendar block',
+            'client_email' => 'disconnected-block@example.com',
+            'starts_at' => $startsAt,
+            'ends_at' => $startsAt->copy()->addMinutes($tier->duration_minutes),
+            'status' => ConsultationBooking::STATUS_PENDING_APPROVAL,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'access_token_hash' => hash('sha256', 'disconnected-block'),
+        ]);
+
+        try {
+            $this->app->make(BookingWorkflowService::class)->decline($booking, true, 'Blocked time');
+            $this->fail('A disconnected calendar must not confirm a blocked decline.');
+        } catch (\RuntimeException $e) {
+            $this->assertStringContainsString('block the declined slot', $e->getMessage());
+        }
+
+        $this->assertSame(ConsultationBooking::STATUS_PENDING_APPROVAL, $booking->fresh()->status);
+    }
+
     public function test_paid_reschedule_decline_restores_the_original_appointment_without_refunding(): void
     {
         Mail::fake();
@@ -763,6 +924,8 @@ class ConsultationBookingTest extends TestCase
         $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
         $originalStartsAt = now('UTC')->addDays(3)->setTime(10, 0);
         $newStartsAt = $originalStartsAt->copy()->addDay();
+        $originalPaymentDueAt = $originalStartsAt->copy()->subHours(24)->subMinutes(7);
+        $originalAccessTokenExpiresAt = $originalStartsAt->copy()->addMinutes($tier->duration_minutes)->addDays(120);
         $booking = ConsultationBooking::create([
             'consultation_tier_id' => $tier->id,
             'client_name' => 'Paid reschedule decline',
@@ -780,6 +943,10 @@ class ConsultationBookingTest extends TestCase
             'reschedule_hold_event_id' => 'reschedule-hold',
             'reschedule_original_starts_at' => $originalStartsAt,
             'reschedule_original_ends_at' => $originalStartsAt->copy()->addMinutes($tier->duration_minutes),
+            'reschedule_original_payment_due_at' => $originalPaymentDueAt,
+            'reschedule_original_access_token_expires_at' => $originalAccessTokenExpiresAt,
+            'payment_due_at' => $newStartsAt->copy()->subHours(24),
+            'access_token_expires_at' => $newStartsAt->copy()->addMinutes($tier->duration_minutes)->addDays(90),
             'hold_expires_at' => now('UTC')->addDay(),
             'access_token_hash' => hash('sha256', 'paid-reschedule-decline'),
         ]);
@@ -791,6 +958,8 @@ class ConsultationBookingTest extends TestCase
         $this->assertSame('original-event', $result->google_event_id);
         $this->assertNull($result->reschedule_hold_event_id);
         $this->assertSame('pi_paid', $result->stripe_payment_intent_id);
+        $this->assertTrue($result->payment_due_at->equalTo($originalPaymentDueAt));
+        $this->assertTrue($result->access_token_expires_at->equalTo($originalAccessTokenExpiresAt));
         Mail::assertSent(BookingRescheduleDeniedMail::class);
     }
 
@@ -880,6 +1049,8 @@ class ConsultationBookingTest extends TestCase
         $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
         $originalStartsAt = now('UTC')->addDays(3)->setTime(10, 0);
         $newStartsAt = $originalStartsAt->copy()->addDay();
+        $originalPaymentDueAt = $originalStartsAt->copy()->subHours(24)->subMinutes(11);
+        $originalAccessTokenExpiresAt = $originalStartsAt->copy()->addMinutes($tier->duration_minutes)->addDays(121);
         $booking = ConsultationBooking::create([
             'consultation_tier_id' => $tier->id,
             'client_name' => 'Paid reschedule expiry',
@@ -896,6 +1067,10 @@ class ConsultationBookingTest extends TestCase
             'reschedule_hold_event_id' => 'expired-reschedule-hold',
             'reschedule_original_starts_at' => $originalStartsAt,
             'reschedule_original_ends_at' => $originalStartsAt->copy()->addMinutes($tier->duration_minutes),
+            'reschedule_original_payment_due_at' => $originalPaymentDueAt,
+            'reschedule_original_access_token_expires_at' => $originalAccessTokenExpiresAt,
+            'payment_due_at' => $newStartsAt->copy()->subHours(24),
+            'access_token_expires_at' => $newStartsAt->copy()->addMinutes($tier->duration_minutes)->addDays(90),
             'hold_expires_at' => now('UTC')->subMinute(),
             'access_token_hash' => hash('sha256', 'paid-reschedule-expiry'),
         ]);
@@ -906,6 +1081,8 @@ class ConsultationBookingTest extends TestCase
         $this->assertSame(ConsultationBooking::STATUS_CONFIRMED, $result->status);
         $this->assertTrue($result->starts_at->equalTo($originalStartsAt));
         $this->assertSame('original-expiry-event', $result->google_event_id);
+        $this->assertTrue($result->payment_due_at->equalTo($originalPaymentDueAt));
+        $this->assertTrue($result->access_token_expires_at->equalTo($originalAccessTokenExpiresAt));
         Mail::assertSent(BookingRescheduleDeniedMail::class);
     }
 
@@ -915,6 +1092,8 @@ class ConsultationBookingTest extends TestCase
 
         $originalStartsAt = now('UTC')->addDays(3)->setTime(10, 0);
         $newStartsAt = $originalStartsAt->copy()->addDay();
+        $originalPaymentDueAt = $originalStartsAt->copy()->subHours(24);
+        $originalAccessTokenExpiresAt = $originalStartsAt->copy()->addMinutes(60)->addDays(90);
         ConsultationAvailabilityWindow::create([
             'weekday' => $newStartsAt->dayOfWeek,
             'start_time' => '09:00:00',
@@ -951,6 +1130,8 @@ class ConsultationBookingTest extends TestCase
             'stripe_payment_intent_id' => 'pi_paid_pick',
             'confirmed_at' => now('UTC')->subDay(),
             'google_event_id' => 'original-pick-event',
+            'payment_due_at' => $originalPaymentDueAt,
+            'access_token_expires_at' => $originalAccessTokenExpiresAt,
             'proposed_slots' => [[
                 'start' => $newStartsAt->toIso8601String(),
                 'end' => $newStartsAt->copy()->addMinutes($tier->duration_minutes)->toIso8601String(),
@@ -965,6 +1146,84 @@ class ConsultationBookingTest extends TestCase
         $this->assertSame('original-pick-event', $result->google_event_id);
         $this->assertSame('new-reschedule-hold', $result->reschedule_hold_event_id);
         $this->assertTrue($result->reschedule_original_starts_at->equalTo($originalStartsAt));
+        $this->assertTrue($result->reschedule_original_payment_due_at->equalTo($originalPaymentDueAt));
+        $this->assertTrue($result->reschedule_original_access_token_expires_at->equalTo($originalAccessTokenExpiresAt));
+        $this->assertTrue($result->payment_due_at->equalTo($newStartsAt->copy()->subHours(24)));
+        $this->assertSame(
+            $newStartsAt->copy()->addMinutes(30)->addDays(90)->timestamp,
+            $result->access_token_expires_at->timestamp,
+        );
+    }
+
+    public function test_an_expired_reschedule_proposal_cannot_be_picked(): void
+    {
+        $google = $this->createMock(GoogleCalendarService::class);
+        $google->expects($this->never())->method('deleteEvent');
+        $google->expects($this->never())->method('createHoldEvent');
+        $this->app->instance(GoogleCalendarService::class, $google);
+
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $startsAt = now('UTC')->addDays(3)->setTime(10, 0);
+        $booking = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Expired proposal',
+            'client_email' => 'expired-proposal@example.com',
+            'starts_at' => $startsAt,
+            'ends_at' => $startsAt->copy()->addMinutes($tier->duration_minutes),
+            'status' => ConsultationBooking::STATUS_RESCHEDULE_PROPOSED,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'proposed_slots' => [[
+                'start' => $startsAt->copy()->addDay()->toIso8601String(),
+                'end' => $startsAt->copy()->addDay()->addMinutes($tier->duration_minutes)->toIso8601String(),
+            ]],
+            'hold_expires_at' => now('UTC')->subMinute(),
+            'access_token_hash' => hash('sha256', 'expired-proposal'),
+        ]);
+
+        try {
+            $this->app->make(BookingWorkflowService::class)->clientPickProposedSlot(
+                $booking,
+                $startsAt->copy()->addDay(),
+            );
+            $this->fail('An expired reschedule proposal must not be picked.');
+        } catch (\InvalidArgumentException $e) {
+            $this->assertStringContainsString('proposal has expired', $e->getMessage());
+        }
+
+        $this->assertSame(ConsultationBooking::STATUS_RESCHEDULE_PROPOSED, $booking->fresh()->status);
+    }
+
+    public function test_an_expired_booking_hold_cannot_receive_a_reschedule_proposal(): void
+    {
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $startsAt = now('UTC')->addDays(3)->setTime(10, 0);
+        $booking = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Expired booking hold',
+            'client_email' => 'expired-booking@example.com',
+            'starts_at' => $startsAt,
+            'ends_at' => $startsAt->copy()->addMinutes($tier->duration_minutes),
+            'status' => ConsultationBooking::STATUS_PENDING_APPROVAL,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'hold_expires_at' => now('UTC')->subMinute(),
+            'access_token_hash' => hash('sha256', 'expired-booking'),
+        ]);
+
+        try {
+            $this->app->make(BookingWorkflowService::class)->proposeReschedule($booking, [[
+                'start' => $startsAt->copy()->addDay()->toIso8601String(),
+                'end' => $startsAt->copy()->addDay()->addMinutes($tier->duration_minutes)->toIso8601String(),
+            ]]);
+            $this->fail('An expired booking hold must not receive a reschedule proposal.');
+        } catch (\InvalidArgumentException $e) {
+            $this->assertStringContainsString('booking hold has expired', $e->getMessage());
+        }
+
+        $this->assertSame(ConsultationBooking::STATUS_PENDING_APPROVAL, $booking->fresh()->status);
     }
 
     public function test_unpaid_reschedule_pick_uses_a_new_calendar_hold_key(): void

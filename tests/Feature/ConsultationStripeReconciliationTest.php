@@ -58,6 +58,65 @@ class ConsultationStripeReconciliationTest extends TestCase
         ]);
     }
 
+    public function test_reconciliation_uses_the_successful_charge_time_for_the_payment_deadline(): void
+    {
+        Mail::fake();
+        config([
+            'stripe.key' => 'pk_test',
+            'stripe.secret' => 'sk_test',
+        ]);
+
+        $dueAt = now('UTC')->subMinute()->startOfSecond();
+        $paidAt = $dueAt->copy()->subMinute();
+        $booking = $this->booking([
+            'stripe_checkout_session_id' => 'cs_reconcile_timestamp',
+            'payment_due_at' => $dueAt,
+        ]);
+        $this->fakeStripeSession([
+            'id' => 'cs_reconcile_timestamp',
+            'status' => 'complete',
+            'payment_status' => 'paid',
+            'payment_intent' => [
+                'id' => 'pi_reconcile_timestamp',
+                'latest_charge' => [
+                    'id' => 'ch_reconcile_timestamp',
+                    'created' => $paidAt->timestamp,
+                ],
+            ],
+            'amount_total' => $booking->amount_due_cents,
+            'currency' => 'usd',
+        ]);
+
+        $google = $this->createStub(GoogleCalendarService::class);
+        $google->method('isConnected')->willReturn(false);
+        $this->app->instance(GoogleCalendarService::class, $google);
+
+        $this->assertSame(1, app(ConsultationStripeReconciliationService::class)->reconcile());
+        $fresh = $booking->fresh();
+        $this->assertSame(ConsultationBooking::STATUS_CONFIRMED, $fresh->status);
+        $this->assertSame($paidAt->timestamp, $fresh->stripe_paid_at->timestamp);
+    }
+
+    public function test_a_completed_but_unsettled_checkout_is_not_replaced(): void
+    {
+        config([
+            'stripe.key' => 'pk_test',
+            'stripe.secret' => 'sk_test',
+        ]);
+        $booking = $this->booking(['stripe_checkout_session_id' => 'cs_async_pending_reconcile']);
+        $this->fakeStripeSession([
+            'id' => 'cs_async_pending_reconcile',
+            'status' => 'complete',
+            'payment_status' => 'unpaid',
+            'url' => null,
+        ]);
+
+        $this->assertSame(0, app(ConsultationStripeReconciliationService::class)->reconcile());
+        $fresh = $booking->fresh();
+        $this->assertSame('cs_async_pending_reconcile', $fresh->stripe_checkout_session_id);
+        $this->assertNull($fresh->stripe_checkout_next_attempt_at);
+    }
+
     public function test_an_approved_booking_without_a_checkout_is_recovered_and_notified(): void
     {
         Mail::fake();

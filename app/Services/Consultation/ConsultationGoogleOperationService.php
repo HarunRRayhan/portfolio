@@ -162,6 +162,7 @@ class ConsultationGoogleOperationService
                     isset($payload['payment_intent_id']) ? (string) $payload['payment_intent_id'] : null,
                 ),
                 'confirm' => $workflow->confirmBooking($booking, (string) ($payload['actor'] ?? 'system')),
+                'meet_link' => $workflow->retryConfirmedMeet($booking, $payload),
                 'approve_cancel' => $workflow->approveCancel($booking),
                 'expire' => $workflow->retryExpiredBooking($booking),
                 'meet_recording' => $workflow->retryMeetRecording($booking, $payload),

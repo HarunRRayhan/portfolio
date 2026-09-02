@@ -279,6 +279,11 @@ class GoogleCalendarService
             return null;
         }
 
+        return $this->confirmedEventDetails($eventId);
+    }
+
+    public function confirmedEventDetails(string $eventId): ?array
+    {
         try {
             $calendar = $this->calendar();
             if (! $calendar) {
@@ -298,9 +303,8 @@ class GoogleCalendarService
 
             throw new ConsultationGoogleException('Google Calendar confirmed event could not be read.', 0, $e);
         }
-        $meetLink = $event?->getHangoutLink();
-        $spaceName = null;
 
+        $meetLink = $event?->getHangoutLink();
         $entryPoints = $event?->getConferenceData()?->getEntryPoints() ?? [];
         foreach ($entryPoints as $entry) {
             if ($entry->getEntryPointType() === 'video' && $entry->getUri()) {
@@ -311,7 +315,7 @@ class GoogleCalendarService
         $conferenceId = $event?->getConferenceData()?->getConferenceId();
 
         return [
-            'event_id' => $eventId,
+            'event_id' => $event?->getId() ?: $eventId,
             'meet_link' => $meetLink,
             'conference_id' => $conferenceId,
         ];
@@ -348,11 +352,7 @@ class GoogleCalendarService
         }
 
         if (! $calendar) {
-            if ($this->isConnected()) {
-                throw new ConsultationGoogleException('Google Calendar event deletion failed.');
-            }
-
-            return true;
+            throw new ConsultationGoogleException('Google Calendar event deletion failed because the calendar is disconnected.');
         }
 
         $cred = ConsultationGoogleCredential::current();
