@@ -230,8 +230,16 @@ class BookingWorkflowService
             // attempt row can record the token.
             $paymentToken = $plainToken;
         }
+        $checkoutSessionId = $checkoutBooking->stripe_checkout_session_id;
+        $checkoutIdempotencyKey = $checkoutBooking->stripe_checkout_idempotency_key;
 
-        $result = DB::transaction(function () use ($approval, $paymentToken, $checkoutUrl) {
+        $result = DB::transaction(function () use (
+            $approval,
+            $paymentToken,
+            $checkoutUrl,
+            $checkoutSessionId,
+            $checkoutIdempotencyKey,
+        ) {
             $booking = ConsultationBooking::query()
                 ->with(['tier', 'coupon'])
                 ->lockForUpdate()
@@ -248,6 +256,16 @@ class BookingWorkflowService
                 throw new \RuntimeException('Booking is no longer awaiting payment.');
             }
 
+            if (
+                $booking->stripe_checkout_session_id !== $checkoutSessionId
+                || $booking->stripe_checkout_idempotency_key !== $checkoutIdempotencyKey
+            ) {
+                return [
+                    'booking' => $booking,
+                    'send_payment_mail' => false,
+                ];
+            }
+
             $notificationPayload = [
                 'plain_token' => $paymentToken,
                 'checkout_url' => $checkoutUrl,
@@ -255,9 +273,9 @@ class BookingWorkflowService
             if ($paymentToken !== null) {
                 $notificationPayload['activate_access_token_hash'] = hash('sha256', $paymentToken);
                 $notificationPayload['activate_access_token_expires_at'] = $this->accessTokenExpiresAt($booking)?->toIso8601String();
-                $notificationPayload['stripe_checkout_session_id'] = $booking->stripe_checkout_session_id;
-                $notificationPayload['stripe_checkout_idempotency_key'] = $booking->stripe_checkout_idempotency_key;
             }
+            $notificationPayload['stripe_checkout_session_id'] = $booking->stripe_checkout_session_id;
+            $notificationPayload['stripe_checkout_idempotency_key'] = $booking->stripe_checkout_idempotency_key;
 
             $this->notifications->enqueue(
                 $booking,
@@ -607,6 +625,8 @@ class BookingWorkflowService
             ->findOrFail($booking->id);
 
         if ($booking->status === ConsultationBooking::STATUS_CONFIRMED) {
+            $this->notifications->supersedePaymentNotifications($booking->id);
+
             return $booking;
         }
 
@@ -704,6 +724,8 @@ class BookingWorkflowService
         $booking->google_meet_space_name = null;
         $booking->access_token_expires_at = $this->accessTokenExpiresAt($booking);
         $booking->save();
+        $this->notifications->supersedePaymentNotifications($booking->id);
+        $this->googleOperations->supersedeMeetRecordingForBooking($booking);
 
         if ($googleConnected && ! $booking->meet_link) {
             $this->googleOperations->queue(
@@ -728,6 +750,7 @@ class BookingWorkflowService
                         $booking,
                         'meet_recording',
                         [
+                            'event_id' => $booking->google_event_id,
                             'meet_link' => $booking->meet_link,
                             'conference_id' => $created['conference_id'] ?? null,
                         ],
@@ -742,6 +765,7 @@ class BookingWorkflowService
                     $booking,
                     'meet_recording',
                     [
+                        'event_id' => $booking->google_event_id,
                         'meet_link' => $booking->meet_link,
                         'conference_id' => $created['conference_id'] ?? null,
                     ],
@@ -799,6 +823,9 @@ class BookingWorkflowService
                 return null;
             }
 
+            if ($locked->meet_link !== $meetLink) {
+                $locked->google_meet_space_name = null;
+            }
             $locked->meet_link = $meetLink;
             $locked->save();
 
@@ -818,10 +845,12 @@ class BookingWorkflowService
             );
 
             if ($locked->tier->includes_recording && ! $locked->google_meet_space_name) {
+                $this->googleOperations->supersedeMeetRecordingForBooking($locked);
                 $this->googleOperations->queue(
                     $locked,
                     'meet_recording',
                     [
+                        'event_id' => $eventId,
                         'meet_link' => $meetLink,
                         'conference_id' => $conferenceId ?? ($payload['conference_id'] ?? null),
                     ],
@@ -837,15 +866,30 @@ class BookingWorkflowService
         }
     }
 
-    /** @param array{meet_link?: ?string, conference_id?: ?string} $payload */
+    /** @param array{event_id: string, meet_link?: ?string, conference_id?: ?string} $payload */
     public function retryMeetRecording(ConsultationBooking $booking, array $payload): void
     {
-        if ($booking->status !== ConsultationBooking::STATUS_CONFIRMED) {
+        $current = $booking->fresh();
+
+        if ($current->status !== ConsultationBooking::STATUS_CONFIRMED) {
             throw new \InvalidArgumentException('The consultation is no longer confirmed.');
         }
 
+        $eventId = $payload['event_id'] ?? null;
+        $meetLink = $payload['meet_link'] ?? null;
+        if (
+            ! is_string($eventId)
+            || $eventId === ''
+            || ! is_string($meetLink)
+            || $meetLink === ''
+            || $current->meet_link !== $meetLink
+            || $current->google_event_id !== $eventId
+        ) {
+            throw new \InvalidArgumentException('The Meet recording operation has been superseded.');
+        }
+
         $spaceName = $this->google->enableMeetAutoRecording(
-            $payload['meet_link'] ?? $booking->meet_link,
+            $meetLink,
             $payload['conference_id'] ?? null,
         );
 
@@ -853,10 +897,14 @@ class BookingWorkflowService
             throw new \RuntimeException('Google Meet auto-recording could not be enabled.');
         }
 
-        DB::transaction(function () use ($booking, $spaceName): void {
+        DB::transaction(function () use ($booking, $eventId, $meetLink, $spaceName): void {
             $current = ConsultationBooking::query()->lockForUpdate()->findOrFail($booking->id);
-            if ($current->status !== ConsultationBooking::STATUS_CONFIRMED) {
-                return;
+            if (
+                $current->status !== ConsultationBooking::STATUS_CONFIRMED
+                || $current->meet_link !== $meetLink
+                || $current->google_event_id !== $eventId
+            ) {
+                throw new \InvalidArgumentException('The Meet recording operation has been superseded.');
             }
 
             $current->google_meet_space_name = $spaceName;
@@ -975,13 +1023,24 @@ class BookingWorkflowService
                 return $booking;
             }
 
-            if ($booking->status !== ConsultationBooking::STATUS_AWAITING_PAYMENT) {
+            $expiredRecovery = $booking->status === ConsultationBooking::STATUS_EXPIRED;
+            if (! $expiredRecovery && $booking->status !== ConsultationBooking::STATUS_AWAITING_PAYMENT) {
                 throw new \InvalidArgumentException('Booking is not awaiting payment.');
             }
 
             $paymentTimestamp = $paidAt?->copy()->utc();
             if (
-                ! $booking->stripe_paid_at
+                $expiredRecovery
+                && (! $paymentTimestamp
+                    || ! $booking->payment_due_at
+                    || $paymentTimestamp->isAfter($booking->payment_due_at))
+            ) {
+                throw new \InvalidArgumentException('The payment deadline for this booking has passed.');
+            }
+
+            if (
+                ! $expiredRecovery
+                && ! $booking->stripe_paid_at
                 && $booking->payment_due_at
                 && (($paymentTimestamp && $paymentTimestamp->isAfter($booking->payment_due_at))
                     || (! $paymentTimestamp && $booking->payment_due_at->isPast()))
@@ -1001,10 +1060,16 @@ class BookingWorkflowService
                 throw new \InvalidArgumentException('Stripe payment does not belong to this booking.');
             }
 
+            if ($expiredRecovery) {
+                $booking->status = ConsultationBooking::STATUS_AWAITING_PAYMENT;
+                $booking->hold_expires_at = null;
+            }
+
             $booking->stripe_checkout_session_id = $sessionId;
             $booking->stripe_payment_intent_id = $paymentIntentId ?: $booking->stripe_payment_intent_id;
             $booking->stripe_paid_at ??= $paymentTimestamp ?: now('UTC');
             $booking->save();
+            $this->notifications->supersedePaymentNotifications($booking->id);
 
             return $booking->fresh(['tier']);
         });
@@ -1018,58 +1083,7 @@ class BookingWorkflowService
         ?string $paymentIntentId,
         string $reason,
     ): bool {
-        return DB::transaction(function () use ($booking, $sessionId, $paymentIntentId, $reason): bool {
-            $current = ConsultationBooking::query()->lockForUpdate()->findOrFail($booking->id);
-
-            if (
-                $current->status !== ConsultationBooking::STATUS_AWAITING_PAYMENT
-                || $current->stripe_checkout_session_id !== $sessionId
-                || ($current->stripe_payment_intent_id
-                    && $paymentIntentId
-                    && $current->stripe_payment_intent_id !== $paymentIntentId)
-            ) {
-                return false;
-            }
-
-            $previousIdempotencyKey = $current->stripe_checkout_idempotency_key;
-            $current->stripe_checkout_rejected_session_id = $sessionId;
-            $current->stripe_checkout_checked_at = now('UTC');
-            $current->stripe_checkout_session_id = null;
-            $current->stripe_payment_intent_id = null;
-            $current->stripe_paid_at = null;
-            $current->stripe_checkout_idempotency_key = 'consultation-checkout-retry-'.substr(
-                hash('sha256', $current->id.'-'.$sessionId),
-                0,
-                48,
-            );
-            $current->stripe_checkout_last_error = mb_substr($reason, 0, 2000);
-            $current->stripe_checkout_next_attempt_at = null;
-            $current->save();
-
-            ConsultationStripeCheckoutAttempt::query()
-                ->where('consultation_booking_id', $current->id)
-                ->where(function ($query) use ($sessionId, $previousIdempotencyKey) {
-                    $query->where('stripe_checkout_session_id', $sessionId);
-                    if ($previousIdempotencyKey) {
-                        $query->orWhere('idempotency_key', $previousIdempotencyKey);
-                    }
-                })
-                ->whereIn('status', [
-                    ConsultationStripeCheckoutAttempt::STATUS_PENDING,
-                    ConsultationStripeCheckoutAttempt::STATUS_PROCESSING,
-                    ConsultationStripeCheckoutAttempt::STATUS_CREATED,
-                    ConsultationStripeCheckoutAttempt::STATUS_FAILED,
-                ])
-                ->update([
-                    'status' => ConsultationStripeCheckoutAttempt::STATUS_SUPERSEDED,
-                    'last_error' => mb_substr($reason, 0, 2000),
-                    'next_attempt_at' => null,
-                    'completed_at' => now('UTC'),
-                    'updated_at' => now('UTC'),
-                ]);
-
-            return true;
-        });
+        return $this->stripe->resetFailedCheckout($booking, $sessionId, $paymentIntentId, $reason);
     }
 
     public function resetRejectedStripePayment(
@@ -1100,6 +1114,7 @@ class BookingWorkflowService
                 );
                 $current->stripe_checkout_last_error = mb_substr($reason, 0, 2000);
                 $current->stripe_checkout_next_attempt_at = null;
+                $this->notifications->supersedePaymentNotifications($current->id);
             }
 
             $current->save();

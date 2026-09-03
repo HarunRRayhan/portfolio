@@ -251,6 +251,31 @@ class ConsultationStripeWebhookTest extends TestCase
         );
     }
 
+    public function test_a_delayed_paid_event_for_an_expired_booking_waits_for_charge_reconciliation(): void
+    {
+        $booking = $this->awaitingPaymentBooking();
+        $booking->forceFill([
+            'status' => ConsultationBooking::STATUS_EXPIRED,
+            'payment_due_at' => now('UTC')->subMinute(),
+        ])->save();
+
+        $workflow = $this->createMock(BookingWorkflowService::class);
+        $workflow->expects($this->once())
+            ->method('markPaidFromStripe')
+            ->willThrowException(new \InvalidArgumentException('The payment deadline for this booking has passed.'));
+        $this->app->instance(BookingWorkflowService::class, $workflow);
+
+        $this->postWebhook($this->stripePayload($booking, 'evt_expired_delayed'))->assertStatus(500);
+
+        $this->assertDatabaseHas('consultation_stripe_webhook_events', [
+            'event_id' => 'evt_expired_delayed',
+            'status' => ConsultationStripeWebhookEvent::STATUS_FAILED,
+        ]);
+        $fresh = $booking->fresh();
+        $this->assertSame(ConsultationBooking::STATUS_EXPIRED, $fresh->status);
+        $this->assertNull($fresh->stripe_checkout_rejected_session_id);
+    }
+
     public function test_a_failed_webhook_can_be_retried_and_is_not_lost(): void
     {
         $booking = $this->awaitingPaymentBooking();

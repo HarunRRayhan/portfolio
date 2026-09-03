@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Mail\Consultation\BookingAwaitingPaymentMail;
 use App\Mail\Consultation\BookingPendingClientMail;
 use App\Models\ConsultationBooking;
 use App\Models\ConsultationNotification;
 use App\Models\ConsultationTier;
+use App\Services\Consultation\BookingWorkflowService;
 use App\Services\Consultation\ConsultationNotificationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -75,6 +77,72 @@ class ConsultationNotificationTest extends TestCase
         $fresh = $booking->fresh();
         $this->assertSame(hash('sha256', 'old-token'), $fresh->access_token_hash);
         $this->assertSame(ConsultationNotification::STATUS_FAILED, $notification->fresh()->status);
+    }
+
+    public function test_a_rotated_checkout_supersedes_its_pending_payment_notification(): void
+    {
+        Mail::fake();
+        $booking = $this->booking([
+            'status' => ConsultationBooking::STATUS_AWAITING_PAYMENT,
+            'stripe_checkout_session_id' => 'cs_old_notification',
+            'stripe_checkout_idempotency_key' => 'consultation-checkout-old',
+        ]);
+        $notification = app(ConsultationNotificationService::class)->enqueue(
+            $booking,
+            $booking->client_email,
+            ConsultationNotificationService::TYPE_AWAITING_PAYMENT,
+            [
+                'plain_token' => 'old-payment-token',
+                'checkout_url' => 'https://checkout.stripe.test/cs_old_notification',
+                'stripe_checkout_session_id' => 'cs_old_notification',
+                'stripe_checkout_idempotency_key' => 'consultation-checkout-old',
+            ],
+            'consultation-booking-'.$booking->id.'-awaiting-payment-cs_old_notification',
+        );
+
+        $this->assertTrue(app(BookingWorkflowService::class)->resetFailedStripePayment(
+            $booking,
+            'cs_old_notification',
+            'pi_old_notification',
+            'Stripe asynchronous payment failed.',
+        ));
+
+        $notifications = app(ConsultationNotificationService::class);
+        $this->assertSame(ConsultationNotification::STATUS_SUPERSEDED, $notification->fresh()->status);
+        $this->assertFalse($notifications->deliver($notification));
+        Mail::assertNotSent(BookingAwaitingPaymentMail::class);
+    }
+
+    public function test_a_pending_payment_notification_is_superseded_when_booking_is_confirmed(): void
+    {
+        Mail::fake();
+        $booking = $this->booking([
+            'status' => ConsultationBooking::STATUS_AWAITING_PAYMENT,
+            'stripe_checkout_session_id' => 'cs_confirmed_notification',
+            'stripe_checkout_idempotency_key' => 'consultation-checkout-confirmed',
+            'stripe_payment_intent_id' => 'pi_confirmed_notification',
+            'stripe_paid_at' => now('UTC'),
+            'payment_due_at' => now('UTC')->addDay(),
+        ]);
+        $notification = app(ConsultationNotificationService::class)->enqueue(
+            $booking,
+            $booking->client_email,
+            ConsultationNotificationService::TYPE_AWAITING_PAYMENT,
+            [
+                'plain_token' => 'pending-payment-token',
+                'checkout_url' => 'https://checkout.stripe.test/cs_confirmed_notification',
+                'stripe_checkout_session_id' => 'cs_confirmed_notification',
+                'stripe_checkout_idempotency_key' => 'consultation-checkout-confirmed',
+            ],
+            'consultation-booking-'.$booking->id.'-awaiting-payment-cs_confirmed_notification',
+        );
+
+        app(BookingWorkflowService::class)->confirmBooking($booking);
+
+        $notifications = app(ConsultationNotificationService::class);
+        $this->assertSame(ConsultationNotification::STATUS_SUPERSEDED, $notification->fresh()->status);
+        $this->assertFalse($notifications->deliver($notification));
+        Mail::assertNotSent(BookingAwaitingPaymentMail::class);
     }
 
     public function test_reschedule_access_token_is_activated_only_after_the_mail_is_sent(): void

@@ -186,12 +186,14 @@ class StripeWebhookController extends Controller
         /** @var Session $session */
         $session = $event->data->object;
         $paymentStatus = (string) ($session->payment_status ?? '');
+        $amountTotal = isset($session->amount_total) ? $session->amount_total : null;
+        $currency = isset($session->currency) ? $session->currency : null;
 
-        $metadata = $session->metadata;
+        $metadata = isset($session->metadata) ? $session->metadata : null;
         $metadataPublicId = is_array($metadata)
             ? ($metadata['booking_public_id'] ?? null)
             : (is_object($metadata) ? ($metadata->booking_public_id ?? null) : null);
-        $publicId = $session->client_reference_id ?: $metadataPublicId;
+        $publicId = (isset($session->client_reference_id) ? $session->client_reference_id : null) ?: $metadataPublicId;
         $sessionId = (string) ($session->id ?? '');
         $booking = $sessionId !== ''
             ? ConsultationBooking::query()->where('stripe_checkout_session_id', $sessionId)->first()
@@ -242,17 +244,19 @@ class StripeWebhookController extends Controller
                 return;
             }
 
-            $paymentIntent = $session->payment_intent;
+            $paymentIntent = isset($session->payment_intent) ? $session->payment_intent : null;
             $paymentIntentId = is_string($paymentIntent)
                 ? $paymentIntent
                 : (is_object($paymentIntent) ? ($paymentIntent->id ?? null) : null);
 
-            $workflow->resetFailedStripePayment(
+            if (! $workflow->resetFailedStripePayment(
                 $booking,
                 $sessionId,
                 $paymentIntentId,
                 'Stripe asynchronous payment failed.',
-            );
+            )) {
+                throw new \RuntimeException('The failed Stripe payment no longer matches the active checkout.');
+            }
 
             return;
         }
@@ -268,7 +272,7 @@ class StripeWebhookController extends Controller
             return;
         }
 
-        $paymentIntent = $session->payment_intent;
+        $paymentIntent = isset($session->payment_intent) ? $session->payment_intent : null;
         $paymentIntentId = is_string($paymentIntent)
             ? $paymentIntent
             : (is_object($paymentIntent) ? ($paymentIntent->id ?? null) : null);
@@ -283,21 +287,21 @@ class StripeWebhookController extends Controller
             return;
         }
 
-        if ($session->amount_total === null && $booking->amount_due_cents > 0) {
+        if ($amountTotal === null && $booking->amount_due_cents > 0) {
             throw new \RuntimeException('Stripe session amount was missing.');
         }
 
-        if ($session->amount_total !== null && (int) $session->amount_total !== $booking->amount_due_cents) {
+        if ($amountTotal !== null && (int) $amountTotal !== $booking->amount_due_cents) {
             $this->refundRejectedPayment($stripe, $workflow, $paymentIntentId, $publicId, $session, 'unexpected amount', $booking);
 
             return;
         }
 
-        if (! $session->currency && $booking->amount_due_cents > 0) {
+        if (! $currency && $booking->amount_due_cents > 0) {
             throw new \RuntimeException('Stripe session currency was missing.');
         }
 
-        if ($session->currency && strtolower((string) $session->currency) !== strtolower($booking->currency)) {
+        if ($currency && strtolower((string) $currency) !== strtolower($booking->currency)) {
             $this->refundRejectedPayment($stripe, $workflow, $paymentIntentId, $publicId, $session, 'unexpected currency', $booking);
 
             return;
@@ -311,6 +315,14 @@ class StripeWebhookController extends Controller
                 $this->eventCreatedAt($event),
             );
         } catch (\InvalidArgumentException $e) {
+            if ($this->shouldDeferExpiredPayment($booking, $e)) {
+                throw new \RuntimeException(
+                    'The expired consultation payment must be reconciled with Stripe before it is accepted or refunded.',
+                    0,
+                    $e,
+                );
+            }
+
             Log::warning('Stripe booking event was not applicable', [
                 'booking' => $publicId,
                 'error' => $e->getMessage(),
@@ -318,6 +330,17 @@ class StripeWebhookController extends Controller
 
             $this->refundRejectedPayment($stripe, $workflow, $paymentIntentId, $publicId, $session, $e->getMessage(), $booking);
         }
+    }
+
+    protected function shouldDeferExpiredPayment(
+        ConsultationBooking $booking,
+        \InvalidArgumentException $exception,
+    ): bool {
+        if (! str_contains(strtolower($exception->getMessage()), 'payment deadline')) {
+            return false;
+        }
+
+        return $booking->fresh()?->status === ConsultationBooking::STATUS_EXPIRED;
     }
 
     protected function refundRejectedPayment(

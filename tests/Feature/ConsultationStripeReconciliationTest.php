@@ -97,6 +97,48 @@ class ConsultationStripeReconciliationTest extends TestCase
         $this->assertSame($paidAt->timestamp, $fresh->stripe_paid_at->timestamp);
     }
 
+    public function test_an_on_time_payment_recovers_when_expiry_wins_the_webhook_race(): void
+    {
+        Mail::fake();
+        config([
+            'stripe.key' => 'pk_test',
+            'stripe.secret' => 'sk_test',
+        ]);
+
+        $dueAt = now('UTC')->subMinute()->startOfSecond();
+        $paidAt = $dueAt->copy()->subMinute();
+        $booking = $this->booking([
+            'status' => ConsultationBooking::STATUS_EXPIRED,
+            'stripe_checkout_session_id' => 'cs_expired_race',
+            'payment_due_at' => $dueAt,
+        ]);
+        $this->fakeStripeSession([
+            'id' => 'cs_expired_race',
+            'status' => 'complete',
+            'payment_status' => 'paid',
+            'payment_intent' => [
+                'id' => 'pi_expired_race',
+                'latest_charge' => [
+                    'id' => 'ch_expired_race',
+                    'created' => $paidAt->timestamp,
+                ],
+            ],
+            'amount_total' => $booking->amount_due_cents,
+            'currency' => 'usd',
+        ]);
+
+        $google = $this->createStub(GoogleCalendarService::class);
+        $google->method('isConnected')->willReturn(false);
+        $this->app->instance(GoogleCalendarService::class, $google);
+
+        $this->assertSame(1, app(ConsultationStripeReconciliationService::class)->reconcile());
+        $fresh = $booking->fresh();
+        $this->assertSame(ConsultationBooking::STATUS_CONFIRMED, $fresh->status);
+        $this->assertSame('pi_expired_race', $fresh->stripe_payment_intent_id);
+        $this->assertSame($paidAt->timestamp, $fresh->stripe_paid_at->timestamp);
+        $this->assertNull($fresh->stripe_checkout_rejected_session_id);
+    }
+
     public function test_a_completed_but_unsettled_checkout_is_not_replaced(): void
     {
         config([
@@ -109,12 +151,57 @@ class ConsultationStripeReconciliationTest extends TestCase
             'status' => 'complete',
             'payment_status' => 'unpaid',
             'url' => null,
+            'payment_intent' => [
+                'id' => 'pi_async_pending_reconcile',
+                'status' => 'processing',
+            ],
         ]);
 
         $this->assertSame(0, app(ConsultationStripeReconciliationService::class)->reconcile());
         $fresh = $booking->fresh();
         $this->assertSame('cs_async_pending_reconcile', $fresh->stripe_checkout_session_id);
         $this->assertNull($fresh->stripe_checkout_next_attempt_at);
+    }
+
+    public function test_a_failed_async_payment_is_rotated_during_reconciliation(): void
+    {
+        config([
+            'stripe.key' => 'pk_test',
+            'stripe.secret' => 'sk_test',
+        ]);
+        $booking = $this->booking([
+            'stripe_checkout_session_id' => 'cs_async_failed_reconcile',
+            'stripe_checkout_idempotency_key' => 'consultation-checkout-old',
+        ]);
+        $attempt = ConsultationStripeCheckoutAttempt::create([
+            'consultation_booking_id' => $booking->id,
+            'idempotency_key' => 'consultation-checkout-old',
+            'access_token' => 'async-failed-token',
+            'stripe_checkout_session_id' => 'cs_async_failed_reconcile',
+            'status' => ConsultationStripeCheckoutAttempt::STATUS_CREATED,
+            'attempts' => 1,
+            'completed_at' => now('UTC'),
+        ]);
+        $this->fakeStripeSession([
+            'id' => 'cs_async_failed_reconcile',
+            'status' => 'complete',
+            'payment_status' => 'unpaid',
+            'payment_intent' => [
+                'id' => 'pi_async_failed_reconcile',
+                'status' => 'requires_payment_method',
+            ],
+        ]);
+
+        $this->assertSame(1, app(ConsultationStripeReconciliationService::class)->reconcile());
+        $fresh = $booking->fresh();
+        $this->assertNull($fresh->stripe_checkout_session_id);
+        $this->assertNull($fresh->stripe_payment_intent_id);
+        $this->assertSame('cs_async_failed_reconcile', $fresh->stripe_checkout_rejected_session_id);
+        $this->assertNotSame('consultation-checkout-old', $fresh->stripe_checkout_idempotency_key);
+        $this->assertSame(
+            ConsultationStripeCheckoutAttempt::STATUS_SUPERSEDED,
+            $attempt->fresh()->status,
+        );
     }
 
     public function test_an_approved_booking_without_a_checkout_is_recovered_and_notified(): void

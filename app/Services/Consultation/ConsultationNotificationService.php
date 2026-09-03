@@ -69,6 +69,24 @@ class ConsultationNotificationService
             ->firstOrFail();
     }
 
+    public function supersedePaymentNotifications(int $bookingId): int
+    {
+        return ConsultationNotification::query()
+            ->where('consultation_booking_id', $bookingId)
+            ->where('mail_type', self::TYPE_AWAITING_PAYMENT)
+            ->whereIn('status', [
+                ConsultationNotification::STATUS_PENDING,
+                ConsultationNotification::STATUS_PROCESSING,
+                ConsultationNotification::STATUS_FAILED,
+            ])
+            ->update([
+                'status' => ConsultationNotification::STATUS_SUPERSEDED,
+                'last_error' => 'The Stripe checkout was superseded.',
+                'available_at' => null,
+                'updated_at' => now('UTC'),
+            ]);
+    }
+
     public function deliverDueForBooking(int $bookingId): int
     {
         $notifications = ConsultationNotification::query()
@@ -133,9 +151,30 @@ class ConsultationNotificationService
             : $notification;
 
         $claimed = DB::transaction(function () use ($notificationId): ?ConsultationNotification {
+            $initial = ConsultationNotification::query()->find($notificationId);
+
+            if (! $initial) {
+                return null;
+            }
+
+            $booking = null;
+            if ($initial->mail_type === self::TYPE_AWAITING_PAYMENT && $initial->consultation_booking_id) {
+                $booking = ConsultationBooking::query()
+                    ->with('tier')
+                    ->lockForUpdate()
+                    ->find($initial->consultation_booking_id);
+            }
+
             $current = ConsultationNotification::query()->lockForUpdate()->find($notificationId);
 
-            if (! $current || $current->status === ConsultationNotification::STATUS_SENT) {
+            if (
+                ! $current
+                || ! in_array($current->status, [
+                    ConsultationNotification::STATUS_PENDING,
+                    ConsultationNotification::STATUS_PROCESSING,
+                    ConsultationNotification::STATUS_FAILED,
+                ], true)
+            ) {
                 return null;
             }
 
@@ -144,6 +183,15 @@ class ConsultationNotificationService
                 $current->status === ConsultationNotification::STATUS_PROCESSING
                 && $current->updated_at?->gt($now->copy()->subMinutes((int) config('consultation.notification_processing_timeout_minutes', 10)))
             ) {
+                return null;
+            }
+
+            if (
+                $current->mail_type === self::TYPE_AWAITING_PAYMENT
+                && ! $this->isCurrentPaymentNotification($current, $booking)
+            ) {
+                $this->markSuperseded($current);
+
                 return null;
             }
 
@@ -164,28 +212,53 @@ class ConsultationNotificationService
             return false;
         }
 
-        try {
-            Mail::to($claimed->recipient)->send($this->mailable($claimed));
-        } catch (\Throwable $e) {
-            $this->markFailed($claimed, $e);
+        $sent = DB::transaction(function () use ($claimed): bool {
+            if ($claimed->consultation_booking_id) {
+                $booking = ConsultationBooking::query()
+                    ->with('tier')
+                    ->lockForUpdate()
+                    ->find($claimed->consultation_booking_id);
+            } else {
+                $booking = null;
+            }
 
-            Log::error('Consultation notification delivery failed', [
-                'notification' => $claimed->id,
-                'type' => $claimed->mail_type,
-                'booking' => $claimed->consultation_booking_id,
-                'error' => $e->getMessage(),
-            ]);
-
-            return false;
-        }
-
-        DB::transaction(function () use ($claimed): void {
             $current = ConsultationNotification::query()
                 ->lockForUpdate()
                 ->find($claimed->id);
 
             if (! $current || $current->status !== ConsultationNotification::STATUS_PROCESSING) {
-                return;
+                return false;
+            }
+
+            if (
+                $current->mail_type === self::TYPE_AWAITING_PAYMENT
+                && ! $this->isCurrentPaymentNotification($current, $booking)
+            ) {
+                $current->forceFill([
+                    'status' => ConsultationNotification::STATUS_SUPERSEDED,
+                    'last_error' => 'The Stripe checkout was superseded.',
+                    'available_at' => null,
+                ])->save();
+
+                return false;
+            }
+
+            // Keep the booking lock until the provider accepts the message.
+            // Booking transitions use the same lock, so an invalidating state
+            // change cannot commit while this mail is being sent.
+            try {
+                Mail::to($current->recipient)->send($this->mailable($current, $booking));
+            } catch (\Throwable $e) {
+                $this->markFailed($current, $e);
+
+                Log::error('Consultation notification delivery failed', [
+                    'notification' => $current->id,
+                    'type' => $current->mail_type,
+                    'booking' => $current->consultation_booking_id,
+                    'error' => $e->getMessage(),
+                ]);
+
+                return false;
             }
 
             $current->forceFill([
@@ -195,10 +268,47 @@ class ConsultationNotificationService
                 'available_at' => null,
             ])->save();
 
-            $this->activateAccessToken($current);
+            $this->activateAccessToken($current, $booking);
+
+            return true;
         });
 
-        return true;
+        return $sent;
+    }
+
+    protected function isCurrentPaymentNotification(
+        ConsultationNotification $notification,
+        ?ConsultationBooking $booking = null,
+    ): bool {
+        $booking ??= $notification->booking()->first();
+        $payload = $notification->payload ?? [];
+        $sessionId = $payload['stripe_checkout_session_id'] ?? null;
+        $idempotencyKey = $payload['stripe_checkout_idempotency_key'] ?? null;
+
+        return $booking !== null
+            && $booking->status === ConsultationBooking::STATUS_AWAITING_PAYMENT
+            && is_string($sessionId)
+            && $sessionId !== ''
+            && $booking->stripe_checkout_session_id === $sessionId
+            && (! is_string($idempotencyKey) || $booking->stripe_checkout_idempotency_key === $idempotencyKey);
+    }
+
+    protected function markSuperseded(ConsultationNotification $notification): void
+    {
+        ConsultationNotification::query()
+            ->whereKey($notification->id)
+            ->whereIn('status', [
+                ConsultationNotification::STATUS_PENDING,
+                ConsultationNotification::STATUS_PROCESSING,
+                ConsultationNotification::STATUS_FAILED,
+            ])
+            ->where('attempts', $notification->attempts)
+            ->update([
+                'status' => ConsultationNotification::STATUS_SUPERSEDED,
+                'last_error' => 'The Stripe checkout was superseded.',
+                'available_at' => null,
+                'updated_at' => now('UTC'),
+            ]);
     }
 
     protected function markFailed(ConsultationNotification $notification, \Throwable $exception): void
@@ -220,8 +330,10 @@ class ConsultationNotificationService
             ]);
     }
 
-    protected function activateAccessToken(ConsultationNotification $notification): void
-    {
+    protected function activateAccessToken(
+        ConsultationNotification $notification,
+        ?ConsultationBooking $booking = null,
+    ): void {
         $payload = $notification->payload ?? [];
         $tokenHash = $payload['activate_access_token_hash'] ?? null;
 
@@ -229,7 +341,7 @@ class ConsultationNotificationService
             return;
         }
 
-        $booking = ConsultationBooking::query()
+        $booking ??= ConsultationBooking::query()
             ->lockForUpdate()
             ->find($notification->consultation_booking_id);
 
@@ -346,10 +458,12 @@ class ConsultationNotificationService
             : null;
     }
 
-    protected function mailable(ConsultationNotification $notification): object
-    {
+    protected function mailable(
+        ConsultationNotification $notification,
+        ?ConsultationBooking $booking = null,
+    ): object {
         $payload = $notification->payload ?? [];
-        $booking = $notification->consultation_booking_id
+        $booking ??= $notification->consultation_booking_id
             ? ConsultationBooking::query()->with('tier')->findOrFail($notification->consultation_booking_id)
             : null;
 

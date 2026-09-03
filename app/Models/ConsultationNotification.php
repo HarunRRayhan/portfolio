@@ -15,6 +15,8 @@ class ConsultationNotification extends Model
 
     public const STATUS_SENT = 'sent';
 
+    public const STATUS_SUPERSEDED = 'superseded';
+
     protected $fillable = [
         'consultation_booking_id',
         'deduplication_key',

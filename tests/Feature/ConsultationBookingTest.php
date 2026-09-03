@@ -1578,6 +1578,185 @@ class ConsultationBookingTest extends TestCase
         );
     }
 
+    public function test_a_stale_meet_recording_operation_is_not_sent_to_google(): void
+    {
+        $google = $this->createMock(GoogleCalendarService::class);
+        $google->expects($this->never())->method('enableMeetAutoRecording');
+        $this->app->instance(GoogleCalendarService::class, $google);
+
+        $tier = ConsultationTier::query()->where('slug', 'max')->firstOrFail();
+        $booking = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Stale recording operation',
+            'client_email' => 'stale-recording@example.com',
+            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
+            'ends_at' => now('UTC')->addDays(3)->setTime(11, 0),
+            'status' => ConsultationBooking::STATUS_CONFIRMED,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'google_event_id' => 'replacement-event',
+            'meet_link' => 'https://meet.google.com/replacement-room',
+            'access_token_hash' => hash('sha256', 'stale-recording'),
+        ]);
+        $operation = ConsultationGoogleOperation::create([
+            'consultation_booking_id' => $booking->id,
+            'operation_key' => 'consultation-booking-'.$booking->id.'-google-meet_recording-old',
+            'operation' => 'meet_recording',
+            'payload' => [
+                'event_id' => 'old-event',
+                'meet_link' => 'https://meet.google.com/old-room',
+            ],
+            'status' => ConsultationGoogleOperation::STATUS_FAILED,
+            'attempts' => 1,
+            'available_at' => now('UTC')->subMinute(),
+        ]);
+
+        $this->assertSame(
+            0,
+            app(ConsultationGoogleOperationService::class)->retryDue(
+                app(BookingWorkflowService::class),
+            ),
+        );
+        $this->assertSame(
+            ConsultationGoogleOperation::STATUS_NEEDS_ATTENTION,
+            $operation->fresh()->status,
+        );
+    }
+
+    public function test_a_legacy_meet_recording_operation_without_an_event_fence_is_quarantined(): void
+    {
+        $google = $this->createMock(GoogleCalendarService::class);
+        $google->expects($this->never())->method('enableMeetAutoRecording');
+        $this->app->instance(GoogleCalendarService::class, $google);
+
+        $tier = ConsultationTier::query()->where('slug', 'max')->firstOrFail();
+        $booking = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Legacy recording operation',
+            'client_email' => 'legacy-recording@example.com',
+            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
+            'ends_at' => now('UTC')->addDays(3)->setTime(11, 0),
+            'status' => ConsultationBooking::STATUS_CONFIRMED,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'google_event_id' => 'legacy-current-event',
+            'meet_link' => 'https://meet.google.com/legacy-room',
+            'access_token_hash' => hash('sha256', 'legacy-recording'),
+        ]);
+        $operation = ConsultationGoogleOperation::create([
+            'consultation_booking_id' => $booking->id,
+            'operation_key' => 'consultation-booking-'.$booking->id.'-google-meet_recording-legacy',
+            'operation' => 'meet_recording',
+            'payload' => ['meet_link' => $booking->meet_link],
+            'status' => ConsultationGoogleOperation::STATUS_FAILED,
+            'attempts' => 1,
+            'available_at' => now('UTC')->subMinute(),
+        ]);
+
+        $this->assertSame(
+            0,
+            app(ConsultationGoogleOperationService::class)->retryDue(
+                app(BookingWorkflowService::class),
+            ),
+        );
+        $this->assertSame(
+            ConsultationGoogleOperation::STATUS_NEEDS_ATTENTION,
+            $operation->fresh()->status,
+        );
+    }
+
+    public function test_meet_recording_operations_are_keyed_by_meeting_identity(): void
+    {
+        $tier = ConsultationTier::query()->where('slug', 'max')->firstOrFail();
+        $booking = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Meeting identity',
+            'client_email' => 'meeting-identity@example.com',
+            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
+            'ends_at' => now('UTC')->addDays(3)->setTime(11, 0),
+            'status' => ConsultationBooking::STATUS_CONFIRMED,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'access_token_hash' => hash('sha256', 'meeting-identity'),
+        ]);
+        $operations = app(ConsultationGoogleOperationService::class);
+        $first = $operations->queue($booking, 'meet_recording', [
+            'event_id' => 'event-one',
+            'meet_link' => 'https://meet.google.com/room-one',
+        ]);
+        $second = $operations->queue($booking, 'meet_recording', [
+            'event_id' => 'event-two',
+            'meet_link' => 'https://meet.google.com/room-two',
+        ]);
+
+        $this->assertNotSame($first->operation_key, $second->operation_key);
+        $this->assertSame(2, $booking->googleOperations()->count());
+    }
+
+    public function test_a_meet_recording_retry_cannot_write_after_the_meeting_is_replaced(): void
+    {
+        $tier = ConsultationTier::query()->where('slug', 'max')->firstOrFail();
+        $booking = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'In-flight recording operation',
+            'client_email' => 'in-flight-recording@example.com',
+            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
+            'ends_at' => now('UTC')->addDays(3)->setTime(11, 0),
+            'status' => ConsultationBooking::STATUS_CONFIRMED,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'google_event_id' => 'current-event',
+            'meet_link' => 'https://meet.google.com/current-room',
+            'access_token_hash' => hash('sha256', 'in-flight-recording'),
+        ]);
+        $operation = ConsultationGoogleOperation::create([
+            'consultation_booking_id' => $booking->id,
+            'operation_key' => 'consultation-booking-'.$booking->id.'-google-meet_recording-in-flight',
+            'operation' => 'meet_recording',
+            'payload' => [
+                'event_id' => 'current-event',
+                'meet_link' => 'https://meet.google.com/current-room',
+            ],
+            'status' => ConsultationGoogleOperation::STATUS_FAILED,
+            'attempts' => 1,
+            'available_at' => now('UTC')->subMinute(),
+        ]);
+
+        $google = $this->createMock(GoogleCalendarService::class);
+        $google->expects($this->once())
+            ->method('enableMeetAutoRecording')
+            ->with('https://meet.google.com/current-room', null)
+            ->willReturnCallback(function () use ($booking): string {
+                $booking->forceFill([
+                    'google_event_id' => 'replacement-event',
+                    'meet_link' => 'https://meet.google.com/replacement-room',
+                ])->save();
+
+                return 'spaces/current-room';
+            });
+        $this->app->instance(GoogleCalendarService::class, $google);
+
+        $this->assertSame(
+            0,
+            app(ConsultationGoogleOperationService::class)->retryDue(
+                app(BookingWorkflowService::class),
+            ),
+        );
+
+        $fresh = $booking->fresh();
+        $this->assertSame('replacement-event', $fresh->google_event_id);
+        $this->assertSame('https://meet.google.com/replacement-room', $fresh->meet_link);
+        $this->assertNull($fresh->google_meet_space_name);
+        $this->assertSame(
+            ConsultationGoogleOperation::STATUS_NEEDS_ATTENTION,
+            $operation->fresh()->status,
+        );
+    }
+
     public function test_a_google_hold_failure_keeps_the_booking_and_queues_a_retry(): void
     {
         Mail::fake();

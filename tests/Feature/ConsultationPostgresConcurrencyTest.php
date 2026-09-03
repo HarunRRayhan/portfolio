@@ -83,6 +83,7 @@ class ConsultationPostgresConcurrencyTest extends TestCase
             'list_price_cents' => $tier->price_cents,
             'amount_due_cents' => $tier->price_cents,
             'currency' => 'usd',
+            'google_event_id' => 'race-event',
             'meet_link' => 'https://meet.google.com/race-room',
             'access_token_hash' => hash('sha256', 'operation-race'),
         ]);
@@ -90,7 +91,10 @@ class ConsultationPostgresConcurrencyTest extends TestCase
             'consultation_booking_id' => $booking->id,
             'operation_key' => 'consultation-booking-'.$booking->id.'-google-meet_recording',
             'operation' => 'meet_recording',
-            'payload' => ['meet_link' => $booking->meet_link],
+            'payload' => [
+                'event_id' => $booking->google_event_id,
+                'meet_link' => $booking->meet_link,
+            ],
             'status' => ConsultationGoogleOperation::STATUS_FAILED,
             'attempts' => 0,
             'available_at' => now('UTC')->subMinute(),
