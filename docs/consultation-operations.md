@@ -53,6 +53,14 @@ Add the callback URL to the OAuth client, deploy the variables, then open
 Calendar there and choose the availability windows. Failed Calendar and Meet
 operations remain in the database and are retried by the scheduler.
 
+Public slots use the visitor's selected timezone for display. The picker starts
+with the browser timezone and shows both its IANA name and UTC offset. Stored
+booking timestamps remain UTC. Google Calendar busy periods block slots; events
+marked Free do not.
+
+The booking form accepts coupon links through the `coupon` or `coupon_code` URL
+parameter and does not show a coupon input. Company name is optional.
+
 ## Checks
 
 After deploy, run these commands against the production release if needed:
