@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, router } from '@inertiajs/react'
-import { FormEvent, useState } from 'react'
+import { FormEvent, useMemo, useState } from 'react'
 
 type WindowRow = {
   id?: number
@@ -11,6 +11,25 @@ type WindowRow = {
 }
 
 const weekdayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+function timezoneLabel(timezone: string): string {
+  try {
+    const offset = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      timeZoneName: 'shortOffset',
+    })
+      .formatToParts(new Date())
+      .find((part) => part.type === 'timeZoneName')?.value
+
+    if (offset) {
+      return `${timezone} (${offset.replace(/^GMT/, 'UTC')})`
+    }
+  } catch {
+    // Keep the IANA timezone visible if the browser cannot format its offset.
+  }
+
+  return timezone
+}
 
 export default function Availability({
   scheduleTimezone,
@@ -31,6 +50,10 @@ export default function Availability({
       : [{ weekday: 1, start_time: '10:00', end_time: '13:00', is_active: true }],
   )
   const [tz, setTz] = useState(scheduleTimezone)
+  const labeledTimezones = useMemo(
+    () => timezones.map((timezone) => ({ timezone, label: timezoneLabel(timezone) })),
+    [timezones],
+  )
 
   const save = (e: FormEvent) => {
     e.preventDefault()
@@ -86,9 +109,9 @@ export default function Availability({
                 onChange={(e) => setTz(e.target.value)}
                 className="w-full rounded-md border border-gray-200 px-3 py-2"
               >
-                {timezones.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
+                {labeledTimezones.map(({ timezone, label }) => (
+                  <option key={timezone} value={timezone}>
+                    {label}
                   </option>
                 ))}
               </select>

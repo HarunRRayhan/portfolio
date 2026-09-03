@@ -16,9 +16,34 @@ use Stripe\Webhook;
 
 class StripeCheckoutService
 {
+    public function __construct(
+        protected ConsultationNotificationService $notifications,
+    ) {}
+
     public function configured(): bool
     {
         return filled(config('stripe.secret')) && filled(config('stripe.key'));
+    }
+
+    public function unsettledPaymentFailureReason(Session $session): ?string
+    {
+        if (
+            (string) ($session->status ?? '') !== 'complete'
+            || (string) ($session->payment_status ?? '') !== 'unpaid'
+        ) {
+            return null;
+        }
+
+        $paymentIntent = isset($session->payment_intent) ? $session->payment_intent : null;
+        $paymentIntentStatus = is_object($paymentIntent)
+            ? (string) ($paymentIntent->status ?? '')
+            : '';
+
+        if (in_array($paymentIntentStatus, ['canceled', 'requires_payment_method'], true)) {
+            return 'Stripe asynchronous payment failed.';
+        }
+
+        return null;
     }
 
     public function createCheckoutUrl(ConsultationBooking $booking, string $plainToken): ?string
@@ -44,25 +69,46 @@ class StripeCheckoutService
         $booking = $attempt->booking()->with('tier')->firstOrFail();
 
         $expiredSessionId = null;
+        $resetExistingCheckout = false;
 
         if ($booking->stripe_checkout_session_id) {
             try {
-                $existing = Session::retrieve($booking->stripe_checkout_session_id);
+                $existing = $this->retrieveCheckoutSession($booking->stripe_checkout_session_id);
                 $status = (string) ($existing->status ?? '');
+                $failureReason = $this->unsettledPaymentFailureReason($existing);
+                $existingUrl = isset($existing->url) ? $existing->url : null;
 
-                if (in_array($status, ['open', 'complete'], true) && filled($existing->url)) {
-                    $this->markAttemptCreated($attempt, $existing->id);
+                if ($failureReason !== null) {
+                    if (! $this->resetFailedCheckout(
+                        $booking,
+                        (string) $existing->id,
+                        $this->paymentIntentId($existing),
+                        $failureReason,
+                    )) {
+                        throw new \RuntimeException('The Stripe checkout session was superseded.');
+                    }
 
-                    return $existing->url;
+                    $booking = ConsultationBooking::query()
+                        ->with('tier')
+                        ->findOrFail($booking->id);
+                    $attempt = $this->beginAttempt($booking, $plainToken);
+                    $booking = $attempt->booking()->with('tier')->firstOrFail();
+                    $resetExistingCheckout = true;
                 }
 
-                if (($existing->payment_status ?? null) === 'paid') {
+                if ($failureReason === null && in_array($status, ['open', 'complete'], true) && filled($existingUrl)) {
                     $this->markAttemptCreated($attempt, $existing->id);
 
-                    return $existing->url;
+                    return $existingUrl;
                 }
 
-                if ($status !== 'expired') {
+                if ($failureReason === null && ($existing->payment_status ?? null) === 'paid') {
+                    $this->markAttemptCreated($attempt, $existing->id);
+
+                    return $existingUrl;
+                }
+
+                if ($failureReason === null && $status !== 'expired') {
                     throw new \RuntimeException('The existing Stripe checkout session is not available.');
                 }
             } catch (InvalidRequestException $e) {
@@ -89,47 +135,51 @@ class StripeCheckoutService
                 throw new \RuntimeException('The existing Stripe checkout session could not be checked.', 0, $e);
             }
 
-            $expiredSessionId = $booking->stripe_checkout_session_id;
-            $this->markAttemptSuperseded($attempt, 'The existing Stripe checkout session expired.');
-            $booking = DB::transaction(function () use ($booking, $expiredSessionId) {
-                $current = ConsultationBooking::query()
-                    ->with('tier')
-                    ->lockForUpdate()
-                    ->findOrFail($booking->id);
+            if (! $resetExistingCheckout) {
+                $expiredSessionId = $booking->stripe_checkout_session_id;
+                $this->markAttemptSuperseded($attempt, 'The existing Stripe checkout session expired.');
+                $booking = DB::transaction(function () use ($booking, $expiredSessionId) {
+                    $current = ConsultationBooking::query()
+                        ->with('tier')
+                        ->lockForUpdate()
+                        ->findOrFail($booking->id);
 
-                $this->assertCheckoutAllowed($current);
+                    $this->assertCheckoutAllowed($current);
 
-                if ($current->stripe_checkout_session_id !== $expiredSessionId) {
-                    return $current;
-                }
-
-                $current->stripe_checkout_session_id = null;
-                $current->stripe_checkout_idempotency_key = 'consultation-checkout-retry-'.substr(
-                    hash('sha256', $current->id.'-'.$expiredSessionId),
-                    0,
-                    48,
-                );
-                $current->save();
-
-                return $current;
-            });
-
-            $attempt = $this->beginAttempt($booking, $plainToken);
-            $booking = $attempt->booking()->with('tier')->firstOrFail();
-
-            if ($booking->stripe_checkout_session_id && $booking->stripe_checkout_session_id !== $expiredSessionId) {
-                try {
-                    $existing = Session::retrieve($booking->stripe_checkout_session_id);
-
-                    if (filled($existing->url)) {
-                        $this->markAttemptCreated($attempt, $existing->id);
-
-                        return $existing->url;
+                    if ($current->stripe_checkout_session_id !== $expiredSessionId) {
+                        return $current;
                     }
-                } catch (\Throwable $e) {
-                    $this->markAttemptFailed($attempt, $e);
 
-                    throw new \RuntimeException('The existing Stripe checkout session could not be checked.', 0, $e);
+                    $this->notifications->supersedePaymentNotifications($current->id);
+                    $current->stripe_checkout_session_id = null;
+                    $current->stripe_checkout_idempotency_key = 'consultation-checkout-retry-'.substr(
+                        hash('sha256', $current->id.'-'.$expiredSessionId),
+                        0,
+                        48,
+                    );
+                    $current->save();
+
+                    return $current;
+                });
+
+                $attempt = $this->beginAttempt($booking, $plainToken);
+                $booking = $attempt->booking()->with('tier')->firstOrFail();
+
+                if ($booking->stripe_checkout_session_id && $booking->stripe_checkout_session_id !== $expiredSessionId) {
+                    try {
+                        $existing = $this->retrieveCheckoutSession($booking->stripe_checkout_session_id);
+                        $existingUrl = isset($existing->url) ? $existing->url : null;
+
+                        if (filled($existingUrl)) {
+                            $this->markAttemptCreated($attempt, $existing->id);
+
+                            return $existingUrl;
+                        }
+                    } catch (\Throwable $e) {
+                        $this->markAttemptFailed($attempt, $e);
+
+                        throw new \RuntimeException('The existing Stripe checkout session could not be checked.', 0, $e);
+                    }
                 }
             }
         }
@@ -291,7 +341,81 @@ class StripeCheckoutService
 
         Stripe::setApiKey(config('stripe.secret'));
 
-        return Session::retrieve($sessionId);
+        return Session::retrieve($sessionId, [
+            'expand' => ['payment_intent.latest_charge'],
+        ]);
+    }
+
+    protected function paymentIntentId(Session $session): ?string
+    {
+        $paymentIntent = isset($session->payment_intent) ? $session->payment_intent : null;
+
+        return is_string($paymentIntent)
+            ? $paymentIntent
+            : (is_object($paymentIntent) ? ($paymentIntent->id ?? null) : null);
+    }
+
+    public function resetFailedCheckout(
+        ConsultationBooking $booking,
+        string $sessionId,
+        ?string $paymentIntentId,
+        string $reason,
+    ): bool {
+        return DB::transaction(function () use ($booking, $sessionId, $paymentIntentId, $reason): bool {
+            $current = ConsultationBooking::query()->lockForUpdate()->findOrFail($booking->id);
+
+            if (
+                $current->status !== ConsultationBooking::STATUS_AWAITING_PAYMENT
+                || $current->stripe_checkout_session_id !== $sessionId
+                || ! is_string($paymentIntentId)
+                || $paymentIntentId === ''
+                || ($current->stripe_payment_intent_id
+                    && $current->stripe_payment_intent_id !== $paymentIntentId)
+            ) {
+                return false;
+            }
+
+            $previousIdempotencyKey = $current->stripe_checkout_idempotency_key;
+            $current->stripe_checkout_rejected_session_id = $sessionId;
+            $current->stripe_checkout_checked_at = now('UTC');
+            $current->stripe_checkout_session_id = null;
+            $current->stripe_payment_intent_id = null;
+            $current->stripe_paid_at = null;
+            $current->stripe_checkout_idempotency_key = 'consultation-checkout-retry-'.substr(
+                hash('sha256', $current->id.'-'.$sessionId),
+                0,
+                48,
+            );
+            $current->stripe_checkout_last_error = mb_substr($reason, 0, 2000);
+            $current->stripe_checkout_next_attempt_at = null;
+            $current->save();
+
+            ConsultationStripeCheckoutAttempt::query()
+                ->where('consultation_booking_id', $current->id)
+                ->where(function ($query) use ($sessionId, $previousIdempotencyKey) {
+                    $query->where('stripe_checkout_session_id', $sessionId);
+                    if ($previousIdempotencyKey) {
+                        $query->orWhere('idempotency_key', $previousIdempotencyKey);
+                    }
+                })
+                ->whereIn('status', [
+                    ConsultationStripeCheckoutAttempt::STATUS_PENDING,
+                    ConsultationStripeCheckoutAttempt::STATUS_PROCESSING,
+                    ConsultationStripeCheckoutAttempt::STATUS_CREATED,
+                    ConsultationStripeCheckoutAttempt::STATUS_FAILED,
+                ])
+                ->update([
+                    'status' => ConsultationStripeCheckoutAttempt::STATUS_SUPERSEDED,
+                    'last_error' => mb_substr($reason, 0, 2000),
+                    'next_attempt_at' => null,
+                    'completed_at' => now('UTC'),
+                    'updated_at' => now('UTC'),
+                ]);
+
+            $this->notifications->supersedePaymentNotifications($current->id);
+
+            return true;
+        });
     }
 
     public function refundPaymentIntent(string $paymentIntentId, ?string $idempotencyKey = null): string

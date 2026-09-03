@@ -5,6 +5,7 @@ namespace App\Services\Consultation;
 use App\Models\ConsultationBooking;
 use App\Models\ConsultationNotification;
 use App\Models\ConsultationStripeCheckoutAttempt;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -110,6 +111,33 @@ class ConsultationStripeReconciliationService
                 if ($booking->status === ConsultationBooking::STATUS_EXPIRED) {
                     if ($this->isPaid($session)) {
                         $this->assertSessionMatchesBooking($booking, $session);
+                        $paymentTimestamp = $this->paymentCompletedAt($session);
+
+                        if (
+                            $paymentTimestamp
+                            && $booking->payment_due_at
+                            && ! $paymentTimestamp->isAfter($booking->payment_due_at)
+                        ) {
+                            try {
+                                $this->workflow->markPaidFromStripe(
+                                    $booking,
+                                    $session->id,
+                                    $this->paymentIntentId($session),
+                                    $paymentTimestamp,
+                                );
+                            } catch (\InvalidArgumentException $e) {
+                                $this->refundRejectedPayment(
+                                    $session,
+                                    'booking could not accept the recovered payment: '.$e->getMessage(),
+                                    $booking,
+                                );
+                            }
+
+                            $this->notifications->deliverDueForBooking($booking->id);
+
+                            return true;
+                        }
+
                         $this->refundRejectedPayment($session, 'booking expired before payment reconciliation', $booking);
 
                         return true;
@@ -133,6 +161,7 @@ class ConsultationStripeReconciliationService
                             $booking,
                             $session->id,
                             $paymentIntentId,
+                            $this->paymentCompletedAt($session),
                         );
                     } catch (\InvalidArgumentException $e) {
                         $this->refundRejectedPayment(
@@ -148,13 +177,27 @@ class ConsultationStripeReconciliationService
                     return true;
                 }
 
-                if (($session->status ?? null) !== 'expired' && filled($session->url)) {
+                $failureReason = $this->stripe->unsettledPaymentFailureReason($session);
+                if ($failureReason !== null) {
+                    return $this->workflow->resetFailedStripePayment(
+                        $booking,
+                        $session->id,
+                        $this->paymentIntentId($session),
+                        $failureReason,
+                    );
+                }
+
+                if (($session->status ?? null) === 'complete') {
+                    // The Checkout Session can complete while an asynchronous
+                    // payment is still settling. Wait for Stripe's succeeded
+                    // event instead of creating a second checkout.
+                    return false;
+                }
+
+                $checkoutUrl = isset($session->url) ? $session->url : null;
+                if (($session->status ?? null) !== 'expired' && filled($checkoutUrl)) {
                     $token = $this->checkoutToken($booking);
-                    $booking = $this->persistAccessToken($booking, $token, $sessionId, $idempotencyKey);
-                    if (! $booking || $booking->status !== ConsultationBooking::STATUS_AWAITING_PAYMENT) {
-                        return false;
-                    }
-                    if (! $this->queuePaymentMail($booking, $token, (string) $session->url, $sessionId, $idempotencyKey)) {
+                    if (! $this->queuePaymentMail($booking, $token, (string) $checkoutUrl, $sessionId, $idempotencyKey)) {
                         return false;
                     }
 
@@ -174,7 +217,7 @@ class ConsultationStripeReconciliationService
         $checkoutSessionId = $booking->stripe_checkout_session_id;
         $checkoutIdempotencyKey = $booking->stripe_checkout_idempotency_key;
 
-        $booking = DB::transaction(function () use ($booking, $canonicalToken, $checkoutSessionId, $checkoutIdempotencyKey): ?ConsultationBooking {
+        $booking = DB::transaction(function () use ($booking, $checkoutSessionId, $checkoutIdempotencyKey): ?ConsultationBooking {
             $current = ConsultationBooking::query()->lockForUpdate()->findOrFail($booking->id);
 
             if (
@@ -185,10 +228,6 @@ class ConsultationStripeReconciliationService
                 return null;
             }
 
-            if ($canonicalToken !== null) {
-                $current->access_token_hash = hash('sha256', $canonicalToken);
-                $current->access_token_expires_at = $current->ends_at?->copy()->addDays((int) config('consultation.access_token_days', 90));
-            }
             $current->stripe_checkout_last_error = null;
             $current->stripe_checkout_next_attempt_at = null;
             $current->save();
@@ -233,33 +272,6 @@ class ConsultationStripeReconciliationService
         return null;
     }
 
-    protected function persistAccessToken(
-        ConsultationBooking $booking,
-        ?string $token,
-        string $sessionId,
-        ?string $idempotencyKey,
-    ): ?ConsultationBooking {
-        return DB::transaction(function () use ($booking, $token, $sessionId, $idempotencyKey): ?ConsultationBooking {
-            $current = ConsultationBooking::query()->lockForUpdate()->findOrFail($booking->id);
-
-            if (
-                $current->status !== ConsultationBooking::STATUS_AWAITING_PAYMENT
-                || $current->stripe_checkout_session_id !== $sessionId
-                || $current->stripe_checkout_idempotency_key !== $idempotencyKey
-            ) {
-                return null;
-            }
-
-            if ($token !== null) {
-                $current->access_token_hash = hash('sha256', $token);
-                $current->access_token_expires_at = $current->ends_at?->copy()->addDays((int) config('consultation.access_token_days', 90));
-                $current->save();
-            }
-
-            return $current->fresh(['tier']);
-        });
-    }
-
     protected function queuePaymentMail(
         ConsultationBooking $booking,
         ?string $token,
@@ -281,14 +293,22 @@ class ConsultationStripeReconciliationService
                 return null;
             }
 
+            $payload = [
+                'plain_token' => $token,
+                'checkout_url' => $checkoutUrl,
+            ];
+            if ($token !== null) {
+                $payload['activate_access_token_hash'] = hash('sha256', $token);
+                $payload['activate_access_token_expires_at'] = $current->ends_at?->copy()->addDays((int) config('consultation.access_token_days', 90))->toIso8601String();
+            }
+            $payload['stripe_checkout_session_id'] = $sessionId;
+            $payload['stripe_checkout_idempotency_key'] = $idempotencyKey;
+
             return $this->notifications->enqueue(
                 $current,
                 $current->client_email,
                 ConsultationNotificationService::TYPE_AWAITING_PAYMENT,
-                [
-                    'plain_token' => $token,
-                    'checkout_url' => $checkoutUrl,
-                ],
+                $payload,
                 'consultation-booking-'.$current->id.'-awaiting-payment-'.$sessionId,
             );
         });
@@ -309,25 +329,39 @@ class ConsultationStripeReconciliationService
 
     protected function paymentIntentId(Session $session): ?string
     {
-        $paymentIntent = $session->payment_intent;
+        $paymentIntent = isset($session->payment_intent) ? $session->payment_intent : null;
 
         return is_string($paymentIntent)
             ? $paymentIntent
             : (is_object($paymentIntent) ? ($paymentIntent->id ?? null) : null);
     }
 
+    protected function paymentCompletedAt(Session $session): ?Carbon
+    {
+        $paymentIntent = isset($session->payment_intent) ? $session->payment_intent : null;
+        $latestCharge = is_object($paymentIntent) && isset($paymentIntent->latest_charge)
+            ? $paymentIntent->latest_charge
+            : null;
+        $timestamp = is_object($latestCharge) ? (int) ($latestCharge->created ?? 0) : 0;
+
+        return $timestamp > 0 ? Carbon::createFromTimestamp($timestamp, 'UTC') : null;
+    }
+
     protected function assertSessionMatchesBooking(ConsultationBooking $booking, Session $session): void
     {
-        if ($booking->amount_due_cents > 0 && $session->payment_status !== 'paid') {
+        $amountTotal = isset($session->amount_total) ? $session->amount_total : null;
+        $currency = isset($session->currency) ? $session->currency : null;
+
+        if ($booking->amount_due_cents > 0 && ($session->payment_status ?? null) !== 'paid') {
             $this->refundRejectedPayment($session, 'payment was not marked paid', $booking);
             throw new \InvalidArgumentException('Stripe payment was rejected: payment was not marked paid.');
         }
 
-        if ($booking->amount_due_cents > 0 && $session->amount_total === null) {
+        if ($booking->amount_due_cents > 0 && $amountTotal === null) {
             throw new \RuntimeException('Stripe session amount was missing.');
         }
 
-        if ($booking->amount_due_cents > 0 && (int) $session->amount_total !== $booking->amount_due_cents) {
+        if ($booking->amount_due_cents > 0 && (int) $amountTotal !== $booking->amount_due_cents) {
             $this->refundRejectedPayment($session, 'unexpected amount', $booking);
             throw new \InvalidArgumentException('Stripe payment was rejected: unexpected amount.');
         }
@@ -336,11 +370,11 @@ class ConsultationStripeReconciliationService
             throw new \RuntimeException('Stripe payment intent was missing.');
         }
 
-        if (! $session->currency && $booking->amount_due_cents > 0) {
+        if (! $currency && $booking->amount_due_cents > 0) {
             throw new \RuntimeException('Stripe session currency was missing.');
         }
 
-        if ($session->currency && strtolower((string) $session->currency) !== strtolower($booking->currency)) {
+        if ($currency && strtolower((string) $currency) !== strtolower($booking->currency)) {
             $this->refundRejectedPayment($session, 'unexpected currency', $booking);
             throw new \InvalidArgumentException('Stripe payment was rejected: unexpected currency.');
         }

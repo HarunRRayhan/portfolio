@@ -115,6 +115,24 @@ class ConsultationGoogleOperationService
             ]);
     }
 
+    public function supersedeMeetRecordingForBooking(ConsultationBooking $booking): int
+    {
+        return ConsultationGoogleOperation::query()
+            ->where('consultation_booking_id', $booking->id)
+            ->where('operation', 'meet_recording')
+            ->whereIn('status', [
+                ConsultationGoogleOperation::STATUS_PENDING,
+                ConsultationGoogleOperation::STATUS_PROCESSING,
+                ConsultationGoogleOperation::STATUS_FAILED,
+            ])
+            ->update([
+                'status' => ConsultationGoogleOperation::STATUS_SUPERSEDED,
+                'available_at' => null,
+                'completed_at' => now('UTC'),
+                'updated_at' => now('UTC'),
+            ]);
+    }
+
     public function run(ConsultationGoogleOperation $operation, BookingWorkflowService $workflow): bool
     {
         $claimed = $this->claim($operation->id);
@@ -140,6 +158,12 @@ class ConsultationGoogleOperationService
 
                 $clientPickGeneration = (int) $generation;
             }
+            if ($claimed->operation === 'meet_recording') {
+                $eventId = $payload['event_id'] ?? null;
+                if (! is_string($eventId) || $eventId === '') {
+                    throw new \InvalidArgumentException('The Meet recording operation has no event identity fence.');
+                }
+            }
 
             match ($claimed->operation) {
                 'hold' => $workflow->retryCreateHold($booking, $payload),
@@ -162,6 +186,7 @@ class ConsultationGoogleOperationService
                     isset($payload['payment_intent_id']) ? (string) $payload['payment_intent_id'] : null,
                 ),
                 'confirm' => $workflow->confirmBooking($booking, (string) ($payload['actor'] ?? 'system')),
+                'meet_link' => $workflow->retryConfirmedMeet($booking, $payload),
                 'approve_cancel' => $workflow->approveCancel($booking),
                 'expire' => $workflow->retryExpiredBooking($booking),
                 'meet_recording' => $workflow->retryMeetRecording($booking, $payload),
@@ -232,10 +257,7 @@ class ConsultationGoogleOperationService
     {
         $query = ConsultationGoogleOperation::query()
             ->whereKey($operation->id)
-            ->whereIn('status', [
-                ConsultationGoogleOperation::STATUS_PENDING,
-                ConsultationGoogleOperation::STATUS_PROCESSING,
-            ]);
+            ->where('status', ConsultationGoogleOperation::STATUS_PROCESSING);
 
         if ($attempts !== null) {
             $query->where('attempts', $attempts);
@@ -289,6 +311,13 @@ class ConsultationGoogleOperationService
         }
         if ($operation === 'client_pick') {
             $suffix .= '-'.substr(hash('sha256', (string) ($payload['starts_at'] ?? '')), 0, 16);
+        }
+        if ($operation === 'meet_recording') {
+            $suffix .= '-i'.substr(hash('sha256', implode('|', [
+                (string) ($payload['event_id'] ?? ''),
+                (string) ($payload['meet_link'] ?? ''),
+                (string) ($payload['conference_id'] ?? ''),
+            ])), 0, 24);
         }
 
         return 'consultation-booking-'.$booking->id.'-google-'.$operation.$suffix;

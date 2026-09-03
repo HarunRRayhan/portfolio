@@ -16,6 +16,29 @@ class ConsultationAvailabilityTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_default_range_returns_slots(): void
+    {
+        ConsultationSetting::setValue('schedule_timezone', 'UTC');
+
+        foreach (range(0, 6) as $weekday) {
+            ConsultationAvailabilityWindow::create([
+                'weekday' => $weekday,
+                'start_time' => '10:00:00',
+                'end_time' => '12:00:00',
+                'is_active' => true,
+            ]);
+        }
+
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $google = $this->createMock(GoogleCalendarService::class);
+        $google->expects($this->once())->method('busyPeriods')->willReturn([]);
+        $this->app->instance(GoogleCalendarService::class, $google);
+
+        $slots = $this->app->make(AvailabilityService::class)->availableSlots($tier);
+
+        $this->assertNotEmpty($slots);
+    }
+
     public function test_slots_respect_windows_lead_time_and_duration(): void
     {
         ConsultationSetting::setValue('schedule_timezone', 'UTC');

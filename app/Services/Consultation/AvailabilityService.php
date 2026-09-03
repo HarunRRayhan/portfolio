@@ -19,20 +19,21 @@ class AvailabilityService
      */
     public function availableSlots(ConsultationTier $tier, ?Carbon $from = null, ?Carbon $to = null, ?int $excludeBookingId = null): array
     {
-        $from = ($from ?? now('UTC'))->copy()->utc();
-        $to = ($to ?? now('UTC')->addDays((int) config('consultation.availability_horizon_days', 28)))->copy()->utc();
+        $now = now('UTC');
+        $horizonDays = max(1, (int) config('consultation.availability_horizon_days', 28));
+        $from = ($from ?? $now)->copy()->utc();
+        $to = ($to ?? $now->copy()->addDays($horizonDays))->copy()->utc();
 
         if ($to->lte($from)) {
             return [];
         }
 
-        $horizonDays = max(1, (int) config('consultation.availability_horizon_days', 28));
-        $horizonEnd = now('UTC')->addDays($horizonDays);
+        $horizonEnd = $now->copy()->addDays($horizonDays);
         if ($to->gt($from->copy()->addDays($horizonDays)) || $to->gt($horizonEnd)) {
             return [];
         }
 
-        $minStart = now('UTC')->addHours((int) config('consultation.min_lead_hours', 48));
+        $minStart = $now->copy()->addHours((int) config('consultation.min_lead_hours', 48));
         if ($from->lt($minStart)) {
             $from = $minStart->copy();
         }
