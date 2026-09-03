@@ -290,8 +290,22 @@ export default function Book({
             </p>
             {launchAvailable && (
               <p className="mt-4 text-sm font-medium text-amber-700">
-                Launch offer: the first {launchPromotion?.limit.toLocaleString() ?? 1001} booking requests get {launchDiscountDisplay} off.
-                Why 1,001? Because 1,000 was too obvious. Valid percentage coupons stack after this discount.
+                Launch offer: the first{' '}
+                <span
+                  tabIndex={0}
+                  aria-describedby="launch-offer-limit-tooltip"
+                  className="group relative inline-block cursor-help border-b border-dotted border-amber-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                >
+                  {launchPromotion?.limit.toLocaleString() ?? 1001}
+                  <span
+                    id="launch-offer-limit-tooltip"
+                    role="tooltip"
+                    className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 w-max max-w-56 -translate-x-1/2 rounded-md bg-slate-900 px-2.5 py-1.5 text-xs font-normal text-white opacity-0 shadow-md transition-opacity duration-150 [@media(hover:hover)]:group-hover:opacity-100 group-focus-visible:opacity-100"
+                  >
+                    Because 1,000 was too obvious.
+                  </span>
+                </span>{' '}
+                booking requests get {launchDiscountDisplay} off. Valid percentage coupons stack after this discount.
               </p>
             )}
           </div>
