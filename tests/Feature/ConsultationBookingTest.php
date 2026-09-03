@@ -56,7 +56,7 @@ class ConsultationBookingTest extends TestCase
         }
     }
 
-    public function test_first_hundred_booking_requests_receive_the_launch_discount(): void
+    public function test_first_one_thousand_one_booking_requests_receive_the_launch_discount(): void
     {
         Mail::fake();
 
@@ -111,10 +111,10 @@ class ConsultationBookingTest extends TestCase
             ->value('value'));
     }
 
-    public function test_only_the_first_hundred_requests_claim_the_launch_discount(): void
+    public function test_only_the_first_one_thousand_one_requests_claim_the_launch_discount(): void
     {
         Mail::fake();
-        ConsultationSetting::setValue('consultation_booking_promotion_claimed_count', '99');
+        ConsultationSetting::setValue('consultation_booking_promotion_claimed_count', '1000');
 
         $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
         $workflow = $this->app->make(BookingWorkflowService::class);
@@ -137,7 +137,7 @@ class ConsultationBookingTest extends TestCase
         $this->assertSame(0, $second->campaign_discount_cents);
         $this->assertSame(14900, $first->amount_due_cents);
         $this->assertSame(24900, $second->amount_due_cents);
-        $this->assertSame('100', ConsultationSetting::query()
+        $this->assertSame('1001', ConsultationSetting::query()
             ->where('key', 'consultation_booking_promotion_claimed_count')
             ->value('value'));
     }

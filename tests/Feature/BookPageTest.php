@@ -27,8 +27,8 @@ class BookPageTest extends TestCase
             ->where('tiers.1.price_cents', 34900)
             ->where('tiers.2.price_cents', 44900)
             ->where('launchPromotion.discount_cents', 10000)
-            ->where('launchPromotion.limit', 100)
-            ->where('launchPromotion.remaining_bookings', 100));
+            ->where('launchPromotion.limit', 1001)
+            ->where('launchPromotion.remaining_bookings', 1001));
     }
 
     public function test_coupon_preview_stacks_after_the_launch_discount(): void

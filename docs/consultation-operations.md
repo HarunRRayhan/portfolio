@@ -76,8 +76,9 @@ but no Stripe refund ID. Check those records in Stripe before retrying them.
 
 ## Launch promotion
 
-The first 100 public booking requests receive $100 off the list price. A
-valid percentage coupon is applied after that discount. The migration creates
+The first 1,001 public booking requests receive $100 off the list price. Why
+1,001? Because 1,000 was too obvious. Valid percentage coupons apply after
+that discount. The migration creates
 the `consultation_booking_promotion_claimed_count` setting; don't reset it
 manually while the promotion is running.
 

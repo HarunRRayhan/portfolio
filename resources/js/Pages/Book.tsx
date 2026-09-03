@@ -57,6 +57,24 @@ function formatLocal(iso: string): string {
   }
 }
 
+function localDateKey(iso: string): string {
+  const date = new Date(iso)
+
+  return [date.getFullYear(), date.getMonth(), date.getDate()].join('-')
+}
+
+function formatLocalDay(iso: string): string {
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    }).format(new Date(iso))
+  } catch {
+    return iso
+  }
+}
+
 function formatCents(cents: number): string {
   return `$${(cents / 100).toFixed(cents % 100 ? 2 : 0)}`
 }
@@ -81,6 +99,7 @@ export default function Book({
   const [step, setStep] = useState<'plans' | 'details'>('plans')
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null)
   const [slots, setSlots] = useState<Slot[]>([])
+  const [selectedDay, setSelectedDay] = useState<string | null>(null)
   const [slotsLoading, setSlotsLoading] = useState(false)
   const [couponLoading, setCouponLoading] = useState(false)
   const [couponMsg, setCouponMsg] = useState<string | null>(null)
@@ -95,6 +114,36 @@ export default function Book({
     () => tiers.find((t) => t.slug === selectedSlug) ?? null,
     [tiers, selectedSlug],
   )
+
+  const days = useMemo(() => {
+    const grouped = new Map<string, { key: string; label: string; slots: Slot[] }>()
+
+    slots.forEach((slot) => {
+      const key = localDateKey(slot.start)
+      const day = grouped.get(key)
+
+      if (day) {
+        day.slots.push(slot)
+      } else {
+        grouped.set(key, { key, label: formatLocalDay(slot.start), slots: [slot] })
+      }
+    })
+
+    return Array.from(grouped.values())
+  }, [slots])
+
+  useEffect(() => {
+    if (days.length === 0) {
+      setSelectedDay(null)
+      return
+    }
+
+    if (!selectedDay || !days.some((day) => day.key === selectedDay)) {
+      setSelectedDay(days[0].key)
+    }
+  }, [days, selectedDay])
+
+  const selectedDaySlots = days.find((day) => day.key === selectedDay)?.slots ?? []
 
   const form = useForm({
     tier: '',
@@ -124,6 +173,8 @@ export default function Book({
 
   const startBooking = (tier: Tier) => {
     setSelectedSlug(tier.slug)
+    setSlots([])
+    setSelectedDay(null)
     form.setData('tier', tier.slug)
     form.setData('starts_at', '')
     setDiscountedCents(null)
@@ -190,12 +241,12 @@ export default function Book({
         <title>Book a Consultation | Cloud & DevOps Expert - Harun R. Rayhan</title>
         <meta
           name="description"
-          content="Book a paid DevOps consultation — Light, Pro, or Max. The first 100 booking requests get $100 off before any valid coupon is applied."
+          content="Book a paid DevOps consultation — Light, Pro, or Max. The first 1,001 booking requests get $100 off before any valid coupon is applied."
         />
         <meta property="og:title" content="Book a Consultation | Cloud & DevOps Expert - Harun R. Rayhan" />
         <meta
           property="og:description"
-          content="Paid DevOps consultations with approval, Google Calendar sync, Stripe checkout, and $100 off for the first 100 booking requests."
+          content="Paid DevOps consultations with approval, Google Calendar sync, Stripe checkout, and $100 off for the first 1,001 booking requests."
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={canonicalUrl} />
@@ -239,8 +290,8 @@ export default function Book({
             </p>
             {launchAvailable && (
               <p className="mt-4 text-sm font-medium text-amber-700">
-                Launch offer: the first {launchPromotion?.limit.toLocaleString() ?? 100} booking requests get {launchDiscountDisplay} off.
-                Valid percentage coupons stack after this discount.
+                Launch offer: the first {launchPromotion?.limit.toLocaleString() ?? 1001} booking requests get {launchDiscountDisplay} off.
+                Why 1,001? Because 1,000 was too obvious. Valid percentage coupons stack after this discount.
               </p>
             )}
           </div>
@@ -426,8 +477,40 @@ export default function Book({
                         No open slots right now. Check back after availability is configured, or email me.
                       </p>
                     ) : (
-                      <div className="grid max-h-72 gap-2 overflow-y-auto sm:grid-cols-2">
-                        {slots.map((slot) => {
+                      <>
+                        <div className="flex gap-2 overflow-x-auto pb-2" role="tablist" aria-label="Available days">
+                          {days.map((day) => {
+                            const active = selectedDay === day.key
+
+                            return (
+                              <button
+                                key={day.key}
+                                type="button"
+                                role="tab"
+                                aria-selected={active}
+                                onClick={() => {
+                                  setSelectedDay(day.key)
+                                  if (form.data.starts_at && localDateKey(form.data.starts_at) !== day.key) {
+                                    form.setData('starts_at', '')
+                                  }
+                                }}
+                                className={`min-w-36 shrink-0 border px-3 py-2 text-left transition ${
+                                  active
+                                    ? 'border-slate-900 bg-slate-900 text-white'
+                                    : 'border-slate-200 text-slate-700 hover:border-slate-400'
+                                }`}
+                              >
+                                <span className="block text-sm font-medium">{day.label}</span>
+                                <span className={`mt-0.5 block text-xs ${active ? 'text-slate-300' : 'text-slate-400'}`}>
+                                  {day.slots.length} {day.slots.length === 1 ? 'slot' : 'slots'}
+                                </span>
+                              </button>
+                            )
+                          })}
+                        </div>
+
+                        <div className="mt-3 grid max-h-72 gap-2 overflow-y-auto sm:grid-cols-2">
+                          {selectedDaySlots.map((slot) => {
                           const active = form.data.starts_at === slot.start
                           return (
                             <button
@@ -443,8 +526,9 @@ export default function Book({
                               {formatLocal(slot.start)}
                             </button>
                           )
-                        })}
-                      </div>
+                          })}
+                        </div>
+                      </>
                     )}
                     {errors.starts_at && <p className="mt-1 text-xs text-rose-600">{errors.starts_at}</p>}
                   </div>
