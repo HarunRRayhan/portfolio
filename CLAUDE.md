@@ -2,6 +2,23 @@
 
 Project-specific notes for Claude Code sessions working in this repo.
 
+## Secrets
+
+Local secrets live in this repo under `.secrets/` (same flat layout as
+cloudploy-workspace):
+
+```
+.secrets/cloudflare.env          # real values — never committed
+.secrets/cloudflare.env.example  # template — committed
+.secrets/stripe.env
+.secrets/stripe.env.example
+…
+```
+
+`.gitignore` tracks only `.secrets/*.example`. Fill in the matching `.env`
+files in place. After a clean checkout, agents can seed missing `.env` files
+from examples with `./scripts/link-secrets.sh`.
+
 ## Infra (Railway + Cloudflare)
 
 - **Railway's `preDeployCommand` runs in a separate, ephemeral container from the actual runtime instance.** Files written there (e.g. a downloaded database) do NOT persist to the serving container's filesystem unless a Railway volume is attached to the service. Don't assume a predeploy write is visible at runtime.

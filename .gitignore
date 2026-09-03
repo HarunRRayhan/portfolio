@@ -61,3 +61,10 @@ deploy/.env.**
 # Subagent-driven-development progress ledger — not app code, never deployed
 /.superpowers/
 .playwright-mcp/
+
+# Local secrets (same pattern as cloudploy-workspace).
+# Real values stay in `.secrets/*.env` and are never committed.
+# Only *.example templates are tracked.
+.secrets/*
+!.secrets/
+!.secrets/*.example
