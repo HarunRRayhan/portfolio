@@ -27,6 +27,7 @@ class BookController extends Controller
             'stripeConfigured' => $stripe->configured(),
             'minLeadHours' => (int) config('consultation.min_lead_hours', 48),
             'bufferMinutes' => (int) config('consultation.buffer_minutes', 15),
+            'timezones' => \DateTimeZone::listIdentifiers(),
             'launchPromotion' => [
                 'discount_cents' => $promotion->discountCents(),
                 'limit' => $promotion->limit(),

@@ -23,6 +23,7 @@ class BookPageTest extends TestCase
         $response->assertInertia(fn ($page) => $page
             ->component('Book')
             ->has('tiers', 3)
+            ->has('timezones')
             ->where('tiers.0.price_cents', 24900)
             ->where('tiers.1.price_cents', 34900)
             ->where('tiers.2.price_cents', 44900)

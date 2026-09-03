@@ -43,7 +43,7 @@ const accentBySlug: Record<string, { border: string; button: string; ring: strin
   },
 }
 
-function formatLocal(iso: string): string {
+function formatLocal(iso: string, timeZone: string): string {
   try {
     return new Intl.DateTimeFormat(undefined, {
       weekday: 'short',
@@ -51,27 +51,56 @@ function formatLocal(iso: string): string {
       day: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
+      timeZone,
     }).format(new Date(iso))
   } catch {
     return iso
   }
 }
 
-function localDateKey(iso: string): string {
-  const date = new Date(iso)
+function localDateKey(iso: string, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+  }).formatToParts(new Date(iso))
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]))
 
-  return [date.getFullYear(), date.getMonth(), date.getDate()].join('-')
+  return [values.year, values.month, values.day].join('-')
 }
 
-function formatLocalDay(iso: string): string {
+function formatLocalDay(iso: string, timeZone: string): string {
   try {
     return new Intl.DateTimeFormat(undefined, {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
+      timeZone,
     }).format(new Date(iso))
   } catch {
     return iso
+  }
+}
+
+function browserTimezone(available: string[]): string {
+  const local = Intl.DateTimeFormat().resolvedOptions().timeZone
+
+  return available.includes(local) ? local : available.includes('UTC') ? 'UTC' : available[0] ?? 'UTC'
+}
+
+function timezoneLabel(timezone: string): string {
+  try {
+    const offset = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      timeZoneName: 'shortOffset',
+    })
+      .formatToParts(new Date())
+      .find((part) => part.type === 'timeZoneName')?.value
+
+    return `${timezone} (${offset?.replace(/^GMT$/, 'UTC').replace(/^GMT/, 'UTC') ?? 'UTC'})`
+  } catch {
+    return timezone
   }
 }
 
@@ -95,6 +124,7 @@ export default function Book({
   tiers,
   canonicalUrl,
   minLeadHours = 48,
+  timezones = [],
   launchPromotion,
 }: {
   tiers: Tier[]
@@ -102,12 +132,14 @@ export default function Book({
   stripeConfigured?: boolean
   minLeadHours?: number
   bufferMinutes?: number
+  timezones?: string[]
   launchPromotion?: LaunchPromotion
 }) {
   const [step, setStep] = useState<'plans' | 'details'>('plans')
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null)
   const [slots, setSlots] = useState<Slot[]>([])
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
+  const [timezone, setTimezone] = useState(() => browserTimezone(timezones))
   const [slotsLoading, setSlotsLoading] = useState(false)
   const [discountedCents, setDiscountedCents] = useState<number | null>(null)
   const [campaignDiscountCents, setCampaignDiscountCents] = useState(0)
@@ -125,18 +157,18 @@ export default function Book({
     const grouped = new Map<string, { key: string; label: string; slots: Slot[] }>()
 
     slots.forEach((slot) => {
-      const key = localDateKey(slot.start)
+      const key = localDateKey(slot.start, timezone)
       const day = grouped.get(key)
 
       if (day) {
         day.slots.push(slot)
       } else {
-        grouped.set(key, { key, label: formatLocalDay(slot.start), slots: [slot] })
+        grouped.set(key, { key, label: formatLocalDay(slot.start, timezone), slots: [slot] })
       }
     })
 
     return Array.from(grouped.values())
-  }, [slots])
+  }, [slots, timezone])
 
   useEffect(() => {
     if (days.length === 0) {
@@ -484,8 +516,28 @@ export default function Book({
                     />
                   </label>
 
-                  <div>
-                    <span className="mb-1.5 block text-sm font-medium text-slate-700">Pick a time (your local timezone)</span>
+                   <div>
+                     <div className="mb-4">
+                       <label htmlFor="booking-timezone" className="mb-1.5 block text-sm font-medium text-slate-700">
+                         Timezone
+                       </label>
+                       <select
+                         id="booking-timezone"
+                         value={timezone}
+                         onChange={(e) => {
+                           setTimezone(e.target.value)
+                           form.setData('starts_at', '')
+                         }}
+                         className="w-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-slate-400 focus:ring-2"
+                       >
+                         {timezones.map((zone) => (
+                           <option key={zone} value={zone}>
+                             {timezoneLabel(zone)}
+                           </option>
+                         ))}
+                       </select>
+                     </div>
+                     <span className="mb-1.5 block text-sm font-medium text-slate-700">Pick a time</span>
                     {slotsLoading ? (
                       <div className="flex items-center gap-2 py-8 text-sm text-slate-500">
                         <Loader2 className="h-4 w-4 animate-spin" /> Loading open slots…
@@ -508,7 +560,7 @@ export default function Book({
                                 aria-selected={active}
                                 onClick={() => {
                                   setSelectedDay(day.key)
-                                  if (form.data.starts_at && localDateKey(form.data.starts_at) !== day.key) {
+                                   if (form.data.starts_at && localDateKey(form.data.starts_at, timezone) !== day.key) {
                                     form.setData('starts_at', '')
                                   }
                                 }}
@@ -541,7 +593,7 @@ export default function Book({
                                   : 'border-slate-200 text-slate-700 hover:border-slate-400'
                               }`}
                             >
-                              {formatLocal(slot.start)}
+                              {formatLocal(slot.start, timezone)}
                             </button>
                           )
                           })}
