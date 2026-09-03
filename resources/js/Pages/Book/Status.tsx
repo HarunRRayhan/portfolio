@@ -13,6 +13,7 @@ type Booking = {
   status: string
   client_name: string
   client_email: string
+  company_name: string | null
   notes: string | null
   starts_at: string
   ends_at: string
@@ -118,6 +119,12 @@ export default function Status({
               <span className="text-slate-400">When · </span>
               {formatLocal(booking.starts_at)}
             </p>
+            {booking.company_name && (
+              <p>
+                <span className="text-slate-400">Company · </span>
+                {booking.company_name}
+              </p>
+            )}
             {booking.campaign_discount_cents > 0 && (
               <p>
                 <span className="text-slate-400">List price · </span>

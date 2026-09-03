@@ -1,6 +1,6 @@
 import { Head, useForm, usePage } from '@inertiajs/react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Check, ChevronLeft, Loader2, Sparkles, X } from 'lucide-react'
+import { Check, ChevronLeft, Info, Loader2, Sparkles, X } from 'lucide-react'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 
 type Feature = { label: string; included: boolean }
@@ -79,6 +79,14 @@ function formatCents(cents: number): string {
   return `$${(cents / 100).toFixed(cents % 100 ? 2 : 0)}`
 }
 
+function couponCodeFromUrl(): string {
+  if (typeof window === 'undefined') return ''
+
+  const params = new URLSearchParams(window.location.search)
+
+  return (params.get('coupon') ?? params.get('coupon_code') ?? '').trim()
+}
+
 function csrfToken(): string {
   return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? ''
 }
@@ -101,8 +109,6 @@ export default function Book({
   const [slots, setSlots] = useState<Slot[]>([])
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
   const [slotsLoading, setSlotsLoading] = useState(false)
-  const [couponLoading, setCouponLoading] = useState(false)
-  const [couponMsg, setCouponMsg] = useState<string | null>(null)
   const [discountedCents, setDiscountedCents] = useState<number | null>(null)
   const [campaignDiscountCents, setCampaignDiscountCents] = useState(0)
 
@@ -149,9 +155,10 @@ export default function Book({
     tier: '',
     client_name: '',
     client_email: '',
+    company_name: '',
     notes: '',
     starts_at: '',
-    coupon_code: '',
+    coupon_code: couponCodeFromUrl(),
   })
 
   const page = usePage()
@@ -181,14 +188,11 @@ export default function Book({
     setCampaignDiscountCents(
       launchAvailable ? Math.min(tier.price_cents, launchPromotion?.discount_cents ?? 0) : 0,
     )
-    setCouponMsg(null)
     setStep('details')
   }
 
   const applyCoupon = async () => {
     if (!selectedSlug || !form.data.coupon_code.trim()) return
-    setCouponMsg(null)
-    setCouponLoading(true)
 
     try {
       const res = await fetch('/book/coupon', {
@@ -203,19 +207,20 @@ export default function Book({
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
         setDiscountedCents(null)
-        setCouponMsg(data.message ?? 'Invalid coupon')
         return
       }
       setDiscountedCents(data.amount_due_cents)
       setCampaignDiscountCents(data.campaign_discount_cents ?? 0)
-      setCouponMsg(`${data.percent_off}% off applied`)
     } catch {
       setDiscountedCents(null)
-      setCouponMsg('Unable to validate coupon right now')
-    } finally {
-      setCouponLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (selectedSlug && form.data.coupon_code.trim()) {
+      void applyCoupon()
+    }
+  }, [selectedSlug])
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
@@ -305,7 +310,22 @@ export default function Book({
                     Because 1,000 was too obvious.
                   </span>
                 </span>{' '}
-                booking requests get {launchDiscountDisplay} off. Valid percentage coupons stack after this discount.
+                booking requests get {launchDiscountDisplay} off.{' '}
+                <span
+                  tabIndex={0}
+                  aria-label="More about the launch offer"
+                  aria-describedby="launch-offer-coupon-tooltip"
+                  className="group relative inline-flex cursor-help align-text-bottom text-amber-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                >
+                  <Info className="h-4 w-4" />
+                  <span
+                    id="launch-offer-coupon-tooltip"
+                    role="tooltip"
+                    className="pointer-events-none absolute bottom-full right-0 z-10 mb-2 w-max max-w-56 rounded-md bg-slate-900 px-2.5 py-1.5 text-left text-xs font-normal text-white opacity-0 shadow-md transition-opacity duration-150 [@media(hover:hover)]:group-hover:opacity-100 group-focus-visible:opacity-100"
+                  >
+                    Valid percentage coupons stack after this discount.
+                  </span>
+                </span>
               </p>
             )}
           </div>
@@ -443,6 +463,15 @@ export default function Book({
                       />
                       {errors.client_email && <p className="mt-1 text-xs text-rose-600">{errors.client_email}</p>}
                     </label>
+                    <label className="block text-sm sm:col-span-2">
+                      <span className="mb-1.5 block font-medium text-slate-700">Company (optional)</span>
+                      <input
+                        value={form.data.company_name}
+                        onChange={(e) => form.setData('company_name', e.target.value)}
+                        className="w-full border border-slate-200 px-3 py-2 text-slate-900 outline-none ring-slate-400 focus:ring-2"
+                      />
+                      {errors.company_name && <p className="mt-1 text-xs text-rose-600">{errors.company_name}</p>}
+                    </label>
                   </div>
 
                   <label className="block text-sm">
@@ -454,31 +483,6 @@ export default function Book({
                       className="w-full border border-slate-200 px-3 py-2 text-slate-900 outline-none ring-slate-400 focus:ring-2"
                     />
                   </label>
-
-                  <div>
-                    <span className="mb-1.5 block text-sm font-medium text-slate-700">Coupon (optional)</span>
-                    <div className="flex gap-2">
-                      <input
-                        value={form.data.coupon_code}
-                        onChange={(e) => {
-                          form.setData('coupon_code', e.target.value)
-                          setDiscountedCents(null)
-                          setCouponMsg(null)
-                        }}
-                        className="min-w-0 flex-1 border border-slate-200 px-3 py-2 uppercase text-slate-900 outline-none ring-slate-400 focus:ring-2"
-                        placeholder="CODE"
-                      />
-                      <button
-                        type="button"
-                        onClick={applyCoupon}
-                        className="shrink-0 border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                      >
-                        {couponLoading ? 'Checking…' : 'Apply'}
-                      </button>
-                    </div>
-                    {couponMsg && <p className="mt-1 text-xs text-slate-600">{couponMsg}</p>}
-                    {errors.coupon_code && <p className="mt-1 text-xs text-rose-600">{errors.coupon_code}</p>}
-                  </div>
 
                   <div>
                     <span className="mb-1.5 block text-sm font-medium text-slate-700">Pick a time (your local timezone)</span>

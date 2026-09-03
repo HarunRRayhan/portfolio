@@ -34,12 +34,15 @@ class BookingWorkflowService
         ?string $notes,
         Carbon $startsAt,
         ?ConsultationCoupon $coupon = null,
+        ?string $companyName = null,
     ): array {
+        $companyName = $companyName !== null ? trim($companyName) : null;
+        $companyName = $companyName === '' ? null : $companyName;
         $startsAt = $startsAt->copy()->utc();
         $plainToken = Str::random(48);
         $googleConnected = $this->google->isConnected();
 
-        $result = DB::transaction(function () use ($tier, $name, $email, $notes, $startsAt, $coupon, $plainToken, $googleConnected) {
+        $result = DB::transaction(function () use ($tier, $name, $email, $companyName, $notes, $startsAt, $coupon, $plainToken, $googleConnected) {
             $this->lockReservation();
 
             $tier = ConsultationTier::query()->lockForUpdate()->findOrFail($tier->id);
@@ -69,6 +72,7 @@ class BookingWorkflowService
                 'consultation_coupon_id' => $coupon?->id,
                 'client_name' => $name,
                 'client_email' => $email,
+                'company_name' => $companyName,
                 'notes' => $notes,
                 'starts_at' => $startsAt,
                 'ends_at' => $endsAt,
@@ -95,7 +99,7 @@ class BookingWorkflowService
                         'summary' => 'Hold: '.$tier->name.' — '.$name,
                         'starts_at' => $startsAt->toIso8601String(),
                         'ends_at' => $endsAt->toIso8601String(),
-                        'description' => "Pending consultation request from {$name} <{$email}>",
+                        'description' => trim("Pending consultation request from {$name} <{$email}>".($companyName ? "\nCompany: {$companyName}" : '')),
                         'google_generation' => 0,
                         'idempotency_key' => 'consultation-booking-'.$booking->id.'-hold',
                     ],
@@ -671,7 +675,11 @@ class BookingWorkflowService
 
         $tier = $booking->tier;
         $summary = $tier->name.' — '.$booking->client_name;
-        $description = trim(($booking->notes ?? '')."\n\nClient: {$booking->client_email}");
+        $description = implode("\n\n", array_filter([
+            $booking->notes ? trim($booking->notes) : null,
+            $booking->company_name ? 'Company: '.$booking->company_name : null,
+            'Client: '.$booking->client_email,
+        ]));
         $googleConnected = $this->google->isConnected();
 
         if (! $wasPreviouslyConfirmed && $booking->consultation_coupon_id) {

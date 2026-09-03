@@ -3,6 +3,9 @@
 
 **Plan:** {{ $booking->tier->name }}  
 **Client:** {{ $booking->client_name }} &lt;{{ $booking->client_email }}&gt;  
+@if($booking->company_name)
+**Company:** {{ $booking->company_name }}<br>
+@endif
 **When (UTC):** {{ $booking->starts_at->utc()->toDayDateTimeString() }}  
 **Status:** {{ $booking->status }}
 

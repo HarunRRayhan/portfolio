@@ -67,11 +67,14 @@ class ConsultationBookingTest extends TestCase
             'launch@example.com',
             null,
             $this->nextWeekdayAt(10),
+            null,
+            'Launch Company',
         );
 
         $booking = $result['booking']->fresh();
 
         $this->assertSame(24900, $booking->list_price_cents);
+        $this->assertSame('Launch Company', $booking->company_name);
         $this->assertSame(10000, $booking->campaign_discount_cents);
         $this->assertSame(0, $booking->discount_percent);
         $this->assertSame(14900, $booking->amount_due_cents);
