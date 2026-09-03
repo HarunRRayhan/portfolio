@@ -27,6 +27,7 @@ class BookController extends Controller
             'stripeConfigured' => $stripe->configured(),
             'minLeadHours' => (int) config('consultation.min_lead_hours', 48),
             'bufferMinutes' => (int) config('consultation.buffer_minutes', 15),
+            'timezones' => \DateTimeZone::listIdentifiers(),
             'launchPromotion' => [
                 'discount_cents' => $promotion->discountCents(),
                 'limit' => $promotion->limit(),
@@ -84,6 +85,7 @@ class BookController extends Controller
             'tier' => ['required', 'string'],
             'client_name' => ['required', 'string', 'max:120'],
             'client_email' => ['required', 'email', 'max:255'],
+            'company_name' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:5000'],
             'starts_at' => ['required', 'date'],
             'coupon_code' => ['nullable', 'string', 'max:64'],
@@ -110,6 +112,7 @@ class BookController extends Controller
                 $data['notes'] ?? null,
                 Carbon::parse($data['starts_at'])->utc(),
                 $coupon,
+                $data['company_name'] ?? null,
             );
         } catch (\InvalidArgumentException $e) {
             return back()->withErrors(['starts_at' => $e->getMessage()])->withInput();

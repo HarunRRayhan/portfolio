@@ -7,6 +7,7 @@ type BookingRow = {
   status: string
   client_name: string
   client_email: string
+  company_name: string | null
   starts_at: string
   amount_due_cents: number
   tier: { name: string; slug: string } | null
@@ -100,6 +101,7 @@ export default function Index({
                           {b.client_name}{' '}
                           <span className="font-normal text-gray-500">· {b.tier?.name}</span>
                         </p>
+                        {b.company_name && <p className="text-sm text-gray-500">{b.company_name}</p>}
                         <p className="text-sm text-gray-500">
                           {formatLocal(b.starts_at)} · {b.status}
                         </p>

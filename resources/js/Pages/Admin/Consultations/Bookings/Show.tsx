@@ -8,6 +8,7 @@ type Booking = {
   status: string
   client_name: string
   client_email: string
+  company_name: string | null
   notes: string | null
   starts_at: string
   ends_at: string
@@ -114,6 +115,12 @@ export default function Show({
                   {booking.client_email}
                 </a>
               </p>
+              {booking.company_name && (
+                <p>
+                  <span className="text-gray-400">Company · </span>
+                  {booking.company_name}
+                </p>
+              )}
               <p>
                 <span className="text-gray-400">List price · </span>$
                 {(booking.list_price_cents / 100).toFixed(2)}

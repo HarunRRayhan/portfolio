@@ -1,6 +1,6 @@
 import { Head, useForm, usePage } from '@inertiajs/react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Check, ChevronLeft, Loader2, Sparkles, X } from 'lucide-react'
+import { Check, ChevronLeft, Info, Loader2, Sparkles, X } from 'lucide-react'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 
 type Feature = { label: string; included: boolean }
@@ -43,7 +43,7 @@ const accentBySlug: Record<string, { border: string; button: string; ring: strin
   },
 }
 
-function formatLocal(iso: string): string {
+function formatLocal(iso: string, timeZone: string): string {
   try {
     return new Intl.DateTimeFormat(undefined, {
       weekday: 'short',
@@ -51,14 +51,69 @@ function formatLocal(iso: string): string {
       day: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
+      timeZone,
     }).format(new Date(iso))
   } catch {
     return iso
   }
 }
 
+function localDateKey(iso: string, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+  }).formatToParts(new Date(iso))
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]))
+
+  return [values.year, values.month, values.day].join('-')
+}
+
+function formatLocalDay(iso: string, timeZone: string): string {
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      timeZone,
+    }).format(new Date(iso))
+  } catch {
+    return iso
+  }
+}
+
+function browserTimezone(available: string[]): string {
+  const local = Intl.DateTimeFormat().resolvedOptions().timeZone
+
+  return available.includes(local) ? local : available.includes('UTC') ? 'UTC' : available[0] ?? 'UTC'
+}
+
+function timezoneLabel(timezone: string): string {
+  try {
+    const offset = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      timeZoneName: 'shortOffset',
+    })
+      .formatToParts(new Date())
+      .find((part) => part.type === 'timeZoneName')?.value
+
+    return `${timezone} (${offset?.replace(/^GMT$/, 'UTC').replace(/^GMT/, 'UTC') ?? 'UTC'})`
+  } catch {
+    return timezone
+  }
+}
+
 function formatCents(cents: number): string {
   return `$${(cents / 100).toFixed(cents % 100 ? 2 : 0)}`
+}
+
+function couponCodeFromUrl(): string {
+  if (typeof window === 'undefined') return ''
+
+  const params = new URLSearchParams(window.location.search)
+
+  return (params.get('coupon') ?? params.get('coupon_code') ?? '').trim()
 }
 
 function csrfToken(): string {
@@ -69,6 +124,7 @@ export default function Book({
   tiers,
   canonicalUrl,
   minLeadHours = 48,
+  timezones = [],
   launchPromotion,
 }: {
   tiers: Tier[]
@@ -76,14 +132,15 @@ export default function Book({
   stripeConfigured?: boolean
   minLeadHours?: number
   bufferMinutes?: number
+  timezones?: string[]
   launchPromotion?: LaunchPromotion
 }) {
   const [step, setStep] = useState<'plans' | 'details'>('plans')
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null)
   const [slots, setSlots] = useState<Slot[]>([])
+  const [selectedDay, setSelectedDay] = useState<string | null>(null)
+  const [timezone, setTimezone] = useState(() => browserTimezone(timezones))
   const [slotsLoading, setSlotsLoading] = useState(false)
-  const [couponLoading, setCouponLoading] = useState(false)
-  const [couponMsg, setCouponMsg] = useState<string | null>(null)
   const [discountedCents, setDiscountedCents] = useState<number | null>(null)
   const [campaignDiscountCents, setCampaignDiscountCents] = useState(0)
 
@@ -96,13 +153,44 @@ export default function Book({
     [tiers, selectedSlug],
   )
 
+  const days = useMemo(() => {
+    const grouped = new Map<string, { key: string; label: string; slots: Slot[] }>()
+
+    slots.forEach((slot) => {
+      const key = localDateKey(slot.start, timezone)
+      const day = grouped.get(key)
+
+      if (day) {
+        day.slots.push(slot)
+      } else {
+        grouped.set(key, { key, label: formatLocalDay(slot.start, timezone), slots: [slot] })
+      }
+    })
+
+    return Array.from(grouped.values())
+  }, [slots, timezone])
+
+  useEffect(() => {
+    if (days.length === 0) {
+      setSelectedDay(null)
+      return
+    }
+
+    if (!selectedDay || !days.some((day) => day.key === selectedDay)) {
+      setSelectedDay(days[0].key)
+    }
+  }, [days, selectedDay])
+
+  const selectedDaySlots = days.find((day) => day.key === selectedDay)?.slots ?? []
+
   const form = useForm({
     tier: '',
     client_name: '',
     client_email: '',
+    company_name: '',
     notes: '',
     starts_at: '',
-    coupon_code: '',
+    coupon_code: couponCodeFromUrl(),
   })
 
   const page = usePage()
@@ -124,20 +212,19 @@ export default function Book({
 
   const startBooking = (tier: Tier) => {
     setSelectedSlug(tier.slug)
+    setSlots([])
+    setSelectedDay(null)
     form.setData('tier', tier.slug)
     form.setData('starts_at', '')
     setDiscountedCents(null)
     setCampaignDiscountCents(
       launchAvailable ? Math.min(tier.price_cents, launchPromotion?.discount_cents ?? 0) : 0,
     )
-    setCouponMsg(null)
     setStep('details')
   }
 
   const applyCoupon = async () => {
     if (!selectedSlug || !form.data.coupon_code.trim()) return
-    setCouponMsg(null)
-    setCouponLoading(true)
 
     try {
       const res = await fetch('/book/coupon', {
@@ -152,19 +239,20 @@ export default function Book({
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
         setDiscountedCents(null)
-        setCouponMsg(data.message ?? 'Invalid coupon')
         return
       }
       setDiscountedCents(data.amount_due_cents)
       setCampaignDiscountCents(data.campaign_discount_cents ?? 0)
-      setCouponMsg(`${data.percent_off}% off applied`)
     } catch {
       setDiscountedCents(null)
-      setCouponMsg('Unable to validate coupon right now')
-    } finally {
-      setCouponLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (selectedSlug && form.data.coupon_code.trim()) {
+      void applyCoupon()
+    }
+  }, [selectedSlug])
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
@@ -190,12 +278,12 @@ export default function Book({
         <title>Book a Consultation | Cloud & DevOps Expert - Harun R. Rayhan</title>
         <meta
           name="description"
-          content="Book a paid DevOps consultation — Light, Pro, or Max. The first 100 booking requests get $100 off before any valid coupon is applied."
+          content="Book a paid DevOps consultation — Light, Pro, or Max. The first 1,001 booking requests get $100 off before any valid coupon is applied."
         />
         <meta property="og:title" content="Book a Consultation | Cloud & DevOps Expert - Harun R. Rayhan" />
         <meta
           property="og:description"
-          content="Paid DevOps consultations with approval, Google Calendar sync, Stripe checkout, and $100 off for the first 100 booking requests."
+          content="Paid DevOps consultations with approval, Google Calendar sync, Stripe checkout, and $100 off for the first 1,001 booking requests."
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={canonicalUrl} />
@@ -239,8 +327,37 @@ export default function Book({
             </p>
             {launchAvailable && (
               <p className="mt-4 text-sm font-medium text-amber-700">
-                Launch offer: the first {launchPromotion?.limit.toLocaleString() ?? 100} booking requests get {launchDiscountDisplay} off.
-                Valid percentage coupons stack after this discount.
+                Launch offer: the first{' '}
+                <span
+                  tabIndex={0}
+                  aria-describedby="launch-offer-limit-tooltip"
+                  className="group relative inline-block cursor-help border-b border-dotted border-amber-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                >
+                  {launchPromotion?.limit.toLocaleString() ?? 1001}
+                  <span
+                    id="launch-offer-limit-tooltip"
+                    role="tooltip"
+                    className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 w-max max-w-56 -translate-x-1/2 rounded-md bg-slate-900 px-2.5 py-1.5 text-xs font-normal text-white opacity-0 shadow-md transition-opacity duration-150 [@media(hover:hover)]:group-hover:opacity-100 group-focus-visible:opacity-100"
+                  >
+                    Because 1,000 was too obvious.
+                  </span>
+                </span>{' '}
+                booking requests get {launchDiscountDisplay} off.{' '}
+                <span
+                  tabIndex={0}
+                  aria-label="More about the launch offer"
+                  aria-describedby="launch-offer-coupon-tooltip"
+                  className="group relative inline-flex cursor-help align-text-bottom text-amber-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                >
+                  <Info className="h-4 w-4" />
+                  <span
+                    id="launch-offer-coupon-tooltip"
+                    role="tooltip"
+                    className="pointer-events-none absolute bottom-full right-0 z-10 mb-2 w-max max-w-56 rounded-md bg-slate-900 px-2.5 py-1.5 text-left text-xs font-normal text-white opacity-0 shadow-md transition-opacity duration-150 [@media(hover:hover)]:group-hover:opacity-100 group-focus-visible:opacity-100"
+                  >
+                    Valid percentage coupons stack after this discount.
+                  </span>
+                </span>
               </p>
             )}
           </div>
@@ -378,6 +495,15 @@ export default function Book({
                       />
                       {errors.client_email && <p className="mt-1 text-xs text-rose-600">{errors.client_email}</p>}
                     </label>
+                    <label className="block text-sm sm:col-span-2">
+                      <span className="mb-1.5 block font-medium text-slate-700">Company (optional)</span>
+                      <input
+                        value={form.data.company_name}
+                        onChange={(e) => form.setData('company_name', e.target.value)}
+                        className="w-full border border-slate-200 px-3 py-2 text-slate-900 outline-none ring-slate-400 focus:ring-2"
+                      />
+                      {errors.company_name && <p className="mt-1 text-xs text-rose-600">{errors.company_name}</p>}
+                    </label>
                   </div>
 
                   <label className="block text-sm">
@@ -390,33 +516,28 @@ export default function Book({
                     />
                   </label>
 
-                  <div>
-                    <span className="mb-1.5 block text-sm font-medium text-slate-700">Coupon (optional)</span>
-                    <div className="flex gap-2">
-                      <input
-                        value={form.data.coupon_code}
-                        onChange={(e) => {
-                          form.setData('coupon_code', e.target.value)
-                          setDiscountedCents(null)
-                          setCouponMsg(null)
-                        }}
-                        className="min-w-0 flex-1 border border-slate-200 px-3 py-2 uppercase text-slate-900 outline-none ring-slate-400 focus:ring-2"
-                        placeholder="CODE"
-                      />
-                      <button
-                        type="button"
-                        onClick={applyCoupon}
-                        className="shrink-0 border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                      >
-                        {couponLoading ? 'Checking…' : 'Apply'}
-                      </button>
-                    </div>
-                    {couponMsg && <p className="mt-1 text-xs text-slate-600">{couponMsg}</p>}
-                    {errors.coupon_code && <p className="mt-1 text-xs text-rose-600">{errors.coupon_code}</p>}
-                  </div>
-
-                  <div>
-                    <span className="mb-1.5 block text-sm font-medium text-slate-700">Pick a time (your local timezone)</span>
+                   <div>
+                     <div className="mb-4">
+                       <label htmlFor="booking-timezone" className="mb-1.5 block text-sm font-medium text-slate-700">
+                         Timezone
+                       </label>
+                       <select
+                         id="booking-timezone"
+                         value={timezone}
+                         onChange={(e) => {
+                           setTimezone(e.target.value)
+                           form.setData('starts_at', '')
+                         }}
+                         className="w-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-slate-400 focus:ring-2"
+                       >
+                         {timezones.map((zone) => (
+                           <option key={zone} value={zone}>
+                             {timezoneLabel(zone)}
+                           </option>
+                         ))}
+                       </select>
+                     </div>
+                     <span className="mb-1.5 block text-sm font-medium text-slate-700">Pick a time</span>
                     {slotsLoading ? (
                       <div className="flex items-center gap-2 py-8 text-sm text-slate-500">
                         <Loader2 className="h-4 w-4 animate-spin" /> Loading open slots…
@@ -426,8 +547,40 @@ export default function Book({
                         No open slots right now. Check back after availability is configured, or email me.
                       </p>
                     ) : (
-                      <div className="grid max-h-72 gap-2 overflow-y-auto sm:grid-cols-2">
-                        {slots.map((slot) => {
+                      <>
+                        <div className="flex gap-2 overflow-x-auto pb-2" role="tablist" aria-label="Available days">
+                          {days.map((day) => {
+                            const active = selectedDay === day.key
+
+                            return (
+                              <button
+                                key={day.key}
+                                type="button"
+                                role="tab"
+                                aria-selected={active}
+                                onClick={() => {
+                                  setSelectedDay(day.key)
+                                   if (form.data.starts_at && localDateKey(form.data.starts_at, timezone) !== day.key) {
+                                    form.setData('starts_at', '')
+                                  }
+                                }}
+                                className={`min-w-36 shrink-0 border px-3 py-2 text-left transition ${
+                                  active
+                                    ? 'border-slate-900 bg-slate-900 text-white'
+                                    : 'border-slate-200 text-slate-700 hover:border-slate-400'
+                                }`}
+                              >
+                                <span className="block text-sm font-medium">{day.label}</span>
+                                <span className={`mt-0.5 block text-xs ${active ? 'text-slate-300' : 'text-slate-400'}`}>
+                                  {day.slots.length} {day.slots.length === 1 ? 'slot' : 'slots'}
+                                </span>
+                              </button>
+                            )
+                          })}
+                        </div>
+
+                        <div className="mt-3 grid max-h-72 gap-2 overflow-y-auto sm:grid-cols-2">
+                          {selectedDaySlots.map((slot) => {
                           const active = form.data.starts_at === slot.start
                           return (
                             <button
@@ -440,11 +593,12 @@ export default function Book({
                                   : 'border-slate-200 text-slate-700 hover:border-slate-400'
                               }`}
                             >
-                              {formatLocal(slot.start)}
+                              {formatLocal(slot.start, timezone)}
                             </button>
                           )
-                        })}
-                      </div>
+                          })}
+                        </div>
+                      </>
                     )}
                     {errors.starts_at && <p className="mt-1 text-xs text-rose-600">{errors.starts_at}</p>}
                   </div>

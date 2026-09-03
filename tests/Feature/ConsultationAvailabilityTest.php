@@ -75,6 +75,37 @@ class ConsultationAvailabilityTest extends TestCase
         }
     }
 
+    public function test_google_calendar_busy_periods_block_slots(): void
+    {
+        ConsultationSetting::setValue('schedule_timezone', 'UTC');
+
+        $startsAt = now('UTC')->addDays(3)->startOfDay()->setTime(10, 0);
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        ConsultationAvailabilityWindow::create([
+            'weekday' => $startsAt->dayOfWeek,
+            'start_time' => '09:00:00',
+            'end_time' => '12:00:00',
+            'is_active' => true,
+        ]);
+
+        $google = $this->createMock(GoogleCalendarService::class);
+        $google->expects($this->once())
+            ->method('busyPeriods')
+            ->willReturn([[
+                'start' => $startsAt->copy(),
+                'end' => $startsAt->copy()->addHour(),
+            ]]);
+        $this->app->instance(GoogleCalendarService::class, $google);
+
+        $this->assertFalse(
+            $this->app->make(AvailabilityService::class)->isSlotAvailable(
+                $tier,
+                $startsAt,
+                $startsAt->copy()->addMinutes($tier->duration_minutes),
+            ),
+        );
+    }
+
     public function test_arbitrary_times_inside_a_window_are_not_bookable(): void
     {
         ConsultationSetting::setValue('schedule_timezone', 'UTC');

@@ -12,7 +12,12 @@ seeded with an admin user.
 
 ## Steps
 
-1. **Back up and swap** `.env`:
+1. **Check secrets before starting.** If the task touches Stripe, Google, Railway,
+   mail, or another integration, inspect the project's `.secrets` directory
+   first. Never print or commit secret values. Never use live Stripe credentials
+   for a payment test.
+
+2. **Back up and swap** `.env`:
    ```bash
    cp .env .env.verify-backup
    ```
@@ -26,14 +31,14 @@ seeded with an admin user.
    does not exist` — the sqlite driver treats `DB_DATABASE` as a file path,
    not a name.
 
-2. **Clear cached config** — Laravel caches config, so a running/previous
+3. **Clear cached config** — Laravel caches config, so a running/previous
    `artisan serve` process (or a stale config cache) keeps using the old DB
    connection until cleared:
    ```bash
    php artisan config:clear
    ```
 
-3. **Build frontend assets, don't run a dev server.** `.env` has
+4. **Build frontend assets, don't run a dev server.** `.env` has
    `APP_ENV=production`, so Laravel serves the built `public/build` assets
    via the Vite manifest, not a live dev server:
    ```bash
@@ -44,7 +49,7 @@ seeded with an admin user.
    `public/build/` (gitignored); production picks up assets from the
    "Build and Sync Assets to R2" workflow after merge.
 
-4. **Serve and drive it with a real browser** (headless Playwright; see the
+5. **Serve and drive it with a real browser** (headless Playwright; see the
    browser-automation skill). Prefer the Playwright MCP configured
    headless, or `npx playwright` with `headless: true`. Do not use a headed
    Chrome MCP for routine checks.
@@ -77,7 +82,7 @@ seeded with an admin user.
    `php artisan cache:clear` before verifying `/blog` or `/blog/{slug}` or
    you'll see stale 404s / old drafts / old titles.
 
-5. **Always clean up**, even if the check found a problem:
+6. **Always clean up**, even if the check found a problem:
    ```bash
    pkill -f "artisan serve --port=8321"
    mv .env.verify-backup .env
