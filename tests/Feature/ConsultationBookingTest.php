@@ -26,6 +26,36 @@ class ConsultationBookingTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // These tests use UTC wall-clock fixtures. Keep their availability
+        // explicit instead of coupling them to the owner's production zone.
+        ConsultationSetting::setValue('schedule_timezone', 'UTC');
+        ConsultationAvailabilityWindow::query()->delete();
+
+        $now = now();
+        foreach ([1, 2, 3, 4, 5] as $weekday) {
+            ConsultationAvailabilityWindow::create([
+                'weekday' => $weekday,
+                'start_time' => '10:00:00',
+                'end_time' => '13:00:00',
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            ConsultationAvailabilityWindow::create([
+                'weekday' => $weekday,
+                'start_time' => '20:00:00',
+                'end_time' => '23:00:00',
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        }
+    }
+
     public function test_first_hundred_booking_requests_receive_the_launch_discount(): void
     {
         Mail::fake();

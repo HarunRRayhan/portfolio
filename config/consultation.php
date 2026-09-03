@@ -36,7 +36,7 @@ return [
 
     'reschedule_hold_hours' => 48,
 
-    'default_schedule_timezone' => env('CONSULTATION_SCHEDULE_TIMEZONE', 'UTC'),
+    'default_schedule_timezone' => env('CONSULTATION_SCHEDULE_TIMEZONE', 'Asia/Dhaka'),
 
     'calendar_id' => env('CONSULTATION_GOOGLE_CALENDAR_ID', 'primary'),
 
