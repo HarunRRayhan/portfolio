@@ -7,6 +7,7 @@
 - Use `.secrets/stripe.env` only for isolated Stripe test-mode checks. Use `.secrets/stripe-live.env` for production configuration.
 - Never run a live Stripe payment test or use test cards against `https://harun.dev`.
 - Production services are `web`, `scheduler`, and shared PostgreSQL. Run migrations through `railway.web.json`'s `preDeployCommand`.
+- Railway operations use `RAILWAY_PROJECT_TOKEN` and `RAILWAY_PROJECT_ID` from `/Users/rayhan/Code/haruns-portfolio/.env`; do not request account login when the project token is available.
 
 ## Consultation behavior
 
