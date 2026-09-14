@@ -6,7 +6,7 @@
 
 **Architecture:** Keep `harun.dev/blog` as the canonical destination for all posts. Use strict one-to-one 301 redirects from the old subdomain, preserve slugs and query strings, and keep canonical tags pointing at the new URLs. Keep comments additive and scoped to blog post pages only so the rest of the site remains unchanged.
 
-**Tech Stack:** Laravel + Inertia/React, Cloudflare Workers/Routing, Terraform, GitHub PR workflow.
+**Tech Stack:** Laravel + Inertia/React, Cloudflare routing, GitHub PR workflow.
 
 ---
 
@@ -18,7 +18,6 @@
 - `resources/js/Components/Menubar.tsx`
 - `resources/js/Components/Footer.tsx`
 - `routes/web.php`
-- `deploy/terraform/main.tf`
 - any blog-related content or redirect config discovered during search
 
 **Checklist:**
@@ -80,8 +79,7 @@
 **Objective:** Preserve search equity when users and crawlers hit old URLs.
 
 **Likely files to change:**
-- `deploy/terraform/main.tf`
-- Cloudflare Worker/route config if needed
+- `routes/web.php`
 
 **Requirements:**
 - `blog.harun.dev/*` → `harun.dev/blog/*`

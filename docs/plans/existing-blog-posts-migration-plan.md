@@ -6,7 +6,7 @@
 
 **Architecture:** Keep `harun.dev/blog` as the canonical source of truth. Store publication metadata separately from post content, preserve the original slug structure, and keep legacy `blog.harun.dev` URLs redirecting to the new canonical paths. Preserve archive links for source/history and keep feed/sitemap generation derived from the native files so the site stays maintainable.
 
-**Tech Stack:** Laravel, Inertia/React, Symfony YAML, Markdown content files, XML sitemap/RSS generation, Cloudflare/Terraform redirects, GitHub PR workflow.
+**Tech Stack:** Laravel, Inertia/React, Symfony YAML, Markdown content files, XML sitemap/RSS generation, Cloudflare routing, GitHub PR workflow.
 
 ---
 
@@ -20,7 +20,6 @@
 - `app/Support/BlogRepository.php`
 - `routes/web.php`
 - `resources/js/Pages/Blog/Index.tsx`
-- `deploy/terraform/main.tf`
 
 **Checklist:**
 - confirm the number of native posts matches the original post set

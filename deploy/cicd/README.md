@@ -86,7 +86,7 @@ The deployment system uses a **two-phase approach**:
 These scripts are integrated with:
 - **GitHub Actions**: `.github/workflows/deploy.yml`
 - **Main Deploy Script**: `../deploy.sh`
-- **Infrastructure**: `../terraform/`
+- **Infrastructure**: Managed separately from these server deployment scripts.
 
 ## Quick Start
 
@@ -110,4 +110,4 @@ If deployment fails:
 3. Review GitHub Actions logs
 4. Verify server connectivity and permissions
 
-For detailed documentation, see [README-BLUE-GREEN.md](README-BLUE-GREEN.md). 
+For detailed documentation, see [README-BLUE-GREEN.md](README-BLUE-GREEN.md).
