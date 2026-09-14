@@ -26,22 +26,16 @@ yarn-error.log
 /.zed
 deploy/.env.deploy
 
-# Sensitive deploy and terraform files
+# Sensitive deploy files
 # (Added for comprehensive protection)
 deploy/**/*.pem
 deploy/**/*.pem.bak
-deploy/**/.terraform
-deploy/**/terraform.tfstate
-deploy/**/terraform.tfstate.backup
-deploy/**/terraform.tfstate.*.backup
-deploy/**/terraform.tfvars
 deploy/**/.env
 docker/.env.db
 deploy/**/.env.*
 deploy/*.zip
 deploy/*.log
 deploy/**/*.log
-deploy/terraform-outputs.json
 deploy/build/*
 deploy/*_old.*
 deploy/test*
