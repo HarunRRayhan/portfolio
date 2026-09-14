@@ -12,7 +12,7 @@
 
 ## Evidence map
 - Canonical routes, feed, sitemap, and robots: `routes/web.php`
-- Redirects and old-host handling: `deploy/terraform/main.tf`
+- Redirects and old-host handling: `routes/web.php`
 - Primary nav and footer blog links: `resources/js/Components/Menubar.tsx`, `resources/js/Components/Footer.tsx`
 - Blog canonical / OG / Twitter metadata: `resources/js/Pages/Blog/Index.tsx`, `resources/js/Pages/Blog/Post.tsx`
 - Historical source references: `resources/blog/publication.yml`, `resources/js/Components/BlogDiscussion.tsx`

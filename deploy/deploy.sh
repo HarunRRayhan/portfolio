@@ -903,10 +903,10 @@ execute_ssh "cd $APP_DIR && docker compose -f docker/docker-compose.yml exec -T 
 
 success "Deployment completed!"
 
-# 27. Skip Cloudflare Worker R2 Bucket Binding (already done by Terraform)
-step 27 "Skipping Cloudflare Worker R2 Bucket Binding (already done by Terraform)"
+# 27. Skip Cloudflare Worker R2 Bucket Binding (managed outside this deploy script)
+step 27 "Skipping Cloudflare Worker R2 Bucket Binding (managed outside this deploy script)"
 
-echo "Skipping Cloudflare Worker R2 bucket binding as it's already configured by Terraform during infrastructure creation."
+echo "Skipping Cloudflare Worker R2 bucket binding because it is managed outside this deploy script."
 
 # 28. Purge CDN Cache (Cloudflare)
 step 28 "Purging CDN Cache (Cloudflare)"
