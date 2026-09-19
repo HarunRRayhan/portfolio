@@ -3,8 +3,6 @@ title: "Why Your Terraform State Is More Sensitive Than Your .env File"
 slug: "terraform-state-more-sensitive-than-env"
 brief: "Terraform state can contain passwords, access keys, and a map of your infrastructure. Here is how I keep it out of Git, lock it in S3, and limit who can read it."
 publishedAt: "2026-09-19T09:00:00.000Z"
-draft: true
-draftToken: "7f92cc8d3b2847faac794f34c4c5909d"
 readTimeInMinutes: 9
 coverImageUrl: "/blog-assets/terraform-state-more-sensitive-than-env/cover.jpg"
 reactionCount: 0
