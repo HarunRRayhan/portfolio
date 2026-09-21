@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { X, Mail, ShieldCheck } from 'lucide-react'
@@ -15,6 +16,8 @@ const THEME = {
     lead: 'text-[#6b5d4f]',
     fine: 'text-[#8a6a45]',
     fineIcon: 'text-[#b8541f]',
+    proof: 'border-[#e4d7c4] bg-white/70 text-[#6b5d4f]',
+    proofAvatarBorder: 'border-[#fffaf6]',
     close:
       'border-[#e4d7c4] text-[#8a6a45] hover:bg-[#f1e6d3] hover:text-[#2b2320] focus-visible:ring-[#b8541f]',
   },
@@ -28,10 +31,18 @@ const THEME = {
     lead: 'text-slate-500',
     fine: 'text-slate-400',
     fineIcon: 'text-slate-400',
+    proof: 'border-slate-200 bg-slate-50 text-slate-500',
+    proofAvatarBorder: 'border-white',
     close:
       'border-slate-200 text-slate-400 hover:bg-slate-100 hover:text-slate-950 focus-visible:ring-slate-400',
   },
 } as const
+
+const newsletterAvatars = [
+  '/images/newsletter/avatar-1.svg',
+  '/images/newsletter/avatar-2.svg',
+  '/images/newsletter/avatar-3.svg',
+]
 
 const panelVariants: Variants = {
   hidden: { opacity: 0, scale: 0.96, y: 12 },
@@ -54,14 +65,20 @@ export function SubscribePopup({
   onClose,
   source,
   theme = 'slate',
+  subscriberCount = 0,
 }: {
   open: boolean
   onClose: () => void
   source: string
   theme?: SubscribeTheme
+  subscriberCount?: number
 }) {
-  if (typeof document === 'undefined') return null
   const t = THEME[theme]
+  const subscriberLabel = subscriberCount === 1 ? 'reader' : 'readers'
+  const [avatarUrl] = useState(
+    () => newsletterAvatars[Math.floor(Math.random() * newsletterAvatars.length)] ?? newsletterAvatars[0],
+  )
+  if (typeof document === 'undefined') return null
 
   return createPortal(
     <AnimatePresence>
@@ -120,6 +137,27 @@ export function SubscribePopup({
                     No spam, unsubscribe anytime.
                   </p>
                 </div>
+              </motion.div>
+
+              <motion.div
+                variants={itemVariants}
+                className={`mt-4 flex items-center gap-3 rounded-2xl border px-3.5 py-2.5 text-xs ${t.proof}`}
+              >
+                <div className="flex shrink-0 -space-x-2" aria-hidden="true">
+                  <img
+                    src="/images/profile/harun-profile.webp"
+                    alt=""
+                    className={`h-8 w-8 rounded-full border-2 object-cover ${t.proofAvatarBorder}`}
+                  />
+                  <img
+                    src={avatarUrl}
+                    alt=""
+                    className={`h-8 w-8 rounded-full border-2 object-cover ${t.proofAvatarBorder}`}
+                  />
+                </div>
+                <span>
+                  Join <strong className="font-semibold">{subscriberCount.toLocaleString()}</strong> other {subscriberLabel}.
+                </span>
               </motion.div>
 
               <motion.div variants={itemVariants} className="mt-5">

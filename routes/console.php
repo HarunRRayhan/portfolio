@@ -137,3 +137,9 @@ Schedule::command('consultations:retry-stripe-webhooks')
     ->everyFiveMinutes()
     ->withoutOverlapping()
     ->onOneServer();
+
+Schedule::command('newsletter:send-weekly')
+    ->weeklyOn(config('newsletter.schedule.day'), config('newsletter.schedule.time'))
+    ->timezone(config('newsletter.schedule.timezone'))
+    ->withoutOverlapping()
+    ->onOneServer();

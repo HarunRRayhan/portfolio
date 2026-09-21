@@ -2,12 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Subscriber extends Model
 {
     use HasFactory;
+
+    public function scopeSubscribed(Builder $query): Builder
+    {
+        return $query->where($this->qualifyColumn('status'), 'subscribed');
+    }
 
     protected $fillable = [
         'email',

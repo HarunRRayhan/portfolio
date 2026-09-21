@@ -39,7 +39,13 @@ export function useSubscribePopup() {
 
 /** Mounted once around the whole app (see app.tsx) so the idle popup and the
  *  toast host cover every page, including Bio, which renders its own layout. */
-export function SubscribeProvider({ children }: { children: ReactNode }) {
+export function SubscribeProvider({
+  children,
+  subscriberCount = 0,
+}: {
+  children: ReactNode
+  subscriberCount?: number
+}) {
   const isAdminArea = useIsAdminArea()
   const [open, setOpen] = useState(false)
   const [source, setSource] = useState('idle-popup')
@@ -63,7 +69,15 @@ export function SubscribeProvider({ children }: { children: ReactNode }) {
     <SubscribeContext.Provider value={{ openPopup }}>
       {children}
       <Toaster position="top-right" richColors />
-      {!isAdminArea && <SubscribePopup open={open} onClose={closePopup} source={source} theme={theme} />}
+      {!isAdminArea && (
+        <SubscribePopup
+          open={open}
+          onClose={closePopup}
+          source={source}
+          theme={theme}
+          subscriberCount={subscriberCount}
+        />
+      )}
     </SubscribeContext.Provider>
   )
 }

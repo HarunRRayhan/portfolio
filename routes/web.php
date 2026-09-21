@@ -480,6 +480,11 @@ Route::post('/subscribe', [NewsletterController::class, 'subscribe'])
     ->middleware('throttle:5,1')
     ->name('subscribe');
 
+Route::get('/newsletter/unsubscribe/{subscriber}', [NewsletterController::class, 'unsubscribe'])
+    ->where('subscriber', '[0-9]+')
+    ->middleware('signed')
+    ->name('newsletter.unsubscribe');
+
 Route::get('/case-studies', function (Request $request) {
     if ($request->getRequestUri() === '/case-studies/') {
         return redirect('/case-studies', 301);

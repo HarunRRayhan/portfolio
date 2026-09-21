@@ -30,9 +30,11 @@ createInertiaApp({
     },
     setup({ el, App, props }) {
         const root = createRoot(el);
+        const subscriberCount = (props.initialPage.props as { newsletter?: { subscriberCount?: number } }).newsletter
+            ?.subscriberCount ?? 0;
 
         root.render(
-            <SubscribeProvider>
+            <SubscribeProvider subscriberCount={subscriberCount}>
                 <App {...props} />
             </SubscribeProvider>
         );

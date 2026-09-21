@@ -2,8 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\Subscriber;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -85,5 +88,36 @@ class SubscriberTest extends TestCase
             'source' => null,
             'referrer' => null,
         ]);
+    }
+
+    #[Test]
+    public function it_resubscribes_a_reader_who_had_unsubscribed()
+    {
+        Subscriber::create([
+            'email' => 'jane@example.com',
+            'source' => 'homepage',
+            'status' => 'unsubscribed',
+        ]);
+
+        $response = $this->post('/subscribe', ['email' => 'jane@example.com']);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('subscribers', [
+            'email' => 'jane@example.com',
+            'source' => 'homepage',
+            'status' => 'subscribed',
+        ]);
+    }
+
+    #[Test]
+    public function public_pages_share_the_active_subscriber_count()
+    {
+        Cache::flush();
+        Subscriber::factory()->count(2)->create();
+        Subscriber::factory()->create(['status' => 'unsubscribed']);
+
+        $shared = app(HandleInertiaRequests::class)->share(Request::create('/'));
+
+        $this->assertSame(2, ($shared['newsletter']['subscriberCount'])());
     }
 }

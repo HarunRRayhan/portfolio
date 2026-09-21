@@ -2,10 +2,13 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Subscriber;
 use App\Support\CaseStudyRepository;
 use App\Support\SeoCatalog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
+use Throwable;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -43,6 +46,21 @@ class HandleInertiaRequests extends Middleware
             ],
             'caseStudiesByService' => $byService,
             'featuredCaseStudies' => $caseStudies->featured(3),
+            'newsletter' => [
+                'subscriberCount' => function (): int {
+                    try {
+                        return (int) Cache::remember(
+                            'newsletter.subscriber_count',
+                            now()->addMinutes(5),
+                            fn () => Subscriber::subscribed()->count(),
+                        );
+                    } catch (Throwable) {
+                        // Keep public pages renderable during a first boot
+                        // before the subscriber migration has run.
+                        return 0;
+                    }
+                },
+            ],
             // Pages already read usePage().props.flash (Contact.tsx, Bio.tsx)
             // for the ->with('flash', [...]) convention used across admin
             // controllers, but nothing was actually sharing it as an Inertia

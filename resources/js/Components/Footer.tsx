@@ -2,11 +2,12 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Link } from '@inertiajs/react'
+import { Link, usePage } from '@inertiajs/react'
 import { ArrowRight, Terminal } from 'lucide-react'
 import { Github, Linkedin, Mail, Twitter } from '@/lib/icons'
 import { Button } from '@/Components/ui/button'
 import { Logo } from '@/Components/Logo'
+import { SubscribeForm } from '@/Components/SubscribeForm'
 
 type FooterLink = {
     label: string
@@ -55,7 +56,20 @@ const socials = [
     { href: 'mailto:me@harun.dev?subject=Hello%20Harun', label: 'Email', icon: Mail },
 ]
 
+const newsletterAvatars = [
+    '/images/newsletter/avatar-1.svg',
+    '/images/newsletter/avatar-2.svg',
+    '/images/newsletter/avatar-3.svg',
+]
+
 export function Footer() {
+    const { newsletter } = usePage().props as { newsletter?: { subscriberCount?: number } }
+    const subscriberCount = newsletter?.subscriberCount ?? 0
+    const subscriberLabel = subscriberCount === 1 ? 'reader' : 'readers'
+    const [avatarUrl] = React.useState(
+        () => newsletterAvatars[Math.floor(Math.random() * newsletterAvatars.length)] ?? newsletterAvatars[0],
+    )
+
     return (
         <footer className="relative border-t border-slate-800 bg-slate-950 text-white">
             {/* Subtle grid */}
@@ -142,6 +156,52 @@ export function Footer() {
                                 </div>
                             ))}
                         </div>
+                    </div>
+                </motion.div>
+
+                {/* Newsletter sign-up */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: 0.08 }}
+                    className="mt-8 grid gap-8 rounded-xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm backdrop-blur sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center"
+                >
+                    <div>
+                        <div className="flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-emerald-400">
+                            <Mail className="h-3.5 w-3.5" />
+                            Weekly newsletter
+                        </div>
+                        <h2 className="mt-3 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                            Practical notes, once a week.
+                        </h2>
+                        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
+                            New articles and useful engineering lessons, without the inbox noise.
+                        </p>
+                        <div className="mt-5 max-w-md">
+                            <SubscribeForm source="footer" theme="slate" />
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 rounded-xl border border-slate-800 bg-slate-950/60 p-4 lg:max-w-xs">
+                        <div className="flex shrink-0 -space-x-3" aria-hidden="true">
+                            <img
+                                src="/images/profile/harun-profile.webp"
+                                alt=""
+                                className="h-11 w-11 rounded-full border-2 border-slate-950 bg-slate-100 object-cover"
+                            />
+                            <img
+                                src={avatarUrl}
+                                alt=""
+                                className="h-11 w-11 rounded-full border-2 border-slate-950 bg-emerald-100 object-cover"
+                            />
+                            <span className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-slate-950 bg-slate-800 text-sm font-semibold text-slate-300">
+                                +
+                            </span>
+                        </div>
+                        <p className="text-sm leading-5 text-slate-400">
+                            Join <span className="font-semibold text-white">{subscriberCount.toLocaleString()}</span> other {subscriberLabel}.
+                        </p>
                     </div>
                 </motion.div>
 
