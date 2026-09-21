@@ -78,6 +78,34 @@ class MediaItemTest extends TestCase
         $this->assertCount(0, $page['props']['items']);
     }
 
+    public function test_media_index_keeps_newer_items_first_when_priority_matches(): void
+    {
+        MediaItem::create([
+            'type' => 'video',
+            'title' => 'Older Laravel Scaling Talk',
+            'url' => 'https://youtube.com/watch?v=aaaaaaaaaaa',
+            'published_at' => '2026-08-01 00:00:00',
+            'priority' => 0,
+            'is_active' => true,
+        ]);
+        MediaItem::create([
+            'type' => 'video',
+            'title' => 'Newer Laravel Scaling Talk',
+            'url' => 'https://youtube.com/watch?v=bbbbbbbbbbb',
+            'published_at' => '2026-09-12 00:00:00',
+            'priority' => 0,
+            'is_active' => true,
+        ]);
+
+        $response = $this->withHeaders($this->inertiaHeaders())->get('/videos');
+
+        $response->assertOk();
+        $items = $response->json('props.items');
+
+        $this->assertSame('Newer Laravel Scaling Talk', $items[0]['title']);
+        $this->assertSame('Older Laravel Scaling Talk', $items[1]['title']);
+    }
+
     public function test_google_slides_edit_url_resolves_to_an_embed_url(): void
     {
         $embedUrl = MediaEmbeds::slideEmbedUrl('https://docs.google.com/presentation/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/edit#slide=id.p1');
@@ -116,6 +144,39 @@ class MediaItemTest extends TestCase
         );
     }
 
+    public function test_matching_slide_and_video_are_interlinked_and_have_page_share_urls(): void
+    {
+        MediaItem::create([
+            'type' => 'slide',
+            'title' => 'Scale Your Laravel App',
+            'slug' => 'scale-your-laravel-app',
+            'summary' => 'Presentation slides for scaling Laravel beyond a single $5 VPS.',
+            'url' => 'https://docs.google.com/presentation/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/edit',
+            'is_active' => true,
+        ]);
+        MediaItem::create([
+            'type' => 'video',
+            'title' => 'Scale Your Laravel App | Laravel Meetup - Cohort-02',
+            'slug' => 'scale-your-laravel-app',
+            'summary' => 'Learn how to scale Laravel beyond a single $5 VPS.',
+            'url' => 'https://youtu.be/E-_1Irtz7io',
+            'is_active' => true,
+        ]);
+
+        $response = $this->withHeaders($this->inertiaHeaders())->get('/slides/scale-your-laravel-app');
+
+        $response->assertOk();
+        $page = $response->json();
+
+        $this->assertSame('video', $page['props']['paired']['type']);
+        $this->assertSame('/videos/scale-your-laravel-app', $page['props']['paired']['detailUrl']);
+        $this->assertStringContainsString('/s/', $page['props']['item']['pageShareUrl']);
+        $this->assertSame(
+            'Presentation slides for scaling Laravel beyond a single $5 VPS.',
+            $page['props']['seo']['description']
+        );
+    }
+
     public function test_a_video_detail_page_renders_the_embed_url(): void
     {
         MediaItem::create([
@@ -136,5 +197,6 @@ class MediaItemTest extends TestCase
             'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ',
             $page['props']['item']['embedUrl']
         );
+        $this->assertStringContainsString('/s/', $page['props']['item']['pageShareUrl']);
     }
 }

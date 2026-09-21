@@ -564,11 +564,39 @@ Route::get('/case-studies/{slug}', function (string $slug) {
     ]);
 })->name('case-studies.show');
 
+$mediaDetailPayload = function (MediaItem $item, string $type, string $siteUrl): array {
+    $path = $type === 'slide' ? 'slides' : 'videos';
+    $canonicalUrl = $siteUrl.'/'.$path.'/'.$item->slug;
+
+    return [
+        'type' => $type,
+        'slug' => $item->slug,
+        'title' => $item->title,
+        'summary' => $item->summary,
+        'thumbnailUrl' => $item->thumbnail_url,
+        'sourceLabel' => $item->source_label,
+        'publishedAtHuman' => $item->published_at?->format('M j, Y'),
+        // shareUrl is the external source link. pageShareUrl is the short,
+        // trackable link for this site's media detail page and is the one used
+        // by the QR/share sheet.
+        'shareUrl' => $item->share_url,
+        'pageShareUrl' => ShortLink::getOrCreateForUrl($canonicalUrl, $item->title)?->short_url ?? $canonicalUrl,
+        'embedUrl' => $type === 'slide'
+            ? MediaEmbeds::slideEmbedUrl($item->url)
+            : MediaEmbeds::youtubeEmbedUrl($item->url),
+        'detailUrl' => '/'.$path.'/'.$item->slug,
+    ];
+};
+
 Route::get('/slides', function (Request $request) {
     $siteUrl = rtrim(config('app.url', url('/')), '/');
 
     $items = MediaItem::query()->active()->ofType('slide')
-        ->orderBy('priority')->orderByDesc('published_at')->get();
+        ->orderBy('priority')
+        ->orderByRaw('published_at IS NULL')
+        ->orderByDesc('published_at')
+        ->orderByDesc('id')
+        ->get();
 
     return Inertia::render('Media/Index', [
         'type' => 'slide',
@@ -590,27 +618,27 @@ Route::get('/slides', function (Request $request) {
     ]);
 })->name('slides.index');
 
-Route::get('/slides/{slug}', function (string $slug) {
+Route::get('/slides/{slug}', function (string $slug) use ($mediaDetailPayload) {
     $item = MediaItem::query()->active()->ofType('slide')->where('slug', $slug)->first();
     abort_unless($item, 404);
     $siteUrl = rtrim(config('app.url', url('/')), '/');
 
     $related = MediaItem::query()->active()->ofType('slide')
         ->where('slug', '!=', $slug)
-        ->orderBy('priority')->orderByDesc('published_at')->limit(3)->get();
+        ->orderBy('priority')
+        ->orderByRaw('published_at IS NULL')
+        ->orderByDesc('published_at')
+        ->orderByDesc('id')
+        ->limit(3)
+        ->get();
+
+    $itemPayload = $mediaDetailPayload($item, 'slide', $siteUrl);
+    $paired = MediaItem::query()->active()->ofType('video')->where('slug', $slug)->first();
 
     return Inertia::render('Media/Detail', [
         'type' => 'slide',
-        'item' => [
-            'slug' => $item->slug,
-            'title' => $item->title,
-            'summary' => $item->summary,
-            'thumbnailUrl' => $item->thumbnail_url,
-            'sourceLabel' => $item->source_label,
-            'publishedAtHuman' => $item->published_at?->format('M j, Y'),
-            'shareUrl' => $item->share_url,
-            'embedUrl' => MediaEmbeds::slideEmbedUrl($item->url),
-        ],
+        'item' => $itemPayload,
+        'paired' => $paired ? $mediaDetailPayload($paired, 'video', $siteUrl) : null,
         'related' => $related->map(fn (MediaItem $r) => [
             'slug' => $r->slug, 'title' => $r->title,
             'thumbnailUrl' => $r->thumbnail_url, 'detailUrl' => '/slides/'.$r->slug,
@@ -629,7 +657,11 @@ Route::get('/videos', function (Request $request) {
     $siteUrl = rtrim(config('app.url', url('/')), '/');
 
     $items = MediaItem::query()->active()->ofType('video')
-        ->orderBy('priority')->orderByDesc('published_at')->get();
+        ->orderBy('priority')
+        ->orderByRaw('published_at IS NULL')
+        ->orderByDesc('published_at')
+        ->orderByDesc('id')
+        ->get();
 
     return Inertia::render('Media/Index', [
         'type' => 'video',
@@ -651,27 +683,27 @@ Route::get('/videos', function (Request $request) {
     ]);
 })->name('videos.index');
 
-Route::get('/videos/{slug}', function (string $slug) {
+Route::get('/videos/{slug}', function (string $slug) use ($mediaDetailPayload) {
     $item = MediaItem::query()->active()->ofType('video')->where('slug', $slug)->first();
     abort_unless($item, 404);
     $siteUrl = rtrim(config('app.url', url('/')), '/');
 
     $related = MediaItem::query()->active()->ofType('video')
         ->where('slug', '!=', $slug)
-        ->orderBy('priority')->orderByDesc('published_at')->limit(3)->get();
+        ->orderBy('priority')
+        ->orderByRaw('published_at IS NULL')
+        ->orderByDesc('published_at')
+        ->orderByDesc('id')
+        ->limit(3)
+        ->get();
+
+    $itemPayload = $mediaDetailPayload($item, 'video', $siteUrl);
+    $paired = MediaItem::query()->active()->ofType('slide')->where('slug', $slug)->first();
 
     return Inertia::render('Media/Detail', [
         'type' => 'video',
-        'item' => [
-            'slug' => $item->slug,
-            'title' => $item->title,
-            'summary' => $item->summary,
-            'thumbnailUrl' => $item->thumbnail_url,
-            'sourceLabel' => $item->source_label,
-            'publishedAtHuman' => $item->published_at?->format('M j, Y'),
-            'shareUrl' => $item->share_url,
-            'embedUrl' => MediaEmbeds::youtubeEmbedUrl($item->url),
-        ],
+        'item' => $itemPayload,
+        'paired' => $paired ? $mediaDetailPayload($paired, 'slide', $siteUrl) : null,
         'related' => $related->map(fn (MediaItem $r) => [
             'slug' => $r->slug, 'title' => $r->title,
             'thumbnailUrl' => $r->thumbnail_url, 'detailUrl' => '/videos/'.$r->slug,
