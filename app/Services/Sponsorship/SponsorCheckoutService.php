@@ -14,7 +14,7 @@ class SponsorCheckoutService
 
     public function configured(): bool
     {
-        return filled(config('stripe.secret'));
+        return filled(config('sponsor.stripe_secret'));
     }
 
     public function createCheckoutUrl(string $amount, string $cadence): string
@@ -30,7 +30,7 @@ class SponsorCheckoutService
             throw new \InvalidArgumentException('The sponsorship cadence is invalid.');
         }
 
-        Stripe::setApiKey(config('stripe.secret'));
+        Stripe::setApiKey(config('sponsor.stripe_secret'));
 
         $reference = 'sponsor-'.Str::uuid()->toString();
         $priceData = [

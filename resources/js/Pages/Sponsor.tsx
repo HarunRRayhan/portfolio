@@ -54,20 +54,28 @@ const formatCents = (cents: number) =>
 
 const amountValue = (cents: number) => (cents / 100).toFixed(2)
 
-export default function Sponsor({
-  canonicalUrl = '/sponsor-me',
-  stripeConfigured = false,
-  checkoutStatus = null,
-  minAmountCents = 100,
-  maxAmountCents = 1_000_000,
-  suggestedAmountCents = [500, 1_000, 2_500, 5_000],
-}: SponsorProps) {
+type SponsorCheckoutFormProps = {
+  stripeConfigured: boolean
+  minAmountCents: number
+  maxAmountCents: number
+  suggestedAmountCents: number[]
+}
+
+function SponsorCheckoutForm({
+  stripeConfigured,
+  minAmountCents,
+  maxAmountCents,
+  suggestedAmountCents,
+}: SponsorCheckoutFormProps) {
   const [cadence, setCadence] = useState<Cadence>('once')
   const form = useForm({
     amount: amountValue(1_000),
     cadence: 'once' as Cadence,
   })
   const formErrors = form.errors as Record<string, string | undefined>
+  const suggestedAmounts = suggestedAmountCents.filter(
+    (amount) => amount >= minAmountCents && amount <= maxAmountCents,
+  )
 
   const chooseCadence = (nextCadence: Cadence) => {
     setCadence(nextCadence)
@@ -79,10 +87,113 @@ export default function Sponsor({
     form.post('/sponsor-me/checkout', { preserveScroll: true })
   }
 
-  const suggestedAmounts = suggestedAmountCents.filter(
-    (amount) => amount >= minAmountCents && amount <= maxAmountCents,
-  )
+  return (
+    <div id="sponsor-checkout" className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.07] p-6 shadow-2xl backdrop-blur sm:p-7">
+      <div className="flex items-center justify-between border-b border-white/10 pb-5">
+        <div className="flex items-center gap-3">
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-amber-400/15 text-amber-300">
+            <Coffee className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="text-sm font-semibold text-white">Support this work</p>
+            <p className="text-xs text-slate-400">Choose any amount</p>
+          </div>
+        </div>
+        <Heart className="h-5 w-5 fill-amber-400 text-amber-400" />
+      </div>
 
+      <div className="mt-6 grid grid-cols-2 gap-2 rounded-xl bg-black/20 p-1">
+        {([
+          { value: 'once' as const, label: 'One-time', icon: Coffee },
+          { value: 'monthly' as const, label: 'Monthly', icon: Repeat2 },
+        ]).map(({ value, label, icon: Icon }) => (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={cadence === value}
+            onClick={() => chooseCadence(value)}
+            className={`inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition ${
+              cadence === value
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Icon className="h-4 w-4" />
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <form onSubmit={submit} className="mt-6">
+        <label htmlFor="sponsor-amount" className="block text-sm font-semibold text-white">
+          Your amount
+        </label>
+        <div className="relative mt-2">
+          <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-xl font-semibold text-slate-400">$</span>
+          <input
+            id="sponsor-amount"
+            name="amount"
+            type="number"
+            inputMode="decimal"
+            min={amountValue(minAmountCents)}
+            max={amountValue(maxAmountCents)}
+            step="0.01"
+            value={form.data.amount}
+            onChange={(event) => form.setData('amount', event.target.value)}
+            className="w-full rounded-xl border border-white/15 bg-white px-4 py-3 pl-10 text-2xl font-semibold text-slate-900 outline-none transition placeholder:text-slate-300 focus:border-amber-400 focus:ring-4 focus:ring-amber-400/20"
+            aria-describedby="sponsor-amount-help"
+            required
+          />
+        </div>
+        <p id="sponsor-amount-help" className="mt-2 text-xs text-slate-400">
+          Minimum {formatCents(minAmountCents)}. Any amount up to {formatCents(maxAmountCents)}.
+        </p>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          {suggestedAmounts.map((amount) => (
+            <button
+              key={amount}
+              type="button"
+              onClick={() => form.setData('amount', amountValue(amount))}
+              className="rounded-full border border-white/15 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:border-amber-300 hover:text-white"
+            >
+              {formatCents(amount)}
+            </button>
+          ))}
+        </div>
+
+        {(formErrors.amount || formErrors.cadence || formErrors.checkout) && (
+          <div className="mt-4 rounded-lg border border-rose-300/30 bg-rose-400/10 px-3 py-2 text-sm text-rose-200" role="alert">
+            {formErrors.amount || formErrors.cadence || formErrors.checkout}
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={form.processing || !stripeConfigured}
+          className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-amber-400 px-5 py-3.5 text-sm font-semibold text-slate-950 transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:bg-slate-500 disabled:text-slate-300"
+        >
+          {form.processing ? 'Opening Stripe...' : stripeConfigured ? 'Continue to checkout' : 'Checkout is unavailable'}
+          {!form.processing && <ArrowRight className="h-4 w-4" />}
+        </button>
+
+        <p className="mt-4 flex items-center justify-center gap-2 text-center text-xs text-slate-400">
+          <ShieldCheck className="h-4 w-4 text-emerald-400" />
+          Secure payment by Stripe
+        </p>
+      </form>
+    </div>
+  )
+}
+
+export default function Sponsor({
+  canonicalUrl = '/sponsor-me',
+  stripeConfigured = false,
+  checkoutStatus = null,
+  minAmountCents = 100,
+  maxAmountCents = 1_000_000,
+  suggestedAmountCents = [500, 1_000, 2_500, 5_000],
+}: SponsorProps) {
   return (
     <>
       <Head>
@@ -191,39 +302,12 @@ export default function Sponsor({
               className="relative mx-auto w-full max-w-md"
             >
               <div aria-hidden="true" className="absolute -inset-1 rounded-3xl bg-gradient-to-br from-amber-400/50 via-violet-400/20 to-transparent blur-lg" />
-              <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.07] p-6 shadow-2xl backdrop-blur sm:p-8">
-                <div className="flex items-center justify-between border-b border-white/10 pb-5">
-                  <div className="flex items-center gap-3">
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-amber-400/15 text-amber-300">
-                      <Coffee className="h-5 w-5" />
-                    </span>
-                    <div>
-                      <p className="text-sm font-semibold text-white">support.log</p>
-                      <p className="font-mono text-[11px] text-slate-500">public / 2026</p>
-                    </div>
-                  </div>
-                  <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-emerald-300">
-                    open
-                  </span>
-                </div>
-
-                <div className="mt-7 space-y-4 font-mono text-sm leading-6">
-                  <p className="text-slate-500"><span className="text-amber-300">$</span> tail -f /more-good-stuff</p>
-                  <p className="text-slate-200">new notes, experiments, and tools</p>
-                  <p className="text-slate-500">// thanks for helping me make time for this</p>
-                </div>
-
-                <div className="mt-8 grid grid-cols-2 gap-3">
-                  <div className="rounded-xl border border-white/10 bg-black/10 p-3">
-                    <p className="font-mono text-[10px] uppercase tracking-wider text-slate-500">once</p>
-                    <p className="mt-1 text-sm font-semibold text-white">Your call</p>
-                  </div>
-                  <div className="rounded-xl border border-white/10 bg-black/10 p-3">
-                    <p className="font-mono text-[10px] uppercase tracking-wider text-slate-500">monthly</p>
-                    <p className="mt-1 text-sm font-semibold text-white">Your call</p>
-                  </div>
-                </div>
-              </div>
+              <SponsorCheckoutForm
+                stripeConfigured={stripeConfigured}
+                minAmountCents={minAmountCents}
+                maxAmountCents={maxAmountCents}
+                suggestedAmountCents={suggestedAmountCents}
+              />
             </motion.div>
           </div>
         </div>
@@ -251,87 +335,30 @@ export default function Sponsor({
             </div>
           )}
 
-          <div className="mx-auto mt-12 max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_20px_60px_-36px_rgba(15,23,42,0.32)] sm:p-8">
-            <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1">
-              {([
-                { value: 'once' as const, label: 'One-time', icon: Coffee },
-                { value: 'monthly' as const, label: 'Monthly', icon: Repeat2 },
-              ]).map(({ value, label, icon: Icon }) => (
-                <button
-                  key={value}
-                  type="button"
-                  aria-pressed={cadence === value}
-                  onClick={() => chooseCadence(value)}
-                  className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition ${
-                    cadence === value
-                      ? 'bg-slate-900 text-white shadow-sm'
-                      : 'text-slate-500 hover:text-slate-900'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            <form onSubmit={submit} className="mt-8">
-              <label htmlFor="sponsor-amount" className="block text-sm font-semibold text-slate-900">
-                Your amount
-              </label>
-              <div className="relative mt-2">
-                <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-xl font-semibold text-slate-400">$</span>
-                <input
-                  id="sponsor-amount"
-                  name="amount"
-                  type="number"
-                  inputMode="decimal"
-                  min={amountValue(minAmountCents)}
-                  max={amountValue(maxAmountCents)}
-                  step="0.01"
-                  value={form.data.amount}
-                  onChange={(event) => form.setData('amount', event.target.value)}
-                  className="w-full rounded-xl border border-slate-300 py-4 pl-10 pr-4 text-2xl font-semibold text-slate-900 outline-none transition placeholder:text-slate-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10"
-                  aria-describedby="sponsor-amount-help"
-                  required
-                />
+          <div className="mx-auto mt-12 grid max-w-4xl gap-4 md:grid-cols-3">
+            {[
+              {
+                icon: Coffee,
+                title: 'Choose an amount',
+                description: 'Use one of the suggestions or enter exactly what feels right.',
+              },
+              {
+                icon: Repeat2,
+                title: 'Choose once or monthly',
+                description: 'A one-time thank-you or a small recurring contribution both help.',
+              },
+              {
+                icon: ShieldCheck,
+                title: 'Finish on Stripe',
+                description: 'Your payment details stay on Stripe, not on this site.',
+              },
+            ].map(({ icon: Icon, title, description }) => (
+              <div key={title} className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                <Icon className="h-5 w-5 text-slate-900" />
+                <h3 className="mt-5 text-sm font-semibold text-slate-900">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>
               </div>
-              <p id="sponsor-amount-help" className="mt-2 text-xs text-slate-500">
-                Minimum {formatCents(minAmountCents)}. Choose any amount up to {formatCents(maxAmountCents)}.
-              </p>
-
-              <div className="mt-5 flex flex-wrap gap-2">
-                {suggestedAmounts.map((amount) => (
-                  <button
-                    key={amount}
-                    type="button"
-                    onClick={() => form.setData('amount', amountValue(amount))}
-                    className="rounded-full border border-slate-200 px-3.5 py-1.5 text-sm font-medium text-slate-600 transition hover:border-slate-400 hover:text-slate-900"
-                  >
-                    {formatCents(amount)}
-                  </button>
-                ))}
-              </div>
-
-              {(formErrors.amount || formErrors.cadence || formErrors.checkout) && (
-                <div className="mt-5 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert">
-                  {formErrors.amount || formErrors.cadence || formErrors.checkout}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={form.processing || !stripeConfigured}
-                className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-4 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:bg-slate-300"
-              >
-                {form.processing ? 'Opening Stripe...' : stripeConfigured ? 'Continue to Stripe Checkout' : 'Checkout is unavailable'}
-                {!form.processing && <ArrowRight className="h-4 w-4" />}
-              </button>
-
-              <p className="mt-4 flex items-center justify-center gap-2 text-center text-xs text-slate-500">
-                <ShieldCheck className="h-4 w-4 text-emerald-600" />
-                Stripe handles your payment details. This site never sees your card number.
-              </p>
-            </form>
+            ))}
           </div>
         </div>
       </section>
@@ -372,8 +399,8 @@ export default function Sponsor({
                 <p className="mt-1 text-sm leading-6 text-slate-500">Reading, sharing, and sending a note count too.</p>
               </div>
             </div>
-            <a href="#support-options" className="group inline-flex items-center gap-2 text-sm font-semibold text-slate-900 transition hover:text-amber-700">
-              Choose an amount
+            <a href="#sponsor-checkout" className="group inline-flex items-center gap-2 text-sm font-semibold text-slate-900 transition hover:text-amber-700">
+              Sponsor this work
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </a>
           </div>
