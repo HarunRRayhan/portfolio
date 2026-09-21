@@ -29,6 +29,7 @@ const links: FooterLinkGroup[] = [
             { label: 'Home', href: '/' },
             { label: 'Blog', href: '/blog' },
             { label: 'About', href: '/about' },
+            { label: 'Sponsor', href: '/sponsor-me' },
             { label: 'Contact', href: '/contact' },
             { label: 'Bio', href: '/bio' },
         ],

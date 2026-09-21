@@ -46,6 +46,7 @@ final class SiteCatalog
     {
         return [
             ['About', '/about', 'Background, experience, and how I work with teams.'],
+            ['Sponsor', '/sponsor-me', 'Support the writing, tools, and experiments I share.'],
             ['Contact', '/contact', 'Start a project or ask a question.'],
             ['Bio', '/bio', 'Short bio and links.'],
             ['Bio (Bangla)', '/hrr', 'Bangla bio and links.'],
@@ -85,6 +86,7 @@ final class SiteCatalog
         $paths = [
             '/',
             '/about',
+            '/sponsor-me',
             '/services',
             '/book',
             '/contact',
