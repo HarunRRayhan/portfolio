@@ -11,7 +11,7 @@ class SponsorPageTest extends TestCase
 {
     public function test_sponsor_page_exposes_dynamic_checkout_configuration(): void
     {
-        config()->set('stripe.secret', 'configured-secret-placeholder');
+        config()->set('sponsor.stripe_secret', 'configured-secret-placeholder');
 
         $response = $this->get('/sponsor-me');
 
@@ -23,6 +23,18 @@ class SponsorPageTest extends TestCase
             ->where('minAmountCents', 100)
             ->where('maxAmountCents', 1_000_000)
             ->where('suggestedAmountCents', [500, 1_000, 2_500, 5_000]));
+    }
+
+    public function test_sponsor_page_does_not_use_the_consultation_stripe_secret(): void
+    {
+        config()->set('stripe.secret', 'consultation-secret-placeholder');
+        config()->set('sponsor.stripe_secret', null);
+
+        $response = $this->get('/sponsor-me');
+
+        $response->assertInertia(fn ($page) => $page
+            ->component('Sponsor')
+            ->where('stripeConfigured', false));
     }
 
     public function test_checkout_requires_a_valid_amount_and_cadence(): void

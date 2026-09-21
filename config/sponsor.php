@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'stripe_secret' => env('STRIPE_SPONSOR_SECRET'),
+
     'currency' => 'usd',
 
     'min_amount_cents' => 100,
