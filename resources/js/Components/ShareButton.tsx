@@ -96,25 +96,20 @@ export function SharePopover({
   if (!open || typeof document === 'undefined') return null
 
   return createPortal(
-    <>
-      <div
-        aria-hidden="true"
-        className="fixed inset-0 z-30 bg-slate-950/15 backdrop-blur-[1px] sm:hidden"
-        onClick={onClose}
-      />
-      <div
-        ref={panelRef}
-        className={`fixed z-40 ${panelClassName}`}
-        style={{
-          left: panelPosition.left,
-          top: panelPosition.top,
-          width: panelPosition.width,
-          visibility: panelPosition.ready ? 'visible' : 'hidden',
-        }}
-      >
+    <div
+      ref={panelRef}
+      className={`fixed z-40 ${panelClassName}`}
+      style={{
+        left: panelPosition.left,
+        top: panelPosition.top,
+        width: panelPosition.width,
+        visibility: panelPosition.ready ? 'visible' : 'hidden',
+      }}
+    >
+      <div onMouseDown={(event) => event.stopPropagation()}>
         <ShareSheet title={title} url={url} shareTitle={shareTitle} theme={theme} onClose={onClose} />
       </div>
-    </>,
+    </div>,
     document.body,
   )
 }
@@ -150,7 +145,7 @@ export function ShareButton({
         type="button"
         onClick={() => setOpen((current) => !current)}
         aria-label={label}
-        aria-haspopup="dialog"
+        aria-haspopup="menu"
         aria-expanded={open}
         className={triggerClassName}
       >

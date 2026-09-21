@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
@@ -7,21 +7,18 @@ import { SOCIAL_SHARE } from '@/lib/shareTargets'
 
 export type ShareSheetTheme = 'warm' | 'slate'
 
-// Keep the content neutral while letting the sheet inherit the visual language
-// of the page it appears on.
+// Palette tokens per theme. 'warm' matches the bio page's cream/amber look,
+// 'slate' matches the blog pages' monochrome slate-and-white look.
 const THEME = {
   warm: {
     font: 'font-mono',
     border: 'border-[#e4d7c4]',
     panelBg: 'bg-[#fffaf6]',
-    panelShadow: 'shadow-[#2b2320]/15',
-    label: 'text-[#2b2320]',
+    panelShadow: 'shadow-[#2b2320]/10',
+    label: 'text-[#5b4a3a]',
     muted: 'text-[#8a6a45]',
-    surface: 'bg-[#f7f1e8]',
-    surfaceBorder: 'border-[#eadbc7]',
     mutedHoverBg: 'hover:bg-[#f1e6d3]',
     mutedHoverText: 'hover:text-[#2b2320]',
-    actionHover: 'hover:border-[#c98a4b] hover:bg-[#f1e6d3]',
     qrHoverBorder: 'hover:border-[#c98a4b]',
     modalBackdrop: 'bg-[#2b2320]/80',
     qrFg: '#2b2320',
@@ -32,14 +29,11 @@ const THEME = {
     font: '',
     border: 'border-slate-200',
     panelBg: 'bg-white',
-    panelShadow: 'shadow-slate-950/15',
-    label: 'text-slate-950',
+    panelShadow: 'shadow-slate-950/10',
+    label: 'text-slate-600',
     muted: 'text-slate-500',
-    surface: 'bg-slate-50',
-    surfaceBorder: 'border-slate-200',
     mutedHoverBg: 'hover:bg-slate-100',
     mutedHoverText: 'hover:text-slate-950',
-    actionHover: 'hover:border-slate-300 hover:bg-slate-100',
     qrHoverBorder: 'hover:border-slate-400',
     modalBackdrop: 'bg-slate-950/80',
     qrFg: '#0f172a',
@@ -48,7 +42,11 @@ const THEME = {
   },
 } as const
 
-/** Shared share UI with a clear QR/copy path and a responsive social grid. */
+/** Shared share-sheet UI (native share, copy-link, and a scannable QR code).
+ *  Renders unpositioned, so the caller wraps it in its own positioned container.
+ *  Tapping the QR (or Expand) swaps to a full-screen overlay with the same
+ *  content at a larger size; Collapse returns to this inline view in place,
+ *  Close dismisses the sheet everywhere. */
 export function ShareSheet({
   title,
   kicker = 'Share link',
@@ -67,191 +65,125 @@ export function ShareSheet({
   const t = THEME[theme]
   const [copied, setCopied] = useState(false)
   const [expanded, setExpanded] = useState(false)
-  const copiedTimer = useRef<number | null>(null)
-  const titleId = useId()
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
 
-  useEffect(() => {
-    return () => {
-      if (copiedTimer.current !== null) window.clearTimeout(copiedTimer.current)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!expanded) return
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setExpanded(false)
-    }
-    const previousOverflow = document.body.style.overflow
-
-    document.body.style.overflow = 'hidden'
-    document.addEventListener('keydown', onKeyDown)
-
-    return () => {
-      document.body.style.overflow = previousOverflow
-      document.removeEventListener('keydown', onKeyDown)
-    }
-  }, [expanded])
-
-  const copy = async () => {
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(url)
-      } else {
-        const textarea = document.createElement('textarea')
-        textarea.value = url
-        textarea.setAttribute('readonly', '')
-        textarea.style.position = 'fixed'
-        textarea.style.opacity = '0'
-        document.body.appendChild(textarea)
-        textarea.select()
-        const copiedWithFallback = document.execCommand('copy')
-        textarea.remove()
-        if (!copiedWithFallback) return
-      }
-
+  const copy = () => {
+    navigator.clipboard.writeText(url).then(() => {
       setCopied(true)
-      if (copiedTimer.current !== null) window.clearTimeout(copiedTimer.current)
-      copiedTimer.current = window.setTimeout(() => setCopied(false), 2000)
-    } catch {
-      // Clipboard access can be denied by the browser. The link remains
-      // visible in the sheet so it can still be selected or scanned.
-    }
+      setTimeout(() => setCopied(false), 2000)
+    })
   }
 
-  const share = async () => {
-    try {
-      await navigator.share({ title: shareTitle, url })
-      onClose()
-    } catch {
-      // Dismissing the native share dialog is not an error.
-    }
+  const share = () => {
+    navigator.share({ title: shareTitle, url }).catch(() => {})
   }
 
-  const renderHeader = (variant: 'sheet' | 'modal') => {
-    const headingId = `${titleId}-${variant}`
+  // Intent URLs are opened via `window.open` at click time rather than a
+  // static `href`. Ad blockers' cosmetic filter lists (e.g. Fanboy's Social
+  // Blocking List) match and hide anchors whose `href` attribute contains
+  // known share-intent hosts like facebook.com/sharer or twitter.com/intent.
+  // Copy-link and native-share ("More") are folded in as the first/last
+  // tiles so the whole row acts like a native OS share sheet.
+  //
+  // Tile size in the inline dropdown is deliberately wider than the panel can
+  // fit in one go, so the row is meant to end mid-tile so it reads as
+  // scrollable at a glance instead of looking like a complete, static row.
+  // The expanded pop-up is fixed larger still, with room to spare at `max-w-md`.
+  const TILE = {
+    sheet: { wrap: 'w-16', circle: 'h-12 w-12', icon: 'h-5 w-5', iconSm: 'h-4 w-4', label: 'text-[10px]', gap: 'gap-2' },
+    modal: { wrap: 'w-16', circle: 'h-14 w-14', icon: 'h-6 w-6', iconSm: 'h-5 w-5', label: 'text-[11px]', gap: 'gap-3' },
+  } as const
 
+  const renderSocialShare = (variant: keyof typeof TILE) => {
+    const s = TILE[variant]
+    const fade =
+      variant === 'sheet'
+        ? '[mask-image:linear-gradient(to_right,black_82%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_right,black_82%,transparent_100%)]'
+        : ''
     return (
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${t.copyBg}`}>
-            <Share className="h-4 w-4" aria-hidden="true" />
-          </span>
-          <div className="min-w-0">
-            <p className={`truncate ${t.font} text-[10px] font-semibold uppercase tracking-[0.16em] ${t.muted}`}>{kicker}</p>
-            <p id={headingId} className={`mt-0.5 break-words ${t.font} ${variant === 'modal' ? 'text-base' : 'text-sm'} font-semibold ${t.label}`}>
-              {title}
-            </p>
-          </div>
-        </div>
-        <div className="flex shrink-0 items-center gap-1">
-          {variant === 'modal' ? (
-            <button
-              type="button"
-              onClick={() => setExpanded(false)}
-              aria-label="Back to share options"
-              className={`rounded-full p-2 ${t.muted} transition ${t.mutedHoverBg} ${t.mutedHoverText} ${t.focusRing}`}
-            >
-              <Minimize2 className="h-4 w-4" />
-            </button>
-          ) : null}
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close share sheet"
-            className={`rounded-full p-2 ${t.muted} transition ${t.mutedHoverBg} ${t.mutedHoverText} ${t.focusRing}`}
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  const renderQuickActions = (variant: 'sheet' | 'modal') => (
-    <div className={`mt-3 grid gap-2 ${canShare ? 'grid-cols-2' : 'grid-cols-1'}`}>
-      <button
-        type="button"
-        onClick={copy}
-        aria-label={copied ? 'Link copied' : 'Copy link'}
-        className={`flex min-h-11 items-center justify-center gap-2 rounded-xl border ${t.border} px-3 text-xs font-semibold transition ${t.actionHover} ${t.focusRing}`}
-      >
-        <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${copied ? 'bg-emerald-500 text-white' : t.copyBg}`}>
-          {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-        </span>
-        <span>{copied ? 'Copied' : 'Copy link'}</span>
-      </button>
-
-      {canShare ? (
+      <div className={`mt-3 flex ${s.gap} overflow-x-auto py-1 ${fade}`}>
         <button
           type="button"
-          onClick={share}
-          className={`flex min-h-11 items-center justify-center gap-2 rounded-xl border ${t.border} ${t.surface} px-3 text-xs font-semibold ${t.label} transition ${t.actionHover} ${t.focusRing}`}
+          onClick={copy}
+          className={`flex ${s.wrap} shrink-0 flex-col items-center gap-1.5 rounded-xl py-1 ${t.focusRing}`}
         >
-          <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${t.surface} ${t.muted}`}>
-            <Share className="h-3.5 w-3.5" />
+          <span
+            className={`flex ${s.circle} items-center justify-center rounded-full transition-all duration-300 ${
+              copied ? 'scale-105 bg-emerald-500 text-white' : `${t.copyBg} hover:scale-105 active:scale-95`
+            }`}
+          >
+            {copied ? <Check className={s.iconSm} /> : <Copy className={s.iconSm} />}
           </span>
-          <span>{variant === 'modal' ? 'More options' : 'More'}</span>
+          <span className={`${t.font} ${s.label} font-medium ${t.muted}`}>{copied ? 'Copied' : 'Copy link'}</span>
         </button>
-      ) : null}
-    </div>
-  )
 
-  const renderSocialShare = (variant: 'sheet' | 'modal') => (
-    <div className={`mt-5 border-t ${t.surfaceBorder} pt-4`}>
-      <p className={`${t.font} text-[10px] font-semibold uppercase tracking-[0.16em] ${t.muted}`}>Share via</p>
-      <div className={`mt-3 grid grid-cols-4 gap-2 ${variant === 'modal' ? 'sm:grid-cols-5' : ''}`}>
         {SOCIAL_SHARE.map(({ name, label, Icon, href, bg, fg }) => (
           <button
             key={name}
             type="button"
             onClick={() => window.open(href(url, shareTitle), '_blank', 'noopener,noreferrer')}
             aria-label={label ?? `Share on ${name}`}
-            title={name}
-            className={`group flex min-h-[4.25rem] min-w-0 flex-col items-center justify-center gap-1 rounded-xl border ${t.surfaceBorder} ${t.surface} px-1 py-2 transition ${t.actionHover} ${t.focusRing}`}
+            className={`flex ${s.wrap} shrink-0 flex-col items-center gap-1.5 rounded-xl py-1 ${t.focusRing}`}
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-full transition-transform duration-200 group-hover:scale-105" style={{ background: bg, color: fg }}>
-              <Icon className="h-4 w-4" />
+            <span className={`flex ${s.circle} items-center justify-center rounded-full`} style={{ background: bg, color: fg }}>
+              <Icon className={s.icon} />
             </span>
-            <span className={`${t.font} max-w-full truncate text-[10px] font-medium leading-3 ${t.muted}`}>{name}</span>
+            <span className={`${t.font} ${s.label} font-medium ${t.muted}`}>{name}</span>
           </button>
         ))}
-      </div>
-    </div>
-  )
 
-  const renderQrCard = () => (
-    <div className={`mt-4 flex items-center gap-3 rounded-2xl border ${t.surfaceBorder} ${t.surface} p-3 sm:gap-4 sm:p-4`}>
+        {canShare && (
+          <button
+            type="button"
+            onClick={share}
+            className={`flex ${s.wrap} shrink-0 flex-col items-center gap-1.5 rounded-xl py-1 ${t.focusRing}`}
+          >
+            <span className={`flex ${s.circle} items-center justify-center rounded-full bg-slate-100 text-slate-700`}>
+              <Share className={s.iconSm} />
+            </span>
+            <span className={`${t.font} ${s.label} font-medium ${t.muted}`}>More</span>
+          </button>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div role="menu" className={`w-72 max-w-[calc(100vw-2rem)] rounded-2xl border ${t.border} ${t.panelBg} p-4 text-left shadow-xl ${t.panelShadow}`}>
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <p className={`truncate ${t.font} text-[10px] font-semibold uppercase tracking-wider ${t.muted}`}>{kicker}</p>
+          <p className={`truncate ${t.font} text-sm font-semibold ${t.label}`}>{title}</p>
+        </div>
+        <div className="flex shrink-0 items-center gap-0.5">
+          <button
+            type="button"
+            onClick={() => setExpanded(true)}
+            aria-label="Expand"
+            className={`rounded-full p-1 ${t.muted} transition ${t.mutedHoverBg} ${t.mutedHoverText} ${t.focusRing}`}
+          >
+            <Maximize2 className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className={`rounded-full p-1 ${t.muted} transition ${t.mutedHoverBg} ${t.mutedHoverText} ${t.focusRing}`}
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+
       <button
         type="button"
         onClick={() => setExpanded(true)}
         aria-label="Enlarge QR code"
-        className={`group relative shrink-0 rounded-xl border ${t.surfaceBorder} bg-white p-2 transition ${t.qrHoverBorder} ${t.focusRing}`}
+        className={`mt-3 flex w-full justify-center rounded-xl border ${t.border} bg-white p-3 transition ${t.qrHoverBorder} ${t.focusRing}`}
       >
-        <QRCodeSVG value={url} size={112} bgColor="#ffffff" fgColor={t.qrFg} level="M" />
-        <span className="absolute bottom-1.5 right-1.5 flex h-6 w-6 items-center justify-center rounded-lg bg-white/95 text-slate-600 opacity-0 shadow-sm transition group-hover:opacity-100 group-focus-visible:opacity-100">
-          <Maximize2 className="h-3 w-3" />
-        </span>
+        <QRCodeSVG value={url} size={144} bgColor="#ffffff" fgColor={t.qrFg} level="M" />
       </button>
-      <div className="min-w-0">
-        <p className={`${t.font} text-[10px] font-semibold uppercase tracking-[0.16em] ${t.muted}`}>Scan to open</p>
-        <p className={`mt-1 text-xs leading-5 ${t.label}`}>Use your camera, or share this short link.</p>
-        <p title={url} className={`mt-2 truncate ${t.font} text-[11px] ${t.muted}`}>{url}</p>
-      </div>
-    </div>
-  )
 
-  return (
-    <div
-      role="dialog"
-      aria-labelledby={`${titleId}-sheet`}
-      className={`w-[min(22rem,calc(100vw-2rem))] max-w-full max-h-[calc(100dvh-1.5rem)] overflow-y-auto overscroll-contain rounded-2xl border ${t.border} ${t.panelBg} p-4 text-left shadow-xl ${t.panelShadow} sm:p-5`}
-      onMouseDown={(event) => event.stopPropagation()}
-    >
-      {renderHeader('sheet')}
-      {renderQrCard()}
-      {renderQuickActions('sheet')}
       {renderSocialShare('sheet')}
 
       {expanded &&
@@ -259,42 +191,61 @@ export function ShareSheet({
         createPortal(
           <AnimatePresence>
             <motion.div
-              key="share-qr-dialog"
-              role="presentation"
+              role="dialog"
+              aria-modal="true"
+              aria-label={`${title} share sheet`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
-              className={`fixed inset-0 z-[100] flex items-center justify-center ${t.modalBackdrop} p-4 backdrop-blur-sm sm:p-6`}
-              onMouseDown={(event) => event.stopPropagation()}
-              onClick={(event) => {
-                if (event.target === event.currentTarget) setExpanded(false)
-              }}
+              className={`fixed inset-0 z-[100] flex items-center justify-center ${t.modalBackdrop} p-6 backdrop-blur-sm`}
+              onClick={() => setExpanded(false)}
+              onMouseDown={(e) => e.stopPropagation()}
             >
               <motion.div
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby={`${titleId}-modal`}
-                initial={{ opacity: 0, scale: 0.96, y: 8 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.96, y: 8 }}
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
                 transition={{ duration: 0.18, ease: 'easeOut' }}
-                className={`relative max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-2xl border ${t.border} ${t.panelBg} p-5 shadow-2xl sm:p-6`}
-                onClick={(event) => event.stopPropagation()}
+                className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
               >
-                {renderHeader('modal')}
-                <div className={`mt-5 flex justify-center rounded-2xl border ${t.surfaceBorder} bg-white p-4 sm:p-6`}>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className={`truncate ${t.font} text-[10px] font-semibold uppercase tracking-wider ${t.muted}`}>{kicker}</p>
+                    <p className={`truncate ${t.font} text-base font-semibold ${t.label}`}>{title}</p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setExpanded(false)}
+                      aria-label="Collapse"
+                      className={`rounded-full p-1.5 ${t.muted} transition ${t.mutedHoverBg} ${t.mutedHoverText} ${t.focusRing}`}
+                    >
+                      <Minimize2 className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      aria-label="Close"
+                      className={`rounded-full p-1.5 ${t.muted} transition ${t.mutedHoverBg} ${t.mutedHoverText} ${t.focusRing}`}
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className={`mt-4 flex justify-center rounded-xl border ${t.border} bg-white p-3`}>
                   <QRCodeSVG
                     value={url}
                     size={512}
                     bgColor="#ffffff"
                     fgColor={t.qrFg}
                     level="M"
-                    className="h-auto w-full max-w-[22rem]"
+                    className="h-auto w-full max-w-[360px]"
                   />
                 </div>
-                <p className={`mt-3 text-center ${t.font} text-[11px] ${t.muted}`}>Scan to open this link</p>
-                {renderQuickActions('modal')}
+
                 {renderSocialShare('modal')}
               </motion.div>
             </motion.div>

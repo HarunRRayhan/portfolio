@@ -1,10 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Head, Link, usePage } from '@inertiajs/react'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { getImageUrl } from '@/lib/imageUtils'
 import { Mail, Share2, Package, Bot, PiggyBank, Wrench, MoreHorizontal, Plane, ArrowLeft, Languages } from 'lucide-react'
 import { bioIcon, type BioIcon } from '@/lib/bioIcons'
-import { SharePopover } from '@/Components/ShareButton'
+import { ShareSheet } from '@/Components/ShareSheet'
 import { useSubscribePopup } from '@/Components/SubscribeProvider'
 
 interface BioLink {
@@ -220,7 +220,7 @@ function LinkIcon({ link }: { link: BioLink }) {
   )
 }
 
-/** The per-link share trigger (share icon button) plus its portaled share panel. */
+/** The per-link share trigger (share icon button) plus its ShareSheet, self-contained. */
 function ShareTrigger({
   link,
   isOpen,
@@ -245,20 +245,17 @@ function ShareTrigger({
         type="button"
         onClick={onToggle}
         aria-label={`Share ${link.label}`}
-        aria-haspopup="dialog"
+        aria-haspopup="menu"
         aria-expanded={isOpen}
         className={`flex h-full w-11 shrink-0 items-center justify-center border-l border-[#e4d7c4]/70 text-[#8a6a45] transition hover:bg-[#f1e6d3] hover:text-[#2b2320] focus-visible:bg-[#f1e6d3] focus-visible:text-[#2b2320] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#b8541f] ${cornerClassName}`}
       >
         <Share2 className="h-4 w-4" />
       </button>
-      <SharePopover
-        open={isOpen}
-        anchorRef={menuRef}
-        title={link.label}
-        url={link.share_url}
-        shareTitle={link.label}
-        onClose={onClose}
-      />
+      {isOpen && (
+        <div className="absolute right-0 top-full z-30 mt-2">
+          <ShareSheet title={link.label} url={link.share_url} shareTitle={link.label} onClose={onClose} />
+        </div>
+      )}
     </div>
   )
 }
@@ -355,7 +352,8 @@ export default function Bio({
   const [openMenu, setOpenMenu] = useState<number | 'page' | `tab:${string}` | null>(null)
   const menuRef = useRef<HTMLDivElement | null>(null)
   const tabScrollRef = useRef<HTMLElement | null>(null)
-  const tabShareRef = useRef<HTMLButtonElement | null>(null)
+  const tabRefs = useRef(new Map<string, HTMLDivElement>())
+  const [tabCaretPct, setTabCaretPct] = useState(50)
   const activeGroup = tabMap.get(activeSlug)
   const currentLinks = activeGroup?.links ?? []
 
@@ -421,6 +419,20 @@ export default function Bio({
       document.removeEventListener('keydown', onKeyDown)
       document.removeEventListener('scroll', onScroll, true)
     }
+  }, [openMenu])
+
+  // The share caret/sheet pin to the active tab's real on-screen position,
+  // not just its index -- with the tab strip scrollable, a naive
+  // index/length percentage would point at the wrong tab once the strip
+  // has been scrolled.
+  useLayoutEffect(() => {
+    if (typeof openMenu !== 'string' || !openMenu.startsWith('tab:')) return
+    const containerEl = tabScrollRef.current
+    const tabEl = tabRefs.current.get(openMenu.slice(4))
+    if (!containerEl || !tabEl) return
+    const containerRect = containerEl.getBoundingClientRect()
+    const tabRect = tabEl.getBoundingClientRect()
+    setTabCaretPct(((tabRect.left - containerRect.left + tabRect.width / 2) / containerRect.width) * 100)
   }, [openMenu])
 
   return (
@@ -497,20 +509,17 @@ export default function Bio({
                   type="button"
                   onClick={() => setOpenMenu(openMenu === 'page' ? null : 'page')}
                   aria-label="Share this page"
-                  aria-haspopup="dialog"
+                  aria-haspopup="menu"
                   aria-expanded={openMenu === 'page'}
                   className="flex h-10 w-10 items-center justify-center rounded-full border border-[#e4d7c4] bg-[#fffaf6]/90 text-[#5b4a3a] shadow-sm backdrop-blur transition hover:border-[#c98a4b] hover:text-[#2b2320] focus-visible:border-[#c98a4b] focus-visible:text-[#2b2320] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f]"
                 >
                   <Share2 className="h-4 w-4" />
                 </button>
-                <SharePopover
-                  open={openMenu === 'page'}
-                  anchorRef={menuRef}
-                  title="Harun R. Rayhan"
-                  url={pageShareLinkUrl}
-                  shareTitle="Harun R. Rayhan"
-                  onClose={() => setOpenMenu(null)}
-                />
+                {openMenu === 'page' && (
+                  <div className="absolute right-0 top-full z-30 mt-2">
+                    <ShareSheet title="Harun R. Rayhan" url={pageShareLinkUrl} shareTitle="Harun R. Rayhan" onClose={() => setOpenMenu(null)} />
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -592,6 +601,10 @@ export default function Bio({
                       <React.Fragment key={group.slug}>
                         {showDivider && <span aria-hidden="true" className="my-1.5 w-px shrink-0 self-stretch bg-[#e4d7c4]" />}
                         <div
+                          ref={(el) => {
+                            if (el) tabRefs.current.set(group.slug, el)
+                            else tabRefs.current.delete(group.slug)
+                          }}
                           // Fixed to ~26.4% of the strip's own width (not
                           // flex-1) so three full tabs plus two-thirds of a
                           // fourth show at once, signaling more via scroll.
@@ -620,10 +633,9 @@ export default function Bio({
                           {isActive && (
                             <button
                               type="button"
-                              ref={isActive ? tabShareRef : undefined}
                               onClick={() => setOpenMenu(openMenu === shareId ? null : shareId)}
                               aria-label={`Share ${displayTab(group.label, locale)}`}
-                              aria-haspopup="dialog"
+                              aria-haspopup="menu"
                               aria-expanded={openMenu === shareId}
                               title={`Share ${displayTab(group.label, locale)}`}
                               className="mr-2 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded opacity-70 transition hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8541f] sm:h-4 sm:w-4"
@@ -637,16 +649,34 @@ export default function Bio({
                   })}
                 </nav>
 
-                {typeof openMenu === 'string' && openMenu.startsWith('tab:') ? (
-                  <SharePopover
-                    open
-                    anchorRef={tabShareRef}
-                    title={displayTab(tabMap.get(openMenu.slice(4))?.label ?? '', locale)}
-                    url={tabShareUrl(openMenu.slice(4))}
-                    shareTitle="Harun R. Rayhan"
-                    onClose={() => setOpenMenu(null)}
-                  />
-                ) : null}
+                {typeof openMenu === 'string' &&
+                  openMenu.startsWith('tab:') &&
+                  (() => {
+                    const openSlug = openMenu.slice(4)
+                    return (
+                      <>
+                        {/* Caret pins to the tab's measured on-screen center
+                            (tabCaretPct) so it's correct even when the now-
+                            scrollable strip has been scrolled. */}
+                        <span
+                          aria-hidden="true"
+                          className="absolute top-full z-30 mt-[7px] h-3 w-3 rotate-45 rounded-[2px] border-l border-t border-[#e4d7c4] bg-[#fffaf6]"
+                          style={{ left: `${tabCaretPct}%`, transform: 'translateX(-50%)' }}
+                        />
+                        <div
+                          className="absolute top-full z-30 mt-2"
+                          style={{ left: `clamp(9rem, ${tabCaretPct}%, calc(100% - 9rem))`, transform: 'translateX(-50%)' }}
+                        >
+                          <ShareSheet
+                            title={displayTab(tabMap.get(openSlug)?.label ?? '', locale)}
+                            url={tabShareUrl(openSlug)}
+                            shareTitle="Harun R. Rayhan"
+                            onClose={() => setOpenMenu(null)}
+                          />
+                        </div>
+                      </>
+                    )
+                  })()}
               </div>
             )}
 

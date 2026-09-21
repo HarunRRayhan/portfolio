@@ -58,7 +58,7 @@ export const SOCIAL_SHARE = [
     label: undefined as string | undefined,
     Icon: Snapchat,
     bg: '#FFFC00',
-    fg: '#111827',
+    fg: '#ffffff',
     href: (url: string) => `https://www.snapchat.com/share?link=${encodeURIComponent(url)}`,
   },
   {
