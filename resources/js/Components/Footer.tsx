@@ -67,9 +67,13 @@ export function Footer() {
     const { newsletter } = usePage().props as { newsletter?: { subscriberCount?: number } }
     const subscriberCount = newsletter?.subscriberCount ?? 0
     const subscriberLabel = subscriberCount === 1 ? 'reader' : 'readers'
-    const [avatarUrl] = React.useState(
-        () => newsletterAvatars[Math.floor(Math.random() * newsletterAvatars.length)] ?? newsletterAvatars[0],
-    )
+    const [avatarUrls] = React.useState(() => {
+        const firstIndex = Math.floor(Math.random() * newsletterAvatars.length)
+        const secondIndex =
+            (firstIndex + 1 + Math.floor(Math.random() * (newsletterAvatars.length - 1))) % newsletterAvatars.length
+
+        return [newsletterAvatars[firstIndex] ?? newsletterAvatars[0], newsletterAvatars[secondIndex] ?? newsletterAvatars[1]]
+    })
 
     return (
         <footer className="relative border-t border-slate-800 bg-slate-950 text-white">
@@ -185,18 +189,18 @@ export function Footer() {
                     </div>
 
                     <div className="flex items-center gap-4 rounded-xl border border-slate-800 bg-slate-950/60 p-4 lg:max-w-xs">
-                        <div className="flex shrink-0 -space-x-3" aria-hidden="true">
+                        <div className="flex shrink-0 -space-x-2" aria-hidden="true">
                             <img
-                                src="/images/profile/harun-profile.webp"
+                                src={avatarUrls[0]}
                                 alt=""
-                                className="h-11 w-11 rounded-full border-2 border-slate-950 bg-slate-100 object-cover"
+                                className="h-9 w-9 rounded-full border-2 border-slate-950 bg-emerald-100 object-cover"
                             />
                             <img
-                                src={avatarUrl}
+                                src={avatarUrls[1]}
                                 alt=""
-                                className="h-11 w-11 rounded-full border-2 border-slate-950 bg-emerald-100 object-cover"
+                                className="h-9 w-9 rounded-full border-2 border-slate-950 bg-emerald-100 object-cover"
                             />
-                            <span className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-slate-950 bg-slate-800 text-sm font-semibold text-slate-300">
+                            <span className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-slate-950 bg-slate-800 text-xs font-semibold text-slate-300">
                                 +
                             </span>
                         </div>

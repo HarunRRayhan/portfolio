@@ -75,9 +75,12 @@ export function SubscribePopup({
 }) {
   const t = THEME[theme]
   const subscriberLabel = subscriberCount === 1 ? 'reader' : 'readers'
-  const [avatarUrl] = useState(
-    () => newsletterAvatars[Math.floor(Math.random() * newsletterAvatars.length)] ?? newsletterAvatars[0],
-  )
+  const [avatarUrls] = useState(() => {
+    const firstIndex = Math.floor(Math.random() * newsletterAvatars.length)
+    const secondIndex = (firstIndex + 1 + Math.floor(Math.random() * (newsletterAvatars.length - 1))) % newsletterAvatars.length
+
+    return [newsletterAvatars[firstIndex] ?? newsletterAvatars[0], newsletterAvatars[secondIndex] ?? newsletterAvatars[1]]
+  })
   if (typeof document === 'undefined') return null
 
   return createPortal(
@@ -143,16 +146,16 @@ export function SubscribePopup({
                 variants={itemVariants}
                 className={`mt-4 flex items-center gap-3 rounded-2xl border px-3.5 py-2.5 text-xs ${t.proof}`}
               >
-                <div className="flex shrink-0 -space-x-2" aria-hidden="true">
+                <div className="flex shrink-0 -space-x-1.5" aria-hidden="true">
                   <img
-                    src="/images/profile/harun-profile.webp"
+                    src={avatarUrls[0]}
                     alt=""
-                    className={`h-8 w-8 rounded-full border-2 object-cover ${t.proofAvatarBorder}`}
+                    className={`h-7 w-7 rounded-full border-2 object-cover ${t.proofAvatarBorder}`}
                   />
                   <img
-                    src={avatarUrl}
+                    src={avatarUrls[1]}
                     alt=""
-                    className={`h-8 w-8 rounded-full border-2 object-cover ${t.proofAvatarBorder}`}
+                    className={`h-7 w-7 rounded-full border-2 object-cover ${t.proofAvatarBorder}`}
                   />
                 </div>
                 <span>
