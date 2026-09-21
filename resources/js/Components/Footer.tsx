@@ -170,7 +170,7 @@ export function Footer() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.6, delay: 0.08 }}
-                    className="mt-8 grid gap-8 rounded-xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm backdrop-blur sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center"
+                    className="mt-8 rounded-xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm backdrop-blur sm:p-8"
                 >
                     <div>
                         <div className="flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-emerald-400">
@@ -186,27 +186,23 @@ export function Footer() {
                         <div className="mt-5 max-w-md">
                             <SubscribeForm source="footer" theme="slate" />
                         </div>
-                    </div>
-
-                    <div className="flex items-center gap-4 rounded-xl border border-slate-800 bg-slate-950/60 p-4 lg:max-w-xs">
-                        <div className="flex shrink-0 -space-x-2" aria-hidden="true">
-                            <img
-                                src={avatarUrls[0]}
-                                alt=""
-                                className="h-9 w-9 rounded-full border-2 border-slate-950 bg-emerald-100 object-cover"
-                            />
-                            <img
-                                src={avatarUrls[1]}
-                                alt=""
-                                className="h-9 w-9 rounded-full border-2 border-slate-950 bg-emerald-100 object-cover"
-                            />
-                            <span className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-slate-950 bg-slate-800 text-xs font-semibold text-slate-300">
-                                +
-                            </span>
+                        <div className="mt-3 flex items-center gap-2.5 text-xs text-slate-500">
+                            <div className="flex shrink-0 -space-x-1.5" aria-hidden="true">
+                                <img
+                                    src={avatarUrls[0]}
+                                    alt=""
+                                    className="h-7 w-7 rounded-full border-2 border-slate-900 bg-emerald-100 object-cover"
+                                />
+                                <img
+                                    src={avatarUrls[1]}
+                                    alt=""
+                                    className="h-7 w-7 rounded-full border-2 border-slate-900 bg-emerald-100 object-cover"
+                                />
+                            </div>
+                            <p>
+                                Join <span className="font-semibold text-slate-300">{subscriberCount.toLocaleString()}</span> other {subscriberLabel}.
+                            </p>
                         </div>
-                        <p className="text-sm leading-5 text-slate-400">
-                            Join <span className="font-semibold text-white">{subscriberCount.toLocaleString()}</span> other {subscriberLabel}.
-                        </p>
                     </div>
                 </motion.div>
 
