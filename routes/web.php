@@ -16,6 +16,7 @@ use App\Http\Controllers\Consultation\StripeWebhookController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SponsorCheckoutController;
 use App\Models\BioLink;
 use App\Models\BioLinkClick;
 use App\Models\BlogCommentThread;
@@ -23,6 +24,7 @@ use App\Models\MediaItem;
 use App\Models\ShortLink;
 use App\Models\ShortLinkClick;
 use App\Services\CountryResolver;
+use App\Services\Sponsorship\SponsorCheckoutService;
 use App\Support\BlogRepository;
 use App\Support\CaseStudyRepository;
 use App\Support\MediaEmbeds;
@@ -358,6 +360,28 @@ Route::get('/about', function () {
         'canonicalUrl' => $siteUrl.'/about',
     ]);
 })->name('about');
+
+Route::redirect('/sponsor', '/sponsor-me', 301)->name('sponsor.legacy');
+
+Route::post('/sponsor-me/checkout', [SponsorCheckoutController::class, 'store'])->name('sponsor.checkout');
+
+Route::get('/sponsor-me', function (Request $request, SponsorCheckoutService $checkout) {
+    $siteUrl = rtrim(config('app.url', url('/')), '/');
+    $checkoutStatus = $request->query('checkout');
+
+    if (! in_array($checkoutStatus, ['success', 'cancelled'], true)) {
+        $checkoutStatus = null;
+    }
+
+    return Inertia::render('Sponsor', [
+        'canonicalUrl' => $siteUrl.'/sponsor-me',
+        'stripeConfigured' => $checkout->configured(),
+        'checkoutStatus' => $checkoutStatus,
+        'minAmountCents' => (int) config('sponsor.min_amount_cents', 100),
+        'maxAmountCents' => (int) config('sponsor.max_amount_cents', 1_000_000),
+        'suggestedAmountCents' => config('sponsor.suggested_amount_cents', []),
+    ]);
+})->name('sponsor');
 
 Route::get('/products', function () {
     return Inertia::render('Products');
