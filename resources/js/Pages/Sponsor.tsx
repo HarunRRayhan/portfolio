@@ -2,7 +2,6 @@ import { Head, useForm } from '@inertiajs/react'
 import { motion } from 'framer-motion'
 import {
   ArrowRight,
-  Check,
   Coffee,
   Heart,
   LockKeyhole,
@@ -91,7 +90,6 @@ function SponsorCheckoutForm({
           </span>
           <div>
             <p className="text-sm font-semibold text-white">Support this work</p>
-            <p className="text-xs text-slate-400">Choose any amount</p>
           </div>
         </div>
         <Heart className="h-5 w-5 fill-amber-400 text-amber-400" />
@@ -171,9 +169,14 @@ function SponsorCheckoutForm({
           {!form.processing && <ArrowRight className="h-4 w-4" />}
         </button>
 
-        <p className="mt-4 flex items-center justify-center gap-2 text-center text-xs text-slate-400">
-          <ShieldCheck className="h-4 w-4 text-emerald-400" />
-          Secure payment by Stripe
+        <p className="mt-4 flex items-center justify-center text-center text-xs text-slate-400">
+          <img
+            src="/images/stripe/powered-by-stripe.svg"
+            alt="Powered by Stripe"
+            width="150"
+            height="34"
+            className="h-6 w-auto"
+          />
         </p>
       </form>
     </div>
@@ -280,11 +283,7 @@ export default function Sponsor({
               >
                 <span className="inline-flex items-center gap-2">
                   <LockKeyhole className="h-4 w-4 text-emerald-400" />
-                  Checkout by Stripe
-                </span>
-                <span className="inline-flex items-center gap-2">
-                  <Check className="h-4 w-4 text-emerald-400" />
-                  Choose your amount
+                  Secure payment by Stripe
                 </span>
               </motion.div>
             </div>
