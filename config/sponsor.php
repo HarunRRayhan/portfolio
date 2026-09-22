@@ -7,7 +7,7 @@ return [
 
     'min_amount_cents' => 100,
 
-    'max_amount_cents' => 1_000_000,
+    'max_amount_cents' => 100_000_000,
 
     'suggested_amount_cents' => [
         500,

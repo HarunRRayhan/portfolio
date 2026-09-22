@@ -88,7 +88,7 @@ class SponsorCheckoutService
 
         if (
             $amountCents < (int) config('sponsor.min_amount_cents', 100)
-            || $amountCents > (int) config('sponsor.max_amount_cents', 1_000_000)
+            || $amountCents > (int) config('sponsor.max_amount_cents', 100_000_000)
         ) {
             throw new \InvalidArgumentException('The sponsorship amount is outside the allowed range.');
         }

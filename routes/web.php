@@ -378,7 +378,7 @@ Route::get('/sponsor-me', function (Request $request, SponsorCheckoutService $ch
         'stripeConfigured' => $checkout->configured(),
         'checkoutStatus' => $checkoutStatus,
         'minAmountCents' => (int) config('sponsor.min_amount_cents', 100),
-        'maxAmountCents' => (int) config('sponsor.max_amount_cents', 1_000_000),
+        'maxAmountCents' => (int) config('sponsor.max_amount_cents', 100_000_000),
         'suggestedAmountCents' => config('sponsor.suggested_amount_cents', []),
     ]);
 })->name('sponsor');

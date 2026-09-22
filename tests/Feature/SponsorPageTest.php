@@ -21,7 +21,7 @@ class SponsorPageTest extends TestCase
             ->where('canonicalUrl', rtrim((string) config('app.url'), '/').'/sponsor-me')
             ->where('stripeConfigured', true)
             ->where('minAmountCents', 100)
-            ->where('maxAmountCents', 1_000_000)
+            ->where('maxAmountCents', 100_000_000)
             ->where('suggestedAmountCents', [500, 1_000, 2_500, 5_000]));
     }
 
@@ -43,6 +43,14 @@ class SponsorPageTest extends TestCase
             'amount' => '0.999',
             'cadence' => 'weekly',
         ])->assertSessionHasErrors(['amount', 'cadence']);
+    }
+
+    public function test_checkout_rejects_amounts_above_one_million_dollars(): void
+    {
+        $this->post('/sponsor-me/checkout', [
+            'amount' => '1000000.01',
+            'cadence' => SponsorCheckoutService::CADENCE_MONTHLY,
+        ])->assertSessionHasErrors('amount');
     }
 
     #[DataProvider('cadenceProvider')]
