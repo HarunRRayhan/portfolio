@@ -92,7 +92,7 @@ export function SubscribePopup({
             initial="hidden"
             animate="show"
             exit="exit"
-            className={`relative w-full max-w-2xl overflow-hidden rounded-3xl border ${t.panel} p-6 shadow-2xl sm:p-8`}
+            className={`relative w-full max-w-sm overflow-hidden rounded-3xl border ${t.panel} p-6 shadow-2xl md:max-w-2xl md:p-8`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Decorative glow that spills from the top edge inside the panel. */}
@@ -107,10 +107,10 @@ export function SubscribePopup({
               <X className="h-4 w-4" />
             </button>
 
-            <div className="relative md:grid md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:items-center md:gap-10">
-              <div>
+            <div className="relative md:grid md:grid-cols-2 md:items-center md:gap-12">
+              <div className="w-full text-center md:max-w-xs md:justify-self-center">
                 {/* Icon tile with a soft halo behind it. */}
-                <motion.div variants={itemVariants} className="relative inline-flex">
+                <motion.div variants={itemVariants} className="relative mx-auto flex w-fit">
                   <span
                     aria-hidden="true"
                     className={`absolute inset-0 scale-[1.35] rounded-2xl bg-gradient-to-br ${t.iconGlow} opacity-30 blur-lg`}
@@ -126,7 +126,7 @@ export function SubscribePopup({
                     <p className={`text-sm leading-relaxed ${t.lead}`}>
                       I send an email when there&apos;s something worth reading.
                     </p>
-                    <p className={`flex items-center gap-1.5 text-xs ${t.fine}`}>
+                    <p className={`flex items-center justify-center gap-1.5 text-xs ${t.fine}`}>
                       <ShieldCheck className={`h-3.5 w-3.5 shrink-0 ${t.fineIcon}`} />
                       No spam, unsubscribe anytime.
                     </p>
@@ -134,7 +134,7 @@ export function SubscribePopup({
                 </motion.div>
               </div>
 
-              <div className="mt-6 md:mt-0">
+              <div className="mt-6 w-full md:mt-0 md:max-w-xs md:justify-self-center">
                 <motion.div variants={itemVariants}>
                   <SubscribeForm source={source} theme={theme} onSuccess={onClose} />
                 </motion.div>
