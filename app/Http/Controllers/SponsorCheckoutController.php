@@ -14,7 +14,7 @@ class SponsorCheckoutController extends Controller
     public function store(Request $request, SponsorCheckoutService $checkout): Response
     {
         $minimum = number_format((int) config('sponsor.min_amount_cents', 100) / 100, 2, '.', '');
-        $maximum = number_format((int) config('sponsor.max_amount_cents', 1_000_000) / 100, 2, '.', '');
+        $maximum = number_format((int) config('sponsor.max_amount_cents', 100_000_000) / 100, 2, '.', '');
 
         $data = $request->validate([
             'amount' => ['required', 'numeric', 'decimal:0,2', "min:{$minimum}", "max:{$maximum}"],

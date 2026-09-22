@@ -67,20 +67,15 @@ function SponsorCheckoutForm({
   maxAmountCents,
   suggestedAmountCents,
 }: SponsorCheckoutFormProps) {
-  const [cadence, setCadence] = useState<Cadence>('once')
+  const [cadence, setCadence] = useState<Cadence>('monthly')
   const form = useForm({
     amount: amountValue(1_000),
-    cadence: 'once' as Cadence,
+    cadence: 'monthly' as Cadence,
   })
   const formErrors = form.errors as Record<string, string | undefined>
   const suggestedAmounts = suggestedAmountCents.filter(
     (amount) => amount >= minAmountCents && amount <= maxAmountCents,
   )
-
-  const chooseCadence = (nextCadence: Cadence) => {
-    setCadence(nextCadence)
-    form.setData('cadence', nextCadence)
-  }
 
   const submit = (event: FormEvent) => {
     event.preventDefault()
@@ -100,28 +95,6 @@ function SponsorCheckoutForm({
           </div>
         </div>
         <Heart className="h-5 w-5 fill-amber-400 text-amber-400" />
-      </div>
-
-      <div className="mt-6 grid grid-cols-2 gap-2 rounded-xl bg-black/20 p-1">
-        {([
-          { value: 'once' as const, label: 'One-time', icon: Coffee },
-          { value: 'monthly' as const, label: 'Monthly', icon: Repeat2 },
-        ]).map(({ value, label, icon: Icon }) => (
-          <button
-            key={value}
-            type="button"
-            aria-pressed={cadence === value}
-            onClick={() => chooseCadence(value)}
-            className={`inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition ${
-              cadence === value
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Icon className="h-4 w-4" />
-            {label}
-          </button>
-        ))}
       </div>
 
       <form onSubmit={submit} className="mt-6">
@@ -162,6 +135,27 @@ function SponsorCheckoutForm({
           ))}
         </div>
 
+        <div className="mt-6 border-t border-white/10 pt-5">
+          <label htmlFor="sponsor-monthly" className="flex cursor-pointer items-start gap-3">
+            <input
+              id="sponsor-monthly"
+              name="monthly"
+              type="checkbox"
+              checked={cadence === 'monthly'}
+              onChange={(event) => {
+                const nextCadence: Cadence = event.target.checked ? 'monthly' : 'once'
+                setCadence(nextCadence)
+                form.setData('cadence', nextCadence)
+              }}
+              className="mt-0.5 h-5 w-5 shrink-0 rounded border-white/30 bg-white/10 text-amber-400 accent-amber-400 focus:ring-2 focus:ring-amber-400/40 focus:ring-offset-0"
+            />
+            <span>
+              <span className="block text-sm font-semibold text-white">Make this a monthly contribution</span>
+              <span className="mt-1 block text-xs leading-5 text-slate-400">You can uncheck this for a one-time contribution.</span>
+            </span>
+          </label>
+        </div>
+
         {(formErrors.amount || formErrors.cadence || formErrors.checkout) && (
           <div className="mt-4 rounded-lg border border-rose-300/30 bg-rose-400/10 px-3 py-2 text-sm text-rose-200" role="alert">
             {formErrors.amount || formErrors.cadence || formErrors.checkout}
@@ -191,7 +185,7 @@ export default function Sponsor({
   stripeConfigured = false,
   checkoutStatus = null,
   minAmountCents = 100,
-  maxAmountCents = 1_000_000,
+  maxAmountCents = 100_000_000,
   suggestedAmountCents = [500, 1_000, 2_500, 5_000],
 }: SponsorProps) {
   return (
@@ -316,10 +310,10 @@ export default function Sponsor({
       <section id="support-options" className="bg-white py-20 sm:py-24">
         <div className="container mx-auto">
           <div className="mx-auto max-w-2xl text-center">
-            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Pick a cadence</p>
+            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Support the work</p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Choose what works for you.</h2>
             <p className="mt-4 text-base leading-7 text-slate-500">
-              Pick an amount, choose once or monthly, then finish securely on Stripe.
+              Pick an amount, keep monthly support selected, or uncheck it for a one-time contribution.
             </p>
           </div>
 
@@ -344,8 +338,8 @@ export default function Sponsor({
               },
               {
                 icon: Repeat2,
-                title: 'Choose once or monthly',
-                description: 'A one-time thank-you or a small recurring contribution both help.',
+                title: 'Monthly by default',
+                description: 'Monthly support is selected for you. Uncheck it whenever you want to give once.',
               },
               {
                 icon: ShieldCheck,
