@@ -102,7 +102,7 @@ export function SubscribePopup({
             initial="hidden"
             animate="show"
             exit="exit"
-            className={`relative w-full max-w-sm overflow-hidden rounded-3xl border ${t.panel} p-6 shadow-2xl sm:p-7`}
+            className={`relative w-full max-w-2xl overflow-hidden rounded-3xl border ${t.panel} p-6 shadow-2xl sm:p-8`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Decorative glow that spills from the top edge inside the panel. */}
@@ -117,55 +117,59 @@ export function SubscribePopup({
               <X className="h-4 w-4" />
             </button>
 
-            <div className="relative">
-              {/* Icon tile with a soft halo behind it. */}
-              <motion.div variants={itemVariants} className="relative inline-flex">
-                <span
-                  aria-hidden="true"
-                  className={`absolute inset-0 scale-[1.35] rounded-2xl bg-gradient-to-br ${t.iconGlow} opacity-30 blur-lg`}
-                />
-                <span className={`relative flex h-12 w-12 items-center justify-center rounded-2xl ${t.iconTile}`}>
-                  <Mail className="h-5 w-5" />
-                </span>
-              </motion.div>
-
-              <motion.div variants={itemVariants} className="mt-4 space-y-2">
-                <h2 className={`text-xl ${t.title}`}>Get new posts and tools first</h2>
-                <div className="space-y-1.5">
-                  <p className={`text-sm leading-relaxed ${t.lead}`}>
-                    I send an email when there&apos;s something worth reading.
-                  </p>
-                  <p className={`flex items-center gap-1.5 text-xs ${t.fine}`}>
-                    <ShieldCheck className={`h-3.5 w-3.5 shrink-0 ${t.fineIcon}`} />
-                    No spam, unsubscribe anytime.
-                  </p>
-                </div>
-              </motion.div>
-
-              <motion.div variants={itemVariants} className="mt-5">
-                <SubscribeForm source={source} theme={theme} onSuccess={onClose} />
-              </motion.div>
-
-              <motion.div
-                variants={itemVariants}
-                className={`mt-3 flex items-center gap-2.5 text-xs ${t.proof}`}
-              >
-                <div className="flex shrink-0 -space-x-1.5" aria-hidden="true">
-                  <img
-                    src={avatarUrls[0]}
-                    alt=""
-                    className={`h-7 w-7 rounded-full border-2 object-cover ${t.proofAvatarBorder}`}
+            <div className="relative md:grid md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:items-center md:gap-10">
+              <div>
+                {/* Icon tile with a soft halo behind it. */}
+                <motion.div variants={itemVariants} className="relative inline-flex">
+                  <span
+                    aria-hidden="true"
+                    className={`absolute inset-0 scale-[1.35] rounded-2xl bg-gradient-to-br ${t.iconGlow} opacity-30 blur-lg`}
                   />
-                  <img
-                    src={avatarUrls[1]}
-                    alt=""
-                    className={`h-7 w-7 rounded-full border-2 object-cover ${t.proofAvatarBorder}`}
-                  />
-                </div>
-                <span>
-                  Join <strong className="font-semibold">{subscriberCount.toLocaleString()}</strong> other {subscriberLabel}.
-                </span>
-              </motion.div>
+                  <span className={`relative flex h-12 w-12 items-center justify-center rounded-2xl ${t.iconTile}`}>
+                    <Mail className="h-5 w-5" />
+                  </span>
+                </motion.div>
+
+                <motion.div variants={itemVariants} className="mt-4 space-y-2">
+                  <h2 className={`text-xl ${t.title}`}>Get new posts and tools first</h2>
+                  <div className="space-y-1.5">
+                    <p className={`text-sm leading-relaxed ${t.lead}`}>
+                      I send an email when there&apos;s something worth reading.
+                    </p>
+                    <p className={`flex items-center gap-1.5 text-xs ${t.fine}`}>
+                      <ShieldCheck className={`h-3.5 w-3.5 shrink-0 ${t.fineIcon}`} />
+                      No spam, unsubscribe anytime.
+                    </p>
+                  </div>
+                </motion.div>
+              </div>
+
+              <div className="mt-6 md:mt-0">
+                <motion.div variants={itemVariants}>
+                  <SubscribeForm source={source} theme={theme} onSuccess={onClose} />
+                </motion.div>
+
+                <motion.div
+                  variants={itemVariants}
+                  className={`mt-3 flex items-center gap-2.5 text-xs ${t.proof}`}
+                >
+                  <div className="flex shrink-0 -space-x-1.5" aria-hidden="true">
+                    <img
+                      src={avatarUrls[0]}
+                      alt=""
+                      className={`h-7 w-7 rounded-full border-2 object-cover ${t.proofAvatarBorder}`}
+                    />
+                    <img
+                      src={avatarUrls[1]}
+                      alt=""
+                      className={`h-7 w-7 rounded-full border-2 object-cover ${t.proofAvatarBorder}`}
+                    />
+                  </div>
+                  <span>
+                    Join <strong className="font-semibold">{subscriberCount.toLocaleString()}</strong> other {subscriberLabel}.
+                  </span>
+                </motion.div>
+              </div>
             </div>
           </motion.div>
         </motion.div>
