@@ -107,58 +107,60 @@ export function SubscribePopup({
               <X className="h-4 w-4" />
             </button>
 
-            <div className="relative md:grid md:grid-cols-2 md:items-center md:gap-12">
-              <div className="w-full text-center md:max-w-xs md:justify-self-center">
-                {/* Icon tile with a soft halo behind it. */}
-                <motion.div variants={itemVariants} className="relative mx-auto flex w-fit">
-                  <span
-                    aria-hidden="true"
-                    className={`absolute inset-0 scale-[1.35] rounded-2xl bg-gradient-to-br ${t.iconGlow} opacity-30 blur-lg`}
-                  />
-                  <span className={`relative flex h-12 w-12 items-center justify-center rounded-2xl ${t.iconTile}`}>
-                    <Mail className="h-5 w-5" />
-                  </span>
-                </motion.div>
+            <div className="relative">
+              {/* Icon tile with a soft halo behind it, centered across the whole popup. */}
+              <motion.div variants={itemVariants} className="relative mx-auto flex w-fit">
+                <span
+                  aria-hidden="true"
+                  className={`absolute inset-0 scale-[1.35] rounded-2xl bg-gradient-to-br ${t.iconGlow} opacity-30 blur-lg`}
+                />
+                <span className={`relative flex h-12 w-12 items-center justify-center rounded-2xl ${t.iconTile}`}>
+                  <Mail className="h-5 w-5" />
+                </span>
+              </motion.div>
 
-                <motion.div variants={itemVariants} className="mt-4 space-y-2">
-                  <h2 className={`text-xl ${t.title}`}>Get new posts and tools first</h2>
-                  <div className="space-y-1.5">
-                    <p className={`text-sm leading-relaxed ${t.lead}`}>
-                      I send an email when there&apos;s something worth reading.
-                    </p>
-                    <p className={`flex items-center justify-center gap-1.5 text-xs ${t.fine}`}>
-                      <ShieldCheck className={`h-3.5 w-3.5 shrink-0 ${t.fineIcon}`} />
-                      No spam, unsubscribe anytime.
-                    </p>
-                  </div>
-                </motion.div>
-              </div>
+              <div className="mt-5 md:grid md:grid-cols-2 md:items-center md:gap-12">
+                <div className="w-full text-center md:max-w-xs md:justify-self-center">
+                  <motion.div variants={itemVariants} className="space-y-2">
+                    <h2 className={`text-xl ${t.title}`}>Get new posts and tools first</h2>
+                    <div className="space-y-1.5">
+                      <p className={`text-sm leading-relaxed ${t.lead}`}>
+                        I send an email when there&apos;s something worth reading.
+                      </p>
+                      <p className={`flex items-center justify-center gap-1.5 text-xs ${t.fine}`}>
+                        <ShieldCheck className={`h-3.5 w-3.5 shrink-0 ${t.fineIcon}`} />
+                        No spam, unsubscribe anytime.
+                      </p>
+                    </div>
+                  </motion.div>
+                </div>
 
-              <div className="mt-6 w-full md:mt-0 md:max-w-xs md:justify-self-center">
-                <motion.div variants={itemVariants}>
-                  <SubscribeForm source={source} theme={theme} onSuccess={onClose} />
-                </motion.div>
+                <div className="mt-6 w-full md:mt-0 md:max-w-xs md:justify-self-center">
+                  <motion.div variants={itemVariants}>
+                    <SubscribeForm source={source} theme={theme} onSuccess={onClose} />
+                  </motion.div>
 
-                <motion.div
-                  variants={itemVariants}
-                  className={`mt-3 flex items-center gap-2.5 text-xs ${t.proof}`}
-                >
-                  <div className="flex shrink-0 -space-x-1.5" aria-hidden="true">
-                    <img
-                      src={avatarUrls[0]}
-                      alt=""
-                      className={`h-7 w-7 rounded-full border-2 object-cover ${t.proofAvatarBorder}`}
-                    />
-                    <img
-                      src={avatarUrls[1]}
-                      alt=""
-                      className={`h-7 w-7 rounded-full border-2 object-cover ${t.proofAvatarBorder}`}
-                    />
-                  </div>
-                  <span>
-                    Join <strong className="font-semibold">{subscriberCount.toLocaleString()}</strong> other {subscriberLabel}.
-                  </span>
-                </motion.div>
+                  <motion.div
+                    variants={itemVariants}
+                    className={`mt-3 flex items-center gap-2.5 text-xs ${t.proof}`}
+                  >
+                    <div className="flex shrink-0 -space-x-1.5" aria-hidden="true">
+                      <img
+                        src={avatarUrls[0]}
+                        alt=""
+                        className={`h-7 w-7 rounded-full border-2 object-cover ${t.proofAvatarBorder}`}
+                      />
+                      <img
+                        src={avatarUrls[1]}
+                        alt=""
+                        className={`h-7 w-7 rounded-full border-2 object-cover ${t.proofAvatarBorder}`}
+                      />
+                    </div>
+                    <span>
+                      Join <strong className="font-semibold">{subscriberCount.toLocaleString()}</strong> other {subscriberLabel}.
+                    </span>
+                  </motion.div>
+                </div>
               </div>
             </div>
           </motion.div>
