@@ -8,6 +8,7 @@ import { Github, Linkedin, Mail, Twitter } from '@/lib/icons'
 import { Button } from '@/Components/ui/button'
 import { Logo } from '@/Components/Logo'
 import { SubscribeForm } from '@/Components/SubscribeForm'
+import { pickNewsletterAvatars } from '@/lib/newsletterAvatars'
 
 type FooterLink = {
     label: string
@@ -57,23 +58,11 @@ const socials = [
     { href: 'mailto:me@harun.dev?subject=Hello%20Harun', label: 'Email', icon: Mail },
 ]
 
-const newsletterAvatars = [
-    '/images/newsletter/avatar-1.svg',
-    '/images/newsletter/avatar-2.svg',
-    '/images/newsletter/avatar-3.svg',
-]
-
 export function Footer() {
     const { newsletter } = usePage().props as { newsletter?: { subscriberCount?: number } }
     const subscriberCount = newsletter?.subscriberCount ?? 0
     const subscriberLabel = subscriberCount === 1 ? 'reader' : 'readers'
-    const [avatarUrls] = React.useState(() => {
-        const firstIndex = Math.floor(Math.random() * newsletterAvatars.length)
-        const secondIndex =
-            (firstIndex + 1 + Math.floor(Math.random() * (newsletterAvatars.length - 1))) % newsletterAvatars.length
-
-        return [newsletterAvatars[firstIndex] ?? newsletterAvatars[0], newsletterAvatars[secondIndex] ?? newsletterAvatars[1]]
-    })
+    const [avatarUrls] = React.useState(pickNewsletterAvatars)
 
     return (
         <footer className="relative border-t border-slate-800 bg-slate-950 text-white">

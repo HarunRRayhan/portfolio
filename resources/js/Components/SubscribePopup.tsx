@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { X, Mail, ShieldCheck } from 'lucide-react'
 import { SubscribeForm, SubscribeTheme } from '@/Components/SubscribeForm'
+import { pickNewsletterAvatars } from '@/lib/newsletterAvatars'
 
 const THEME = {
   warm: {
@@ -38,12 +39,6 @@ const THEME = {
   },
 } as const
 
-const newsletterAvatars = [
-  '/images/newsletter/avatar-1.svg',
-  '/images/newsletter/avatar-2.svg',
-  '/images/newsletter/avatar-3.svg',
-]
-
 const panelVariants: Variants = {
   hidden: { opacity: 0, scale: 0.96, y: 12 },
   show: {
@@ -75,12 +70,7 @@ export function SubscribePopup({
 }) {
   const t = THEME[theme]
   const subscriberLabel = subscriberCount === 1 ? 'reader' : 'readers'
-  const [avatarUrls] = useState(() => {
-    const firstIndex = Math.floor(Math.random() * newsletterAvatars.length)
-    const secondIndex = (firstIndex + 1 + Math.floor(Math.random() * (newsletterAvatars.length - 1))) % newsletterAvatars.length
-
-    return [newsletterAvatars[firstIndex] ?? newsletterAvatars[0], newsletterAvatars[secondIndex] ?? newsletterAvatars[1]]
-  })
+  const [avatarUrls] = useState(pickNewsletterAvatars)
   if (typeof document === 'undefined') return null
 
   return createPortal(

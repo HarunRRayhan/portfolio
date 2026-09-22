@@ -7,6 +7,7 @@ import { useIdleSubscribe } from '@/hooks/useIdleSubscribe'
 
 const IDLE_MS = 60_000
 const DISMISS_KEY = 'subscribe-popup-dismissed'
+type NewsletterPageProps = { newsletter?: { subscriberCount?: number } }
 
 /** Admin/authenticated pages (sidebar layout) never show the subscribe popup. */
 function isAdminPath(pathname: string) {
@@ -50,6 +51,15 @@ export function SubscribeProvider({
   const [open, setOpen] = useState(false)
   const [source, setSource] = useState('idle-popup')
   const [theme, setTheme] = useState<SubscribeTheme>('slate')
+  const [currentSubscriberCount, setCurrentSubscriberCount] = useState(subscriberCount)
+
+  useEffect(() => {
+    return router.on('navigate', (event) => {
+      const nextCount = (event.detail.page.props as NewsletterPageProps).newsletter?.subscriberCount
+
+      if (typeof nextCount === 'number') setCurrentSubscriberCount(nextCount)
+    })
+  }, [])
 
   const openPopup = useCallback((nextSource: string, nextTheme: SubscribeTheme = 'slate') => {
     if (isAdminArea) return
@@ -75,7 +85,7 @@ export function SubscribeProvider({
           onClose={closePopup}
           source={source}
           theme={theme}
-          subscriberCount={subscriberCount}
+          subscriberCount={currentSubscriberCount}
         />
       )}
     </SubscribeContext.Provider>
