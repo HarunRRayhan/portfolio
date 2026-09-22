@@ -2,9 +2,11 @@ import { Head, useForm } from '@inertiajs/react'
 import { motion } from 'framer-motion'
 import {
   ArrowRight,
+  Coins,
   Coffee,
+  Fuel,
   Heart,
-  LockKeyhole,
+  Plane,
   Repeat2,
   ShieldCheck,
   Sparkles,
@@ -279,12 +281,41 @@ export default function Sponsor({
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.24 }}
-                className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-slate-400"
+                className="relative mt-8 max-w-xl overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-5"
+                aria-label="Your support fuels the next flight"
               >
-                <span className="inline-flex items-center gap-2">
-                  <LockKeyhole className="h-4 w-4 text-emerald-400" />
-                  Secure payment by Stripe
-                </span>
+                <div aria-hidden="true" className="absolute -right-10 -top-12 h-28 w-28 rounded-full bg-amber-400/10 blur-2xl" />
+                <div className="relative">
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="inline-flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-300">
+                      <Coins className="h-4 w-4 text-amber-300" />
+                      Support / fuel / flight
+                    </span>
+                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-emerald-300">
+                      <Sparkles className="h-3 w-3" />
+                      airborne
+                    </span>
+                  </div>
+
+                  <div className="relative mt-5 h-16" aria-hidden="true">
+                    <div className="absolute left-7 right-8 top-1/2 border-t border-dashed border-amber-300/30" />
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 rounded-xl border border-amber-300/20 bg-amber-400/10 p-2 text-amber-300">
+                      <Coins className="h-5 w-5" />
+                    </div>
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-xl border border-violet-300/20 bg-violet-400/10 p-2 text-violet-200">
+                      <Fuel className="h-5 w-5" />
+                    </div>
+                    <motion.div
+                      animate={{ x: [0, 8, 0], y: [0, -3, 0], rotate: [0, 2, 0] }}
+                      transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+                      className="absolute right-0 top-1/2 -translate-y-1/2 text-amber-300 drop-shadow-[0_0_8px_rgba(252,211,77,0.75)]"
+                    >
+                      <Plane className="h-8 w-8" fill="currentColor" strokeWidth={1.5} />
+                    </motion.div>
+                  </div>
+
+                  <p className="mt-3 text-sm text-slate-300">A little fuel for the next thing I publish.</p>
+                </div>
               </motion.div>
             </div>
 
