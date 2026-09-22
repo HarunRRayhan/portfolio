@@ -119,7 +119,7 @@ export function SubscribePopup({
                 </span>
               </motion.div>
 
-              <div className="mt-5 md:grid md:grid-cols-2 md:items-center md:gap-12">
+              <div className="mt-5 md:grid md:grid-cols-2 md:items-start md:gap-12">
                 <div className="w-full text-center md:max-w-xs md:justify-self-center">
                   <motion.div variants={itemVariants} className="space-y-2">
                     <h2 className={`text-xl ${t.title}`}>Get new posts and tools first</h2>
