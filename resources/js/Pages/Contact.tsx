@@ -18,6 +18,7 @@ import confetti from 'canvas-confetti';
 import { Envelope } from "@/Components/ui/envelope"
 import { AnimatePresence } from "framer-motion"
 import { getImageUrl } from "@/lib/imageUtils"
+import { trackLeadConversion } from "@/lib/analytics"
 
 const predefinedServices = [
     "Cloud Architecture & Migration",
@@ -94,7 +95,10 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
             referrer
         }, {
             preserveScroll: true,
-            onSuccess: () => {
+            onSuccess: (page) => {
+                if ((page.props as PageProps).flash?.type === 'success') {
+                    trackLeadConversion('contact_form')
+                }
                 setIsSubmitting(false)
                 setShowEnvelope(true)
                 setShowForm(false)

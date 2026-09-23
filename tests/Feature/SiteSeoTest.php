@@ -94,6 +94,37 @@ class SiteSeoTest extends TestCase
     }
 
     #[Test]
+    public function it_omits_lastmod_for_static_urls_without_a_reliable_update_date(): void
+    {
+        $response = $this->get('/sitemap.xml');
+        $response->assertOk();
+
+        $document = new \DOMDocument();
+        $this->assertTrue($document->loadXML($response->getContent(), LIBXML_NONET));
+
+        $xpath = new \DOMXPath($document);
+        $xpath->registerNamespace('s', 'http://www.sitemaps.org/schemas/sitemap/0.9');
+
+        $siteUrl = rtrim(config('app.url', url('/')), '/');
+        $staticEntries = $xpath->query('//s:url[s:loc="'.$siteUrl.'/services"]');
+        $this->assertNotFalse($staticEntries);
+        $this->assertSame(1, $staticEntries->length);
+
+        $staticLastmod = $xpath->query('./s:lastmod', $staticEntries->item(0));
+        $this->assertNotFalse($staticLastmod);
+        $this->assertSame(0, $staticLastmod->length);
+
+        $postEntries = $xpath->query('//s:url[s:loc="'.$siteUrl.'/blog/production-ai-code-review-for-terraform-and-lambda-prs"]');
+        $this->assertNotFalse($postEntries);
+        $this->assertSame(1, $postEntries->length);
+
+        $postLastmod = $xpath->query('./s:lastmod', $postEntries->item(0));
+        $this->assertNotFalse($postLastmod);
+        $this->assertSame(1, $postLastmod->length);
+        $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}$/', trim($postLastmod->item(0)->textContent));
+    }
+
+    #[Test]
     public function it_emits_server_rendered_canonical_and_description_on_a_service_page(): void
     {
         $siteUrl = rtrim(config('app.url', url('/')), '/');

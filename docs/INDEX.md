@@ -7,6 +7,7 @@
 
 ## Plans
 - [Harun blog migration plan](./plans/harun-blog-migration-plan.md)
+- [SEO growth plan](./plans/seo-growth-plan.md)
 
 ## Operational docs
 - [Resend setup](./RESEND_SETUP.md)

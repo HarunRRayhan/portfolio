@@ -949,7 +949,6 @@ Route::get('/sitemap.xml', function () {
 
     $staticUrls = collect(SiteCatalog::sitemapStaticPaths())->map(fn (string $path) => [
         'loc' => $siteUrl.$path,
-        'lastmod' => now()->toDateString(),
     ]);
 
     $blogUrls = collect($blog->indexPosts())->map(fn (array $post) => [
@@ -976,12 +975,16 @@ Route::get('/sitemap.xml', function () {
     $urls = $staticUrls->merge($blogUrls)->merge($caseStudyUrls)->merge($slideUrls)->merge($videoUrls);
     $escape = fn (string $value): string => htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
 
-    $entries = $urls->map(fn (array $url) => <<<XML
-    <url>
-      <loc>{$escape($url['loc'])}</loc>
-      <lastmod>{$escape($url['lastmod'])}</lastmod>
-    </url>
-XML)->implode("\n");
+    $entries = $urls->map(function (array $url) use ($escape): string {
+        $lastmod = isset($url['lastmod'])
+            ? '      <lastmod>'.$escape($url['lastmod'])."</lastmod>\n"
+            : '';
+
+        return "    <url>\n"
+            .'      <loc>'.$escape($url['loc'])."</loc>\n"
+            .$lastmod
+            .'    </url>';
+    })->implode("\n");
 
     $xml = <<<XML
 <?xml version="1.0" encoding="UTF-8"?>
