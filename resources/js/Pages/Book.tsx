@@ -2,6 +2,7 @@ import { Head, useForm, usePage } from '@inertiajs/react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Check, ChevronLeft, Info, Loader2, Sparkles, X } from 'lucide-react'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { trackLeadConversion } from '@/lib/analytics'
 
 type Feature = { label: string; included: boolean }
 
@@ -256,7 +257,9 @@ export default function Book({
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
-    form.post('/book')
+    form.post('/book', {
+      onSuccess: () => trackLeadConversion('consultation_booking'),
+    })
   }
 
   const offersLd = tiers.map((t) => ({
