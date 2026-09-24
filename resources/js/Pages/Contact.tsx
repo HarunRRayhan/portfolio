@@ -12,7 +12,6 @@ import type React from "react"
 import {Head} from "@inertiajs/react";
 import {router} from '@inertiajs/react'
 import {toast} from "sonner"
-import { usePage } from '@inertiajs/react'
 import { PageProps as InertiaPageProps } from '@inertiajs/core'
 import confetti from 'canvas-confetti';
 import { Envelope } from "@/Components/ui/envelope"
@@ -43,7 +42,6 @@ interface PageProps extends InertiaPageProps {
 }
 
 export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
-    const { flash } = usePage<PageProps>().props
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
     const [subject, setSubject] = useState("")
@@ -55,6 +53,7 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [referrer, setReferrer] = useState("")
     const [errors, setErrors] = useState<Record<string, string>>({})
+    const [submissionError, setSubmissionError] = useState<string | null>(null)
     const [showEnvelope, setShowEnvelope] = useState(false)
     const [showForm, setShowForm] = useState(true)
 
@@ -85,6 +84,7 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
         e.preventDefault()
         setIsSubmitting(true)
         setErrors({})
+        setSubmissionError(null)
 
         router.post('/contact', {
             name,
@@ -96,10 +96,13 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
         }, {
             preserveScroll: true,
             onSuccess: (page) => {
-                if ((page.props as PageProps).flash?.type === 'success') {
-                    trackLeadConversion('contact_form')
+                const submissionFlash = (page.props as PageProps).flash
+                if (submissionFlash?.type !== 'success') {
+                    setSubmissionError(submissionFlash?.message || "We couldn't confirm your message was sent. Please try again.")
+                    return
                 }
-                setIsSubmitting(false)
+
+                trackLeadConversion('contact_form')
                 setShowEnvelope(true)
                 setShowForm(false)
                 triggerConfetti()
@@ -115,8 +118,8 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
                     duration: 5000,
                     position: 'top-right'
                 })
-                setIsSubmitting(false)
-            }
+            },
+            onFinish: () => setIsSubmitting(false),
         })
     }
 
@@ -436,6 +439,9 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
                                                         ))}
                                                     </div>
                                                 </div>
+                                                {submissionError && (
+                                                    <p role="alert" className="text-red-500 text-sm">{submissionError}</p>
+                                                )}
                                                 <Button
                                                     type="submit"
                                                     disabled={isSubmitting}

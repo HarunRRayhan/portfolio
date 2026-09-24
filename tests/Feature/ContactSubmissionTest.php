@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 use App\Mail\ContactFormMail;
 use PHPUnit\Framework\Attributes\Test;
+use Inertia\Testing\AssertableInertia as Assert;
 
 class ContactSubmissionTest extends TestCase
 {
@@ -51,6 +52,37 @@ class ContactSubmissionTest extends TestCase
         // The mailable sends synchronously (no queue worker runs in this app),
         // so it lands in the "sent" bucket rather than the "queued" bucket.
         Mail::assertSent(ContactFormMail::class);
+    }
+
+    #[Test]
+    public function it_shares_an_error_instead_of_success_when_contact_mail_fails(): void
+    {
+        Mail::shouldReceive('to')->once()->andReturnSelf();
+        Mail::shouldReceive('send')->once()->andThrow(new \RuntimeException('Mail delivery unavailable'));
+
+        $response = $this->from('/contact')->post('/contact', [
+            'name' => 'Contact Failure Test',
+            'email' => 'contact-failure@example.com',
+            'subject' => 'Infrastructure help',
+            'message' => 'Keep this inquiry available if delivery fails.',
+            'services' => ['Infrastructure as Code'],
+        ]);
+
+        $response->assertRedirect('/contact');
+        $response->assertSessionHasNoErrors();
+        $response->assertSessionHas('flash.type', 'error');
+
+        $this->get('/contact')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->component('Contact')
+            ->where('flash.type', 'error')
+            ->where('flash.message', 'Sorry, something went wrong. Please try again later.')
+        );
+
+        $this->assertDatabaseHas('contact_submissions', [
+            'email' => 'contact-failure@example.com',
+            'message' => 'Keep this inquiry available if delivery fails.',
+            'status' => 'pending',
+        ]);
     }
 
     #[Test]
@@ -511,4 +543,4 @@ class ContactSubmissionTest extends TestCase
         $submission = ContactSubmission::first();
         $this->assertEquals("First line\nSecond line\n\nThird line with    spaces", $submission->message);
     }
-} 
+}
