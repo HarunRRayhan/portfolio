@@ -40,8 +40,47 @@ We'll work one task at a time. Each round will change one page or one small tech
 
 ### Task 4 — Review before expanding
 
+- [x] Inspect the selected article in Search Console and save its indexing status on September 23, 2026.
+- [x] Save a recent 28-day page baseline and the preceding 28 days using finalized Search Console data.
 - [ ] Confirm Google has recrawled the page, then compare its query impressions, clicks, CTR, position, and leads with the baseline after several weeks.
 - [ ] Keep the change if it helps users and results. Choose the next single page only after reviewing the data.
+
+### Measurement checkpoint: September 23, 2026
+
+[PR #185](https://github.com/HarunRRayhan/portfolio/pull/185) merged at 09:08:07 UTC. The asset workflow finished at 09:12:06 UTC, and the changed sitemap and lead-event helper were verified live afterward.
+
+Search Console URL Inspection reports the selected article as **Submitted and indexed**. Fetching succeeded, crawling and indexing are allowed, and Google's canonical matches the article URL. Its last crawl was September 23 at **06:03:02 UTC**, before the merge. A post-change crawl is still pending.
+
+Search Console reports **0 errors and 0 warnings** for the sitemap. Its last download was September 21 at 10:09:54 UTC, so that status describes the earlier sitemap. The sitemap API's `indexed` count isn't a page-indexing check; use URL Inspection for this article.
+
+The most recent finalized pre-change data ends on September 20. Search Console date ranges use Pacific time (`America/Los_Angeles`):
+
+- **August 24–September 20:** 1,005 impressions, 14 clicks, 1.39% CTR, average position 7.49.
+- **July 27–August 23:** 1,025 impressions, 42 clicks, 4.10% CTR, average position 7.90.
+
+Clicks fell before this change while impressions were nearly flat and average position improved slightly. This is the starting trend, not a result of the new contact links. The CTA change is intended to help readers reach consulting services; search clicks alone won't establish whether it works.
+
+The working evidence is in Git-ignored files:
+
+- `reports/seo-article-inspection-2026-09-23.json`
+- `reports/seo-article-measurement-baseline-2026-09-23.json`
+- `reports/seo-sitemap-status-2026-09-23.json`
+
+The baseline includes daily rows, available query rows, and page-level totals. Query rows exclude anonymized searches and may not add up to the page totals. Earlier lead counts are unavailable, not zero.
+
+Next review steps:
+
+1. On or after **September 28**, recheck the article's `lastCrawlTime` and the sitemap's `lastDownloaded`. Confirm the article crawl follows the live-change verification, rather than treating its indexed status as proof of a recrawl.
+2. Start the post-change window on the first full Pacific day after the confirmed recrawl. Collect **28 complete days** with `type=web`, `dataState=final`, and an exact page filter for the selected article. Use ungrouped page totals for clicks, impressions, CTR, and position; query rows explain the mix of searches.
+3. Compare those results with August 24–September 20. Record leads separately once GA4 is available. Treat low counts and shifts in query mix cautiously, then decide whether another page needs work.
+
+### Contact-form follow-up: September 23, 2026
+
+- [x] Fix the contact form's success handling. A mail failure returns an error flash through a normal redirect, so Inertia's `onSuccess` callback alone doesn't confirm delivery. Require `flash.type = success` before showing the envelope or success toast.
+- [x] Keep entered fields and selected services visible on failure. Show a persistent error and restore the submit button when the request finishes.
+- [x] Verify a real mail failure, server validation error, and successful retry in the local browser. Failures emit no lead event; the successful retry emits one. All 31 contact-related PHPUnit tests and `npm run build` pass.
+
+Local verification completed on September 23, 2026. Deployment evidence belongs on the release PR.
 
 ## Later, only if the data supports it
 
