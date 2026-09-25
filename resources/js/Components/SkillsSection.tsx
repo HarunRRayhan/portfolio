@@ -1,7 +1,6 @@
 'use client'
 
 import React from 'react'
-import { motion } from 'framer-motion'
 import { Code2, Cloud, Lightbulb, ShieldCheck, Workflow, Braces, Server, Cpu } from 'lucide-react'
 import { Image } from './Image'
 import { getImageUrl } from '../lib/imageUtils'
@@ -39,15 +38,6 @@ const highlights = [
     { value: 'Lead', label: 'technical mentoring' },
 ]
 
-const itemVariants = {
-    hidden: { opacity: 0, y: 16 },
-    visible: {
-        opacity: 1,
-        y: 0,
-        transition: { duration: 0.45 },
-    },
-}
-
 export function SkillsSection() {
     return (
         <section className="relative overflow-hidden bg-white py-20 sm:py-24">
@@ -61,13 +51,7 @@ export function SkillsSection() {
                 }}
             />
             <div className="container relative mx-auto">
-                <motion.div
-                    initial={{ opacity: 0, y: 16 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
-                    className="mx-auto max-w-3xl text-center"
-                >
+                <div className="mx-auto max-w-3xl text-center">
                     <div className="mb-4 inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50/80 px-3 py-1.5">
                         <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
                             Capabilities
@@ -84,18 +68,14 @@ export function SkillsSection() {
                         The work usually sits at the intersection of engineering, DevOps, and platform thinking,
                         so the focus is on systems that are simple to ship and easy to support.
                     </p>
-                </motion.div>
+                </div>
 
                 <div className="mt-14 grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
                     {/* Skills grid */}
                     <div className="grid gap-4 sm:grid-cols-2">
                         {skills.map((skill) => (
-                            <motion.div
+                            <div
                                 key={skill.title}
-                                variants={itemVariants}
-                                initial="hidden"
-                                whileInView="visible"
-                                viewport={{ once: true }}
                                 className="group rounded-xl border border-slate-200 bg-white p-6 transition hover:border-slate-300 hover:shadow-sm"
                             >
                                 <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-600 transition group-hover:border-slate-300">
@@ -103,7 +83,7 @@ export function SkillsSection() {
                                 </div>
                                 <h3 className="mt-5 text-lg font-semibold text-slate-900">{skill.title}</h3>
                                 <p className="mt-2 text-sm leading-7 text-slate-500">{skill.description}</p>
-                            </motion.div>
+                            </div>
                         ))}
 
                         {/* Quick highlights, terminal style */}

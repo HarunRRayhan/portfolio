@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useCallback, useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import { useVisibleAnimation } from '@/hooks/useVisibleAnimation'
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react'
 import useEmblaCarousel from 'embla-carousel-react'
 import { Card } from '@/Components/ui/card'
@@ -46,6 +46,7 @@ const reviews = [
 ]
 
 export function ReviewSlideSection() {
+    const { ref, isActive } = useVisibleAnimation<HTMLElement>()
     const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true })
     const [selectedIndex, setSelectedIndex] = useState(0)
 
@@ -66,15 +67,17 @@ export function ReviewSlideSection() {
     }, [emblaApi, onSelect])
 
     useEffect(() => {
+        if (!isActive) return
+
         const autoSlide = setInterval(() => {
             if (emblaApi) emblaApi.scrollNext()
         }, 6000)
 
         return () => clearInterval(autoSlide)
-    }, [emblaApi])
+    }, [emblaApi, isActive])
 
     return (
-        <section className="relative overflow-hidden bg-white py-20 sm:py-24" id="testimonials">
+        <section ref={ref} className="relative overflow-hidden bg-white py-20 sm:py-24" id="testimonials">
             {/* Subtle background accents */}
             <div className="pointer-events-none absolute inset-0">
                 <div className="absolute -left-40 bottom-0 h-80 w-80 rounded-full bg-amber-500/5 blur-3xl" />
@@ -82,13 +85,7 @@ export function ReviewSlideSection() {
             </div>
 
             <div className="container relative mx-auto">
-                <motion.div
-                    initial={{ opacity: 0, y: 16 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
-                    className="mx-auto max-w-3xl text-center"
-                >
+                <div className="mx-auto max-w-3xl text-center">
                     <div className="mb-4 inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50/80 px-3 py-1.5">
                         <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
                             Testimonials
@@ -100,7 +97,7 @@ export function ReviewSlideSection() {
                     <p className="mt-4 text-base leading-7 text-slate-500 sm:text-lg">
                         A few notes from people who have worked with Harun on real delivery, platform, and infrastructure work.
                     </p>
-                </motion.div>
+                </div>
 
                 <div className="relative mt-12">
                     <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-white to-transparent" />
@@ -108,14 +105,9 @@ export function ReviewSlideSection() {
 
                     <div className="overflow-hidden" ref={emblaRef}>
                         <div className="flex">
-                            {reviews.map((review, index) => (
+                            {reviews.map((review) => (
                                 <div key={review.id} className="min-w-0 flex-[0_0_100%] px-3 md:flex-[0_0_50%]">
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 12 }}
-                                        whileInView={{ opacity: 1, y: 0 }}
-                                        viewport={{ once: true }}
-                                        transition={{ duration: 0.5, delay: index * 0.08 }}
-                                    >
+                                    <div>
                                         <Card className="relative h-full rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow duration-300 hover:shadow-md">
                                             <div className="flex gap-1 text-amber-400">
                                                 {[...Array(review.rating)].map((_, i) => (
@@ -131,6 +123,10 @@ export function ReviewSlideSection() {
                                                 <img
                                                     src={review.image}
                                                     alt={review.author}
+                                                    width={44}
+                                                    height={44}
+                                                    loading="lazy"
+                                                    decoding="async"
                                                     className="h-11 w-11 rounded-full border border-slate-200 object-cover"
                                                 />
                                                 <div>
@@ -141,7 +137,7 @@ export function ReviewSlideSection() {
                                                 </div>
                                             </div>
                                         </Card>
-                                    </motion.div>
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -177,13 +173,7 @@ export function ReviewSlideSection() {
                     </button>
                 </div>
 
-                <motion.div
-                    initial={{ opacity: 0, y: 16 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
-                    className="mt-14 grid gap-4 sm:grid-cols-3"
-                >
+                <div className="mt-14 grid gap-4 sm:grid-cols-3">
                     {[
                         { value: '160+', label: 'Happy clients' },
                         { value: '4.8/5', label: 'Average rating' },
@@ -194,7 +184,7 @@ export function ReviewSlideSection() {
                             <div className="mt-1 text-sm text-slate-500">{item.label}</div>
                         </div>
                     ))}
-                </motion.div>
+                </div>
             </div>
         </section>
     )

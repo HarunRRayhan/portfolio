@@ -1,25 +1,27 @@
 'use client'
 
 import React from 'react'
-import { motion } from 'framer-motion'
+import { useVisibleAnimation } from '@/hooks/useVisibleAnimation'
 import { getImageUrl } from '../lib/imageUtils'
 
 const companies = [
-    { name: 'SocialHP', logo: getImageUrl('/images/companies/socialhp.png') },
+    { name: 'SocialHP', logo: getImageUrl('/images/companies/socialhp-72.webp') },
     { name: 'L’Oréal', logo: getImageUrl('/images/companies/loreal.svg') },
     { name: "Kiehl's", logo: getImageUrl('/images/companies/kiehls.svg') },
-    { name: 'Samsung', logo: getImageUrl('/images/companies/samsung.png') },
-    { name: 'Prudential', logo: getImageUrl('/images/companies/prudential.jpg') },
+    { name: 'Samsung', logo: getImageUrl('/images/companies/samsung-280.webp') },
+    { name: 'Prudential', logo: getImageUrl('/images/companies/prudential-280.webp') },
     { name: 'Lonza', logo: getImageUrl('/images/companies/lonza.svg') },
-    { name: 'Fleetcor', logo: getImageUrl('/images/companies/fleetcor.png') },
+    { name: 'Fleetcor', logo: getImageUrl('/images/companies/fleetcor-280.webp') },
     { name: 'NCR', logo: getImageUrl('/images/companies/ncr.svg') },
 ]
 
 const items = [...companies, ...companies]
 
 export function LogoSection() {
+    const { ref, isActive } = useVisibleAnimation<HTMLElement>()
+
     return (
-        <section className="border-b border-slate-200 bg-slate-50/80 py-14">
+        <section ref={ref} className="border-b border-slate-200 bg-slate-50/80 py-14">
             <div className="container mx-auto">
                 <div className="mx-auto max-w-2xl text-center">
                     <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
@@ -38,11 +40,9 @@ export function LogoSection() {
                     <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-slate-50/80 to-transparent" />
                     <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-slate-50/80 to-transparent" />
 
-                    <motion.div
-                        initial={{ x: 0 }}
-                        animate={{ x: '-50%' }}
-                        transition={{ duration: 36, repeat: Infinity, ease: 'linear' }}
-                        className="flex w-max items-center gap-4 py-6"
+                    <div
+                        data-running={isActive}
+                        className="marquee-track flex w-max items-center gap-4 py-6 [--marquee-duration:36s] [--marquee-gap:1rem]"
                     >
                         {items.map((company, index) => (
                             <div
@@ -60,7 +60,7 @@ export function LogoSection() {
                                 />
                             </div>
                         ))}
-                    </motion.div>
+                    </div>
                 </div>
             </div>
         </section>

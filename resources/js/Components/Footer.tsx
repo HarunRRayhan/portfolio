@@ -1,7 +1,6 @@
 'use client'
 
 import React from 'react'
-import { motion } from 'framer-motion'
 import { Link, usePage } from '@inertiajs/react'
 import { ArrowRight, Terminal } from 'lucide-react'
 import { Github, Linkedin, Mail, Twitter } from '@/lib/icons'
@@ -77,11 +76,7 @@ export function Footer() {
             />
             <div className="container relative mx-auto py-16 sm:py-20">
                 {/* CTA section */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
+                <div
                     className="rounded-xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm backdrop-blur sm:p-8 lg:p-10"
                 >
                     <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
@@ -151,14 +146,10 @@ export function Footer() {
                             ))}
                         </div>
                     </div>
-                </motion.div>
+                </div>
 
                 {/* Newsletter sign-up */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: 0.08 }}
+                <div
                     className="mt-8 rounded-xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm backdrop-blur sm:p-8"
                 >
                     <div>
@@ -180,11 +171,19 @@ export function Footer() {
                                 <img
                                     src={avatarUrls[0]}
                                     alt=""
+                                    width={28}
+                                    height={28}
+                                    loading="lazy"
+                                    decoding="async"
                                     className="h-7 w-7 rounded-full border-2 border-slate-900 bg-emerald-100 object-cover"
                                 />
                                 <img
                                     src={avatarUrls[1]}
                                     alt=""
+                                    width={28}
+                                    height={28}
+                                    loading="lazy"
+                                    decoding="async"
                                     className="h-7 w-7 rounded-full border-2 border-slate-900 bg-emerald-100 object-cover"
                                 />
                             </div>
@@ -193,7 +192,7 @@ export function Footer() {
                             </p>
                         </div>
                     </div>
-                </motion.div>
+                </div>
 
                 {/* Bottom bar */}
                 <div className="mt-10 flex flex-col gap-6 border-t border-slate-800 pt-8 sm:flex-row sm:items-center sm:justify-between">
@@ -203,18 +202,16 @@ export function Footer() {
 
                     <div className="flex items-center gap-2">
                         {socials.map(({ href, label, icon: Icon }) => (
-                            <motion.a
+                            <a
                                 key={label}
                                 href={href}
                                 target={href.startsWith('mailto:') ? undefined : '_blank'}
                                 rel={href.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
                                 aria-label={label}
-                                whileHover={{ y: -2 }}
-                                whileTap={{ scale: 0.96 }}
-                                className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-700 bg-slate-800/60 text-slate-400 transition hover:border-slate-600 hover:text-white"
+                                className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-700 bg-slate-800/60 text-slate-400 transition hover:border-slate-600 hover:text-white motion-safe:hover:-translate-y-0.5 motion-safe:active:scale-95"
                             >
                                 <Icon className="h-4 w-4" />
-                            </motion.a>
+                            </a>
                         ))}
                     </div>
                 </div>
