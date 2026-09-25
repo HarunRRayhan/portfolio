@@ -26,21 +26,17 @@
         <link rel="manifest" href="/site.webmanifest">
 
         <!-- Optional fonts keep slow downloads from shifting already-painted text. -->
-        @if (! app(\Illuminate\Foundation\Vite::class)->isRunningHot())
-            <link rel="preload" as="font" type="font/woff2" crossorigin
-                href="{{ Vite::asset('node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2') }}">
-        @endif
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link
             rel="preload"
             as="style"
-            href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Hind+Siliguri:wght@400;500;600;700&display=optional"
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=optional"
             onload="this.onload=null;this.rel='stylesheet'"
         >
         <noscript>
             <link
-                href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Hind+Siliguri:wght@400;500;600;700&display=optional"
+                href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=optional"
                 rel="stylesheet"
             >
         </noscript>
@@ -48,6 +44,11 @@
         <!-- Scripts -->
         @routes
         @viteReactRefresh
+        @if (($page['component'] ?? null) === 'Homepage' && ! app(\Illuminate\Foundation\Vite::class)->isRunningHot())
+            <style data-homepage-styles>{!! Vite::content('resources/css/app.css') !!}</style>
+        @else
+            @vite('resources/css/app.css')
+        @endif
         @vite(['resources/js/app.tsx', "resources/js/Pages/{$page['component']}.tsx"])
         @inertiaHead
         @php
