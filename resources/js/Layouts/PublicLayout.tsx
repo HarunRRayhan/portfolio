@@ -1,4 +1,4 @@
-import React, { PropsWithChildren } from 'react'
+import React, { PropsWithChildren, Suspense } from 'react'
 import { Menubar } from '@/Components/Menubar'
 import { Footer } from '@/Components/Footer'
 import { ErrorBoundary } from '@/Components/ErrorBoundary'
@@ -31,7 +31,7 @@ export default function PublicLayout({
       </ErrorBoundary>
       {!hideFooter && (
         <ErrorBoundary>
-          <Footer />
+          <Suspense fallback={null}><Footer /></Suspense>
         </ErrorBoundary>
       )}
     </div>

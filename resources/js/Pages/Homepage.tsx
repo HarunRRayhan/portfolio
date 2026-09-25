@@ -1,4 +1,5 @@
 import { Head } from "@inertiajs/react"
+import { Suspense } from "react"
 import { HeroSectionV2 } from "@/Components/HeroSectionV2"
 import { LogoSection } from "@/Components/LogoSection"
 import { SkillsSection } from "@/Components/SkillsSection"
@@ -63,11 +64,12 @@ export default function Homepage() {
                 </script>
             </Head>
             <HeroSectionV2 />
-            <LogoSection />
-            <SkillsSection />
-            <TechStackSection />
-            <CaseStudiesHomeSection studies={featuredCaseStudies ?? []} />
-            <ReviewSlideSection />
+            {/* Separate hydration work so React can yield to user input between sections. */}
+            <Suspense fallback={null}><LogoSection /></Suspense>
+            <Suspense fallback={null}><SkillsSection /></Suspense>
+            <Suspense fallback={null}><TechStackSection /></Suspense>
+            <Suspense fallback={null}><CaseStudiesHomeSection studies={featuredCaseStudies ?? []} /></Suspense>
+            <Suspense fallback={null}><ReviewSlideSection /></Suspense>
         </>
     )
 }
