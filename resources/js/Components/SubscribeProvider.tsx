@@ -14,8 +14,8 @@ function isAdminPath(pathname: string) {
   return pathname === '/profile' || pathname.startsWith('/admin')
 }
 
-function useIsAdminArea() {
-  const [isAdmin, setIsAdmin] = useState(() => isAdminPath(window.location.pathname))
+function useIsAdminArea(initialUrl: string) {
+  const [isAdmin, setIsAdmin] = useState(() => isAdminPath(new URL(initialUrl, 'http://localhost').pathname))
 
   useEffect(() => {
     return router.on('navigate', (event) => {
@@ -43,11 +43,13 @@ export function useSubscribePopup() {
 export function SubscribeProvider({
   children,
   subscriberCount = 0,
+  initialUrl = '/',
 }: {
   children: ReactNode
   subscriberCount?: number
+  initialUrl?: string
 }) {
-  const isAdminArea = useIsAdminArea()
+  const isAdminArea = useIsAdminArea(initialUrl)
   const [open, setOpen] = useState(false)
   const [hasOpened, setHasOpened] = useState(false)
   const [source, setSource] = useState('idle-popup')

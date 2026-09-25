@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Sanctum\Sanctum;
+use Inertia\Inertia;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,6 +27,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Roll out server rendering only on the verified public homepage.
+        Inertia::disableSsr(fn () => ! request()->is('/') || request()->user() !== null);
+
         $httpsHosts = collect([config('app.url'), config('app.preview_url')])
             ->filter(fn ($url) => is_string($url) && str_starts_with($url, 'https://'))
             ->map(fn ($url) => parse_url($url, PHP_URL_HOST))

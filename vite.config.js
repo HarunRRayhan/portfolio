@@ -23,11 +23,13 @@ export default defineConfig({
     plugins: [
         laravel({
             input: 'resources/js/app.tsx',
+            ssr: 'resources/js/ssr.tsx',
             refresh: true,
             detectTls: publicOrigin ? false : undefined,
         }),
         react(),
     ],
+    ssr: { noExternal: true },
     // Let Vite split dependencies by their actual consumers. Manual vendor
     // chunks pulled shared React dependencies into Recharts, making public
     // pages download the admin chart library before they could render.

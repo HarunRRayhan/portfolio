@@ -1,7 +1,7 @@
 import '../css/app.css';
 
 import { createInertiaApp, type ResolvedComponent } from '@inertiajs/react';
-import { createRoot } from 'react-dom/client';
+import { createRoot, hydrateRoot } from 'react-dom/client';
 import PublicLayout from './Layouts/PublicLayout';
 import { SubscribeProvider } from './Components/SubscribeProvider';
 import { resolveDocumentTitle } from './lib/documentTitle';
@@ -28,15 +28,19 @@ createInertiaApp({
         return page;
     },
     setup({ el, App, props }) {
-        const root = createRoot(el);
         const subscriberCount = (props.initialPage.props as { newsletter?: { subscriberCount?: number } }).newsletter
             ?.subscriberCount ?? 0;
 
-        root.render(
-            <SubscribeProvider subscriberCount={subscriberCount}>
+        const tree = (
+            <SubscribeProvider subscriberCount={subscriberCount} initialUrl={props.initialPage.url}>
                 <App {...props} />
             </SubscribeProvider>
         );
+        if (el.hasChildNodes()) {
+            hydrateRoot(el, tree);
+        } else {
+            createRoot(el).render(tree);
+        }
     },
     progress: {
         color: '#4B5563',
