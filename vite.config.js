@@ -28,23 +28,9 @@ export default defineConfig({
         }),
         react(),
     ],
-    build: {
-        rollupOptions: {
-            output: {
-                manualChunks(id) {
-                    if (id.includes('node_modules/framer-motion')) {
-                        return 'framer-motion'
-                    }
-                    if (id.includes('node_modules/highlight.js')) {
-                        return 'highlight'
-                    }
-                    if (id.includes('node_modules/recharts')) {
-                        return 'recharts'
-                    }
-                },
-            },
-        },
-    },
+    // Let Vite split dependencies by their actual consumers. Manual vendor
+    // chunks pulled shared React dependencies into Recharts, making public
+    // pages download the admin chart library before they could render.
     server: publicUrl ? {
         origin: publicOrigin,
         // Must be set explicitly. laravel-vite-plugin falls back to

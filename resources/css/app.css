@@ -1,6 +1,22 @@
 @import "tailwindcss";
 @config "../../tailwind.config.js";
 
+@keyframes marquee-scroll {
+  to { transform: translateX(calc(-50% - var(--marquee-gap) / 2)); }
+}
+
+.marquee-track {
+  animation: marquee-scroll var(--marquee-duration) linear infinite paused;
+}
+
+.marquee-track[data-running="true"] {
+  animation-play-state: running;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none; }
+}
+
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }

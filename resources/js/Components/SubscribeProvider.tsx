@@ -1,11 +1,11 @@
-import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from 'react'
+import { createContext, lazy, Suspense, useCallback, useContext, useEffect, useState, ReactNode } from 'react'
 import { router } from '@inertiajs/react'
 import { Toaster } from 'sonner'
-import { SubscribePopup } from '@/Components/SubscribePopup'
-import { SubscribeTheme } from '@/Components/SubscribeForm'
+import type { SubscribeTheme } from '@/Components/SubscribeForm'
 import { useIdleSubscribe } from '@/hooks/useIdleSubscribe'
 
 const IDLE_MS = 60_000
+const SubscribePopup = lazy(() => import('@/Components/SubscribePopup').then(module => ({ default: module.SubscribePopup })))
 const DISMISS_KEY = 'subscribe-popup-dismissed'
 type NewsletterPageProps = { newsletter?: { subscriberCount?: number } }
 
@@ -49,6 +49,7 @@ export function SubscribeProvider({
 }) {
   const isAdminArea = useIsAdminArea()
   const [open, setOpen] = useState(false)
+  const [hasOpened, setHasOpened] = useState(false)
   const [source, setSource] = useState('idle-popup')
   const [theme, setTheme] = useState<SubscribeTheme>('slate')
   const [currentSubscriberCount, setCurrentSubscriberCount] = useState(subscriberCount)
@@ -65,6 +66,7 @@ export function SubscribeProvider({
     if (isAdminArea) return
     setSource(nextSource)
     setTheme(nextTheme)
+    setHasOpened(true)
     setOpen(true)
   }, [isAdminArea])
 
@@ -79,14 +81,16 @@ export function SubscribeProvider({
     <SubscribeContext.Provider value={{ openPopup }}>
       {children}
       <Toaster position="top-right" richColors />
-      {!isAdminArea && (
-        <SubscribePopup
-          open={open}
-          onClose={closePopup}
-          source={source}
-          theme={theme}
-          subscriberCount={currentSubscriberCount}
-        />
+      {!isAdminArea && hasOpened && (
+        <Suspense fallback={null}>
+          <SubscribePopup
+            open={open}
+            onClose={closePopup}
+            source={source}
+            theme={theme}
+            subscriberCount={currentSubscriberCount}
+          />
+        </Suspense>
       )}
     </SubscribeContext.Provider>
   )

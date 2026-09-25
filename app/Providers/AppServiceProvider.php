@@ -7,7 +7,6 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Sanctum\Sanctum;
@@ -35,8 +34,6 @@ class AppServiceProvider extends ServiceProvider
         if ($httpsHosts->contains(request()->getHost())) {
             URL::forceScheme('https');
         }
-
-        Vite::prefetch(concurrency: 3);
 
         if ($path = env('VIEW_COMPILED_PATH')) {
             View::addNamespace('views', $path);

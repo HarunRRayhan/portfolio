@@ -2,7 +2,6 @@
 
 import React from 'react'
 import { Button } from '@/Components/ui/button'
-import { motion } from 'framer-motion'
 import { Github, Linkedin, Mail, Twitter } from '@/lib/icons'
 import { ArrowRight, Terminal } from 'lucide-react'
 import { Link } from '@inertiajs/react'
@@ -58,12 +57,7 @@ export function HeroSectionV2() {
             <div className="container relative mx-auto py-20 sm:py-24 lg:py-32">
                 <div className="grid items-center gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
                     {/* Left: Main content */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 18 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.7, ease: 'easeOut' }}
-                        className="max-w-2xl"
-                    >
+                    <div className="max-w-2xl">
                         {/* Terminal-style badge */}
                         <div className="mb-6 inline-flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white/80 px-3.5 py-2 shadow-sm backdrop-blur-sm">
                             <Terminal className="h-3.5 w-3.5 text-slate-400" />
@@ -152,30 +146,23 @@ export function HeroSectionV2() {
                                     { href: 'https://www.linkedin.com/in/harunrrayhan/', label: 'LinkedIn', icon: Linkedin },
                                     { href: 'mailto:me@harun.dev?subject=Hello%20Harun', label: 'Email', icon: Mail },
                                 ].map(({ href, label, icon: Icon }) => (
-                                    <motion.a
+                                    <a
                                         key={label}
                                         href={href}
                                         target={href.startsWith('mailto:') ? undefined : '_blank'}
                                         rel={href.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
                                         aria-label={label}
-                                        whileHover={{ y: -2 }}
-                                        whileTap={{ scale: 0.96 }}
-                                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-900"
+                                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-900 motion-safe:hover:-translate-y-0.5 motion-safe:active:scale-95"
                                     >
                                         <Icon className="h-4 w-4" />
-                                    </motion.a>
+                                    </a>
                                 ))}
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
 
                     {/* Right: Terminal-style card */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 24 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, ease: 'easeOut', delay: 0.15 }}
-                        className="relative"
-                    >
+                    <div className="relative">
                         {/* Terminal window */}
                         <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-950 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
                             {/* Title bar */}
@@ -268,7 +255,7 @@ export function HeroSectionV2() {
                                 </div>
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
                 </div>
             </div>
         </section>

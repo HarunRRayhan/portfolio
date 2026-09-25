@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { motion } from 'framer-motion'
+import { useVisibleAnimation } from '@/hooks/useVisibleAnimation'
 import { getImageUrl } from '../lib/imageUtils'
 
 const technologies = [
@@ -21,8 +21,10 @@ const technologies = [
 const items = [...technologies, ...technologies]
 
 export function TechStackSection() {
+    const { ref, isActive } = useVisibleAnimation<HTMLElement>()
+
     return (
-        <section className="relative overflow-hidden border-y border-slate-200 bg-slate-900 py-16 sm:py-20">
+        <section ref={ref} className="relative overflow-hidden border-y border-slate-200 bg-slate-900 py-16 sm:py-20">
             {/* Grid overlay */}
             <div
                 className="pointer-events-none absolute inset-0 opacity-[0.08]"
@@ -51,11 +53,9 @@ export function TechStackSection() {
                     <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-slate-900 to-transparent" />
                     <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-slate-900 to-transparent" />
 
-                    <motion.div
-                        initial={{ x: 0 }}
-                        animate={{ x: '-50%' }}
-                        transition={{ duration: 32, repeat: Infinity, ease: 'linear' }}
-                        className="flex w-max items-center gap-3 py-4"
+                    <div
+                        data-running={isActive}
+                        className="marquee-track flex w-max items-center gap-3 py-4 [--marquee-duration:32s] [--marquee-gap:0.75rem]"
                     >
                         {items.map((tech, index) => (
                             <div
@@ -74,7 +74,7 @@ export function TechStackSection() {
                                 <span className="text-sm font-medium text-slate-300">{tech.name}</span>
                             </div>
                         ))}
-                    </motion.div>
+                    </div>
                 </div>
             </div>
         </section>
