@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import { Logo } from './Logo'
 import { ArrowRight, Calendar, ChevronDown, Heart, Link2, LogOut, Menu, Newspaper, Package, Presentation, User, UserRound, Video } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from '@/Components/ui/sheet'
+const MobileNavigation = React.lazy(() => import('@/Components/MobileNavigation'))
 
 const mainNavItems = [
   { name: 'Home', href: '/' },
@@ -58,7 +58,9 @@ export function Menubar() {
   const [isScrolled, setIsScrolled] = React.useState(false)
   const [profileOpen, setProfileOpen] = React.useState(false)
   const [moreOpen, setMoreOpen] = React.useState(false)
-  const [mobileMoreOpen, setMobileMoreOpen] = React.useState(false)
+  const [mobileOpen, setMobileOpen] = React.useState(false)
+  const [mobileRequested, setMobileRequested] = React.useState(false)
+  const mobileTriggerRef = React.useRef<HTMLButtonElement>(null)
   const { url } = usePage()
   const pathname = url.split('?')[0]
   const user = usePage().props.auth?.user as { name?: string; email?: string } | null | undefined
@@ -281,125 +283,36 @@ export function Menubar() {
 
         {/* Mobile hamburger */}
         <div className="flex items-center justify-self-end lg:hidden">
-          <Sheet>
-            <SheetTrigger asChild>
-              <button className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100">
-                <Menu className="h-5 w-5" />
-              </button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[min(18rem,calc(100vw-2.5rem))] border-slate-200 p-6 pt-12">
-              <SheetTitle className="sr-only">Navigation menu</SheetTitle>
-              <SheetDescription className="sr-only">Jump to a page or book a session.</SheetDescription>
-              <nav className="flex flex-col gap-1">
-                {[...mainNavItems, { name: 'Contact', href: '/contact' }].map((item) => {
-                  const active = isActive(item.href)
-                  return (
-                    <SheetClose key={item.name} asChild>
-                      <Link
-                        href={item.href}
-                        className={cn(
-                          'rounded-lg px-3 py-3 text-sm font-medium transition',
-                          active
-                            ? 'bg-slate-900 text-white'
-                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
-                        )}
-                      >
-                        {item.name}
-                      </Link>
-                    </SheetClose>
-                  )
-                })}
-              </nav>
-
-              {/* Mobile more section */}
-              <div className="mt-4 border-t border-slate-200 pt-4">
-                <button
-                  onClick={() => setMobileMoreOpen(!mobileMoreOpen)}
-                  className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
-                >
-                  More
-                  <ChevronDown className={cn('h-4 w-4 transition-transform duration-200', mobileMoreOpen && 'rotate-180')} />
-                </button>
-                {mobileMoreOpen && (
-                  <div className="ml-2 mt-1 flex flex-col gap-1 border-l-2 border-slate-100 pl-2">
-                    {moreItems.map((item) => {
-                      const active = isActive(item.href)
-                      const featured = item.featured
-                      const Icon = item.icon
-                      return (
-                        <SheetClose key={item.name} asChild>
-                          <Link
-                            href={item.href}
-                              className={cn(
-                                'flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition',
-                                featured
-                                  ? 'border border-amber-200 bg-amber-50 text-amber-950 shadow-sm'
-                                  : active
-                                  ? 'bg-slate-100 text-slate-900'
-                                  : 'text-slate-600 hover:bg-slate-100',
-                            )}
-                          >
-                            <Icon className={cn('h-4 w-4', featured ? 'text-amber-600' : 'text-slate-400')} />
-                            {item.name}
-                            {featured && <span className="ml-auto font-mono text-[9px] font-semibold uppercase tracking-wider text-amber-700">Support</span>}
-                          </Link>
-                        </SheetClose>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-6 border-t border-slate-200 pt-6">
-                {user ? (
-                  <div className="flex flex-col gap-2">
-                    <div className="px-1 pb-1">
-                      <p className="text-sm font-medium text-slate-900">{user.name ?? 'Account'}</p>
-                      <p className="text-xs text-slate-500">{user.email}</p>
-                    </div>
-                    <SheetClose asChild>
-                      <Link
-                        href={route('dashboard')}
-                        className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-                      >
-                        <User className="h-4 w-4" />
-                        Dashboard
-                      </Link>
-                    </SheetClose>
-                    <SheetClose asChild>
-                      <button
-                        onClick={handleLogout}
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-red-200 px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
-                      >
-                        <LogOut className="h-4 w-4" />
-                        Sign out
-                      </button>
-                    </SheetClose>
-                  </div>
-                ) : (
-                  <SheetClose asChild>
-                    <Link href="/login">
-                      <button className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
-                        <User className="h-4 w-4" />
-                        Sign in
-                      </button>
-                    </Link>
-                  </SheetClose>
-                )}
-                <div className="mt-3">
-                  <SheetClose asChild>
-                    <Link href="/book">
-                      <button className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-slate-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800">
-                        <Calendar className="h-4 w-4" />
-                        Book a session
-                        <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-                      </button>
-                    </Link>
-                  </SheetClose>
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
+          <button
+            ref={mobileTriggerRef}
+            aria-label="Open navigation menu"
+            aria-haspopup="dialog"
+            aria-expanded={mobileOpen}
+            onClick={() => {
+              setMobileRequested(true)
+              setMobileOpen(true)
+            }}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          {mobileRequested && (
+            <React.Suspense fallback={<span role="status" className="sr-only">Loading navigation…</span>}>
+              <MobileNavigation
+                open={mobileOpen}
+                onOpenChange={setMobileOpen}
+                onCloseAutoFocus={(event) => {
+                  event.preventDefault()
+                  mobileTriggerRef.current?.focus()
+                }}
+                mainItems={mainNavItems}
+                moreItems={moreItems}
+                isActive={isActive}
+                user={user}
+                onLogout={handleLogout}
+              />
+            </React.Suspense>
+          )}
         </div>
       </div>
     </header>
