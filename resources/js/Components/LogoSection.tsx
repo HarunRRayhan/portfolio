@@ -18,7 +18,7 @@ const companies = [
 const items = [...companies, ...companies]
 
 export function LogoSection() {
-    const { ref, isActive } = useVisibleAnimation<HTMLElement>()
+    const { ref } = useVisibleAnimation<HTMLElement>('css')
 
     return (
         <section ref={ref} className="border-b border-slate-200 bg-slate-50/80 py-14">
@@ -41,7 +41,7 @@ export function LogoSection() {
                     <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-slate-50/80 to-transparent" />
 
                     <div
-                        data-running={isActive}
+                        data-running="false"
                         className="marquee-track flex w-max items-center gap-4 py-6 [--marquee-duration:36s] [--marquee-gap:1rem]"
                     >
                         {items.map((company, index) => (
