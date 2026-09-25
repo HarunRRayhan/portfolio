@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { useVisibleAnimation } from '@/hooks/useVisibleAnimation'
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react'
-import useEmblaCarousel from 'embla-carousel-react'
+import { useDeferredCarousel } from '@/hooks/useDeferredCarousel'
 import { Card } from '@/Components/ui/card'
 import { getImageUrl } from '../lib/imageUtils'
 
@@ -47,10 +47,12 @@ const reviews = [
 
 export function ReviewSlideSection() {
     const { ref, isActive } = useVisibleAnimation<HTMLElement>()
-    const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true })
+    const { viewportRef: emblaRef, api: emblaApi, ensureReady, loadError } = useDeferredCarousel()
     const [selectedIndex, setSelectedIndex] = useState(0)
 
-    const scrollTo = useCallback((index: number) => emblaApi && emblaApi.scrollTo(index), [emblaApi])
+    const scrollTo = useCallback((index: number) => {
+        void ensureReady().then(api => api?.scrollTo(index))
+    }, [ensureReady])
 
     const onSelect = useCallback(() => {
         if (!emblaApi) return
@@ -104,7 +106,7 @@ export function ReviewSlideSection() {
                     <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-white to-transparent" />
 
                     <div className="overflow-hidden" ref={emblaRef}>
-                        <div className="flex">
+                        <div className={loadError ? 'flex flex-wrap gap-y-6' : 'flex'}>
                             {reviews.map((review) => (
                                 <div key={review.id} className="min-w-0 flex-[0_0_100%] px-3 md:flex-[0_0_50%]">
                                     <div>
@@ -144,7 +146,11 @@ export function ReviewSlideSection() {
                     </div>
                 </div>
 
-                <div className="mt-8 flex justify-center gap-3">
+                {loadError ? (
+                    <p role="status" className="mt-8 text-center text-sm text-slate-600">
+                        Carousel controls couldn't load. All testimonials are shown above.
+                    </p>
+                ) : <div className="mt-8 flex justify-center gap-3">
                     <button
                         onClick={() => scrollTo(selectedIndex - 1)}
                         className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
@@ -171,7 +177,7 @@ export function ReviewSlideSection() {
                     >
                         <ChevronRight className="h-4 w-4" />
                     </button>
-                </div>
+                </div>}
 
                 <div className="mt-14 grid gap-4 sm:grid-cols-3">
                     {[
