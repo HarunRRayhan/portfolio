@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       diagnostics:
-        description: Compare GA4-enabled and GA4-blocked lab runs and retain a trace
+        description: Compare GA4-enabled and GA4-blocked lab runs and retain mobile traces
         type: boolean
         default: false
 
@@ -63,7 +63,7 @@ jobs:
                   command.append('--preset=' + preset)
               if name.startswith('ga4-blocked'):
                   command.append('--blocked-url-patterns=*googletagmanager.com*')
-              if diagnostics and name == 'mobile-3':
+              if diagnostics and name.startswith('mobile-'):
                   command.append('--save-assets')
               subprocess.run(command, check=True)
               report = json.loads((output / (name + '.report.json')).read_text())

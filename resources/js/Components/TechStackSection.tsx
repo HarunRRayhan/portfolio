@@ -21,7 +21,7 @@ const technologies = [
 const items = [...technologies, ...technologies]
 
 export function TechStackSection() {
-    const { ref, isActive } = useVisibleAnimation<HTMLElement>()
+    const { ref } = useVisibleAnimation<HTMLElement>('css')
 
     return (
         <section ref={ref} className="relative overflow-hidden border-y border-slate-200 bg-slate-900 py-16 sm:py-20">
@@ -54,7 +54,7 @@ export function TechStackSection() {
                     <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-slate-900 to-transparent" />
 
                     <div
-                        data-running={isActive}
+                        data-running="false"
                         className="marquee-track flex w-max items-center gap-3 py-4 [--marquee-duration:32s] [--marquee-gap:0.75rem]"
                     >
                         {items.map((tech, index) => (
