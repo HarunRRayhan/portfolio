@@ -44,11 +44,6 @@
         <!-- Scripts -->
         @routes
         @viteReactRefresh
-        @if (($page['component'] ?? null) === 'Homepage' && ! app(\Illuminate\Foundation\Vite::class)->isRunningHot())
-            <style data-homepage-styles>{!! Vite::content('resources/css/app.css') !!}</style>
-        @else
-            @vite('resources/css/app.css')
-        @endif
         @vite(['resources/js/app.tsx', "resources/js/Pages/{$page['component']}.tsx"])
         @inertiaHead
         @php
