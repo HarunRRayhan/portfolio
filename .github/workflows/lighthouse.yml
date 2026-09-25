@@ -1,0 +1,91 @@
+name: Audit Production Performance
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lighthouse-production
+  cancel-in-progress: false
+
+jobs:
+  lighthouse:
+    name: Audit harun.dev on an isolated runner
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Install Lighthouse
+        run: npm install --prefix "$RUNNER_TEMP/lighthouse" --no-audit --no-fund lighthouse@13.5.0
+
+      - name: Audit mobile and desktop
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import pathlib
+          import statistics
+          import subprocess
+
+          output = pathlib.Path('lighthouse-reports')
+          output.mkdir()
+          binary = str(pathlib.Path(os.environ['RUNNER_TEMP']) / 'lighthouse/node_modules/.bin/lighthouse')
+          results = []
+
+          # Sequential runs avoid competing for the runner's CPU.
+          for name, preset in [('mobile-1', None), ('mobile-2', None), ('mobile-3', None), ('desktop', 'desktop')]:
+              command = [
+                  binary, 'https://harun.dev/',
+                  '--chrome-flags=--headless=new --no-sandbox --disable-dev-shm-usage',
+                  '--only-categories=performance', '--output=json', '--output=html',
+                  '--output-path=' + str(output / name), '--quiet',
+              ]
+              if preset:
+                  command.append('--preset=' + preset)
+              subprocess.run(command, check=True)
+              report = json.loads((output / (name + '.report.json')).read_text())
+              score = report['categories']['performance']['score']
+              if score is None or report.get('runtimeError'):
+                  raise RuntimeError(f'{name}: Lighthouse did not produce a valid score')
+              result = {
+                  'run': name,
+                  'score': round(score * 100),
+                  'fetchTime': report['fetchTime'],
+                  'benchmarkIndex': report['environment'].get('benchmarkIndex'),
+                  'metrics': {key: report['audits'][key].get('displayValue') for key in [
+                      'first-contentful-paint', 'largest-contentful-paint',
+                      'total-blocking-time', 'cumulative-layout-shift', 'speed-index',
+                  ]},
+                  'warnings': report.get('runWarnings', []),
+                  'failedRequests': [
+                      {'url': request['url'], 'status': request['statusCode']}
+                      for request in report['audits']['network-requests']['details']['items']
+                      if request.get('statusCode', 0) >= 400
+                  ],
+              }
+              results.append(result)
+              print(json.dumps(result), flush=True)
+
+          (output / 'summary.json').write_text(json.dumps(results, indent=2))
+          median = statistics.median(result['score'] for result in results if result['run'].startswith('mobile'))
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write(f'## Production Lighthouse\n\nMobile median: **{median}/100**\n\n')
+              for result in results:
+                  metrics = result['metrics']
+                  summary.write(f"- {result['run']}: **{result['score']}/100**, LCP {metrics['largest-contentful-paint']}, TBT {metrics['total-blocking-time']}, CLS {metrics['cumulative-layout-shift']}\n")
+              summary.write('\nHTML and JSON reports are attached as workflow artifacts.\n')
+          PY
+
+      - name: Upload audit reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-lighthouse-${{ github.run_id }}
+          path: lighthouse-reports/
+          if-no-files-found: warn
+          retention-days: 30
