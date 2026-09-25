@@ -1,5 +1,3 @@
-import '../css/app.css';
-
 import { createInertiaApp, type ResolvedComponent } from '@inertiajs/react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import PublicLayout from './Layouts/PublicLayout';
