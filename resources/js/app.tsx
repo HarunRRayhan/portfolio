@@ -11,9 +11,21 @@ const pages = import.meta.glob('./Pages/**/*.tsx') as Record<
     () => Promise<{ default: ResolvedComponent }>
 >;
 
+// Initial HTML has its own critical styles. Before enabling interactions or
+// SPA navigation, finish loading the shared styles used by menus and forms.
+const deferredStyles = document.querySelector<HTMLLinkElement>('link[data-deferred-app-styles]');
+const stylesReady = deferredStyles && !deferredStyles.sheet && !deferredStyles.dataset.failed
+    ? new Promise<void>((resolve) => {
+        deferredStyles.addEventListener('load', () => resolve(), { once: true });
+        deferredStyles.addEventListener('error', () => resolve(), { once: true });
+        deferredStyles.media = 'all';
+    })
+    : Promise.resolve();
+
 createInertiaApp({
     title: (title) => resolveDocumentTitle(title ?? '', import.meta.env.VITE_APP_NAME),
     resolve: async (name) => {
+        await stylesReady;
         const page = (await pages[`./Pages/${name}.tsx`]()).default;
 
         // Admin/authenticated pages render their own AuthenticatedLayout (sidebar nav)

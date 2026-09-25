@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use App\Models\User;
 use Tests\TestCase;
 
 class HomepageSsrTest extends TestCase
@@ -30,6 +31,17 @@ class HomepageSsrTest extends TestCase
     {
         Http::fake();
         $this->get('/contact')->assertOk();
+        Http::assertNothingSent();
+    }
+
+    public function test_authenticated_homepage_keeps_full_styles_and_client_rendering(): void
+    {
+        Http::fake();
+        $this->actingAs(User::factory()->create())
+            ->get('/')
+            ->assertOk()
+            ->assertDontSee('data-homepage-critical', false)
+            ->assertDontSee('data-deferred-app-styles', false);
         Http::assertNothingSent();
     }
 

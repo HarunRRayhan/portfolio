@@ -11,7 +11,7 @@ import {Popover, PopoverContent, PopoverTrigger} from "@/Components/ui/popover"
 import type React from "react"
 import {Head} from "@inertiajs/react";
 import {router} from '@inertiajs/react'
-import {toast} from "sonner"
+import {toast} from "@/lib/toast"
 import { PageProps as InertiaPageProps } from '@inertiajs/core'
 import confetti from 'canvas-confetti';
 import { Envelope } from "@/Components/ui/envelope"
