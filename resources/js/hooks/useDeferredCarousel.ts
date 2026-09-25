@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import type { EmblaCarouselType } from 'embla-carousel'
 
 /** Keep server-rendered slides visible; load the carousel shortly before use. */
@@ -8,7 +8,9 @@ export function useDeferredCarousel() {
   const [loadError, setLoadError] = useState(false)
   const initializeRef = useRef<() => Promise<EmblaCarouselType | undefined>>(async () => undefined)
 
-  useEffect(() => {
+  // Selective hydration can replay a click before passive effects run.
+  // Install the loader during commit so that first click cannot be lost.
+  useLayoutEffect(() => {
     const viewport = viewportRef.current
     if (!viewport) return
     let disposed = false
