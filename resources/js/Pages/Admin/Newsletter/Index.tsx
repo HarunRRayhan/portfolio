@@ -1,7 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, Link } from '@inertiajs/react'
 import { useEffect, useRef, useState } from 'react'
-import axios from 'axios'
+import axios from '@/lib/http'
 import { Eye, EyeOff, Mail } from 'lucide-react'
 
 interface SubscriberRow {

@@ -35,7 +35,6 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $caseStudies = new CaseStudyRepository;
-        $byService = $caseStudies->groupedByServiceSlug();
 
         $seo = SeoCatalog::forRequest($request);
 
@@ -44,8 +43,10 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
-            'caseStudiesByService' => $byService,
-            'featuredCaseStudies' => $caseStudies->featured(3),
+            'caseStudiesByService' => fn () => $request->is('services/*')
+                ? array_intersect_key($caseStudies->groupedByServiceSlug(), [$request->segment(2) => true])
+                : [],
+            'featuredCaseStudies' => fn () => $request->is('/') ? $caseStudies->featured(3) : [],
             'newsletter' => [
                 'subscriberCount' => function (): int {
                     try {

@@ -56,12 +56,37 @@
         @endif
 
         @if (config('services.ga4.measurement_id') && ! $isDraftBlogPost && ! $isBookingStatus)
-            <script async src="https://www.googletagmanager.com/gtag/js?id={{ config('services.ga4.measurement_id') }}"></script>
             <script>
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}
                 gtag('js', new Date());
-                gtag('config', '{{ config('services.ga4.measurement_id') }}');
+                gtag('config', @js(config('services.ga4.measurement_id')), {
+                    page_location: window.location.href,
+                    page_title: document.title,
+                });
+
+                // Queue events immediately, but let the page finish loading
+                // before analytics competes for network and main-thread time.
+                (() => {
+                    const loadAnalytics = () => {
+                        const script = document.createElement('script');
+                        script.async = true;
+                        script.src = 'https://www.googletagmanager.com/gtag/js?id=' + @js(config('services.ga4.measurement_id'));
+                        document.head.appendChild(script);
+                    };
+                    const scheduleAnalytics = () => {
+                        if ('requestIdleCallback' in window) {
+                            window.requestIdleCallback(loadAnalytics, { timeout: 1500 });
+                        } else {
+                            window.setTimeout(loadAnalytics, 0);
+                        }
+                    };
+                    if (document.readyState === 'complete') {
+                        scheduleAnalytics();
+                    } else {
+                        window.addEventListener('load', scheduleAnalytics, { once: true });
+                    }
+                })();
             </script>
         @endif
     </head>
