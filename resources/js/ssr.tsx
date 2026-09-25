@@ -5,8 +5,9 @@ import Homepage from './Pages/Homepage';
 import PublicLayout from './Layouts/PublicLayout';
 import { SubscribeProvider } from './Components/SubscribeProvider';
 import { resolveDocumentTitle } from './lib/documentTitle';
+import type { Page } from '@inertiajs/core';
 
-createServer((page) => createInertiaApp({
+export const renderPage = (page: Page) => createInertiaApp({
     page,
     render: renderToString,
     title: (title) => resolveDocumentTitle(title ?? '', import.meta.env.VITE_APP_NAME),
@@ -22,4 +23,6 @@ createServer((page) => createInertiaApp({
             <App {...props} />
         </SubscribeProvider>
     ),
-}));
+});
+
+if (process.env.INERTIA_SSR_BUILD_ONLY !== 'true') createServer(renderPage);

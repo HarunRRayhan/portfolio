@@ -1,6 +1,5 @@
 import { createContext, lazy, Suspense, useCallback, useContext, useEffect, useState, ReactNode } from 'react'
 import { router } from '@inertiajs/react'
-import { Toaster } from 'sonner'
 import type { SubscribeTheme } from '@/Components/SubscribeForm'
 import { useIdleSubscribe } from '@/hooks/useIdleSubscribe'
 
@@ -38,8 +37,8 @@ export function useSubscribePopup() {
   return ctx
 }
 
-/** Mounted once around the whole app (see app.tsx) so the idle popup and the
- *  toast host cover every page, including Bio, which renders its own layout. */
+/** Mounted once around the whole app so the idle popup covers every public
+ *  page, including Bio, which renders its own layout. */
 export function SubscribeProvider({
   children,
   subscriberCount = 0,
@@ -82,7 +81,6 @@ export function SubscribeProvider({
   return (
     <SubscribeContext.Provider value={{ openPopup }}>
       {children}
-      <Toaster position="top-right" richColors />
       {!isAdminArea && hasOpened && (
         <Suspense fallback={null}>
           <SubscribePopup

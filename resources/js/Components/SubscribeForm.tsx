@@ -1,6 +1,6 @@
 import { useState, FormEvent } from 'react'
 import { router } from '@inertiajs/react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { ArrowRight } from 'lucide-react'
 import { Input } from '@/Components/ui/input'
 import { Button } from '@/Components/ui/button'

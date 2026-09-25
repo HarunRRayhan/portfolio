@@ -44,6 +44,13 @@
         <!-- Scripts -->
         @routes
         @viteReactRefresh
+        @if (\App\Support\HomepageStyles::available())
+            @php
+                $homepageStyles = json_decode(file_get_contents(public_path('build/homepage-styles.json')), true, 512, JSON_THROW_ON_ERROR);
+            @endphp
+            <style data-homepage-critical>{!! $homepageStyles['css'] !!}</style>
+            <noscript><link rel="stylesheet" href="{{ asset('build/'.$homepageStyles['stylesheet']) }}"></noscript>
+        @endif
         @vite(['resources/js/app.tsx', "resources/js/Pages/{$page['component']}.tsx"])
         @inertiaHead
         @php

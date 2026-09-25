@@ -5,7 +5,7 @@
         "node": ">=22"
     },
     "scripts": {
-        "build": "tsc && vite build && vite build --ssr",
+        "build": "tsc && vite build && vite build --ssr && node scripts/build-homepage-styles.mjs",
         "dev": "vite"
     },
     "devDependencies": {
@@ -21,6 +21,7 @@
         "@vitejs/plugin-react": "^6.0.2",
         "autoprefixer": "^10.5.0",
         "axios": "^1.16.1",
+        "beasties": "^0.5.4",
         "concurrently": "^9.2.1",
         "laravel-vite-plugin": "^3.1.0",
         "postcss": "^8.5.15",
