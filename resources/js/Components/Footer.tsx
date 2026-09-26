@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Link } from '@inertiajs/react'
-import { ArrowRight, ExternalLink, Terminal } from 'lucide-react'
+import { ArrowRight, Terminal } from 'lucide-react'
 import { Github, Linkedin, Mail, Twitter } from '@/lib/icons'
 import { Button } from '@/Components/ui/button'
 import { useSubscribePopup } from '@/Components/SubscribeProvider'
@@ -154,21 +154,24 @@ export function Footer() {
                                         <Mail className="h-4 w-4 shrink-0" aria-hidden="true" />
                                         Subscribe to newsletter
                                     </Button>
-                                    <Button
-                                        asChild
-                                        variant="outline"
-                                        className="h-auto min-h-10 justify-start gap-2 whitespace-normal rounded-lg border-slate-700 bg-transparent px-3 text-left text-slate-300 hover:border-slate-600 hover:bg-slate-800 hover:text-white focus-visible:ring-emerald-400"
+                                    <a
+                                        href="https://www.google.com/preferences/source?q=harun.dev"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        aria-label="Add harun.dev as a preferred source on Google (opens in a new tab)"
+                                        className="block w-full max-w-[338px] rounded-xl transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
                                     >
-                                        <a
-                                            href="https://www.google.com/preferences/source?q=harun.dev"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            aria-label="Google trusted sources: add harun.dev as a preferred source (opens in a new tab)"
-                                        >
-                                            <ExternalLink className="h-4 w-4 shrink-0" aria-hidden="true" />
-                                            Google trusted sources
-                                        </a>
-                                    </Button>
+                                        {/* Official artwork from Google's Preferred Sources badge assets. */}
+                                        <img
+                                            src="/images/google-preferred-source-dark.png"
+                                            alt="Add as a preferred source on Google"
+                                            width={676}
+                                            height={213}
+                                            loading="lazy"
+                                            decoding="async"
+                                            className="h-auto w-full"
+                                        />
+                                    </a>
                                 </div>
                             </div>
                         </div>
