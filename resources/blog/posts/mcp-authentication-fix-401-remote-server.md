@@ -1,10 +1,8 @@
 ---
 title: 'MCP Authentication Explained: Fix 401 Errors in a Remote MCP Server'
 slug: mcp-authentication-fix-401-remote-server
-draft: true
-draftToken: 5305a5fa56fa82b2dc66f826dd4da846
 brief: 'Debug remote MCP authentication step by step: OAuth discovery, callback failures, token audiences, scopes, and AWS API Gateway responses.'
-publishedAt: "2099-01-01T00:00:00.000Z"
+publishedAt: "2026-09-26T14:49:46.000Z"
 readTimeInMinutes: 9
 coverImageUrl: "/blog-assets/mcp-authentication-fix-401-remote-server/cover-v3.jpg"
 coverImageAlt: "MCP Authentication: Fix 401 Errors, with a rejected access card and key."
