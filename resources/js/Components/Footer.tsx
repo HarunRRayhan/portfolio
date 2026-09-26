@@ -139,7 +139,7 @@ export function Footer() {
                                     </ul>
                                 </div>
                             ))}
-                            <div>
+                            <div className="lg:col-span-2 xl:col-span-1">
                                 <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-500">
                                     Stay connected
                                 </div>
@@ -159,18 +159,17 @@ export function Footer() {
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         aria-label="Add harun.dev as a preferred source on Google (opens in a new tab)"
-                                        className="block w-full max-w-[338px] rounded-xl transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+                                        className="inline-flex h-10 w-fit max-w-full items-center gap-2 rounded-full border border-[#5f6368] bg-[#202124] pl-3.5 pr-4 font-[Arial,sans-serif] text-sm font-medium tracking-[0.1px] text-[#e8eaed] transition hover:bg-[#303134] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
                                     >
-                                        {/* Official artwork from Google's Preferred Sources badge assets. */}
                                         <img
-                                            src="/images/google-preferred-source-dark.png"
-                                            alt="Add as a preferred source on Google"
-                                            width={676}
-                                            height={213}
-                                            loading="lazy"
-                                            decoding="async"
-                                            className="h-auto w-full"
+                                            src="/images/google-g-gradient.svg"
+                                            alt=""
+                                            aria-hidden="true"
+                                            width={22}
+                                            height={22}
+                                            className="h-[22px] w-[22px] shrink-0"
                                         />
+                                        <span className="whitespace-nowrap">Add to Preferred Sources</span>
                                     </a>
                                 </div>
                             </div>
