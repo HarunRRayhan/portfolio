@@ -6,7 +6,7 @@ draftToken: 5305a5fa56fa82b2dc66f826dd4da846
 brief: 'Debug remote MCP authentication step by step: OAuth discovery, callback failures, token audiences, scopes, and AWS API Gateway responses.'
 publishedAt: "2099-01-01T00:00:00.000Z"
 readTimeInMinutes: 9
-coverImageUrl: "/blog-assets/mcp-authentication-fix-401-remote-server/cover.jpg"
+coverImageUrl: "/blog-assets/mcp-authentication-fix-401-remote-server/cover-v2.jpg"
 coverImageAlt: "MCP Authentication: Fix 401 Errors, with a rejected access card and key."
 reactionCount: 0
 responseCount: 0
