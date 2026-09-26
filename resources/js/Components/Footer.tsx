@@ -1,13 +1,11 @@
 'use client'
 
 import React from 'react'
-import { Link, usePage } from '@inertiajs/react'
-import { ArrowRight, Terminal } from 'lucide-react'
+import { Link } from '@inertiajs/react'
+import { ArrowRight, ExternalLink, Terminal } from 'lucide-react'
 import { Github, Linkedin, Mail, Twitter } from '@/lib/icons'
 import { Button } from '@/Components/ui/button'
-import { Logo } from '@/Components/Logo'
-import { SubscribeForm } from '@/Components/SubscribeForm'
-import { pickNewsletterAvatars } from '@/lib/newsletterAvatars'
+import { useSubscribePopup } from '@/Components/SubscribeProvider'
 
 type FooterLink = {
     label: string
@@ -58,10 +56,7 @@ const socials = [
 ]
 
 export function Footer() {
-    const { newsletter } = usePage().props as { newsletter?: { subscriberCount?: number } }
-    const subscriberCount = newsletter?.subscriberCount ?? 0
-    const subscriberLabel = subscriberCount === 1 ? 'reader' : 'readers'
-    const [avatarUrls] = React.useState(pickNewsletterAvatars)
+    const { openPopup } = useSubscribePopup()
 
     return (
         <footer className="relative border-t border-slate-800 bg-slate-950 text-white">
@@ -144,52 +139,38 @@ export function Footer() {
                                     </ul>
                                 </div>
                             ))}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Newsletter sign-up */}
-                <div
-                    className="mt-8 rounded-xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm backdrop-blur sm:p-8"
-                >
-                    <div>
-                        <div className="flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-emerald-400">
-                            <Mail className="h-3.5 w-3.5" />
-                            Weekly newsletter
-                        </div>
-                        <h2 className="mt-3 text-2xl font-bold tracking-tight text-white sm:text-3xl">
-                            Practical notes, once a week.
-                        </h2>
-                        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
-                            New articles and useful engineering lessons, without the inbox noise.
-                        </p>
-                        <div className="mt-5 max-w-md">
-                            <SubscribeForm source="footer" theme="slate" />
-                        </div>
-                        <div className="mt-3 flex items-center gap-2.5 text-xs text-slate-500">
-                            <div className="flex shrink-0 -space-x-1.5" aria-hidden="true">
-                                <img
-                                    src={avatarUrls[0]}
-                                    alt=""
-                                    width={28}
-                                    height={28}
-                                    loading="lazy"
-                                    decoding="async"
-                                    className="h-7 w-7 rounded-full border-2 border-slate-900 bg-emerald-100 object-cover"
-                                />
-                                <img
-                                    src={avatarUrls[1]}
-                                    alt=""
-                                    width={28}
-                                    height={28}
-                                    loading="lazy"
-                                    decoding="async"
-                                    className="h-7 w-7 rounded-full border-2 border-slate-900 bg-emerald-100 object-cover"
-                                />
+                            <div>
+                                <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-500">
+                                    Stay connected
+                                </div>
+                                <div className="mt-4 flex flex-col items-stretch gap-3">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        aria-haspopup="dialog"
+                                        onClick={() => openPopup('footer', 'slate')}
+                                        className="h-auto min-h-10 justify-start gap-2 whitespace-normal rounded-lg border-slate-700 bg-transparent px-3 text-left text-slate-300 hover:border-slate-600 hover:bg-slate-800 hover:text-white focus-visible:ring-emerald-400"
+                                    >
+                                        <Mail className="h-4 w-4 shrink-0" aria-hidden="true" />
+                                        Subscribe to newsletter
+                                    </Button>
+                                    <Button
+                                        asChild
+                                        variant="outline"
+                                        className="h-auto min-h-10 justify-start gap-2 whitespace-normal rounded-lg border-slate-700 bg-transparent px-3 text-left text-slate-300 hover:border-slate-600 hover:bg-slate-800 hover:text-white focus-visible:ring-emerald-400"
+                                    >
+                                        <a
+                                            href="https://www.google.com/preferences/source?q=harun.dev"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            aria-label="Google trusted sources: add harun.dev as a preferred source (opens in a new tab)"
+                                        >
+                                            <ExternalLink className="h-4 w-4 shrink-0" aria-hidden="true" />
+                                            Google trusted sources
+                                        </a>
+                                    </Button>
+                                </div>
                             </div>
-                            <p>
-                                Join <span className="font-semibold text-slate-300">{subscriberCount.toLocaleString()}</span> other {subscriberLabel}.
-                            </p>
                         </div>
                     </div>
                 </div>

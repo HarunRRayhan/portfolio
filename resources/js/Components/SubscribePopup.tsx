@@ -102,7 +102,7 @@ export function SubscribePopup({
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className={`absolute right-3.5 top-3.5 flex h-8 w-8 items-center justify-center rounded-full border transition hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${t.close}`}
+              className={`absolute right-3.5 top-3.5 z-10 flex h-8 w-8 items-center justify-center rounded-full border transition hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${t.close}`}
             >
               <X className="h-4 w-4" />
             </button>
