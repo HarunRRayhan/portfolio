@@ -26,13 +26,11 @@ tags:
     slug: security
 ---
 
-<p>You connect an AI client to your remote MCP server. The client says “Unauthorized.” You sign in again. Same error.</p>
-<p>Before changing your credentials, find out which request failed.</p>
-<p><strong>An initial HTTP 401 can be the expected start of an OAuth login. A 401 after the client sends an access token needs a different investigation.</strong> Treating both as “bad API key” sends you in circles.</p>
-<p>This guide covers remote HTTP MCP servers using OAuth. Local servers connected over stdio use a different credential setup. The protocol references below target MCP <strong>2026-07-28</strong>, checked on September 26, 2026. Record your client's version and server SDK version before debugging; older clients may follow a different flow. <a href="https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization">MCP authorization specification</a></p>
-<p>The examples use reserved example domains. They illustrate the requests to inspect, rather than claim compatibility testing with a particular desktop client.</p>
+<p>An “Unauthorized” error from a remote MCP server doesn’t necessarily mean your credentials are wrong. The first 401 may be the server asking the client to start an OAuth login. If the client has already logged in and sent an access token, that same status points to a different problem.</p>
+<p>Before rotating keys or signing in again, find the request that failed. Was it the first call to <code>/mcp</code>, the token exchange, or a tool calling another API? That distinction will save you a lot of guessing.</p>
+<p>The examples here cover OAuth on remote HTTP servers, using the <a href="https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization">2026-07-28 MCP revision</a>. Local stdio servers handle credentials differently. Check your client and SDK versions before copying anything; older implementations may use an earlier flow. Replace the example URLs with your own. The snippets are diagnostic examples, not a tested integration for a particular desktop client.</p>
 <h2>Find the last request that worked</h2>
-<p>Start with the client's network trace or your server access logs. Keep response status codes and request IDs. Redact credentials, authorization codes, and cookies before sharing a trace.</p>
+<p>Open the client’s network trace or the server’s access logs and look for the last successful request. Keep the request IDs so you can follow the same attempt across services. Remove tokens, authorization codes, and cookies before sharing logs.</p>
 <table>
 <thead>
 <tr>
@@ -71,14 +69,14 @@ tags:
 </tr>
 </tbody>
 </table>
-<p>This table is a debugging order. It isn't a promise that every product reports failures consistently. An upstream API can also return an authorization error inside a tool result. That is a different request from the HTTP connection between your MCP client and server.</p>
-<h2>1. Inspect the 401 response, including its headers</h2>
-<p>For a protected resource, an unauthenticated request can receive a challenge like this:</p>
+<p>One easy mix-up: a tool can connect successfully, call an upstream API, and return that API’s authorization error. If the failure is inside a tool result, investigate the downstream credentials first.</p>
+<h2>Start with the response headers</h2>
+<p>A protected endpoint can answer an unauthenticated request with this challenge:</p>
 <pre><code class="language-http">HTTP/1.1 401 Unauthorized
 WWW-Authenticate: Bearer resource_metadata=&quot;https://mcp.example.com/.well-known/oauth-protected-resource/mcp&quot;, scope=&quot;reports:read&quot;
 </code></pre>
-<p>The useful part is the header. A JSON body that says <code>Unauthorized</code> doesn't tell a client where to discover your authorization server.</p>
-<p>If you already have a failing request, replay its <strong>read-only</strong> operation without credentials. Save its JSON body as <code>mcp-request.json</code>. Use the same protocol headers your client sent:</p>
+<p>Look for <code>WWW-Authenticate</code>. A body containing only <code>Unauthorized</code> gives you very little to work with; this header points the client toward the login configuration.</p>
+<p>To see what your server actually returns, save the body of a failing read-only request as <code>mcp-request.json</code> and replay it without credentials:</p>
 <pre><code class="language-bash"># Run in Bash. Use your server URL and the captured read-only request body.
 MCP_URL='https://mcp.example.com/mcp'
 
@@ -90,49 +88,44 @@ curl --silent --show-error \
   --data-binary @mcp-request.json \
   &quot;$MCP_URL&quot;
 </code></pre>
-<p>Add any protocol-specific headers from the captured request; the command above only supplies the common content headers. It deliberately doesn't follow redirects or supply an access token.</p>
-<p>Don't substitute <code>curl -I</code>: that sends HEAD, which can take a different route through your infrastructure. Also, don't interpret a 400 from an incomplete replay as an authentication diagnosis.</p>
-<p>If <code>resource_metadata</code> is absent, discovery isn't automatically broken. MCP clients must also try the well-known metadata locations. For <code>/mcp</code>, the path-specific candidate is <code>/.well-known/oauth-protected-resource/mcp</code>, followed by the root candidate <code>/.well-known/oauth-protected-resource</code>. A usable challenge makes this easier to diagnose. <a href="https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/authorization-server-discovery">Discovery requirements</a></p>
-<h2>2. Check both discovery documents</h2>
-<p>There are two separate documents to inspect:</p>
-<ol>
-<li><strong>Protected resource metadata:</strong> identifies your MCP resource and its authorization servers.</li>
-<li><strong>Authorization server metadata:</strong> tells the client where to authorize and exchange a code for tokens.</li>
-</ol>
-<p>Fetch the resource metadata URL advertised by your server:</p>
+<p>Add the protocol-specific headers from the original request. This command supplies only the common content headers and leaves redirects visible.</p>
+<p>Use the original request method. <code>curl -I</code> sends HEAD and may hit a different route. A 400 caused by a missing protocol header won’t tell you whether OAuth works.</p>
+<p>Without <code>resource_metadata</code>, the client must fall back to well-known URLs. For <code>/mcp</code>, it tries <code>/.well-known/oauth-protected-resource/mcp</code>, then <code>/.well-known/oauth-protected-resource</code>. Check those before blaming a missing challenge parameter. <a href="https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/authorization-server-discovery">Discovery requirements</a></p>
+<h2>Follow the metadata to the login server</h2>
+<p>Discovery happens in two hops. Your MCP server identifies the authorization server. That server publishes the endpoints used for login and token exchange.</p>
+<p>Fetch the resource metadata URL from the challenge:</p>
 <pre><code class="language-bash">curl --silent --show-error --fail-with-body \
   'https://mcp.example.com/.well-known/oauth-protected-resource/mcp' \
   | python3 -m json.tool
 </code></pre>
-<p>A small example:</p>
+<p>For an MCP endpoint at <code>/mcp</code>, the document might contain:</p>
 <pre><code class="language-json">{
   &quot;resource&quot;: &quot;https://mcp.example.com/mcp&quot;,
   &quot;authorization_servers&quot;: [&quot;https://auth.example.com&quot;],
   &quot;scopes_supported&quot;: [&quot;reports:read&quot;]
 }
 </code></pre>
-<p>This endpoint needs to be reachable before login. Putting the same bearer-token requirement on it creates a loop: the client needs metadata to get the token that your metadata endpoint demands. The resource identifier must match the resource the client is trying to access. <a href="https://www.rfc-editor.org/rfc/rfc9728">Protected resource metadata, RFC 9728</a></p>
-<p>For the root issuer in this example, inspect:</p>
+<p>Keep this endpoint reachable before login. Otherwise the client needs a token to discover how to get a token. The <code>resource</code> value must identify the resource it’s connecting to. <a href="https://www.rfc-editor.org/rfc/rfc9728">Protected resource metadata, RFC 9728</a></p>
+<p>With <code>https://auth.example.com</code> as the issuer, the next request goes here:</p>
 <pre><code class="language-bash">curl --silent --show-error --fail-with-body \
   'https://auth.example.com/.well-known/oauth-authorization-server' \
   | python3 -m json.tool
 </code></pre>
-<p>An OIDC discovery document may be used instead. Check its <code>issuer</code>, <code>authorization_endpoint</code>, and <code>token_endpoint</code>. The issuer must match the expected issuer exactly. If your issuer includes a tenant path, follow the specification's discovery URL order rather than blindly appending a suffix. <a href="https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/authorization-server-discovery">Authorization server discovery</a></p>
-<p>When a request returns your application's login page, inspect routing before editing OAuth settings. Common places to look are a catch-all frontend route and authentication middleware applied to every URL.</p>
-<h2>3. If the login page rejects the client, check registration</h2>
-<p>Your identity provider knowing who the user is doesn't mean it recognizes the MCP client.</p>
-<p>Compare the client ID and callback URL in the authorization request with the client registration. A callback on <code>localhost</code> and one on <code>127.0.0.1</code> aren't interchangeable registrations. Check the path too.</p>
-<p>For MCP 2026-07-28, the registration options are pre-registration, Client ID Metadata Documents (CIMD), and legacy Dynamic Client Registration (DCR). DCR is deprecated, but remains an optional compatibility mechanism. Don't assume every server must expose a <code>registration_endpoint</code>.</p>
-<p>If the client sends an HTTPS URL as its client ID, check whether your authorization server supports CIMD. If it doesn't, use a registration method both sides support. When DCR is used with an OIDC provider, a native client may also need <code>application_type: &quot;native&quot;</code> for its callback configuration.</p>
-<p>After changing authorization servers, remove only the affected connection's stale registration through the client's supported controls. Credentials issued by the old issuer don't belong to the new one. <a href="https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/client-registration">MCP client registration</a></p>
-<h2>4. If login succeeds but token exchange fails, inspect PKCE</h2>
-<p>The browser returning to the client is one milestone. It doesn't prove that the client obtained an access token.</p>
-<p>With PKCE, the client creates a verifier and sends a derived challenge during authorization. It later sends the original verifier when exchanging the authorization code. If the client loses that verifier between those requests, the exchange fails. Creating a new verifier at the token step won't repair it. <a href="https://www.rfc-editor.org/rfc/rfc7636">PKCE, RFC 7636</a></p>
-<p>At this stage, check the provider's error response and request IDs. Compare the callback URI used in the flow with the registered URI. Check whether another local process owns the callback port. For a client running inside a container or remote development environment, verify that the browser can actually reach the callback listener.</p>
-<p>Don't repeatedly replay a captured authorization code. Start a fresh login after fixing the underlying configuration.</p>
-<h2>5. If the token arrives but 401 continues, check its destination</h2>
-<p>The MCP client must send the target <code>resource</code> in both authorization and token requests. Your server must reject access tokens that weren't issued for it. A successful login to an unrelated API doesn't produce a token your MCP server should accept. <a href="https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization">MCP resource and token requirements</a></p>
-<p>For JWT access tokens, inspect these checks in your validator:</p>
+<p>The provider may use OIDC discovery instead. Either way, inspect <code>issuer</code>, <code>authorization_endpoint</code>, and <code>token_endpoint</code>. The issuer must match exactly. Providers with tenant paths need the discovery URL construction described in the spec; appending a suffix to the issuer won’t always produce the right URL. <a href="https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/authorization-server-discovery">Authorization server discovery</a></p>
+<p>If either metadata URL returns your application’s login page, fix routing first. Look for a catch-all frontend route or authentication middleware covering the metadata endpoint.</p>
+<h2>A rejected client ID is a registration problem</h2>
+<p>Your account can be valid while the MCP client’s registration is wrong. Compare the request’s client ID and callback URL with the provider’s registration. Pay attention to the callback path and hostname: <code>localhost</code> and <code>127.0.0.1</code> aren’t interchangeable.</p>
+<p>MCP 2026-07-28 supports pre-registration and Client ID Metadata Documents (CIMD), plus Dynamic Client Registration (DCR) for compatibility. DCR is deprecated and optional, so a missing <code>registration_endpoint</code> isn’t necessarily an error.</p>
+<p>An HTTPS URL used as the client ID is a clue to check CIMD support. If the provider doesn’t support it, use a registration method both sides understand. For DCR with an OIDC provider, desktop clients may also need <code>application_type: &quot;native&quot;</code>.</p>
+<p>If you’ve changed issuers, reset the affected connection’s registration through the client’s settings. Don’t reuse the old issuer’s client credentials. <a href="https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/client-registration">MCP client registration</a></p>
+<h2>Login can work while the code exchange fails</h2>
+<p>After the browser returns to the client, look for a successful token response. A completed callback alone doesn’t mean the exchange worked.</p>
+<p>PKCE ties the authorization request to the code exchange. The client sends a challenge first, then the original verifier when it requests a token. Losing that verifier breaks the exchange. Generating another one at the token step won’t help. <a href="https://www.rfc-editor.org/rfc/rfc7636">PKCE, RFC 7636</a></p>
+<p>Read the provider’s error response before retrying. Check the callback URI and whether another process owns the callback port. If the client runs in a container or on a remote machine, make sure the browser can reach its callback listener.</p>
+<p>After fixing the configuration, start a fresh login instead of replaying the captured code.</p>
+<h2>A token for the wrong API should fail</h2>
+<p>The client must include the target <code>resource</code> in both the authorization request and the token request. Check that value when a newly issued token still gets a 401. The MCP server must reject a token issued for another resource. <a href="https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization">MCP resource and token requirements</a></p>
+<p>For JWT access tokens, work through the validator’s checks:</p>
 <table>
 <thead>
 <tr>
@@ -163,31 +156,31 @@ curl --silent --show-error \
 </tr>
 </tbody>
 </table>
-<p>Reading a JWT payload doesn't validate it. Use a maintained validator configured for your provider's access-token profile. Opaque tokens need the provider's supported validation mechanism instead of JWT decoding. <a href="https://www.rfc-editor.org/rfc/rfc9068">JWT access-token validation, RFC 9068</a></p>
-<p>Then check the boring infrastructure question: did the <code>Authorization</code> header reach the validator at all? Log its presence as a boolean. Don't log its value.</p>
-<p>If your MCP tool calls another API, keep that downstream authorization separate. Forwarding whatever bearer token arrived at <code>/mcp</code> to another service can cross the wrong trust boundary. <a href="https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices#token-passthrough">MCP token-passthrough guidance</a></p>
-<h2>6. Treat missing permissions separately from invalid tokens</h2>
-<p>A valid token can still lack permission for an operation. A scope challenge can look like this:</p>
+<p>A decoded JWT payload is only data until you validate it. Use a maintained validator configured for the provider’s access-token profile. For opaque tokens, use the provider’s supported validation mechanism. <a href="https://www.rfc-editor.org/rfc/rfc9068">JWT access-token validation, RFC 9068</a></p>
+<p>Also confirm that <code>Authorization</code> reaches the application. Logging <code>authorization_header_present: true</code> is enough for that check. Keep the token itself out of the logs.</p>
+<p>If a tool calls another API, handle that API’s credentials separately. Don’t forward the incoming MCP bearer token to it. <a href="https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices#token-passthrough">MCP token-passthrough guidance</a></p>
+<h2>A 403 needs a permission check</h2>
+<p>When the token is valid but lacks a required scope, the response can look like this:</p>
 <pre><code class="language-http">HTTP/1.1 403 Forbidden
 WWW-Authenticate: Bearer error=&quot;insufficient_scope&quot;, scope=&quot;reports:read&quot;
 </code></pre>
-<p>For bearer authentication, expired or invalid tokens map to 401; insufficient scope maps to 403. Repeating the same request with the same permissions won't fix the latter. Inspect the requested scope and the granted scope before retrying. <a href="https://www.rfc-editor.org/rfc/rfc6750">Bearer-token errors, RFC 6750</a></p>
-<p>Scopes also don't replace your application's authorization checks. In a reporting tool, <code>reports:read</code> might permit calling the operation, while the database query must still restrict results to the authenticated user's tenant.</p>
-<p>Add a test with two tenants and a valid token. Attempt to read a report owned by the other tenant. Passing OAuth should never make that report visible.</p>
-<h2>7. On AWS, verify who generated the error</h2>
-<p>For an API Gateway and Lambda deployment, draw the actual request path:</p>
+<p>Bearer authentication uses 401 for invalid or expired tokens and 403 for insufficient scope. Compare what the operation requires with what the token grants. Signing in again with the same permissions won’t resolve a scope mismatch. <a href="https://www.rfc-editor.org/rfc/rfc6750">Bearer-token errors, RFC 6750</a></p>
+<p>Your application still needs its own access checks. <code>reports:read</code> can permit the operation without granting access to every customer’s reports. Restrict the database query to the authenticated user’s tenant.</p>
+<p>Test this with two tenants: a valid token for one must not read the other’s report.</p>
+<h2>On AWS, find out whether the request reached Lambda</h2>
+<p>For an API Gateway and Lambda deployment, start with the request path:</p>
 <pre><code class="language-text">MCP client -&gt; API Gateway -&gt; authorizer, if configured -&gt; Lambda
 </code></pre>
-<p>Include CloudFront or a WAF if they're part of your deployment. Correlate gateway access logs with application logs. If Lambda never received the request, editing its authentication response won't change the error the client sees.</p>
-<p>Make sure public discovery routes reach their metadata handlers. A generic rejection from an upstream authorizer may omit the MCP discovery challenge; in that case the well-known fallback routes still need to work.</p>
-<p>For a browser-based client, inspect CORS separately. API Gateway HTTP APIs can answer preflight requests, and configured API-level CORS takes precedence over integration CORS headers. A protected <code>$default</code> route may require an explicit unauthenticated <code>OPTIONS /{proxy+}</code> route. <a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-cors.html">AWS HTTP API CORS documentation</a></p>
-<p>Allow the actual request headers your client sends. Also expose the challenge header so browser JavaScript can read it:</p>
+<p>Add CloudFront or a WAF if your setup uses them. Match the gateway access logs to the Lambda logs. When there’s no corresponding Lambda invocation, investigate the gateway or the layer in front of it.</p>
+<p>Keep the public discovery routes reachable. If an upstream authorizer returns a generic rejection without the MCP challenge, the client still needs working well-known metadata routes.</p>
+<p>Browser clients add another place to look: CORS. On HTTP APIs, API Gateway can handle preflight requests itself and override the integration’s CORS headers. If your <code>$default</code> route requires authorization, you may need an explicit unauthenticated <code>OPTIONS /{proxy+}</code> route. <a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-cors.html">AWS HTTP API CORS documentation</a></p>
+<p>Allow the request headers the client sends, and expose the response’s challenge header:</p>
 <pre><code class="language-http">Access-Control-Expose-Headers: WWW-Authenticate
 </code></pre>
-<p>Allowing <code>Authorization</code> as a <strong>request</strong> header doesn't expose <code>WWW-Authenticate</code> as a <strong>response</strong> header. These are different controls. Set the appropriate allowed origin on error responses too. Native clients and curl don't enforce browser CORS, so success in a terminal doesn't settle this check. <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Expose-Headers">Response-header exposure</a></p>
-<p>I covered transport and routing issues separately in <a href="/blog/mcp-stateless-spec-broke-my-lambda-mcp-server">MCP Went Stateless and Broke My Lambda MCP Server Anyway</a>. Keep a transport failure separate from an OAuth failure while debugging.</p>
-<h2>Prove the fix with the client that failed</h2>
-<p>Record the client build, server SDK version, and protocol revision alongside these results:</p>
+<p><code>Authorization</code> belongs to the request; <code>WWW-Authenticate</code> belongs to the response. Allowing one doesn’t expose the other. Error responses need the appropriate allowed origin too. A successful curl request won’t catch this problem because curl doesn’t enforce browser CORS. <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Expose-Headers">Response-header exposure</a></p>
+<p>For protocol-version and routing failures, see <a href="/blog/mcp-stateless-spec-broke-my-lambda-mcp-server">the Lambda MCP migration post</a>. Those can interrupt the connection before OAuth gets a chance to work.</p>
+<h2>Retest the original connection</h2>
+<p>Use the client that originally failed, with its version recorded alongside your server SDK and protocol revision:</p>
 <table>
 <thead>
 <tr>
@@ -222,4 +215,4 @@ WWW-Authenticate: Bearer error=&quot;insufficient_scope&quot;, scope=&quot;repor
 </tr>
 </tbody>
 </table>
-<p>A green login page isn't the finish line. The useful proof is the original client completing the intended operation, while the requests it should reject still fail.</p>
+<p>Once those checks pass, reconnect from a fresh session and run the original read-only operation. Keep its request ID with the server logs so the next failure has a useful comparison.</p>
