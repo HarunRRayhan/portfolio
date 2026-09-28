@@ -111,6 +111,18 @@ Route::get('/admin', fn () => redirect()->route('dashboard'))
 // Legacy bookmark support: the dashboard used to live at /dashboard.
 Route::redirect('/dashboard', '/admin/dashboard');
 
+Route::get('/admin/analytics', function () {
+    $since = now()->subDays(29)->startOfDay();
+
+    return Inertia::render('Admin/Analytics', [
+        'bioClicks' => \App\Models\BioLinkClick::query()->where('created_at', '>=', $since)->count(),
+        'shortClicks' => \App\Models\ShortLinkClick::query()->where('created_at', '>=', $since)->count(),
+        'bioLinks' => \App\Models\BioLink::query()->count(),
+        'shortLinks' => \App\Models\ShortLink::query()->count(),
+        'blogViews' => (int) DB::table('blog_post_views')->sum('count'),
+    ]);
+})->middleware(['auth', 'verified', 'role:admin'])->name('admin.analytics');
+
 // Admin CRUD for link-in-bio entries
 Route::middleware(['auth', 'verified', 'role:admin'])
     ->prefix('admin/bio')
