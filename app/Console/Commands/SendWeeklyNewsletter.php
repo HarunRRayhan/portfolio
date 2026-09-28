@@ -24,12 +24,6 @@ class SendWeeklyNewsletter extends Command
     {
         $dryRun = (bool) $this->option('dry-run');
 
-        if (! config('newsletter.enabled') && ! $dryRun) {
-            $this->info('Newsletter sending is disabled. Set NEWSLETTER_ENABLED=true to enable it.');
-
-            return self::SUCCESS;
-        }
-
         $now = now(config('newsletter.schedule.timezone'));
         $windowStart = $now->copy()->subDays(7);
         $weekKey = $now->format('o-\\WW');

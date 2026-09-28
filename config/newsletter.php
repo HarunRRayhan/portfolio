@@ -1,19 +1,6 @@
 <?php
 
 return [
-    /*
-    |--------------------------------------------------------------------------
-    | Weekly newsletter
-    |--------------------------------------------------------------------------
-    |
-    | The scheduler still runs when sending is disabled. This lets a deploy
-    | validate the command without sending mail until the production variables
-    | are in place.
-    |
-    */
-
-    'enabled' => filter_var(env('NEWSLETTER_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
-
     'max_posts' => min(3, max(1, (int) env('NEWSLETTER_MAX_POSTS', 3))),
 
     'schedule' => [
