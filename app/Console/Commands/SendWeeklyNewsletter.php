@@ -9,7 +9,6 @@ use App\Models\Subscriber;
 use App\Support\BlogRepository;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Throwable;
@@ -32,11 +31,21 @@ class SendWeeklyNewsletter extends Command
         }
 
         $now = now(config('newsletter.schedule.timezone'));
+        $windowStart = $now->copy()->subDays(7);
         $weekKey = $now->format('o-\\WW');
         $availablePosts = collect($blog->indexPosts())
             ->filter(fn (array $post): bool => ! (bool) ($post['isDraft'] ?? false))
             ->filter(fn (array $post): bool => Carbon::parse((string) $post['publishedAt'])->lte($now))
             ->values();
+        $recentPosts = $availablePosts
+            ->filter(fn (array $post): bool => Carbon::parse((string) $post['publishedAt'])->gt($windowStart))
+            ->values();
+
+        if ($recentPosts->isEmpty()) {
+            $this->info('No posts were published in the last seven days. Newsletter skipped.');
+
+            return self::SUCCESS;
+        }
 
         $campaign = NewsletterCampaign::query()->where('key', $weekKey)->first();
 
@@ -47,13 +56,15 @@ class SendWeeklyNewsletter extends Command
         }
 
         if ($campaign) {
-            $postsBySlug = $availablePosts->keyBy('slug');
+            $postsBySlug = $recentPosts->keyBy('slug');
             $posts = collect($campaign->post_slugs ?? [])
                 ->map(fn (string $slug): ?array => $postsBySlug->get($slug))
                 ->filter()
                 ->values();
         } else {
-            $posts = $this->postsForNewCampaign($availablePosts);
+            $posts = $recentPosts
+                ->take(min(3, (int) config('newsletter.max_posts')))
+                ->values();
         }
 
         if ($posts->isEmpty()) {
@@ -61,6 +72,31 @@ class SendWeeklyNewsletter extends Command
 
             return self::SUCCESS;
         }
+
+        $posts = $posts->map(function (array $post, int $index) use ($blog): array {
+            if ($index !== 0 || ! isset($post['brief'])) {
+                return $post;
+            }
+
+            $source = $blog->find((string) $post['slug']);
+
+            if (! $source) {
+                return $post;
+            }
+
+            $content = $blog->withContent($source);
+            preg_match_all('/<p\b[^>]*>(.*?)<\/p>/si', (string) $content['content']['html'], $paragraphs);
+            $intro = collect(array_slice($paragraphs[1], 0, 2))
+                ->map(fn (string $paragraph): string => trim(html_entity_decode(strip_tags($paragraph), ENT_QUOTES | ENT_HTML5, 'UTF-8')))
+                ->filter()
+                ->implode(' ');
+
+            if ($intro !== '') {
+                $post['newsletterExcerpt'] = Str::limit($intro, 500, '…');
+            }
+
+            return $post;
+        });
 
         $subject = $this->subjectFor($posts->all());
 
@@ -85,11 +121,22 @@ class SendWeeklyNewsletter extends Command
             'key' => $weekKey,
             'post_slugs' => $posts->pluck('slug')->values()->all(),
             'subject' => $subject,
+            'products' => $this->chooseProducts($weekKey),
         ]);
+
+        if ($campaign->products === null) {
+            $campaign->update(['products' => $this->chooseProducts($weekKey)]);
+        }
 
         $subscribers = Subscriber::subscribed()->orderBy('id')->get();
         $subscriberCount = $subscribers->count();
         $campaign->update(['subscriber_count' => $subscriberCount]);
+        $products = $campaign->products;
+        $tweets = collect(config('newsletter.tweets', []))
+            ->filter(fn (array $tweet): bool => ! empty($tweet['text']) && ! empty($tweet['url']))
+            ->take(3)
+            ->values()
+            ->all();
 
         if ($subscribers->isEmpty()) {
             $this->info("Prepared campaign {$weekKey}, but there are no active subscribers.");
@@ -117,7 +164,8 @@ class SendWeeklyNewsletter extends Command
                 Mail::to($subscriber->email)->send(new WeeklyNewsletterMail(
                     posts: $posts->all(),
                     subscriber: $subscriber,
-                    subscriberCount: $subscriberCount,
+                    products: $products,
+                    tweets: $tweets,
                 ));
 
                 $delivery->update([
@@ -149,27 +197,25 @@ class SendWeeklyNewsletter extends Command
         return self::SUCCESS;
     }
 
-    /**
-     * @param  Collection<int, array<string, mixed>>  $availablePosts
-     * @return Collection<int, array<string, mixed>>
-     */
-    private function postsForNewCampaign($availablePosts)
+    /** @return array<int, array<string, string>> */
+    private function chooseProducts(string $weekKey): array
     {
-        $lastSentAt = NewsletterCampaign::query()
-            ->whereNotNull('sent_at')
-            ->latest('sent_at')
-            ->value('sent_at');
+        $products = collect(config('newsletter.products', []))->unique('key')->values();
+        $previous = NewsletterCampaign::query()
+            ->where('key', '!=', $weekKey)
+            ->whereNotNull('products')
+            ->latest('created_at')
+            ->latest('id')
+            ->first();
+        $previousKeys = collect($previous?->products ?? [])->pluck('key')->all();
 
-        if ($lastSentAt === null) {
-            return $availablePosts->take(config('newsletter.max_posts'))->values();
-        }
-
-        $lastSent = Carbon::parse((string) $lastSentAt);
-
-        return $availablePosts
-            ->filter(fn (array $post): bool => Carbon::parse((string) $post['publishedAt'])->gt($lastSent))
-            ->take(config('newsletter.max_posts'))
-            ->values();
+        return $products
+            ->reject(fn (array $product): bool => in_array($product['key'], $previousKeys, true))
+            ->shuffle()
+            ->concat($products->filter(fn (array $product): bool => in_array($product['key'], $previousKeys, true))->shuffle())
+            ->take(2)
+            ->values()
+            ->all();
     }
 
     /**

@@ -1,8 +1,18 @@
 # Weekly newsletter operations
 
-The newsletter is a digest of the latest published blog posts. It does not
-call an AI provider. The command takes up to three new posts, builds the email,
-and sends it to rows whose `status` is `subscribed`.
+The newsletter includes up to three posts published in the seven days before
+the send. A week with no new post sends nothing, including a retry of a
+pending campaign. Two distinct products are picked at random for each
+campaign, favoring products absent from the previous campaign. The pair is
+saved with the campaign so retries show the same products to everyone. One
+appears before the first post and one after it, with their logos. Edit
+`config/newsletter.php` to change the product list.
+
+The email can also show up to three manually curated X posts after the blog
+and product sections. Add each post's `text` and `url` to
+`newsletter.tweets` in `config/newsletter.php`. When that list is empty, the
+email links to `https://x.com/harundotdev` instead. Automatic X retrieval
+is not configured.
 
 ## How it runs
 
@@ -12,15 +22,17 @@ and sends it to rows whose `status` is `subscribed`.
 php artisan schedule:run --no-interaction
 ```
 
-`routes/console.php` registers `newsletter:send-weekly` for Monday at 09:00 in
-`Asia/Dhaka`. The day, time, timezone, and maximum post count are configurable:
+`routes/console.php` registers `newsletter:send-weekly` for Tuesday at 11:00
+in `America/New_York`. This reaches the US east coast in late morning, the
+west coast at 08:00, and the UK in the afternoon. The day, time, timezone,
+and post count (one to three) are configurable:
 
 ```dotenv
 NEWSLETTER_ENABLED=true
 NEWSLETTER_MAX_POSTS=3
-NEWSLETTER_SEND_DAY=1
-NEWSLETTER_SEND_TIME=09:00
-NEWSLETTER_TIMEZONE=Asia/Dhaka
+NEWSLETTER_SEND_DAY=2
+NEWSLETTER_SEND_TIME=11:00
+NEWSLETTER_TIMEZONE=America/New_York
 ```
 
 Set `NEWSLETTER_ENABLED=true` only after the mail provider is configured. The
@@ -58,6 +70,7 @@ Send a campaign manually when needed:
 php artisan newsletter:send-weekly
 ```
 
-Each week has one campaign record. Each subscriber has one delivery record for
-that campaign. A failed run can be repeated; successful deliveries are skipped.
-Every email includes a signed unsubscribe link.
+Each week has one campaign record. Each subscribed address gets at most one
+delivery for that campaign, including the site owner's address if subscribed.
+A failed run can be repeated; successful deliveries are skipped. Every email
+includes a signed unsubscribe link.

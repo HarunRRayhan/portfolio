@@ -20,18 +20,18 @@ const products = [
     extraLinks: [],
   },
   {
-    name: "PloyCloud",
-    url: "https://ploy.cloud",
-    tagline: "Managed hosting for Laravel, WordPress, PHP, and Node.js",
-    logo: "/images/products/ploycloud-icon.svg",
+    name: "CloudPloy",
+    url: "https://cloudploy.com",
+    tagline: "Deploy from your AI tool",
+    logo: "/images/products/cloudploy-icon.svg",
     logoBg: "bg-white",
     description:
-      "Deploy Laravel, WordPress, PHP, and Node.js apps to AWS, Google Cloud, DigitalOcean, Vultr, or your own server in minutes. Docker-powered automation handles provisioning, SSL, security, database setup, and zero-downtime releases. Connect your code repository, pick your cloud provider, and deploy - no DevOps expertise required.",
+      "Connect Claude Code, Cursor, or another MCP client to CloudPloy and deploy from your AI tool. Bring your own Ubuntu server or provision one through Hetzner, DigitalOcean, or AWS. The control plane handles the deployment work while you keep your cloud account.",
     benefits: [
-      "Deploy to AWS, GCP, DigitalOcean, Vultr, or custom servers",
-      "Docker-powered automation with zero-downtime releases",
-      "Automatic SSL, security, and database setup",
-      "No markup on cloud costs - you pay your provider directly",
+      "Deploy through MCP from Claude Code or Cursor",
+      "Bring your own server or provision one",
+      "Supports Laravel, WordPress, Node.js, Python, and more",
+      "No markup on cloud provider rates",
     ],
     extraLinks: [],
   },
@@ -98,7 +98,7 @@ export default function Products() {
         <title>Products | Harun R. Rayhan</title>
         <meta
           name="description"
-          content="Products built by Harun R. Rayhan - Toolblip, PloyCloud, Crontinel, Appnary, and Amazing Plugins."
+          content="Products built by Harun R. Rayhan - Toolblip, CloudPloy, Crontinel, Appnary, and Amazing Plugins."
         />
       </Head>
 

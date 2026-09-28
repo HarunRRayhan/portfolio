@@ -11,6 +11,25 @@ class BioLinkShortLinkTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_cloudploy_domain_update_keeps_the_bio_short_link_current(): void
+    {
+        $link = BioLink::create([
+            'label' => 'PloyCloud',
+            'url' => 'https://ploy.cloud',
+            'description' => 'Managed hosting',
+            'icon' => 'work',
+            'tab' => 'Products',
+        ]);
+
+        $migration = require database_path('migrations/2026_09_28_120000_update_cloudploy_bio_link.php');
+        $migration->up();
+        $link->refresh();
+
+        $this->assertSame('CloudPloy', $link->label);
+        $this->assertSame('https://cloudploy.com', $link->url);
+        $this->assertSame('https://cloudploy.com', $link->shortLink->destination_url);
+    }
+
     public function test_saving_a_bio_link_with_an_external_url_resolves_a_short_link(): void
     {
         $link = BioLink::create([

@@ -15,19 +15,33 @@ class WeeklyNewsletterMail extends Mailable
 
     /**
      * @param  array<int, array<string, mixed>>  $posts
+     * @param  array<int, array<string, string>>  $products
+     * @param  array<int, array<string, string>>  $tweets
      */
     public function __construct(
         public array $posts,
         public Subscriber $subscriber,
-        public int $subscriberCount,
+        public array $products,
+        public array $tweets = [],
     ) {}
 
     public function build()
     {
         return $this->subject($this->subjectLine())
-            ->markdown('emails.newsletter.weekly', [
+            ->view('emails.newsletter.weekly', [
                 'posts' => $this->posts,
-                'subscriberCount' => $this->subscriberCount,
+                'products' => $this->products,
+                'tweets' => $this->tweets,
+                'blogUrl' => rtrim(config('app.url'), '/').'/blog',
+                'unsubscribeUrl' => URL::signedRoute('newsletter.unsubscribe', [
+                    'subscriber' => $this->subscriber->getKey(),
+                ]),
+            ])
+            ->text('emails.newsletter.weekly-text', [
+                'posts' => $this->posts,
+                'products' => $this->products,
+                'tweets' => $this->tweets,
+                'blogUrl' => rtrim(config('app.url'), '/').'/blog',
                 'unsubscribeUrl' => URL::signedRoute('newsletter.unsubscribe', [
                     'subscriber' => $this->subscriber->getKey(),
                 ]),
