@@ -196,7 +196,7 @@ function LinkFavicon({ link, className }: { link: BioLink; className: string }) 
  *  they're available immediately on deploy, no admin upload or migration needed. */
 const PRODUCT_LOGOS: Record<string, string> = {
   'https://toolblip.com': '/images/products/toolblip.svg',
-  'https://ploy.cloud': '/images/products/ploycloud-icon.svg',
+  'https://cloudploy.com': '/images/products/cloudploy-icon.svg',
   'https://crontinel.com': '/images/products/crontinel.png',
   'https://appnary.com': '/images/products/appnary-icon.png',
   'https://amazingplugins.com': '/images/products/amazingplugins.jpg',

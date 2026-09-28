@@ -13,6 +13,7 @@ class NewsletterCampaign extends Model
     protected $fillable = [
         'key',
         'post_slugs',
+        'products',
         'subject',
         'subscriber_count',
         'sent_at',
@@ -22,6 +23,7 @@ class NewsletterCampaign extends Model
     {
         return [
             'post_slugs' => 'array',
+            'products' => 'array',
             'subscriber_count' => 'integer',
             'sent_at' => 'datetime',
         ];

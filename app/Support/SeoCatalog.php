@@ -114,7 +114,7 @@ final class SeoCatalog
 
         $pages['/products'] = new SeoMeta(
             title: 'Products | Harun R. Rayhan',
-            description: 'Products built by Harun R. Rayhan - Toolblip, PloyCloud, Crontinel, Appnary, and Amazing Plugins.',
+            description: 'Products built by Harun R. Rayhan - Toolblip, CloudPloy, Crontinel, Appnary, and Amazing Plugins.',
             canonicalUrl: $siteUrl.'/products',
         );
 
