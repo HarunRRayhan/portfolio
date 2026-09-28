@@ -46,7 +46,8 @@ RESEND_API_KEY=...
 
 Set the same database, app key, mail, and newsletter variables on both the
 Railway `web` and `scheduler` services. The scheduler needs the database to
-read subscribers and record campaign deliveries.
+read subscribers and record campaign deliveries. Railway variables override
+the defaults in `config/newsletter.php`; verify the live values after changes.
 
 ## Check the schedule
 
