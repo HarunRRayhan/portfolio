@@ -15,11 +15,8 @@ class BlogRepository
 
     private const PUBLICATION_PATH = 'blog/publication.yml';
 
-    /**
-     * Metadata-only payload (no post HTML). Bumped from cdn1 so old fat
-     * database-cache rows are abandoned after deploy.
-     */
-    private const CACHE_KEY = 'blog.repository.payload.meta1';
+    /** Metadata-only payload (no post HTML); versioned when the post catalog changes. */
+    private const CACHE_KEY = 'blog.repository.payload.meta2';
 
     private const CACHE_TTL_MINUTES = 15;
 
@@ -373,9 +370,6 @@ class BlogRepository
         ]);
     }
 
-    /**
-     * @return string
-     */
     private function sourceUrlFromPublication(array $publication, string $slug): string
     {
         $sourceUrl = rtrim((string) $publication['url'], '/').'/'.$slug;

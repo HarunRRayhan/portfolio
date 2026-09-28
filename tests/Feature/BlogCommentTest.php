@@ -6,10 +6,12 @@ use App\Models\BlogCommentThread;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\CreatesDraftBlogPost;
 use Tests\TestCase;
 
 class BlogCommentTest extends TestCase
 {
+    use CreatesDraftBlogPost;
     use RefreshDatabase;
 
     #[Test]
@@ -60,9 +62,10 @@ class BlogCommentTest extends TestCase
     #[Test]
     public function it_blocks_comments_on_draft_posts(): void
     {
+        $draft = $this->createDraftBlogPost();
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->post('/blog/test-fixture-permanent-draft/comments', [
+        $response = $this->actingAs($user)->post('/blog/'.$draft['slug'].'/comments', [
             'content' => 'This is a draft comment.',
         ]);
 
