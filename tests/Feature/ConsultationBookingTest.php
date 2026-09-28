@@ -29,6 +29,7 @@ class ConsultationBookingTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->withoutVite();
 
         // These tests use UTC wall-clock fixtures. Keep their availability
         // explicit instead of coupling them to the owner's production zone.
@@ -54,6 +55,67 @@ class ConsultationBookingTest extends TestCase
                 'updated_at' => $now,
             ]);
         }
+    }
+
+    public function test_enabled_skaleagents_reference_is_hashed_on_booking_and_not_projected(): void
+    {
+        Mail::fake();
+        config()->set('consultation.skaleagents_handoff_enabled', true);
+        $reference = rtrim(strtr(base64_encode(random_bytes(24)), '+/', '-_'), '=');
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+
+        $this->post('/book', [
+            'tier' => $tier->slug,
+            'client_name' => 'Linked customer',
+            'client_email' => 'linked@example.com',
+            'starts_at' => $this->nextWeekdayAt(10)->toIso8601String(),
+            'sa_ref' => $reference,
+        ])->assertRedirect();
+
+        $booking = ConsultationBooking::query()->firstOrFail();
+        $this->assertSame(hash('sha256', $reference), $booking->skaleagents_referral_hash);
+        $this->assertStringNotContainsString($reference, json_encode($booking->toAdminArray()));
+        $this->assertStringNotContainsString($reference, json_encode($booking->toClientArray()));
+    }
+
+    public function test_skaleagents_reference_is_ignored_when_handoff_is_disabled(): void
+    {
+        Mail::fake();
+        config()->set('consultation.skaleagents_handoff_enabled', false);
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+
+        $this->post('/book', [
+            'tier' => $tier->slug,
+            'client_name' => 'Direct customer',
+            'client_email' => 'direct@example.com',
+            'starts_at' => $this->nextWeekdayAt(10)->toIso8601String(),
+            'sa_ref' => str_repeat('A', 32),
+        ])->assertRedirect();
+
+        $this->assertNull(ConsultationBooking::query()->firstOrFail()->skaleagents_referral_hash);
+    }
+
+    public function test_invalid_skaleagents_reference_is_rejected_when_handoff_is_enabled(): void
+    {
+        config()->set('consultation.skaleagents_handoff_enabled', true);
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+
+        $this->post('/book', [
+            'tier' => $tier->slug,
+            'client_name' => 'Invalid reference',
+            'client_email' => 'invalid@example.com',
+            'starts_at' => $this->nextWeekdayAt(10)->toIso8601String(),
+            'sa_ref' => 'not-a-valid-reference',
+        ])->assertSessionHasErrors('sa_ref');
+
+        $this->assertDatabaseCount('consultation_bookings', 0);
+    }
+
+    public function test_book_page_does_not_send_the_reference_as_a_referrer(): void
+    {
+        $this->get('/book?sa_ref='.str_repeat('A', 32))
+            ->assertOk()
+            ->assertHeader('Referrer-Policy', 'no-referrer');
     }
 
     public function test_first_one_thousand_one_booking_requests_receive_the_launch_discount(): void

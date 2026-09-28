@@ -4,6 +4,8 @@ return [
 
     'currency' => 'usd',
 
+    'skaleagents_handoff_enabled' => (bool) env('SKALEAGENTS_BOOKING_HANDOFF_ENABLED', false),
+
     'buffer_minutes' => 15,
 
     'min_lead_hours' => 48,

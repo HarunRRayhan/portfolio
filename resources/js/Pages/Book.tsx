@@ -117,6 +117,12 @@ function couponCodeFromUrl(): string {
   return (params.get('coupon') ?? params.get('coupon_code') ?? '').trim()
 }
 
+function referralFromUrl(): string {
+  if (typeof window === 'undefined') return ''
+
+  return new URLSearchParams(window.location.search).get('sa_ref') ?? ''
+}
+
 function csrfToken(): string {
   return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? ''
 }
@@ -192,6 +198,7 @@ export default function Book({
     notes: '',
     starts_at: '',
     coupon_code: couponCodeFromUrl(),
+    sa_ref: referralFromUrl(),
   })
 
   const page = usePage()
@@ -278,6 +285,7 @@ export default function Book({
   return (
     <>
       <Head>
+        <meta name="referrer" content="no-referrer" />
         <title>Book a Consultation | Cloud & DevOps Expert - Harun R. Rayhan</title>
         <meta
           name="description"

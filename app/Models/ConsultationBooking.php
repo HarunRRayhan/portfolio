@@ -67,6 +67,7 @@ class ConsultationBooking extends Model
         'payment_due_at',
         'access_token_hash',
         'access_token_expires_at',
+        'skaleagents_referral_hash',
         'proposed_slots',
         'reschedule_original_starts_at',
         'reschedule_original_ends_at',

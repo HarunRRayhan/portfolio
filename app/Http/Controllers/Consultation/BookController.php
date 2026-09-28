@@ -14,15 +14,15 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class BookController extends Controller
 {
-    public function show(StripeCheckoutService $stripe, ConsultationLaunchPromotionService $promotion): Response
+    public function show(Request $request, StripeCheckoutService $stripe, ConsultationLaunchPromotionService $promotion): SymfonyResponse
     {
         $tiers = ConsultationTier::query()->active()->get()->map->toPublicArray()->values();
 
-        return Inertia::render('Book', [
+        $response = Inertia::render('Book', [
             'tiers' => $tiers,
             'stripeConfigured' => $stripe->configured(),
             'minLeadHours' => (int) config('consultation.min_lead_hours', 48),
@@ -33,7 +33,10 @@ class BookController extends Controller
                 'limit' => $promotion->limit(),
                 'remaining_bookings' => $promotion->remaining(),
             ],
-        ]);
+        ])->toResponse($request);
+        $response->headers->set('Referrer-Policy', 'no-referrer');
+
+        return $response;
     }
 
     public function availability(Request $request, AvailabilityService $availability): JsonResponse
@@ -89,6 +92,9 @@ class BookController extends Controller
             'notes' => ['nullable', 'string', 'max:5000'],
             'starts_at' => ['required', 'date'],
             'coupon_code' => ['nullable', 'string', 'max:64'],
+            'sa_ref' => config('consultation.skaleagents_handoff_enabled')
+                ? ['nullable', 'regex:/^[A-Za-z0-9_-]{32}$/']
+                : ['exclude'],
         ]);
 
         $tier = ConsultationTier::query()->active()->where('slug', $data['tier'])->firstOrFail();
@@ -113,6 +119,7 @@ class BookController extends Controller
                 Carbon::parse($data['starts_at'])->utc(),
                 $coupon,
                 $data['company_name'] ?? null,
+                $data['sa_ref'] ?? null,
             );
         } catch (\InvalidArgumentException $e) {
             return back()->withErrors(['starts_at' => $e->getMessage()])->withInput();
