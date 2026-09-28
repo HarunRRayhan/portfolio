@@ -161,28 +161,20 @@ final class ServiceFaqs
             ],
             'infrastructure-as-code' => [
                 [
-                    'question' => 'What is Infrastructure as Code (IaC)?',
-                    'answer' => 'Infrastructure as Code (IaC) is the practice of managing and provisioning computing infrastructure through machine-readable definition files, rather than physical hardware configuration or interactive configuration tools. It allows you to manage your IT infrastructure using configuration files, making it easier to edit and distribute configurations, and ensuring that you provision the same environment every time.',
+                    'question' => 'Can you work with the Terraform code we already have?',
+                    'answer' => 'Yes. I start by reading your modules, state setup, account boundaries, and deployment rules. The aim is to make the requested change in your existing stack rather than replace it with a new template.',
                 ],
                 [
-                    'question' => 'What are the benefits of using Infrastructure as Code?',
-                    'answer' => 'IaC offers numerous benefits, including: 1) Consistency and reduced errors in infrastructure deployment, 2) Faster provisioning and scaling of infrastructure, 3) Version control and change tracking for infrastructure, 4) Easier collaboration among team members, 5) Improved documentation of infrastructure, 6) Cost reduction through efficient resource utilization, and 7) Enhanced security through consistent application of security policies.',
+                    'question' => 'What do you check before applying a Terraform plan?',
+                    'answer' => 'I run validation and review the plan for resource replacement, downtime, IAM permissions, and unexpected cost. A valid configuration can still produce a risky plan, so the plan needs a human review.',
                 ],
                 [
-                    'question' => 'Which IaC tools do you work with?',
-                    'answer' => 'We work with a variety of IaC tools to suit different needs and environments. Some popular tools we use include Terraform, AWS CloudFormation, Ansible, Puppet, and Chef. We also have experience with newer tools like Pulumi and cloud-specific solutions like Azure Resource Manager. We can help you choose the best tool for your specific requirements and integrate it into your workflow.',
+                    'question' => 'Can you add checks to our pull request workflow?',
+                    'answer' => 'Yes. I can add validation and plan checks that fit your repository and approval process. Reviewers should be able to see the proposed infrastructure change before an apply.',
                 ],
                 [
-                    'question' => 'How do you ensure security in IaC implementations?',
-                    'answer' => 'Security is a crucial aspect of our IaC implementations. We incorporate security best practices into our IaC templates, including proper access controls, encryption, and network segmentation. We also use tools to scan IaC code for potential security issues and integrate security checks into the CI/CD pipeline. Additionally, we implement infrastructure monitoring and logging to detect and respond to potential security incidents.',
-                ],
-                [
-                    'question' => 'Can you integrate IaC with our existing CI/CD pipeline?',
-                    'answer' => 'Yes, we specialize in integrating IaC with existing CI/CD pipelines. This integration allows for automated testing and deployment of infrastructure changes alongside your application code. We can work with various CI/CD tools such as Jenkins, GitLab CI, GitHub Actions, and others to ensure seamless integration of your IaC workflows.',
-                ],
-                [
-                    'question' => 'How long does it typically take to implement an IaC solution?',
-                    'answer' => 'The timeline for implementing an IaC solution can vary depending on the complexity of your infrastructure and the scope of the project. A basic implementation might take a few weeks, while more complex, enterprise-wide solutions could take several months. We work closely with your team to develop a phased approach, often starting with a pilot project to demonstrate value quickly before expanding to your full infrastructure.',
+                    'question' => 'What will we have when the work is done?',
+                    'answer' => 'You will have the code change, the reviewed plan, and notes on the state assumptions and steps your team needs for the next change. The exact handoff depends on the scope we agree on first.',
                 ],
             ],
             'infrastructure-migration' => [

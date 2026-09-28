@@ -207,7 +207,7 @@ final class SeoCatalog
             ],
             'infrastructure-as-code' => [
                 'title' => 'Infrastructure as Code (IaC) Services | Harun R. Rayhan',
-                'description' => 'Expert Infrastructure as Code (IaC) services using Terraform, AWS CDK, and other modern tools. Automate your infrastructure deployment and management for better efficiency and reliability.',
+                'description' => 'Get help with Terraform changes, plan reviews, state and IAM checks, and CI workflows for AWS infrastructure. See how Harun approaches the work.',
             ],
             'serverless-infrastructure' => [
                 'title' => 'Serverless Infrastructure Services | Harun R. Rayhan',
