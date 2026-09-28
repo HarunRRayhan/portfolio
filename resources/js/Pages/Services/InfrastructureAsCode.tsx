@@ -1,62 +1,13 @@
 "use client"
 
-import React, { useEffect, useRef, useState } from "react"
 import { Head, Link } from "@inertiajs/react"
 import { motion } from "framer-motion"
 import { ServiceHero } from "@/Components/ServiceHero"
 import { Button } from "@/Components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card/index"
-import { Server, GitBranch, Repeat, ArrowRight, CheckCircle, BarChart, Users, Code, Cloud, Lock } from "lucide-react"
+import { Server, GitBranch, ArrowRight, CheckCircle, BarChart, Users, Code, Cloud } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/Components/ui/accordion"
 import { getImageUrl } from "@/lib/imageUtils"
-import { InfiniteScrollTech } from "@/Components/InfiniteScrollTech"
-
-const technologies = [
-  {
-    name: "Terraform",
-    logo: getImageUrl("/images/logos/tech/terraformio-icon.svg"),
-  },
-  {
-    name: "AWS CloudFormation",
-    logo: getImageUrl("/images/logos/aws-cloudformation.svg"),
-  },
-  {
-    name: "AWS CDK",
-    logo: getImageUrl("/images/logos/aws-cdk.svg"),
-  },
-  {
-    name: "Ansible",
-    logo: getImageUrl("/images/logos/tech/Ansible_logo.svg"),
-  },
-  {
-    name: "Pulumi",
-    logo: getImageUrl("/images/logos/tech/logo-on-white.svg"),
-  },
-  {
-    name: "Kubernetes",
-    logo: getImageUrl("/images/logos/tech/Kubernetes_logo_without_workmark.svg"),
-  },
-  {
-    name: "Docker",
-    logo: getImageUrl("/images/logos/tech/docker-logo.svg"),
-  },
-  {
-    name: "GitLab CI",
-    logo: getImageUrl("/images/logos/tech/gitlab-icon-rgb.svg"),
-  },
-  {
-    name: "GitHub Actions",
-    logo: getImageUrl("/images/logos/tech/actions-icon-actions.svg"),
-  },
-  {
-    name: "Jenkins",
-    logo: getImageUrl("/images/logos/tech/Jenkins_logo.svg"),
-  },
-  {
-    name: "Azure Resource Manager",
-    logo: getImageUrl("/images/logos/cloud/resource-manager.png"),
-  },
-]
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -69,38 +20,15 @@ const staggerChildren = {
 }
 
 export default function InfrastructureAsCodePage({ canonicalUrl }: { canonicalUrl?: string }) {
-  const [isVisible, setIsVisible] = useState(false)
-  const sectionRef = useRef(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsVisible(entry.isIntersecting)
-      },
-      { threshold: 0.1 },
-    )
-
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current)
-    }
-
-    return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current)
-      }
-    }
-  }, [])
-
   return (
     <>
       <Head>
         <title>Infrastructure as Code (IaC) Services | Harun R. Rayhan</title>
-        <meta name="description" content="Expert Infrastructure as Code (IaC) services using Terraform, AWS CDK, and other modern tools. Automate your infrastructure deployment and management for better efficiency and reliability." />
-        <meta name="keywords" content="Infrastructure as Code, IaC, Terraform, AWS CDK, infrastructure automation, cloud infrastructure, DevOps automation" />
+        <meta name="description" content="Get help with Terraform changes, plan reviews, state and IAM checks, and CI workflows for AWS infrastructure. See how Harun approaches the work." />
         
         {/* OpenGraph Tags */}
         <meta property="og:title" content="Infrastructure as Code (IaC) Services | Harun R. Rayhan" />
-        <meta property="og:description" content="Expert Infrastructure as Code (IaC) services using Terraform, AWS CDK, and other modern tools. Automate your infrastructure deployment and management for better efficiency and reliability." />
+        <meta property="og:description" content="Get help with Terraform changes, plan reviews, state and IAM checks, and CI workflows for AWS infrastructure. See how Harun approaches the work." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={getImageUrl("/service-assets/infrastructure-as-code/hero.jpg")} />
@@ -108,7 +36,7 @@ export default function InfrastructureAsCodePage({ canonicalUrl }: { canonicalUr
         {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Infrastructure as Code (IaC) Services | Harun R. Rayhan" />
-        <meta name="twitter:description" content="Expert Infrastructure as Code (IaC) services using Terraform, AWS CDK, and other modern tools. Automate your infrastructure deployment and management for better efficiency and reliability." />
+        <meta name="twitter:description" content="Get help with Terraform changes, plan reviews, state and IAM checks, and CI workflows for AWS infrastructure. See how Harun approaches the work." />
         <meta name="twitter:image" content={getImageUrl("/service-assets/infrastructure-as-code/hero.jpg")} />
 
         {/* Canonical URL */}
@@ -122,14 +50,13 @@ export default function InfrastructureAsCodePage({ canonicalUrl }: { canonicalUr
             "name": "Infrastructure as Code Services",
             "provider": {
               "@type": "Person",
-              "name": "Harun R. Rayhan",
-              "description": "Infrastructure Automation Expert"
+              "name": "Harun R. Rayhan"
             },
             "serviceType": "Infrastructure Automation",
-            "description": "Expert Infrastructure as Code implementation and consulting services",
+            "description": "Terraform changes, plan reviews, state and IAM checks, and CI workflows for AWS infrastructure",
             "offers": {
               "@type": "Offer",
-              "description": "Infrastructure Automation, Terraform Implementation, AWS CDK Solutions"
+              "description": "Terraform implementation and plan review for AWS infrastructure"
             },
             "hasOfferCatalog": {
               "@type": "OfferCatalog",
@@ -139,24 +66,24 @@ export default function InfrastructureAsCodePage({ canonicalUrl }: { canonicalUr
                   "@type": "Offer",
                   "itemOffered": {
                     "@type": "Service",
-                    "name": "Terraform Implementation",
-                    "description": "Design and implement infrastructure using HashiCorp Terraform"
+                    "name": "Terraform changes",
+                    "description": "Change an existing AWS infrastructure stack using Terraform"
                   }
                 },
                 {
                   "@type": "Offer",
                   "itemOffered": {
                     "@type": "Service",
-                    "name": "AWS CDK Solutions",
-                    "description": "Develop infrastructure using AWS Cloud Development Kit"
+                    "name": "Terraform plan review",
+                    "description": "Review planned resource changes, IAM permissions, and deployment risks"
                   }
                 },
                 {
                   "@type": "Offer",
                   "itemOffered": {
                     "@type": "Service",
-                    "name": "Infrastructure Automation",
-                    "description": "Automate infrastructure deployment and management"
+                    "name": "Pull request checks",
+                    "description": "Add Terraform validation and plan checks to a delivery workflow"
                   }
                 }
               ]
@@ -168,7 +95,7 @@ export default function InfrastructureAsCodePage({ canonicalUrl }: { canonicalUr
         <ServiceHero
           icon={Server}
           title="Infrastructure as Code"
-          description="Implement and manage your infrastructure using modern IaC tools for improved efficiency, consistency, and scalability."
+          description="Need to change AWS infrastructure without guessing what Terraform will touch? I can help review the current stack, make the change, and check the plan before it is applied."
           backgroundImage="/service-assets/infrastructure-as-code/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
@@ -180,27 +107,27 @@ export default function InfrastructureAsCodePage({ canonicalUrl }: { canonicalUr
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Our Infrastructure as Code Services
+              Where I can help with Terraform
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
                 {
                   icon: Code,
-                  title: "IaC Implementation",
+                  title: "Changes to an existing stack",
                   content:
-                    "Implement infrastructure as code solutions using tools like Terraform, AWS CloudFormation, or Ansible.",
+                    "Add or change AWS resources in your Terraform code. Start with the modules, state, account, and region you already use.",
                 },
                 {
                   icon: GitBranch,
-                  title: "Version Control Integration",
+                  title: "Plan and IAM review",
                   content:
-                    "Integrate your infrastructure code with version control systems for better collaboration and change tracking.",
+                    "Read the Terraform plan for replacements, downtime, and unexpected cost. Check generated IAM policies before a change reaches production.",
                 },
                 {
                   icon: Cloud,
-                  title: "Multi-Cloud IaC",
+                  title: "Checks in the delivery pipeline",
                   content:
-                    "Develop IaC solutions that work across multiple cloud providers for maximum flexibility and portability.",
+                    "Add validation and plan checks to the pull request workflow so reviewers can see what will change before an apply.",
                 },
               ].map((service, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -220,29 +147,29 @@ export default function InfrastructureAsCodePage({ canonicalUrl }: { canonicalUr
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why Choose Us for Infrastructure as Code
+              What the work includes
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
                 {
-                  title: "Expertise Across IaC Tools",
+                  title: "Your existing conventions",
                   content:
-                    "Our team is proficient in a wide range of IaC tools, ensuring we can recommend and implement the best solution for your needs.",
+                    "I read the repository and its deployment rules before editing. Resource names, state location, account boundaries, and cost limits matter more than a generic template.",
                 },
                 {
-                  title: "Focus on Best Practices",
+                  title: "A reviewable plan",
                   content:
-                    "We implement IaC following industry best practices, ensuring your infrastructure is secure, scalable, and maintainable.",
+                    "The change comes with a Terraform plan and a short explanation of additions, replacements, and anything that needs a human decision.",
                 },
                 {
-                  title: "Continuous Integration",
+                  title: "Checks before apply",
                   content:
-                    "We integrate IaC into your CI/CD pipelines, enabling automated testing and deployment of infrastructure changes.",
+                    "Validation catches syntax and provider errors. The full plan catches changes validation cannot see, including resource replacement and drift.",
                 },
                 {
-                  title: "Knowledge Transfer",
+                  title: "A usable handoff",
                   content:
-                    "We provide comprehensive training and documentation to ensure your team can effectively manage and extend your IaC implementation.",
+                    "I document the commands, state assumptions, and review steps so your team can make the next change without rediscovering them.",
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
@@ -260,32 +187,32 @@ export default function InfrastructureAsCodePage({ canonicalUrl }: { canonicalUr
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Our Infrastructure as Code Process
+              How an engagement starts
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               {[
                 {
                   icon: BarChart,
-                  title: "1. Assessment",
+                  title: "1. Read the stack",
                   content:
-                    "We evaluate your current infrastructure and develop an IaC strategy aligned with your business goals.",
+                    "I look at the repository, state backend, AWS accounts, deployment path, and the change you need to make.",
                 },
                 {
                   icon: Code,
-                  title: "2. Design",
+                  title: "2. Agree on the change",
                   content:
-                    "We design your infrastructure as code, focusing on modularity, reusability, and best practices.",
+                    "You and I identify the affected resources and decide what needs review or should stay out of scope.",
                 },
                 {
                   icon: GitBranch,
-                  title: "3. Implementation",
-                  content: "We implement the IaC solution, integrating with your existing systems and processes.",
+                  title: "3. Code and plan",
+                  content: "I make the change, run validation, and review the plan with you before anything is applied.",
                 },
                 {
                   icon: Users,
-                  title: "4. Training & Support",
+                  title: "4. Hand over",
                   content:
-                    "We provide comprehensive training and ongoing support to ensure successful adoption of IaC practices.",
+                    "You get the code, the plan review notes, and the steps needed to maintain the change.",
                 },
               ].map((step, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -302,61 +229,27 @@ export default function InfrastructureAsCodePage({ canonicalUrl }: { canonicalUr
           </div>
         </motion.section>
 
-        <section ref={sectionRef} className="py-24 bg-[#F8F9FA] overflow-hidden">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="container mx-auto px-4 text-center mb-12"
-          >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Infrastructure as Code Technologies We Use</h2>
-            <p className="text-xl text-gray-600">
-              We leverage industry-leading IaC tools to implement robust and scalable infrastructure solutions.
+        <section className="py-20 bg-[#F8F9FA]">
+          <div className="container mx-auto px-4 max-w-3xl">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">See the workflow before we talk</h2>
+            <p className="text-lg text-gray-700 mb-6">
+              I wrote up how I use Claude Code with Terraform on AWS, including the context file, validation hooks, plan review, and the places where I still check everything myself.
             </p>
-          </motion.div>
-
-          <div className="relative w-full">
-            <div className="absolute left-0 top-0 w-24 h-full bg-gradient-to-r from-[#F8F9FA] to-transparent z-10" />
-            <div className="absolute right-0 top-0 w-24 h-full bg-gradient-to-l from-[#F8F9FA] to-transparent z-10" />
-
-            <motion.div
-              initial={{ x: 0 }}
-              animate={{ x: "-50%" }}
-              transition={{
-                duration: 30,
-                repeat: Number.POSITIVE_INFINITY,
-                ease: "linear",
-              }}
-              className="flex items-center space-x-16 whitespace-nowrap py-8"
-            >
-              {technologies.concat(technologies).map((tech, index) => (
-                <div
-                  key={`${tech.name}-${index}`}
-                  className="flex-shrink-0 h-20 w-[200px] transition-all duration-300 hover:scale-110"
-                >
-                  <div className="flex flex-col items-center gap-2">
-                    <img
-                      src={tech.logo || "/placeholder.svg"}
-                      alt={`${tech.name} logo`}
-                      className="w-16 h-16 object-contain"
-                    />
-                    <span className="text-sm font-medium text-gray-600">{tech.name}</span>
-                  </div>
-                </div>
-              ))}
-            </motion.div>
+            <Link href="/blog/claude-code-for-aws-infrastructure-agentic-devops-workflow-with-terraform" className="inline-flex items-center font-semibold text-amber-700 hover:text-amber-800">
+              Read my AWS and Terraform workflow <ArrowRight className="w-4 h-4 ml-2" />
+            </Link>
           </div>
         </section>
 
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
-              Ready to implement Infrastructure as Code?
+              Need a second set of eyes on a Terraform change?
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Link href="/contact">
                 <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white">
-                  Get Started
+                  Discuss your infrastructure
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
@@ -373,34 +266,24 @@ export default function InfrastructureAsCodePage({ canonicalUrl }: { canonicalUr
               <Accordion type="single" collapsible className="max-w-3xl mx-auto">
                 {[
                   {
-                    question: "What is Infrastructure as Code (IaC)?",
+                    question: "Can you work with the Terraform code we already have?",
                     answer:
-                      "Infrastructure as Code (IaC) is the practice of managing and provisioning computing infrastructure through machine-readable definition files, rather than physical hardware configuration or interactive configuration tools. It allows you to manage your IT infrastructure using configuration files, making it easier to edit and distribute configurations, and ensuring that you provision the same environment every time.",
+                      "Yes. I start by reading your modules, state setup, account boundaries, and deployment rules. The aim is to make the requested change in your existing stack rather than replace it with a new template.",
                   },
                   {
-                    question: "What are the benefits of using Infrastructure as Code?",
+                    question: "What do you check before applying a Terraform plan?",
                     answer:
-                      "IaC offers numerous benefits, including: 1) Consistency and reduced errors in infrastructure deployment, 2) Faster provisioning and scaling of infrastructure, 3) Version control and change tracking for infrastructure, 4) Easier collaboration among team members, 5) Improved documentation of infrastructure, 6) Cost reduction through efficient resource utilization, and 7) Enhanced security through consistent application of security policies.",
+                      "I run validation and review the plan for resource replacement, downtime, IAM permissions, and unexpected cost. A valid configuration can still produce a risky plan, so the plan needs a human review.",
                   },
                   {
-                    question: "Which IaC tools do you work with?",
+                    question: "Can you add checks to our pull request workflow?",
                     answer:
-                      "We work with a variety of IaC tools to suit different needs and environments. Some popular tools we use include Terraform, AWS CloudFormation, Ansible, Puppet, and Chef. We also have experience with newer tools like Pulumi and cloud-specific solutions like Azure Resource Manager. We can help you choose the best tool for your specific requirements and integrate it into your workflow.",
+                      "Yes. I can add validation and plan checks that fit your repository and approval process. Reviewers should be able to see the proposed infrastructure change before an apply.",
                   },
                   {
-                    question: "How do you ensure security in IaC implementations?",
+                    question: "What will we have when the work is done?",
                     answer:
-                      "Security is a crucial aspect of our IaC implementations. We incorporate security best practices into our IaC templates, including proper access controls, encryption, and network segmentation. We also use tools to scan IaC code for potential security issues and integrate security checks into the CI/CD pipeline. Additionally, we implement infrastructure monitoring and logging to detect and respond to potential security incidents.",
-                  },
-                  {
-                    question: "Can you integrate IaC with our existing CI/CD pipeline?",
-                    answer:
-                      "Yes, we specialize in integrating IaC with existing CI/CD pipelines. This integration allows for automated testing and deployment of infrastructure changes alongside your application code. We can work with various CI/CD tools such as Jenkins, GitLab CI, GitHub Actions, and others to ensure seamless integration of your IaC workflows.",
-                  },
-                  {
-                    question: "How long does it typically take to implement an IaC solution?",
-                    answer:
-                      "The timeline for implementing an IaC solution can vary depending on the complexity of your infrastructure and the scope of the project. A basic implementation might take a few weeks, while more complex, enterprise-wide solutions could take several months. We work closely with your team to develop a phased approach, often starting with a pilot project to demonstrate value quickly before expanding to your full infrastructure.",
+                      "You will have the code change, the reviewed plan, and notes on the state assumptions and steps your team needs for the next change. The exact handoff depends on the scope we agree on first.",
                   },
                 ].map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index + 1}`}>
@@ -415,4 +298,4 @@ export default function InfrastructureAsCodePage({ canonicalUrl }: { canonicalUr
       </main>
     </>
   )
-} 
+}

@@ -14,6 +14,22 @@ We'll work one task at a time. Each round will change one page or one small tech
 
 ## Work list
 
+### September 28 follow-up task list
+
+The aim of this round is to get one important consulting page into a better state, then measure leads and indexing before changing another page. Search Console URL Inspection on September 28 found 4 of 16 service pages indexed, 8 crawled but not indexed, 3 discovered but not indexed, and 1 unknown to Google. These are URL Inspection states, not a sitewide Page indexing report count.
+
+- [x] Recheck the selected article and sitemap in Search Console. Google recrawled the article on September 27 at 03:43:18 UTC; it remains indexed with the intended canonical. Google last downloaded the sitemap on September 25 at 23:33:12 UTC with zero errors and warnings.
+- [x] Inspect all 16 service URLs. The Infrastructure as Code page is crawled but not indexed; its crawl on August 29 fetched successfully, allows indexing, and has the intended canonical.
+- [x] Inspect Google's rendered view of `/services/infrastructure-as-code` in the Search Console UI. The September 28 live test showed the mobile hero and first service section, HTTP 200, all page resources loaded, and no JavaScript console messages. The old indexed-state report still says crawled but not indexed; a live test does not change that state.
+- [x] Revise only the Infrastructure as Code page with concrete, supportable scope and a link to the existing AWS/Terraform workflow article. The page no longer lists unrelated tooling or claims unverified client results.
+- [x] Run relevant PHPUnit tests and `npm run build`, then inspect the changed page in a real local browser. On September 28, `SiteSeoTest` passed 13 tests/136 assertions, the full PHPUnit run passed 364 tests/2,229 assertions with four notices and two skips using a 512 MB CLI limit, the production build passed, and the page and article link rendered locally against a temporary SQLite database. This is local verification, not a production release.
+- [ ] Release the revised service page and verify the deployed HTML, mobile rendering, internal links, and production status. Only then watch Search Console for a new crawl and indexing decision.
+- [x] Mark `generate_lead` as a key event in the `harun.dev` GA4 property on September 28. The Key events table shows it checked, with no stream data detected.
+- [ ] Confirm GA4 receives a real successful `generate_lead` event. Do not submit a production contact or booking form just to create an analytics event.
+- [ ] After 28 full Pacific days from the September 27 crawl (September 28–October 25), compare finalized article clicks, impressions, CTR, position, and leads with the pre-change baseline. Recheck the service page's indexing state after Google crawls the revision. Do not call a local build or a submitted sitemap an indexing result.
+
+The August 28–September 24 finalized Search Console site total was 66 clicks from 5,967 impressions. Service pages received 11 impressions and no clicks in that period. This baseline predates the article's September 27 recrawl. Service URL states on September 28: indexed (`devops`, `security-consulting`, `database-migration`, `vibe-scaling`); crawled but not indexed (`infrastructure-as-code`, `serverless-infrastructure`, `performance-optimization`, `infrastructure-migration`, `mlops`, `monitoring-observability`, `aws-cloud`, `multi-cloud-architecture`); discovered but not indexed (`automated-deployment`, `database-optimization`, `vibe-code-migration`); unknown to Google (`cloud-architecture`).
+
 ### Task 1 — Get a small Search Console baseline
 
 - [x] Set the primary outcome: consulting leads.
@@ -21,7 +37,8 @@ We'll work one task at a time. Each round will change one page or one small tech
 - [x] Request the prior 16 months. The September 23, 2026 pull returned daily data only from May 25 through September 20, 2026; keep that shorter range explicit in any comparison.
 - [x] Separate branded and non-branded query rows, compare queries with landing pages, and spot-check the relevant live results.
 - [x] Add a PII-free GA4 `generate_lead` event after successful contact and consultation booking submissions.
-- [ ] Confirm GA4 receives the events and mark `generate_lead` as a key event in the property.
+- [x] Mark `generate_lead` as a key event in the `harun.dev` GA4 property. It uses the event already emitted by site code, with no default monetary value.
+- [ ] Confirm GA4 receives a real successful `generate_lead` event. The event was absent from Recent events on September 28; configuration alone is not receipt.
 - [x] Keep the working summary in the ignored `reports/search-console-baseline.json` file.
 
 **Preliminary page choice:** The AWS/Terraform/Claude Code workflow post had the strongest relevant organic reach and a close fit with the consulting services. It ended with a social link, so Task 2 added an Infrastructure as Code link and a contact step. Revisit the choice if the longer Search Console history becomes available.
@@ -42,14 +59,15 @@ We'll work one task at a time. Each round will change one page or one small tech
 
 - [x] Inspect the selected article in Search Console and save its indexing status on September 23, 2026.
 - [x] Save a recent 28-day page baseline and the preceding 28 days using finalized Search Console data.
-- [ ] Confirm Google has recrawled the page, then compare its query impressions, clicks, CTR, position, and leads with the baseline after several weeks.
+- [x] Confirm Google recrawled the page after the September 23 change. URL Inspection reports September 27 at 03:43:18 UTC.
+- [ ] Compare its query impressions, clicks, CTR, position, and leads with the baseline after 28 complete Pacific days of finalized data.
 - [ ] Keep the change if it helps users and results. Choose the next single page only after reviewing the data.
 
 ### Measurement checkpoint: September 23, 2026
 
 [PR #185](https://github.com/HarunRRayhan/portfolio/pull/185) merged at 09:08:07 UTC. The asset workflow finished at 09:12:06 UTC, and the changed sitemap and lead-event helper were verified live afterward.
 
-Search Console URL Inspection reports the selected article as **Submitted and indexed**. Fetching succeeded, crawling and indexing are allowed, and Google's canonical matches the article URL. Its last crawl was September 23 at **06:03:02 UTC**, before the merge. A post-change crawl is still pending.
+At this checkpoint, Search Console URL Inspection reported the selected article as **Submitted and indexed**. Fetching succeeded, crawling and indexing were allowed, and Google's canonical matched the article URL. Its last crawl was September 23 at **06:03:02 UTC**, before the merge. The September 28 follow-up above records the subsequent crawl.
 
 Search Console reports **0 errors and 0 warnings** for the sitemap. Its last download was September 21 at 10:09:54 UTC, so that status describes the earlier sitemap. The sitemap API's `indexed` count isn't a page-indexing check; use URL Inspection for this article.
 
@@ -70,7 +88,7 @@ The baseline includes daily rows, available query rows, and page-level totals. Q
 
 Next review steps:
 
-1. On or after **September 28**, recheck the article's `lastCrawlTime` and the sitemap's `lastDownloaded`. Confirm the article crawl follows the live-change verification, rather than treating its indexed status as proof of a recrawl.
+1. Completed September 28: rechecked the article's `lastCrawlTime` and the sitemap's `lastDownloaded`. The article crawl followed the live-change verification.
 2. Start the post-change window on the first full Pacific day after the confirmed recrawl. Collect **28 complete days** with `type=web`, `dataState=final`, and an exact page filter for the selected article. Use ungrouped page totals for clicks, impressions, CTR, and position; query rows explain the mix of searches.
 3. Compare those results with August 24–September 20. Record leads separately once GA4 is available. Treat low counts and shifts in query mix cautiously, then decide whether another page needs work.
 
