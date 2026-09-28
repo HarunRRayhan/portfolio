@@ -27,6 +27,8 @@ type SharedPageProps = PageProps<{
     flash?: { type?: string; message?: string } | null;
 }>;
 
+const expandedSectionsStorageKey = 'admin-nav-expanded-sections';
+
 function FlashMessage() {
     const { flash } = usePage<SharedPageProps>().props;
     if (!flash?.message) return null;
@@ -103,6 +105,18 @@ function NavList({ compact = false, onNavigate }: { compact?: boolean; onNavigat
     const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const suppressFocusOpen = useRef(false);
 
+    useEffect(() => {
+        try {
+            const saved = JSON.parse(window.localStorage.getItem(expandedSectionsStorageKey) ?? '[]');
+            if (Array.isArray(saved)) {
+                const labels = new Set(sections.map((section) => section.label));
+                setExpanded(Object.fromEntries(saved.filter((label): label is string => typeof label === 'string' && labels.has(label)).map((label) => [label, true])));
+            }
+        } catch {
+            // Navigation still works when storage is unavailable or contains invalid data.
+        }
+    }, []);
+
     useEffect(() => () => {
         if (closeTimer.current) clearTimeout(closeTimer.current);
     }, []);
@@ -117,6 +131,15 @@ function NavList({ compact = false, onNavigate }: { compact?: boolean; onNavigat
     const openFlyout = (section: NavSection, trigger: HTMLButtonElement) => {
         cancelClose();
         setFlyout({ label: section.label, top: Math.max(16, Math.min(trigger.getBoundingClientRect().top, window.innerHeight - 240)) });
+    };
+    const toggleSection = (label: string) => {
+        const next = { ...expanded, [label]: expanded[label] !== true };
+        setExpanded(next);
+        try {
+            window.localStorage.setItem(expandedSectionsStorageKey, JSON.stringify(Object.keys(next).filter((key) => next[key])));
+        } catch {
+            // Keep the current page usable even if storage is unavailable.
+        }
     };
     const renderItems = (section: NavSection) => section.items.map((item) => {
         const Icon = item.icon;
@@ -194,7 +217,7 @@ function NavList({ compact = false, onNavigate }: { compact?: boolean; onNavigat
                 return (
                     <div key={section.label}>
                         <button type="button" aria-expanded={isOpen} aria-controls={`nav-${section.label.replace(' ', '-')}`}
-                            onClick={() => setExpanded((current) => ({ ...current, [section.label]: !isOpen }))}
+                            onClick={() => toggleSection(section.label)}
                             className={'flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm font-medium hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ' +
                                 (section.items.some((item) => item.active) ? 'text-primary' : 'text-muted-foreground hover:text-foreground')}>
                             <span className="flex items-center gap-3"><Icon className="h-4 w-4" />{section.label}</span>
