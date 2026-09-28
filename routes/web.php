@@ -113,15 +113,58 @@ Route::redirect('/dashboard', '/admin/dashboard');
 
 Route::get('/admin/analytics', function () {
     $since = now()->subDays(29)->startOfDay();
+    $publishedSlugs = collect((new BlogRepository)->posts())
+        ->reject(fn (array $post) => (bool) $post['draft'])
+        ->pluck('slug');
 
     return Inertia::render('Admin/Analytics', [
-        'bioClicks' => \App\Models\BioLinkClick::query()->where('created_at', '>=', $since)->count(),
-        'shortClicks' => \App\Models\ShortLinkClick::query()->where('created_at', '>=', $since)->count(),
-        'bioLinks' => \App\Models\BioLink::query()->count(),
-        'shortLinks' => \App\Models\ShortLink::query()->count(),
-        'blogViews' => (int) DB::table('blog_post_views')->sum('count'),
+        'bioClicks' => BioLinkClick::query()->where('created_at', '>=', $since)->count(),
+        'shortClicks' => ShortLinkClick::query()->where('created_at', '>=', $since)->count(),
+        'bioLinks' => BioLink::query()->count(),
+        'shortLinks' => ShortLink::query()->count(),
+        'blogViews' => (int) DB::table('blog_post_views')->whereIn('slug', $publishedSlugs)->sum('count'),
     ]);
 })->middleware(['auth', 'verified', 'role:admin'])->name('admin.analytics');
+
+Route::get('/admin/posts', function () {
+    $blog = new BlogRepository;
+    $posts = collect($blog->posts());
+    $views = DB::table('blog_post_views')->whereIn('slug', $posts->pluck('slug'))->pluck('count', 'slug');
+    $published = $posts->reject(fn (array $post) => (bool) $post['draft']);
+
+    return Inertia::render('Admin/Posts/Index', [
+        'stats' => [
+            'totalPosts' => $posts->count(),
+            'publishedPosts' => $published->count(),
+            'draftPosts' => $posts->count() - $published->count(),
+            'totalViews' => (int) $published->sum(fn (array $post) => (int) ($views[$post['slug']] ?? 0)),
+        ],
+        'posts' => $posts->map(fn (array $post) => $blog->summarizePost(
+            $post,
+            (int) ($views[$post['slug']] ?? 0),
+            false,
+        ))->all(),
+    ]);
+})->middleware(['auth', 'verified', 'role:admin'])->name('admin.posts.index');
+
+Route::get('/admin/posts/analytics', function () {
+    $blog = new BlogRepository;
+    $posts = collect($blog->posts())->reject(fn (array $post) => (bool) $post['draft']);
+    $views = DB::table('blog_post_views')->whereIn('slug', $posts->pluck('slug'))->pluck('count', 'slug');
+    $rows = $posts->map(fn (array $post) => [
+        'title' => (string) $post['title'],
+        'slug' => (string) $post['slug'],
+        'url' => $blog->relativeUrl((string) $post['slug']),
+        'views' => (int) ($views[$post['slug']] ?? 0),
+    ])->sortByDesc('views')->values();
+
+    return Inertia::render('Admin/Posts/Analytics', [
+        'totalViews' => (int) $rows->sum('views'),
+        'postsWithViews' => $rows->where('views', '>', 0)->count(),
+        'publishedPosts' => $rows->count(),
+        'posts' => $rows->all(),
+    ]);
+})->middleware(['auth', 'verified', 'role:admin'])->name('admin.posts.analytics');
 
 // Admin CRUD for link-in-bio entries
 Route::middleware(['auth', 'verified', 'role:admin'])

@@ -95,6 +95,7 @@ const statCards = (stats: DashboardStats) => [
 
 const quickActions = [
     { label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
+    { label: 'Posts', href: '/admin/posts', icon: FileText },
     { label: 'Bio links', href: '/admin/bio', icon: Link2 },
     { label: 'Short links', href: '/admin/short', icon: Link2 },
     { label: 'Media', href: '/admin/media', icon: ImageIcon },

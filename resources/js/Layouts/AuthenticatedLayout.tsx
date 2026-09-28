@@ -4,7 +4,7 @@ import { SeoHead } from '@/Components/SeoHead';
 import type { PageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
-    BarChart3, Calendar, ChevronDown, Image, KeyRound, LayoutDashboard,
+    BarChart3, Calendar, ChevronDown, FileText, Image, KeyRound, LayoutDashboard,
     Link2, LogOut, Mail, Menu, PanelLeftClose, PanelLeftOpen, Ticket, User,
 } from 'lucide-react';
 import { PropsWithChildren, ReactNode, useEffect, useRef, useState } from 'react';
@@ -47,6 +47,13 @@ function useNavSections(): NavSection[] {
             items: [
                 { label: 'Dashboard', href: route('dashboard'), icon: LayoutDashboard, active: route().current('dashboard') },
                 { label: 'Analytics', href: route('admin.analytics'), icon: BarChart3, active: route().current('admin.analytics') },
+            ],
+        },
+        {
+            label: 'Posts', icon: FileText,
+            items: [
+                { label: 'All posts', href: route('admin.posts.index'), icon: FileText, active: route().current('admin.posts.index') },
+                { label: 'Post analytics', href: route('admin.posts.analytics'), icon: BarChart3, active: route().current('admin.posts.analytics') },
             ],
         },
         {

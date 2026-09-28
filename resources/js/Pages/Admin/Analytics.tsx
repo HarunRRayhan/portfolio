@@ -46,8 +46,8 @@ export default function Analytics({ bioClicks, shortClicks, bioLinks, shortLinks
                     <div>
                         <h3 className="text-sm font-semibold text-foreground">Blog views · all time</h3>
                         <p className="mt-2 text-2xl font-semibold tabular-nums text-foreground">{blogViews.toLocaleString()}</p>
-                        <p className="mt-1 text-sm text-muted-foreground">The dashboard shows published posts and the six month publishing trend.</p>
-                        <Link href={route('dashboard')} className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">View dashboard <ArrowRight className="h-4 w-4" /></Link>
+                        <p className="mt-1 text-sm text-muted-foreground">See views for each published post.</p>
+                        <Link href={route('admin.posts.analytics')} className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">View post analytics <ArrowRight className="h-4 w-4" /></Link>
                     </div>
                 </div>
             </div>
