@@ -22,7 +22,7 @@ import {
     FileText,
     Image as ImageIcon,
     Inbox,
-    KeyRound,
+    BarChart3,
     Link2,
     PenLine,
     TrendingUp,
@@ -94,10 +94,10 @@ const statCards = (stats: DashboardStats) => [
 ];
 
 const quickActions = [
-    { label: 'View All Posts', href: '/admin', icon: FileText },
-    { label: 'Short Links', href: '/admin/short', icon: Link2 },
-    { label: 'Slides & Videos', href: '/admin/media', icon: ImageIcon },
-    { label: 'API Keys', href: '/admin/api-keys', icon: KeyRound },
+    { label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
+    { label: 'Bio links', href: '/admin/bio', icon: Link2 },
+    { label: 'Short links', href: '/admin/short', icon: Link2 },
+    { label: 'Media', href: '/admin/media', icon: ImageIcon },
 ];
 
 function CountBadge({ value }: { value: number }) {
