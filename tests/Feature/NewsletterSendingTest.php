@@ -20,7 +20,6 @@ class NewsletterSendingTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        config(['newsletter.enabled' => true]);
         Carbon::setTestNow('2026-09-29 16:00:00');
     }
 
@@ -49,6 +48,19 @@ class NewsletterSendingTest extends TestCase
         );
         $this->assertNotNull(NewsletterCampaign::query()->firstOrFail()->sent_at);
         $this->assertDatabaseCount('newsletter_deliveries', 1);
+    }
+
+    #[Test]
+    public function the_weekly_command_sends_when_the_old_enable_flag_is_false(): void
+    {
+        config(['newsletter.enabled' => false]);
+        Mail::fake();
+        Subscriber::factory()->create();
+
+        $this->artisan('newsletter:send-weekly')->assertSuccessful();
+
+        Mail::assertSent(WeeklyNewsletterMail::class, 1);
+        $this->assertDatabaseCount('newsletter_campaigns', 1);
     }
 
     #[Test]

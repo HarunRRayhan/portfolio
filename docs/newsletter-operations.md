@@ -28,16 +28,14 @@ west coast at 08:00, and the UK in the afternoon. The day, time, timezone,
 and post count (one to three) are configurable:
 
 ```dotenv
-NEWSLETTER_ENABLED=true
 NEWSLETTER_MAX_POSTS=3
 NEWSLETTER_SEND_DAY=2
 NEWSLETTER_SEND_TIME=11:00
 NEWSLETTER_TIMEZONE=America/New_York
 ```
 
-Set `NEWSLETTER_ENABLED=true` only after the mail provider is configured. The
-command refuses to send with Laravel's `log` or `array` mailer outside tests.
-Production should use Resend:
+The command refuses to send with Laravel's `log` or `array` mailer outside
+tests. Production uses Resend:
 
 ```dotenv
 MAIL_MAILER=resend
@@ -50,7 +48,7 @@ Set the same database, app key, mail, and newsletter variables on both the
 Railway `web` and `scheduler` services. The scheduler needs the database to
 read subscribers and record campaign deliveries.
 
-## Check before enabling
+## Check the schedule
 
 Preview the next campaign without writing records or sending email:
 
