@@ -62,7 +62,8 @@ jobs:
               return 1
             fi
 
-            aws s3 sync public/build "s3://$R2_BUCKET_NAME/build" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+            # Keep previous content-hashed chunks available to visitors with an open tab.
+            aws s3 sync public/build "s3://$R2_BUCKET_NAME/build" --endpoint-url "$R2_S3_ENDPOINT" --acl public-read
 
             echo "Setting proper content types for JavaScript files..."
             find public/build -name "*.js" -type f | while read -r file; do
@@ -98,6 +99,38 @@ jobs:
           done
 
           echo "Static assets uploaded to Cloudflare R2"
+
+      - name: Remove frontend bundles older than 30 days
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          R2_S3_ENDPOINT: ${{ secrets.R2_S3_ENDPOINT }}
+        run: |
+          set -Eeuo pipefail
+
+          cutoff="$(date -u -d '30 days ago' +'%Y-%m-%dT%H:%M:%S+00:00')"
+          objects="$(aws s3api list-objects-v2 \
+            --bucket "$R2_BUCKET_NAME" \
+            --prefix 'build/assets/' \
+            --endpoint-url "$R2_S3_ENDPOINT" \
+            --output json)"
+          stale_keys="$(jq -r --arg cutoff "$cutoff" \
+            '.Contents[]? | select(.LastModified < $cutoff) | select(.Key | test("^build/assets/.*\\.(js|css)$")) | .Key' \
+            <<< "$objects")"
+
+          deleted_count=0
+          while IFS= read -r key; do
+            [[ -n "$key" ]] || continue
+            aws s3api delete-object \
+              --bucket "$R2_BUCKET_NAME" \
+              --key "$key" \
+              --endpoint-url "$R2_S3_ENDPOINT" \
+              >/dev/null
+            deleted_count=$((deleted_count + 1))
+          done <<< "$stale_keys"
+
+          echo "Removed $deleted_count expired frontend bundles; bundles younger than 30 days remain available."
 
       - name: Purge Cloudflare Cache
         env:
