@@ -6,6 +6,10 @@ return [
 
     'skaleagents_handoff_enabled' => (bool) env('SKALEAGENTS_BOOKING_HANDOFF_ENABLED', false),
 
+    'skaleagents_events_url' => env('SKALEAGENTS_BOOKING_EVENTS_URL'),
+
+    'skaleagents_events_secret' => env('SKALEAGENTS_BOOKING_EVENTS_SECRET'),
+
     'buffer_minutes' => 15,
 
     'min_lead_hours' => 48,
