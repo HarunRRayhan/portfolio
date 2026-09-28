@@ -4,7 +4,7 @@ import * as React from 'react'
 import { Link, router, usePage } from '@inertiajs/react'
 import { cn } from '@/lib/utils'
 import { Logo } from './Logo'
-import { ArrowRight, Calendar, ChevronDown, Heart, Link2, LogOut, Menu, Newspaper, Package, Presentation, User, UserRound, Video } from 'lucide-react'
+import { ArrowRight, Calendar, ChevronDown, Heart, Link2, LogOut, Menu, Package, Presentation, User, UserRound, Video } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 const MobileNavigation = React.lazy(() => import('@/Components/MobileNavigation'))
 
@@ -12,6 +12,7 @@ const mainNavItems = [
   { name: 'Home', href: '/' },
   { name: 'Case Studies', href: '/case-studies' },
   { name: 'Services', href: '/services' },
+  { name: 'Blog', href: '/blog' },
 ]
 
 type MoreItem = {
@@ -29,10 +30,10 @@ type MoreGroup = {
 
 const moreGroups: MoreGroup[] = [
   {
-    title: 'Content',
+    title: 'About',
     items: [
-      { name: 'Blog', href: '/blog', icon: Newspaper, description: 'Notes on cloud, DevOps, and shipping software.' },
       { name: 'About', href: '/about', icon: UserRound, description: 'Background, experience, and how I work.' },
+      { name: 'Bio', href: '/bio', icon: Link2, description: 'Links, profiles, and ways to reach me.' },
     ],
   },
   {
@@ -40,8 +41,7 @@ const moreGroups: MoreGroup[] = [
     items: [
       { name: 'Sponsor my work', href: '/sponsor-me', icon: Heart, description: 'Help keep the writing and tools free.', featured: true },
       { name: 'Products', href: '/products', icon: Package, description: 'Tools and apps I have built and shipped.' },
-      { name: 'Bio', href: '/bio', icon: Link2, description: 'Links, profiles, and ways to reach me.' },
-      ],
+    ],
   },
   {
     title: 'Media',
@@ -140,7 +140,7 @@ export function Menubar() {
               )
             })}
 
-            {/* More dropdown (Blog, About, Products) */}
+            {/* More dropdown */}
             {/* No `relative` here on purpose: the panel below resolves its
                 `absolute` position against `header` (fixed = the nearest
                 containing block), so it centers on the full-viewport-width
