@@ -7,6 +7,7 @@ use App\Services\Consultation\BookingWorkflowService;
 use App\Services\Consultation\ConsultationGoogleOperationService;
 use App\Services\Consultation\ConsultationNotificationService;
 use App\Services\Consultation\ConsultationStripeReconciliationService;
+use App\Services\Consultation\SkaleAgentsBookingDelivery;
 use App\Services\Consultation\StripeCheckoutService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -54,6 +55,12 @@ Artisan::command('consultations:retry-notifications {--limit=100}', function (Co
     $count = $notifications->deliverDue(max(1, (int) $this->option('limit')));
     $this->info("Delivered {$count} consultation notifications.");
 })->purpose('Retry failed consultation email notifications');
+
+Artisan::command('consultations:send-skaleagents-events {--limit=100}', function (SkaleAgentsBookingDelivery $deliveries) {
+    $count = $deliveries->sendDue(max(1, (int) $this->option('limit')));
+    $totals = $deliveries->counts();
+    $this->info("Delivered {$count} SkaleAgents booking events. Pending {$totals['pending']}, retrying {$totals['retrying']}, terminal {$totals['terminal']}.");
+})->purpose('Deliver signed SkaleAgents consultation booking events');
 
 Artisan::command('consultations:retry-refunds {--limit=50}', function (BookingWorkflowService $workflow) {
     $count = $workflow->retryPendingRefunds(max(1, (int) $this->option('limit')));
@@ -126,6 +133,10 @@ Schedule::command('consultations:retry-google')
     ->withoutOverlapping()
     ->onOneServer();
 Schedule::command('consultations:retry-notifications')
+    ->everyMinute()
+    ->withoutOverlapping()
+    ->onOneServer();
+Schedule::command('consultations:send-skaleagents-events')
     ->everyMinute()
     ->withoutOverlapping()
     ->onOneServer();

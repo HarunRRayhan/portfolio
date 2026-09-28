@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Services\Consultation\SkaleAgentsBookingDelivery;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ConsultationBooking extends Model
@@ -149,11 +151,19 @@ class ConsultationBooking extends Model
 
     public function recordEvent(string $event, ?string $actor = null, ?array $meta = null): ConsultationBookingEvent
     {
-        return $this->events()->create([
-            'event' => $event,
-            'actor' => $actor,
-            'meta' => $meta,
-        ]);
+        return DB::transaction(function () use ($event, $actor, $meta): ConsultationBookingEvent {
+            $bookingEvent = $this->events()->create([
+                'event' => $event,
+                'actor' => $actor,
+                'meta' => $meta,
+            ]);
+
+            if ($this->skaleagents_referral_hash && config('consultation.skaleagents_handoff_enabled')) {
+                app(SkaleAgentsBookingDelivery::class)->enqueue($this, $bookingEvent);
+            }
+
+            return $bookingEvent;
+        });
     }
 
     public function isHoldingSlot(): bool
