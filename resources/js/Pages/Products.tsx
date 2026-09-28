@@ -4,22 +4,6 @@ import { cn } from "@/lib/utils"
 
 const products = [
   {
-    name: "Toolblip",
-    url: "https://toolblip.com",
-    tagline: "Free online developer tools",
-    logo: "/images/products/toolblip.svg",
-    logoBg: "bg-white",
-    description:
-      "A collection of 1,565 free developer tools that run entirely in your browser. JSON formatters, Base64 encoders, QR generators, word counters, SEO tools, and more. No signup, no tracking, no server round-trips - just paste and go. Privacy-first, nothing leaves your browser.",
-    benefits: [
-      "1,565 tools across 18 categories",
-      "100% free, no signup required",
-      "Runs in your browser - no data leaves your machine",
-      "Privacy-first: no tracking, no uploads",
-    ],
-    extraLinks: [],
-  },
-  {
     name: "CloudPloy",
     url: "https://cloudploy.com",
     tagline: "Deploy from your AI tool",
@@ -32,6 +16,38 @@ const products = [
       "Bring your own server or provision one",
       "Supports Laravel, WordPress, Node.js, Python, and more",
       "No markup on cloud provider rates",
+    ],
+    extraLinks: [],
+  },
+  {
+    name: "SkaleAgents",
+    url: "https://skaleagents.com",
+    tagline: "AI DevOps agents for code and infrastructure reviews",
+    logo: "/images/products/skaleagents-icon.svg",
+    logoBg: "bg-white",
+    description:
+      "Use specialist agents to review code and infrastructure. Connect your AI editor through MCP, run audits in the web app, and review findings with your team.",
+    benefits: [
+      "Reusable specialist agents and prompts",
+      "MCP connection for AI editors",
+      "Code and infrastructure audits",
+      "Scheduled reviews and team findings",
+    ],
+    extraLinks: [],
+  },
+  {
+    name: "Toolblip",
+    url: "https://toolblip.com",
+    tagline: "Free online developer tools",
+    logo: "/images/products/toolblip.svg",
+    logoBg: "bg-white",
+    description:
+      "A collection of 1,565 free developer tools that run entirely in your browser. JSON formatters, Base64 encoders, QR generators, word counters, SEO tools, and more. No signup, no tracking, no server round-trips - just paste and go. Privacy-first, nothing leaves your browser.",
+    benefits: [
+      "1,565 tools across 18 categories",
+      "100% free, no signup required",
+      "Runs in your browser - no data leaves your machine",
+      "Privacy-first: no tracking, no uploads",
     ],
     extraLinks: [],
   },
@@ -58,7 +74,7 @@ const products = [
     name: "Appnary",
     url: "https://appnary.com",
     tagline: "Shopify apps for merchants",
-    logo: "/images/products/appnary.svg",
+    logo: "/images/products/appnary-icon.png",
     logoBg: "bg-white",
     description:
       "Launching soon on the Shopify App Store. Simple, affordable tools built for Shopify merchants, not enterprise teams. First app: Pixel Tracker for tracking ad performance and ROAS directly in your Shopify dashboard. More apps in development.",
@@ -98,7 +114,7 @@ export default function Products() {
         <title>Products | Harun R. Rayhan</title>
         <meta
           name="description"
-          content="Products built by Harun R. Rayhan - Toolblip, CloudPloy, Crontinel, Appnary, and Amazing Plugins."
+          content="Products built by Harun R. Rayhan - CloudPloy, SkaleAgents, Toolblip, Crontinel, Appnary, and Amazing Plugins."
         />
       </Head>
 
