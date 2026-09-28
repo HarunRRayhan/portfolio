@@ -35,6 +35,7 @@ class BookingWorkflowService
         Carbon $startsAt,
         ?ConsultationCoupon $coupon = null,
         ?string $companyName = null,
+        ?string $saRef = null,
     ): array {
         $companyName = $companyName !== null ? trim($companyName) : null;
         $companyName = $companyName === '' ? null : $companyName;
@@ -42,7 +43,7 @@ class BookingWorkflowService
         $plainToken = Str::random(48);
         $googleConnected = $this->google->isConnected();
 
-        $result = DB::transaction(function () use ($tier, $name, $email, $companyName, $notes, $startsAt, $coupon, $plainToken, $googleConnected) {
+        $result = DB::transaction(function () use ($tier, $name, $email, $companyName, $notes, $startsAt, $coupon, $plainToken, $googleConnected, $saRef) {
             $this->lockReservation();
 
             $tier = ConsultationTier::query()->lockForUpdate()->findOrFail($tier->id);
@@ -86,6 +87,9 @@ class BookingWorkflowService
                 'payment_due_at' => $startsAt->copy()->subHours((int) config('consultation.payment_cutoff_hours', 24)),
                 'access_token_hash' => hash('sha256', $plainToken),
                 'access_token_expires_at' => $endsAt->copy()->addDays((int) config('consultation.access_token_days', 90)),
+                'skaleagents_referral_hash' => $saRef !== null && config('consultation.skaleagents_handoff_enabled')
+                    ? hash('sha256', $saRef)
+                    : null,
             ]);
 
             $requestEvent = $booking->recordEvent('requested', 'client');
