@@ -28,3 +28,10 @@
 
 - Run the relevant PHPUnit tests and `npm run build` before shipping.
 - Use the `local-verify` skill for real browser checks. Keep browser checks read-only when verifying production.
+- Worktree `.env` files may link to the main checkout. Do not edit or swap them for local checks; use process environment overrides and an isolated database copy.
+
+## Blog posts
+
+- The post catalog is file-backed in `resources/blog/posts`. Admin post pages read it through `BlogRepository`; they do not edit post files.
+- `blog_post_views` stores cumulative counts per slug, not daily events. Label post analytics as all-time and do not derive a daily trend from `updated_at`.
+- Keep draft test fixtures temporary and outside the shipped post catalog. When removing or changing catalog entries, invalidate the repository metadata cache so production does not retain stale drafts or titles.
