@@ -29,6 +29,13 @@
 - Run the relevant PHPUnit tests and `npm run build` before shipping.
 - Use the `local-verify` skill for real browser checks. Keep browser checks read-only when verifying production.
 - Worktree `.env` files may link to the main checkout. Do not edit or swap them for local checks; use process environment overrides and an isolated database copy.
+- Frontend releases need separate checks for Railway `web` and `scheduler`, the GitHub asset-sync workflow, and the live response. CI build variables can change asset hashes; verify the hash from the published manifest or workflow rather than assuming a local hash will be served.
+
+## Admin dashboard
+
+- Keep Overview, Posts, Bio page, Short links, Content, Consultations, and Account grouped in `AuthenticatedLayout.tsx`. General analytics belongs under Overview; post and bio analytics belong in their own sections.
+- In the wide sidebar, groups start closed when no choice is saved and open on click. A click-opened group stays open across Inertia navigation and reloads until its heading is clicked again. In the narrow sidebar, flyouts open on hover or focus and remain temporary.
+- When changing navigation state, check a child-link click, a full reload, explicit close, and the narrow flyout in an authenticated browser.
 
 ## Blog posts
 

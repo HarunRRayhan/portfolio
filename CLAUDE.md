@@ -35,8 +35,6 @@ The auto-mode classifier blocks these Railway/infra actions from Bash even after
 - `railway variable delete`
 - `railway connect` (DB tunnel)
 
-`gh pr merge` is sometimes blocked too, inconsistently — one retry often succeeds; if it doesn't, ask the user to merge.
-
 ## Performance / CDN / SEO
 
 - **Media CDN vs same-origin `/build`:** Serve images and blog/service/case-study
