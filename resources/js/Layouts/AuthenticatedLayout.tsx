@@ -21,7 +21,6 @@ interface NavSection {
     label: string;
     icon: typeof LayoutDashboard;
     items: NavItem[];
-    collapsible?: boolean;
 }
 
 type SharedPageProps = PageProps<{
@@ -51,7 +50,7 @@ function useNavSections(): NavSection[] {
             ],
         },
         {
-            label: 'Bio page', icon: User, collapsible: true,
+            label: 'Bio page', icon: User,
             items: [
                 { label: 'Bio links', href: route('admin.bio.index'), icon: Link2, active: route().current('admin.bio.*') && !route().current('admin.bio.analytics') },
                 { label: 'Bio analytics', href: route('admin.bio.analytics'), icon: BarChart3, active: route().current('admin.bio.analytics') },
@@ -59,7 +58,7 @@ function useNavSections(): NavSection[] {
             ],
         },
         {
-            label: 'Short links', icon: Link2, collapsible: true,
+            label: 'Short links', icon: Link2,
             items: [
                 { label: 'Manage links', href: route('admin.short.index'), icon: Link2, active: route().current('admin.short.*') && !route().current('admin.short.analytics') },
                 { label: 'Link analytics', href: route('admin.short.analytics'), icon: BarChart3, active: route().current('admin.short.analytics') },
@@ -93,7 +92,6 @@ function useNavSections(): NavSection[] {
 function NavList({ compact = false, onNavigate }: { compact?: boolean; onNavigate?: () => void }) {
     const sections = useNavSections();
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-    const [hovered, setHovered] = useState<string | null>(null);
     const [flyout, setFlyout] = useState<{ label: string; top: number } | null>(null);
     const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const suppressFocusOpen = useRef(false);
@@ -184,26 +182,18 @@ function NavList({ compact = false, onNavigate }: { compact?: boolean; onNavigat
     return (
         <nav aria-label="Admin navigation" className="flex-1 space-y-5 overflow-y-auto px-3 py-4">
             {sections.map((section) => {
-                const isOpen = hovered === section.label || (expanded[section.label] ?? (section.items.some((item) => item.active) || section.label === 'Bio page'));
+                const isOpen = expanded[section.label] === true;
                 const Icon = section.icon;
                 return (
-                    <div key={section.label} onMouseEnter={() => section.collapsible && setHovered(section.label)}
-                        onMouseLeave={() => setHovered(null)}>
-                        {section.collapsible ? (
-                            <button type="button" aria-expanded={isOpen} aria-controls={`nav-${section.label.replace(' ', '-')}`}
-                                onClick={() => {
-                                    setExpanded((current) => ({ ...current, [section.label]: !isOpen }));
-                                    setHovered(null);
-                                }}
-                                className={'flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm font-medium hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ' +
-                                    (section.items.some((item) => item.active) ? 'text-primary' : 'text-muted-foreground hover:text-foreground')}>
-                                <span className="flex items-center gap-3"><Icon className="h-4 w-4" />{section.label}</span>
-                                <ChevronDown className={'h-4 w-4 transition-transform ' + (isOpen ? 'rotate-180' : '')} />
-                            </button>
-                        ) : (
-                            <p className="px-3 text-xs font-semibold text-muted-foreground">{section.label}</p>
-                        )}
-                        <div id={`nav-${section.label.replace(' ', '-')}`} className={'mt-1 space-y-1 ' + (section.collapsible && !isOpen ? 'hidden' : '')}>
+                    <div key={section.label}>
+                        <button type="button" aria-expanded={isOpen} aria-controls={`nav-${section.label.replace(' ', '-')}`}
+                            onClick={() => setExpanded((current) => ({ ...current, [section.label]: !isOpen }))}
+                            className={'flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm font-medium hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ' +
+                                (section.items.some((item) => item.active) ? 'text-primary' : 'text-muted-foreground hover:text-foreground')}>
+                            <span className="flex items-center gap-3"><Icon className="h-4 w-4" />{section.label}</span>
+                            <ChevronDown className={'h-4 w-4 transition-transform ' + (isOpen ? 'rotate-180' : '')} />
+                        </button>
+                        <div id={`nav-${section.label.replace(' ', '-')}`} className={'mt-1 space-y-1 ' + (!isOpen ? 'hidden' : '')}>
                             {renderItems(section)}
                         </div>
                     </div>
