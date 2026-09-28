@@ -126,7 +126,7 @@ jobs:
               '{query:$query,variables:{environmentId:$environment_id,webServiceId:$web_service_id,schedulerServiceId:$scheduler_service_id,postgresServiceId:$postgres_service_id}}')"
 
             deployment_data="$(curl -sS --max-time 30 \
-              -H "Authorization: Bearer ${RAILWAY_TOKEN}" \
+              -H "Project-Access-Token: ${RAILWAY_TOKEN}" \
               -H 'Content-Type: application/json' \
               --data "$graphql_payload" \
               "$graphql_url" || true)"
@@ -198,7 +198,7 @@ jobs:
               if [[ -n "$rollback_id" ]]; then
                 mutation_payload="$(jq -cn --arg query "$rollback_mutation" --arg id "$rollback_id" '{query:$query,variables:{id:$id}}')"
                 mutation_response="$(curl -sS --max-time 30 \
-                  -H "Authorization: Bearer ${RAILWAY_TOKEN}" \
+                  -H "Project-Access-Token: ${RAILWAY_TOKEN}" \
                   -H 'Content-Type: application/json' \
                   --data "$mutation_payload" \
                   "$graphql_url" || true)"
@@ -225,7 +225,7 @@ jobs:
               if [[ -n "$redeploy_id" ]]; then
                 mutation_payload="$(jq -cn --arg query "$redeploy_mutation" --arg id "$redeploy_id" '{query:$query,variables:{id:$id}}')"
                 mutation_response="$(curl -sS --max-time 30 \
-                  -H "Authorization: Bearer ${RAILWAY_TOKEN}" \
+                  -H "Project-Access-Token: ${RAILWAY_TOKEN}" \
                   -H 'Content-Type: application/json' \
                   --data "$mutation_payload" \
                   "$graphql_url" || true)"
