@@ -94,6 +94,18 @@ class SiteSeoTest extends TestCase
     }
 
     #[Test]
+    public function it_lists_the_current_products_in_the_first_html_description(): void
+    {
+        $response = $this->get('/products');
+        $response->assertOk();
+
+        $this->assertStringContainsString(
+            'name="description" content="Products built by Harun R. Rayhan - CloudPloy, SkaleAgents, Toolblip, Crontinel, Appnary, and Amazing Plugins."',
+            $response->getContent(),
+        );
+    }
+
+    #[Test]
     public function it_omits_lastmod_for_static_urls_without_a_reliable_update_date(): void
     {
         $response = $this->get('/sitemap.xml');
