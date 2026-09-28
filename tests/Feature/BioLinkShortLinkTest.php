@@ -11,6 +11,37 @@ class BioLinkShortLinkTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_hrr_youtube_update_changes_only_the_bangla_link_and_its_share_destination(): void
+    {
+        $bangla = BioLink::create([
+            'label' => 'ইউটিউব',
+            'locale' => 'bn',
+            'url' => 'https://youtube.com/@skillupwithharun',
+            'icon' => 'youtube',
+            'tab' => 'default',
+        ]);
+        $english = BioLink::create([
+            'label' => 'YouTube',
+            'locale' => 'en',
+            'url' => 'https://www.youtube.com/@SkillupWithHarun?sub_confirmation=1',
+            'icon' => 'youtube',
+            'tab' => 'default',
+        ]);
+
+        $migration = require database_path('migrations/2026_09_28_130000_update_hrr_youtube_bio_link.php');
+        $migration->up();
+
+        $bangla->refresh();
+        $english->refresh();
+        $props = $this->get('/hrr')->assertOk()->viewData('page')['props'];
+        $youtube = collect($props['links'])->firstWhere('id', $bangla->id);
+
+        $this->assertSame('https://www.youtube.com/@HarunRRayhan', $youtube['url']);
+        $this->assertSame('https://www.youtube.com/@HarunRRayhan', $bangla->shortLink->destination_url);
+        $this->assertSame($bangla->shortLink->short_url, $youtube['share_url']);
+        $this->assertSame('https://www.youtube.com/@SkillupWithHarun?sub_confirmation=1', $english->url);
+    }
+
     public function test_cloudploy_domain_update_keeps_the_bio_short_link_current(): void
     {
         $link = BioLink::create([
