@@ -40,15 +40,17 @@ const expectedBadges = [
 </a>`,
 ]
 
-test('directory badge markup appears exactly once per supplied block', () => {
+test('directory badge markup appears once and uses a continuous marquee without controls', () => {
     assert.ok(existsSync(componentPath), 'the footer directory badge slider should exist')
 
     const source = readFileSync(componentPath, 'utf8')
 
     assert.equal(expectedBadges.length, 16)
-    assert.match(source, /transition-transform/)
-    assert.match(source, /translateX\(-\$\{slideDistancePx\}px\)/)
-    assert.match(source, /rotationIntervalMs = 5000/)
+    assert.match(source, /marqueeSpeedPxPerSecond = 28/)
+    assert.match(source, /requestAnimationFrame\(animate\)/)
+    assert.match(source, /track\.appendChild\(badgeToRecycle\)/)
+    assert.match(source, /prefers-reduced-motion: reduce/)
+    assert.doesNotMatch(source, /aria-label="(?:Previous badge|Next badge|Pause rotation|Resume rotation)"/)
     for (const markup of expectedBadges) {
         assert.equal(source.split(markup).length - 1, 1, `Expected one exact copy of ${markup}`)
     }
