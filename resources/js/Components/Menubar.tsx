@@ -152,8 +152,9 @@ export function Menubar() {
                 backdrop blur for this reason. */}
             <div ref={moreRef}>
               <button
-                onClick={() => setMoreOpen(!moreOpen)}
+                onClick={() => setMoreOpen(true)}
                 onMouseEnter={() => setMoreOpen(true)}
+                aria-expanded={moreOpen}
                 className={cn(
                   'inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
                   moreOpen || moreItems.some(i => isActive(i.href))
