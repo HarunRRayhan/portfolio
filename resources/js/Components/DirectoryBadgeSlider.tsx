@@ -37,6 +37,7 @@ const directoryBadges = [
     `<a href="https://www.superlaun.ch/products/3530" target="_blank" rel="noopener">
   <img src="https://www.superlaun.ch/badge.png" alt="Featured on Super Launch" width="300" height="300" />
 </a>`,
+    `<a href="https://launchtory.com/projects/harun-dev">Harun.dev on Launchtory</a>`,
 ]
 
 export function DirectoryBadgeSlider() {
