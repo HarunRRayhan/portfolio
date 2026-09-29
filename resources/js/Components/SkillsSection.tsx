@@ -53,7 +53,7 @@ export function SkillsSection() {
             <div className="container relative mx-auto">
                 <div className="mx-auto max-w-3xl text-center">
                     <div className="mb-4 inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50/80 px-3 py-1.5">
-                        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
+                        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-600">
                             Capabilities
                         </span>
                     </div>
@@ -64,7 +64,7 @@ export function SkillsSection() {
                         </span>
                         .
                     </h2>
-                    <p className="mt-4 text-base leading-7 text-slate-500 sm:text-lg">
+                    <p className="mt-4 text-base leading-7 text-slate-600 sm:text-lg">
                         The work usually sits at the intersection of engineering, DevOps, and platform thinking,
                         so the focus is on systems that are simple to ship and easy to support.
                     </p>
@@ -82,7 +82,7 @@ export function SkillsSection() {
                                     <skill.icon className="h-5 w-5" />
                                 </div>
                                 <h3 className="mt-5 text-lg font-semibold text-slate-900">{skill.title}</h3>
-                                <p className="mt-2 text-sm leading-7 text-slate-500">{skill.description}</p>
+                                <p className="mt-2 text-sm leading-7 text-slate-600">{skill.description}</p>
                             </div>
                         ))}
 
@@ -93,10 +93,10 @@ export function SkillsSection() {
                                 <div className="h-2 w-2 rounded-full bg-red-500/80" />
                                 <div className="h-2 w-2 rounded-full bg-yellow-500/80" />
                                 <div className="h-2 w-2 rounded-full bg-emerald-500/80" />
-                                <span className="ml-2 font-mono text-[10px] text-slate-500">quick-stats</span>
+                                <span className="ml-2 font-mono text-[10px] text-slate-300">quick-stats</span>
                             </div>
                             <div className="p-4">
-                                <div className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
+                                <div className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-300">
                                     ▼ Highlights
                                 </div>
                                 <div className="grid gap-2 sm:grid-cols-3">
@@ -122,7 +122,7 @@ export function SkillsSection() {
                         <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
                             <div className="flex items-center justify-between gap-4">
                                 <div>
-                                    <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-400">
+                                    <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-600">
                                         Credentials
                                     </p>
                                     <h3 className="mt-2 text-xl font-bold text-slate-900">
@@ -150,7 +150,7 @@ export function SkillsSection() {
                                         <Cpu className="h-4 w-4" />
                                     </div>
                                     <div>
-                                        <div className="font-mono text-[11px] font-medium text-slate-400">Working style</div>
+                                        <div className="font-mono text-[11px] font-medium text-slate-600">Working style</div>
                                         <div className="text-sm font-semibold text-slate-900">
                                             Opinionated where it matters, flexible where it helps.
                                         </div>

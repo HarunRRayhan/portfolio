@@ -114,7 +114,7 @@ export function Footer() {
                         <div className="grid gap-8 sm:grid-cols-2">
                             {links.map((group) => (
                                 <div key={group.title}>
-                                    <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-500">
+                                    <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400">
                                         {group.title}
                                     </div>
                                     <ul className="mt-4 space-y-2.5">
@@ -141,7 +141,7 @@ export function Footer() {
                                 </div>
                             ))}
                             <div className="lg:col-span-2 xl:col-span-1">
-                                <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-500">
+                                <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400">
                                     Stay connected
                                 </div>
                                 <div className="mt-4 flex flex-col items-stretch gap-3">
@@ -180,7 +180,7 @@ export function Footer() {
 
                 {/* Bottom bar */}
                 <div className="mt-10 flex flex-col gap-6 border-t border-slate-800 pt-8 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-slate-400">
                         &copy; {new Date().getFullYear()} Harun R. Rayhan. Built with a focus on clarity and reliability.
                     </p>
 

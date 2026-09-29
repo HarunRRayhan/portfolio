@@ -24,13 +24,13 @@ export function LogoSection() {
         <section ref={ref} className="border-b border-slate-200 bg-slate-50/80 py-14">
             <div className="container mx-auto">
                 <div className="mx-auto max-w-2xl text-center">
-                    <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600">
                         Trusted by teams across industries
                     </p>
                     <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
                         Work that holds up in real production environments.
                     </h2>
-                    <p className="mt-3 text-base leading-7 text-slate-500">
+                    <p className="mt-3 text-base leading-7 text-slate-600">
                         Experience across product, enterprise, and growth teams, with a focus on reliability,
                         clarity, and long-term maintainability.
                     </p>

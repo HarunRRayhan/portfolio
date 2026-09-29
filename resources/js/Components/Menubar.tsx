@@ -111,11 +111,11 @@ export function Menubar() {
       )}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:px-8">
-        <Link href="/" className="flex shrink-0 items-center gap-3">
+        <Link href="/" aria-label="Harun R. Rayhan home" className="flex shrink-0 items-center gap-3">
           <Logo className="h-9 w-9" />
           <div className="hidden sm:block">
             <p className="text-sm font-semibold tracking-tight text-slate-900">Harun R. Rayhan</p>
-            <p className="text-xs text-slate-500">DevOps, AI/ML, Cloud, and Product Engineering</p>
+            <p className="text-xs text-slate-600">DevOps, AI/ML, Cloud, and Product Engineering</p>
           </div>
         </Link>
 
@@ -275,6 +275,7 @@ export function Menubar() {
           ) : (
             <Link
               href="/login"
+              aria-label="Sign in"
               className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
             >
               <User className="h-4 w-4" />

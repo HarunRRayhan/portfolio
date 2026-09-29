@@ -61,7 +61,7 @@ export function HeroSectionV2() {
                         {/* Terminal-style badge */}
                         <div className="mb-6 inline-flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white/80 px-3.5 py-2 shadow-sm backdrop-blur-sm">
                             <Terminal className="h-3.5 w-3.5 text-slate-400" />
-                            <span className="font-mono text-[11px] font-medium uppercase tracking-wider text-slate-500">
+                            <span className="font-mono text-[11px] font-medium uppercase tracking-wider text-slate-600">
                                 Senior Software Engineer & DevOps Consultant
                             </span>
                             <span className="h-1 w-1 rounded-full bg-slate-300" />
@@ -71,7 +71,7 @@ export function HeroSectionV2() {
                             </span>
                         </div>
 
-                        <h1 className="max-w-2xl text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-[3.75rem] lg:leading-[1.1]">
+                        <h1 className="homepage-hero-copy max-w-2xl text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-[3.75rem] lg:leading-[1.1]">
                             Building cloud systems that feel{' '}
                             <span className="text-amber-600 underline decoration-amber-200 decoration-2 underline-offset-4">
                                 calm, fast, and reliable
@@ -79,7 +79,7 @@ export function HeroSectionV2() {
                             .
                         </h1>
 
-                        <p className="mt-6 max-w-xl text-lg leading-8 text-slate-500 sm:text-xl">
+                        <p className="homepage-hero-copy mt-6 max-w-xl text-lg leading-8 text-slate-600 sm:text-xl">
                             I help teams design, ship, and operate AWS infrastructure with strong automation,
                             cleaner release flows, and production-ready observability.
                         </p>
@@ -115,7 +115,7 @@ export function HeroSectionV2() {
                                     <div className="font-mono text-xl font-semibold tabular-nums text-slate-900 sm:text-2xl">
                                         {item.value}
                                     </div>
-                                    <div className="mt-0.5 text-xs font-medium uppercase tracking-[0.12em] text-slate-400">
+                                    <div className="mt-0.5 text-xs font-medium uppercase tracking-[0.12em] text-slate-600">
                                         {item.label}
                                     </div>
                                 </div>
@@ -136,7 +136,7 @@ export function HeroSectionV2() {
 
                         {/* Social links */}
                         <div className="mt-10 flex items-center gap-4">
-                            <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                            <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600">
                                 Connect
                             </span>
                             <div className="flex items-center gap-1.5">
@@ -170,8 +170,8 @@ export function HeroSectionV2() {
                                 <div className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
                                 <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/80" />
                                 <div className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" />
-                                <span className="ml-2 font-mono text-[11px] text-slate-500">systems-engineer, zsh</span>
-                                <span className="ml-auto font-mono text-[10px] text-slate-600">80×24</span>
+                                <span className="ml-2 font-mono text-[11px] text-slate-300">systems-engineer, zsh</span>
+                                <span className="ml-auto font-mono text-[10px] text-slate-300">80×24</span>
                             </div>
                             {/* Terminal body */}
                             <div className="space-y-2 p-4 font-mono text-sm sm:p-5">
@@ -201,7 +201,7 @@ export function HeroSectionV2() {
                         <div className="mt-4 rounded-xl border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur-sm">
                             <div className="flex items-start justify-between gap-4">
                                 <div>
-                                    <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-400">
+                                    <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-600">
                                         Current focus
                                     </div>
                                     <div className="mt-1.5 text-base font-semibold leading-snug text-slate-900">
@@ -250,7 +250,7 @@ export function HeroSectionV2() {
                                         </span>
                                     </div>
                                 ))}
-                                <div className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2 py-1 font-mono text-[11px] text-slate-400">
+                                <div className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2 py-1 font-mono text-[11px] text-slate-600">
                                     +4 more
                                 </div>
                             </div>
