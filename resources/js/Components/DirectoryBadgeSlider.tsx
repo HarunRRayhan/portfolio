@@ -38,6 +38,7 @@ const directoryBadges = [
   <img src="https://www.superlaun.ch/badge.png" alt="Featured on Super Launch" width="300" height="300" />
 </a>`,
     `<a href="https://launchtory.com/projects/harun-dev">Harun.dev on Launchtory</a>`,
+    `<a href="https://web-review.com" target="_blank" rel="dofollow"><img src="https://web-review.com/badge.png" alt="Featured on Web Review" width="200" height="54" /></a>`,
 ]
 
 export function DirectoryBadgeSlider() {
