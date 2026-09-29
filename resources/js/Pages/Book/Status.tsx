@@ -218,7 +218,7 @@ export default function Status({
             </div>
           )}
 
-          <a href="/book" className="inline-block text-sm text-slate-500 underline hover:text-slate-800">
+          <a href="/consultation" className="inline-block text-sm text-slate-500 underline hover:text-slate-800">
             Back to plans
           </a>
         </div>

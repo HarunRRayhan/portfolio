@@ -82,6 +82,7 @@ class SiteSeoTest extends TestCase
             $siteUrl.'/bio',
             $siteUrl.'/hrr',
             $siteUrl.'/products',
+            $siteUrl.'/consultation',
         ];
 
         foreach ($expected as $url) {
@@ -91,6 +92,7 @@ class SiteSeoTest extends TestCase
 
         $this->assertNotContains($siteUrl.'/privacy', $locs);
         $this->assertNotContains($siteUrl.'/terms', $locs);
+        $this->assertNotContains($siteUrl.'/book', $locs);
     }
 
     #[Test]

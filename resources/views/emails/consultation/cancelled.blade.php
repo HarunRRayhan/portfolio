@@ -5,7 +5,7 @@ Hi {{ $booking->client_name }},
 
 Your **{{ $booking->tier->name }}** scheduled for **{{ $booking->starts_at->utc()->toDayDateTimeString() }} UTC** has been cancelled.
 
-@component('mail::button', ['url' => url('/book')])
+@component('mail::button', ['url' => url('/consultation')])
 Book again
 @endcomponent
 

@@ -510,7 +510,18 @@ Route::get('/services/vibe-code-migration', function () {
     return Inertia::render('Services/VibeCodeMigration');
 })->name('services.vibe-code-migration');
 
-Route::get('/book', [BookController::class, 'show'])->name('book');
+$redirectToConsultation = function (Request $request) {
+    $query = $request->getQueryString();
+    $destination = '/consultation'.($query ? '?'.$query : '');
+
+    return redirect()->to($destination, 301);
+};
+
+Route::get('/consultation', [BookController::class, 'show'])->name('consultation');
+foreach (['/book', '/booking', '/consultations'] as $legacyConsultationPath) {
+    Route::get($legacyConsultationPath, $redirectToConsultation);
+}
+
 Route::get('/book/availability', [BookController::class, 'availability'])
     ->middleware('throttle:60,1')
     ->name('book.availability');

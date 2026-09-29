@@ -5,7 +5,7 @@ Hi {{ $booking->client_name }},
 
 Your consultation request for **{{ $booking->starts_at->utc()->toDayDateTimeString() }} UTC** expired before it was completed.
 
-@component('mail::button', ['url' => url('/book')])
+@component('mail::button', ['url' => url('/consultation')])
 Book again
 @endcomponent
 

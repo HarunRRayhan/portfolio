@@ -7,7 +7,7 @@ Unfortunately we can’t take the **{{ $booking->tier->name }}** slot you reques
 
 You’re welcome to pick another time on the booking page.
 
-@component('mail::button', ['url' => url('/book')])
+@component('mail::button', ['url' => url('/consultation')])
 Book again
 @endcomponent
 

@@ -217,10 +217,10 @@ export default function CaseStudyDetailPage({ study, relatedStudies, canonicalUr
 
           <div className="mt-12 flex justify-center pb-16">
             <Link
-              href="/book"
-              className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+              href="/consultation"
+              className="inline-flex items-center gap-2 rounded-full bg-amber-500 px-6 py-3 text-sm font-semibold text-amber-950 hover:bg-amber-400"
             >
-              Book a session
+              Consultation
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>

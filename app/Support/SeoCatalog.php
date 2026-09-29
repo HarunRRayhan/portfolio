@@ -106,10 +106,10 @@ final class SeoCatalog
             canonicalUrl: $siteUrl.'/contact',
         );
 
-        $pages['/book'] = new SeoMeta(
-            title: 'Book a Consultation | Cloud & DevOps Expert - Harun R. Rayhan',
+        $pages['/consultation'] = new SeoMeta(
+            title: 'Consultation | Cloud & DevOps Expert - Harun R. Rayhan',
             description: 'Book a paid DevOps consultation (Light, Pro, or Max). The first 1,001 booking requests get $100 off before any valid coupon is applied.',
-            canonicalUrl: $siteUrl.'/book',
+            canonicalUrl: $siteUrl.'/consultation',
         );
 
         $pages['/products'] = new SeoMeta(

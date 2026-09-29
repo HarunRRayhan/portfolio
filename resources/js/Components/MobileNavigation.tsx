@@ -22,7 +22,7 @@ export default function MobileNavigation({ open, onOpenChange, onCloseAutoFocus,
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-[min(18rem,calc(100vw-2.5rem))] overflow-y-auto border-slate-200 p-6 pt-12" onCloseAutoFocus={onCloseAutoFocus}>
         <SheetTitle className="sr-only">Navigation menu</SheetTitle>
-        <SheetDescription className="sr-only">Jump to a page or book a session.</SheetDescription>
+        <SheetDescription className="sr-only">Jump to a page or open the consultation page.</SheetDescription>
         <nav className="flex flex-col gap-1">
           {[...mainItems, { name: 'Contact', href: '/contact' }].map(item => (
             <SheetClose key={item.name} asChild>
@@ -83,8 +83,8 @@ export default function MobileNavigation({ open, onOpenChange, onCloseAutoFocus,
           )}
           <div className="mt-3">
             <SheetClose asChild>
-              <Link href="/book" className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-slate-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800">
-                <Calendar className="h-4 w-4" />Book a session
+              <Link href="/consultation" className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-amber-500 px-4 py-3 text-sm font-medium text-amber-950 transition hover:bg-amber-400">
+                <Calendar className="h-4 w-4" />Consultation
                 <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
               </Link>
             </SheetClose>

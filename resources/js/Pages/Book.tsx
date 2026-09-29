@@ -286,12 +286,12 @@ export default function Book({
     <>
       <Head>
         <meta name="referrer" content="no-referrer" />
-        <title>Book a Consultation | Cloud & DevOps Expert - Harun R. Rayhan</title>
+        <title>Consultation | Cloud & DevOps Expert - Harun R. Rayhan</title>
         <meta
           name="description"
           content="Book a paid DevOps consultation — Light, Pro, or Max. The first 1,001 booking requests get $100 off before any valid coupon is applied."
         />
-        <meta property="og:title" content="Book a Consultation | Cloud & DevOps Expert - Harun R. Rayhan" />
+        <meta property="og:title" content="Consultation | Cloud & DevOps Expert - Harun R. Rayhan" />
         <meta
           property="og:description"
           content="Paid DevOps consultations with approval, Google Calendar sync, Stripe checkout, and $100 off for the first 1,001 booking requests."

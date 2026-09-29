@@ -232,10 +232,10 @@ export function Menubar() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          <Link href="/book">
-            <button className="group inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 active:scale-[0.97]">
+          <Link href="/consultation">
+            <button className="group inline-flex items-center gap-1.5 rounded-full bg-amber-500 px-4 py-2 text-sm font-medium text-amber-950 transition hover:bg-amber-400 active:scale-[0.97]">
               <Calendar className="h-3.5 w-3.5" />
-              Book a session
+              Consultation
               <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
             </button>
           </Link>

@@ -16,7 +16,7 @@ class BookPageTest extends TestCase
     {
         $this->assertGreaterThanOrEqual(3, ConsultationTier::query()->count());
 
-        $response = $this->get('/book');
+        $response = $this->get('/consultation');
 
         $response->assertOk();
         $response->assertSee('<meta name="csrf-token"', false);
@@ -24,12 +24,23 @@ class BookPageTest extends TestCase
             ->component('Book')
             ->has('tiers', 3)
             ->has('timezones')
+            ->where('canonicalUrl', url('/consultation'))
+            ->where('seo.title', 'Consultation | Cloud & DevOps Expert - Harun R. Rayhan')
             ->where('tiers.0.price_cents', 24900)
             ->where('tiers.1.price_cents', 34900)
             ->where('tiers.2.price_cents', 44900)
             ->where('launchPromotion.discount_cents', 10000)
             ->where('launchPromotion.limit', 1001)
             ->where('launchPromotion.remaining_bookings', 1001));
+    }
+
+    public function test_legacy_consultation_urls_permanently_redirect_and_keep_query_parameters(): void
+    {
+        foreach (['/book', '/booking', '/consultations'] as $path) {
+            $this->get($path.'?coupon=SAVE20&coupon_code=EARLY10')
+                ->assertStatus(301)
+                ->assertRedirect('/consultation?coupon=SAVE20&coupon_code=EARLY10');
+        }
     }
 
     public function test_coupon_preview_stacks_after_the_launch_discount(): void

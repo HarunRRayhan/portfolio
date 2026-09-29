@@ -113,7 +113,7 @@ class ConsultationBookingTest extends TestCase
 
     public function test_book_page_does_not_send_the_reference_as_a_referrer(): void
     {
-        $this->get('/book?sa_ref='.str_repeat('A', 32))
+        $this->get('/consultation?sa_ref='.str_repeat('A', 32))
             ->assertOk()
             ->assertHeader('Referrer-Policy', 'no-referrer');
     }
