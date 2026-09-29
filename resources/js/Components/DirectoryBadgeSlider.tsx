@@ -1,9 +1,11 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react'
 
 const rotationIntervalMs = 5000
+const transitionDurationMs = 500
+const badgeWidthPx = 180
 
 const directoryBadges = [
     `<a href="https://earlyhunt.com/project/skaleagents" target="_blank" rel="noopener">
@@ -41,11 +43,15 @@ const directoryBadges = [
 ]
 
 export function DirectoryBadgeSlider() {
-    const [activeIndex, setActiveIndex] = useState(0)
+    const [firstBadgeIndex, setFirstBadgeIndex] = useState(0)
+    const [isSliding, setIsSliding] = useState(false)
     const [isPaused, setIsPaused] = useState(false)
     const [isPointerInside, setIsPointerInside] = useState(false)
     const [isFocused, setIsFocused] = useState(false)
     const [prefersReducedMotion, setPrefersReducedMotion] = useState(true)
+    const [slideDistancePx, setSlideDistancePx] = useState(badgeWidthPx)
+    const transitionTimeout = useRef<number | null>(null)
+    const firstBadgeRef = useRef<HTMLDivElement | null>(null)
 
     useEffect(() => {
         const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -57,17 +63,38 @@ export function DirectoryBadgeSlider() {
         return () => motionPreference.removeEventListener('change', updatePreference)
     }, [])
 
-    useEffect(() => {
-        if (isPaused || isPointerInside || isFocused || prefersReducedMotion) return
+    const advanceBadges = useCallback(() => {
+        if (isSliding) return
 
-        const interval = window.setInterval(() => {
-            setActiveIndex((index) => (index + 1) % directoryBadges.length)
-        }, rotationIntervalMs)
+        setSlideDistancePx(firstBadgeRef.current?.getBoundingClientRect().width ?? badgeWidthPx)
+        setIsSliding(true)
+        transitionTimeout.current = window.setTimeout(() => {
+            setFirstBadgeIndex((index) => (index + 1) % directoryBadges.length)
+            setIsSliding(false)
+            transitionTimeout.current = null
+        }, transitionDurationMs)
+    }, [isSliding])
+
+    useEffect(() => {
+        if (isPaused || isPointerInside || isFocused || prefersReducedMotion || isSliding) return
+
+        const interval = window.setInterval(advanceBadges, rotationIntervalMs)
 
         return () => window.clearInterval(interval)
-    }, [isFocused, isPaused, isPointerInside, prefersReducedMotion])
+    }, [advanceBadges, isFocused, isPaused, isPointerInside, isSliding, prefersReducedMotion])
+
+    useEffect(() => {
+        return () => {
+            if (transitionTimeout.current !== null) {
+                window.clearTimeout(transitionTimeout.current)
+            }
+        }
+    }, [])
 
     const showRotationControl = !prefersReducedMotion
+    const orderedBadges = directoryBadges.map(
+        (_, index) => directoryBadges[(firstBadgeIndex + index) % directoryBadges.length],
+    )
 
     return (
         <section
@@ -84,34 +111,44 @@ export function DirectoryBadgeSlider() {
                 }
             }}
         >
-            <div className="mx-auto max-w-sm">
-                <div className="relative h-[76px] overflow-hidden" aria-live="off">
-                    {directoryBadges.map((markup, index) => (
-                        <div
-                            key={index}
-                            role="group"
-                            aria-roledescription="slide"
-                            aria-label={`${index + 1} of ${directoryBadges.length}`}
-                            aria-hidden={index !== activeIndex}
-                            inert={index !== activeIndex}
-                            className={`absolute inset-0 flex items-center justify-center px-2 transition-opacity duration-300 motion-reduce:transition-none ${
-                                index === activeIndex ? 'opacity-100' : 'pointer-events-none opacity-0'
-                            }`}
-                        >
-                            <div
-                                className="flex h-full w-full items-center justify-center text-sm text-slate-500 [&_a]:inline-flex [&_a]:max-w-full [&_a]:items-center [&_a]:justify-center [&_a]:text-slate-400 [&_a]:transition-colors [&_a:hover]:text-slate-200 [&_img]:block [&_img]:h-auto [&_img]:w-auto [&_img]:max-h-14 [&_img]:max-w-full [&_img]:object-contain [&_img]:opacity-80"
-                                dangerouslySetInnerHTML={{ __html: markup }}
-                            />
-                        </div>
-                    ))}
+            <div className="mx-auto w-full max-w-6xl">
+                <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">Featured on</p>
+                <div className="overflow-hidden" aria-live="off">
+                    <div
+                        className={`flex motion-reduce:transition-none ${
+                            isSliding ? 'transition-transform duration-500 ease-in-out' : 'transition-none'
+                        }`}
+                        style={{ transform: isSliding ? `translateX(-${slideDistancePx}px)` : 'translateX(0)' }}
+                    >
+                        {orderedBadges.map((markup, index) => {
+                            const badgeIndex = (firstBadgeIndex + index) % directoryBadges.length
+
+                            return (
+                                <div
+                                    key={badgeIndex}
+                                    ref={index === 0 ? firstBadgeRef : null}
+                                    role="group"
+                                    aria-roledescription="slide"
+                                    aria-label={`${badgeIndex + 1} of ${directoryBadges.length}`}
+                                    className="flex h-[76px] w-[148px] shrink-0 items-center justify-center px-2 sm:w-[180px]"
+                                >
+                                    <div
+                                        className="flex h-full w-full items-center justify-center text-sm text-slate-500 [&_a]:inline-flex [&_a]:max-w-full [&_a]:items-center [&_a]:justify-center [&_a]:text-slate-400 [&_a]:transition-colors [&_a:hover]:text-slate-200 [&_img]:block [&_img]:h-auto [&_img]:w-auto [&_img]:max-h-12 [&_img]:max-w-full [&_img]:object-contain [&_img]:opacity-80"
+                                        dangerouslySetInnerHTML={{ __html: markup }}
+                                    />
+                                </div>
+                            )
+                        })}
+                    </div>
                 </div>
 
                 <div className="mt-2 flex items-center justify-center gap-2">
                     <button
                         type="button"
                         aria-label="Previous badge"
-                        onClick={() => setActiveIndex((index) => (index - 1 + directoryBadges.length) % directoryBadges.length)}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-800 text-slate-500 transition hover:border-slate-700 hover:text-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                        onClick={() => setFirstBadgeIndex((index) => (index - 1 + directoryBadges.length) % directoryBadges.length)}
+                        disabled={isSliding}
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-800 text-slate-500 transition hover:border-slate-700 hover:text-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 disabled:opacity-40"
                     >
                         <ChevronLeft className="h-4 w-4" aria-hidden="true" />
                     </button>
@@ -133,8 +170,9 @@ export function DirectoryBadgeSlider() {
                     <button
                         type="button"
                         aria-label="Next badge"
-                        onClick={() => setActiveIndex((index) => (index + 1) % directoryBadges.length)}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-800 text-slate-500 transition hover:border-slate-700 hover:text-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                        onClick={advanceBadges}
+                        disabled={isSliding}
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-800 text-slate-500 transition hover:border-slate-700 hover:text-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 disabled:opacity-40"
                     >
                         <ChevronRight className="h-4 w-4" aria-hidden="true" />
                     </button>

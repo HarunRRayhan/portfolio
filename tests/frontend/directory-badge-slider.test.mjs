@@ -46,7 +46,8 @@ test('directory badge markup appears exactly once per supplied block', () => {
     const source = readFileSync(componentPath, 'utf8')
 
     assert.equal(expectedBadges.length, 16)
-    assert.match(source, /transition-opacity/)
+    assert.match(source, /transition-transform/)
+    assert.match(source, /translateX\(-\$\{slideDistancePx\}px\)/)
     assert.match(source, /rotationIntervalMs = 5000/)
     for (const markup of expectedBadges) {
         assert.equal(source.split(markup).length - 1, 1, `Expected one exact copy of ${markup}`)
