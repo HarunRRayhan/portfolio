@@ -89,14 +89,14 @@ export function ReviewSlideSection() {
             <div className="container relative mx-auto">
                 <div className="mx-auto max-w-3xl text-center">
                     <div className="mb-4 inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50/80 px-3 py-1.5">
-                        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
+                        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-600">
                             Testimonials
                         </span>
                     </div>
                     <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
                         Trusted by leaders who care about reliability.
                     </h2>
-                    <p className="mt-4 text-base leading-7 text-slate-500 sm:text-lg">
+                    <p className="mt-4 text-base leading-7 text-slate-600 sm:text-lg">
                         A few notes from people who have worked with Harun on real delivery, platform, and infrastructure work.
                     </p>
                 </div>
@@ -135,7 +135,7 @@ export function ReviewSlideSection() {
                                                     <cite className="block not-italic text-sm font-semibold text-slate-900">
                                                         {review.author}
                                                     </cite>
-                                                    <span className="text-sm text-slate-400">{review.position}</span>
+                                                    <span className="text-sm text-slate-600">{review.position}</span>
                                                 </div>
                                             </div>
                                         </Card>
@@ -163,11 +163,15 @@ export function ReviewSlideSection() {
                             <button
                                 key={i}
                                 onClick={() => scrollTo(i)}
-                                className={`h-2 w-2 rounded-full transition ${
-                                    i === selectedIndex ? 'bg-slate-800' : 'bg-slate-300'
-                                }`}
+                                className="inline-flex h-6 w-6 items-center justify-center rounded-full transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-700"
                                 aria-label={`Go to testimonial ${i + 1}`}
-                            />
+                                aria-pressed={i === selectedIndex}
+                            >
+                                <span
+                                    aria-hidden="true"
+                                    className={`h-2 w-2 rounded-full transition ${i === selectedIndex ? 'bg-slate-800' : 'bg-slate-500'}`}
+                                />
+                            </button>
                         ))}
                     </div>
                     <button
@@ -187,7 +191,7 @@ export function ReviewSlideSection() {
                     ].map((item) => (
                         <div key={item.label} className="rounded-xl border border-slate-200 bg-slate-50/70 p-6 text-center shadow-sm">
                             <div className="font-mono text-3xl font-bold tabular-nums text-slate-900">{item.value}</div>
-                            <div className="mt-1 text-sm text-slate-500">{item.label}</div>
+                            <div className="mt-1 text-sm text-slate-600">{item.label}</div>
                         </div>
                     ))}
                 </div>

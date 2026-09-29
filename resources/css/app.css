@@ -1,6 +1,12 @@
 @import "tailwindcss";
 @config "../../tailwind.config.js";
 
+/* Keep the hero's largest text on a stable system font so remote font swaps
+   cannot move the heading, paragraph, and controls during the first paint. */
+.homepage-hero-copy {
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
 @keyframes marquee-scroll {
   to { transform: translateX(calc(-50% - var(--marquee-gap) / 2)); }
 }

@@ -29,7 +29,7 @@ export function ServiceRelatedCaseStudies({ studies }: Props) {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Case studies</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600">Case studies</p>
             <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
               Related work (codenamed)
             </h2>
@@ -114,7 +114,7 @@ export function CaseStudiesHomeSection({ studies }: HomeProps) {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Selected work</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600">Selected work</p>
             <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
               Case studies
             </h2>
