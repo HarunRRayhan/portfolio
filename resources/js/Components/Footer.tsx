@@ -6,6 +6,7 @@ import { ArrowRight, Terminal } from 'lucide-react'
 import { Github, Linkedin, Mail, Twitter } from '@/lib/icons'
 import { Button } from '@/Components/ui/button'
 import { useSubscribePopup } from '@/Components/SubscribeProvider'
+import { DirectoryBadgeSlider } from '@/Components/DirectoryBadgeSlider'
 
 type FooterLink = {
     label: string
@@ -198,6 +199,8 @@ export function Footer() {
                         ))}
                     </div>
                 </div>
+
+                <DirectoryBadgeSlider />
             </div>
         </footer>
     )
