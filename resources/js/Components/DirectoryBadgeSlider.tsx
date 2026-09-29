@@ -46,6 +46,9 @@ const directoryBadges = [
   <img src="https://r2.direasy-multi-tenant.focusapps.app/uploads/616d0b1a-3979-4b8c-94d1-b4f1fedd3ead/1783232956807/nynif7cioz/featured-on-light.svg" alt="Featured on TinyHunt" style="height:44px;width:auto"/>
 </a>`,
     `<a href="https://startupfa.me/s/harun-dev?utm_source=harun.dev" target="_blank"><img src="https://startupfa.me/badges/featured-badge.webp" alt="Harun.dev - Featured on Startup Fame" width="171" height="54" /></a>`,
+    `<a href="https://codehype.ai/product/harun-dev-consulting?utm_source=codehype_badge" target="_blank" rel="noopener noreferrer">
+  <img src="https://codehype.ai/badges/harun-dev-consulting.svg?variant=find-us&v=20" alt="Featured on CodeHype" width="180" height="65" loading="lazy" decoding="async" style="display:inline-block;border:0;width:100%;max-width:180px;height:auto;max-height:65px;" />
+</a>`,
 ]
 
 export function DirectoryBadgeSlider() {
