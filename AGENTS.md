@@ -17,6 +17,7 @@
 
 ## Consultation behavior
 
+- Use `/consultation` as the canonical public booking page and navigation label `Consultation`. Redirect GET requests for `/book`, `/booking`, and `/consultations` to `/consultation`, preserving query parameters; keep existing `/book` submission and availability endpoints unless intentionally migrated.
 - Persist booking timestamps in UTC. The owner schedule timezone is `Asia/Dhaka` unless explicitly changed in admin settings.
 - Public availability is grouped by the visitor-selected timezone. Default the picker to the visitor's browser timezone and show the IANA name with its UTC offset.
 - Google Calendar busy periods must block public slots and be checked again during booking validation. Events explicitly marked Free remain available.
