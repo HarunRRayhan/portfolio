@@ -55,9 +55,9 @@ final class Cdn
             return $html;
         }
 
-        $rewritten = preg_replace(
-            '#(?<=(?:src|href)=["\'])/(blog-assets|service-assets|case-studies-assets|images)/#i',
-            $base.'/$1/',
+        $rewritten = preg_replace_callback(
+            '#((?:src|href)=["\'])/(blog-assets|service-assets|case-studies-assets|images)/#i',
+            static fn (array $matches): string => $matches[1].$base.'/'.$matches[2].'/',
             $html,
         );
 
