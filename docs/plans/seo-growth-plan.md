@@ -14,6 +14,15 @@ We'll work one task at a time. Each round will change one page or one small tech
 
 ## Work list
 
+### September 30: update the Laravel container comparison
+
+- [x] Review the existing Laravel container article and save finalized Search Console baselines. August 31–September 27: six clicks, 212 impressions, 2.83% CTR and average position 8.78. August 3–30: six clicks, 301 impressions, 1.99% CTR and average position 16.01. The available comparison queries already reach this article; no new landing page is needed. Working evidence: ignored `reports/seo-laravel-baseline-2026-09-30.json`.
+- [x] Check current AWS guidance. [App Runner is closed to new customers](https://docs.aws.amazon.com/apprunner/latest/dg/apprunner-availability-change.html); existing customers can continue to create resources, and AWS does not plan new features. AWS recommends exploring [ECS Express Mode](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/express-service-overview.html). AWS pages show differing cutoff dates, so the update states the current availability without asserting a cutoff date.
+- [x] Add a short App Runner versus ECS Fargate decision section to the existing post, qualify the App Runner walkthrough and recommendations for existing customers, and replace its truncated description. Preserve the title, slug, original publication date, all code examples and all posts. Refresh the repository metadata cache. This is a factual content correction with a small search-intent improvement, not a claim of measured ranking recovery. PSEO remains deferred.
+- [x] Verify the changed article. The full PHPUnit suite passed 379 tests / 2,350 assertions, with four notices and two skips; `npm run build` passed. A local browser using an isolated SQLite copy showed the new description, decision section and availability notice, the original title and all 13 code blocks. Read-only release review found no blocking issues. All 48 posts remain.
+- [ ] Release and verify Railway web/scheduler, the asset workflow, published metadata and the live decision section. Save the release date separately from Google's next crawl.
+- [ ] After a confirmed post-release crawl, measure 28 full Pacific days against this page's baseline before expanding it further.
+
 ### September 30: one description improvement
 
 All existing posts stay. Improve them where useful; do not delete posts or replace them with generated landing pages. PSEO remains deferred. If later evidence supports it, test one useful page before building a shared template or expanding the collection.
