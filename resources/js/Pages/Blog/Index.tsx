@@ -1,5 +1,6 @@
-import { Head, Link } from '@inertiajs/react'
-import { ArrowRight, CalendarDays, Clock3, Eye, MessageCircle, Rss, Sparkles, Tag } from 'lucide-react'
+import { Head, Link, router, usePage } from '@inertiajs/react'
+import { ArrowRight, CalendarDays, Clock3, Eye, MessageCircle, Rss, Search, Tag } from 'lucide-react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { ShareButton } from '@/Components/ShareButton'
 
 interface BlogPostSummary {
@@ -31,7 +32,54 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
   const description =
     'AWS, DevOps, Laravel, serverless architecture, and practical engineering notes from Harun\'s blog.'
 
-  const uniqueTags = new Set(posts.flatMap((post) => post.tags.map((tag) => tag.name))).size
+  const page = usePage()
+  const params = useMemo(() => new URL(page.url, canonicalUrl).searchParams, [page.url, canonicalUrl])
+  const query = params.get('q') ?? ''
+  const topic = params.get('topic') ?? ''
+  const [search, setSearch] = useState(query)
+
+  useEffect(() => setSearch(query), [query])
+
+  const topics = useMemo(() => {
+    const counts = new Map<string, { slug: string; name: string; count: number }>()
+    posts.forEach((post) => {
+      new Map(post.tags.map((tag) => [tag.slug, tag])).forEach((tag) => {
+        const existing = counts.get(tag.slug)
+        counts.set(tag.slug, { ...tag, count: (existing?.count ?? 0) + 1 })
+      })
+    })
+    return Array.from(counts.values()).sort((a, b) => a.name.localeCompare(b.name))
+  }, [posts])
+
+  const matchingPosts = useMemo(() => {
+    const words = query.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean)
+    return posts.filter((post) => {
+      if (topic && !post.tags.some((tag) => tag.slug === topic)) return false
+      const text = [post.title, post.brief, ...post.tags.map((tag) => tag.name)].join(' ').toLocaleLowerCase()
+      return words.every((word) => text.includes(word))
+    })
+  }, [posts, query, topic])
+
+  const updateFilters = (nextQuery: string, nextTopic: string) => {
+    const next = new URL(page.url, canonicalUrl)
+    if (nextQuery.trim()) next.searchParams.set('q', nextQuery.trim())
+    else next.searchParams.delete('q')
+    if (nextTopic) next.searchParams.set('topic', nextTopic)
+    else next.searchParams.delete('topic')
+    // Match Laravel's RFC3986 URLs so a reload does not create a second history
+    // entry just because URLSearchParams encodes spaces as '+' instead of '%20'.
+    const encode = (value: string) => encodeURIComponent(value).replace(/[!'()*]/g,
+      (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`)
+    const queryString = Array.from(next.searchParams, ([key, value]) => `${encode(key)}=${encode(value)}`).join('&')
+    // Client-side visits retain the published catalog and integrate with Inertia's back/forward history.
+    router.push({ url: `${next.pathname}${queryString ? `?${queryString}` : ''}${next.hash}`, preserveScroll: true, preserveState: true })
+  }
+
+  const submitSearch = (event: FormEvent) => {
+    event.preventDefault()
+    updateFilters(search, topic)
+  }
+
   const totalComments = posts.reduce((sum, post) => sum + post.responseCount + post.replyCount, 0)
 
   return (
@@ -52,73 +100,72 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
       </Head>
 
       <div className="pt-24">
-          <section className="mx-auto max-w-7xl px-4 pb-8 sm:px-6 lg:px-8">
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-              <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm sm:p-10 lg:p-12">
-                <p className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-white">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  Writing hub
+          <section className="mx-auto max-w-7xl px-4 pb-6 sm:px-6 lg:px-8">
+            <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between sm:pb-8">
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-5xl">Engineering notes</h1>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+                  Practical posts on AWS, DevOps, Laravel, and running software in production.
                 </p>
-                <h1 className="mt-6 max-w-3xl text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
-                  Engineering notes, shipping lessons, and practical systems thinking.
-                </h1>
-                <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-600">
-                  A home for long-form posts on AWS, DevOps, Laravel, serverless architecture, and how production software
-                  actually gets built.
+                <p className="mt-3 text-xs text-slate-500 sm:text-sm">
+                  {posts.length} articles <span aria-hidden="true" className="mx-2 text-slate-300">/</span>
+                  {topics.length} topics <span aria-hidden="true" className="mx-2 text-slate-300">/</span>
+                  {totalComments} comments
                 </p>
-
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <a
-                    href="#latest"
-                    className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
-                  >
-                    Browse latest
-                    <ArrowRight className="h-4 w-4" />
-                  </a>
-                  <a
-                    href="/blog/feed.xml"
-                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:text-slate-950"
-                  >
-                    RSS feed
-                    <Rss className="h-4 w-4" />
-                  </a>
-                </div>
               </div>
-
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-                <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
-                  <p className="text-sm font-medium text-slate-500">Posts</p>
-                  <p className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">{posts.length}</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-500">Latest articles published on this site.</p>
-                </div>
-                <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
-                  <p className="text-sm font-medium text-slate-500">Topics</p>
-                  <p className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">{uniqueTags}</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-500">Tags currently represented across the blog archive.</p>
-                </div>
-                <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:col-span-2 lg:col-span-1">
-                  <p className="text-sm font-medium text-slate-500">Comments</p>
-                  <p className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">{totalComments}</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-500">Threaded discussion count across the live posts.</p>
-                </div>
-              </div>
+              <a href="/blog/feed.xml"
+                className="inline-flex w-fit shrink-0 items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-600">
+                <Rss className="h-4 w-4" /> RSS feed
+              </a>
             </div>
           </section>
 
-          <section id="latest" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <section id="latest" aria-label="Blog articles" className="mx-auto max-w-7xl px-4 pb-8 sm:px-6 lg:px-8">
+            <h2 className="sr-only">Articles</h2>
+            <form onSubmit={submitSearch} role="search" aria-label="Find articles"
+              className="mb-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(12rem,18rem)]">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Latest writing</p>
-                <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">A cleaner reading surface for technical posts</h2>
+                <label htmlFor="blog-search" className="mb-1.5 block text-sm font-medium text-slate-700">Search articles</label>
+                <div className="flex">
+                  <input id="blog-search" type="search" name="q" value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    placeholder="Title, description, or topic"
+                    className="min-w-0 flex-1 rounded-l-lg border border-r-0 border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-950 placeholder:text-slate-400 focus:z-10 focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600" />
+                  <button type="submit" className="inline-flex items-center gap-2 rounded-r-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-700 focus-visible:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600">
+                    <Search className="h-4 w-4" aria-hidden="true" /> Search
+                  </button>
+                </div>
               </div>
-              <p className="max-w-2xl text-sm leading-7 text-slate-500">
-                Each post uses a consistent editorial layout: clear metadata, generous spacing, stronger hierarchy, and a card
-                system that keeps the writing front and center.
+              <div>
+                <label htmlFor="blog-topic" className="mb-1.5 block text-sm font-medium text-slate-700">Topic</label>
+                <select id="blog-topic" name="topic" value={topic}
+                  onChange={(event) => updateFilters(search, event.target.value)}
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-950 focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600">
+                  <option value="">All topics</option>
+                  {topic && !topics.some((entry) => entry.slug === topic) && <option value={topic}>Unknown topic</option>}
+                  {topics.map((entry) => <option key={entry.slug} value={entry.slug}>{entry.name} ({entry.count})</option>)}
+                </select>
+              </div>
+            </form>
+            <div className="mb-5 flex items-center justify-between gap-3 text-sm">
+              <p role="status" aria-live="polite" className="text-slate-500">
+                {matchingPosts.length === posts.length ? `${posts.length} articles` : `${matchingPosts.length} of ${posts.length} articles`}
               </p>
+              {(query || topic || search) && <button type="button" onClick={() => { setSearch(''); updateFilters('', '') }}
+                className="font-medium text-slate-700 underline underline-offset-4 hover:text-slate-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-600">
+                Clear filters
+              </button>}
             </div>
-
+            {matchingPosts.length === 0 && <div className="border-y border-slate-200 py-12 text-center">
+              <h2 className="text-xl font-semibold text-slate-950">No articles found</h2>
+              <p className="mt-2 text-sm text-slate-600">Try another search or choose a different topic.</p>
+              <button type="button" onClick={() => { setSearch(''); updateFilters('', '') }}
+                className="mt-5 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600">
+                Show all articles
+              </button>
+            </div>}
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {posts.map((post) => (
+              {matchingPosts.map((post) => (
                 <article
                   key={post.slug}
                   className="group relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_-34px_rgba(15,23,42,0.45)]"
@@ -159,7 +206,7 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
                       </span>
                       <span className="inline-flex items-center gap-1.5">
                         <Eye className="h-3.5 w-3.5" />
-                        {post.viewCount ?? 0} views
+                        {post.viewCount ?? 0} all-time views
                       </span>
                     </div>
 
@@ -205,9 +252,9 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
               <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Latest updates</p>
-                  <h2 className="mt-2 text-2xl font-semibold text-slate-950">Stay close to the writing.</h2>
+                  <h2 className="mt-2 text-2xl font-semibold text-slate-950">Get new articles in your feed.</h2>
                   <p className="mt-3 max-w-3xl text-slate-600">
-                    New articles appear here first, with RSS and sitemap updates keeping readers and search engines in sync.
+                    Follow the RSS feed to read new posts in your favorite reader.
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-3">

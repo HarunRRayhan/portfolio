@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
-import { Head, router, useForm } from '@inertiajs/react'
+import { Head, useForm } from '@inertiajs/react'
 import { FormEvent } from 'react'
+import { ErrorSummary, fieldErrorProps, useConsultationAction } from '../Partials/FormFeedback'
 
 type Coupon = {
   id: number
@@ -25,14 +26,16 @@ export default function CouponsIndex({ coupons, tiers }: { coupons: Coupon[]; ti
     is_active: true,
   })
 
+  const action = useConsultationAction()
+  const summaryId = 'coupon-errors'
+
   const submit = (e: FormEvent) => {
     e.preventDefault()
-    form.transform((data) => ({
-      ...data,
-      max_redemptions: data.max_redemptions === '' ? null : Number(data.max_redemptions),
-      expires_at: data.expires_at || null,
-    }))
-    form.post('/admin/consultations/coupons', { onSuccess: () => form.reset() })
+    action.submit('/admin/consultations/coupons', {
+      ...form.data,
+      max_redemptions: form.data.max_redemptions === '' ? null : Number(form.data.max_redemptions),
+      expires_at: form.data.expires_at || null,
+    }, 'post', () => form.reset())
   }
 
   const toggleTier = (slug: string) => {
@@ -49,57 +52,72 @@ export default function CouponsIndex({ coupons, tiers }: { coupons: Coupon[]; ti
 
       <div className="py-6 sm:py-12">
         <div className="mx-auto max-w-3xl space-y-6 px-4 sm:px-6 lg:px-8">
-          <form onSubmit={submit} className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm space-y-3">
+          <form onSubmit={submit} aria-busy={action.processing} className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm space-y-3">
             <h3 className="font-semibold text-gray-900">Create coupon</h3>
-            <input
-              value={form.data.code}
-              onChange={(e) => form.setData('code', e.target.value)}
-              placeholder="CODE"
-              className="w-full rounded-md border border-gray-200 px-3 py-2 uppercase"
-              required
-            />
-            <label className="block text-sm">
-              Percent off
+            <ErrorSummary errors={action.errors} id={summaryId} />
+            <fieldset disabled={action.processing} className="space-y-3 disabled:opacity-70">
+              <label htmlFor="coupon-code" className="block text-sm">Coupon code</label>
               <input
-                type="number"
-                min={1}
-                max={100}
-                value={form.data.percent_off}
-                onChange={(e) => form.setData('percent_off', Number(e.target.value))}
-                className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2"
+                id="coupon-code"
+                {...fieldErrorProps(action.errors, 'code', summaryId)}
+                value={form.data.code}
+                onChange={(e) => form.setData('code', e.target.value)}
+                placeholder="CODE"
+                className="w-full rounded-md border border-gray-200 px-3 py-2 uppercase"
+                required
               />
-            </label>
-            <div className="flex flex-wrap gap-3 text-sm">
-              {tiers.map((t) => (
-                <label key={t.slug} className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={form.data.tier_slugs.includes(t.slug)}
-                    onChange={() => toggleTier(t.slug)}
-                  />
-                  {t.name}
+              <label className="block text-sm">
+                Percent off
+                <input
+                  type="number"
+                  min={1}
+                  max={100}
+                  {...fieldErrorProps(action.errors, 'percent_off', summaryId)}
+                  value={form.data.percent_off}
+                  onChange={(e) => form.setData('percent_off', Number(e.target.value))}
+                  className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2"
+                />
+              </label>
+              <fieldset className="flex flex-wrap gap-3 text-sm" {...fieldErrorProps(action.errors, 'tier_slugs', summaryId)}>
+                <legend className="mb-2">Applicable plans</legend>
+                {tiers.map((t) => (
+                  <label key={t.slug} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      {...fieldErrorProps(action.errors, 'tier_slugs', summaryId)}
+                      checked={form.data.tier_slugs.includes(t.slug)}
+                      onChange={() => toggleTier(t.slug)}
+                    />
+                    {t.name}
+                  </label>
+                ))}
+              </fieldset>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block text-sm">Max redemptions (optional)
+                <input
+                  {...fieldErrorProps(action.errors, 'max_redemptions', summaryId)}
+                  type="number"
+                  min={1}
+                  value={form.data.max_redemptions}
+                  onChange={(e) => form.setData('max_redemptions', e.target.value)}
+                  placeholder="Max redemptions (optional)"
+                  className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2"
+                />
                 </label>
-              ))}
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <input
-                type="number"
-                min={1}
-                value={form.data.max_redemptions}
-                onChange={(e) => form.setData('max_redemptions', e.target.value)}
-                placeholder="Max redemptions (optional)"
-                className="rounded-md border border-gray-200 px-3 py-2"
-              />
-              <input
-                type="datetime-local"
-                value={form.data.expires_at}
-                onChange={(e) => form.setData('expires_at', e.target.value)}
-                className="rounded-md border border-gray-200 px-3 py-2"
-              />
-            </div>
-            <button type="submit" className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white">
-              Create
-            </button>
+                <label className="block text-sm">Expires at (optional)
+                <input
+                  {...fieldErrorProps(action.errors, 'expires_at', summaryId)}
+                  type="datetime-local"
+                  value={form.data.expires_at}
+                  onChange={(e) => form.setData('expires_at', e.target.value)}
+                  className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2"
+                />
+                </label>
+              </div>
+              <button type="submit" className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white">
+                {action.processing ? 'Creating…' : 'Create'}
+              </button>
+            </fieldset>
           </form>
 
           <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
@@ -116,9 +134,10 @@ export default function CouponsIndex({ coupons, tiers }: { coupons: Coupon[]; ti
                   </div>
                   <button
                     type="button"
+                    disabled={action.processing}
                     onClick={() => {
                       if (confirm(`Delete ${c.code}?`)) {
-                        router.delete(`/admin/consultations/coupons/${c.id}`)
+                        action.submit(`/admin/consultations/coupons/${c.id}`, {}, 'delete')
                       }
                     }}
                     className="text-rose-600"

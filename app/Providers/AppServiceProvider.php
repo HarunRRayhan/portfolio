@@ -67,6 +67,7 @@ class AppServiceProvider extends ServiceProvider
         // with a 401 first in the api/v1 middleware group.
         RateLimiter::for('api-key', function (Request $request) {
             $token = $request->user()?->currentAccessToken();
+            abort_unless($token instanceof PersonalAccessToken, 403, 'A personal API key is required.');
 
             return [
                 Limit::perMinute($token?->rate_limit_per_minute ?? 60)->by('token:'.$token?->id),

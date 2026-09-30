@@ -1,6 +1,10 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
-import { Head, Link, router } from '@inertiajs/react'
-import { FormEvent, useState } from 'react'
+import { Head, Link } from '@inertiajs/react'
+import { FormEvent, useEffect, useState } from 'react'
+import { DialogDescription, DialogTitle } from '@headlessui/react'
+import Modal from '@/Components/Modal'
+import AlternateTimes from './AlternateTimes'
+import { ErrorSummary, fieldErrorProps, useConsultationAction } from '../Partials/FormFeedback'
 
 type Booking = {
   id: number
@@ -42,23 +46,36 @@ export default function Show({
   booking,
   events,
   slots,
+  cancellation,
 }: {
   booking: Booking
   events: { id: number; event: string; actor: string | null; created_at: string }[]
   slots: Slot[]
   googleConnected: boolean
+  cancellation: { refundStatus: 'pending' | 'refunded' | 'not_needed'; bookingAmountCents: number; currency: string }
 }) {
   const [blockSlot, setBlockSlot] = useState(false)
   const [taskTitle, setTaskTitle] = useState('')
   const [adminNote, setAdminNote] = useState('')
   const [selectedPropose, setSelectedPropose] = useState<string[]>([])
+  useEffect(() => {
+    const available = new Set(slots.map(slot => slot.start))
+    setSelectedPropose(current => {
+      const next = current.filter(start => available.has(start))
+      return next.length === current.length ? current : next
+    })
+  }, [slots])
+  const action = useConsultationAction()
+  const summaryId = 'booking-errors'
+  const [confirmCancellation, setConfirmCancellation] = useState(false)
+  const bookingAmount = new Intl.NumberFormat(undefined, { style: 'currency', currency: cancellation.currency.toUpperCase() }).format(cancellation.bookingAmountCents / 100)
 
   const approve = () => {
-    router.post(`/admin/consultations/bookings/${booking.id}/approve`, { admin_note: adminNote })
+    action.submit(`/admin/consultations/bookings/${booking.id}/approve`, { admin_note: adminNote })
   }
 
   const decline = () => {
-    router.post(`/admin/consultations/bookings/${booking.id}/decline`, {
+    action.submit(`/admin/consultations/bookings/${booking.id}/decline`, {
       block_slot: blockSlot,
       task_title: taskTitle,
       admin_note: adminNote,
@@ -68,7 +85,8 @@ export default function Show({
   const propose = (e: FormEvent) => {
     e.preventDefault()
     const chosen = slots.filter((s) => selectedPropose.includes(s.start))
-    router.post(`/admin/consultations/bookings/${booking.id}/propose-reschedule`, {
+    if (!chosen.length) return
+    action.submit(`/admin/consultations/bookings/${booking.id}/propose-reschedule`, {
       slots: chosen,
       admin_note: adminNote,
     })
@@ -92,10 +110,37 @@ export default function Show({
       }
     >
       <Head title={`Booking ${booking.public_id}`} />
+      <Modal show={confirmCancellation} maxWidth="md" closeable={!action.processing} onClose={() => setConfirmCancellation(false)}>
+        <div className="space-y-4 p-6">
+          <DialogTitle as="h2" className="text-lg font-semibold text-gray-900">Approve cancellation?</DialogTitle>
+          <DialogDescription as="div" className="space-y-2 text-sm text-gray-700">
+            <p>{booking.client_name} · {booking.public_id}</p>
+            <p><time dateTime={booking.starts_at}>{formatLocal(booking.starts_at)}</time></p>
+            <p>Booking total: {bookingAmount}</p>
+            {cancellation.refundStatus === 'pending'
+              ? <p>This will request a full payment refund to the original payment method. Stripe determines the remaining refundable amount.</p>
+              : cancellation.refundStatus === 'refunded'
+                ? <p>This payment has already been refunded. No new refund will be requested.</p>
+                : <p>No payment refund is needed for this booking.</p>}
+            <p>The consultation will be cancelled and its calendar time released.</p>
+          </DialogDescription>
+          <div className="flex flex-wrap justify-end gap-2">
+            <button type="button" disabled={action.processing} onClick={() => setConfirmCancellation(false)}
+              className="rounded-md border border-gray-300 px-4 py-2 text-sm disabled:opacity-50">Go back</button>
+            <button type="button" disabled={action.processing}
+              onClick={() => action.submit(`/admin/consultations/bookings/${booking.id}/approve-cancel`, {}, 'post', () => setConfirmCancellation(false))}
+              className="rounded-md bg-rose-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+              {action.processing ? 'Confirming…' : 'Confirm cancellation'}
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       <div className="py-6 sm:py-12">
         <div className="mx-auto grid max-w-5xl gap-6 px-4 lg:grid-cols-3 sm:px-6 lg:px-8">
-          <div className="space-y-4 lg:col-span-2">
+          <div className="space-y-4 lg:col-span-2" aria-busy={action.processing}>
+            <ErrorSummary errors={action.errors} id={summaryId} />
+            {action.processing && <p role="status" className="text-sm text-gray-600">Submitting…</p>}
             <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm space-y-2 text-sm">
               <p>
                 <span className="text-gray-400">Status · </span>
@@ -154,7 +199,11 @@ export default function Show({
               booking.status === 'paid_reschedule_pending_approval') && (
               <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm space-y-4">
                 <h3 className="font-semibold text-gray-900">Review</h3>
+                <label htmlFor="booking-admin-note" className="block text-sm text-gray-700">Internal note (optional)</label>
                 <textarea
+                  id="booking-admin-note"
+                  disabled={action.processing}
+                  {...fieldErrorProps(action.errors, 'admin_note', summaryId)}
                   value={adminNote}
                   onChange={(e) => setAdminNote(e.target.value)}
                   placeholder="Internal note (optional)"
@@ -165,6 +214,7 @@ export default function Show({
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
+                      disabled={action.processing}
                       onClick={approve}
                       className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
                     >
@@ -172,6 +222,7 @@ export default function Show({
                     </button>
                     <button
                       type="button"
+                      disabled={action.processing}
                       onClick={decline}
                       className="rounded-md bg-rose-600 px-4 py-2 text-sm font-medium text-white hover:bg-rose-700"
                     >
@@ -183,6 +234,8 @@ export default function Show({
                   <div className="space-y-2 border-t border-gray-100 pt-4">
                     <label className="flex items-center gap-2 text-sm text-gray-700">
                       <input
+                        disabled={action.processing}
+                        {...fieldErrorProps(action.errors, 'block_slot', summaryId)}
                         type="checkbox"
                         checked={blockSlot}
                         onChange={(e) => setBlockSlot(e.target.checked)}
@@ -190,34 +243,28 @@ export default function Show({
                       On decline, block this slot on Google Calendar
                     </label>
                     {blockSlot && (
+                      <label className="block text-sm text-gray-700">Task title
                       <input
+                        disabled={action.processing}
+                        {...fieldErrorProps(action.errors, 'task_title', summaryId)}
                         value={taskTitle}
                         onChange={(e) => setTaskTitle(e.target.value)}
                         placeholder="Task title"
                         className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm"
                       />
+                      </label>
                     )}
                   </div>
                 )}
 
                 {(booking.status === 'pending_approval' || booking.status === 'reschedule_requested') && (
-                  <form onSubmit={propose} className="space-y-3 border-t border-gray-100 pt-4">
+                  <form onSubmit={propose} aria-busy={action.processing} className="space-y-3 border-t border-gray-100 pt-4">
                     <p className="text-sm font-medium text-gray-800">Propose alternate times</p>
-                    <div className="grid max-h-48 gap-1 overflow-y-auto sm:grid-cols-2">
-                      {slots.slice(0, 40).map((s) => (
-                        <label key={s.start} className="flex items-center gap-2 text-xs text-gray-700">
-                          <input
-                            type="checkbox"
-                            checked={selectedPropose.includes(s.start)}
-                            onChange={() => togglePropose(s.start)}
-                          />
-                          {formatLocal(s.start)}
-                        </label>
-                      ))}
-                    </div>
+                    <AlternateTimes slots={slots} selected={selectedPropose} onToggle={togglePropose}
+                      disabled={action.processing} errors={action.errors} summaryId={summaryId} />
                     <button
                       type="submit"
-                      disabled={selectedPropose.length === 0}
+                      disabled={action.processing || selectedPropose.length === 0}
                       className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
                     >
                       Send proposed times
@@ -231,14 +278,16 @@ export default function Show({
               <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={() => router.post(`/admin/consultations/bookings/${booking.id}/approve-cancel`)}
+                  disabled={action.processing}
+                  onClick={() => setConfirmCancellation(true)}
                   className="rounded-md bg-rose-600 px-4 py-2 text-sm text-white"
                 >
                   Approve cancel
                 </button>
                 <button
                   type="button"
-                  onClick={() => router.post(`/admin/consultations/bookings/${booking.id}/deny-cancel`)}
+                  disabled={action.processing}
+                  onClick={() => action.submit(`/admin/consultations/bookings/${booking.id}/deny-cancel`)}
                   className="rounded-md border border-gray-300 px-4 py-2 text-sm"
                 >
                   Keep booking
@@ -249,7 +298,8 @@ export default function Show({
             {booking.status === 'reschedule_requested' && (
               <button
                 type="button"
-                onClick={() => router.post(`/admin/consultations/bookings/${booking.id}/deny-reschedule`)}
+                disabled={action.processing}
+                onClick={() => action.submit(`/admin/consultations/bookings/${booking.id}/deny-reschedule`)}
                 className="rounded-md border border-gray-300 px-4 py-2 text-sm"
               >
                 Deny reschedule (keep original)

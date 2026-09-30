@@ -15,6 +15,9 @@ interface ApiKeyRecord {
   rate_limit_per_day: number | null
   last_used_at: string | null
   created_at: string | null
+  abilities: string[]
+  is_legacy_unrestricted: boolean
+  expires_at: string | null
 }
 
 interface Flash {
@@ -59,22 +62,44 @@ function CopyButton({ text }: { text: string }) {
 
 interface CreateApiKeyFormData {
   name: string
+  abilities: string[]
+  expires_at: string
   rate_limit_per_minute: string
   rate_limit_per_day: string
-  [key: string]: string
+  [key: string]: string | string[]
 }
 
-export default function Index({ tokens }: { tokens: ApiKeyRecord[] }) {
+interface CapabilityPreset {
+  label: string
+  abilities: string[]
+}
+
+function defaultExpiry() {
+  const date = new Date(Date.now() + 90 * 86400000)
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+}
+
+export default function Index({ tokens, capabilities, presets }: {
+  tokens: ApiKeyRecord[]
+  capabilities: Record<string, string>
+  presets: Record<string, CapabilityPreset>
+}) {
   const { flash } = usePage<PageProps>().props
 
-  const { data, setData, post, processing, errors, reset } = useForm<CreateApiKeyFormData>({
+  const { data, setData, post, processing, errors, reset, transform } = useForm<CreateApiKeyFormData>({
     name: '',
+    abilities: ['short-links:create'],
+    expires_at: defaultExpiry(),
     rate_limit_per_minute: '',
     rate_limit_per_day: '',
   })
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
+    transform((values) => ({
+      ...values,
+      expires_at: values.expires_at ? new Date(values.expires_at).toISOString() : null,
+    }))
     post(route('admin.api-keys.store'), {
       preserveScroll: true,
       onSuccess: () => reset(),
@@ -96,7 +121,7 @@ export default function Index({ tokens }: { tokens: ApiKeyRecord[] }) {
         <div className="mx-auto max-w-4xl space-y-6 px-4 sm:px-6 lg:px-8">
           <p className="text-sm text-gray-500">
             API keys authenticate requests to the public <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs text-indigo-600">/api/v1</code> endpoints.
-            Each key can carry its own rate limits.
+            Choose the capabilities and expiration each integration needs. Existing unrestricted keys keep working until revoked.
           </p>
 
           {flash?.token && (
@@ -175,6 +200,49 @@ export default function Index({ tokens }: { tokens: ApiKeyRecord[] }) {
                   )}
                 </div>
 
+                <div className="sm:col-span-2">
+                  <Label htmlFor="capability_preset">Capabilities</Label>
+                  <select
+                    id="capability_preset"
+                    className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+                    value={Object.entries(presets).find(([, preset]) => preset.abilities.length === data.abilities.length && preset.abilities.every((ability) => data.abilities.includes(ability)))?.[0] ?? 'custom'}
+                    onChange={(e) => {
+                      const preset = presets[e.target.value]
+                      if (preset) setData('abilities', preset.abilities)
+                    }}
+                  >
+                    {Object.entries(presets).map(([value, preset]) => <option key={value} value={value}>{preset.label}</option>)}
+                    <option value="custom">Custom selection</option>
+                  </select>
+                  <div className="mt-3 grid gap-2">
+                    {Object.entries(capabilities).map(([ability, label]) => (
+                      <label key={ability} className="flex items-center gap-2 text-sm text-gray-700">
+                        <input
+                          type="checkbox"
+                          checked={data.abilities.includes(ability)}
+                          onChange={(e) => setData('abilities', e.target.checked ? [...data.abilities, ability] : data.abilities.filter((value) => value !== ability))}
+                          className="rounded border-gray-300"
+                        />
+                        {label}
+                      </label>
+                    ))}
+                  </div>
+                  {errors.abilities && <p className="mt-1 text-xs text-red-600">{errors.abilities}</p>}
+                </div>
+
+                <div>
+                  <Label htmlFor="expires_at">Expires at (your local time)</Label>
+                  <Input
+                    id="expires_at"
+                    type="datetime-local"
+                    className="mt-1"
+                    value={data.expires_at}
+                    onChange={(e) => setData('expires_at', e.target.value)}
+                  />
+                  <p className="mt-2 text-xs text-gray-500">Defaults to 90 days. Clear the date for no expiration.</p>
+                  {errors.expires_at && <p className="mt-1 text-xs text-red-600">{errors.expires_at}</p>}
+                </div>
+
                 <div className="sm:col-span-3">
                   <Button type="submit" disabled={processing}>
                     <KeyRound className="mr-2 h-4 w-4" />
@@ -185,7 +253,7 @@ export default function Index({ tokens }: { tokens: ApiKeyRecord[] }) {
             </CardContent>
           </Card>
 
-          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+          <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
             {tokens.length === 0 ? (
               <div className="px-6 py-16 text-center">
                 <p className="text-sm text-gray-500">No API keys yet.</p>
@@ -195,6 +263,8 @@ export default function Index({ tokens }: { tokens: ApiKeyRecord[] }) {
                 <thead>
                   <tr className="text-left text-xs font-medium uppercase tracking-wide text-gray-400">
                     <th className="px-4 py-3">Name</th>
+                    <th className="px-4 py-3">Capabilities</th>
+                    <th className="px-4 py-3">Expires</th>
                     <th className="px-4 py-3">Per minute</th>
                     <th className="px-4 py-3">Per day</th>
                     <th className="px-4 py-3">Last used</th>
@@ -206,6 +276,19 @@ export default function Index({ tokens }: { tokens: ApiKeyRecord[] }) {
                   {tokens.map((token) => (
                     <tr key={token.id} className="text-sm text-gray-700">
                       <td className="px-4 py-3 font-medium text-gray-900">{token.name}</td>
+                      <td className="px-4 py-3 text-xs text-gray-500">
+                        {token.is_legacy_unrestricted ? (
+                          <span className="font-medium text-amber-700">Legacy: unrestricted</span>
+                        ) : token.abilities.map((ability) => <div key={ability}>{capabilities[ability] ?? ability}</div>)}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-gray-500">
+                        {token.expires_at ? (
+                          <>
+                            {formatDate(token.expires_at)}
+                            {new Date(token.expires_at).getTime() <= Date.now() && <div className="font-medium text-red-600">Expired</div>}
+                          </>
+                        ) : 'No expiration'}
+                      </td>
                       <td className="px-4 py-3 text-gray-500">
                         {token.rate_limit_per_minute ?? 'default (60/min)'}
                       </td>

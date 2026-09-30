@@ -11,10 +11,8 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 class ShortLinkController extends Controller
 {
     /**
-     * Create (or, per the existing url_hash dedup rule, reuse) a short link
-     * for destination_url. The token owner is stamped as the link's user_id
-     * only the first time it's actually created -- a reused link keeps
-     * whichever owner (or nobody) it already had.
+     * Reuse only the caller's own links. Shared admin/model deduplication
+     * must not expose another owner's title, expiry, or private statistics.
      */
     public function store(Request $request): JsonResponse
     {
@@ -24,29 +22,29 @@ class ShortLinkController extends Controller
             'expires_at' => ['nullable', 'date', 'after:now'],
         ]);
 
-        $link = ShortLink::getOrCreateForUrl($data['destination_url'], $data['title'] ?? null);
-
-        if (! $link) {
+        if (! preg_match('#^https?://#i', $data['destination_url'])) {
             return response()->json([
                 'message' => 'destination_url must be a shortenable http(s) URL.',
                 'errors' => ['destination_url' => ['destination_url must be a shortenable http(s) URL.']],
             ], 422);
         }
 
-        if ($link->wasRecentlyCreated) {
-            $link->user_id = $request->user()->id;
-
-            if (! empty($data['expires_at'])) {
-                $link->expires_at = $data['expires_at'];
-            }
-
-            $link->save();
-
-            // Eloquent doesn't repopulate DB column defaults (e.g. is_active)
-            // into the in-memory model after the initial INSERT, so pull the
-            // row back to get the true persisted state for the response.
-            $link->refresh();
+        $userId = $request->user()->id;
+        $link = null;
+        // Reusing a row reads its metadata, so creation alone cannot dedupe.
+        if ($request->user()->currentAccessToken()->can('short-links:read')) {
+            $existing = ShortLink::findForUrl($data['destination_url']);
+            $link = $existing && $existing->user_id === $userId ? $existing : null;
+            $link ??= ShortLink::query()->where('user_id', $userId)
+                ->where('url_hash', ShortLink::hashFor($data['destination_url']))->first();
         }
+        $link ??= ShortLink::create([
+            'destination_url' => $data['destination_url'],
+            'title' => $data['title'] ?? null,
+            'expires_at' => $data['expires_at'] ?? null,
+            'user_id' => $userId,
+        ]);
+        $link->refresh();
 
         return response()->json($this->toPayload($link), 201);
     }
@@ -71,6 +69,7 @@ class ShortLinkController extends Controller
     public function show(Request $request, string $code): JsonResponse
     {
         $link = $this->findOrFail($code);
+        $this->authorizeModification($request, $link);
 
         return response()->json($this->toPayload($link) + [
             'click_count' => $link->clicks()->count(),
