@@ -47,8 +47,40 @@ test('a thumbnail publication delay falls back to the local original cover', asy
     missingRequests += 1
     return route.fulfill({ status: 404, body: '' })
   })
-  await page.goto('/blog?q=MCP%20Authentication')
+  // Hold hydration until the SSR image has already failed. React's onError
+  // cannot observe an error that happened before its listeners were attached.
+  let allowHydration = () => {}
+  if (process.env.BROWSER_TEST_SSR === '1') {
+    const hydrationGate = new Promise<void>(resolve => { allowHydration = resolve })
+    await page.route('**/build/**/*.js', async route => {
+      await hydrationGate
+      await route.continue()
+    })
+  }
   const first = page.getByRole('region', { name: 'Blog articles' }).locator('article img').first()
-  await expect.poll(() => missingRequests).toBeGreaterThan(0)
+  try {
+    await page.goto('/blog?q=MCP%20Authentication', { waitUntil: 'commit' })
+    await expect.poll(() => missingRequests).toBeGreaterThan(0)
+    if (process.env.BROWSER_TEST_SSR === '1') {
+      await expect.poll(() => first.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth === 0 && image.hasAttribute('srcset'))).toBe(true)
+    }
+  } finally {
+    allowHydration()
+  }
   await expect.poll(() => first.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0 && !image.currentSrc.includes('/card-variants/') && !image.hasAttribute('srcset'))).toBe(true)
+})
+
+
+test('Launch Llama keeps its link and serves its image without a third-party request', async ({ page }) => {
+  const remoteRequests: string[] = []
+  page.on('request', request => {
+    if (request.url().startsWith('https://tools.launchllama.co/')) remoteRequests.push(request.url())
+  })
+  await page.goto('/consultation')
+  const badge = page.getByRole('link', { name: 'Featured on Launch Llama Tools', exact: true })
+  await expect(badge).toHaveAttribute('href', 'https://tools.launchllama.co?utm_source=badge&utm_medium=referral')
+  await expect(badge.locator('img')).toHaveAttribute('src', '/images/directory-badges/launch-llama.png')
+  await badge.scrollIntoViewIfNeeded()
+  await expect.poll(() => badge.locator('img').evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true)
+  expect(remoteRequests).toEqual([])
 })

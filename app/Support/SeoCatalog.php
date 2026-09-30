@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\MediaItem;
 use Illuminate\Http\Request;
 
 final class SeoCatalog
@@ -504,6 +505,40 @@ final class SeoCatalog
                 $datePublished,
                 $ogImage,
             )],
+        );
+    }
+
+    public static function forVideo(MediaItem $item, string $canonicalUrl): SeoMeta
+    {
+        $thumbnail = $item->thumbnail_url ? url($item->thumbnail_url) : null;
+        $embedUrl = MediaEmbeds::youtubeEmbedUrl($item->url);
+        $jsonLd = [];
+
+        // Never substitute the record creation time or a generic OG image for
+        // missing video metadata. Only describe a video playable on this page.
+        if ($thumbnail && $embedUrl && $item->published_at && ! $item->published_at->isFuture()) {
+            $graph = [
+                '@context' => 'https://schema.org',
+                '@type' => 'VideoObject',
+                '@id' => $canonicalUrl.'#video',
+                'name' => $item->title,
+                'thumbnailUrl' => [$thumbnail],
+                'uploadDate' => $item->published_at->toAtomString(),
+                'embedUrl' => $embedUrl,
+                'mainEntityOfPage' => $canonicalUrl,
+            ];
+            if (filled($item->summary)) {
+                $graph['description'] = $item->summary;
+            }
+            $jsonLd[] = $graph;
+        }
+
+        return new SeoMeta(
+            title: $item->title,
+            description: (string) ($item->summary ?? $item->title),
+            canonicalUrl: $canonicalUrl,
+            ogImage: $thumbnail,
+            jsonLd: $jsonLd,
         );
     }
 

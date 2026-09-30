@@ -30,6 +30,15 @@ interface BlogIndexProps {
   canonicalUrl: string
 }
 
+function restoreOriginalCover(image: HTMLImageElement, fallback?: string | null) {
+  if (image.srcset && fallback) {
+    // Origin builds can become ready before the separate CDN upload.
+    // Removing srcset also ensures a failed original cannot retry in a loop.
+    image.removeAttribute('srcset')
+    image.src = fallback
+  }
+}
+
 export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
   const description =
     'AWS, DevOps, Laravel, serverless architecture, and practical engineering notes from Harun\'s blog.'
@@ -172,14 +181,13 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
                         loading={index === 0 ? 'eager' : 'lazy'}
                         fetchPriority={index === 0 ? 'high' : 'auto'}
                         decoding="async"
-                        onError={(event) => {
-                          const image = event.currentTarget
-                          if (image.srcset && post.coverImageFallbackUrl) {
-                            // Origin builds can become ready before the separate CDN upload.
-                            image.removeAttribute('srcset')
-                            image.src = post.coverImageFallbackUrl
+                        ref={(image) => {
+                          // SSR images can fail before hydration attaches onError.
+                          if (image?.complete && image.naturalWidth === 0) {
+                            restoreOriginalCover(image, post.coverImageFallbackUrl)
                           }
                         }}
+                        onError={(event) => restoreOriginalCover(event.currentTarget, post.coverImageFallbackUrl)}
                         srcSet={post.coverImageSources?.map(image => `${image.url} ${image.width}w`).join(', ') || undefined}
                         sizes="(min-width: 1280px) 400px, (min-width: 768px) 50vw, 100vw"
                       />

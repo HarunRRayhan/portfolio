@@ -13,7 +13,7 @@ const directoryBadges = [
     `<a href="https://dododirectory.com" target="_blank" rel="dofollow"><img src="https://dododirectory.com/badge-light.png" alt="Featured on DodoDirectory" width="200" height="54" /></a>`,
     `<a href="https://wired.business" target="_blank"><img src="https://wired.business/badge0-white.svg" alt="Featured on Wired Business" width="200" height="54"></a>`,
     `<a href="https://tools.launchllama.co?utm_source=badge&utm_medium=referral" target="_blank" rel="noopener noreferrer">
-  <img src="https://tools.launchllama.co/featured-badge.png?v=2"
+  <img src="/images/directory-badges/launch-llama.png"
     alt="Featured on Launch Llama Tools"
     width="200" height="52" />
 </a>`,
@@ -51,7 +51,8 @@ const directoryBadges = [
 </a>`,
 ]
 
-// Preserve supplied badge links and imagery while deferring offscreen media.
+// Preserve badge links and imagery while deferring offscreen media.
+// Launch Llama is served locally because its image response sets a third-party cookie.
 const deferredBadges = directoryBadges.map(markup => markup.replace(/<img\b[^>]*>/g, tag => {
     const lazy = /\bloading=/.test(tag) ? tag : tag.replace('<img', '<img loading="lazy"')
     return /\bdecoding=/.test(lazy) ? lazy : lazy.replace('<img', '<img decoding="async"')

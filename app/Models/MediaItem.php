@@ -27,6 +27,7 @@ class MediaItem extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'published_at' => 'datetime',
+        'content_updated_at' => 'datetime',
     ];
 
     protected $appends = ['thumbnail_url', 'share_url'];
@@ -34,6 +35,12 @@ class MediaItem extends Model
     protected static function booted(): void
     {
         static::saving(function (self $item) {
+            // Ordering, visibility, and short-link maintenance do not alter the
+            // watch page's substantive content. Legacy dates are not backfilled.
+            if ($item->exists && $item->isDirty(['type', 'title', 'slug', 'summary', 'url', 'thumbnail_path', 'source_label', 'published_at'])) {
+                $item->content_updated_at = now();
+            }
+
             if (! $item->slug) {
                 $item->slug = Str::slug($item->title);
             }
@@ -47,6 +54,14 @@ class MediaItem extends Model
                 $item->short_link_id = ShortLink::getOrCreateForUrl($item->url, $item->title)?->id;
             }
         });
+    }
+
+    public function sitemapLastModified(): ?string
+    {
+        $dates = collect([$this->published_at, $this->content_updated_at])
+            ->filter(fn ($date) => $date !== null && ! $date->isFuture());
+
+        return $dates->sortByDesc(fn ($date) => $date->timestamp)->first()?->toDateString();
     }
 
     /** Public URL for the stored thumbnail, or null if there isn't one. */
@@ -68,7 +83,7 @@ class MediaItem extends Model
         return $query->where('is_active', true)
             ->where(function ($q) {
                 $q->whereNull('published_at')
-                  ->orWhere('published_at', '<=', now());
+                    ->orWhere('published_at', '<=', now());
             });
     }
 

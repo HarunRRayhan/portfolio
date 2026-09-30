@@ -11,6 +11,15 @@ on:
         default: 'false'
         type: boolean
 
+permissions:
+  contents: read
+  actions: read
+
+# Serialize CDN publication and activation. Never cancel an active release.
+concurrency:
+  group: production-release
+  cancel-in-progress: false
+
 jobs:
   build-and-sync:
     name: Build Frontend Assets and Sync to R2
@@ -18,8 +27,8 @@ jobs:
     environment: production
     timeout-minutes: 30
     if: |
-      github.event_name == 'push' ||
-      github.event_name == 'workflow_dispatch'
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
 
     steps:
       - name: Checkout code
@@ -63,28 +72,28 @@ jobs:
             fi
 
             # Keep previous content-hashed chunks available to visitors with an open tab.
-            aws s3 sync public/build "s3://$R2_BUCKET_NAME/build" --endpoint-url "$R2_S3_ENDPOINT" --acl public-read
+            aws s3 sync public/build "s3://$R2_BUCKET_NAME/build" --endpoint-url "$R2_S3_ENDPOINT" --acl public-read || return 1
 
             echo "Setting proper content types for JavaScript files..."
             find public/build -name "*.js" -type f | while read -r file; do
               relative_path="${file#public/}"
-              aws s3 cp "$file" "s3://$R2_BUCKET_NAME/$relative_path" --endpoint-url "$R2_S3_ENDPOINT" --content-type "application/javascript" --acl public-read
-            done
+              aws s3 cp "$file" "s3://$R2_BUCKET_NAME/$relative_path" --endpoint-url "$R2_S3_ENDPOINT" --content-type "application/javascript" --acl public-read || exit 1
+            done || return 1
 
             echo "Setting proper content types for CSS files..."
             find public/build -name "*.css" -type f | while read -r file; do
               relative_path="${file#public/}"
-              aws s3 cp "$file" "s3://$R2_BUCKET_NAME/$relative_path" --endpoint-url "$R2_S3_ENDPOINT" --content-type "text/css" --acl public-read
-            done
+              aws s3 cp "$file" "s3://$R2_BUCKET_NAME/$relative_path" --endpoint-url "$R2_S3_ENDPOINT" --content-type "text/css" --acl public-read || exit 1
+            done || return 1
 
-            aws s3 sync public/fonts "s3://$R2_BUCKET_NAME/fonts" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
-            aws s3 sync public/images "s3://$R2_BUCKET_NAME/images" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+            aws s3 sync public/fonts "s3://$R2_BUCKET_NAME/fonts" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read || return 1
+            aws s3 sync public/images "s3://$R2_BUCKET_NAME/images" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read || return 1
             # Marketing media served via cdn.harun.dev / getImageUrl / asset CDN — keep in sync with origin.
-            aws s3 sync public/blog-assets "s3://$R2_BUCKET_NAME/blog-assets" --endpoint-url "$R2_S3_ENDPOINT" --delete --exclude 'card-variants/*' --acl public-read
+            aws s3 sync public/blog-assets "s3://$R2_BUCKET_NAME/blog-assets" --endpoint-url "$R2_S3_ENDPOINT" --delete --exclude 'card-variants/*' --acl public-read || return 1
             # Keep content-hashed covers for visitors with an older page still open.
-            aws s3 sync public/blog-assets/card-variants "s3://$R2_BUCKET_NAME/blog-assets/card-variants" --endpoint-url "$R2_S3_ENDPOINT" --acl public-read
-            aws s3 sync public/service-assets "s3://$R2_BUCKET_NAME/service-assets" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
-            aws s3 sync public/case-studies-assets "s3://$R2_BUCKET_NAME/case-studies-assets" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+            aws s3 sync public/blog-assets/card-variants "s3://$R2_BUCKET_NAME/blog-assets/card-variants" --endpoint-url "$R2_S3_ENDPOINT" --acl public-read || return 1
+            aws s3 sync public/service-assets "s3://$R2_BUCKET_NAME/service-assets" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read || return 1
+            aws s3 sync public/case-studies-assets "s3://$R2_BUCKET_NAME/case-studies-assets" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read || return 1
           }
 
           max_attempts=3
@@ -163,6 +172,9 @@ jobs:
             echo "Warning: Cloudflare credentials not found, skipping cache purge"
           fi
 
+      - name: Verify published CDN bytes before app activation
+        run: python3 scripts/release-production.py verify-assets --base "${{ vars.VITE_ASSET_BASE_URL != '' && vars.VITE_ASSET_BASE_URL || 'https://cdn.harun.dev' }}"
+
       - name: Deployment summary
         if: always()
         run: |
@@ -184,4 +196,26 @@ jobs:
           echo "- Cloudflare R2 asset upload (build, fonts, images, blog-assets, service-assets, case-studies-assets)" >> $GITHUB_STEP_SUMMARY
           echo "- CDN prefix/host purge for cdn.harun.dev (not purge_everything)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "The application itself is deployed independently by Railway's native GitHub integration on the same push." >> $GITHUB_STEP_SUMMARY
+          echo "The dependent activation job deploys this exact commit only after CDN verification succeeds." >> $GITHUB_STEP_SUMMARY
+
+  activate:
+    name: Activate verified release on Railway
+    needs: build-and-sync
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v7
+      - name: Require successful checks for the exact release commit
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ github.sha }}
+        run: python3 scripts/release-production.py wait-ci --sha "$RELEASE_SHA"
+      - name: Deploy web, then scheduler at this exact commit
+        env:
+          RAILWAY_PROJECT_TOKEN: ${{ secrets.RAILWAY_PROJECT_TOKEN }}
+          RAILWAY_ENVIRONMENT_ID: ${{ vars.RAILWAY_ENVIRONMENT_ID }}
+          RAILWAY_WEB_SERVICE_ID: ${{ vars.RAILWAY_WEB_SERVICE_ID }}
+          RAILWAY_SCHEDULER_SERVICE_ID: ${{ vars.RAILWAY_SCHEDULER_SERVICE_ID }}
+          RELEASE_SHA: ${{ github.sha }}
+        run: python3 scripts/release-production.py deploy --sha "$RELEASE_SHA"

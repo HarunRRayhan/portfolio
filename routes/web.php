@@ -805,12 +805,7 @@ Route::get('/videos/{slug}', function (string $slug) use ($mediaDetailPayload) {
             'thumbnailUrl' => $r->thumbnail_url, 'detailUrl' => '/videos/'.$r->slug,
         ]),
         'canonicalUrl' => $siteUrl.'/videos/'.$item->slug,
-        'seo' => SeoCatalog::forMedia(
-            $item->title,
-            (string) ($item->summary ?? $item->title),
-            $siteUrl.'/videos/'.$item->slug,
-            $item->thumbnail_url,
-        )->toArray(),
+        'seo' => SeoCatalog::forVideo($item, $siteUrl.'/videos/'.$item->slug)->toArray(),
     ]);
 })->name('videos.show');
 
@@ -1020,23 +1015,23 @@ Route::get('/sitemap.xml', function () {
 
     $blogUrls = collect($blog->indexPosts())->map(fn (array $post) => [
         'loc' => $blog->absoluteUrl($post['slug']),
-        'lastmod' => substr($post['publishedAtIso'], 0, 10),
+        'lastmod' => substr($post['lastModifiedAtIso'], 0, 10),
     ]);
 
     $caseStudyRepo = new CaseStudyRepository;
     $caseStudyUrls = collect($caseStudyRepo->indexStudies())->map(fn (array $study) => [
         'loc' => $caseStudyRepo->absoluteUrl($study['slug']),
-        'lastmod' => substr($study['publishedAtIso'], 0, 10),
+        'lastmod' => substr($study['lastModifiedAtIso'], 0, 10),
     ]);
 
     $slideUrls = MediaItem::query()->active()->ofType('slide')->get()->map(fn (MediaItem $item) => [
         'loc' => $siteUrl.'/slides/'.$item->slug,
-        'lastmod' => ($item->published_at ?? $item->updated_at)->toDateString(),
+        'lastmod' => $item->sitemapLastModified(),
     ]);
 
     $videoUrls = MediaItem::query()->active()->ofType('video')->get()->map(fn (MediaItem $item) => [
         'loc' => $siteUrl.'/videos/'.$item->slug,
-        'lastmod' => ($item->published_at ?? $item->updated_at)->toDateString(),
+        'lastmod' => $item->sitemapLastModified(),
     ]);
 
     $urls = $staticUrls->merge($blogUrls)->merge($caseStudyUrls)->merge($slideUrls)->merge($videoUrls);

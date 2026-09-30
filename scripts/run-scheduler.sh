@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Railpack may cache config during build, before RAILWAY_DEPLOYMENT_ID exists.
+# Rebuild from this container's runtime environment without flushing app caches.
+php artisan config:cache --no-interaction
+
 # Allow web's preDeploy migration to finish before the scheduler rollout starts.
 # Each tick is its own process, and a failed task never advances the heartbeat.
 startup_deadline=$(( $(date +%s) + 300 ))

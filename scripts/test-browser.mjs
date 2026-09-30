@@ -16,6 +16,14 @@ await new Promise((resolve, reject) => {
 const port = reservation.address().port
 await new Promise(resolve => reservation.close(resolve))
 const baseURL = `http://127.0.0.1:${port}`
+const useSsr = process.env.BROWSER_TEST_SSR === '1'
+let ssrPort
+if (useSsr) {
+  const ssrReservation = createServer()
+  await new Promise(resolve => ssrReservation.listen(0, '127.0.0.1', resolve))
+  ssrPort = ssrReservation.address().port
+  await new Promise(resolve => ssrReservation.close(resolve))
+}
 const env = {
   ...process.env,
   APP_ENV: 'local', APP_URL: baseURL, APP_DEBUG: 'false',
@@ -25,7 +33,8 @@ const env = {
   DB_CONNECTION: 'sqlite', DB_DATABASE: database, DB_URL: '',
   CACHE_STORE: 'array', SESSION_DRIVER: 'database', SESSION_DOMAIN: '',
   SESSION_SECURE_COOKIE: 'false', SESSION_COOKIE: 'browser_test_session',
-  MAIL_MAILER: 'array', QUEUE_CONNECTION: 'sync', INERTIA_SSR_ENABLED: 'false',
+  MAIL_MAILER: 'array', QUEUE_CONNECTION: 'sync', INERTIA_SSR_ENABLED: useSsr ? 'true' : 'false',
+  INERTIA_SSR_URL: `http://127.0.0.1:${ssrPort ?? 13714}`,
   ASSET_URL: '', GA4_MEASUREMENT_ID: '',
   STRIPE_KEY: '', STRIPE_SECRET: '', STRIPE_WEBHOOK_SECRET: '', STRIPE_SPONSOR_SECRET: '',
   GOOGLE_CLIENT_ID: '', GOOGLE_CLIENT_SECRET: '',
@@ -36,6 +45,7 @@ const env = {
 }
 delete env.NO_COLOR
 let server
+let renderer
 let tests
 let cleaned = false
 function cleanup() {
@@ -43,6 +53,7 @@ function cleanup() {
   cleaned = true
   tests?.kill('SIGTERM')
   server?.kill('SIGTERM')
+  renderer?.kill('SIGTERM')
   rmSync(temporary, { recursive: true, force: true })
 }
 process.on('exit', cleanup)
@@ -56,6 +67,24 @@ function run(command, args) {
 }
 
 try {
+  if (useSsr) {
+    renderer = spawn(process.execPath, ['--input-type=module', '-e', `
+      process.env.INERTIA_SSR_BUILD_ONLY = 'true';
+      const { renderPage } = await import('./bootstrap/ssr/ssr.js');
+      const { default: createServer } = await import('@inertiajs/react/server');
+      createServer(renderPage, { port: ${ssrPort}, host: '127.0.0.1' });
+    `], { env, stdio: 'inherit' })
+    let ready = false
+    for (let attempt = 0; attempt < 100; attempt += 1) {
+      if (renderer.exitCode !== null) throw new Error('Local SSR renderer could not start.')
+      try {
+        const response = await fetch(env.INERTIA_SSR_URL + '/health')
+        if (response.ok) { ready = true; break }
+      } catch {}
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+    if (!ready) throw new Error('Local SSR renderer did not become ready.')
+  }
   // Copy a local fixture when present; otherwise migrations create a fresh database.
   if (existsSync('database/database.sqlite')) copyFileSync('database/database.sqlite', database)
   else writeFileSync(database, '')

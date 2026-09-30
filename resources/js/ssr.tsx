@@ -2,6 +2,8 @@ import { createInertiaApp } from '@inertiajs/react';
 import createServer from '@inertiajs/react/server';
 import { renderToString } from 'react-dom/server';
 import Homepage from './Pages/Homepage';
+import BlogIndex from './Pages/Blog/Index';
+import BlogPost from './Pages/Blog/Post';
 import PublicLayout from './Layouts/PublicLayout';
 import { SubscribeProvider } from './Components/SubscribeProvider';
 import { resolveDocumentTitle } from './lib/documentTitle';
@@ -12,8 +14,12 @@ export const renderPage = (page: Page) => createInertiaApp({
     render: renderToString,
     title: (title) => resolveDocumentTitle(title ?? '', import.meta.env.VITE_APP_NAME),
     resolve: (name) => {
-        if (name !== 'Homepage') throw new Error(`SSR is not enabled for ${name}`);
-        return Object.assign(Homepage, { layout: PublicLayout });
+        const component = { Homepage, 'Blog/Index': BlogIndex, 'Blog/Post': BlogPost }[name];
+        const props = page.props as { post?: { isDraft?: boolean }; auth?: { user?: unknown } };
+        if (!component || props.auth?.user || props.post?.isDraft) {
+            throw new Error(`SSR is not enabled for ${name}`);
+        }
+        return Object.assign(component, { layout: PublicLayout });
     },
     setup: ({ App, props }) => (
         <SubscribeProvider

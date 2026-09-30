@@ -29,3 +29,12 @@ empty availability, and stale responses. The admin tests exercise real backend
 validation, retained inputs, error focus, pending states, and save confirmation. They also cover booking search and pagination, alternate dates, cancellation confirmation, scoped API key creation and revocation, and blog search/filter history.
 OAuth identity and redirect checks live in `tests/Feature/Auth/AuthSecurityTest.php`
 and use fake provider responses rather than real sign-ins.
+
+To exercise public SSR and hydration with an isolated renderer on a random local port:
+
+```sh
+BROWSER_TEST_SSR=1 npm run test:browser
+```
+
+This includes blog content without JavaScript, filtered-result hydration, and loading
+the share dialog only after interaction. Both local processes stop when the run finishes.
