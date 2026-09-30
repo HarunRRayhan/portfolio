@@ -16,7 +16,7 @@ class BlogRepository
     private const PUBLICATION_PATH = 'blog/publication.yml';
 
     /** Metadata-only payload (no post HTML); versioned when the post catalog changes. */
-    private const CACHE_KEY = 'blog.repository.payload.meta2';
+    private const CACHE_KEY = 'blog.repository.payload.meta3';
 
     private const CACHE_TTL_MINUTES = 15;
 
