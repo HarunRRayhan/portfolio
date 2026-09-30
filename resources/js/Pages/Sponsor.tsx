@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react'
+import { useForm } from '@inertiajs/react'
 import { motion } from 'framer-motion'
 import {
   ArrowRight,
@@ -195,41 +195,6 @@ export default function Sponsor({
 }: SponsorProps) {
   return (
     <>
-      <Head>
-        <title>Why Sponsor My Work? | Harun R. Rayhan</title>
-        <meta
-          name="description"
-          content="Support Harun R. Rayhan's practical technical writing, small tools, and independent experiments with a one-time or monthly contribution."
-        />
-        <meta property="og:title" content="Why Sponsor My Work? | Harun R. Rayhan" />
-        <meta
-          property="og:description"
-          content="Support the practical technical writing, small tools, and independent experiments shared by Harun R. Rayhan."
-        />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Why Sponsor My Work? | Harun R. Rayhan" />
-        <meta
-          name="twitter:description"
-          content="Support the practical technical writing, small tools, and independent experiments shared by Harun R. Rayhan."
-        />
-        <link rel="canonical" href={canonicalUrl} />
-        <script type="application/ld+json">
-          {JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'WebPage',
-            name: 'Why Sponsor My Work?',
-            description: 'Support Harun R. Rayhan\'s practical technical writing, small tools, and independent experiments.',
-            url: canonicalUrl,
-            about: {
-              '@type': 'Person',
-              name: 'Harun R. Rayhan',
-              url: 'https://harun.dev',
-            },
-          })}
-        </script>
-      </Head>
 
       <section className="relative isolate overflow-hidden bg-slate-950 text-white">
         <div

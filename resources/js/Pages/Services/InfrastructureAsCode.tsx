@@ -1,6 +1,6 @@
 "use client"
 
-import { Head, Link } from "@inertiajs/react"
+import { Link } from "@inertiajs/react"
 import { motion } from "framer-motion"
 import { ServiceHero } from "@/Components/ServiceHero"
 import { Button } from "@/Components/ui/button"
@@ -22,75 +22,6 @@ const staggerChildren = {
 export default function InfrastructureAsCodePage({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
-      <Head>
-        <title>Infrastructure as Code (IaC) Services | Harun R. Rayhan</title>
-        <meta name="description" content="Get help with Terraform changes, plan reviews, state and IAM checks, and CI workflows for AWS infrastructure. See how Harun approaches the work." />
-        
-        {/* OpenGraph Tags */}
-        <meta property="og:title" content="Infrastructure as Code (IaC) Services | Harun R. Rayhan" />
-        <meta property="og:description" content="Get help with Terraform changes, plan reviews, state and IAM checks, and CI workflows for AWS infrastructure. See how Harun approaches the work." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content={getImageUrl("/service-assets/infrastructure-as-code/hero.jpg")} />
-
-        {/* Twitter Card Tags */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Infrastructure as Code (IaC) Services | Harun R. Rayhan" />
-        <meta name="twitter:description" content="Get help with Terraform changes, plan reviews, state and IAM checks, and CI workflows for AWS infrastructure. See how Harun approaches the work." />
-        <meta name="twitter:image" content={getImageUrl("/service-assets/infrastructure-as-code/hero.jpg")} />
-
-        {/* Canonical URL */}
-        <link rel="canonical" href={canonicalUrl} />
-
-        {/* JSON-LD Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Service",
-            "name": "Infrastructure as Code Services",
-            "provider": {
-              "@type": "Person",
-              "name": "Harun R. Rayhan"
-            },
-            "serviceType": "Infrastructure Automation",
-            "description": "Terraform changes, plan reviews, state and IAM checks, and CI workflows for AWS infrastructure",
-            "offers": {
-              "@type": "Offer",
-              "description": "Terraform implementation and plan review for AWS infrastructure"
-            },
-            "hasOfferCatalog": {
-              "@type": "OfferCatalog",
-              "name": "Infrastructure as Code Services",
-              "itemListElement": [
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Terraform changes",
-                    "description": "Change an existing AWS infrastructure stack using Terraform"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Terraform plan review",
-                    "description": "Review planned resource changes, IAM permissions, and deployment risks"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Pull request checks",
-                    "description": "Add Terraform validation and plan checks to a delivery workflow"
-                  }
-                }
-              ]
-            }
-          })}
-        </script>
-      </Head>
       <main className="flex flex-col min-h-screen">
         <ServiceHero
           icon={Server}

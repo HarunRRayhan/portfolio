@@ -4,7 +4,7 @@ import { ServiceHero } from "@/Components/ServiceHero"
 import { Button } from "@/Components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card"
 import { Cloud, Zap, Lock, ArrowRight, CheckCircle, BarChart, Users, Code, GitBranch, Database } from 'lucide-react'
-import { Link, Head } from '@inertiajs/react'
+import { Link } from '@inertiajs/react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/Components/ui/accordion"
 import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
@@ -93,77 +93,6 @@ export default function ServerlessInfrastructure({ canonicalUrl }: { canonicalUr
 
   return (
     <>
-      <Head>
-        <title>Serverless Infrastructure Services | Harun R. Rayhan</title>
-        <meta name="description" content="Expert serverless architecture and implementation services. Build scalable, cost-effective applications using AWS Lambda, Azure Functions, and other serverless technologies." />
-        <meta name="keywords" content="serverless infrastructure, AWS Lambda, Azure Functions, cloud functions, FaaS, serverless computing, cloud-native architecture" />
-
-        {/* OpenGraph Tags */}
-        <meta property="og:title" content="Serverless Infrastructure Services | Harun R. Rayhan" />
-        <meta property="og:description" content="Expert serverless architecture and implementation services. Build scalable, cost-effective applications using AWS Lambda, Azure Functions, and other serverless technologies." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content={getImageUrl("/service-assets/serverless-infrastructure/hero.jpg")} />
-
-        {/* Twitter Card Tags */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Serverless Infrastructure Services | Harun R. Rayhan" />
-        <meta name="twitter:description" content="Expert serverless architecture and implementation services. Build scalable, cost-effective applications using AWS Lambda, Azure Functions, and other serverless technologies." />
-        <meta name="twitter:image" content={getImageUrl("/service-assets/serverless-infrastructure/hero.jpg")} />
-
-        {/* Canonical URL */}
-        <link rel="canonical" href={canonicalUrl} />
-
-        {/* JSON-LD Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Service",
-            "name": "Serverless Infrastructure Services",
-            "provider": {
-              "@type": "Person",
-              "name": "Harun R. Rayhan",
-              "description": "Serverless Architecture Expert"
-            },
-            "serviceType": "Cloud Computing Services",
-            "description": "Expert serverless architecture and implementation services",
-            "offers": {
-              "@type": "Offer",
-              "description": "Serverless Architecture Design, FaaS Implementation, Event-Driven Solutions"
-            },
-            "hasOfferCatalog": {
-              "@type": "OfferCatalog",
-              "name": "Serverless Services",
-              "itemListElement": [
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Serverless Architecture Design",
-                    "description": "Design scalable and cost-effective serverless architectures"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "FaaS Implementation",
-                    "description": "Implement Function-as-a-Service solutions across cloud providers"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Event-Driven Architecture",
-                    "description": "Build event-driven serverless applications"
-                  }
-                }
-              ]
-            }
-          })}
-        </script>
-      </Head>
       <main className="flex flex-col min-h-screen">
         <ServiceHero
           icon={Cloud}

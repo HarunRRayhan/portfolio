@@ -66,6 +66,10 @@ export function Menubar() {
   const user = usePage().props.auth?.user as { name?: string; email?: string } | null | undefined
   const profileRef = React.useRef<HTMLDivElement>(null)
   const moreRef = React.useRef<HTMLDivElement>(null)
+  const profileTriggerRef = React.useRef<HTMLButtonElement>(null)
+  const moreTriggerRef = React.useRef<HTMLButtonElement>(null)
+  const morePanelId = React.useId()
+  const profilePanelId = React.useId()
 
   React.useEffect(() => {
     if (typeof window === 'undefined') return
@@ -150,11 +154,29 @@ export function Menubar() {
                 backdrop-filter -- any of those would become the containing
                 block and re-skew the panel. The pill deliberately drops its
                 backdrop blur for this reason. */}
-            <div ref={moreRef}>
+            <div
+              ref={moreRef}
+              onBlur={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setMoreOpen(false)
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape' && moreOpen) {
+                  event.preventDefault()
+                  event.stopPropagation()
+                  setMoreOpen(false)
+                  moreTriggerRef.current?.focus()
+                }
+              }}
+            >
               <button
-                onClick={() => setMoreOpen(true)}
-                onMouseEnter={() => setMoreOpen(true)}
+                ref={moreTriggerRef}
+                type="button"
+                onClick={() => {
+                  setMoreOpen(!moreOpen)
+                  setProfileOpen(false)
+                }}
                 aria-expanded={moreOpen}
+                aria-controls={morePanelId}
                 className={cn(
                   'inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
                   moreOpen || moreItems.some(i => isActive(i.href))
@@ -167,8 +189,8 @@ export function Menubar() {
               </button>
               {moreOpen && (
                 <div
+                  id={morePanelId}
                   className="absolute left-1/2 top-full z-50 mt-2 w-[40rem] max-w-[calc(100vw-2rem)] origin-top -translate-x-1/2 rounded-xl border border-slate-200 bg-white p-4 shadow-lg lg:w-[46rem] xl:w-[54rem]"
-                  onMouseLeave={() => setMoreOpen(false)}
                 >
                   <div className="grid grid-cols-3 gap-6">
                     {moreGroups.map((group) => (
@@ -232,18 +254,38 @@ export function Menubar() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          <Link href="/consultation">
-            <button className="group inline-flex items-center gap-1.5 rounded-full bg-amber-500 px-4 py-2 text-sm font-medium text-amber-950 transition hover:bg-amber-400 active:scale-[0.97]">
+          <Link href="/consultation" className="group inline-flex items-center gap-1.5 rounded-full bg-amber-500 px-4 py-2 text-sm font-medium text-amber-950 transition hover:bg-amber-400 active:scale-[0.97]">
               <Calendar className="h-3.5 w-3.5" />
               Consultation
               <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
-            </button>
           </Link>
 
           {user ? (
-            <div className="relative" ref={profileRef}>
+            <div
+              className="relative"
+              ref={profileRef}
+              onBlur={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setProfileOpen(false)
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape' && profileOpen) {
+                  event.preventDefault()
+                  event.stopPropagation()
+                  setProfileOpen(false)
+                  profileTriggerRef.current?.focus()
+                }
+              }}
+            >
               <button
-                onClick={() => setProfileOpen(!profileOpen)}
+                ref={profileTriggerRef}
+                type="button"
+                aria-label="Account"
+                aria-expanded={profileOpen}
+                aria-controls={profilePanelId}
+                onClick={() => {
+                  setProfileOpen(!profileOpen)
+                  setMoreOpen(false)
+                }}
                 className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
               >
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-800 text-xs font-semibold text-white">
@@ -252,7 +294,7 @@ export function Menubar() {
               </button>
 
               {profileOpen && (
-                <div className="absolute right-0 top-full z-50 mt-2 w-48 origin-top-right rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg">
+                <div id={profilePanelId} className="absolute right-0 top-full z-50 mt-2 w-48 origin-top-right rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg">
                   <Link
                     href={route('dashboard')}
                     className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100"

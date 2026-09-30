@@ -1,15 +1,13 @@
-import {useState, useEffect, FormEvent, ChangeEvent} from "react"
+import {useState, useEffect, useRef, FormEvent, ChangeEvent} from "react"
 import {motion} from "framer-motion"
 import {Button} from "@/Components/ui/button"
 import {Input} from "@/Components/ui/input"
 import {Textarea} from "@/Components/ui/textarea"
 import {Label} from "@/Components/ui/label"
-import {Check, ChevronsUpDown, Plus, Send, X} from "lucide-react"
+import {ChevronsUpDown, Plus, Send} from "lucide-react"
 import {cn} from "@/lib/utils"
-import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/Components/ui/command"
 import {Popover, PopoverContent, PopoverTrigger} from "@/Components/ui/popover"
 import type React from "react"
-import {Head} from "@inertiajs/react";
 import {router} from '@inertiajs/react'
 import {toast} from "@/lib/toast"
 import { PageProps as InertiaPageProps } from '@inertiajs/core'
@@ -49,6 +47,7 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
     const [selectedServices, setSelectedServices] = useState<string[]>([])
     const [open, setOpen] = useState(false)
     const [searchValue, setSearchValue] = useState("")
+    const serviceSearchRef = useRef<HTMLInputElement>(null)
     const [services, setServices] = useState<string[]>(predefinedServices)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [referrer, setReferrer] = useState("")
@@ -177,46 +176,6 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
 
     return (
         <>
-            <Head>
-                <title>Contact Harun | Cloud & DevOps Consulting Services</title>
-                <meta name="description" content="Get in touch for expert cloud computing and DevOps consulting services. Let's discuss your project needs in AWS, infrastructure automation, CI/CD, or any other cloud services." />
-                <meta name="keywords" content="contact, cloud consulting, DevOps services, AWS expert, professional services, cloud architecture" />
-                
-                {/* OpenGraph Tags */}
-                <meta property="og:title" content="Contact Harun | Cloud & DevOps Consulting Services" />
-                <meta property="og:description" content="Get in touch for expert cloud computing and DevOps consulting services. Let's discuss your project needs in AWS, infrastructure automation, CI/CD, or any other cloud services." />
-                <meta property="og:type" content="website" />
-                <meta property="og:url" content={canonicalUrl} />
-                
-                {/* Twitter Card Tags */}
-                <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content="Contact Harun | Cloud & DevOps Consulting Services" />
-                <meta name="twitter:description" content="Get in touch for expert cloud computing and DevOps consulting services. Let's discuss your project needs in AWS, infrastructure automation, CI/CD, or any other cloud services." />
-                
-                {/* Canonical URL */}
-                <link rel="canonical" href={canonicalUrl} />
-
-                {/* JSON-LD Structured Data */}
-                <script type="application/ld+json">
-                    {JSON.stringify({
-                        "@context": "https://schema.org",
-                        "@type": "ContactPage",
-                        "name": "Contact Harun - Cloud & DevOps Consulting",
-                        "description": "Get in touch for expert cloud computing and DevOps consulting services.",
-                        "mainEntity": {
-                            "@type": "Organization",
-                            "name": "Harun's Cloud & DevOps Services",
-                            "contactPoint": {
-                                "@type": "ContactPoint",
-                                "contactType": "customer service",
-                                "availableLanguage": ["English"],
-                                "areaServed": "Worldwide"
-                            },
-                            "serviceType": predefinedServices
-                        }
-                    })}
-                </script>
-            </Head>
             {/* Hero Section */}
                     <section
                         className="min-h-[400px] bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 flex items-center">
@@ -308,18 +267,6 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
                                                         id="message"
                                                         value={message}
                                                         onChange={handleInputChange}
-                                                        onKeyDown={(e) => {
-                                                            if (e.key === 'Tab' && !e.shiftKey) {
-                                                                e.preventDefault();
-                                                                setOpen(true);
-                                                                setTimeout(() => {
-                                                                    const searchInput = document.querySelector('[cmdk-input]') as HTMLInputElement;
-                                                                    if (searchInput) {
-                                                                        searchInput.focus();
-                                                                    }
-                                                                }, 0);
-                                                            }
-                                                        }}
                                                         placeholder="Write your message here..."
                                                         className={cn(
                                                             "min-h-[150px] resize-none overflow-hidden bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg p-4",
@@ -333,97 +280,68 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
                                                     <Label htmlFor="services" className="text-lg font-medium">Services</Label>
                                                     <Popover open={open} onOpenChange={setOpen}>
                                                         <PopoverTrigger asChild>
-                                                            <Button 
-                                                                variant="outline" 
-                                                                role="combobox" 
+                                                            <Button
+                                                                id="services"
+                                                                type="button"
+                                                                variant="outline"
                                                                 aria-expanded={open}
-                                                                tabIndex={0}
-                                                                onKeyDown={(e) => {
-                                                                    if (e.key === 'Enter' || e.key === ' ') {
-                                                                        e.preventDefault();
-                                                                        setOpen(true);
-                                                                    }
-                                                                }}
                                                                 className="w-full justify-between bg-gray-50/50 border-gray-200 hover:bg-gray-50/80 text-lg h-14 px-4 focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 focus:border-amber-500"
                                                             >
                                                                 {selectedServices.length > 0 ? `${selectedServices.length} selected` : "Select services"}
-                                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50"/>
+                                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" aria-hidden="true"/>
                                                             </Button>
                                                         </PopoverTrigger>
-                                                        <PopoverContent 
-                                                            className="w-[--radix-popover-trigger-width] p-0"
-                                                            onOpenAutoFocus={(e) => {
-                                                                const searchInput = document.querySelector('[cmdk-input]') as HTMLInputElement;
-                                                                if (searchInput) {
-                                                                    searchInput.focus();
-                                                                }
+                                                        <PopoverContent
+                                                            aria-label="Choose services"
+                                                            className="w-[--radix-popover-trigger-width] p-0 bg-white"
+                                                            onOpenAutoFocus={(event) => {
+                                                                event.preventDefault()
+                                                                serviceSearchRef.current?.focus()
                                                             }}
                                                         >
-                                                            <Command>
-                                                                <CommandInput
+                                                            <div className="border-b p-3">
+                                                                <Label htmlFor="service-search" className="sr-only">Search services</Label>
+                                                                <Input
+                                                                    ref={serviceSearchRef}
+                                                                    id="service-search"
+                                                                    type="search"
                                                                     placeholder="Search or add services..."
                                                                     value={searchValue}
-                                                                    onKeyDown={(e) => {
-                                                                        if (e.key === 'Tab' && !searchValue) {
-                                                                            e.preventDefault();
-                                                                            setOpen(false);
-                                                                            const submitButton = document.querySelector('button[type="submit"]');
-                                                                            if (submitButton) {
-                                                                                (submitButton as HTMLElement).focus();
-                                                                            }
-                                                                        }
-                                                                        if (e.key === 'Escape') {
-                                                                            setOpen(false);
-                                                                        }
-                                                                    }}
-                                                                    onChange={(e) => setSearchValue(e.target.value)}
+                                                                    onChange={(event) => setSearchValue(event.target.value)}
                                                                 />
-                                                                <CommandList>
-                                                                    <CommandEmpty>
-                                                                        {searchValue.trim() ? (
-                                                                            <button
-                                                                                type="button"
-                                                                                onClick={() => addCustomService(searchValue)}
-                                                                                onKeyDown={(e) => {
-                                                                                    if (e.key === 'Enter') {
-                                                                                        e.preventDefault();
-                                                                                        addCustomService(searchValue);
-                                                                                    }
-                                                                                }}
-                                                                                className="flex w-full items-center gap-2 p-2 text-sm hover:bg-accent hover:text-accent-foreground"
-                                                                            >
-                                                                                <Plus className="h-4 w-4"/>
-                                                                                Add &quot;{searchValue}&quot;
-                                                                            </button>
-                                                                        ) : null}
-                                                                    </CommandEmpty>
-                                                                    <CommandGroup>
-                                                                        {services
-                                                                            .filter((service) => service.toLowerCase().includes(searchValue.toLowerCase()))
-                                                                            .map((service) => (
-                                                                                <CommandItem 
-                                                                                    key={service}
-                                                                                    onSelect={() => toggleService(service)}
-                                                                                    onKeyDown={(e) => {
-                                                                                        if (e.key === 'Enter') {
-                                                                                            e.preventDefault();
-                                                                                            toggleService(service);
-                                                                                        }
-                                                                                    }}
-                                                                                    className="cursor-pointer"
-                                                                                >
-                                                                                    <Check
-                                                                                        className={cn(
-                                                                                            "mr-2 h-4 w-4",
-                                                                                            selectedServices.includes(service) ? "opacity-100" : "opacity-0",
-                                                                                        )}
-                                                                                    />
-                                                                                    {service}
-                                                                                </CommandItem>
-                                                                            ))}
-                                                                    </CommandGroup>
-                                                                </CommandList>
-                                                            </Command>
+                                                            </div>
+                                                            <fieldset className="max-h-[300px] overflow-y-auto p-3">
+                                                                <legend className="sr-only">Available services</legend>
+                                                                {services
+                                                                    .filter((service) => service.toLowerCase().includes(searchValue.toLowerCase()))
+                                                                    .map((service) => (
+                                                                        <label key={service} className="flex cursor-pointer items-center gap-3 rounded-sm px-2 py-2 text-sm hover:bg-slate-100 focus-within:bg-slate-100">
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                checked={selectedServices.includes(service)}
+                                                                                onChange={() => toggleService(service)}
+                                                                                className="h-4 w-4 rounded border-slate-400 text-amber-700 focus:ring-amber-700"
+                                                                            />
+                                                                            {service}
+                                                                        </label>
+                                                                    ))}
+                                                                {!services.some((service) => service.toLowerCase().includes(searchValue.toLowerCase())) && (
+                                                                    <p className="px-2 py-2 text-sm text-slate-600">No matching services.</p>
+                                                                )}
+                                                                {searchValue.trim() && !services.some((service) => service.toLowerCase() === searchValue.trim().toLowerCase()) && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            addCustomService(searchValue)
+                                                                            serviceSearchRef.current?.focus()
+                                                                        }}
+                                                                        className="flex w-full items-center gap-2 rounded-sm p-2 text-sm hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-700"
+                                                                    >
+                                                                        <Plus className="h-4 w-4" aria-hidden="true"/>
+                                                                        Add &quot;{searchValue.trim()}&quot;
+                                                                    </button>
+                                                                )}
+                                                            </fieldset>
                                                         </PopoverContent>
                                                     </Popover>
                                                     <div className="mt-2 flex flex-wrap gap-2">
@@ -432,7 +350,8 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
                                                                   className="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-sm">
                             {service}
                                                             <button type="button" onClick={() => toggleService(service)}
-                                                                    className="ml-2 focus:outline-none">
+                                                                    aria-label={`Remove ${service}`}
+                                                                    className="ml-2 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-700">
                                                               &times;
                                                             </button>
                                                           </span>

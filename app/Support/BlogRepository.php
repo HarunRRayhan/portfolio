@@ -45,6 +45,8 @@ class BlogRepository
      */
     private ?array $data = null;
 
+    private ?BlogCoverImages $coverImages = null;
+
     /**
      * @return array<string, mixed>
      */
@@ -195,6 +197,8 @@ class BlogRepository
             'responseCount' => $post['responseCount'],
             'replyCount' => $post['replyCount'],
             'coverImageUrl' => $this->resolveCoverImageUrl($post['coverImageUrl'] ?? null),
+            'coverImageSources' => ($this->coverImages ??= new BlogCoverImages)->sources($post['coverImageUrl'] ?? null),
+            'coverImageFallbackUrl' => $this->coverImages->fallbackUrl($post['coverImageUrl'] ?? null),
             'coverImageAlt' => $post['coverImageAlt'] ?? $post['title'],
             'viewCount' => $viewCount ?? Cache::remember("post.views.{$post['slug']}", 3600, function () use ($post) {
                 try {

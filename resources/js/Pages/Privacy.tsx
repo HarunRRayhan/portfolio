@@ -1,4 +1,3 @@
-import { Head } from '@inertiajs/react'
 import { motion } from 'framer-motion'
 import { Container } from '@/Components/ui/container'
 import { Shield } from 'lucide-react'
@@ -7,39 +6,6 @@ import { getImageUrl } from "@/lib/imageUtils"
 export default function Privacy({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
-      <Head>
-        <title>Privacy Policy | Harun's Portfolio</title>
-        <meta name="description" content="Privacy policy and data protection information for Harun's Portfolio website and services." />
-        <meta name="keywords" content="privacy policy, data protection, GDPR, privacy rights" />
-        
-        {/* OpenGraph Tags */}
-        <meta property="og:title" content="Privacy Policy | Harun's Portfolio" />
-        <meta property="og:description" content="Privacy policy and data protection information for Harun's Portfolio website and services." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={canonicalUrl} />
-        
-        {/* Twitter Card Tags */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Privacy Policy | Harun's Portfolio" />
-        <meta name="twitter:description" content="Privacy policy and data protection information for Harun's Portfolio website and services." />
-        
-        {/* Canonical URL */}
-        <link rel="canonical" href={canonicalUrl} />
-
-        {/* JSON-LD Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebPage",
-            "name": "Privacy Policy",
-            "description": "Privacy policy and data protection information for Harun's Portfolio website and services.",
-            "publisher": {
-              "@type": "Person",
-              "name": "Harun"
-            }
-          })}
-        </script>
-      </Head>
       <main className="flex flex-col min-h-screen">
         <section className="py-24 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950">
           <div className="container mx-auto px-4 text-center">

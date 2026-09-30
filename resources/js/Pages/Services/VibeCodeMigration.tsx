@@ -4,7 +4,7 @@ import { ServiceHero } from "@/Components/ServiceHero"
 import { Button } from "@/Components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card"
 import { Replace, Layers, Database, ArrowRight, CheckCircle, Search, ClipboardList, Code, Rocket } from 'lucide-react'
-import { Link, Head } from '@inertiajs/react'
+import { Link } from '@inertiajs/react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/Components/ui/accordion"
 import { motion } from "framer-motion"
 import { InfiniteScrollTech } from "@/Components/InfiniteScrollTech"
@@ -74,77 +74,6 @@ const staggerChildren = {
 export default function VibeCodeMigration({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
-      <Head>
-        <title>Vibe Code Migration: Port Your AI-Built App to a Production Stack | Harun R. Rayhan</title>
-        <meta name="description" content="Your prototype found real users, but the stack it started on cannot be its permanent home. We port it to a production language and framework, feature for feature, without losing data or the users you already have." />
-        <meta name="keywords" content="migrate vibe coded app, port prototype to production, Cursor app migration, Lovable app port, no-code to production code, framework migration, feature parity testing, gradual cutover" />
-
-        {/* OpenGraph Tags */}
-        <meta property="og:title" content="Vibe Code Migration: Port Your AI-Built App to a Production Stack | Harun R. Rayhan" />
-        <meta property="og:description" content="Your prototype found real users, but the stack it started on cannot be its permanent home. We port it to a production language and framework, feature for feature, without losing data or the users you already have." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content={getImageUrl("/service-assets/vibe-code-migration/hero.jpg")} />
-
-        {/* Twitter Card Tags */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Vibe Code Migration: Port Your AI-Built App to a Production Stack | Harun R. Rayhan" />
-        <meta name="twitter:description" content="Your prototype found real users, but the stack it started on cannot be its permanent home. We port it to a production language and framework, feature for feature, without losing data or the users you already have." />
-        <meta name="twitter:image" content={getImageUrl("/service-assets/vibe-code-migration/hero.jpg")} />
-
-        {/* Canonical URL */}
-        <link rel="canonical" href={canonicalUrl} />
-
-        {/* JSON-LD Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Service",
-            "name": "Vibe Code Migration",
-            "provider": {
-              "@type": "Person",
-              "name": "Harun R. Rayhan",
-              "description": "Software Scaling and Performance Expert"
-            },
-            "serviceType": "Application Migration Services",
-            "description": "Porting apps first built with AI coding tools to a production language and framework, with feature parity and no data loss",
-            "offers": {
-              "@type": "Offer",
-              "description": "Production Rebuild With Parity, A Production Foundation, Data Migration"
-            },
-            "hasOfferCatalog": {
-              "@type": "OfferCatalog",
-              "name": "Vibe Code Migration Services",
-              "itemListElement": [
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Production Rebuild With Parity",
-                    "description": "Rebuilding the app on a new language and framework with identical behavior, verified against the original with parity tests"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "A Production Foundation",
-                    "description": "A typed codebase, real migrations, a test suite, and a deploy pipeline the team can keep extending"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Data Migration",
-                    "description": "Moving users, records, and history to the new schema in stages, with row counts and key records verified on both sides"
-                  }
-                }
-              ]
-            }
-          })}
-        </script>
-      </Head>
       <main className="flex flex-col min-h-screen">
         <ServiceHero
           icon={Replace}

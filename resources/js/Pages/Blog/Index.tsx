@@ -14,6 +14,8 @@ interface BlogPostSummary {
   responseCount: number
   replyCount: number
   coverImageUrl?: string | null
+  coverImageFallbackUrl?: string | null
+  coverImageSources?: Array<{ url: string; width: number }>
   coverImageAlt: string
   viewCount: number
   tags: Array<{ name: string; slug: string }>
@@ -85,18 +87,7 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
   return (
     <>
       <Head>
-        <title>Blog | Harun R. Rayhan</title>
-        <meta name="description" content={description} />
-        <meta name="keywords" content="AWS blog, DevOps blog, Laravel blog, serverless, infrastructure as code" />
-        <meta property="og:title" content="Blog | Harun R. Rayhan" />
-        <meta property="og:description" content={description} />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Blog | Harun R. Rayhan" />
-        <meta name="twitter:description" content={description} />
-        <link rel="canonical" href={canonicalUrl} />
-        <link rel="alternate" type="application/rss+xml" title="Harun's Blog RSS Feed" href="/blog/feed.xml" />
+        <link head-key="blog-rss" rel="alternate" type="application/rss+xml" title="Harun's Blog RSS Feed" href="/blog/feed.xml" />
       </Head>
 
       <div className="pt-24">
@@ -165,7 +156,7 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
               </button>
             </div>}
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {matchingPosts.map((post) => (
+              {matchingPosts.map((post, index) => (
                 <article
                   key={post.slug}
                   className="group relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_-34px_rgba(15,23,42,0.45)]"
@@ -178,7 +169,19 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
                         src={post.coverImageUrl}
                         alt={post.coverImageAlt}
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        loading="lazy"
+                        loading={index === 0 ? 'eager' : 'lazy'}
+                        fetchPriority={index === 0 ? 'high' : 'auto'}
+                        decoding="async"
+                        onError={(event) => {
+                          const image = event.currentTarget
+                          if (image.srcset && post.coverImageFallbackUrl) {
+                            // Origin builds can become ready before the separate CDN upload.
+                            image.removeAttribute('srcset')
+                            image.src = post.coverImageFallbackUrl
+                          }
+                        }}
+                        srcSet={post.coverImageSources?.map(image => `${image.url} ${image.width}w`).join(', ') || undefined}
+                        sizes="(min-width: 1280px) 400px, (min-width: 768px) 50vw, 100vw"
                       />
                     ) : (
                       <div className="flex h-full items-end bg-[linear-gradient(135deg,#0f172a_0%,#1f2937_100%)] p-6 text-white">

@@ -92,18 +92,47 @@ final class SeoCatalog
             description: 'Learn about Harun\'s journey, expertise in cloud architecture, DevOps engineering, and professional experience.',
             canonicalUrl: $siteUrl.'/about',
             ogType: 'profile',
+            jsonLd: [self::webPageGraph('AboutPage', 'About Harun', $siteUrl.'/about')],
+        );
+
+        $pages['/sponsor-me'] = new SeoMeta(
+            title: 'Why Sponsor My Work? | Harun R. Rayhan',
+            description: "Support Harun R. Rayhan's practical technical writing, small tools, and independent experiments with a one-time or monthly contribution.",
+            canonicalUrl: $siteUrl.'/sponsor-me',
+            jsonLd: [self::webPageGraph('WebPage', 'Why Sponsor My Work?', $siteUrl.'/sponsor-me')],
         );
 
         $pages['/services'] = new SeoMeta(
             title: 'Professional Cloud & DevOps Services | Harun\'s Portfolio',
             description: 'Expert cloud computing, DevOps, and software engineering services including AWS, Infrastructure as Code, CI/CD, security consulting, and performance optimization.',
             canonicalUrl: $siteUrl.'/services',
+            ogImage: self::assetUrl('/service-assets/services/hero.jpg'),
+            jsonLd: [[
+                '@context' => 'https://schema.org',
+                '@type' => 'ProfessionalService',
+                'name' => "Harun's Cloud & DevOps Services",
+                'url' => $siteUrl.'/services',
+                'hasOfferCatalog' => [
+                    '@type' => 'OfferCatalog',
+                    'name' => 'Cloud & DevOps Services',
+                    'itemListElement' => array_map(fn (array $row) => [
+                        '@type' => 'Offer',
+                        'itemOffered' => [
+                            '@type' => 'Service',
+                            'name' => $row[0],
+                            'description' => $row[2],
+                            'url' => $siteUrl.$row[1],
+                        ],
+                    ], SiteCatalog::services()),
+                ],
+            ]],
         );
 
         $pages['/contact'] = new SeoMeta(
             title: 'Contact Harun | Cloud & DevOps Consulting Services',
             description: 'Get in touch for expert cloud computing and DevOps consulting services. Let\'s discuss your project needs in AWS, infrastructure automation, CI/CD, or any other cloud services.',
             canonicalUrl: $siteUrl.'/contact',
+            jsonLd: [self::webPageGraph('ContactPage', 'Contact Harun', $siteUrl.'/contact')],
         );
 
         $pages['/consultation'] = new SeoMeta(
@@ -160,12 +189,14 @@ final class SeoCatalog
             title: 'Privacy Policy | Harun\'s Portfolio',
             description: 'Privacy policy and data protection information for Harun\'s Portfolio website and services.',
             canonicalUrl: $siteUrl.'/privacy',
+            jsonLd: [self::webPageGraph('WebPage', 'Privacy Policy', $siteUrl.'/privacy')],
         );
 
         $pages['/terms'] = new SeoMeta(
             title: 'Terms of Service | Harun\'s Portfolio',
             description: 'Terms of service and conditions for using Harun\'s Portfolio website and services.',
             canonicalUrl: $siteUrl.'/terms',
+            jsonLd: [self::webPageGraph('WebPage', 'Terms of Service', $siteUrl.'/terms')],
         );
 
         $pages['/admin/dashboard'] = new SeoMeta(
@@ -370,6 +401,17 @@ final class SeoCatalog
     /**
      * @return array<string, mixed>
      */
+    private static function webPageGraph(string $type, string $name, string $url): array
+    {
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => $type,
+            'name' => $name,
+            'url' => $url,
+            'about' => ['@id' => SiteCatalog::siteUrl().'/#person'],
+        ];
+    }
+
     public static function articleGraph(
         string $type,
         string $headline,

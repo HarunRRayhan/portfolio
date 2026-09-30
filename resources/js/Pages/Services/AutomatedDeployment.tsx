@@ -4,7 +4,7 @@ import { ServiceHero } from "@/Components/ServiceHero"
 import { Button } from "@/Components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card"
 import { Zap, GitBranch, Repeat, ArrowRight, CheckCircle, BarChart, Users, Code, Cloud } from 'lucide-react'
-import { Link, Head } from '@inertiajs/react'
+import { Link } from '@inertiajs/react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/Components/ui/accordion"
 import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
@@ -71,77 +71,6 @@ const staggerChildren = {
 export default function AutomatedDeployment({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
-      <Head>
-        <title>Automated Deployment & CI/CD Services | Harun R. Rayhan</title>
-        <meta name="description" content="Expert automated deployment and CI/CD implementation services. Streamline your software delivery pipeline with efficient automation and reliable deployment processes." />
-        <meta name="keywords" content="automated deployment, CI/CD, continuous integration, continuous deployment, DevOps automation, deployment pipeline, Jenkins, GitLab CI, GitHub Actions" />
-        
-        {/* OpenGraph Tags */}
-        <meta property="og:title" content="Automated Deployment & CI/CD Services | Harun R. Rayhan" />
-        <meta property="og:description" content="Expert automated deployment and CI/CD implementation services. Streamline your software delivery pipeline with efficient automation and reliable deployment processes." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content={getImageUrl("/service-assets/automated-deployment/hero.jpg")} />
-
-        {/* Twitter Card Tags */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Automated Deployment & CI/CD Services | Harun R. Rayhan" />
-        <meta name="twitter:description" content="Expert automated deployment and CI/CD implementation services. Streamline your software delivery pipeline with efficient automation and reliable deployment processes." />
-        <meta name="twitter:image" content={getImageUrl("/service-assets/automated-deployment/hero.jpg")} />
-        
-        {/* Canonical URL */}
-        <link rel="canonical" href={canonicalUrl} />
-
-        {/* JSON-LD Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Service",
-            "name": "Automated Deployment Services",
-            "provider": {
-              "@type": "Person",
-              "name": "Harun R. Rayhan",
-              "description": "DevOps & CI/CD Expert"
-            },
-            "serviceType": "DevOps Services",
-            "description": "Expert automated deployment and CI/CD implementation services",
-            "offers": {
-              "@type": "Offer",
-              "description": "CI/CD Implementation, Deployment Automation, Pipeline Optimization"
-            },
-            "hasOfferCatalog": {
-              "@type": "OfferCatalog",
-              "name": "Automated Deployment Services",
-              "itemListElement": [
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "CI/CD Implementation",
-                    "description": "Set up and configure continuous integration and deployment pipelines"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Deployment Automation",
-                    "description": "Automate software deployment processes for reliability and efficiency"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Pipeline Optimization",
-                    "description": "Optimize CI/CD pipelines for faster and more reliable deployments"
-                  }
-                }
-              ]
-            }
-          })}
-        </script>
-      </Head>
       <main className="flex flex-col min-h-screen">
         <ServiceHero
           icon={GitBranch}

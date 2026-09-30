@@ -4,7 +4,7 @@ import { ServiceHero } from "@/Components/ServiceHero"
 import { Button } from "@/Components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card"
 import { ArrowRightLeft, Cloud, Server, ArrowRight, CheckCircle, Users, Database, Shield, Network } from 'lucide-react'
-import { Link, Head } from '@inertiajs/react'
+import { Link } from '@inertiajs/react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/Components/ui/accordion"
 import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
@@ -71,77 +71,6 @@ const staggerChildren = {
 export default function InfrastructureMigration({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
-      <Head>
-        <title>Infrastructure Migration Services | Harun R. Rayhan</title>
-        <meta name="description" content="Expert infrastructure migration services. Seamlessly migrate your infrastructure to modern platforms with minimal disruption and maximum efficiency." />
-        <meta name="keywords" content="infrastructure migration, cloud migration, data center migration, infrastructure modernization, cloud transformation, AWS migration, Azure migration" />
-        
-        {/* OpenGraph Tags */}
-        <meta property="og:title" content="Infrastructure Migration Services | Harun R. Rayhan" />
-        <meta property="og:description" content="Expert infrastructure migration services. Seamlessly migrate your infrastructure to modern platforms with minimal disruption and maximum efficiency." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content={getImageUrl("/service-assets/infrastructure-migration/hero.jpg")} />
-
-        {/* Twitter Card Tags */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Infrastructure Migration Services | Harun R. Rayhan" />
-        <meta name="twitter:description" content="Expert infrastructure migration services. Seamlessly migrate your infrastructure to modern platforms with minimal disruption and maximum efficiency." />
-        <meta name="twitter:image" content={getImageUrl("/service-assets/infrastructure-migration/hero.jpg")} />
-        
-        {/* Canonical URL */}
-        <link rel="canonical" href={canonicalUrl} />
-
-        {/* JSON-LD Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Service",
-            "name": "Infrastructure Migration Services",
-            "provider": {
-              "@type": "Person",
-              "name": "Harun R. Rayhan",
-              "description": "Infrastructure Migration Expert"
-            },
-            "serviceType": "Infrastructure Services",
-            "description": "Expert infrastructure migration and modernization services",
-            "offers": {
-              "@type": "Offer",
-              "description": "Infrastructure Assessment, Migration Planning, Implementation"
-            },
-            "hasOfferCatalog": {
-              "@type": "OfferCatalog",
-              "name": "Infrastructure Migration Services",
-              "itemListElement": [
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Infrastructure Assessment",
-                    "description": "Comprehensive assessment of current infrastructure and migration requirements"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Migration Planning",
-                    "description": "Detailed migration strategy and execution planning"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Migration Implementation",
-                    "description": "Seamless execution of infrastructure migration with minimal disruption"
-                  }
-                }
-              ]
-            }
-          })}
-        </script>
-      </Head>
       <main className="flex flex-col min-h-screen">
         <ServiceHero
           icon={ArrowRightLeft}

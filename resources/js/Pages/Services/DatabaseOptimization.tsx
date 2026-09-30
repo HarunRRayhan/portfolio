@@ -4,7 +4,7 @@ import { ServiceHero } from "@/Components/ServiceHero"
 import { Button } from "@/Components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card"
 import { Database, Zap, Lock, ArrowRight, CheckCircle, BarChart, Users, GitBranch, Cloud } from 'lucide-react'
-import { Link, Head } from '@inertiajs/react'
+import { Link } from '@inertiajs/react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/Components/ui/accordion"
 import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
@@ -71,77 +71,6 @@ const staggerChildren = {
 export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
-      <Head>
-        <title>Database Performance Optimization Services | Harun R. Rayhan</title>
-        <meta name="description" content="Expert database optimization services. Enhance your database performance, improve query efficiency, and optimize resource utilization for better scalability." />
-        <meta name="keywords" content="database optimization, performance tuning, query optimization, database efficiency, index optimization, database consulting, MySQL optimization, PostgreSQL optimization" />
-        
-        {/* OpenGraph Tags */}
-        <meta property="og:title" content="Database Performance Optimization Services | Harun R. Rayhan" />
-        <meta property="og:description" content="Expert database optimization services. Enhance your database performance, improve query efficiency, and optimize resource utilization for better scalability." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content={getImageUrl("/service-assets/database-optimization/hero.jpg")} />
-
-        {/* Twitter Card Tags */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Database Performance Optimization Services | Harun R. Rayhan" />
-        <meta name="twitter:description" content="Expert database optimization services. Enhance your database performance, improve query efficiency, and optimize resource utilization for better scalability." />
-        <meta name="twitter:image" content={getImageUrl("/service-assets/database-optimization/hero.jpg")} />
-
-        {/* Canonical URL */}
-        <link rel="canonical" href={canonicalUrl} />
-
-        {/* JSON-LD Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Service",
-            "name": "Database Optimization Services",
-            "provider": {
-              "@type": "Person",
-              "name": "Harun R. Rayhan",
-              "description": "Database Performance Expert"
-            },
-            "serviceType": "Database Services",
-            "description": "Expert database performance optimization and tuning services",
-            "offers": {
-              "@type": "Offer",
-              "description": "Performance Analysis, Query Optimization, Resource Optimization"
-            },
-            "hasOfferCatalog": {
-              "@type": "OfferCatalog",
-              "name": "Database Optimization Services",
-              "itemListElement": [
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Performance Analysis",
-                    "description": "Comprehensive analysis of database performance and bottlenecks"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Query Optimization",
-                    "description": "SQL query optimization and index tuning for better performance"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Resource Optimization",
-                    "description": "Database resource utilization and configuration optimization"
-                  }
-                }
-              ]
-            }
-          })}
-        </script>
-      </Head>
       <main className="flex flex-col min-h-screen">
         <ServiceHero
           icon={Database}

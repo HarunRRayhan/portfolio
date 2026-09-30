@@ -4,7 +4,7 @@ import { ServiceHero } from "@/Components/ServiceHero"
 import { Button } from "@/Components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card"
 import { MonitorSmartphone, BarChart, Bell, ArrowRight, CheckCircle, Cloud, GitBranch, Database } from 'lucide-react'
-import { Link, Head } from '@inertiajs/react'
+import { Link } from '@inertiajs/react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/Components/ui/accordion"
 import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
@@ -71,77 +71,6 @@ const staggerChildren = {
 export default function MonitoringObservability({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
-      <Head>
-        <title>Monitoring & Observability Services | Harun R. Rayhan</title>
-        <meta name="description" content="Expert monitoring and observability services. Gain deep insights into your systems with comprehensive monitoring, logging, and observability solutions." />
-        <meta name="keywords" content="monitoring, observability, system monitoring, application monitoring, logging, metrics, tracing, Prometheus, Grafana, ELK stack" />
-        
-        {/* OpenGraph Tags */}
-        <meta property="og:title" content="Monitoring & Observability Services | Harun R. Rayhan" />
-        <meta property="og:description" content="Expert monitoring and observability services. Gain deep insights into your systems with comprehensive monitoring, logging, and observability solutions." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content={getImageUrl("/service-assets/monitoring-observability/hero.jpg")} />
-
-        {/* Twitter Card Tags */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Monitoring & Observability Services | Harun R. Rayhan" />
-        <meta name="twitter:description" content="Expert monitoring and observability services. Gain deep insights into your systems with comprehensive monitoring, logging, and observability solutions." />
-        <meta name="twitter:image" content={getImageUrl("/service-assets/monitoring-observability/hero.jpg")} />
-
-        {/* Canonical URL */}
-        <link rel="canonical" href={canonicalUrl} />
-
-        {/* JSON-LD Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Service",
-            "name": "Monitoring & Observability Services",
-            "provider": {
-              "@type": "Person",
-              "name": "Harun R. Rayhan",
-              "description": "Monitoring & Observability Expert"
-            },
-            "serviceType": "System Monitoring",
-            "description": "Expert monitoring and observability implementation services",
-            "offers": {
-              "@type": "Offer",
-              "description": "System Monitoring, Logging Solutions, Observability Implementation"
-            },
-            "hasOfferCatalog": {
-              "@type": "OfferCatalog",
-              "name": "Monitoring & Observability Services",
-              "itemListElement": [
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "System Monitoring",
-                    "description": "Comprehensive system and application monitoring solutions"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Logging Solutions",
-                    "description": "Centralized logging and log analysis implementation"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Observability Implementation",
-                    "description": "End-to-end observability with metrics, logs, and traces"
-                  }
-                }
-              ]
-            }
-          })}
-        </script>
-      </Head>
       <main className="flex flex-col min-h-screen">
         <ServiceHero
           icon={BarChart}

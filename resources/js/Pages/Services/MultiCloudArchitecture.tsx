@@ -2,7 +2,7 @@ import { ServiceHero } from "@/Components/ServiceHero"
 import { Button } from "@/Components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card"
 import { Cloud, Network, Shield, ArrowRight, CheckCircle, BarChart, Users, Code } from 'lucide-react'
-import { Link, Head } from '@inertiajs/react'
+import { Link } from '@inertiajs/react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/Components/ui/accordion"
 import { motion } from "framer-motion"
 import { InfiniteScrollTech } from "@/Components/InfiniteScrollTech"
@@ -64,77 +64,6 @@ const staggerChildren = {
 export default function MultiCloudArchitecture({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
-      <Head>
-        <title>Multi-Cloud Architecture Services | Harun R. Rayhan</title>
-        <meta name="description" content="Expert multi-cloud architecture and implementation services. Design and manage efficient cloud solutions across AWS, Azure, Google Cloud, and other providers." />
-        <meta name="keywords" content="multi-cloud architecture, cloud strategy, hybrid cloud, AWS, Azure, Google Cloud, cloud migration, cloud optimization" />
-        
-        {/* OpenGraph Tags */}
-        <meta property="og:title" content="Multi-Cloud Architecture Services | Harun R. Rayhan" />
-        <meta property="og:description" content="Expert multi-cloud architecture and implementation services. Design and manage efficient cloud solutions across AWS, Azure, Google Cloud, and other providers." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content={getImageUrl("/service-assets/multi-cloud-architecture/hero.jpg")} />
-
-        {/* Twitter Card Tags */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Multi-Cloud Architecture Services | Harun R. Rayhan" />
-        <meta name="twitter:description" content="Expert multi-cloud architecture and implementation services. Design and manage efficient cloud solutions across AWS, Azure, Google Cloud, and other providers." />
-        <meta name="twitter:image" content={getImageUrl("/service-assets/multi-cloud-architecture/hero.jpg")} />
-        
-        {/* Canonical URL */}
-        <link rel="canonical" href={canonicalUrl} />
-
-        {/* JSON-LD Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Service",
-            "name": "Multi-Cloud Architecture Services",
-            "provider": {
-              "@type": "Person",
-              "name": "Harun R. Rayhan",
-              "description": "Multi-Cloud Architecture Expert"
-            },
-            "serviceType": "Cloud Architecture",
-            "description": "Expert multi-cloud architecture and implementation services",
-            "offers": {
-              "@type": "Offer",
-              "description": "Multi-Cloud Strategy, Cloud Integration, Hybrid Cloud Solutions"
-            },
-            "hasOfferCatalog": {
-              "@type": "OfferCatalog",
-              "name": "Multi-Cloud Services",
-              "itemListElement": [
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Multi-Cloud Strategy",
-                    "description": "Develop comprehensive multi-cloud strategies"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Cloud Integration",
-                    "description": "Integrate services across multiple cloud providers"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Hybrid Cloud Solutions",
-                    "description": "Design and implement hybrid cloud architectures"
-                  }
-                }
-              ]
-            }
-          })}
-        </script>
-      </Head>
       <main className="flex flex-col min-h-screen">
         <ServiceHero
           icon={Cloud}
