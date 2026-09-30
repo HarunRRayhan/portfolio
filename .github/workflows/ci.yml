@@ -32,14 +32,27 @@ jobs:
           cache: npm
       - run: composer install --prefer-dist --no-interaction --no-progress
       - run: npm ci
+      - run: node --test tests/frontend/directory-badge-slider.test.mjs
       - run: npm run test:images
       - run: npm run build
       - run: node tests/ssr/seo-head.test.mjs
+      - run: node tests/ssr/blog.test.mjs
+      - run: node tests/ssr/blog-startup.test.mjs
+      - run: python3 -m unittest discover -s tests/operations -p 'test_*.py'
       - run: php -d memory_limit=512M vendor/bin/phpunit
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser
         env:
           PLAYWRIGHT_CHANNEL: chromium
+          BROWSER_TEST_SSR: '1'
+      - name: Preserve failed browser diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-failure-diagnostics
+          path: reports/browser-results/
+          retention-days: 7
+          if-no-files-found: ignore
       - name: Validate operational scripts
         run: bash -n scripts/run-scheduler.sh scripts/monitor-recovery.sh scripts/monitor-production.sh
 

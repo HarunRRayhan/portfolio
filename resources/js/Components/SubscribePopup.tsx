@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Dialog, DialogPanel } from '@headlessui/react'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { X, Mail, ShieldCheck } from 'lucide-react'
@@ -73,15 +73,31 @@ export function SubscribePopup({
   const t = THEME[theme]
   const subscriberLabel = subscriberCount === 1 ? 'reader' : 'readers'
   const [avatarUrls] = useState(pickNewsletterAvatars)
+  const [exited, setExited] = useState(false)
+
+  useEffect(() => {
+    if (open) {
+      setExited(false)
+      return
+    }
+    if (!exited) return
+
+    let cancelled = false
+    // AnimatePresence's callback schedules removal; it does not mean React
+    // has committed it yet. This effect runs after that commit. HeadlessUI
+    // then restores its own focus history in an unmount-cleanup microtask,
+    // so restore our pre-lazy-load target after that cleanup has finished.
+    queueMicrotask(() => {
+      if (!cancelled && returnFocusTo?.isConnected) {
+        returnFocusTo.focus({ preventScroll: true })
+      }
+    })
+    return () => { cancelled = true }
+  }, [open, exited, returnFocusTo])
   if (typeof document === 'undefined') return null
 
   return (
-    <AnimatePresence onExitComplete={() => {
-      // The focus trap and background inertness are removed on unmount.
-      requestAnimationFrame(() => {
-        if (returnFocusTo?.isConnected) returnFocusTo.focus({ preventScroll: true })
-      })
-    }}>
+    <AnimatePresence onExitComplete={() => setExited(true)}>
       {open && (
         <Dialog
           as={motion.div}

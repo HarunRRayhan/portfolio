@@ -201,6 +201,7 @@ class CaseStudyRepository
             'publishedAt' => (string) $study['publishedAt'],
             'publishedAtHuman' => Carbon::parse($study['publishedAt'])->format('M j, Y'),
             'publishedAtIso' => Carbon::parse($study['publishedAt'])->toAtomString(),
+            'lastModifiedAtIso' => ContentDates::lastModified($study['publishedAt'], $study['updatedAt'] ?? null),
             'readTimeInMinutes' => (int) ($study['readTimeInMinutes'] ?? $this->estimateReadMinutes($study['content']['text'] ?? '')),
             'readTimeLabel' => ((int) ($study['readTimeInMinutes'] ?? $this->estimateReadMinutes($study['content']['text'] ?? ''))).' min read',
             'coverImageUrl' => $this->resolveCoverImageUrl($study['coverImageUrl'] ?? null),

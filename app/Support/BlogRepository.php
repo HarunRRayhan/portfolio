@@ -191,6 +191,7 @@ class BlogRepository
             'publishedAt' => $post['publishedAt'],
             'publishedAtHuman' => Carbon::parse($post['publishedAt'])->format('M j, Y'),
             'publishedAtIso' => Carbon::parse($post['publishedAt'])->toAtomString(),
+            'lastModifiedAtIso' => ContentDates::lastModified($post['publishedAt'], $post['updatedAt'] ?? null),
             'readTimeInMinutes' => $post['readTimeInMinutes'],
             'readTimeLabel' => $post['readTimeInMinutes'].' min read',
             'reactionCount' => $post['reactionCount'],
