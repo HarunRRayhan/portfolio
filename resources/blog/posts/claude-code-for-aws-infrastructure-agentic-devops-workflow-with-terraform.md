@@ -1,8 +1,7 @@
 ---
 title: "Claude Code for AWS Infrastructure: My Agentic DevOps Workflow with Terraform"
 slug: "claude-code-for-aws-infrastructure-agentic-devops-workflow-with-terraform"
-brief: "Every AI Demo Ignores Infrastructure
-Every AI coding tool tutorial follows the same script. They show you editing a React component, refactoring a Python function, or generating a REST endpoint. Cool."
+brief: "Use Claude Code with Terraform on AWS: set up CLAUDE.md, draft Lambda and SQS resources, and review Terraform plans and IAM permissions before applying changes."
 publishedAt: "2026-03-28T11:44:17.946Z"
 readTimeInMinutes: 15
 reactionCount: 0
