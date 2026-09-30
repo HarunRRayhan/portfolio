@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { createPortal } from 'react-dom'
+import { Dialog, DialogPanel } from '@headlessui/react'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { X, Mail, ShieldCheck } from 'lucide-react'
 import { SubscribeForm, SubscribeTheme } from '@/Components/SubscribeForm'
@@ -61,39 +61,45 @@ export function SubscribePopup({
   source,
   theme = 'slate',
   subscriberCount = 0,
+  returnFocusTo = null,
 }: {
   open: boolean
   onClose: () => void
   source: string
   theme?: SubscribeTheme
   subscriberCount?: number
+  returnFocusTo?: HTMLElement | null
 }) {
   const t = THEME[theme]
   const subscriberLabel = subscriberCount === 1 ? 'reader' : 'readers'
   const [avatarUrls] = useState(pickNewsletterAvatars)
   if (typeof document === 'undefined') return null
 
-  return createPortal(
-    <AnimatePresence>
+  return (
+    <AnimatePresence onExitComplete={() => {
+      // The focus trap and background inertness are removed on unmount.
+      requestAnimationFrame(() => {
+        if (returnFocusTo?.isConnected) returnFocusTo.focus({ preventScroll: true })
+      })
+    }}>
       {open && (
-        <motion.div
-          role="dialog"
-          aria-modal="true"
+        <Dialog
+          as={motion.div}
+          open={open}
+          onClose={onClose}
           aria-label="Subscribe"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
+          animate={{ opacity: 1, transition: { duration: 0.15 } }}
+          exit={{ opacity: 0, transition: { duration: 0.15 } }}
           className={`fixed inset-0 z-[100] flex items-center justify-center ${t.backdrop} p-6 backdrop-blur-sm`}
-          onClick={onClose}
         >
-          <motion.div
+          <DialogPanel
+            as={motion.div}
             variants={panelVariants}
             initial="hidden"
             animate="show"
             exit="exit"
             className={`relative w-full max-w-sm overflow-hidden rounded-3xl border ${t.panel} p-6 shadow-2xl md:max-w-2xl md:p-8`}
-            onClick={(e) => e.stopPropagation()}
           >
             {/* Decorative glow that spills from the top edge inside the panel. */}
             <div aria-hidden="true" className={`pointer-events-none absolute inset-x-0 top-0 h-40 ${t.glow}`} />
@@ -102,6 +108,7 @@ export function SubscribePopup({
               type="button"
               onClick={onClose}
               aria-label="Close"
+              data-autofocus
               className={`absolute right-3.5 top-3.5 z-10 flex h-8 w-8 items-center justify-center rounded-full border transition hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${t.close}`}
             >
               <X className="h-4 w-4" />
@@ -163,10 +170,9 @@ export function SubscribePopup({
                 </div>
               </div>
             </div>
-          </motion.div>
-        </motion.div>
+          </DialogPanel>
+        </Dialog>
       )}
-    </AnimatePresence>,
-    document.body,
+    </AnimatePresence>
   )
 }

@@ -5,9 +5,10 @@
         "node": ">=22"
     },
     "scripts": {
-        "build": "tsc && vite build && vite build --ssr && node scripts/build-homepage-styles.mjs",
+        "build": "node scripts/build-blog-cover-variants.mjs && tsc && vite build && vite build --ssr && node scripts/build-homepage-styles.mjs",
         "dev": "vite",
-        "test:browser": "node scripts/test-browser.mjs"
+        "test:browser": "node scripts/test-browser.mjs",
+        "test:images": "node --test scripts/blog-cover-variants.test.mjs"
     },
     "devDependencies": {
         "@headlessui/react": "^2.2.10",
@@ -29,6 +30,7 @@
         "postcss": "^8.5.15",
         "react": "~19.2.6",
         "react-dom": "~19.2.6",
+        "sharp": "^0.35.5",
         "tailwindcss": "~4.3.0",
         "typescript": "^6.0.3",
         "vite": "^8.0.14"

@@ -4,7 +4,7 @@ import { ServiceHero } from "@/Components/ServiceHero"
 import { Button } from "@/Components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card"
 import { Brain, GitBranch, BarChart, ArrowRight, CheckCircle, Users, Database, Cloud, Zap } from 'lucide-react'
-import { Link, Head } from '@inertiajs/react'
+import { Link } from '@inertiajs/react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/Components/ui/accordion"
 import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
@@ -71,77 +71,6 @@ const staggerChildren = {
 export default function MLOps({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
-      <Head>
-        <title>MLOps & Machine Learning Operations Services | Harun R. Rayhan</title>
-        <meta name="description" content="Expert MLOps services. Streamline your machine learning operations with automated pipelines, model deployment, and monitoring solutions." />
-        <meta name="keywords" content="MLOps, machine learning operations, ML pipeline automation, model deployment, model monitoring, AI operations, ML infrastructure" />
-        
-        {/* OpenGraph Tags */}
-        <meta property="og:title" content="MLOps & Machine Learning Operations Services | Harun R. Rayhan" />
-        <meta property="og:description" content="Expert MLOps services. Streamline your machine learning operations with automated pipelines, model deployment, and monitoring solutions." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content={getImageUrl("/service-assets/mlops/hero.jpg")} />
-
-        {/* Twitter Card Tags */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="MLOps & Machine Learning Operations Services | Harun R. Rayhan" />
-        <meta name="twitter:description" content="Expert MLOps services. Streamline your machine learning operations with automated pipelines, model deployment, and monitoring solutions." />
-        <meta name="twitter:image" content={getImageUrl("/service-assets/mlops/hero.jpg")} />
-        
-        {/* Canonical URL */}
-        <link rel="canonical" href={canonicalUrl} />
-
-        {/* JSON-LD Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Service",
-            "name": "MLOps Services",
-            "provider": {
-              "@type": "Person",
-              "name": "Harun R. Rayhan",
-              "description": "MLOps & Machine Learning Expert"
-            },
-            "serviceType": "Machine Learning Operations",
-            "description": "Expert MLOps and machine learning operations services",
-            "offers": {
-              "@type": "Offer",
-              "description": "ML Pipeline Automation, Model Deployment, Model Monitoring"
-            },
-            "hasOfferCatalog": {
-              "@type": "OfferCatalog",
-              "name": "MLOps Services",
-              "itemListElement": [
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "ML Pipeline Automation",
-                    "description": "Automated machine learning pipelines for efficient model training and deployment"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Model Deployment",
-                    "description": "Streamlined deployment of machine learning models to production"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Model Monitoring",
-                    "description": "Comprehensive monitoring and maintenance of ML models in production"
-                  }
-                }
-              ]
-            }
-          })}
-        </script>
-      </Head>
       <main className="flex flex-col min-h-screen">
         <ServiceHero
           icon={Brain}

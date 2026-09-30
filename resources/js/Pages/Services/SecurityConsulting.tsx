@@ -14,7 +14,7 @@ import {
   AlertTriangle,
   FileSearch,
 } from 'lucide-react'
-import { Link, Head } from '@inertiajs/react'
+import { Link } from '@inertiajs/react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/Components/ui/accordion"
 import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
@@ -81,77 +81,6 @@ const staggerChildren = {
 export default function SecurityConsulting({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
-      <Head>
-        <title>Security Consulting & Implementation Services | Harun R. Rayhan</title>
-        <meta name="description" content="Expert security consulting services. Protect your infrastructure and applications with comprehensive security assessments, implementation, and best practices." />
-        <meta name="keywords" content="security consulting, cybersecurity, security implementation, cloud security, infrastructure security, security assessment, penetration testing, security best practices" />
-        
-        {/* OpenGraph Tags */}
-        <meta property="og:title" content="Security Consulting & Implementation Services | Harun R. Rayhan" />
-        <meta property="og:description" content="Expert security consulting services. Protect your infrastructure and applications with comprehensive security assessments, implementation, and best practices." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content={getImageUrl("/service-assets/security-consulting/hero.jpg")} />
-
-        {/* Twitter Card Tags */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Security Consulting & Implementation Services | Harun R. Rayhan" />
-        <meta name="twitter:description" content="Expert security consulting services. Protect your infrastructure and applications with comprehensive security assessments, implementation, and best practices." />
-        <meta name="twitter:image" content={getImageUrl("/service-assets/security-consulting/hero.jpg")} />
-
-        {/* Canonical URL */}
-        <link rel="canonical" href={canonicalUrl} />
-
-        {/* JSON-LD Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Service",
-            "name": "Security Consulting Services",
-            "provider": {
-              "@type": "Person",
-              "name": "Harun R. Rayhan",
-              "description": "Security Consulting Expert"
-            },
-            "serviceType": "Security Services",
-            "description": "Expert security consulting and implementation services",
-            "offers": {
-              "@type": "Offer",
-              "description": "Security Assessment, Implementation, Best Practices"
-            },
-            "hasOfferCatalog": {
-              "@type": "OfferCatalog",
-              "name": "Security Consulting Services",
-              "itemListElement": [
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Security Assessment",
-                    "description": "Comprehensive security assessment and vulnerability analysis"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Security Implementation",
-                    "description": "Implementation of security measures and controls"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Security Best Practices",
-                    "description": "Implementation of security best practices and standards"
-                  }
-                }
-              ]
-            }
-          })}
-        </script>
-      </Head>
       <main className="flex flex-col min-h-screen">
         <ServiceHero
           icon={Lock}

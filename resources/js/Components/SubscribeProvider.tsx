@@ -1,4 +1,4 @@
-import { createContext, lazy, Suspense, useCallback, useContext, useEffect, useState, ReactNode } from 'react'
+import { createContext, lazy, Suspense, useCallback, useContext, useEffect, useRef, useState, ReactNode } from 'react'
 import { router } from '@inertiajs/react'
 import type { SubscribeTheme } from '@/Components/SubscribeForm'
 import { useIdleSubscribe } from '@/hooks/useIdleSubscribe'
@@ -54,6 +54,7 @@ export function SubscribeProvider({
   const [source, setSource] = useState('idle-popup')
   const [theme, setTheme] = useState<SubscribeTheme>('slate')
   const [currentSubscriberCount, setCurrentSubscriberCount] = useState(subscriberCount)
+  const returnFocusRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
     return router.on('navigate', (event) => {
@@ -65,11 +66,15 @@ export function SubscribeProvider({
 
   const openPopup = useCallback((nextSource: string, nextTheme: SubscribeTheme = 'slate') => {
     if (isAdminArea) return
+    // Capture before lazy-loading the dialog's focus-management listeners.
+    if (!open) {
+      returnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    }
     setSource(nextSource)
     setTheme(nextTheme)
     setHasOpened(true)
     setOpen(true)
-  }, [isAdminArea])
+  }, [isAdminArea, open])
 
   const closePopup = useCallback(() => {
     setOpen(false)
@@ -89,6 +94,7 @@ export function SubscribeProvider({
             source={source}
             theme={theme}
             subscriberCount={currentSubscriberCount}
+            returnFocusTo={returnFocusRef.current}
           />
         </Suspense>
       )}

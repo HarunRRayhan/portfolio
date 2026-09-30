@@ -16,7 +16,7 @@ class SiteSeoTest extends TestCase
     private function jsonLdGraphs(string $html): array
     {
         preg_match_all(
-            '/<script type="application\/ld\+json">\s*(.*?)\s*<\/script>/s',
+            '/<script\b[^>]*type="application\/ld\+json"[^>]*>\s*(.*?)\s*<\/script>/s',
             $html,
             $matches,
         );
@@ -149,7 +149,7 @@ class SiteSeoTest extends TestCase
 
         $html = $response->getContent();
 
-        $this->assertStringContainsString('<link rel="canonical" href="'.$canonical.'">', $html);
+        $this->assertStringContainsString('<link rel="canonical" href="'.$canonical.'"', $html);
         $this->assertStringContainsString('name="description" content="Transform your development and operations with expert DevOps consulting services.', $html);
         $this->assertStringContainsString('property="og:description" content="Transform your development and operations with expert DevOps consulting services.', $html);
         $this->assertStringContainsString('property="og:url" content="'.$canonical.'"', $html);
@@ -168,7 +168,7 @@ class SiteSeoTest extends TestCase
 
         $html = $response->getContent();
 
-        $this->assertStringContainsString('<link rel="canonical" href="'.$siteUrl.'/">', $html);
+        $this->assertStringContainsString('<link rel="canonical" href="'.$siteUrl.'/"', $html);
         $this->assertStringContainsString('name="description" content="Expert software engineer and DevOps consultant specializing in cloud architecture, AWS solutions, and infrastructure automation."', $html);
         $this->assertStringContainsString('property="og:description" content="Expert software engineer and DevOps consultant specializing in cloud architecture, AWS solutions, and infrastructure automation."', $html);
         $this->assertStringContainsString('property="og:title"', $html);
@@ -252,14 +252,14 @@ class SiteSeoTest extends TestCase
     public function bio_and_hrr_first_html_titles_match_the_react_head_copy(): void
     {
         $bio = $this->get('/bio')->assertOk()->getContent();
-        $this->assertStringContainsString('<title>Harun R. Rayhan | Bio</title>', $bio);
+        $this->assertStringContainsString('<title data-inertia="">Harun R. Rayhan | Bio</title>', $bio);
         $this->assertStringContainsString(
             'name="description" content="Harun R. Rayhan&#039;s bio page with quick links to his portfolio, blog, contact details, and social profiles."',
             $bio,
         );
 
         $hrr = $this->get('/hrr')->assertOk()->getContent();
-        $this->assertStringContainsString('<title>Harun R. Rayhan | বায়ো</title>', $hrr);
+        $this->assertStringContainsString('<title data-inertia="">Harun R. Rayhan | বায়ো</title>', $hrr);
         $this->assertStringContainsString(
             'হারুন আর রায়হানের বায়ো পেজ, যেখানে পাবেন পোর্টফোলিও, ব্লগ, যোগাযোগের তথ্য এবং সোশ্যাল মিডিয়া প্রোফাইলের দ্রুত লিংক।',
             $hrr,
@@ -273,12 +273,12 @@ class SiteSeoTest extends TestCase
             $html = $this->get($path)->assertOk()->getContent();
 
             $this->assertDoesNotMatchRegularExpression(
-                '/<title>[^<]*-\s*Laravel\s*<\/title>/',
+                '/<title[^>]*>[^<]*-\s*Laravel\s*<\/title>/',
                 $html,
                 $path.' first HTML must not append - Laravel',
             );
             $this->assertMatchesRegularExpression(
-                '/<title>[^<]*Harun[^<]*<\/title>/',
+                '/<title[^>]*>[^<]*Harun[^<]*<\/title>/',
                 $html,
                 $path.' first HTML title must stay branded',
             );

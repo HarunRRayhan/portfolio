@@ -4,7 +4,7 @@ import { ServiceHero } from "@/Components/ServiceHero"
 import { Button } from "@/Components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card"
 import { Zap, BarChart, Gauge, ArrowRight, CheckCircle, Users, Code, Database, Cloud, Network } from 'lucide-react'
-import { Link, Head } from '@inertiajs/react'
+import { Link } from '@inertiajs/react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/Components/ui/accordion"
 import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
@@ -74,77 +74,6 @@ export default function PerformanceOptimization({ canonicalUrl }: { canonicalUrl
 
   return (
     <>
-      <Head>
-        <title>Cloud Performance Optimization Services | Harun R. Rayhan</title>
-        <meta name="description" content="Expert cloud performance optimization services. Enhance your cloud infrastructure efficiency, reduce costs, and improve application performance through advanced optimization techniques." />
-        <meta name="keywords" content="cloud performance optimization, infrastructure optimization, cost optimization, application performance, cloud efficiency, performance tuning" />
-        
-        {/* OpenGraph Tags */}
-        <meta property="og:title" content="Cloud Performance Optimization Services | Harun R. Rayhan" />
-        <meta property="og:description" content="Expert cloud performance optimization services. Enhance your cloud infrastructure efficiency, reduce costs, and improve application performance through advanced optimization techniques." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content={ogImageUrl} />
-
-        {/* Twitter Card Tags */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Cloud Performance Optimization Services | Harun R. Rayhan" />
-        <meta name="twitter:description" content="Expert cloud performance optimization services. Enhance your cloud infrastructure efficiency, reduce costs, and improve application performance through advanced optimization techniques." />
-        <meta name="twitter:image" content={ogImageUrl} />
-        
-        {/* Canonical URL */}
-        <link rel="canonical" href={canonicalUrl} />
-
-        {/* JSON-LD Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Service",
-            "name": "Cloud Performance Optimization Services",
-            "provider": {
-              "@type": "Person",
-              "name": "Harun R. Rayhan",
-              "description": "Cloud Performance Optimization Expert"
-            },
-            "serviceType": "Cloud Computing Services",
-            "description": "Expert cloud performance optimization and consulting services",
-            "offers": {
-              "@type": "Offer",
-              "description": "Infrastructure Optimization, Cost Optimization, Performance Tuning"
-            },
-            "hasOfferCatalog": {
-              "@type": "OfferCatalog",
-              "name": "Performance Optimization Services",
-              "itemListElement": [
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Infrastructure Optimization",
-                    "description": "Optimize cloud infrastructure for maximum efficiency"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Cost Optimization",
-                    "description": "Reduce cloud infrastructure costs while maintaining performance"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Performance Tuning",
-                    "description": "Fine-tune applications and services for optimal performance"
-                  }
-                }
-              ]
-            }
-          })}
-        </script>
-      </Head>
       <main className="flex flex-col min-h-screen">
         <ServiceHero
           icon={Zap}

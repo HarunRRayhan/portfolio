@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react'
+import { Link } from '@inertiajs/react'
 import { ArrowRight, CalendarDays, MonitorPlay, Presentation, Sparkles } from 'lucide-react'
 
 export type MediaItemSummary = {
@@ -45,15 +45,6 @@ export default function MediaIndex({ type, items, canonicalUrl }: Props) {
 
   return (
     <>
-      <Head>
-        <title>{title}</title>
-        <meta name="description" content={copy.description} />
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={copy.description} />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={canonicalUrl} />
-        <link rel="canonical" href={canonicalUrl} />
-      </Head>
 
       <div className="pt-24">
         <section className="mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">

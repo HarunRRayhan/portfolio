@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\Subscriber;
 use App\Support\CaseStudyRepository;
 use App\Support\SeoCatalog;
+use App\Support\SeoMeta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
@@ -69,6 +70,7 @@ class HandleInertiaRequests extends Middleware
             // including the new admin/api-keys "here's your token" flash.
             'flash' => fn () => $request->session()->get('flash'),
             'seo' => $seo?->toArray(),
+            'siteJsonLd' => [SeoMeta::organizationGraph()],
             'canonicalUrl' => $seo?->canonicalUrl,
         ];
     }

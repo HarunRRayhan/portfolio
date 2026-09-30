@@ -80,7 +80,9 @@ jobs:
             aws s3 sync public/fonts "s3://$R2_BUCKET_NAME/fonts" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
             aws s3 sync public/images "s3://$R2_BUCKET_NAME/images" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
             # Marketing media served via cdn.harun.dev / getImageUrl / asset CDN — keep in sync with origin.
-            aws s3 sync public/blog-assets "s3://$R2_BUCKET_NAME/blog-assets" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
+            aws s3 sync public/blog-assets "s3://$R2_BUCKET_NAME/blog-assets" --endpoint-url "$R2_S3_ENDPOINT" --delete --exclude 'card-variants/*' --acl public-read
+            # Keep content-hashed covers for visitors with an older page still open.
+            aws s3 sync public/blog-assets/card-variants "s3://$R2_BUCKET_NAME/blog-assets/card-variants" --endpoint-url "$R2_S3_ENDPOINT" --acl public-read
             aws s3 sync public/service-assets "s3://$R2_BUCKET_NAME/service-assets" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
             aws s3 sync public/case-studies-assets "s3://$R2_BUCKET_NAME/case-studies-assets" --endpoint-url "$R2_S3_ENDPOINT" --delete --acl public-read
           }

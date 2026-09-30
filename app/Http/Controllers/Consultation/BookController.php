@@ -9,6 +9,7 @@ use App\Services\Consultation\AvailabilityService;
 use App\Services\Consultation\BookingWorkflowService;
 use App\Services\Consultation\ConsultationLaunchPromotionService;
 use App\Services\Consultation\StripeCheckoutService;
+use App\Support\SeoCatalog;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -21,17 +22,38 @@ class BookController extends Controller
     public function show(Request $request, StripeCheckoutService $stripe, ConsultationLaunchPromotionService $promotion): SymfonyResponse
     {
         $tiers = ConsultationTier::query()->active()->get()->map->toPublicArray()->values();
+        $discountCents = $promotion->discountCents();
+        $remaining = $promotion->remaining();
+        $seo = SeoCatalog::forPath('/consultation')->toArray();
+        $seo['jsonLd'] = [[
+            '@context' => 'https://schema.org',
+            '@type' => 'Service',
+            'name' => 'Cloud & DevOps Consultation',
+            'description' => 'Paid DevOps and infrastructure consultation sessions',
+            'provider' => [
+                '@type' => 'Person',
+                'name' => 'Harun R. Rayhan',
+                'jobTitle' => 'Cloud & DevOps Expert',
+            ],
+            'offers' => $tiers->map(fn (array $tier) => [
+                '@type' => 'Offer',
+                'name' => $tier['name'],
+                'price' => number_format(max(0, $tier['price_cents'] - ($remaining > 0 ? $discountCents : 0)) / 100, 2, '.', ''),
+                'priceCurrency' => 'USD',
+            ])->all(),
+        ]];
 
         $response = Inertia::render('Book', [
             'tiers' => $tiers,
+            'seo' => $seo,
             'stripeConfigured' => $stripe->configured(),
             'minLeadHours' => (int) config('consultation.min_lead_hours', 48),
             'bufferMinutes' => (int) config('consultation.buffer_minutes', 15),
             'timezones' => \DateTimeZone::listIdentifiers(),
             'launchPromotion' => [
-                'discount_cents' => $promotion->discountCents(),
+                'discount_cents' => $discountCents,
                 'limit' => $promotion->limit(),
-                'remaining_bookings' => $promotion->remaining(),
+                'remaining_bookings' => $remaining,
             ],
         ])->toResponse($request);
         $response->headers->set('Referrer-Policy', 'no-referrer');

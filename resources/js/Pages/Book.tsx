@@ -39,7 +39,7 @@ const accentBySlug: Record<string, { border: string; button: string; ring: strin
   },
   max: {
     border: 'border-t-amber-600 border-b-amber-600',
-    button: 'bg-amber-600 hover:bg-amber-700',
+    button: 'bg-amber-700 hover:bg-amber-800',
     ring: 'ring-amber-600',
   },
 }
@@ -308,51 +308,13 @@ export default function Book({
     })
   }
 
-  const offersLd = tiers.map((t) => ({
-    '@type': 'Offer',
-    name: t.name,
-    price: (
-      (launchAvailable ? Math.max(0, t.price_cents - (launchPromotion?.discount_cents ?? 0)) : t.price_cents) / 100
-    ).toFixed(2),
-    priceCurrency: 'USD',
-  }))
-
   const selectedAmountCents = selected
     ? Math.max(0, selected.price_cents - campaignDiscountCents)
     : null
 
   return (
     <>
-      <Head>
-        <meta name="referrer" content="no-referrer" />
-        <title>Consultation | Cloud & DevOps Expert - Harun R. Rayhan</title>
-        <meta
-          name="description"
-          content="Book a paid DevOps consultation — Light, Pro, or Max. The first 1,001 booking requests get $100 off before any valid coupon is applied."
-        />
-        <meta property="og:title" content="Consultation | Cloud & DevOps Expert - Harun R. Rayhan" />
-        <meta
-          property="og:description"
-          content="Paid DevOps consultations with approval, Google Calendar sync, Stripe checkout, and $100 off for the first 1,001 booking requests."
-        />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={canonicalUrl} />
-        <link rel="canonical" href={canonicalUrl} />
-        <script type="application/ld+json">
-          {JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'Service',
-            name: 'Cloud & DevOps Consultation',
-            description: 'Paid DevOps and infrastructure consultation sessions',
-            provider: {
-              '@type': 'Person',
-              name: 'Harun R. Rayhan',
-              jobTitle: 'Cloud & DevOps Expert',
-            },
-            offers: offersLd,
-          })}
-        </script>
-      </Head>
+      <Head><meta head-key="referrer" name="referrer" content="no-referrer" /></Head>
 
       <section className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-b from-slate-50 via-white to-slate-50">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(245,158,11,0.08),_transparent_55%)]" />
@@ -434,7 +396,7 @@ export default function Book({
                       className={`relative flex flex-col border border-slate-200 bg-white ${accent.border} border-t-[3px] border-b-[3px] ${isRecommended ? `ring-2 ${accent.ring} ring-offset-2` : ''}`}
                     >
                       {isRecommended && (
-                        <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-amber-600 px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-white shadow-sm">
+                        <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-amber-700 px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-white shadow-sm">
                           Recommended
                         </span>
                       )}
@@ -445,7 +407,7 @@ export default function Book({
                         <p className="mt-3 text-4xl font-bold tracking-tight text-slate-900">
                           {launchAvailable ? (
                             <>
-                              <span className="text-slate-400 line-through">{tier.price_display}</span>
+                              <span className="text-slate-600 line-through">{tier.price_display}</span>
                               {' '}
                               <span className="ml-2">
                                 {formatCents(Math.max(0, tier.price_cents - (launchPromotion?.discount_cents ?? 0)))}
@@ -454,7 +416,7 @@ export default function Book({
                           ) : (
                             tier.price_display
                           )}
-                          <span className="ml-1 text-base font-medium text-slate-400">/ one time</span>
+                          <span className="ml-1 text-base font-medium text-slate-600">/ one time</span>
                         </p>
                         {launchAvailable && <p className="mt-1 text-xs font-medium text-amber-700">{launchDiscountDisplay} off launch pricing</p>}
                         <p className="mt-1 text-sm text-slate-500">{tier.duration_minutes} minutes</p>
@@ -466,13 +428,15 @@ export default function Book({
                             className="flex items-start gap-3 border-b border-slate-100 py-3.5 text-sm text-slate-700 last:border-b-0"
                           >
                             <span
+                              role="img"
+                              aria-label={f.included ? 'Included' : 'Not included'}
                               className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
-                                f.included ? 'bg-amber-500 text-white' : 'bg-rose-500 text-white'
+                                f.included ? 'bg-amber-500 text-amber-950' : 'bg-rose-600 text-white'
                               }`}
                             >
-                              {f.included ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                              {f.included ? <Check className="h-3 w-3" aria-hidden="true" /> : <X className="h-3 w-3" aria-hidden="true" />}
                             </span>
-                            <span className={f.included ? '' : 'text-slate-400'}>{f.label}</span>
+                            <span className={f.included ? '' : 'text-slate-600'}>{f.label}</span>
                           </li>
                         ))}
                       </ul>

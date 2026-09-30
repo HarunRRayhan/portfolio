@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Head, Link } from "@inertiajs/react"
+import { Link } from "@inertiajs/react"
 import { ArrowUpRight, Check, Code2, Search, Terminal, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -304,13 +304,6 @@ export default function Products() {
 
     return (
         <>
-            <Head>
-                <title>Products | Harun R. Rayhan</title>
-                <meta
-                    name="description"
-                    content="Products built by Harun R. Rayhan - CloudPloy, SkaleAgents, Toolblip, Crontinel, Appnary, and Amazing Plugins."
-                />
-            </Head>
             <div className="min-h-screen bg-[#fafaf8] text-[#242821]">
                 <div className="mx-auto max-w-7xl px-5 pb-20 pt-28 sm:px-8 sm:pt-36 lg:px-12">
                     <header className="border-b border-[#dedfd8] pb-12 sm:pb-16">

@@ -1,4 +1,3 @@
-import { Head } from "@inertiajs/react"
 import { Suspense } from "react"
 import { HeroSectionV2 } from "@/Components/HeroSectionV2"
 import { LogoSection } from "@/Components/LogoSection"
@@ -17,52 +16,6 @@ export default function Homepage() {
 
     return (
         <>
-            <Head>
-                <title>Harun R. Rayhan - Senior Software Engineer & DevOps Consultant</title>
-                <meta name="description" content="Expert software engineer and DevOps consultant specializing in cloud architecture, AWS solutions, and infrastructure automation." />
-                <meta name="keywords" content="software engineer, DevOps consultant, cloud architecture, AWS expert, infrastructure automation, CI/CD" />
-                <meta property="og:title" content="Harun R. Rayhan - Senior Software Engineer & DevOps Consultant" />
-                <meta property="og:description" content="Expert software engineer and DevOps consultant specializing in cloud architecture, AWS solutions, and infrastructure automation." />
-                <meta property="og:type" content="website" />
-                <meta property="og:url" content={canonicalUrl} />
-                <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content="Harun R. Rayhan - Senior Software Engineer & DevOps Consultant" />
-                <meta name="twitter:description" content="Expert software engineer and DevOps consultant specializing in cloud architecture, AWS solutions, and infrastructure automation." />
-                <link rel="canonical" href={canonicalUrl} />
-                <script type="application/ld+json">
-                    {JSON.stringify({
-                        '@context': 'https://schema.org',
-                        '@type': 'Person',
-                        '@id': canonicalUrl + '#person',
-                        name: 'Harun R. Rayhan',
-                        jobTitle: 'Senior Software Engineer & DevOps Consultant',
-                        description: 'Expert software engineer and DevOps consultant specializing in cloud architecture and AWS solutions',
-                        url: canonicalUrl,
-                        sameAs: [
-                            'https://github.com/HarunRRayhan',
-                            'https://www.linkedin.com/in/harunrrayhan/',
-                            'https://x.com/harundotdev',
-                        ],
-                        worksFor: {
-                            '@id': canonicalUrl + '#organization',
-                        },
-                        knowsAbout: [
-                            'Software Engineering',
-                            'DevOps',
-                            'Cloud Architecture',
-                            'AWS',
-                            'Infrastructure Automation',
-                            'CI/CD',
-                            'Cloud Security',
-                        ],
-                        offers: {
-                            '@type': 'Offer',
-                            name: 'DevOps and Cloud Consulting Services',
-                            description: 'Professional consulting services in cloud architecture, DevOps implementation, and infrastructure automation',
-                        },
-                    })}
-                </script>
-            </Head>
             <HeroSectionV2 />
             {/* Separate hydration work so React can yield to user input between sections. */}
             <Suspense fallback={null}><LogoSection /></Suspense>

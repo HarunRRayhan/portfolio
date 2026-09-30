@@ -2,7 +2,7 @@ import { ServiceHero } from "@/Components/ServiceHero"
 import { Button } from "@/Components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card"
 import { Cloud, Server, Lock, ArrowRight, CheckCircle, BarChart, Users, Code } from 'lucide-react'
-import { Link, Head } from '@inertiajs/react'
+import { Link } from '@inertiajs/react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/Components/ui/accordion"
 import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
@@ -69,77 +69,6 @@ const staggerChildren = {
 export default function AWSCloud({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
-      <Head>
-        <title>AWS Cloud Services & Solutions | Harun R. Rayhan</title>
-        <meta name="description" content="Expert AWS cloud solutions and consulting services. Leverage the full power of Amazon Web Services with our certified professionals for scalable, secure, and cost-effective cloud infrastructure." />
-        <meta name="keywords" content="AWS cloud services, Amazon Web Services, cloud infrastructure, AWS consulting, cloud migration, AWS security, cloud optimization" />
-        
-        {/* OpenGraph Tags */}
-        <meta property="og:title" content="AWS Cloud Services & Solutions | Harun R. Rayhan" />
-        <meta property="og:description" content="Expert AWS cloud solutions and consulting services. Leverage the full power of Amazon Web Services with our certified professionals for scalable, secure, and cost-effective cloud infrastructure." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content={getImageUrl("/service-assets/aws-cloud/hero.jpg")} />
-
-        {/* Twitter Card Tags */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="AWS Cloud Services & Solutions | Harun R. Rayhan" />
-        <meta name="twitter:description" content="Expert AWS cloud solutions and consulting services. Leverage the full power of Amazon Web Services with our certified professionals for scalable, secure, and cost-effective cloud infrastructure." />
-        <meta name="twitter:image" content={getImageUrl("/service-assets/aws-cloud/hero.jpg")} />
-        
-        {/* Canonical URL */}
-        <link rel="canonical" href={canonicalUrl} />
-
-        {/* JSON-LD Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Service",
-            "name": "AWS Cloud Services",
-            "provider": {
-              "@type": "Person",
-              "name": "Harun R. Rayhan",
-              "description": "AWS Certified Cloud Professional"
-            },
-            "serviceType": "Cloud Computing Services",
-            "description": "Expert AWS cloud solutions and consulting services for businesses",
-            "offers": {
-              "@type": "Offer",
-              "description": "AWS Infrastructure Design, Migration, and Security Services"
-            },
-            "hasOfferCatalog": {
-              "@type": "OfferCatalog",
-              "name": "AWS Cloud Services",
-              "itemListElement": [
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "AWS Infrastructure Design",
-                    "description": "Design and implement scalable, secure, and cost-effective AWS cloud infrastructures"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "AWS Migration",
-                    "description": "Seamless migration of applications and infrastructure to AWS"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "AWS Security & Compliance",
-                    "description": "Implementation of robust security measures and compliance standards"
-                  }
-                }
-              ]
-            }
-          })}
-        </script>
-      </Head>
       <main className="flex flex-col min-h-screen">
         <ServiceHero
           icon={Cloud}

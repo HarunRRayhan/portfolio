@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react'
+import { Link } from '@inertiajs/react'
 import { ArrowRight, CalendarDays, Clock3, Share2, Sparkles } from 'lucide-react'
 import { CaseStudyArticleBody } from '@/Components/CaseStudyArticleBody'
 import { ShareButton } from '@/Components/ShareButton'
@@ -33,20 +33,6 @@ export default function CaseStudyDetailPage({ study, relatedStudies, canonicalUr
 
   return (
     <>
-      <Head>
-        <title>{`${study.title} | Case Studies`}</title>
-        <meta name="description" content={description} />
-        <meta property="og:title" content={study.title} />
-        <meta property="og:description" content={description} />
-        <meta property="og:type" content="article" />
-        <meta property="og:url" content={canonicalUrl} />
-        {metaImageUrl ? <meta property="og:image" content={metaImageUrl} /> : null}
-        <meta name="twitter:card" content={metaImageUrl ? 'summary_large_image' : 'summary'} />
-        <meta name="twitter:title" content={study.title} />
-        <meta name="twitter:description" content={description} />
-        {metaImageUrl ? <meta name="twitter:image" content={metaImageUrl} /> : null}
-        <link rel="canonical" href={canonicalUrl} />
-      </Head>
 
       <div className="pt-24">
         <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

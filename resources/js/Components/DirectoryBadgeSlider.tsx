@@ -51,6 +51,12 @@ const directoryBadges = [
 </a>`,
 ]
 
+// Preserve supplied badge links and imagery while deferring offscreen media.
+const deferredBadges = directoryBadges.map(markup => markup.replace(/<img\b[^>]*>/g, tag => {
+    const lazy = /\bloading=/.test(tag) ? tag : tag.replace('<img', '<img loading="lazy"')
+    return /\bdecoding=/.test(lazy) ? lazy : lazy.replace('<img', '<img decoding="async"')
+}))
+
 export function DirectoryBadgeSlider() {
     const trackRef = useRef<HTMLDivElement | null>(null)
     const isPointerInsideRef = useRef(false)
@@ -65,6 +71,7 @@ export function DirectoryBadgeSlider() {
         let animationFrame: number | null = null
         let previousTimestamp: number | null = null
         let offsetPx = 0
+        let isVisible = false
 
         const stopAnimation = () => {
             if (animationFrame !== null) {
@@ -98,7 +105,7 @@ export function DirectoryBadgeSlider() {
         }
 
         const startAnimation = () => {
-            if (motionPreference.matches || animationFrame !== null) return
+            if (!isVisible || motionPreference.matches || animationFrame !== null) return
             previousTimestamp = null
             animationFrame = window.requestAnimationFrame(animate)
         }
@@ -115,11 +122,17 @@ export function DirectoryBadgeSlider() {
             startAnimation()
         }
 
-        if (!motionPreference.matches) startAnimation()
+        const observer = new IntersectionObserver(([entry]) => {
+            isVisible = entry.isIntersecting
+            if (isVisible) startAnimation()
+            else stopAnimation()
+        })
+        observer.observe(track.parentElement ?? track)
         motionPreference.addEventListener('change', handleMotionPreferenceChange)
 
         return () => {
             stopAnimation()
+            observer.disconnect()
             motionPreference.removeEventListener('change', handleMotionPreferenceChange)
         }
     }, [])
@@ -148,7 +161,7 @@ export function DirectoryBadgeSlider() {
                 <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">Featured on</p>
                 <div className="overflow-hidden" aria-live="off">
                     <div ref={trackRef} className="flex w-max will-change-transform">
-                        {directoryBadges.map((markup, index) => (
+                        {deferredBadges.map((markup, index) => (
                             <div
                                 key={index}
                                 className="flex h-[76px] w-[148px] shrink-0 items-center justify-center px-2 sm:w-[180px]"

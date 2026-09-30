@@ -15,6 +15,7 @@ use App\Http\Controllers\Consultation\BookingAccessController;
 use App\Http\Controllers\Consultation\StripeWebhookController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NewsletterController;
+use App\Http\Controllers\OperationalHealthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SponsorCheckoutController;
 use App\Models\BioLink;
@@ -1185,17 +1186,8 @@ Route::get('/terms', function () {
     return Inertia::render('Terms');
 })->name('terms');
 
-// Health check endpoint used by Railway's deployment healthcheck
-Route::get('/health', function () {
-    $app = config('app');
-
-    return response()->json([
-        'status' => 'ok',
-        'build_version' => $app['build_version'] ?? 'local',
-        'deployment_id' => $app['deployment_id'] ?? 'local',
-        'timestamp' => now()->toISOString(),
-    ])->header('X-App-Version', $app['build_version'] ?? 'local')
-        ->header('X-Deployment-Id', $app['deployment_id'] ?? 'local');
-})->name('health');
+// Scheduler readiness is separate so a new web deployment never waits on a scheduler rollout.
+Route::get('/health', [OperationalHealthController::class, 'web'])->withoutMiddleware('web')->name('health');
+Route::get('/health/scheduler', [OperationalHealthController::class, 'scheduler'])->withoutMiddleware('web')->name('health.scheduler');
 
 require __DIR__.'/auth.php';

@@ -14,7 +14,7 @@ import {
   GitBranch,
   BarChart,
 } from 'lucide-react'
-import { Link, Head } from '@inertiajs/react'
+import { Link } from '@inertiajs/react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/Components/ui/accordion"
 import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
@@ -54,77 +54,6 @@ const staggerChildren = {
 export default function DatabaseMigration({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
-      <Head>
-        <title>Database Migration Services | Harun R. Rayhan</title>
-        <meta name="description" content="Expert database migration services. Seamlessly migrate your databases to modern platforms with minimal downtime and zero data loss." />
-        <meta name="keywords" content="database migration, data migration, cloud database, database modernization, MySQL migration, PostgreSQL migration, MongoDB migration" />
-        
-        {/* OpenGraph Tags */}
-        <meta property="og:title" content="Database Migration Services | Harun R. Rayhan" />
-        <meta property="og:description" content="Expert database migration services. Seamlessly migrate your databases to modern platforms with minimal downtime and zero data loss." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content={getImageUrl("/service-assets/database-migration/hero.jpg")} />
-
-        {/* Twitter Card Tags */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Database Migration Services | Harun R. Rayhan" />
-        <meta name="twitter:description" content="Expert database migration services. Seamlessly migrate your databases to modern platforms with minimal downtime and zero data loss." />
-        <meta name="twitter:image" content={getImageUrl("/service-assets/database-migration/hero.jpg")} />
-        
-        {/* Canonical URL */}
-        <link rel="canonical" href={canonicalUrl} />
-
-        {/* JSON-LD Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Service",
-            "name": "Database Migration Services",
-            "provider": {
-              "@type": "Person",
-              "name": "Harun R. Rayhan",
-              "description": "Database Migration Expert"
-            },
-            "serviceType": "Database Services",
-            "description": "Expert database migration and modernization services",
-            "offers": {
-              "@type": "Offer",
-              "description": "Database Assessment, Data Migration, Post-Migration Support"
-            },
-            "hasOfferCatalog": {
-              "@type": "OfferCatalog",
-              "name": "Database Migration Services",
-              "itemListElement": [
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Database Assessment",
-                    "description": "Comprehensive assessment of current database architecture"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Data Migration",
-                    "description": "Secure and efficient data migration with minimal downtime"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Post-Migration Support",
-                    "description": "Ongoing support and optimization after migration"
-                  }
-                }
-              ]
-            }
-          })}
-        </script>
-      </Head>
       <main className="flex flex-col min-h-screen">
         <ServiceHero
           icon={Database}

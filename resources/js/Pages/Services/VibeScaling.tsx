@@ -4,7 +4,7 @@ import { ServiceHero } from "@/Components/ServiceHero"
 import { Button } from "@/Components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card"
 import { Gauge, Zap, Database, Activity, ArrowRight, CheckCircle, Search, ClipboardList, Wrench, LineChart } from 'lucide-react'
-import { Link, Head } from '@inertiajs/react'
+import { Link } from '@inertiajs/react'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/Components/ui/accordion"
 import { motion } from "framer-motion"
 import { InfiniteScrollTech } from "@/Components/InfiniteScrollTech"
@@ -74,77 +74,6 @@ const staggerChildren = {
 export default function VibeScaling({ canonicalUrl }: { canonicalUrl?: string }) {
   return (
     <>
-      <Head>
-        <title>Vibe Scaler: Scale Your AI-Built App | Harun R. Rayhan</title>
-        <meta name="description" content="You built your app fast with AI coding tools and it found real users. We scale it in place: performance under load, database fixes, monitoring, and reliability, no rewrite required." />
-        <meta name="keywords" content="scale vibe coded app, AI built app scaling, Cursor app scaling, Lovable app performance, Replit app production, database bottleneck fix, app performance consulting, scale in place" />
-
-        {/* OpenGraph Tags */}
-        <meta property="og:title" content="Vibe Scaler: Scale Your AI-Built App | Harun R. Rayhan" />
-        <meta property="og:description" content="You built your app fast with AI coding tools and it found real users. We scale it in place: performance under load, database fixes, monitoring, and reliability, no rewrite required." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content={getImageUrl("/service-assets/vibe-scaling/hero.jpg")} />
-
-        {/* Twitter Card Tags */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Vibe Scaler: Scale Your AI-Built App | Harun R. Rayhan" />
-        <meta name="twitter:description" content="You built your app fast with AI coding tools and it found real users. We scale it in place: performance under load, database fixes, monitoring, and reliability, no rewrite required." />
-        <meta name="twitter:image" content={getImageUrl("/service-assets/vibe-scaling/hero.jpg")} />
-
-        {/* Canonical URL */}
-        <link rel="canonical" href={canonicalUrl} />
-
-        {/* JSON-LD Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Service",
-            "name": "Vibe Scaler",
-            "provider": {
-              "@type": "Person",
-              "name": "Harun R. Rayhan",
-              "description": "Software Scaling and Performance Expert"
-            },
-            "serviceType": "Application Scaling Services",
-            "description": "Scaling and hardening services for apps first built with AI coding tools, done in place without a rewrite",
-            "offers": {
-              "@type": "Offer",
-              "description": "Performance Under Load, Database Hardening, Reliability and Monitoring"
-            },
-            "hasOfferCatalog": {
-              "@type": "OfferCatalog",
-              "name": "Vibe Scaler Services",
-              "itemListElement": [
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Performance Under Load",
-                    "description": "Profiling under real traffic and fixing the slow paths with caching, background workers, and query fixes"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Database Hardening",
-                    "description": "Adding missing indexes, fixing N+1 queries, and setting up connection pooling so the database keeps up as data grows"
-                  }
-                },
-                {
-                  "@type": "Offer",
-                  "itemOffered": {
-                    "@type": "Service",
-                    "name": "Reliability and Monitoring",
-                    "description": "Error tracking, uptime checks, dashboards, backups, and a way to roll back a bad deploy"
-                  }
-                }
-              ]
-            }
-          })}
-        </script>
-      </Head>
       <main className="flex flex-col min-h-screen">
         <ServiceHero
           icon={Gauge}

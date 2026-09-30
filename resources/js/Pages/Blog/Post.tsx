@@ -1,6 +1,6 @@
 'use client'
 
-import { Head, Link } from '@inertiajs/react'
+import { Link } from '@inertiajs/react'
 import { useEffect, useMemo, useRef } from 'react'
 import { BlogDiscussion } from '@/Components/BlogDiscussion'
 import { ShareButton } from '@/Components/ShareButton'
@@ -268,23 +268,6 @@ export default function BlogPostPage({
 
   return (
     <>
-      <Head>
-        <title>{`${post.title} | Harun's Blog`}</title>
-        <meta name="description" content={description} />
-        <meta name="keywords" content={post.tags.map((tag) => tag.name).join(', ')} />
-        <meta property="og:title" content={post.title} />
-        <meta property="og:description" content={description} />
-        <meta property="og:type" content="article" />
-        <meta property="og:url" content={canonicalUrl} />
-        {metaImageUrl ? <meta property="og:image" content={metaImageUrl} /> : null}
-        <meta name="twitter:card" content={metaImageUrl ? 'summary_large_image' : 'summary'} />
-        <meta name="twitter:title" content={post.title} />
-        <meta name="twitter:description" content={description} />
-        {metaImageUrl ? <meta name="twitter:image" content={metaImageUrl} /> : null}
-        {isDraft ? <meta name="robots" content="noindex, nofollow, noarchive" /> : null}
-        {isDraft ? <meta name="googlebot" content="noindex, nofollow, noarchive" /> : null}
-        <link rel="canonical" href={canonicalUrl} />
-      </Head>
 
       <div className="pt-24">
           <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

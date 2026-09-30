@@ -1,5 +1,6 @@
+import { SeoHead } from '@/Components/SeoHead'
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Head, Link, usePage } from '@inertiajs/react'
+import { Link, usePage } from '@inertiajs/react'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { getImageUrl } from '@/lib/imageUtils'
 import { Mail, Share2, Package, Bot, PiggyBank, Wrench, MoreHorizontal, Plane, ArrowLeft, Languages } from 'lucide-react'
@@ -437,23 +438,7 @@ export default function Bio({
 
   return (
     <>
-      <Head>
-        <title>{t.title}</title>
-        <meta name="description" content={t.description} />
-        <meta name="keywords" content={t.keywords} />
-        <meta property="og:title" content={t.title} />
-        <meta property="og:description" content={t.shareDescription} />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content={ogImageUrl} />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={t.title} />
-        <meta name="twitter:description" content={t.shareDescription} />
-        <meta name="twitter:image" content={ogImageUrl} />
-        <link rel="canonical" href={canonicalUrl} />
-      </Head>
+      <SeoHead />
 
       <main className="relative min-h-svh overflow-hidden bg-[#f7f1e8] px-4 py-10 text-[#2b2320] sm:px-6 sm:py-14 lg:px-8">
         {/* Layered warm glow */}

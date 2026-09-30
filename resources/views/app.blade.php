@@ -6,16 +6,23 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         @php
-            // Built in @php so Blade's @context directive cannot rewrite the JSON keys.
-            $organizationJsonLd = \App\Support\SeoMeta::organizationGraph();
             $seo = data_get($page, 'props.seo');
+            // Reuse Inertia's request-scoped dispatch for the head and body.
+            // On renderer failure, Blade supplies the same managed metadata.
+            $ssrResponse = app(\Inertia\Ssr\SsrState::class)->setPage($page)->dispatch();
         @endphp
-        @if (is_array($seo))
-            @include('partials.seo-meta', ['seo' => $seo])
+        @if ($ssrResponse && trim($ssrResponse->head) !== '')
+            {!! $ssrResponse->head !!}
         @else
-            <title inertia>{{ config('app.name', 'Laravel') }}</title>
+            @if (is_array($seo))
+                @include('partials.seo-meta', ['seo' => $seo])
+            @else
+                <title data-inertia="">{{ config('app.name', 'Laravel') }}</title>
+            @endif
+            @foreach (data_get($page, 'props.siteJsonLd', [\App\Support\SeoMeta::organizationGraph()]) as $index => $graph)
+                <script type="application/ld+json" data-inertia="site-jsonld-{{ $index }}">{!! json_encode($graph, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
+            @endforeach
         @endif
-        <script type="application/ld+json">{!! json_encode($organizationJsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 
         <!-- Favicon -->
         <link rel="icon" href="/favicon.ico" sizes="any">
@@ -52,16 +59,10 @@
             <noscript><link rel="stylesheet" href="{{ asset('build/'.$homepageStyles['stylesheet']) }}"></noscript>
         @endif
         @vite(['resources/js/app.tsx', "resources/js/Pages/{$page['component']}.tsx"])
-        @inertiaHead
         @php
             $isDraftBlogPost = ($page['component'] ?? null) === 'Blog/Post' && data_get($page, 'props.post.isDraft');
             $isBookingStatus = ($page['component'] ?? null) === 'Book/Status';
         @endphp
-        @if ($isDraftBlogPost)
-            <meta name="robots" content="noindex, nofollow, noarchive">
-            <meta name="googlebot" content="noindex, nofollow, noarchive">
-        @endif
-
         @if (config('services.ga4.measurement_id') && ! $isDraftBlogPost && ! $isBookingStatus)
             <script>
                 window.dataLayer = window.dataLayer || [];

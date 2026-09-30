@@ -96,16 +96,8 @@ export default function MediaDetailPage({ type, item, paired, related, canonical
   return (
     <>
       <Head>
-        <title>{title}</title>
-        <meta name="description" content={description} />
-        <meta property="og:title" content={item.title} />
-        <meta property="og:description" content={description} />
-        <meta property="og:type" content="article" />
-        <meta property="og:url" content={canonicalUrl} />
-        {item.thumbnailUrl ? <meta property="og:image" content={item.thumbnailUrl} /> : null}
-        <link rel="canonical" href={canonicalUrl} />
         {preconnectOrigins.map((origin) => (
-          <link key={origin} rel="preconnect" href={origin} />
+          <link key={origin} head-key={`preconnect-${origin}`} rel="preconnect" href={origin} />
         ))}
       </Head>
 

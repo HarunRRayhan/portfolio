@@ -1,7 +1,6 @@
 "use client"
 
 import React, { useEffect, useRef, useState } from "react"
-import { Head } from "@inertiajs/react"
 import { motion } from "framer-motion"
 import { ServiceHero } from "@/Components/ServiceHero"
 import { Button } from "@/Components/ui/button"
@@ -74,14 +73,6 @@ export default function CloudArchitecturePage() {
 
   return (
     <>
-      <Head title="Cloud Architecture">
-        <meta property="og:title" content="Cloud Architecture" />
-        <meta
-          property="og:description"
-          content="Design and implement scalable, secure, and cost-effective cloud architectures for your business."
-        />
-        <meta property="og:image" content={getImageUrl("/service-assets/cloud-architecture/hero.jpg")} />
-      </Head>
       <main className="flex flex-col min-h-screen">
         <ServiceHero
           icon={Cloud}

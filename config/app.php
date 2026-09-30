@@ -68,9 +68,9 @@ return [
 
     'preview_url' => env('PREVIEW_URL'),
 
-    'build_version' => env('APP_BUILD_VERSION', 'local'),
+    'build_version' => env('RAILWAY_GIT_COMMIT_SHA') ?: env('APP_BUILD_VERSION') ?: 'local',
 
-    'deployment_id' => env('APP_DEPLOYMENT_ID', 'local'),
+    'deployment_id' => env('RAILWAY_DEPLOYMENT_ID') ?: env('APP_DEPLOYMENT_ID') ?: 'local',
 
     /*
     |--------------------------------------------------------------------------
