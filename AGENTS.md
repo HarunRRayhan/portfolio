@@ -2,12 +2,12 @@
 
 ## Secrets and production
 
-- Check `/Users/rayhan/Code/haruns-portfolio/.secrets` before work involving credentials, integrations, or deployment.
+- Check `/Users/rayhan/Code/harundev/.secrets` before work involving credentials, integrations, or deployment.
 - Read secrets only into environment variables. Never print, paste, or commit secret values.
 - Use `.secrets/stripe.env` only for isolated Stripe test-mode checks. Use `.secrets/stripe-live.env` for production configuration.
 - Never run a live Stripe payment test or use test cards against `https://harun.dev`.
 - Production services are `web`, `scheduler`, and shared PostgreSQL. Run migrations through `railway.web.json`'s `preDeployCommand`.
-- Railway operations use `RAILWAY_PROJECT_TOKEN` and `RAILWAY_PROJECT_ID` from `/Users/rayhan/Code/haruns-portfolio/.env`; do not request account login when the project token is available.
+- Railway operations use `RAILWAY_PROJECT_TOKEN` and `RAILWAY_PROJECT_ID` from `/Users/rayhan/Code/harundev/.env`; do not request account login when the project token is available.
 - Authenticate Railway GraphQL requests with a project token using the `Project-Access-Token` header. `Authorization: Bearer` is for account or workspace tokens.
 
 ## Newsletter
@@ -31,6 +31,13 @@
 - Use the `local-verify` skill for real browser checks. Keep browser checks read-only when verifying production.
 - Worktree `.env` files may link to the main checkout. Do not edit or swap them for local checks; use process environment overrides and an isolated database copy.
 - Frontend releases need separate checks for Railway `web` and `scheduler`, the GitHub asset-sync workflow, and the live response. CI build variables can change asset hashes; verify the hash from the published manifest or workflow rather than assuming a local hash will be served.
+
+## Products catalog
+
+- Keep product order: CloudPloy, SkaleAgents, Toolblip, Crontinel, Appnary, Amazing Plugins.
+- Each product card links only to its primary product website. Do not add GitHub, Laravel package, or WordPress.org links to the cards; this does not change the shared footer's social links.
+- Keep the illustrated covers, category filters, search, and empty-result reset. Account for the fixed navigation when checking the page's top spacing on mobile and desktop.
+- Railway and R2 can publish different valid bundle hashes. Compare live HTML against the origin manifest, and verify the CDN manifest/bundle against the asset-sync workflow separately.
 
 ## Admin dashboard
 
