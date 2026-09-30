@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\LoginRedirectTarget;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +23,8 @@ class SocialAuthenticationController extends Controller
             return redirect()->route('login')->with('status', ucfirst($provider).' sign-in is not configured yet.');
         }
 
-        $redirectTo = $this->sanitizeRedirectTarget($request->string('redirect')->toString());
+        $redirectTo = LoginRedirectTarget::sanitize($request->string('redirect')->toString());
+        $request->session()->forget('social_login.redirect_to');
 
         if ($redirectTo !== null) {
             $request->session()->put('social_login.redirect_to', $redirectTo);
@@ -38,7 +41,7 @@ class SocialAuthenticationController extends Controller
         $config = $this->providerConfig($provider);
 
         if ($config === null) {
-            throw new NotFoundHttpException();
+            throw new NotFoundHttpException;
         }
 
         $request->validate([
@@ -54,42 +57,58 @@ class SocialAuthenticationController extends Controller
         $profile = $this->fetchProfile($provider, $config, $request->string('code')->toString());
 
         $email = $profile['email'] ?? null;
-        $name = $profile['name'] ?? $profile['login'] ?? $profile['given_name'] ?? $profile['email'];
-        $providerId = (string) ($profile['id'] ?? $profile['sub'] ?? '');
-        $avatarUrl = $profile['avatar_url'] ?? $profile['picture'] ?? null;
+        $providerId = $profile['id'] ?? $profile['sub'] ?? null;
 
-        if (! is_string($email) || trim($email) === '') {
-            abort(422, 'Social login provider did not return an email address.');
+        if (! is_string($email) || ! filter_var($email, FILTER_VALIDATE_EMAIL)
+            || ($profile['email_verified'] ?? false) !== true
+            || (! is_string($providerId) && ! is_int($providerId)) || (string) $providerId === '') {
+            return redirect()->route('login')->with('status', 'Sign-in requires a verified email address and a valid provider identity. Verify your email with the provider, then try again.');
         }
 
-        /** @var User $user */
-        $user = User::query()->firstOrNew([
-            'email' => $email,
-        ]);
+        $email = strtolower($email);
+        $providerId = (string) $providerId;
+        $name = $profile['name'] ?? $profile['login'] ?? $profile['given_name'] ?? $email;
+        $avatarUrl = $profile['avatar_url'] ?? $profile['picture'] ?? null;
+
+        // Provider identity owns the link. A matching email alone never links accounts.
+        $user = User::query()->where('provider_name', $provider)->where('provider_id', $providerId)->first();
+        $emailOwner = User::query()->whereRaw('LOWER(email) = ?', [$email])->first();
+
+        if ($emailOwner && (! $user || ! $emailOwner->is($user))) {
+            return redirect()->route('login')->with('status', 'An account already uses this email. Sign in with its original provider or password, or use Forgot your password to recover access. Social sign-in cannot link it automatically.');
+        }
+
+        if (! $user) {
+            $user = new User;
+            $user->password = Str::random(64);
+            $user->role = 'commenter';
+        }
 
         $user->name = is_string($name) && trim($name) !== '' ? $name : $email;
         $user->email = $email;
         $user->provider_name = $provider;
-        $user->provider_id = $providerId !== '' ? $providerId : null;
+        $user->provider_id = $providerId;
         $user->avatar_url = is_string($avatarUrl) && trim($avatarUrl) !== '' ? $avatarUrl : null;
 
-        if (! $user->exists) {
-            $user->password = Str::random(64);
-        }
-
-        // Auto-promote configured super-admin emails to admin role
-        $adminEmails = (array) config('auth.super_admin_emails', []);
-        if (in_array($user->email, $adminEmails, true) && $user->role !== 'admin') {
+        // Promotion is limited to an email verified by the authenticated provider.
+        $adminEmails = array_map('strtolower', (array) config('auth.super_admin_emails', []));
+        if (in_array($email, $adminEmails, true)) {
             $user->role = 'admin';
         }
 
-        $user->email_verified_at ??= now();
-        $user->save();
+        $user->email_verified_at = now();
+        try {
+            $user->save();
+        } catch (UniqueConstraintViolationException) {
+            // A competing request claimed the email or provider identity first.
+            return redirect()->route('login')->with('status', 'This identity or email was linked while you were signing in. Try signing in again, or use your original password or Forgot your password to recover access.');
+        }
 
         Auth::login($user, true);
+        $request->session()->regenerate();
 
-        $redirectTo = $this->sanitizeRedirectTarget($request->session()->pull('social_login.redirect_to'))
-            ?? route('dashboard', absolute: false);
+        $redirectTo = LoginRedirectTarget::sanitize($request->session()->pull('social_login.redirect_to'))
+            ?? route($user->isAdmin() ? 'dashboard' : 'blog.index', absolute: false);
 
         return redirect()->to($redirectTo);
     }
@@ -129,7 +148,7 @@ class SocialAuthenticationController extends Controller
                 'prompt' => 'select_account',
                 'state' => $state,
             ]),
-            default => throw new NotFoundHttpException(),
+            default => throw new NotFoundHttpException,
         };
     }
 
@@ -142,7 +161,7 @@ class SocialAuthenticationController extends Controller
         return match ($provider) {
             'github' => $this->fetchGitHubProfile($config, $code),
             'google' => $this->fetchGoogleProfile($config, $code),
-            default => throw new NotFoundHttpException(),
+            default => throw new NotFoundHttpException,
         };
     }
 
@@ -171,23 +190,20 @@ class SocialAuthenticationController extends Controller
             ->throw()
             ->json();
 
-        $email = data_get($profile, 'email');
+        // The public profile email has no verified flag; use the emails endpoint.
+        $emails = Http::withToken($accessToken)
+            ->acceptJson()
+            ->withHeaders(['User-Agent' => config('app.name', 'Laravel')])
+            ->get('https://api.github.com/user/emails')
+            ->throw()
+            ->json();
 
-        if (! is_string($email) || trim($email) === '') {
-            $emails = Http::withToken($accessToken)
-                ->acceptJson()
-                ->withHeaders([
-                    'User-Agent' => config('app.name', 'Laravel'),
-                ])
-                ->get('https://api.github.com/user/emails')
-                ->throw()
-                ->json();
-
-            foreach (is_array($emails) ? $emails : [] as $entry) {
-                if (data_get($entry, 'primary') && data_get($entry, 'verified') && is_string(data_get($entry, 'email'))) {
-                    $email = data_get($entry, 'email');
-                    break;
-                }
+        $email = null;
+        foreach (is_array($emails) ? $emails : [] as $entry) {
+            if (data_get($entry, 'primary') === true && data_get($entry, 'verified') === true
+                && is_string(data_get($entry, 'email'))) {
+                $email = data_get($entry, 'email');
+                break;
             }
         }
 
@@ -195,6 +211,7 @@ class SocialAuthenticationController extends Controller
             'id' => data_get($profile, 'id'),
             'name' => data_get($profile, 'name') ?: data_get($profile, 'login'),
             'email' => $email,
+            'email_verified' => $email !== null,
             'avatar_url' => data_get($profile, 'avatar_url'),
             'login' => data_get($profile, 'login'),
         ];
@@ -222,26 +239,5 @@ class SocialAuthenticationController extends Controller
             ->get('https://openidconnect.googleapis.com/v1/userinfo')
             ->throw()
             ->json();
-    }
-
-    private function sanitizeRedirectTarget(?string $redirectTarget): ?string
-    {
-        if (! is_string($redirectTarget) || trim($redirectTarget) === '') {
-            return null;
-        }
-
-        if (str_starts_with($redirectTarget, '/')) {
-            return $redirectTarget;
-        }
-
-        $appUrl = rtrim(config('app.url', url('/')), '/');
-        $redirectHost = parse_url($redirectTarget, PHP_URL_HOST);
-        $appHost = parse_url($appUrl, PHP_URL_HOST);
-
-        if ($redirectHost !== null && $appHost !== null && strcasecmp($redirectHost, $appHost) === 0) {
-            return $redirectTarget;
-        }
-
-        return null;
     }
 }

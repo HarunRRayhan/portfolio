@@ -34,6 +34,7 @@ class ApiKeyTest extends TestCase
 
         $response = $this->actingAs($admin)->post('/admin/api-keys', [
             'name' => 'My integration',
+            'abilities' => ['short-links:create'],
             'rate_limit_per_minute' => 30,
             'rate_limit_per_day' => 500,
         ]);
@@ -56,7 +57,7 @@ class ApiKeyTest extends TestCase
     {
         $admin = $this->admin();
 
-        $this->actingAs($admin)->post('/admin/api-keys', ['name' => 'No overrides'])
+        $this->actingAs($admin)->post('/admin/api-keys', ['name' => 'No overrides', 'abilities' => ['short-links:create']])
             ->assertRedirect('/admin/api-keys');
 
         $token = PersonalAccessToken::first();
@@ -93,6 +94,61 @@ class ApiKeyTest extends TestCase
         ]);
         $this->assertCount(1, $response->json('props.tokens'));
         $this->assertSame('mine', $response->json('props.tokens.0.name'));
+    }
+
+    public function test_new_keys_require_explicit_supported_scopes(): void
+    {
+        $admin = $this->admin();
+        $this->actingAs($admin)->post('/admin/api-keys', ['name' => 'Missing scopes'])->assertSessionHasErrors('abilities');
+        $this->post('/admin/api-keys', ['name' => 'Wildcard', 'abilities' => ['*']])->assertSessionHasErrors('abilities.0');
+        $this->assertSame(0, PersonalAccessToken::count());
+    }
+
+    public function test_new_key_persists_scopes_and_expiry(): void
+    {
+        $expiry = now()->addDays(90)->startOfMinute();
+        $this->actingAs($this->admin())->post('/admin/api-keys', [
+            'name' => 'Bounded key', 'abilities' => ['short-links:create', 'qr-codes:create'], 'expires_at' => $expiry->toIso8601String(),
+        ])->assertRedirect('/admin/api-keys');
+        $token = PersonalAccessToken::firstOrFail();
+        $this->assertSame(['short-links:create', 'qr-codes:create'], $token->abilities);
+        $this->assertTrue($expiry->equalTo($token->expires_at));
+    }
+
+    public function test_expiry_must_be_in_the_future(): void
+    {
+        $this->actingAs($this->admin())->post('/admin/api-keys', [
+            'name' => 'Expired', 'abilities' => ['short-links:create'], 'expires_at' => now()->subMinute()->toIso8601String(),
+        ])->assertSessionHasErrors('expires_at');
+        $this->assertSame(0, PersonalAccessToken::count());
+    }
+
+    public function test_key_metadata_distinguishes_legacy_unrestricted_keys_and_expiry(): void
+    {
+        $admin = $this->admin();
+        $token = $admin->createToken('legacy', ['*']);
+        $response = $this->actingAs($admin)->get('/admin/api-keys', $this->inertiaHeaders())->assertOk();
+        $response->assertJsonPath('props.tokens.0.abilities', ['*'])
+            ->assertJsonPath('props.tokens.0.is_legacy_unrestricted', true)
+            ->assertJsonPath('props.tokens.0.expires_at', null);
+        $this->assertSame(['*'], $token->accessToken->fresh()->abilities);
+    }
+
+    public function test_omitting_expiry_defaults_to_ninety_days(): void
+    {
+        $this->travelTo(now()->startOfSecond());
+        $this->actingAs($this->admin())->post('/admin/api-keys', ['name' => 'Default expiry', 'abilities' => ['short-links:create']])
+            ->assertRedirect('/admin/api-keys');
+        $this->assertTrue(now()->addDays(90)->equalTo(PersonalAccessToken::firstOrFail()->expires_at));
+    }
+
+    public function test_an_explicit_null_expiry_creates_a_non_expiring_scoped_key(): void
+    {
+        $this->actingAs($this->admin())->post('/admin/api-keys', ['name' => 'No expiry', 'abilities' => ['qr-codes:create'], 'expires_at' => null])
+            ->assertRedirect('/admin/api-keys');
+        $token = PersonalAccessToken::firstOrFail();
+        $this->assertNull($token->expires_at);
+        $this->assertSame(['qr-codes:create'], $token->abilities);
     }
 
     public function test_an_admin_can_revoke_their_own_key(): void

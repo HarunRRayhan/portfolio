@@ -17,15 +17,26 @@ class BookingController extends Controller
     public function index(Request $request): Response
     {
         $status = $request->string('status')->toString();
+        $search = mb_substr(trim($request->string('q')->toString()), 0, 200);
 
-        $query = ConsultationBooking::query()->with(['tier', 'coupon'])->latest();
+        $query = ConsultationBooking::query()->with(['tier', 'coupon'])->latest()->orderByDesc('id');
 
         if ($status !== '') {
             $query->where('status', $status);
         }
 
+        if ($search !== '') {
+            $pattern = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], mb_strtolower($search)).'%';
+            $query->where(function ($query) use ($pattern): void {
+                foreach (['client_name', 'client_email', 'company_name', 'public_id'] as $column) {
+                    $query->orWhereRaw("LOWER({$column}) LIKE ? ESCAPE '!'", [$pattern]);
+                }
+            });
+        }
+
         return Inertia::render('Admin/Consultations/Bookings/Index', [
-            'bookings' => $query->limit(100)->get()->map->toAdminArray()->values(),
+            'bookings' => $query->paginate(25)->withQueryString()->through(fn (ConsultationBooking $booking) => $booking->toAdminArray()),
+            'searchQuery' => $search,
             'filterStatus' => $status,
             'googleConnected' => app(GoogleCalendarService::class)->isConnected(),
         ]);
@@ -37,6 +48,13 @@ class BookingController extends Controller
 
         return Inertia::render('Admin/Consultations/Bookings/Show', [
             'booking' => $booking->toAdminArray(),
+            'cancellation' => [
+                // Mirrors approveCancel: an existing refund is reused; only a
+                // payment intent without a refund starts a full-payment refund.
+                'refundStatus' => $booking->stripe_refund_id ? 'refunded' : ($booking->stripe_payment_intent_id ? 'pending' : 'not_needed'),
+                'bookingAmountCents' => (int) $booking->amount_due_cents,
+                'currency' => $booking->currency,
+            ],
             'events' => $booking->events()->latest()->limit(50)->get()->map(fn ($e) => [
                 'id' => $e->id,
                 'event' => $e->event,

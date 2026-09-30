@@ -148,6 +148,8 @@ export default function Book({
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
   const [timezone, setTimezone] = useState(() => browserTimezone(timezones))
   const [slotsLoading, setSlotsLoading] = useState(false)
+  const [slotsError, setSlotsError] = useState<string | null>(null)
+  const [availabilityAttempt, setAvailabilityAttempt] = useState(0)
   const [discountedCents, setDiscountedCents] = useState<number | null>(null)
   const [campaignDiscountCents, setCampaignDiscountCents] = useState(0)
 
@@ -205,22 +207,59 @@ export default function Book({
   const errors = (page.props.errors ?? {}) as Record<string, string>
 
   useEffect(() => {
-    if (!selectedSlug) return
+    if (step !== 'details' || !selectedSlug) return
 
+    const controller = new AbortController()
+    let active = true
+    const timeout = window.setTimeout(() => controller.abort(), 15_000)
     setSlotsLoading(true)
+    setSlotsError(null)
     const params = new URLSearchParams({ tier: selectedSlug })
     fetch(`/book/availability?${params}`, {
       headers: { Accept: 'application/json' },
+      signal: controller.signal,
     })
-      .then((r) => r.json())
-      .then((data) => setSlots(Array.isArray(data.slots) ? data.slots : []))
-      .catch(() => setSlots([]))
-      .finally(() => setSlotsLoading(false))
-  }, [selectedSlug])
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Availability request failed')
+        const data = await response.json()
+        if (!Array.isArray(data?.slots) || !data.slots.every((slot: Slot) => (
+          slot && typeof slot.start === 'string' && typeof slot.end === 'string'
+          && Number.isFinite(Date.parse(slot.start)) && Number.isFinite(Date.parse(slot.end))
+          && Date.parse(slot.end) > Date.parse(slot.start)
+        ))) throw new Error('Invalid availability response')
+        if (active) setSlots(data.slots)
+      })
+      .catch(() => {
+        if (!active) return
+        setSlots([])
+        setSlotsError('We couldn’t load available times. Please retry or contact me to arrange a session.')
+      })
+      .finally(() => {
+        window.clearTimeout(timeout)
+        if (active) setSlotsLoading(false)
+      })
+
+    return () => {
+      active = false
+      window.clearTimeout(timeout)
+      controller.abort()
+    }
+  }, [selectedSlug, step, availabilityAttempt])
+
+  const retryAvailability = () => {
+    setSlotsLoading(true)
+    setSlotsError(null)
+    setSlots([])
+    setSelectedDay(null)
+    form.setData('starts_at', '')
+    setAvailabilityAttempt((attempt) => attempt + 1)
+  }
 
   const startBooking = (tier: Tier) => {
     setSelectedSlug(tier.slug)
     setSlots([])
+    setSlotsLoading(true)
+    setSlotsError(null)
     setSelectedDay(null)
     form.setData('tier', tier.slug)
     form.setData('starts_at', '')
@@ -550,12 +589,28 @@ export default function Book({
                      </div>
                      <span className="mb-1.5 block text-sm font-medium text-slate-700">Pick a time</span>
                     {slotsLoading ? (
-                      <div className="flex items-center gap-2 py-8 text-sm text-slate-500">
+                      <div role="status" className="flex items-center gap-2 py-8 text-sm text-slate-500">
                         <Loader2 className="h-4 w-4 animate-spin" /> Loading open slots…
+                      </div>
+                    ) : slotsError ? (
+                      <div role="alert" className="border border-rose-200 bg-rose-50 px-4 py-5 text-sm text-rose-800">
+                        <p>{slotsError}</p>
+                        <div className="mt-3 flex items-center gap-4">
+                          <button
+                            type="button"
+                            onClick={retryAvailability}
+                            className="border border-rose-300 bg-white px-4 py-2 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-700"
+                          >
+                            Retry
+                          </button>
+                          <a href="/contact" className="underline underline-offset-4">Contact me</a>
+                        </div>
                       </div>
                     ) : slots.length === 0 ? (
                       <p className="border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
-                        No open slots right now. Check back after availability is configured, or email me.
+                        No open slots right now. Please check back later or{' '}
+                        <a href="/contact" className="font-medium text-slate-700 underline underline-offset-4">contact me</a>{' '}
+                        to arrange a session.
                       </p>
                     ) : (
                       <>
