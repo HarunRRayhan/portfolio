@@ -19,7 +19,6 @@ type Product = {
     description: string
     logo: string
     backdrop: string
-    extraLinks: { label: string; href: string }[]
 }
 
 const products: Product[] = [
@@ -32,8 +31,7 @@ const products: Product[] = [
         description:
             "Connect Claude Code, Cursor, or another MCP client to your cloud. Bring your own server or provision one, and let CloudPloy handle the deployment.",
         logo: "/images/products/cloudploy-icon.svg",
-        backdrop: "bg-[#edf1ff]",
-        extraLinks: []
+        backdrop: "bg-[#edf1ff]"
     },
     {
         id: "skaleagents",
@@ -44,8 +42,7 @@ const products: Product[] = [
         description:
             "Review code and infrastructure with AI DevOps agents. Run audits from your editor or the web app, then work through the findings with your team.",
         logo: "/images/products/skaleagents-icon.svg",
-        backdrop: "bg-[#f0eafa]",
-        extraLinks: []
+        backdrop: "bg-[#f0eafa]"
     },
     {
         id: "toolblip",
@@ -56,8 +53,7 @@ const products: Product[] = [
         description:
             "Format JSON, encode Base64, generate QR codes, and get on with your work. Free browser-based utilities with no signup required.",
         logo: "/images/products/toolblip.svg",
-        backdrop: "bg-[#e9f2ed]",
-        extraLinks: []
+        backdrop: "bg-[#e9f2ed]"
     },
     {
         id: "crontinel",
@@ -68,14 +64,7 @@ const products: Product[] = [
         description:
             "Monitor scheduled jobs, queues, workers, and AI agent runs. Open-source SDKs help you catch the failures an uptime check can miss.",
         logo: "/images/products/crontinel.png",
-        backdrop: "bg-[#f6eee6]",
-        extraLinks: [
-            { label: "GitHub", href: "https://github.com/crontinel/crontinel" },
-            {
-                label: "Laravel package",
-                href: "https://github.com/crontinel/laravel"
-            }
-        ]
+        backdrop: "bg-[#f6eee6]"
     },
     {
         id: "appnary",
@@ -86,8 +75,7 @@ const products: Product[] = [
         description:
             "Simple tools for Shopify merchants. Starting with Pixel Tracker for ad performance and ROAS, with more apps in development.",
         logo: "/images/products/appnary-icon.png",
-        backdrop: "bg-[#eef0fb]",
-        extraLinks: []
+        backdrop: "bg-[#eef0fb]"
     },
     {
         id: "amazingplugins",
@@ -98,17 +86,7 @@ const products: Product[] = [
         description:
             "Free WooCommerce plugins, each built to solve one specific problem. Fix accessibility issues or clean up stale orders without an upgrade pitch.",
         logo: "/images/products/amazingplugins.jpg",
-        backdrop: "bg-[#f5f0df]",
-        extraLinks: [
-            {
-                label: "GitHub (Stale Order Cleaner)",
-                href: "https://github.com/AmazingPlugins/stale-order-cleaner-for-woocommerce"
-            },
-            {
-                label: "WordPress.org",
-                href: "https://wordpress.org/plugins/woocommerce-accessibility-fixer/"
-            }
-        ]
+        backdrop: "bg-[#f5f0df]"
     }
 ]
 
@@ -503,35 +481,6 @@ export default function Products() {
                                                     />
                                                 </span>
                                             </a>
-                                            {product.extraLinks.length > 0 && (
-                                                <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
-                                                    {product.extraLinks.map(
-                                                        (link) => (
-                                                            <a
-                                                                key={link.href}
-                                                                href={link.href}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className={cn(
-                                                                    "inline-flex min-h-8 items-center gap-1 text-xs text-[#686b65] underline decoration-[#c6c8be] underline-offset-4 hover:text-amber-800",
-                                                                    focusRing
-                                                                )}
-                                                            >
-                                                                {link.label}
-                                                                <ArrowUpRight
-                                                                    aria-hidden="true"
-                                                                    className="h-3 w-3"
-                                                                />
-                                                                <span className="sr-only">
-                                                                    {" "}
-                                                                    (opens in a
-                                                                    new tab)
-                                                                </span>
-                                                            </a>
-                                                        )
-                                                    )}
-                                                </div>
-                                            )}
                                         </div>
                                     </div>
                                 </article>
