@@ -231,11 +231,11 @@ final class SeoCatalog
         $overrides = [
             'cloud-architecture' => [
                 'title' => 'Cloud Architecture | Harun R. Rayhan',
-                'description' => 'Design and implement scalable, secure, and cost-effective cloud architectures for your business.',
+                'description' => 'I design the AWS layout: accounts, network, and the services the app actually needs.',
             ],
             'devops' => [
                 'title' => 'DevOps Implementation & Consulting Services | Harun R. Rayhan',
-                'description' => 'Transform your development and operations with expert DevOps consulting services. Implement CI/CD pipelines, automation, and modern DevOps practices to accelerate your software delivery.',
+                'description' => 'CI, infrastructure as code, and a release path the team can run without me in the room.',
             ],
             'infrastructure-as-code' => [
                 'title' => 'Infrastructure as Code (IaC) Services | Harun R. Rayhan',
@@ -243,55 +243,55 @@ final class SeoCatalog
             ],
             'serverless-infrastructure' => [
                 'title' => 'Serverless Infrastructure Services | Harun R. Rayhan',
-                'description' => 'Expert serverless architecture and implementation services. Build scalable, cost-effective applications using AWS Lambda, Azure Functions, and other serverless technologies.',
+                'description' => 'Lambda, queues, and the rest of a serverless setup, when you want less to patch and a bill that follows the traffic.',
             ],
             'automated-deployment' => [
                 'title' => 'Automated Deployment & CI/CD Services | Harun R. Rayhan',
-                'description' => 'Expert automated deployment and CI/CD implementation services. Streamline your software delivery pipeline with efficient automation and reliable deployment processes.',
+                'description' => 'Pipelines that build, test, and ship, without a checklist in someone\'s head.',
             ],
             'security-consulting' => [
                 'title' => 'Security Consulting & Implementation Services | Harun R. Rayhan',
-                'description' => 'Expert security consulting services. Protect your infrastructure and applications with comprehensive security assessments, implementation, and best practices.',
+                'description' => 'I look at IAM, network boundaries, and the logs, then close the paths that are wider than the job.',
             ],
             'performance-optimization' => [
                 'title' => 'Cloud Performance Optimization Services | Harun R. Rayhan',
-                'description' => 'Expert cloud performance optimization services. Enhance your cloud infrastructure efficiency, reduce costs, and improve application performance through advanced optimization techniques.',
+                'description' => 'I measure the slow path, fix that, and stop paying for capacity you aren\'t using.',
             ],
             'infrastructure-migration' => [
                 'title' => 'Infrastructure Migration Services | Harun R. Rayhan',
-                'description' => 'Expert infrastructure migration services. Seamlessly migrate your infrastructure to modern platforms with minimal disruption and maximum efficiency.',
+                'description' => 'I move the platform with a plan for downtime, the data, and the first week after cutover.',
             ],
             'mlops' => [
                 'title' => 'MLOps & Machine Learning Operations Services | Harun R. Rayhan',
-                'description' => 'Expert MLOps services. Streamline your machine learning operations with automated pipelines, model deployment, and monitoring solutions.',
+                'description' => 'The infrastructure around training and serving models, from the notebook to production.',
             ],
             'database-migration' => [
                 'title' => 'Database Migration Services | Harun R. Rayhan',
-                'description' => 'Expert database migration services. Seamlessly migrate your databases to modern platforms with minimal downtime and zero data loss.',
+                'description' => 'I move the database and check the data on both sides before anything goes live.',
             ],
             'monitoring-observability' => [
                 'title' => 'Monitoring & Observability Services | Harun R. Rayhan',
-                'description' => 'Expert monitoring and observability services. Gain deep insights into your systems with comprehensive monitoring, logging, and observability solutions.',
+                'description' => 'Metrics, logs, and traces, so you hear about a failure before your users do.',
             ],
             'database-optimization' => [
                 'title' => 'Database Performance Optimization Services | Harun R. Rayhan',
-                'description' => 'Expert database optimization services. Enhance your database performance, improve query efficiency, and optimize resource utilization for better scalability.',
+                'description' => 'Slow queries, missing indexes, and connection limits. I fix the ones that show up under real load.',
             ],
             'aws-cloud' => [
                 'title' => 'AWS Cloud Services & Solutions | Harun R. Rayhan',
-                'description' => 'Expert AWS cloud solutions and consulting services. Leverage the full power of Amazon Web Services with our certified professionals for scalable, secure, and cost-effective cloud infrastructure.',
+                'description' => 'Accounts, networking, compute, and the managed services around them.',
             ],
             'multi-cloud-architecture' => [
                 'title' => 'Multi-Cloud Architecture Services | Harun R. Rayhan',
-                'description' => 'Expert multi-cloud architecture and implementation services. Design and manage efficient cloud solutions across AWS, Azure, Google Cloud, and other providers.',
+                'description' => 'A setup that uses more than one cloud, when AWS alone isn\'t the whole answer.',
             ],
             'vibe-scaling' => [
                 'title' => 'Vibe Scaler: Scale Your AI-Built App | Harun R. Rayhan',
-                'description' => 'You built your app fast with AI coding tools and it found real users. We scale it in place: performance under load, database fixes, monitoring, and reliability, no rewrite required.',
+                'description' => 'You built it fast with an AI coding tool and it found users. I scale that app in place so it can take the traffic and the payments.',
             ],
             'vibe-code-migration' => [
                 'title' => 'Vibe Code Migration: Port Your AI-Built App to a Production Stack | Harun R. Rayhan',
-                'description' => 'Your prototype found real users, but the stack it started on cannot be its permanent home. We port it to a production language and framework, feature for feature, without losing data or the users you already have.',
+                'description' => 'The prototype found users. When that stack can\'t carry it, I port it to a production language and framework and keep the features working.',
             ],
         ];
 

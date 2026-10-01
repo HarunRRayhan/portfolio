@@ -87,7 +87,7 @@ export default function MonitoringObservability({ canonicalUrl }: { canonicalUrl
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Our Monitoring and Observability Services
+              What I do
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
@@ -134,21 +134,21 @@ export default function MonitoringObservability({ canonicalUrl }: { canonicalUrl
                 {
                   title: "Holistic Approach",
                   content:
-                    "We provide end-to-end monitoring solutions that cover your entire stack, from infrastructure to applications.",
+                    "I provide end-to-end monitoring solutions that cover your entire stack, from infrastructure to applications.",
                 },
                 {
                   title: "Custom Dashboards",
                   content:
-                    "We create tailored dashboards that give you instant visibility into the metrics that matter most to your business.",
+                    "I create tailored dashboards that give you instant visibility into the metrics that matter most to your business.",
                 },
                 {
                   title: "Proactive Issue Detection",
                   content:
-                    "Our advanced alerting systems help you catch and resolve issues before they impact your users.",
+                    "My advanced alerting systems help you catch and resolve issues before they impact your users.",
                 },
                 {
                   title: "Continuous Improvement",
-                  content: "We help you leverage monitoring data to continuously optimize your systems and processes.",
+                  content: "I help you leverage monitoring data to continuously optimize your systems and processes.",
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
@@ -166,7 +166,7 @@ export default function MonitoringObservability({ canonicalUrl }: { canonicalUrl
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Our Monitoring and Observability Process
+              How the work goes
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               {[
@@ -174,25 +174,25 @@ export default function MonitoringObservability({ canonicalUrl }: { canonicalUrl
                   icon: MonitorSmartphone,
                   title: "1. Assessment",
                   content:
-                    "We evaluate your current monitoring setup and identify areas for improvement and coverage gaps.",
+                    "I evaluate your current monitoring setup and identify areas for improvement and coverage gaps.",
                 },
                 {
                   icon: Cloud,
                   title: "2. Design",
                   content:
-                    "We design a comprehensive monitoring and observability strategy tailored to your specific needs.",
+                    "I design a comprehensive monitoring and observability strategy tailored to your specific needs.",
                 },
                 {
                   icon: GitBranch,
                   title: "3. Implementation",
                   content:
-                    "We set up and configure monitoring tools, create custom dashboards, and implement alerting systems.",
+                    "I set up and configure monitoring tools, create custom dashboards, and implement alerting systems.",
                 },
                 {
                   icon: BarChart,
                   title: "4. Optimization",
                   content:
-                    "We continuously refine your monitoring setup, adjusting thresholds and adding new metrics as needed.",
+                    "I continuously refine your monitoring setup, adjusting thresholds and adding new metrics as needed.",
                 },
               ].map((step, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -217,9 +217,9 @@ export default function MonitoringObservability({ canonicalUrl }: { canonicalUrl
               Ready to enhance your monitoring and observability?
             </motion.h2>
             <motion.div variants={fadeInUp}>
-              <Link href="/contact">
+              <Link href="/consultation">
                 <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white">
-                  Get Started
+                  Book a consult
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
@@ -243,7 +243,7 @@ export default function MonitoringObservability({ canonicalUrl }: { canonicalUrl
                   {
                     question: "What tools do you use for monitoring and observability?",
                     answer:
-                      "We use a variety of tools depending on the specific needs and existing infrastructure of each client. Some common tools we work with include Prometheus, Grafana, ELK stack (Elasticsearch, Logstash, Kibana), Datadog, New Relic, and cloud-native solutions like AWS CloudWatch or Google Cloud's operations suite. We can also integrate with existing tools you may already be using.",
+                      "I use a variety of tools depending on the specific needs and existing infrastructure of each client. Some common tools I work with include Prometheus, Grafana, ELK stack (Elasticsearch, Logstash, Kibana), Datadog, New Relic, and cloud-native solutions like AWS CloudWatch or Google Cloud's operations suite. I can also integrate with existing tools you may already be using.",
                   },
                   {
                     question: "How can improved monitoring and observability benefit my business?",
@@ -253,12 +253,12 @@ export default function MonitoringObservability({ canonicalUrl }: { canonicalUrl
                   {
                     question: "Can you help with setting up custom dashboards and alerts?",
                     answer:
-                      "Yes, we specialize in creating custom dashboards and alert systems tailored to your specific needs. We work closely with your team to understand what metrics and indicators are most important for your business, and then design intuitive, informative dashboards to visualize this data. We also set up intelligent alerting systems that can notify the right people at the right time, helping to minimize false alarms and ensure quick responses to real issues.",
+                      "Yes, I specialize in creating custom dashboards and alert systems tailored to your specific needs. I work closely with your team to understand what metrics and indicators are most important for your business, and then design intuitive, informative dashboards to visualize this data. I also set up intelligent alerting systems that can notify the right people at the right time, helping to minimize false alarms and ensure quick responses to real issues.",
                   },
                   {
                     question: "How do you handle monitoring for microservices architectures?",
                     answer:
-                      "Monitoring microservices architectures requires a specialized approach due to their distributed nature. We implement distributed tracing to track requests across multiple services, use service meshes for improved visibility, and set up centralized logging and monitoring solutions. We also focus on implementing effective health checks, dependency mapping, and anomaly detection to ensure the overall health and performance of your microservices ecosystem.",
+                      "Monitoring microservices architectures requires a specialized approach due to their distributed nature. I implement distributed tracing to track requests across multiple services, use service meshes for improved visibility, and set up centralized logging and monitoring solutions. I also focus on implementing effective health checks, dependency mapping, and anomaly detection to ensure the overall health and performance of your microservices ecosystem.",
                   },
                 ].map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index + 1}`}>

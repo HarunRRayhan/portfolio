@@ -89,7 +89,7 @@ export default function CloudArchitecturePage() {
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Our Cloud Architecture Services
+              What I do
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
@@ -135,22 +135,22 @@ export default function CloudArchitecturePage() {
                 {
                   title: "Expertise Across Major Cloud Platforms",
                   content:
-                    "Our team is certified in AWS, Azure, and Google Cloud, ensuring we can design the best solution for your needs.",
+                    "I work mostly on AWS. I use Azure or Google Cloud when the account is already there.",
                 },
                 {
                   title: "Tailored Solutions",
                   content:
-                    "We design cloud architectures that are specifically tailored to your business goals and requirements.",
+                    "I design cloud architectures that are specifically tailored to your business goals and requirements.",
                 },
                 {
                   title: "Focus on Security and Compliance",
                   content:
-                    "We prioritize security and ensure your cloud architecture meets all necessary compliance standards.",
+                    "I prioritize security and ensure your cloud architecture meets all necessary compliance standards.",
                 },
                 {
                   title: "Continuous Optimization",
                   content:
-                    "We don't just set it and forget it. We continuously monitor and optimize your cloud architecture for peak performance and cost-efficiency.",
+                    "I don't just set it and forget it. I continuously monitor and optimize your cloud architecture for peak performance and cost-efficiency.",
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
@@ -168,29 +168,29 @@ export default function CloudArchitecturePage() {
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Our Cloud Architecture Process
+              How the work goes
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               {[
                 {
                   icon: BarChart,
                   title: "1. Assessment",
-                  content: "We begin by thoroughly assessing your current infrastructure and business needs.",
+                  content: "I begin by thoroughly assessing your current infrastructure and business needs.",
                 },
                 {
                   icon: Cloud,
                   title: "2. Design",
-                  content: "Our experts design a cloud architecture tailored to your specific requirements.",
+                  content: "I sketch the accounts, the network, and the services the app actually needs.",
                 },
                 {
                   icon: Server,
                   title: "3. Implementation",
-                  content: "We implement the designed architecture with a focus on security and scalability.",
+                  content: "I implement the designed architecture with a focus on security and scalability.",
                 },
                 {
                   icon: Users,
                   title: "4. Support & Optimization",
-                  content: "We provide ongoing support and continuously optimize your cloud infrastructure.",
+                  content: "I provide ongoing support and continuously optimize your cloud infrastructure.",
                 },
               ].map((step, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -210,7 +210,7 @@ export default function CloudArchitecturePage() {
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Industries We Serve
+              Industries I Serve
             </motion.h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
               {[
@@ -237,7 +237,7 @@ export default function CloudArchitecturePage() {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="container mx-auto px-4 text-center mb-12"
           >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Technologies We Use</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Technologies I Use</h2>
             <p className="text-xl text-gray-600">Proficient in a wide range of modern cloud and DevOps technologies.</p>
           </motion.div>
 
@@ -281,9 +281,9 @@ export default function CloudArchitecturePage() {
               Ready to optimize your cloud architecture?
             </motion.h2>
             <motion.div variants={fadeInUp}>
-              <Link href="/contact">
+              <Link href="/consultation">
                 <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white">
-                  Get Started
+                  Book a consult
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
@@ -302,27 +302,27 @@ export default function CloudArchitecturePage() {
                   {
                     question: "What cloud platforms do you work with?",
                     answer:
-                      "We primarily work with AWS (Amazon Web Services), but we also have expertise in Microsoft Azure and Google Cloud Platform. Our team can help you choose the best cloud platform for your specific needs and requirements.",
+                      "Mostly AWS. I use Azure or Google Cloud when the project already lives there, or when one provider is not the whole answer.",
                   },
                   {
                     question: "How do you ensure scalability in cloud architecture?",
                     answer:
-                      "We design cloud architectures with scalability in mind from the ground up. This includes using auto-scaling groups, load balancers, and serverless technologies where appropriate. We also implement best practices for database scaling and caching to ensure your application can handle increased loads seamlessly.",
+                      "I design cloud architectures with scalability in mind from the ground up. This includes using auto-scaling groups, load balancers, and serverless technologies where appropriate. I also implement best practices for database scaling and caching to ensure your application can handle increased loads seamlessly.",
                   },
                   {
                     question: "Can you help with cloud migration?",
                     answer:
-                      "Yes, we offer comprehensive cloud migration services. We'll assess your current infrastructure, develop a migration strategy, and execute the migration with minimal downtime. Our approach ensures data integrity and maintains business continuity throughout the process.",
+                      "Yes, I offer comprehensive cloud migration services. I'll assess your current infrastructure, develop a migration strategy, and execute the migration with minimal downtime. My approach ensures data integrity and maintains business continuity throughout the process.",
                   },
                   {
                     question: "How do you address security concerns in cloud architecture?",
                     answer:
-                      "Security is a top priority in our cloud architecture designs. We implement best practices such as encryption at rest and in transit, identity and access management (IAM), network segmentation, and regular security audits. We also ensure compliance with relevant industry standards and regulations.",
+                      "Security is a top priority in my cloud architecture designs. I implement best practices such as encryption at rest and in transit, identity and access management (IAM), network segmentation, and regular security audits. I also ensure compliance with relevant industry standards and regulations.",
                   },
                   {
                     question: "What's your approach to cost optimization in cloud architecture?",
                     answer:
-                      "We take a proactive approach to cost optimization. This includes right-sizing resources, leveraging reserved instances or savings plans, implementing auto-scaling to match demand, and using cost allocation tags. We also provide ongoing monitoring and recommendations to ensure your cloud spend remains optimized as your needs evolve.",
+                      "I take a proactive approach to cost optimization. This includes right-sizing resources, leveraging reserved instances or savings plans, implementing auto-scaling to match demand, and using cost allocation tags. I also provide ongoing monitoring and recommendations to ensure your cloud spend remains optimized as your needs evolve.",
                   },
                 ].map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index + 1}`}>

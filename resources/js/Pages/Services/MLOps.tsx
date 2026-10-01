@@ -87,7 +87,7 @@ export default function MLOps({ canonicalUrl }: { canonicalUrl?: string }) {
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Our MLOps Services
+              What I do
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
@@ -134,22 +134,22 @@ export default function MLOps({ canonicalUrl }: { canonicalUrl?: string }) {
                 {
                   title: "End-to-End Expertise",
                   content:
-                    "Our team has deep expertise in both machine learning and DevOps, ensuring seamless integration of ML workflows.",
+                    "I work on the infrastructure around the model: training jobs, deploys, and the checks that tell you it drifted.",
                 },
                 {
                   title: "Scalable Solutions",
                   content:
-                    "We design MLOps solutions that can scale with your AI/ML initiatives, from proof-of-concept to enterprise-wide deployments.",
+                    "I design MLOps solutions that can scale with your AI/ML initiatives, from proof-of-concept to enterprise-wide deployments.",
                 },
                 {
                   title: "Best Practices Implementation",
                   content:
-                    "We implement industry best practices for reproducibility, versioning, and governance in ML workflows.",
+                    "I implement industry best practices for reproducibility, versioning, and governance in ML workflows.",
                 },
                 {
                   title: "Cloud-Agnostic Approach",
                   content:
-                    "Our MLOps solutions work across major cloud providers and on-premises infrastructure, giving you flexibility and avoiding vendor lock-in.",
+                    "My MLOps solutions work across major cloud providers and on-premises infrastructure, giving you flexibility and avoiding vendor lock-in.",
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
@@ -167,7 +167,7 @@ export default function MLOps({ canonicalUrl }: { canonicalUrl?: string }) {
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Our MLOps Implementation Process
+              How the work goes
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               {[
@@ -175,23 +175,23 @@ export default function MLOps({ canonicalUrl }: { canonicalUrl?: string }) {
                   icon: Brain,
                   title: "1. Assessment",
                   content:
-                    "We evaluate your current ML workflows and infrastructure to identify areas for improvement and automation.",
+                    "I evaluate your current ML workflows and infrastructure to identify areas for improvement and automation.",
                 },
                 {
                   icon: Cloud,
                   title: "2. Design",
-                  content: "We design a comprehensive MLOps architecture tailored to your specific needs and scale.",
+                  content: "I design a comprehensive MLOps architecture tailored to your specific needs and scale.",
                 },
                 {
                   icon: GitBranch,
                   title: "3. Implementation",
-                  content: "We implement the MLOps solution, integrating with your existing tools and processes.",
+                  content: "I implement the MLOps solution, integrating with your existing tools and processes.",
                 },
                 {
                   icon: Users,
                   title: "4. Training & Support",
                   content:
-                    "We provide thorough training and ongoing support to ensure successful adoption of MLOps practices.",
+                    "I provide thorough training and ongoing support to ensure successful adoption of MLOps practices.",
                 },
               ].map((step, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -216,9 +216,9 @@ export default function MLOps({ canonicalUrl }: { canonicalUrl?: string }) {
               Ready to optimize your AI/ML infrastructure?
             </motion.h2>
             <motion.div variants={fadeInUp}>
-              <Link href="/contact">
+              <Link href="/consultation">
                 <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white">
-                  Get Started
+                  Book a consult
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
@@ -252,17 +252,17 @@ export default function MLOps({ canonicalUrl }: { canonicalUrl?: string }) {
                   {
                     question: "How do you handle model versioning in MLOps?",
                     answer:
-                      "Model versioning is crucial in MLOps to ensure reproducibility and traceability. We use specialized tools like MLflow or DVC (Data Version Control) to version not just the model code, but also the data, hyperparameters, and entire training environment. This allows us to recreate any model version exactly as it was. We also implement a model registry that serves as a centralized repository for managing model versions, including metadata about each version's performance, training data, and deployment status.",
+                      "Model versioning is crucial in MLOps to ensure reproducibility and traceability. I use specialized tools like MLflow or DVC (Data Version Control) to version not just the model code, but also the data, hyperparameters, and entire training environment. This allows me to recreate any model version exactly as it was. I also implement a model registry that serves as a centralized repository for managing model versions, including metadata about each version's performance, training data, and deployment status.",
                   },
                   {
                     question: "How do you ensure the security of ML models and data in an MLOps setup?",
                     answer:
-                      "Security is a critical aspect of our MLOps implementations. We employ several strategies: 1) Data encryption both at rest and in transit, 2) Strict access controls and authentication for all components of the ML pipeline, 3) Secure model serving with API authentication and rate limiting, 4) Regular security audits and vulnerability assessments, 5) Compliance with data protection regulations like GDPR or CCPA, 6) Secure feature stores with proper data governance, and 7) Monitoring for unusual access patterns or potential data leaks. We also work closely with your security team to ensure our MLOps setup aligns with your organization's security policies.",
+                      "Security is a critical aspect of my MLOps implementations. I employ several strategies: 1) Data encryption both at rest and in transit, 2) Strict access controls and authentication for all components of the ML pipeline, 3) Secure model serving with API authentication and rate limiting, 4) Regular security audits and vulnerability assessments, 5) Compliance with data protection regulations like GDPR or CCPA, 6) Secure feature stores with proper data governance, and 7) Monitoring for unusual access patterns or potential data leaks. I also work closely with your security team to ensure my MLOps setup aligns with your organization's security policies.",
                   },
                   {
                     question: "Can you help with the transition from traditional data science workflows to MLOps?",
                     answer:
-                      "We specialize in helping organizations make this transition. Our approach includes: 1) Assessing your current workflows and identifying areas for improvement, 2) Introducing MLOps tools and practices gradually to minimize disruption, 3) Setting up automated CI/CD pipelines for ML workflows, 4) Implementing proper versioning for data, code, and models, 5) Establishing monitoring and logging practices for production models, 6) Training your team on MLOps best practices and tools. We understand that this transition can be challenging, so we work closely with your team to ensure a smooth adoption of MLOps practices.",
+                      "I specialize in helping organizations make this transition. My approach includes: 1) Assessing your current workflows and identifying areas for improvement, 2) Introducing MLOps tools and practices gradually to minimize disruption, 3) Setting up automated CI/CD pipelines for ML workflows, 4) Implementing proper versioning for data, code, and models, 5) Establishing monitoring and logging practices for production models, 6) Training your team on MLOps best practices and tools. I understand that this transition can be challenging, so I work closely with your team to ensure a smooth adoption of MLOps practices.",
                   },
                 ].map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index + 1}`}>

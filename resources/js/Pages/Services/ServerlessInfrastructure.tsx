@@ -109,7 +109,7 @@ export default function ServerlessInfrastructure({ canonicalUrl }: { canonicalUr
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Our Serverless Infrastructure Services
+              What I do
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
@@ -188,7 +188,7 @@ export default function ServerlessInfrastructure({ canonicalUrl }: { canonicalUr
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Our Serverless Implementation Process
+              How the work goes
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               {[
@@ -236,9 +236,9 @@ export default function ServerlessInfrastructure({ canonicalUrl }: { canonicalUr
               Ready to go serverless?
             </motion.h2>
             <motion.div variants={fadeInUp}>
-              <Link href="/contact">
+              <Link href="/consultation">
                 <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white">
-                  Get Started
+                  Book a consult
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
@@ -267,12 +267,12 @@ export default function ServerlessInfrastructure({ canonicalUrl }: { canonicalUr
                   {
                     question: "Is serverless suitable for all applications?",
                     answer:
-                      "While serverless is powerful, it's not a one-size-fits-all solution. It's particularly well-suited for event-driven applications, APIs, data processing, and applications with variable workloads. However, applications with consistent, long-running processes or those requiring very low latency might be better served by traditional server-based architectures. We can help evaluate your specific use case to determine if serverless is the right choice.",
+                      "While serverless is powerful, it's not a one-size-fits-all solution. It's particularly well-suited for event-driven applications, APIs, data processing, and applications with variable workloads. However, applications with consistent, long-running processes or those requiring very low latency might be better served by traditional server-based architectures. I can help evaluate your specific use case to determine if serverless is the right choice.",
                   },
                   {
                     question: "How do you handle monitoring and debugging in serverless applications?",
                     answer:
-                      "We implement comprehensive monitoring and debugging strategies using cloud-native tools and third-party solutions. This includes: 1) Distributed tracing for function execution, 2) Detailed logging and error tracking, 3) Performance metrics monitoring, 4) Cost tracking and optimization, and 5) Real-time alerts for issues. We also implement proper error handling and retry mechanisms to ensure reliable operation.",
+                      "I implement comprehensive monitoring and debugging strategies using cloud-native tools and third-party solutions. This includes: 1) Distributed tracing for function execution, 2) Detailed logging and error tracking, 3) Performance metrics monitoring, 4) Cost tracking and optimization, and 5) Real-time alerts for issues. I also implement proper error handling and retry mechanisms to ensure reliable operation.",
                   },
                   {
                     question: "How do you ensure security in serverless applications?",
@@ -282,7 +282,7 @@ export default function ServerlessInfrastructure({ canonicalUrl }: { canonicalUr
                   {
                     question: "How do you handle state management in serverless applications?",
                     answer:
-                      "While serverless functions are stateless by nature, we implement various strategies for state management: 1) Using managed database services like DynamoDB or Aurora Serverless, 2) Leveraging caching services for performance optimization, 3) Implementing event-driven architectures for complex workflows, 4) Using step functions for orchestration, and 5) Integrating with message queues for asynchronous processing.",
+                      "While serverless functions are stateless by nature, I implement various strategies for state management: 1) Using managed database services like DynamoDB or Aurora Serverless, 2) Leveraging caching services for performance optimization, 3) Implementing event-driven architectures for complex workflows, 4) Using step functions for orchestration, and 5) Integrating with message queues for asynchronous processing.",
                   },
                 ].map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index + 1}`}>
