@@ -11,37 +11,37 @@ const services = [
   {
     icon: Cloud,
     title: "Cloud Architecture",
-    description: "Design and implement scalable, secure, and cost-effective cloud solutions tailored to your business needs.",
+    description: "The layout of the account: network, compute, and what it costs.",
     link: "/services/cloud-architecture"
   },
   {
     icon: Code2,
     title: "DevOps Implementation",
-    description: "Streamline your development and operations with cutting-edge DevOps practices and tools.",
+    description: "A pipeline the team can run without me in the room.",
     link: "/services/devops"
   },
   {
     icon: Database,
     title: "Database Optimization",
-    description: "Optimize your database performance, security, and scalability for improved application responsiveness.",
+    description: "Queries, indexes, and the parts of the database that are slow.",
     link: "/services/database"
   },
   {
     icon: Lock,
     title: "Security Consulting",
-    description: "Enhance your cloud and application security with expert consulting and implementation services.",
+    description: "Close the paths that are wider than the job, in the account and in the pipeline.",
     link: "/services/security"
   },
   {
     icon: Server,
     title: "Infrastructure as Code",
-    description: "Implement and manage your infrastructure using modern IaC tools like Terraform and AWS CDK.",
+    description: "Terraform for the infrastructure you already have.",
     link: "/services/infrastructure"
   },
   {
     icon: Settings,
     title: "Performance Optimization",
-    description: "Boost your application and infrastructure performance with expert analysis and optimization techniques.",
+    description: "Find the slow part, then fix that.",
     link: "/services/performance"
   }
 ]
@@ -58,7 +58,7 @@ export function ServicesSection() {
             transition={{ duration: 0.5 }}
             className="text-4xl font-bold tracking-tight mb-4"
           >
-            Our Services
+            What I can help with
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
@@ -66,7 +66,7 @@ export function ServicesSection() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-xl opacity-90"
           >
-            Elevate your business with our comprehensive range of software engineering and cloud services.
+            Cloud, releases, databases, and the bill. Each page says what the work is.
           </motion.p>
         </div>
       </section>
