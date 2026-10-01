@@ -218,27 +218,27 @@ export default function DatabaseMigration({ canonicalUrl }: { canonicalUrl?: str
                   {
                     question: "Why should I consider database migration?",
                     answer:
-                      "Database migration can offer numerous benefits, including improved performance, scalability, and cost-efficiency. It can also provide access to new features and capabilities, better security, and easier maintenance. If your current database is struggling to meet your needs or if you're looking to modernize your infrastructure, database migration might be the right choice.",
+                      "When the current database is slow, expensive, or missing something you actually need. I won't move it just to be on something newer.",
                   },
                   {
                     question: "How do you ensure data integrity during migration?",
                     answer:
-                      "Ensuring data integrity is my top priority during migration. I use a combination of techniques, including thorough pre-migration testing, data validation checks, and post-migration reconciliation. I also implement robust error handling and rollback procedures. Where possible, I use tools that provide checksums or other integrity verification methods to ensure that every piece of data is accurately transferred.",
+                      "I compare counts and checksums on both sides before traffic points at the new database. If they don't match, it doesn't cut over.",
                   },
                   {
                     question: "How do you minimize downtime during database migration?",
                     answer:
-                      "I employ several strategies to minimize downtime, depending on your specific needs and constraints. These may include using replication to keep the old and new databases in sync during migration, performing the migration in phases, or using 'zero-downtime' migration techniques where possible. In cases where some downtime is unavoidable, I carefully plan the migration to occur during off-peak hours to minimize disruption.",
+                      "I name the window. Replication can shrink it. If some downtime is required, we pick a quiet hour.",
                   },
                   {
                     question: "Can you migrate between different types of databases?",
                     answer:
-                      "Yes, I can handle migrations between different types of databases, often referred to as heterogeneous migrations. This could involve moving from a relational database to a NoSQL database, or between different relational database management systems (e.g., from Oracle to PostgreSQL). These migrations often involve schema conversion and data transformation, which I carefully plan and execute to ensure compatibility and optimal performance in the new environment.",
+                      "Yes, including from one relational database to another, or over to something else. The schema change is planned and tested before the real copy.",
                   },
                   {
                     question: "How do you handle large-scale database migrations?",
                     answer:
-                      "For large-scale migrations, I employ a variety of techniques to ensure efficiency and reliability. This may include parallel processing to speed up data transfer, incremental migration approaches to reduce risk, and specialized tools designed for handling large volumes of data. I also pay special attention to performance optimization both during and after the migration to ensure that the new database can handle the large-scale data effectively.",
+                      "I copy in slices, not one giant transfer, and I watch the new database under load before you call it done.",
                   },
                 ].map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index + 1}`}>

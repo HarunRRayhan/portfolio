@@ -238,12 +238,12 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
                   {
                     question: "What are the signs that my database needs optimization?",
                     answer:
-                      "Common signs include slow query performance, high CPU or memory usage, frequent timeouts, and difficulty scaling to meet growing demands. If your application is experiencing slow response times or if you're seeing increased costs for database operations, it might be time for optimization.",
+                      "Slow queries, timeouts, and a CPU graph that's pegged. If the app feels slow and the database is the wait, that's the sign.",
                   },
                   {
                     question: "How can database optimization improve my business operations?",
                     answer:
-                      "Database optimization can significantly enhance your business operations by improving application performance, reducing response times, lowering infrastructure costs, and enabling your systems to handle larger data volumes and user loads. This leads to better user experience, increased productivity, and the ability to scale your business more effectively.",
+                      "Pages get faster, and you stop paying for a bigger database that a missing index would have fixed.",
                   },
                   {
                     question: "Do you work with both SQL and NoSQL databases?",
@@ -253,17 +253,17 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
                   {
                     question: "How do you ensure data integrity during the optimization process?",
                     answer:
-                      "Data integrity is my top priority during any optimization process. I use a combination of techniques including thorough testing in staging environments, implementing transactional processes where possible, and creating backups before making any significant changes. I also use monitoring tools to ensure that data remains consistent throughout the optimization process.",
+                      "I try the change in staging first, and I take a backup before anything that rewrites data.",
                   },
                   {
                     question: "Can you help with database optimization in cloud environments?",
                     answer:
-                      "Absolutely. I have extensive experience optimizing databases in various cloud environments, including AWS, Google Cloud, and Azure. I can help you leverage cloud-specific features and services to enhance your database performance, implement effective scaling strategies, and optimize costs in cloud settings.",
+                      "Yes. On AWS, and on Google Cloud or Azure if that's where it already runs.",
                   },
                   {
                     question: "How long does the database optimization process typically take?",
                     answer:
-                      "The duration of the optimization process can vary depending on the size and complexity of your database, as well as the specific issues being addressed. A basic optimization might take a few days, while more complex projects could span several weeks. I always provide a detailed timeline and keep you updated throughout the process.",
+                      "A few days for the obvious queries. A few weeks if the schema itself is the problem.",
                   },
                 ].map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index + 1}`}>

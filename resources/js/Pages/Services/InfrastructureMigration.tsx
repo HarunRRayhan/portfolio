@@ -228,12 +228,12 @@ export default function InfrastructureMigration({ canonicalUrl }: { canonicalUrl
                   {
                     question: "How long does a typical infrastructure migration take?",
                     answer:
-                      "The duration of an infrastructure migration can vary significantly depending on the size and complexity of your current infrastructure, as well as the target environment. A small to medium-sized migration might take a few weeks to a couple of months, while larger, more complex migrations could take several months to a year. I work closely with you to develop a realistic timeline and ensure minimal disruption to your operations throughout the process.",
+                      "A small move is a few weeks. A large one is months. I'll say which after I see what has to move.",
                   },
                   {
                     question: "How do you ensure data security during the migration process?",
                     answer:
-                      "Data security is my top priority during migrations. I implement multiple layers of security measures, including encryption for data in transit and at rest, secure VPN connections, and strict access controls. I also perform thorough security audits before, during, and after the migration process. Additionally, I ensure compliance with relevant industry standards and regulations throughout the migration.",
+                      "The copy is encrypted, and the temporary path is closed when the move is done.",
                   },
                   {
                     question: "Can you migrate our infrastructure to multiple cloud providers?",
@@ -243,17 +243,17 @@ export default function InfrastructureMigration({ canonicalUrl }: { canonicalUrl
                   {
                     question: "How do you handle legacy systems during migration?",
                     answer:
-                      "Legacy systems often require special attention during migrations. My approach includes thorough assessment of legacy systems, identifying dependencies, and determining the best migration strategy - whether it's lift-and-shift, re-platforming, or re-architecting. I may use specialized tools for legacy migrations and often implement middleware or APIs to ensure compatibility with modern systems. In some cases, I might recommend phased migration approaches to minimize risk and disruption.",
+                      "I list what it depends on, then we pick a lift-and-shift or a rewrite. I won't rewrite it by default.",
                   },
                   {
                     question: "What kind of support do you provide post-migration?",
                     answer:
-                      "My support doesn't end with the migration. I provide comprehensive post-migration support, including monitoring, optimization, and troubleshooting. I ensure that your team is well-trained on the new infrastructure and can manage day-to-day operations. I also offer ongoing managed services if you prefer to have continuous expert support. My goal is to ensure that you're getting the maximum benefit from your newly migrated infrastructure.",
+                      "I watch the first week: errors, cost, and what got slower. I don't stay on as a night desk.",
                   },
                   {
                     question: "How do you minimize downtime during the migration process?",
                     answer:
-                      "Minimizing downtime is a critical aspect of my migration strategy. I employ several techniques including parallel environments, data synchronization, incremental migration, off-peak scheduling, automated migration tools, and robust rollback procedures. My goal is to make the transition as seamless as possible, often achieving near-zero downtime for critical systems.",
+                      "I name the window and how we roll back. A parallel environment can shrink it. Near zero only if the app can actually do that.",
                   },
                 ].map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index + 1}`}>

@@ -245,12 +245,12 @@ export default function SecurityConsulting({ canonicalUrl }: { canonicalUrl?: st
                   {
                     question: "What types of security assessments do you offer?",
                     answer:
-                      "I offer a wide range of security assessments, including vulnerability assessments, penetration testing, code reviews, network security assessments, cloud security assessments, and social engineering tests. My approach is tailored to your specific needs and risk profile.",
+                      "I review the cloud account, the network, and the app, and I run a vulnerability scan. If you need a full penetration test, I'll say whether that's the right job.",
                   },
                   {
                     question: "How often should we conduct security assessments?",
                     answer:
-                      "The frequency of security assessments depends on various factors, including your industry, regulatory requirements, and risk profile. Generally, I recommend conducting comprehensive assessments at least annually, with more frequent targeted assessments for critical systems or after significant changes to your infrastructure.",
+                      "After a big change, and at least once a year if an auditor expects it. Critical systems more often.",
                   },
                   {
                     question: "Can you help with compliance requirements (e.g., GDPR, HIPAA, PCI DSS)?",
@@ -260,12 +260,12 @@ export default function SecurityConsulting({ canonicalUrl }: { canonicalUrl?: st
                   {
                     question: "How do you handle the security of cloud environments?",
                     answer:
-                      "I have expertise in securing cloud environments across major providers like AWS, Azure, and Google Cloud. My approach includes assessing cloud configurations, implementing security best practices, setting up proper identity and access management, ensuring data encryption, and establishing continuous monitoring. I also assist with cloud-native security tools and services specific to each platform.",
+                      "Mostly AWS. I read the account config, IAM, encryption, and the logs.",
                   },
                   {
                     question: "What's your approach to incident response planning?",
                     answer:
-                      "My incident response planning service involves developing a comprehensive plan tailored to your organization. This includes defining roles and responsibilities, establishing communication protocols, creating incident classification and escalation procedures, and setting up tools for detection and response. I also conduct tabletop exercises to test and refine the plan, ensuring your team is prepared to handle security incidents effectively.",
+                      "Who gets called, how you tell it's real, and a short practice run. A binder nobody opens doesn't count.",
                   },
                   {
                     question: "How do you stay updated with the latest security threats and technologies?",
