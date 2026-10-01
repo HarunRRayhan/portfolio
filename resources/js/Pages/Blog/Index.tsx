@@ -1,5 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react'
-import { ArrowRight, CalendarDays, Clock3, Rss, Search, Tag } from 'lucide-react'
+import { ArrowRight, CalendarDays, Clock3, Eye, Rss, Search, Tag } from 'lucide-react'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { ShareButton } from '@/Components/ShareButton'
 
@@ -214,6 +214,10 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
                       <span className="inline-flex items-center gap-1.5">
                         <Clock3 className="h-3.5 w-3.5" />
                         {post.readTimeLabel}
+                      </span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <Eye className="h-3.5 w-3.5" />
+                        {post.viewCount ?? 0} all-time views
                       </span>
                     </div>
 
