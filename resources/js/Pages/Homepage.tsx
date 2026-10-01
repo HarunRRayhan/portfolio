@@ -16,7 +16,7 @@ export default function Homepage() {
 
     return (
         <>
-            <HeroSectionV2 />
+            <HeroSectionV2 study={featuredCaseStudies?.[0] ?? null} />
             {/* Separate hydration work so React can yield to user input between sections. */}
             <Suspense fallback={null}><LogoSection /></Suspense>
             <Suspense fallback={null}><SkillsSection /></Suspense>

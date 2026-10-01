@@ -13,6 +13,14 @@ function isAdminPath(pathname: string) {
   return pathname === '/profile' || pathname.startsWith('/admin')
 }
 
+function isArticlePath(pathname: string) {
+  return /^\/blog\/.+/.test(pathname)
+}
+
+function pathnameOf(url: string) {
+  return new URL(url, window.location.origin).pathname
+}
+
 function useIsAdminArea(initialUrl: string) {
   const [isAdmin, setIsAdmin] = useState(() => isAdminPath(new URL(initialUrl, 'http://localhost').pathname))
 
@@ -49,6 +57,7 @@ export function SubscribeProvider({
   initialUrl?: string
 }) {
   const isAdminArea = useIsAdminArea(initialUrl)
+  const [pathname, setPathname] = useState(() => new URL(initialUrl, 'http://localhost').pathname)
   const [open, setOpen] = useState(false)
   const [hasOpened, setHasOpened] = useState(false)
   const [source, setSource] = useState('idle-popup')
@@ -58,6 +67,7 @@ export function SubscribeProvider({
 
   useEffect(() => {
     return router.on('navigate', (event) => {
+      setPathname(pathnameOf(event.detail.page.url))
       const nextCount = (event.detail.page.props as NewsletterPageProps).newsletter?.subscriberCount
 
       if (typeof nextCount === 'number') setCurrentSubscriberCount(nextCount)
@@ -81,7 +91,12 @@ export function SubscribeProvider({
     sessionStorage.setItem(DISMISS_KEY, '1')
   }, [])
 
-  useIdleSubscribe(() => openPopup('idle-popup'), IDLE_MS, DISMISS_KEY)
+  useIdleSubscribe(
+    () => openPopup('idle-popup'),
+    IDLE_MS,
+    DISMISS_KEY,
+    !isAdminArea && !isArticlePath(pathname),
+  )
 
   return (
     <SubscribeContext.Provider value={{ openPopup }}>

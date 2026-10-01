@@ -5,11 +5,12 @@ const ACTIVITY_EVENTS = ['mousemove', 'keydown', 'scroll', 'touchstart'] as cons
 /** Fires `onIdle` after `idleMs` of no mouse/keyboard/scroll/touch activity.
  *  Skips entirely once `sessionStorage[dismissKey]` is set, so a dismissed
  *  or subscribed visitor doesn't get retimed on the next page nav. */
-export function useIdleSubscribe(onIdle: () => void, idleMs: number, dismissKey: string) {
+export function useIdleSubscribe(onIdle: () => void, idleMs: number, dismissKey: string, enabled = true) {
   const onIdleRef = useRef(onIdle)
   onIdleRef.current = onIdle
 
   useEffect(() => {
+    if (!enabled) return
     if (sessionStorage.getItem(dismissKey)) return
 
     let timer: ReturnType<typeof setTimeout>
@@ -30,5 +31,5 @@ export function useIdleSubscribe(onIdle: () => void, idleMs: number, dismissKey:
       clearTimeout(timer)
       ACTIVITY_EVENTS.forEach((event) => window.removeEventListener(event, reset))
     }
-  }, [idleMs, dismissKey])
+  }, [idleMs, dismissKey, enabled])
 }

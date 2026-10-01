@@ -47,7 +47,7 @@ final class SiteCatalog
         return [
             ['About', '/about', 'Background, experience, and how I work with teams.'],
             ['Sponsor', '/sponsor-me', 'Support the writing, tools, and experiments I share.'],
-            ['Contact', '/contact', 'Start a project or ask a question.'],
+            ['Contact', '/contact', 'Send a note. Harun reads it and replies himself.'],
             ['Bio', '/bio', 'Short bio and links.'],
             ['Bio (Bangla)', '/hrr', 'Bangla bio and links.'],
             ['Consultation', '/consultation', 'Book a paid DevOps consultation.'],

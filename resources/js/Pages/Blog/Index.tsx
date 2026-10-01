@@ -1,5 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react'
-import { ArrowRight, CalendarDays, Clock3, Eye, MessageCircle, Rss, Search, Tag } from 'lucide-react'
+import { ArrowRight, CalendarDays, Clock3, Rss, Search, Tag } from 'lucide-react'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { ShareButton } from '@/Components/ShareButton'
 
@@ -202,7 +202,11 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
                   </div>
 
                   <div className="pointer-events-none p-6">
-                    <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500">
+                    <h3 className="text-2xl font-semibold tracking-tight text-slate-950 transition-colors group-hover:text-slate-700">
+                      {post.title}
+                    </h3>
+                    <p className="mt-3 line-clamp-4 text-sm leading-7 text-slate-600">{post.brief}</p>
+                    <div className="mt-4 flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500">
                       <span className="inline-flex items-center gap-1.5">
                         <CalendarDays className="h-3.5 w-3.5" />
                         {post.publishedAtHuman}
@@ -211,20 +215,7 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
                         <Clock3 className="h-3.5 w-3.5" />
                         {post.readTimeLabel}
                       </span>
-                      <span className="inline-flex items-center gap-1.5">
-                        <MessageCircle className="h-3.5 w-3.5" />
-                        {post.responseCount + post.replyCount} comments
-                      </span>
-                      <span className="inline-flex items-center gap-1.5">
-                        <Eye className="h-3.5 w-3.5" />
-                        {post.viewCount ?? 0} all-time views
-                      </span>
                     </div>
-
-                    <h3 className="mt-4 text-2xl font-semibold tracking-tight text-slate-950 transition-colors group-hover:text-slate-700">
-                      {post.title}
-                    </h3>
-                    <p className="mt-3 line-clamp-4 text-sm leading-7 text-slate-600">{post.brief}</p>
 
                     <div className="mt-5 flex flex-wrap gap-2">
                       {post.tags.slice(0, 4).map((tag) => (
