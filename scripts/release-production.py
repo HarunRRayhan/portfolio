@@ -2,11 +2,13 @@
 """Verify published assets, then deploy an exact revision through Railway."""
 import argparse
 import hashlib
+import http.client
 import json
 import os
 from pathlib import Path
 import re
 import time
+import urllib.error
 import urllib.request
 
 
@@ -72,6 +74,10 @@ def wait_ci(sha, timeout=1800):
     raise TimeoutError('Required PR checks not confirmed for release commit')
 
 
+class UncertainRequestError(RuntimeError):
+    """The request may have reached Railway, but no valid reply was received."""
+
+
 def graphql(query, variables):
     request = urllib.request.Request(
         'https://backboard.railway.com/graphql/v2',
@@ -85,9 +91,13 @@ def graphql(query, variables):
             with urllib.request.urlopen(request, timeout=45) as response:
                 payload = json.load(response)
             break
-        except OSError:
+        except urllib.error.HTTPError:
             if attempt + 1 == attempts:
-                raise RuntimeError('Railway request unavailable; reconcile deployment before retrying') from None
+                raise RuntimeError('Railway request failed; inspect Railway separately') from None
+            time.sleep(10)
+        except (OSError, http.client.HTTPException, json.JSONDecodeError):
+            if attempt + 1 == attempts:
+                raise UncertainRequestError('Railway response unavailable; deployment outcome is uncertain') from None
             time.sleep(10)
     if payload.get('errors'):
         # Do not log API response bodies; they can contain configuration values.
@@ -114,11 +124,17 @@ def deploy_service(service, sha, timeout=1200):
     records = deployments(service)
     ensure_idle(service, records)
     previous = {deployment['id'] for deployment in records}
-    result = graphql('mutation($environment:String!,$service:String!,$sha:String!){serviceInstanceDeploy(environmentId:$environment,serviceId:$service,commitSha:$sha,latestCommit:false)}',
-                     {'environment': os.environ['RAILWAY_ENVIRONMENT_ID'], 'service': service, 'sha': sha})
-    if result.get('serviceInstanceDeploy') is not True:
-        raise RuntimeError('Railway did not accept deployment')
-    # Never blindly retry this mutation after an uncertain response.
+    try:
+        result = graphql('mutation($environment:String!,$service:String!,$sha:String!){serviceInstanceDeploy(environmentId:$environment,serviceId:$service,commitSha:$sha,latestCommit:false)}',
+                         {'environment': os.environ['RAILWAY_ENVIRONMENT_ID'], 'service': service, 'sha': sha})
+    except UncertainRequestError:
+        # Railway can accept a deployment before the response times out. Keep the
+        # captured IDs and reconcile through reads; never repeat the mutation.
+        print(f'Service {service}: request outcome uncertain; reconciling exact commit {sha}', flush=True)
+    else:
+        if result.get('serviceInstanceDeploy') is not True:
+            raise RuntimeError('Railway did not accept deployment')
+    # Both accepted and uncertain requests require a new, successful deployment.
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         for deployment in deployments(service):
