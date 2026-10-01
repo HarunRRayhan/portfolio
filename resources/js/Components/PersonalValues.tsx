@@ -2,28 +2,27 @@
 
 import { motion } from "framer-motion"
 import { Heart, Lightbulb, Users, Zap } from "lucide-react"
-import { getImageUrl } from "../lib/imageUtils"
 
 const values = [
   {
     icon: Lightbulb,
-    title: "Continuous Learning",
-    description: "Embracing new technologies and methodologies to stay at the forefront of the industry.",
+    title: "The plan first",
+    description: "Infrastructure changes go through Terraform. You can read the plan before anything is applied.",
   },
   {
     icon: Users,
-    title: "Collaboration",
-    description: "Fostering teamwork and knowledge sharing to achieve collective success.",
+    title: "A release you can run",
+    description: "The pipeline builds, tests, and ships. Your team should be able to use it without me in the room.",
   },
   {
     icon: Zap,
-    title: "Innovation",
-    description: "Pushing boundaries and thinking outside the box to solve complex problems.",
+    title: "The bill",
+    description: "I look at what you're paying for and not using, then right-size it or turn it off.",
   },
   {
     icon: Heart,
-    title: "Passion",
-    description: "Bringing enthusiasm and dedication to every project and challenge.",
+    title: "Notes for the next change",
+    description: "I leave the modules, the alarms, and a short note on what to patch.",
   },
 ]
 
@@ -38,7 +37,7 @@ export function PersonalValues() {
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
         >
-          Personal Values
+          How I work
         </motion.h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {values.map((value, index) => (
