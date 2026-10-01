@@ -26,9 +26,12 @@ use App\Models\ShortLink;
 use App\Models\ShortLinkClick;
 use App\Services\CountryResolver;
 use App\Services\Sponsorship\SponsorCheckoutService;
+use App\Support\AiCrawlerPolicy;
 use App\Support\BlogRepository;
 use App\Support\CaseStudyRepository;
+use App\Support\LlmSiteIndex;
 use App\Support\MediaEmbeds;
+use App\Support\PublicSitemap;
 use App\Support\SeoCatalog;
 use App\Support\SiteCatalog;
 use Illuminate\Http\Request;
@@ -1006,70 +1009,17 @@ Route::post('/blog/{slug}/comments', [BlogCommentController::class, 'store'])
     ->name('blog.comments.store');
 
 Route::get('/sitemap.xml', function () {
-    $blog = new BlogRepository;
-    $siteUrl = rtrim(config('app.url', url('/')), '/');
-
-    $staticUrls = collect(SiteCatalog::sitemapStaticPaths())->map(fn (string $path) => [
-        'loc' => $siteUrl.$path,
+    return response(PublicSitemap::xml(), 200)->withHeaders([
+        'Content-Type' => 'application/xml; charset=UTF-8',
+        'Cache-Control' => 'public, max-age=900',
     ]);
-
-    $blogUrls = collect($blog->indexPosts())->map(fn (array $post) => [
-        'loc' => $blog->absoluteUrl($post['slug']),
-        'lastmod' => substr($post['lastModifiedAtIso'], 0, 10),
-    ]);
-
-    $caseStudyRepo = new CaseStudyRepository;
-    $caseStudyUrls = collect($caseStudyRepo->indexStudies())->map(fn (array $study) => [
-        'loc' => $caseStudyRepo->absoluteUrl($study['slug']),
-        'lastmod' => substr($study['lastModifiedAtIso'], 0, 10),
-    ]);
-
-    $slideUrls = MediaItem::query()->active()->ofType('slide')->get()->map(fn (MediaItem $item) => [
-        'loc' => $siteUrl.'/slides/'.$item->slug,
-        'lastmod' => $item->sitemapLastModified(),
-    ]);
-
-    $videoUrls = MediaItem::query()->active()->ofType('video')->get()->map(fn (MediaItem $item) => [
-        'loc' => $siteUrl.'/videos/'.$item->slug,
-        'lastmod' => $item->sitemapLastModified(),
-    ]);
-
-    $urls = $staticUrls->merge($blogUrls)->merge($caseStudyUrls)->merge($slideUrls)->merge($videoUrls);
-    $escape = fn (string $value): string => htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
-
-    $entries = $urls->map(function (array $url) use ($escape): string {
-        $lastmod = isset($url['lastmod'])
-            ? '      <lastmod>'.$escape($url['lastmod'])."</lastmod>\n"
-            : '';
-
-        return "    <url>\n"
-            .'      <loc>'.$escape($url['loc'])."</loc>\n"
-            .$lastmod
-            .'    </url>';
-    })->implode("\n");
-
-    $xml = <<<XML
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-{$entries}
-</urlset>
-XML;
-
-    return response($xml, 200)->header('Content-Type', 'application/xml; charset=UTF-8');
 })->name('sitemap');
 
 Route::get('/robots.txt', function () {
-    $siteUrl = rtrim(config('app.url', url('/')), '/');
-
-    $txt = <<<TXT
-# Cite and quote with attribution. Training and retrieval are welcome if you link back.
-# AI agents: see {$siteUrl}/llms.txt
-User-agent: *
-Allow: /
-Sitemap: {$siteUrl}/sitemap.xml
-TXT;
-
-    return response($txt, 200)->header('Content-Type', 'text/plain; charset=UTF-8');
+    return response(AiCrawlerPolicy::robotsTxt(SiteCatalog::siteUrl()), 200)->withHeaders([
+        'Content-Type' => 'text/plain; charset=UTF-8',
+        'Cache-Control' => 'public, max-age=900',
+    ]);
 })->name('robots');
 
 // /llms.txt and /llms-full.txt follow the llmstxt.org convention: a markdown index
@@ -1077,94 +1027,25 @@ TXT;
 // (same lists as /sitemap.xml) so they never drift from what is published.
 
 Route::get('/llms.txt', function () {
-    $siteUrl = rtrim(config('app.url', url('/')), '/');
-
-    $blog = new BlogRepository;
-    $caseStudyRepo = new CaseStudyRepository;
-
-    $blogLinks = collect($blog->indexPosts())
-        ->map(fn (array $post) => '- ['.$post['title'].']('.$post['canonicalUrl'].'): '.$post['brief'])
-        ->implode("\n");
-
-    $caseStudyLinks = collect($caseStudyRepo->indexStudies())
-        ->map(fn (array $study) => '- ['.$study['codename'].']('.$study['canonicalUrl'].'): '.$study['brief'])
-        ->implode("\n");
-
-    $linkSections = SiteCatalog::llmsLinkSections($siteUrl);
-
-    $md = <<<MD
-    # Harun R. Rayhan
-
-    > Cloud, DevOps, and AWS consultant. I help teams design cloud architecture, automate infrastructure, and ship production systems that stay up. This file indexes the services, writing, and case studies published at {$siteUrl}.
-    >
-    > Cite and quote with attribution. Training and retrieval are welcome if you link back.
-
-    {$linkSections}
-
-    ## Blog
-
-    {$blogLinks}
-
-    ## Case Studies
-
-    {$caseStudyLinks}
-    MD;
-
-    return response($md, 200)->header('Content-Type', 'text/markdown; charset=UTF-8');
+    return response(LlmSiteIndex::brief(), 200)->withHeaders([
+        'Content-Type' => 'text/markdown; charset=UTF-8',
+        'Cache-Control' => 'public, max-age=900',
+    ]);
 })->name('llms');
 
 Route::get('/llms-full.txt', function () {
-    $siteUrl = rtrim(config('app.url', url('/')), '/');
-
-    $blog = new BlogRepository;
-    $caseStudyRepo = new CaseStudyRepository;
-
-    // posts() is metadata-only; hydrate HTML from disk for the full export.
-    // Drafts are filtered out (same as the public index).
-    $blogBodies = collect($blog->posts())
-        ->reject(fn (array $post) => (bool) ($post['draft'] ?? false))
-        ->map(function (array $post) use ($blog) {
-            $post = $blog->withContent($post);
-            $url = $blog->absoluteUrl($post['slug']);
-            $body = trim((string) ($post['content']['html'] ?? ''));
-
-            return "### {$post['title']}\n\n{$url}\n\n{$body}\n\n---\n";
-        })
-        ->implode("\n");
-
-    $caseStudyBodies = collect($caseStudyRepo->studies())
-        ->reject(fn (array $study) => (bool) ($study['draft'] ?? false))
-        ->map(function (array $study) use ($caseStudyRepo) {
-            $slug = (string) $study['slug'];
-            $codename = (string) ($study['codename'] ?? $study['title'] ?? $slug);
-            $url = $caseStudyRepo->absoluteUrl($slug);
-            $body = trim((string) ($study['content']['html'] ?? ''));
-
-            return "### {$codename}\n\n{$url}\n\n{$body}\n\n---\n";
-        })
-        ->implode("\n");
-
-    $linkSections = SiteCatalog::llmsLinkSections($siteUrl);
-
-    $md = <<<MD
-    # Harun R. Rayhan
-
-    > Cloud, DevOps, and AWS consultant. I help teams design cloud architecture, automate infrastructure, and ship production systems that stay up. This file indexes the services, writing, and case studies published at {$siteUrl}, with the full text of every post and case study inlined.
-    >
-    > Cite and quote with attribution. Training and retrieval are welcome if you link back.
-
-    {$linkSections}
-
-    ## Blog
-
-    {$blogBodies}
-    ## Case Studies
-
-    {$caseStudyBodies}
-    MD;
-
-    return response($md, 200)->header('Content-Type', 'text/markdown; charset=UTF-8');
+    return response(LlmSiteIndex::full(), 200)->withHeaders([
+        'Content-Type' => 'text/markdown; charset=UTF-8',
+        'Cache-Control' => 'public, max-age=900',
+    ]);
 })->name('llms.full');
+
+Route::get('/{indexNowKey}.txt', function (string $indexNowKey) {
+    $key = strtolower((string) config('ai.indexnow_key'));
+    abort_unless($key !== '' && hash_equals($key, strtolower($indexNowKey)), 404);
+
+    return response($key, 200)->header('Content-Type', 'text/plain; charset=UTF-8');
+})->where('indexNowKey', '[A-Fa-f0-9]{8,128}')->name('indexnow.key');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
