@@ -17,7 +17,7 @@ export function VolunteeringSection() {
         >
           <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">Community Involvement</h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Giving back to the tech community through knowledge sharing and mentorship.
+            I write about AWS, and I&apos;m in the Community Builder program.
           </p>
         </motion.div>
 
