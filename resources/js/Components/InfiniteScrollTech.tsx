@@ -23,9 +23,9 @@ export function InfiniteScrollTech({ technologies, backgroundColor = "#F8F9FA" }
         viewport={{ once: true }}
         className="container mx-auto text-center mb-12"
       >
-        <h2 className="text-4xl font-bold text-gray-900 mb-4">Technologies We Use</h2>
+        <h2 className="text-4xl font-bold text-gray-900 mb-4">Tools I use</h2>
         <p className="text-xl text-gray-600">
-          We leverage industry-leading platforms and tools to build scalable solutions.
+          These show up when they fit the job.
         </p>
       </motion.div>
 
