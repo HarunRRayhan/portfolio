@@ -15,9 +15,9 @@ const highlights = [
 ]
 
 const capabilities = [
-    'Cloud architecture and platform modernization',
-    'Infrastructure automation with Terraform and CI/CD',
-    'Production reliability, observability, and cost control',
+    'The AWS account you already have',
+    'Terraform and a pipeline the team can run',
+    'Metrics, logs, and the bill',
 ]
 
 export type HeroCaseStudy = {
@@ -56,7 +56,7 @@ export function HeroSectionV2({ study = null }: { study?: HeroCaseStudy | null }
                         </h1>
 
                         <p className="homepage-hero-copy mt-5 max-w-xl text-lg leading-8 text-slate-600">
-                            Automation, calmer releases, and production monitoring.
+                            The account, the pipeline, and what happens after it ships.
                         </p>
 
                         <div className="mt-6 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
