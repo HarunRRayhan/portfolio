@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Infinity, CircleDot } from "lucide-react"
+import { Infinity } from "lucide-react"
 import { getImageUrl } from "../lib/imageUtils"
 
 type Skill = {
@@ -9,7 +9,6 @@ type Skill = {
   logo?: string
   isIcon?: boolean
   icon?: any
-  isHot?: boolean
   iconColors?: string[]
 }
 
@@ -17,18 +16,15 @@ const skills: Skill[] = [
   {
     name: "AWS",
     logo: getImageUrl("/images/skills/aws.svg"),
-    isHot: true,
   },
   {
     name: "DevOps",
     isIcon: true,
     icon: Infinity,
-    isHot: true,
   },
   {
     name: "Terraform",
     logo: getImageUrl("/images/skills/terraform.svg"),
-    isHot: true,
   },
   {
     name: "Kubernetes",
@@ -45,7 +41,6 @@ const skills: Skill[] = [
   {
     name: "Serverless",
     logo: getImageUrl("/images/skills/serverless.png"),
-    isHot: true,
   },
   {
     name: "Go",
@@ -87,20 +82,6 @@ const skills: Skill[] = [
   }
 ]
 
-const FireIcon = () => (
-  <div className="w-6 h-6 relative group-hover:scale-125 transition-transform duration-300">
-    <img
-      src={getImageUrl("/images/icons/fire-sm.webp")}
-      alt="Hot skill indicator"
-      width={24}
-      height={24}
-      loading="lazy"
-      decoding="async"
-      className="w-full h-full object-contain"
-    />
-  </div>
-)
-
 export function SkillsShowcase() {
   return (
     <section className="py-20 bg-gray-50">
@@ -112,7 +93,7 @@ export function SkillsShowcase() {
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
         >
-          Technical Expertise
+          Tools I use
         </motion.h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
           {skills.map((skill, index) => (
@@ -143,11 +124,6 @@ export function SkillsShowcase() {
                       alt={`${skill.name} logo`}
                       className="w-full h-full object-contain"
                     />
-                  )}
-                  {skill.isHot && (
-                    <div className="absolute -top-2 -right-2">
-                      <FireIcon />
-                    </div>
                   )}
                 </div>
               </div>
