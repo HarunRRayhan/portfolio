@@ -1,41 +1,35 @@
 'use client'
 
 import React from 'react'
-import { Code2, Cloud, Lightbulb, ShieldCheck, Workflow, Braces, Server, Cpu } from 'lucide-react'
+import { Code2, Cloud, ShieldCheck, Workflow } from 'lucide-react'
 import { Image } from './Image'
 import { getImageUrl } from '../lib/imageUtils'
 
 const skills = [
     {
         icon: Code2,
-        title: 'Software engineering depth',
+        title: 'Software',
         description:
-            'Polyglot engineering across backend systems, product delivery, and platform work, with a bias toward practical implementation.',
+            'PHP and Laravel most of the time. Python, Go, or Node when the project is already in that language.',
     },
     {
         icon: Cloud,
-        title: 'AWS and cloud architecture',
+        title: 'AWS',
         description:
-            'Designing and operating reliable cloud systems with security, scalability, and cost control built in from the start.',
+            'The account you already have: network, compute, and the bill.',
     },
     {
         icon: Workflow,
-        title: 'Infrastructure automation',
+        title: 'Releases',
         description:
-            'Terraform, CI/CD, and deployment workflows that reduce manual overhead and make shipping safer.',
+            'Terraform and a pipeline, so a release is a button instead of a checklist.',
     },
     {
         icon: ShieldCheck,
-        title: 'Production reliability',
+        title: 'Production',
         description:
-            'Observability, alerting, and failure-mode thinking that keep systems calm when traffic or complexity grows.',
+            'Metrics, logs, and an alarm that pages a person.',
     },
-]
-
-const highlights = [
-    { value: '15+', label: 'years building software' },
-    { value: '12×', label: 'AWS certified' },
-    { value: 'Lead', label: 'technical mentoring' },
 ]
 
 export function SkillsSection() {
@@ -58,15 +52,10 @@ export function SkillsSection() {
                         </span>
                     </div>
                     <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
-                        Calm execution across{' '}
-                        <span className="text-amber-600 underline decoration-amber-200 decoration-2 underline-offset-4">
-                            code, cloud, and operations
-                        </span>
-                        .
+                        What the work usually is
                     </h2>
                     <p className="mt-4 text-base leading-7 text-slate-600 sm:text-lg">
-                        The work usually sits at the intersection of engineering, DevOps, and platform thinking,
-                        so the focus is on systems that are simple to ship and easy to support.
+                        The app, the AWS account, and the release after I leave.
                     </p>
                 </div>
 
@@ -86,34 +75,6 @@ export function SkillsSection() {
                             </div>
                         ))}
 
-                        {/* Quick highlights, terminal style */}
-                        <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-950 sm:col-span-2">
-                            {/* Terminal bar */}
-                            <div className="flex items-center gap-1.5 border-b border-slate-800 px-4 py-2">
-                                <div className="h-2 w-2 rounded-full bg-red-500/80" />
-                                <div className="h-2 w-2 rounded-full bg-yellow-500/80" />
-                                <div className="h-2 w-2 rounded-full bg-emerald-500/80" />
-                                <span className="ml-2 font-mono text-[10px] text-slate-300">quick-stats</span>
-                            </div>
-                            <div className="p-4">
-                                <div className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-300">
-                                    ▼ Highlights
-                                </div>
-                                <div className="grid gap-2 sm:grid-cols-3">
-                                    {highlights.map((item) => (
-                                        <div
-                                            key={item.label}
-                                            className="rounded-lg border border-slate-700/60 bg-slate-900/60 px-4 py-3"
-                                        >
-                                            <div className="font-mono text-2xl font-bold tabular-nums text-emerald-400">
-                                                {item.value}
-                                            </div>
-                                            <div className="mt-0.5 font-mono text-[11px] text-slate-400">{item.label}</div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     {/* Right column: Certifications + style card */}
@@ -126,7 +87,7 @@ export function SkillsSection() {
                                         Credentials
                                     </p>
                                     <h3 className="mt-2 text-xl font-bold text-slate-900">
-                                        Proof of hands-on depth
+                                        All 12 AWS certifications
                                     </h3>
                                 </div>
                                 <div className="rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
@@ -144,19 +105,9 @@ export function SkillsSection() {
                                 />
                             </div>
 
-                            <div className="mt-4 rounded-lg border border-slate-100 bg-slate-50/70 p-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600">
-                                        <Cpu className="h-4 w-4" />
-                                    </div>
-                                    <div>
-                                        <div className="font-mono text-[11px] font-medium text-slate-600">Working style</div>
-                                        <div className="text-sm font-semibold text-slate-900">
-                                            Opinionated where it matters, flexible where it helps.
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <p className="mt-4 text-sm leading-6 text-slate-600">
+                                I write the change, review the plan, and leave notes the next person can run.
+                            </p>
                         </div>
                     </div>
                 </div>
