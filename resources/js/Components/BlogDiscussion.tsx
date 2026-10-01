@@ -146,10 +146,10 @@ export function BlogDiscussion({ slug, title, commentCount, comments }: BlogDisc
       <div className="border-b border-slate-200 bg-[linear-gradient(180deg,rgba(248,250,252,0.92),rgba(255,255,255,1))] px-6 py-6 md:px-8 md:py-7">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Discussion</p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Join the conversation</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">On this post</p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Comments</h2>
             <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-600">
-              A focused discussion space with threaded replies and an unobtrusive editor.
+              A reply stays under the note it answers.
             </p>
           </div>
 
@@ -167,7 +167,7 @@ export function BlogDiscussion({ slug, title, commentCount, comments }: BlogDisc
           ) : (
             <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 p-6 text-sm leading-7 text-slate-600">
               <p className="font-semibold text-slate-900">No comments yet.</p>
-              <p className="mt-2">Be the first to start the thread on {title}.</p>
+              <p className="mt-2">If you have a note on {title}, sign in and leave it.</p>
             </div>
           )}
         </div>
@@ -187,7 +187,7 @@ export function BlogDiscussion({ slug, title, commentCount, comments }: BlogDisc
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="font-semibold">Replying to {replyTarget.user?.name ?? 'a comment'}</p>
-                      <p className="mt-1 text-xs text-slate-500">Clear this if you want to post a new top-level comment.</p>
+                      <p className="mt-1 text-xs text-slate-500">Clear this to comment on the post instead.</p>
                     </div>
                     <button
                       type="button"
@@ -207,7 +207,7 @@ export function BlogDiscussion({ slug, title, commentCount, comments }: BlogDisc
                 <Textarea
                   value={data.content}
                   onChange={(event) => setData('content', event.target.value)}
-                  placeholder="Write something thoughtful, useful, or both."
+                  placeholder="Write the note."
                   className="min-h-[200px] resize-y bg-white"
                 />
                 {errors.content ? <p className="mt-2 text-sm text-red-600">{errors.content}</p> : null}
@@ -215,7 +215,7 @@ export function BlogDiscussion({ slug, title, commentCount, comments }: BlogDisc
 
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-xs leading-6 text-slate-500">
-                  Comments are tied to your signed-in Laravel account. Keep it respectful and on topic.
+                  Comments stay on the account you signed in with. Keep it on the post.
                 </p>
 
                 <Button type="submit" disabled={processing || data.content.trim().length === 0} className="gap-2 rounded-full px-5 bg-slate-900 text-white hover:bg-slate-800">
@@ -229,7 +229,7 @@ export function BlogDiscussion({ slug, title, commentCount, comments }: BlogDisc
               <div>
                 <p className="text-sm font-semibold text-slate-900">Sign in to comment</p>
                 <p className="mt-2 text-sm leading-7 text-slate-600">
-                  Discussion works best with a real identity. Sign in to reply, join threads, and keep your comments attached to your profile.
+                  Comments stay on the account you sign in with.
                 </p>
               </div>
 
@@ -250,7 +250,7 @@ export function BlogDiscussion({ slug, title, commentCount, comments }: BlogDisc
               </div>
 
               <div className="rounded-2xl border border-slate-200 bg-white p-4 text-xs leading-6 text-slate-500">
-                Sign in with the provider you prefer, then come back to this thread to post your comment.
+                Sign in, then come back to this post.
               </div>
             </div>
           )}
