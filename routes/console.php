@@ -33,6 +33,7 @@ Artisan::command('seo:ping-sitemap {--url= : Sitemap URL to ping}', function () 
     $this->info('Bing retired /ping?sitemap= (HTTP 410). Submit the sitemap in Bing Webmaster Tools:');
     $this->line('- https://www.bing.com/webmasters/sitemaps');
     $this->line("- robots.txt already lists {$sitemapUrl}");
+    $this->line('After INDEXNOW_KEY is deployed, notify Bing with: php artisan seo:indexnow --site=https://harun.dev');
 })->purpose('Remind GSC and Bing Webmaster sitemap resubmit steps');
 
 Artisan::command('consultations:expire', function (BookingWorkflowService $workflow) {
