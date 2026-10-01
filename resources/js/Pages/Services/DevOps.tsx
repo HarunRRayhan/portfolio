@@ -118,7 +118,7 @@ export default function DevOpsPage({ canonicalUrl }: { canonicalUrl?: string }) 
         <ServiceHero
           icon={GitBranch}
           title="DevOps Services"
-          description="Implement modern DevOps practices to streamline your development and operations workflows."
+          description="CI, infrastructure as code, and a release path the team can run without me in the room."
           backgroundImage="/service-assets/devops/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
@@ -170,7 +170,7 @@ export default function DevOpsPage({ canonicalUrl }: { canonicalUrl?: string }) 
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why Choose Us for DevOps Implementation
+              How I handle DevOps Implementation
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[

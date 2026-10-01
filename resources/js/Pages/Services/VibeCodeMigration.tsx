@@ -78,7 +78,7 @@ export default function VibeCodeMigration({ canonicalUrl }: { canonicalUrl?: str
         <ServiceHero
           icon={Replace}
           title="Vibe Code Migration"
-          description="Your prototype did its job and found real users. When the stack it started on cannot carry it any further, we move it to a production language and framework and keep every feature working."
+          description="The prototype found users. When that stack can't carry it, I port it to a production language and framework and keep the features working."
           backgroundImage="/service-assets/vibe-code-migration/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
@@ -90,7 +90,7 @@ export default function VibeCodeMigration({ canonicalUrl }: { canonicalUrl?: str
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              What We Do
+              What I do
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
@@ -135,22 +135,22 @@ export default function VibeCodeMigration({ canonicalUrl }: { canonicalUrl?: str
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
                 {
-                  title: "We respect what you built",
+                  title: "I respect what you built",
                   content:
                     "The prototype found users and proved the idea. That is the hard part, and vibe coding is a smart way to get there. Our job is the move to a stack that lasts, not second-guessing how you started.",
                 },
                 {
-                  title: "We keep parity front and center",
+                  title: "I keep parity front and center",
                   content:
                     "A migration is only done when the new app does everything the old one did. We write tests against the current behavior first, then port until every one of them passes, so features do not go missing in the move.",
                 },
                 {
-                  title: "We have done this on harder systems",
+                  title: "I have done this on harder systems",
                   content:
                     "We have ported production systems a lot more involved than a weekend project, including business software running on older frameworks. The care that protects a system that size protects yours.",
                 },
                 {
-                  title: "We hand it back to you",
+                  title: "I hand it back to you",
                   content:
                     "When the move is done we walk your team through the new stack and how it is put together. You are left with an app you can run and extend, not a dependency on us.",
                 },

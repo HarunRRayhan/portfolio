@@ -75,7 +75,7 @@ export default function MLOps({ canonicalUrl }: { canonicalUrl?: string }) {
         <ServiceHero
           icon={Brain}
           title="MLOps"
-          description="Streamline your machine learning operations with automated workflows and efficient infrastructure."
+          description="The infrastructure around training and serving models, from the notebook to production."
           backgroundImage="/service-assets/mlops/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
@@ -127,7 +127,7 @@ export default function MLOps({ canonicalUrl }: { canonicalUrl?: string }) {
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why Choose Us for MLOps
+              How I handle MLOps
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[

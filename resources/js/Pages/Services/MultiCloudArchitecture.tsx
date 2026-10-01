@@ -68,7 +68,7 @@ export default function MultiCloudArchitecture({ canonicalUrl }: { canonicalUrl?
         <ServiceHero
           icon={Cloud}
           title="Multi-Cloud Architecture"
-          description="Design and implement robust multi-cloud solutions that leverage the best of different cloud providers."
+          description="A setup that uses more than one cloud, when AWS alone isn't the whole answer."
           backgroundImage="/service-assets/multi-cloud-architecture/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
@@ -120,7 +120,7 @@ export default function MultiCloudArchitecture({ canonicalUrl }: { canonicalUrl?
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why Choose Us for Multi-Cloud Architecture
+              How I handle Multi-Cloud Architecture
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[

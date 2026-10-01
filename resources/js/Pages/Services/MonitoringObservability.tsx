@@ -75,7 +75,7 @@ export default function MonitoringObservability({ canonicalUrl }: { canonicalUrl
         <ServiceHero
           icon={BarChart}
           title="Monitoring & Observability"
-          description="Implement comprehensive monitoring solutions to gain deep insights into your infrastructure and applications."
+          description="Metrics, logs, and traces, so you hear about a failure before your users do."
           backgroundImage="/service-assets/monitoring-observability/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
@@ -127,7 +127,7 @@ export default function MonitoringObservability({ canonicalUrl }: { canonicalUrl
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why Choose Us for Monitoring and Observability
+              How I handle Monitoring and Observability
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[

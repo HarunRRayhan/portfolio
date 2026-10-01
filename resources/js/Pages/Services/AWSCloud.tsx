@@ -73,7 +73,7 @@ export default function AWSCloud({ canonicalUrl }: { canonicalUrl?: string }) {
         <ServiceHero
           icon={Cloud}
           title="AWS Cloud Services"
-          description="Expert AWS cloud solutions to help you leverage the full power of Amazon Web Services for your business needs."
+          description="Accounts, networking, compute, and the managed services around them."
           backgroundImage="/service-assets/aws-cloud/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
@@ -125,7 +125,7 @@ export default function AWSCloud({ canonicalUrl }: { canonicalUrl?: string }) {
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why Choose Us for AWS Cloud
+              How I handle AWS Cloud
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
