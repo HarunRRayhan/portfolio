@@ -49,6 +49,7 @@ export function ReviewSlideSection() {
     const { ref, isActive } = useVisibleAnimation<HTMLElement>()
     const { viewportRef: emblaRef, api: emblaApi, ensureReady, loadError } = useDeferredCarousel()
     const [selectedIndex, setSelectedIndex] = useState(0)
+    const [paused, setPaused] = useState(false)
 
     const scrollTo = useCallback((index: number) => {
         void ensureReady().then(api => api?.scrollTo(index))
@@ -69,17 +70,29 @@ export function ReviewSlideSection() {
     }, [emblaApi, onSelect])
 
     useEffect(() => {
-        if (!isActive) return
+        if (!isActive || paused) return
 
         const autoSlide = setInterval(() => {
             if (emblaApi) emblaApi.scrollNext()
         }, 6000)
 
         return () => clearInterval(autoSlide)
-    }, [emblaApi, isActive])
+    }, [emblaApi, isActive, paused])
 
     return (
-        <section ref={ref} className="relative overflow-hidden bg-white py-20 sm:py-24" id="testimonials">
+        <section
+            ref={ref}
+            id="testimonials"
+            className="relative overflow-hidden bg-white py-20 sm:py-24"
+            onMouseEnter={() => setPaused(true)}
+            onMouseLeave={() => setPaused(false)}
+            onFocusCapture={() => setPaused(true)}
+            onBlurCapture={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                    setPaused(false)
+                }
+            }}
+        >
             {/* Subtle background accents */}
             <div className="pointer-events-none absolute inset-0">
                 <div className="absolute -left-40 bottom-0 h-80 w-80 rounded-full bg-amber-500/5 blur-3xl" />
@@ -94,10 +107,10 @@ export function ReviewSlideSection() {
                         </span>
                     </div>
                     <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
-                        Trusted by leaders who care about reliability.
+                        Notes from people I've worked with
                     </h2>
                     <p className="mt-4 text-base leading-7 text-slate-600 sm:text-lg">
-                        A few notes from people who have worked with Harun on real delivery, platform, and infrastructure work.
+                        From the companies on the timeline.
                     </p>
                 </div>
 
@@ -183,18 +196,6 @@ export function ReviewSlideSection() {
                     </button>
                 </div>}
 
-                <div className="mt-14 grid gap-4 sm:grid-cols-3">
-                    {[
-                        { value: '160+', label: 'Happy clients' },
-                        { value: '4.8/5', label: 'Average rating' },
-                        { value: '98%', label: 'Success rate' },
-                    ].map((item) => (
-                        <div key={item.label} className="rounded-xl border border-slate-200 bg-slate-50/70 p-6 text-center shadow-sm">
-                            <div className="font-mono text-3xl font-bold tabular-nums text-slate-900">{item.value}</div>
-                            <div className="mt-1 text-sm text-slate-600">{item.label}</div>
-                        </div>
-                    ))}
-                </div>
             </div>
         </section>
     )

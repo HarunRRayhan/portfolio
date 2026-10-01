@@ -232,7 +232,7 @@ export default function Book({
       .catch(() => {
         if (!active) return
         setSlots([])
-        setSlotsError('We couldn’t load available times. Please retry or contact me to arrange a session.')
+        setSlotsError('I couldn’t load available times. Retry, or contact me and I’ll find a time.')
       })
       .finally(() => {
         window.clearTimeout(timeout)
