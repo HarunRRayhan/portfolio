@@ -80,12 +80,11 @@ export function Footer() {
                             </div>
 
                             <h2 className="mt-6 max-w-xl text-3xl font-bold tracking-tight sm:text-4xl">
-                                Let&rsquo;s build something reliable, clean, and easy to ship.
+                                If the release still needs you in the room, start there.
                             </h2>
 
                             <p className="mt-4 max-w-xl text-base leading-7 text-slate-400 sm:text-lg">
-                                I help teams improve AWS architecture, infrastructure automation, and production
-                                delivery without unnecessary process overhead.
+                                I work on the AWS account, the pipeline, and what happens after it ships.
                             </p>
 
                             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -159,7 +158,7 @@ export function Footer() {
                 {/* Bottom bar */}
                 <div className="mt-10 flex flex-col gap-6 border-t border-slate-800 pt-8 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-sm text-slate-400">
-                        &copy; {new Date().getFullYear()} Harun R. Rayhan. Built with a focus on clarity and reliability.
+                        &copy; {new Date().getFullYear()} Harun R. Rayhan.
                         {user ? null : (
                             <>
                                 {' '}
