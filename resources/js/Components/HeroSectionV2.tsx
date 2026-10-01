@@ -48,15 +48,15 @@ export function HeroSectionV2({ study = null }: { study?: HeroCaseStudy | null }
                         <p className="mb-4 text-sm font-medium text-slate-600">DevOps consultant</p>
 
                         <h1 className="homepage-hero-copy max-w-2xl text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-[3.75rem] lg:leading-[1.1]">
-                            Building cloud systems that feel{' '}
+                            I design, ship, and run{' '}
                             <span className="text-amber-600 underline decoration-amber-200 decoration-2 underline-offset-4">
-                                calm, fast, and reliable
+                                AWS infrastructure
                             </span>
                             .
                         </h1>
 
                         <p className="homepage-hero-copy mt-5 max-w-xl text-lg leading-8 text-slate-600">
-                            I design, ship, and run AWS infrastructure. Automation, calmer releases, and production monitoring.
+                            Automation, calmer releases, and production monitoring.
                         </p>
 
                         <div className="mt-6 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
