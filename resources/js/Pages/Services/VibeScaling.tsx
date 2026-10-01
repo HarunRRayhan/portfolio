@@ -78,7 +78,7 @@ export default function VibeScaling({ canonicalUrl }: { canonicalUrl?: string })
         <ServiceHero
           icon={Gauge}
           title="Vibe Scaler"
-          description="You built it fast with AI coding tools and it found real users. We take that app and make it hold up under the traffic and payments now coming through it."
+          description="You built it fast with an AI coding tool and it found users. I scale that app in place so it can take the traffic and the payments."
           backgroundImage="/service-assets/vibe-scaling/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
@@ -90,7 +90,7 @@ export default function VibeScaling({ canonicalUrl }: { canonicalUrl?: string })
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              What We Do
+              What I do
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
@@ -135,22 +135,22 @@ export default function VibeScaling({ canonicalUrl }: { canonicalUrl?: string })
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
                 {
-                  title: "We respect what you built",
+                  title: "I respect what you built",
                   content:
                     "Vibe coding got you a working product and paying users. Most ideas never get that far. We treat that as the hard part being done, and our job is the next part, not second-guessing the first.",
                 },
                 {
-                  title: "We fix the stack you already have",
+                  title: "I fix the stack you already have",
                   content:
                     "This is scaling in place. We work with the code, framework, and hosting you already run instead of starting over, so you keep shipping to customers while we harden it underneath you.",
                 },
                 {
-                  title: "We measure before we change anything",
+                  title: "I measure before we change anything",
                   content:
                     "We do not guess at what is slow. We run the app under load that matches your real traffic, find the actual bottlenecks, and fix those first so the work buys you the most headroom.",
                 },
                 {
-                  title: "We hand it back to you",
+                  title: "I hand it back to you",
                   content:
                     "When we are done we walk your team through what changed and how to keep it running. You are left with an app you can operate, not a dependency on us.",
                 },

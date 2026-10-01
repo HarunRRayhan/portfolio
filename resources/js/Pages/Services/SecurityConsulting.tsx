@@ -85,7 +85,7 @@ export default function SecurityConsulting({ canonicalUrl }: { canonicalUrl?: st
         <ServiceHero
           icon={Lock}
           title="Security Consulting"
-          description="Protect your cloud infrastructure with comprehensive security assessments and implementation."
+          description="I look at IAM, network boundaries, and the logs, then close the paths that are wider than the job."
           backgroundImage="/service-assets/security-consulting/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
@@ -137,7 +137,7 @@ export default function SecurityConsulting({ canonicalUrl }: { canonicalUrl?: st
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why Choose Us for Security Consulting
+              How I handle Security Consulting
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[

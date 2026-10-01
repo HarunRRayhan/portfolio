@@ -77,7 +77,7 @@ export default function CloudArchitecturePage() {
         <ServiceHero
           icon={Cloud}
           title="Cloud Architecture"
-          description="Design and implement scalable, secure, and cost-effective cloud architectures for your business."
+          description="I design the AWS layout: accounts, network, and the services the app actually needs."
           backgroundImage="/service-assets/cloud-architecture/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
@@ -128,7 +128,7 @@ export default function CloudArchitecturePage() {
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why Choose Us for Cloud Architecture
+              How I handle Cloud Architecture
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[

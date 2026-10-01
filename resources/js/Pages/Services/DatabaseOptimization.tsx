@@ -75,7 +75,7 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
         <ServiceHero
           icon={Database}
           title="Database Optimization"
-          description="Optimize your database performance, scalability, and reliability for maximum efficiency."
+          description="Slow queries, missing indexes, and connection limits. I fix the ones that show up under real load."
           backgroundImage="/service-assets/database-optimization/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
@@ -127,7 +127,7 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why Choose Us for Database Optimization
+              How I handle Database Optimization
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[

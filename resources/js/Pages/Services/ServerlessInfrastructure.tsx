@@ -97,7 +97,7 @@ export default function ServerlessInfrastructure({ canonicalUrl }: { canonicalUr
         <ServiceHero
           icon={Cloud}
           title="Serverless Infrastructure"
-          description="Design and implement scalable serverless solutions to reduce operational overhead and costs while improving scalability."
+          description="Lambda, queues, and the rest of a serverless setup, when you want less to patch and a bill that follows the traffic."
           backgroundImage="/service-assets/serverless-infrastructure/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
@@ -148,7 +148,7 @@ export default function ServerlessInfrastructure({ canonicalUrl }: { canonicalUr
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why Choose Us for Serverless Infrastructure
+              How I handle Serverless Infrastructure
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[

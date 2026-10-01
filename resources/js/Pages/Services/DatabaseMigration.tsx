@@ -58,7 +58,7 @@ export default function DatabaseMigration({ canonicalUrl }: { canonicalUrl?: str
         <ServiceHero
           icon={Database}
           title="Database Migration"
-          description="Seamlessly migrate your databases to modern cloud platforms with minimal downtime."
+          description="I move the database and check the data on both sides before anything goes live."
           backgroundImage="/service-assets/database-migration/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
@@ -110,7 +110,7 @@ export default function DatabaseMigration({ canonicalUrl }: { canonicalUrl?: str
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why Choose Us for Database Migration
+              How I handle Database Migration
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[

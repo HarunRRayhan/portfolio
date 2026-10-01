@@ -75,7 +75,7 @@ export default function InfrastructureMigration({ canonicalUrl }: { canonicalUrl
         <ServiceHero
           icon={ArrowRightLeft}
           title="Infrastructure Migration"
-          description="Seamlessly migrate your infrastructure to modern, scalable platforms with minimal downtime."
+          description="I move the platform with a plan for downtime, the data, and the first week after cutover."
           backgroundImage="/service-assets/infrastructure-migration/hero.jpg"
         />
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
@@ -120,7 +120,7 @@ export default function InfrastructureMigration({ canonicalUrl }: { canonicalUrl
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why Choose Us for Infrastructure Migration
+              How I handle Infrastructure Migration
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
