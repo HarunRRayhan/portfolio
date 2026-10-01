@@ -97,7 +97,7 @@ export default function SecurityConsulting({ canonicalUrl }: { canonicalUrl?: st
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Our Security Consulting Services
+              What I do
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
@@ -144,20 +144,20 @@ export default function SecurityConsulting({ canonicalUrl }: { canonicalUrl?: st
                 {
                   title: "Experienced Security Experts",
                   content:
-                    "Our team consists of certified security professionals with years of experience in various industries.",
+                    "I look at IAM, the network, and the logs, then tell you which path is wider than the job.",
                 },
                 {
                   title: "Comprehensive Approach",
-                  content: "We take a holistic view of security, addressing technical, operational, and human factors.",
+                  content: "I take a holistic view of security, addressing technical, operational, and human factors.",
                 },
                 {
                   title: "Cutting-edge Tools and Techniques",
-                  content: "We utilize the latest security tools and methodologies to stay ahead of emerging threats.",
+                  content: "I utilize the latest security tools and methodologies to stay ahead of emerging threats.",
                 },
                 {
                   title: "Tailored Solutions",
                   content:
-                    "Our recommendations are customized to your specific business needs, risk profile, and compliance requirements.",
+                    "My recommendations are customized to your specific business needs, risk profile, and compliance requirements.",
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
@@ -175,7 +175,7 @@ export default function SecurityConsulting({ canonicalUrl }: { canonicalUrl?: st
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Our Security Consulting Process
+              How the work goes
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               {[
@@ -183,23 +183,23 @@ export default function SecurityConsulting({ canonicalUrl }: { canonicalUrl?: st
                   icon: Eye,
                   title: "1. Assessment",
                   content:
-                    "We conduct a thorough assessment of your current security posture, identifying vulnerabilities and risks.",
+                    "I conduct a thorough assessment of your current security posture, identifying vulnerabilities and risks.",
                 },
                 {
                   icon: BarChart,
                   title: "2. Analysis",
                   content:
-                    "We analyze the findings and develop a comprehensive security strategy tailored to your needs.",
+                    "I analyze the findings and develop a comprehensive security strategy tailored to your needs.",
                 },
                 {
                   icon: Shield,
                   title: "3. Implementation",
-                  content: "We work with you to implement recommended security measures and best practices.",
+                  content: "I work with you to implement recommended security measures and best practices.",
                 },
                 {
                   icon: Users,
                   title: "4. Training & Support",
-                  content: "We provide ongoing training and support to ensure long-term security effectiveness.",
+                  content: "I provide ongoing training and support to ensure long-term security effectiveness.",
                 },
               ].map((step, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -224,9 +224,9 @@ export default function SecurityConsulting({ canonicalUrl }: { canonicalUrl?: st
               Ready to enhance your security posture?
             </motion.h2>
             <motion.div variants={fadeInUp}>
-              <Link href="/contact">
+              <Link href="/consultation">
                 <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white">
-                  Get Started
+                  Book a consult
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
@@ -245,32 +245,32 @@ export default function SecurityConsulting({ canonicalUrl }: { canonicalUrl?: st
                   {
                     question: "What types of security assessments do you offer?",
                     answer:
-                      "We offer a wide range of security assessments, including vulnerability assessments, penetration testing, code reviews, network security assessments, cloud security assessments, and social engineering tests. Our approach is tailored to your specific needs and risk profile.",
+                      "I offer a wide range of security assessments, including vulnerability assessments, penetration testing, code reviews, network security assessments, cloud security assessments, and social engineering tests. My approach is tailored to your specific needs and risk profile.",
                   },
                   {
                     question: "How often should we conduct security assessments?",
                     answer:
-                      "The frequency of security assessments depends on various factors, including your industry, regulatory requirements, and risk profile. Generally, we recommend conducting comprehensive assessments at least annually, with more frequent targeted assessments for critical systems or after significant changes to your infrastructure.",
+                      "The frequency of security assessments depends on various factors, including your industry, regulatory requirements, and risk profile. Generally, I recommend conducting comprehensive assessments at least annually, with more frequent targeted assessments for critical systems or after significant changes to your infrastructure.",
                   },
                   {
                     question: "Can you help with compliance requirements (e.g., GDPR, HIPAA, PCI DSS)?",
                     answer:
-                      "Yes, we have extensive experience in helping organizations achieve and maintain compliance with various regulatory standards. Our team is well-versed in GDPR, HIPAA, PCI DSS, ISO 27001, and other industry-specific regulations. We can assist with gap analysis, implementation of required controls, and preparation for audits.",
+                      "I can help with the controls and the evidence an audit will ask for, including GDPR, HIPAA, PCI DSS, and ISO 27001. I will tell you if a control is missing instead of papering over it.",
                   },
                   {
                     question: "How do you handle the security of cloud environments?",
                     answer:
-                      "We have expertise in securing cloud environments across major providers like AWS, Azure, and Google Cloud. Our approach includes assessing cloud configurations, implementing security best practices, setting up proper identity and access management, ensuring data encryption, and establishing continuous monitoring. We also assist with cloud-native security tools and services specific to each platform.",
+                      "I have expertise in securing cloud environments across major providers like AWS, Azure, and Google Cloud. My approach includes assessing cloud configurations, implementing security best practices, setting up proper identity and access management, ensuring data encryption, and establishing continuous monitoring. I also assist with cloud-native security tools and services specific to each platform.",
                   },
                   {
                     question: "What's your approach to incident response planning?",
                     answer:
-                      "Our incident response planning service involves developing a comprehensive plan tailored to your organization. This includes defining roles and responsibilities, establishing communication protocols, creating incident classification and escalation procedures, and setting up tools for detection and response. We also conduct tabletop exercises to test and refine the plan, ensuring your team is prepared to handle security incidents effectively.",
+                      "My incident response planning service involves developing a comprehensive plan tailored to your organization. This includes defining roles and responsibilities, establishing communication protocols, creating incident classification and escalation procedures, and setting up tools for detection and response. I also conduct tabletop exercises to test and refine the plan, ensuring your team is prepared to handle security incidents effectively.",
                   },
                   {
                     question: "How do you stay updated with the latest security threats and technologies?",
                     answer:
-                      "Staying current is crucial in the rapidly evolving field of cybersecurity. Our team regularly participates in industry conferences, undergoes continuous training, and maintains various security certifications. We also subscribe to threat intelligence feeds, participate in security communities, and conduct ongoing research to stay ahead of emerging threats and technologies.",
+                      "I keep up by reading the incidents, the vendor notes, and the certifications I actually hold. If a new issue matters to your stack, it goes in the review.",
                   },
                 ].map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index + 1}`}>

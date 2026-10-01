@@ -87,7 +87,7 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Our Database Optimization Services
+              What I do
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
@@ -134,22 +134,22 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
                 {
                   title: "Expertise Across Database Systems",
                   content:
-                    "Our team has deep knowledge of various database systems, ensuring optimal solutions for your specific setup.",
+                    "I work with MySQL, PostgreSQL, and the usual managed databases, and I start from the queries you actually run.",
                 },
                 {
                   title: "Data-Driven Approach",
                   content:
-                    "We use advanced analytics and monitoring tools to identify bottlenecks and optimize based on real usage patterns.",
+                    "I use advanced analytics and monitoring tools to identify bottlenecks and optimize based on real usage patterns.",
                 },
                 {
                   title: "Holistic Optimization",
                   content:
-                    "We consider all aspects of your database ecosystem, including hardware, software, and application layers.",
+                    "I consider all aspects of your database ecosystem, including hardware, software, and application layers.",
                 },
                 {
                   title: "Continuous Improvement",
                   content:
-                    "We implement ongoing monitoring and optimization processes to ensure sustained performance over time.",
+                    "I implement ongoing monitoring and optimization processes to ensure sustained performance over time.",
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
@@ -167,7 +167,7 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Our Database Optimization Process
+              How the work goes
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               {[
@@ -175,24 +175,24 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
                   icon: BarChart,
                   title: "1. Assessment",
                   content:
-                    "We thoroughly analyze your current database performance, identifying bottlenecks and areas for improvement.",
+                    "I thoroughly analyze your current database performance, identifying bottlenecks and areas for improvement.",
                 },
                 {
                   icon: GitBranch,
                   title: "2. Strategy Development",
                   content:
-                    "We create a tailored optimization plan based on our assessment and your specific business needs.",
+                    "I create a tailored optimization plan based on my assessment and your specific business needs.",
                 },
                 {
                   icon: Database,
                   title: "3. Implementation",
-                  content: "We execute the optimization strategies, carefully monitoring the impact on your system.",
+                  content: "I execute the optimization strategies, carefully monitoring the impact on your system.",
                 },
                 {
                   icon: Cloud,
                   title: "4. Monitoring & Refinement",
                   content:
-                    "We set up ongoing monitoring and continuously refine our optimizations to ensure sustained performance.",
+                    "I set up ongoing monitoring and continuously refine my optimizations to ensure sustained performance.",
                 },
               ].map((step, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -217,9 +217,9 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
               Ready to optimize your database performance?
             </motion.h2>
             <motion.div variants={fadeInUp}>
-              <Link href="/contact">
+              <Link href="/consultation">
                 <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white">
-                  Get Started
+                  Book a consult
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
@@ -248,22 +248,22 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
                   {
                     question: "Do you work with both SQL and NoSQL databases?",
                     answer:
-                      "Yes, we have expertise in optimizing both SQL databases (like MySQL, PostgreSQL, and SQL Server) and NoSQL databases (such as MongoDB, Cassandra, and Redis). Our team is well-versed in the unique characteristics and optimization strategies for various database systems.",
+                      "Yes. I work with MySQL, PostgreSQL, and SQL Server, and with MongoDB and Redis when those are what you already run. The fix depends on which one is slow.",
                   },
                   {
                     question: "How do you ensure data integrity during the optimization process?",
                     answer:
-                      "Data integrity is our top priority during any optimization process. We use a combination of techniques including thorough testing in staging environments, implementing transactional processes where possible, and creating backups before making any significant changes. We also use monitoring tools to ensure that data remains consistent throughout the optimization process.",
+                      "Data integrity is my top priority during any optimization process. I use a combination of techniques including thorough testing in staging environments, implementing transactional processes where possible, and creating backups before making any significant changes. I also use monitoring tools to ensure that data remains consistent throughout the optimization process.",
                   },
                   {
                     question: "Can you help with database optimization in cloud environments?",
                     answer:
-                      "Absolutely. We have extensive experience optimizing databases in various cloud environments, including AWS, Google Cloud, and Azure. We can help you leverage cloud-specific features and services to enhance your database performance, implement effective scaling strategies, and optimize costs in cloud settings.",
+                      "Absolutely. I have extensive experience optimizing databases in various cloud environments, including AWS, Google Cloud, and Azure. I can help you leverage cloud-specific features and services to enhance your database performance, implement effective scaling strategies, and optimize costs in cloud settings.",
                   },
                   {
                     question: "How long does the database optimization process typically take?",
                     answer:
-                      "The duration of the optimization process can vary depending on the size and complexity of your database, as well as the specific issues being addressed. A basic optimization might take a few days, while more complex projects could span several weeks. We always provide a detailed timeline and keep you updated throughout the process.",
+                      "The duration of the optimization process can vary depending on the size and complexity of your database, as well as the specific issues being addressed. A basic optimization might take a few days, while more complex projects could span several weeks. I always provide a detailed timeline and keep you updated throughout the process.",
                   },
                 ].map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index + 1}`}>

@@ -85,7 +85,7 @@ export default function AWSCloud({ canonicalUrl }: { canonicalUrl?: string }) {
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Our AWS Cloud Services
+              What I do
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
@@ -130,24 +130,24 @@ export default function AWSCloud({ canonicalUrl }: { canonicalUrl?: string }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
                 {
-                  title: "AWS Certified Experts",
+                  title: "The account you already have",
                   content:
-                    "Our team consists of AWS certified professionals with deep expertise across all AWS services.",
+                    "I work in the AWS account you already have: compute, network, and the managed services around them.",
                 },
                 {
                   title: "Cost Optimization",
                   content:
-                    "We implement strategies to optimize your AWS costs while maintaining high performance and reliability.",
+                    "I implement strategies to optimize your AWS costs while maintaining high performance and reliability.",
                 },
                 {
-                  title: "24/7 Support",
+                  title: "Alerts you can act on",
                   content:
-                    "We provide round-the-clock monitoring and support to ensure your AWS infrastructure runs smoothly.",
+                    "I set up the alarms and the runbook so a failure pages someone before it becomes an outage story.",
                 },
                 {
                   title: "Custom Solutions",
                   content:
-                    "We design and implement AWS solutions tailored to your specific business requirements and goals.",
+                    "I design and implement AWS solutions tailored to your specific business requirements and goals.",
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
@@ -165,7 +165,7 @@ export default function AWSCloud({ canonicalUrl }: { canonicalUrl?: string }) {
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Our AWS Cloud Process
+              How the work goes
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               {[
@@ -173,25 +173,25 @@ export default function AWSCloud({ canonicalUrl }: { canonicalUrl?: string }) {
                   icon: BarChart,
                   title: "1. Assessment",
                   content:
-                    "We evaluate your current infrastructure and business needs to determine the optimal AWS strategy.",
+                    "I evaluate your current infrastructure and business needs to determine the optimal AWS strategy.",
                 },
                 {
                   icon: Code,
                   title: "2. Design",
                   content:
-                    "We design a comprehensive AWS architecture tailored to your specific requirements and scalability needs.",
+                    "I design a comprehensive AWS architecture tailored to your specific requirements and scalability needs.",
                 },
                 {
                   icon: Cloud,
                   title: "3. Implementation",
                   content:
-                    "We deploy and configure your AWS infrastructure, ensuring security, performance, and cost-efficiency.",
+                    "I deploy and configure your AWS infrastructure, ensuring security, performance, and cost-efficiency.",
                 },
                 {
                   icon: Users,
                   title: "4. Optimization & Support",
                   content:
-                    "We provide ongoing monitoring, optimization, and support to ensure your AWS environment runs at peak efficiency.",
+                    "I provide ongoing monitoring, optimization, and support to ensure your AWS environment runs at peak efficiency.",
                 },
               ].map((step, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -216,9 +216,9 @@ export default function AWSCloud({ canonicalUrl }: { canonicalUrl?: string }) {
               Ready to harness the power of AWS?
             </motion.h2>
             <motion.div variants={fadeInUp}>
-              <Link href="/contact">
+              <Link href="/consultation">
                 <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white">
-                  Get Started
+                  Book a consult
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
@@ -242,27 +242,27 @@ export default function AWSCloud({ canonicalUrl }: { canonicalUrl?: string }) {
                   {
                     question: "How do you ensure security in AWS environments?",
                     answer:
-                      "We implement a multi-layered security approach in AWS environments. This includes using AWS Identity and Access Management (IAM) for fine-grained access control, implementing network security through Virtual Private Clouds (VPCs) and security groups, encrypting data at rest and in transit, and utilizing AWS security services like GuardDuty and Security Hub. We also follow AWS security best practices and can help with compliance requirements.",
+                      "I implement a multi-layered security approach in AWS environments. This includes using AWS Identity and Access Management (IAM) for fine-grained access control, implementing network security through Virtual Private Clouds (VPCs) and security groups, encrypting data at rest and in transit, and utilizing AWS security services like GuardDuty and Security Hub. I also follow AWS security best practices and can help with compliance requirements.",
                   },
                   {
                     question: "Can you help migrate our existing infrastructure to AWS?",
                     answer:
-                      "Yes, we specialize in AWS migrations. Our process involves assessing your current infrastructure, designing an optimal AWS architecture, planning the migration strategy, and executing the migration with minimal downtime. We use AWS migration tools and best practices to ensure a smooth transition. This includes services like AWS Database Migration Service (DMS) for database migrations and AWS Application Discovery Service to help plan your migration. We also implement strategies to minimize risks and ensure business continuity throughout the migration process.",
+                      "Yes, I specialize in AWS migrations. My process involves assessing your current infrastructure, designing an optimal AWS architecture, planning the migration strategy, and executing the migration with minimal downtime. I use AWS migration tools and best practices to ensure a smooth transition. This includes services like AWS Database Migration Service (DMS) for database migrations and AWS Application Discovery Service to help plan your migration. I also implement strategies to minimize risks and ensure business continuity throughout the migration process.",
                   },
                   {
                     question: "How do you handle cost optimization in AWS?",
                     answer:
-                      "Cost optimization is a key focus in our AWS management approach. We employ several strategies including: 1) Right-sizing instances to ensure you're not over-provisioning resources, 2) Utilizing AWS cost management tools like AWS Cost Explorer and AWS Budgets, 3) Implementing auto-scaling to match resource allocation with demand, 4) Leveraging reserved instances and savings plans for predictable workloads, 5) Identifying and removing unused resources, and 6) Continuously monitoring and optimizing your AWS environment for cost-efficiency.",
+                      "Cost optimization is a key focus in my AWS management approach. I employ several strategies including: 1) Right-sizing instances to ensure you're not over-provisioning resources, 2) Utilizing AWS cost management tools like AWS Cost Explorer and AWS Budgets, 3) Implementing auto-scaling to match resource allocation with demand, 4) Leveraging reserved instances and savings plans for predictable workloads, 5) Identifying and removing unused resources, and 6) Continuously monitoring and optimizing your AWS environment for cost-efficiency.",
                   },
                   {
                     question: "Can you help with AWS compliance requirements?",
                     answer:
-                      "Absolutely. We have extensive experience in helping businesses meet various compliance requirements in AWS environments. This includes standards such as HIPAA, PCI DSS, GDPR, and SOC 2. We leverage AWS compliance-enabling services and implement best practices to ensure your AWS infrastructure meets necessary regulatory requirements. Our approach includes implementing proper access controls, encryption, logging, and monitoring, as well as assisting with documentation and audit preparation.",
+                      "I can help with HIPAA, PCI DSS, GDPR, and SOC 2. That means access, encryption, logging, and the paperwork an audit will ask for.",
                   },
                   {
                     question: "What ongoing support do you provide for AWS environments?",
                     answer:
-                      "We offer comprehensive ongoing support for AWS environments. This includes 24/7 monitoring and alerting, regular security patching and updates, performance optimization, cost management, and troubleshooting. We also provide proactive recommendations for improvements and new AWS features that could benefit your business. Our team stays up-to-date with the latest AWS services and best practices to ensure your environment remains optimized, secure, and aligned with your business goals.",
+                      "After the change, I leave monitoring, a short list of what to patch, and notes on the cost. I do not staff a night desk. The alarms should reach the person who can fix the thing.",
                   },
                 ].map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index + 1}`}>

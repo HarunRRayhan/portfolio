@@ -81,7 +81,7 @@ export default function InfrastructureMigration({ canonicalUrl }: { canonicalUrl
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Our Infrastructure Migration Services
+              What I do
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
@@ -126,20 +126,20 @@ export default function InfrastructureMigration({ canonicalUrl }: { canonicalUrl
               {[
                 {
                   title: "Minimal Downtime",
-                  content: "Our migration strategies are designed to minimize disruption to your business operations.",
+                  content: "My migration strategies are designed to minimize disruption to your business operations.",
                 },
                 {
                   title: "Comprehensive Planning",
                   content:
-                    "We develop detailed migration plans tailored to your specific infrastructure and business needs.",
+                    "I develop detailed migration plans tailored to your specific infrastructure and business needs.",
                 },
                 {
                   title: "Security-First Approach",
-                  content: "We prioritize the security of your data and systems throughout the migration process.",
+                  content: "I prioritize the security of your data and systems throughout the migration process.",
                 },
                 {
                   title: "Post-Migration Optimization",
-                  content: "We ensure your migrated infrastructure is optimized for performance and cost-efficiency.",
+                  content: "I ensure your migrated infrastructure is optimized for performance and cost-efficiency.",
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
@@ -157,7 +157,7 @@ export default function InfrastructureMigration({ canonicalUrl }: { canonicalUrl
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Our Infrastructure Migration Process
+              How the work goes
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               {[
@@ -165,24 +165,24 @@ export default function InfrastructureMigration({ canonicalUrl }: { canonicalUrl
                   icon: Server,
                   title: "1. Assessment",
                   content:
-                    "We thoroughly assess your current infrastructure and develop a comprehensive migration strategy.",
+                    "I thoroughly assess your current infrastructure and develop a comprehensive migration strategy.",
                 },
                 {
                   icon: Cloud,
                   title: "2. Planning",
                   content:
-                    "We create a detailed migration plan, including timelines, resources, and risk mitigation strategies.",
+                    "I create a detailed migration plan, including timelines, resources, and risk mitigation strategies.",
                 },
                 {
                   icon: ArrowRightLeft,
                   title: "3. Migration",
                   content:
-                    "We execute the migration process, ensuring data integrity and minimal disruption to operations.",
+                    "I execute the migration process, ensuring data integrity and minimal disruption to operations.",
                 },
                 {
                   icon: Shield,
                   title: "4. Validation & Optimization",
-                  content: "We validate the migrated infrastructure and optimize it for performance and cost-efficiency.",
+                  content: "I validate the migrated infrastructure and optimize it for performance and cost-efficiency.",
                 },
               ].map((step, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -207,9 +207,9 @@ export default function InfrastructureMigration({ canonicalUrl }: { canonicalUrl
               Ready to modernize your infrastructure?
             </motion.h2>
             <motion.div variants={fadeInUp}>
-              <Link href="/contact">
+              <Link href="/consultation">
                 <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white">
-                  Get Started
+                  Book a consult
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
@@ -228,32 +228,32 @@ export default function InfrastructureMigration({ canonicalUrl }: { canonicalUrl
                   {
                     question: "How long does a typical infrastructure migration take?",
                     answer:
-                      "The duration of an infrastructure migration can vary significantly depending on the size and complexity of your current infrastructure, as well as the target environment. A small to medium-sized migration might take a few weeks to a couple of months, while larger, more complex migrations could take several months to a year. We work closely with you to develop a realistic timeline and ensure minimal disruption to your operations throughout the process.",
+                      "The duration of an infrastructure migration can vary significantly depending on the size and complexity of your current infrastructure, as well as the target environment. A small to medium-sized migration might take a few weeks to a couple of months, while larger, more complex migrations could take several months to a year. I work closely with you to develop a realistic timeline and ensure minimal disruption to your operations throughout the process.",
                   },
                   {
                     question: "How do you ensure data security during the migration process?",
                     answer:
-                      "Data security is our top priority during migrations. We implement multiple layers of security measures, including encryption for data in transit and at rest, secure VPN connections, and strict access controls. We also perform thorough security audits before, during, and after the migration process. Additionally, we ensure compliance with relevant industry standards and regulations throughout the migration.",
+                      "Data security is my top priority during migrations. I implement multiple layers of security measures, including encryption for data in transit and at rest, secure VPN connections, and strict access controls. I also perform thorough security audits before, during, and after the migration process. Additionally, I ensure compliance with relevant industry standards and regulations throughout the migration.",
                   },
                   {
                     question: "Can you migrate our infrastructure to multiple cloud providers?",
                     answer:
-                      "Yes, we have expertise in multi-cloud migrations. We can help you distribute your infrastructure across multiple cloud providers to optimize for cost, performance, and redundancy. Our team is well-versed in the nuances of different cloud platforms and can design a migration strategy that leverages the strengths of each provider while ensuring interoperability and efficient management.",
+                      "Yes, when the move really needs more than one cloud. I plan the split around cost, the failure you cannot accept, and how the two sides talk to each other.",
                   },
                   {
                     question: "How do you handle legacy systems during migration?",
                     answer:
-                      "Legacy systems often require special attention during migrations. Our approach includes thorough assessment of legacy systems, identifying dependencies, and determining the best migration strategy - whether it's lift-and-shift, re-platforming, or re-architecting. We may use specialized tools for legacy migrations and often implement middleware or APIs to ensure compatibility with modern systems. In some cases, we might recommend phased migration approaches to minimize risk and disruption.",
+                      "Legacy systems often require special attention during migrations. My approach includes thorough assessment of legacy systems, identifying dependencies, and determining the best migration strategy - whether it's lift-and-shift, re-platforming, or re-architecting. I may use specialized tools for legacy migrations and often implement middleware or APIs to ensure compatibility with modern systems. In some cases, I might recommend phased migration approaches to minimize risk and disruption.",
                   },
                   {
                     question: "What kind of support do you provide post-migration?",
                     answer:
-                      "Our support doesn't end with the migration. We provide comprehensive post-migration support, including monitoring, optimization, and troubleshooting. We ensure that your team is well-trained on the new infrastructure and can manage day-to-day operations. We also offer ongoing managed services if you prefer to have continuous expert support. Our goal is to ensure that you're getting the maximum benefit from your newly migrated infrastructure.",
+                      "My support doesn't end with the migration. I provide comprehensive post-migration support, including monitoring, optimization, and troubleshooting. I ensure that your team is well-trained on the new infrastructure and can manage day-to-day operations. I also offer ongoing managed services if you prefer to have continuous expert support. My goal is to ensure that you're getting the maximum benefit from your newly migrated infrastructure.",
                   },
                   {
                     question: "How do you minimize downtime during the migration process?",
                     answer:
-                      "Minimizing downtime is a critical aspect of our migration strategy. We employ several techniques including parallel environments, data synchronization, incremental migration, off-peak scheduling, automated migration tools, and robust rollback procedures. Our goal is to make the transition as seamless as possible, often achieving near-zero downtime for critical systems.",
+                      "Minimizing downtime is a critical aspect of my migration strategy. I employ several techniques including parallel environments, data synchronization, incremental migration, off-peak scheduling, automated migration tools, and robust rollback procedures. My goal is to make the transition as seamless as possible, often achieving near-zero downtime for critical systems.",
                   },
                 ].map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index + 1}`}>

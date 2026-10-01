@@ -70,7 +70,7 @@ export default function DatabaseMigration({ canonicalUrl }: { canonicalUrl?: str
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Our Database Migration Services
+              What I do
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
@@ -117,21 +117,21 @@ export default function DatabaseMigration({ canonicalUrl }: { canonicalUrl?: str
                 {
                   title: "Expertise Across Database Platforms",
                   content:
-                    "Our team has experience migrating various types of databases, including relational and NoSQL systems.",
+                    "I move MySQL, PostgreSQL, and the managed databases people usually mean, and I check the rows on both sides before cutover.",
                 },
                 {
                   title: "Minimal Downtime",
-                  content: "We use advanced migration techniques to minimize disruption to your business operations.",
+                  content: "I use advanced migration techniques to minimize disruption to your business operations.",
                 },
                 {
                   title: "Data Integrity Assurance",
                   content:
-                    "We implement rigorous validation processes to ensure data accuracy and completeness during migration.",
+                    "I implement rigorous validation processes to ensure data accuracy and completeness during migration.",
                 },
                 {
                   title: "Performance Optimization",
                   content:
-                    "We optimize your database structure and queries for improved performance in the new environment.",
+                    "I optimize your database structure and queries for improved performance in the new environment.",
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
@@ -149,30 +149,30 @@ export default function DatabaseMigration({ canonicalUrl }: { canonicalUrl?: str
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Our Database Migration Process
+              How the work goes
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               {[
                 {
                   icon: Database,
                   title: "1. Assessment",
-                  content: "We assess your current database architecture and develop a comprehensive migration plan.",
+                  content: "I assess your current database architecture and develop a comprehensive migration plan.",
                 },
                 {
                   icon: Cloud,
                   title: "2. Preparation",
-                  content: "We prepare the target environment and set up necessary tools for the migration process.",
+                  content: "I prepare the target environment and set up necessary tools for the migration process.",
                 },
                 {
                   icon: ArrowRightLeft,
                   title: "3. Migration",
-                  content: "We execute the migration, ensuring data integrity and minimal disruption to your operations.",
+                  content: "I execute the migration, ensuring data integrity and minimal disruption to your operations.",
                 },
                 {
                   icon: BarChart,
                   title: "4. Validation & Optimization",
                   content:
-                    "We validate the migrated data and optimize the new database environment for peak performance.",
+                    "I validate the migrated data and optimize the new database environment for peak performance.",
                 },
               ].map((step, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -197,9 +197,9 @@ export default function DatabaseMigration({ canonicalUrl }: { canonicalUrl?: str
               Ready to migrate your database?
             </motion.h2>
             <motion.div variants={fadeInUp}>
-              <Link href="/contact">
+              <Link href="/consultation">
                 <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white">
-                  Get Started
+                  Book a consult
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
@@ -223,22 +223,22 @@ export default function DatabaseMigration({ canonicalUrl }: { canonicalUrl?: str
                   {
                     question: "How do you ensure data integrity during migration?",
                     answer:
-                      "Ensuring data integrity is our top priority during migration. We use a combination of techniques, including thorough pre-migration testing, data validation checks, and post-migration reconciliation. We also implement robust error handling and rollback procedures. Where possible, we use tools that provide checksums or other integrity verification methods to ensure that every piece of data is accurately transferred.",
+                      "Ensuring data integrity is my top priority during migration. I use a combination of techniques, including thorough pre-migration testing, data validation checks, and post-migration reconciliation. I also implement robust error handling and rollback procedures. Where possible, I use tools that provide checksums or other integrity verification methods to ensure that every piece of data is accurately transferred.",
                   },
                   {
                     question: "How do you minimize downtime during database migration?",
                     answer:
-                      "We employ several strategies to minimize downtime, depending on your specific needs and constraints. These may include using replication to keep the old and new databases in sync during migration, performing the migration in phases, or using 'zero-downtime' migration techniques where possible. In cases where some downtime is unavoidable, we carefully plan the migration to occur during off-peak hours to minimize disruption.",
+                      "I employ several strategies to minimize downtime, depending on your specific needs and constraints. These may include using replication to keep the old and new databases in sync during migration, performing the migration in phases, or using 'zero-downtime' migration techniques where possible. In cases where some downtime is unavoidable, I carefully plan the migration to occur during off-peak hours to minimize disruption.",
                   },
                   {
                     question: "Can you migrate between different types of databases?",
                     answer:
-                      "Yes, we can handle migrations between different types of databases, often referred to as heterogeneous migrations. This could involve moving from a relational database to a NoSQL database, or between different relational database management systems (e.g., from Oracle to PostgreSQL). These migrations often involve schema conversion and data transformation, which we carefully plan and execute to ensure compatibility and optimal performance in the new environment.",
+                      "Yes, I can handle migrations between different types of databases, often referred to as heterogeneous migrations. This could involve moving from a relational database to a NoSQL database, or between different relational database management systems (e.g., from Oracle to PostgreSQL). These migrations often involve schema conversion and data transformation, which I carefully plan and execute to ensure compatibility and optimal performance in the new environment.",
                   },
                   {
                     question: "How do you handle large-scale database migrations?",
                     answer:
-                      "For large-scale migrations, we employ a variety of techniques to ensure efficiency and reliability. This may include parallel processing to speed up data transfer, incremental migration approaches to reduce risk, and specialized tools designed for handling large volumes of data. We also pay special attention to performance optimization both during and after the migration to ensure that the new database can handle the large-scale data effectively.",
+                      "For large-scale migrations, I employ a variety of techniques to ensure efficiency and reliability. This may include parallel processing to speed up data transfer, incremental migration approaches to reduce risk, and specialized tools designed for handling large volumes of data. I also pay special attention to performance optimization both during and after the migration to ensure that the new database can handle the large-scale data effectively.",
                   },
                 ].map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index + 1}`}>

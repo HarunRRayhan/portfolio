@@ -87,7 +87,7 @@ export default function AutomatedDeployment({ canonicalUrl }: { canonicalUrl?: s
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Our Automated Deployment Services
+              What I do
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
@@ -133,22 +133,22 @@ export default function AutomatedDeployment({ canonicalUrl }: { canonicalUrl?: s
                 {
                   title: "Tool Expertise",
                   content:
-                    "We have deep expertise in a wide range of CI/CD tools and can help you choose and implement the best solution for your needs.",
+                    "I have deep expertise in a wide range of CI/CD tools and can help you choose and implement the best solution for your needs.",
                 },
                 {
                   title: "Custom Workflows",
                   content:
-                    "We design and implement custom CI/CD workflows tailored to your specific development and deployment processes.",
+                    "I design and implement custom CI/CD workflows tailored to your specific development and deployment processes.",
                 },
                 {
                   title: "Security Integration",
                   content:
-                    "We integrate security checks and compliance measures into your CI/CD pipeline to ensure secure deployments.",
+                    "I integrate security checks and compliance measures into your CI/CD pipeline to ensure secure deployments.",
                 },
                 {
                   title: "Scalable Solutions",
                   content:
-                    "Our CI/CD implementations are designed to scale with your organization, handling increased complexity and volume over time.",
+                    "My CI/CD implementations are designed to scale with your organization, handling increased complexity and volume over time.",
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
@@ -166,7 +166,7 @@ export default function AutomatedDeployment({ canonicalUrl }: { canonicalUrl?: s
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Our Automated Deployment Process
+              How the work goes
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               {[
@@ -174,24 +174,24 @@ export default function AutomatedDeployment({ canonicalUrl }: { canonicalUrl?: s
                   icon: BarChart,
                   title: "1. Assessment",
                   content:
-                    "We evaluate your current development and deployment processes to identify areas for automation and improvement.",
+                    "I evaluate your current development and deployment processes to identify areas for automation and improvement.",
                 },
                 {
                   icon: Code,
                   title: "2. Design",
-                  content: "We design a CI/CD pipeline tailored to your specific needs and technology stack.",
+                  content: "I design a CI/CD pipeline tailored to your specific needs and technology stack.",
                 },
                 {
                   icon: Cloud,
                   title: "3. Implementation",
                   content:
-                    "We set up and configure the chosen CI/CD tools and integrate them with your existing systems.",
+                    "I set up and configure the chosen CI/CD tools and integrate them with your existing systems.",
                 },
                 {
                   icon: Users,
                   title: "4. Training & Support",
                   content:
-                    "We provide comprehensive training and ongoing support to ensure successful adoption of CI/CD practices.",
+                    "I provide comprehensive training and ongoing support to ensure successful adoption of CI/CD practices.",
                 },
               ].map((step, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -216,9 +216,9 @@ export default function AutomatedDeployment({ canonicalUrl }: { canonicalUrl?: s
               Ready to automate your deployment process?
             </motion.h2>
             <motion.div variants={fadeInUp}>
-              <Link href="/contact">
+              <Link href="/consultation">
                 <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white">
-                  Get Started
+                  Book a consult
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
@@ -242,17 +242,17 @@ export default function AutomatedDeployment({ canonicalUrl }: { canonicalUrl?: s
                   {
                     question: "How long does it take to implement a CI/CD pipeline?",
                     answer:
-                      "The time to implement a CI/CD pipeline can vary depending on the complexity of your project and your current infrastructure. A basic pipeline can be set up in a few days, while more complex setups might take a few weeks. We work closely with your team to ensure a smooth implementation and knowledge transfer throughout the process.",
+                      "The time to implement a CI/CD pipeline can vary depending on the complexity of your project and your current infrastructure. A basic pipeline can be set up in a few days, while more complex setups might take a few weeks. I work closely with your team to ensure a smooth implementation and knowledge transfer throughout the process.",
                   },
                   {
                     question: "Can you integrate CI/CD with our existing tools and workflows?",
                     answer:
-                      "Yes, we design CI/CD pipelines to integrate seamlessly with your existing tools and workflows. Whether you're using specific version control systems, project management tools, or deployment environments, we can create a pipeline that fits into your current processes while improving efficiency and reliability.",
+                      "Yes, I design CI/CD pipelines to integrate seamlessly with your existing tools and workflows. Whether you're using specific version control systems, project management tools, or deployment environments, I can create a pipeline that fits into your current processes while improving efficiency and reliability.",
                   },
                   {
                     question: "How do you ensure security in CI/CD pipelines?",
                     answer:
-                      "Security is a crucial aspect of our CI/CD implementations. We incorporate security best practices such as secret management, access control, and vulnerability scanning into the pipeline. We also integrate security testing tools to catch potential issues early in the development process and ensure that only approved, secure code makes it to production.",
+                      "Security is a crucial aspect of my CI/CD implementations. I incorporate security best practices such as secret management, access control, and vulnerability scanning into the pipeline. I also integrate security testing tools to catch potential issues early in the development process and ensure that only approved, secure code makes it to production.",
                   },
                   {
                     question: "What are the benefits of automated deployment?",
@@ -262,7 +262,7 @@ export default function AutomatedDeployment({ canonicalUrl }: { canonicalUrl?: s
                   {
                     question: "How do you handle database changes in CI/CD pipelines?",
                     answer:
-                      "Handling database changes in CI/CD pipelines is crucial for maintaining data integrity and ensuring smooth deployments. We typically use database migration tools that can be integrated into the CI/CD process. These tools allow version control of database schemas and data, automated testing of migrations, and rollback capabilities. We also implement strategies like blue-green deployments or canary releases to minimize downtime and risk when deploying database changes.",
+                      "Handling database changes in CI/CD pipelines is crucial for maintaining data integrity and ensuring smooth deployments. I typically use database migration tools that can be integrated into the CI/CD process. These tools allow version control of database schemas and data, automated testing of migrations, and rollback capabilities. I also implement strategies like blue-green deployments or canary releases to minimize downtime and risk when deploying database changes.",
                   },
                 ].map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index + 1}`}>

@@ -80,7 +80,7 @@ export default function MultiCloudArchitecture({ canonicalUrl }: { canonicalUrl?
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Our Multi-Cloud Architecture Services
+              What I do
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
@@ -127,12 +127,12 @@ export default function MultiCloudArchitecture({ canonicalUrl }: { canonicalUrl?
                 {
                   title: "Cross-Platform Expertise",
                   content:
-                    "Our team is certified across AWS, Azure, and Google Cloud Platform, ensuring comprehensive multi-cloud solutions.",
+                    "I work mostly on AWS, and I use Azure or Google Cloud when the project already lives there.",
                 },
                 {
                   title: "Vendor-Neutral Approach",
                   content:
-                    "We provide unbiased recommendations based on your specific needs, not vendor preferences.",
+                    "I provide unbiased recommendations based on your specific needs, not vendor preferences.",
                 },
                 {
                   title: "Risk Mitigation",
@@ -160,7 +160,7 @@ export default function MultiCloudArchitecture({ canonicalUrl }: { canonicalUrl?
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Our Multi-Cloud Architecture Process
+              How the work goes
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               {[
@@ -211,9 +211,9 @@ export default function MultiCloudArchitecture({ canonicalUrl }: { canonicalUrl?
               Ready to build your multi-cloud infrastructure?
             </motion.h2>
             <motion.div variants={fadeInUp}>
-              <Link href="/contact">
+              <Link href="/consultation">
                 <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white">
-                  Get Started
+                  Book a consult
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
@@ -237,12 +237,12 @@ export default function MultiCloudArchitecture({ canonicalUrl }: { canonicalUrl?
                   {
                     question: "How do you handle security across multiple cloud providers?",
                     answer:
-                      "We implement a comprehensive security strategy that includes: 1) Unified identity and access management across providers, 2) Consistent security policies and compliance standards, 3) Centralized monitoring and threat detection, 4) Encrypted data transmission between clouds, 5) Regular security audits and assessments, and 6) Automated security controls and policies enforcement.",
+                      "I implement a comprehensive security strategy that includes: 1) Unified identity and access management across providers, 2) Consistent security policies and compliance standards, 3) Centralized monitoring and threat detection, 4) Encrypted data transmission between clouds, 5) Regular security audits and assessments, and 6) Automated security controls and policies enforcement.",
                   },
                   {
                     question: "How do you ensure consistent performance across different cloud providers?",
                     answer:
-                      "We maintain consistent performance through: 1) Automated performance monitoring and alerting, 2) Load balancing across providers, 3) Optimized network connectivity and routing, 4) Regular performance benchmarking and optimization, 5) Service-level agreement (SLA) monitoring, and 6) Proactive capacity planning and scaling.",
+                      "I maintain consistent performance through: 1) Automated performance monitoring and alerting, 2) Load balancing across providers, 3) Optimized network connectivity and routing, 4) Regular performance benchmarking and optimization, 5) Service-level agreement (SLA) monitoring, and 6) Proactive capacity planning and scaling.",
                   },
                   {
                     question: "How do you manage costs in a multi-cloud environment?",
@@ -257,7 +257,7 @@ export default function MultiCloudArchitecture({ canonicalUrl }: { canonicalUrl?
                   {
                     question: "What tools do you use for multi-cloud management?",
                     answer:
-                      "We utilize a variety of tools including: 1) Terraform for infrastructure as code across providers, 2) Kubernetes for container orchestration, 3) HashiCorp Vault for secrets management, 4) Prometheus and Grafana for monitoring, 5) CI/CD tools for automated deployments, and 6) Custom dashboards for unified visibility and control.",
+                      "I utilize a variety of tools including: 1) Terraform for infrastructure as code across providers, 2) Kubernetes for container orchestration, 3) HashiCorp Vault for secrets management, 4) Prometheus and Grafana for monitoring, 5) CI/CD tools for automated deployments, and 6) Custom dashboards for unified visibility and control.",
                   },
                 ].map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index + 1}`}>
