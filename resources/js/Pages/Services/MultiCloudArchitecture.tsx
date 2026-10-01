@@ -88,19 +88,19 @@ export default function MultiCloudArchitecture({ canonicalUrl }: { canonicalUrl?
                   icon: Cloud,
                   title: "Multi-Cloud Strategy",
                   content:
-                    "Develop comprehensive multi-cloud strategies that align with your business goals, ensuring optimal resource utilization across cloud providers.",
+                    "I split the work across clouds only when one provider is not the whole answer.",
                 },
                 {
                   icon: Network,
                   title: "Cloud Integration",
                   content:
-                    "Seamlessly integrate services across multiple cloud providers while maintaining security, performance, and cost-efficiency.",
+                    "The two sides need a clear way to talk, and a failure on one side shouldn't take the other down silently.",
                 },
                 {
                   icon: Shield,
                   title: "Unified Management",
                   content:
-                    "Implement centralized management and monitoring solutions for your multi-cloud environment, ensuring consistent governance and control.",
+                    "One place to see both clouds. Two consoles and no alarm is how these setups rot.",
                 },
               ].map((service, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -120,7 +120,7 @@ export default function MultiCloudArchitecture({ canonicalUrl }: { canonicalUrl?
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              How I handle Multi-Cloud Architecture
+              Why work with me
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
@@ -130,19 +130,19 @@ export default function MultiCloudArchitecture({ canonicalUrl }: { canonicalUrl?
                     "I work mostly on AWS, and I use Azure or Google Cloud when the project already lives there.",
                 },
                 {
-                  title: "Vendor-Neutral Approach",
+                  title: "A reason for the second cloud",
                   content:
-                    "I provide unbiased recommendations based on your specific needs, not vendor preferences.",
+                    "If AWS is enough, I say so. A second cloud has to solve a failure you cannot accept.",
                 },
                 {
-                  title: "Risk Mitigation",
+                  title: "What fails together",
                   content:
-                    "Reduce vendor lock-in and enhance reliability through strategic distribution of workloads across cloud providers.",
+                    "I name what still fails together after the split. A second logo is not a backup.",
                 },
                 {
-                  title: "Cost Optimization",
+                  title: "The bill",
                   content:
-                    "Leverage the best pricing models and services from each cloud provider to optimize your infrastructure costs.",
+                    "I compare the bill on both sides. Cheap on one cloud and expensive to connect is not a win.",
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
@@ -168,25 +168,25 @@ export default function MultiCloudArchitecture({ canonicalUrl }: { canonicalUrl?
                   icon: BarChart,
                   title: "1. Assessment",
                   content:
-                    "Evaluate your current infrastructure and requirements to develop an optimal multi-cloud strategy.",
+                    "I start from the failure you cannot accept, then decide if a second cloud helps.",
                 },
                 {
                   icon: Code,
                   title: "2. Design",
                   content:
-                    "Create a comprehensive multi-cloud architecture that leverages the strengths of each platform.",
+                    "You get a diagram of what lives where, and how the two sides talk.",
                 },
                 {
                   icon: Cloud,
                   title: "3. Implementation",
                   content:
-                    "Deploy and integrate services across cloud providers with automated infrastructure as code.",
+                    "I put both sides in code, so the split isn't a pile of console clicks.",
                 },
                 {
                   icon: Users,
                   title: "4. Management",
                   content:
-                    "Provide unified monitoring, optimization, and support across your entire multi-cloud environment.",
+                    "I leave one dashboard and an alarm that names which cloud failed.",
                 },
               ].map((step, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -208,7 +208,7 @@ export default function MultiCloudArchitecture({ canonicalUrl }: { canonicalUrl?
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
-              Ready to build your multi-cloud infrastructure?
+              If one cloud is not the whole answer, start there.
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Link href="/consultation">

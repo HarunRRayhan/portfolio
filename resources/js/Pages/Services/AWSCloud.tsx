@@ -93,19 +93,19 @@ export default function AWSCloud({ canonicalUrl }: { canonicalUrl?: string }) {
                   icon: Cloud,
                   title: "AWS Infrastructure Design",
                   content:
-                    "Design and implement scalable, secure, and cost-effective AWS cloud infrastructures tailored to your business needs.",
+                    "I lay out the accounts, the network, and the services the app actually needs.",
                 },
                 {
                   icon: Server,
                   title: "AWS Migration",
                   content:
-                    "Seamlessly migrate your existing applications and infrastructure to AWS, ensuring minimal downtime and maximum efficiency.",
+                    "I move what you already run onto AWS, with a plan for the cutover and the first week after.",
                 },
                 {
                   icon: Lock,
                   title: "AWS Security & Compliance",
                   content:
-                    "Implement robust security measures and ensure compliance with industry standards using AWS security services and best practices.",
+                    "I close the IAM and network paths that are wider than the job, and line up the evidence an audit will ask for.",
                 },
               ].map((service, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -125,7 +125,7 @@ export default function AWSCloud({ canonicalUrl }: { canonicalUrl?: string }) {
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              How I handle AWS Cloud
+              Why work with me
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
@@ -135,9 +135,9 @@ export default function AWSCloud({ canonicalUrl }: { canonicalUrl?: string }) {
                     "I work in the AWS account you already have: compute, network, and the managed services around them.",
                 },
                 {
-                  title: "Cost Optimization",
+                  title: "The bill",
                   content:
-                    "I implement strategies to optimize your AWS costs while maintaining high performance and reliability.",
+                    "I cut what you're paying for and not using, then check that the app still holds.",
                 },
                 {
                   title: "Alerts you can act on",
@@ -145,9 +145,9 @@ export default function AWSCloud({ canonicalUrl }: { canonicalUrl?: string }) {
                     "I set up the alarms and the runbook so a failure pages someone before it becomes an outage story.",
                 },
                 {
-                  title: "Custom Solutions",
+                  title: "Only what the app needs",
                   content:
-                    "I design and implement AWS solutions tailored to your specific business requirements and goals.",
+                    "I don't add a service because AWS has it. It has to earn a place in the diagram.",
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
@@ -173,25 +173,25 @@ export default function AWSCloud({ canonicalUrl }: { canonicalUrl?: string }) {
                   icon: BarChart,
                   title: "1. Assessment",
                   content:
-                    "I evaluate your current infrastructure and business needs to determine the optimal AWS strategy.",
+                    "I look at the account you have: what runs, what it costs, and what fails.",
                 },
                 {
                   icon: Code,
                   title: "2. Design",
                   content:
-                    "I design a comprehensive AWS architecture tailored to your specific requirements and scalability needs.",
+                    "You get a diagram of accounts, network, and the services the app needs.",
                 },
                 {
                   icon: Cloud,
                   title: "3. Implementation",
                   content:
-                    "I deploy and configure your AWS infrastructure, ensuring security, performance, and cost-efficiency.",
+                    "I apply the change in the account, with a plan you can read first.",
                 },
                 {
                   icon: Users,
                   title: "4. Optimization & Support",
                   content:
-                    "I provide ongoing monitoring, optimization, and support to ensure your AWS environment runs at peak efficiency.",
+                    "I leave alarms, a short patch list, and notes on the cost. I don't staff a night desk.",
                 },
               ].map((step, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -213,7 +213,7 @@ export default function AWSCloud({ canonicalUrl }: { canonicalUrl?: string }) {
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
-              Ready to harness the power of AWS?
+              If the AWS account is expensive or fragile, start there.
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Link href="/consultation">

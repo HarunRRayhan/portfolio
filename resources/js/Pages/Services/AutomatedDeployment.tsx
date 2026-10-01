@@ -94,19 +94,19 @@ export default function AutomatedDeployment({ canonicalUrl }: { canonicalUrl?: s
                 {
                   icon: GitBranch,
                   title: "Continuous Integration",
-                  content: "Set up automated build and test processes to catch issues early and improve code quality.",
+                  content: "A pull request builds and tests before anyone merges it.",
                 },
                 {
                   icon: Zap,
                   title: "Continuous Delivery",
                   content:
-                    "Automate the deployment process to ensure reliable and consistent releases to production environments.",
+                    "The same pipeline ships to staging and production. No one retypes the steps.",
                 },
                 {
                   icon: Repeat,
                   title: "Pipeline Optimization",
                   content:
-                    "Continuously improve your CI/CD pipelines for faster builds, deployments, and more efficient workflows.",
+                    "If the pipeline is slow or flaky, I fix that before I add more stages.",
                 },
               ].map((service, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -126,29 +126,29 @@ export default function AutomatedDeployment({ canonicalUrl }: { canonicalUrl?: s
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              How I handle Automated Deployment
+              Why work with me
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
                 {
-                  title: "Tool Expertise",
+                  title: "The tools you already run",
                   content:
-                    "I have deep expertise in a wide range of CI/CD tools and can help you choose and implement the best solution for your needs.",
+                    "I use the CI you already have when it can do the job.",
                 },
                 {
-                  title: "Custom Workflows",
+                  title: "A pipeline for this repo",
                   content:
-                    "I design and implement custom CI/CD workflows tailored to your specific development and deployment processes.",
+                    "The stages match how this app is built, tested, and shipped.",
                 },
                 {
-                  title: "Security Integration",
+                  title: "Checks before production",
                   content:
-                    "I integrate security checks and compliance measures into your CI/CD pipeline to ensure secure deployments.",
+                    "Secrets stay out of the log, and a known-bad dependency fails the build.",
                 },
                 {
-                  title: "Scalable Solutions",
+                  title: "From the notebook to production",
                   content:
-                    "My CI/CD implementations are designed to scale with your organization, handling increased complexity and volume over time.",
+                    "The pipeline should still be obvious when a second service shows up.",
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
@@ -174,24 +174,24 @@ export default function AutomatedDeployment({ canonicalUrl }: { canonicalUrl?: s
                   icon: BarChart,
                   title: "1. Assessment",
                   content:
-                    "I evaluate your current development and deployment processes to identify areas for automation and improvement.",
+                    "I watch one release from commit to production and write down the manual steps.",
                 },
                 {
                   icon: Code,
                   title: "2. Design",
-                  content: "I design a CI/CD pipeline tailored to your specific needs and technology stack.",
+                  content: "You get the stages, the checks, and where a rollback happens.",
                 },
                 {
                   icon: Cloud,
                   title: "3. Implementation",
                   content:
-                    "I set up and configure the chosen CI/CD tools and integrate them with your existing systems.",
+                    "I wire it into the repo and run a real deploy, not a demo.",
                 },
                 {
                   icon: Users,
                   title: "4. Training & Support",
                   content:
-                    "I provide comprehensive training and ongoing support to ensure successful adoption of CI/CD practices.",
+                    "I walk the team through a release and leave the notes next to the pipeline.",
                 },
               ].map((step, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -213,7 +213,7 @@ export default function AutomatedDeployment({ canonicalUrl }: { canonicalUrl?: s
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
-              Ready to automate your deployment process?
+              If the release still lives in someone's head, start there.
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Link href="/consultation">

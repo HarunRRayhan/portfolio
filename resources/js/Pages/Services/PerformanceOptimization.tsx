@@ -77,7 +77,7 @@ export default function PerformanceOptimization({ canonicalUrl }: { canonicalUrl
       <main className="flex flex-col min-h-screen">
         <ServiceHero
           icon={Zap}
-          title="Performance Optimization"
+          title="The new database has to be fast enough"
           description="I measure the slow path, fix that, and stop paying for capacity you aren't using."
           backgroundImage="/service-assets/performance-optimization/hero.jpg"
         />
@@ -98,19 +98,19 @@ export default function PerformanceOptimization({ canonicalUrl }: { canonicalUrl
                   icon: Gauge,
                   title: "Application Performance Tuning",
                   content:
-                    "Optimize your application's code, database queries, and overall architecture for maximum speed and efficiency.",
+                    "I find the slow request and fix that path: code, query, or both.",
                 },
                 {
                   icon: Cloud,
                   title: "Infrastructure Optimization",
                   content:
-                    "Fine-tune your cloud or on-premises infrastructure to handle increased loads and reduce response times.",
+                    "I add capacity only after the slow path is fixed. Extra servers hide a bad query.",
                 },
                 {
                   icon: BarChart,
                   title: "Performance Monitoring & Analysis",
                   content:
-                    "Implement comprehensive monitoring solutions to identify bottlenecks and track performance improvements over time.",
+                    "I measure before and after, so the change has a number on it.",
                 },
               ].map((service, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -130,27 +130,27 @@ export default function PerformanceOptimization({ canonicalUrl }: { canonicalUrl
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              How I handle Performance Optimization
+              Why work with me
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
                 {
-                  title: "Holistic Approach",
+                  title: "The whole path",
                   content:
-                    "I optimize performance across all layers of your stack, from frontend to backend and infrastructure.",
+                    "Frontend, the app, the database. I start where the time actually goes.",
                 },
                 {
-                  title: "Data-Driven Optimization",
-                  content: "My recommendations are based on thorough analysis and real-world performance data.",
+                  title: "A trace, not a hunch",
+                  content: "I don't guess. I read the trace.",
                 },
                 {
-                  title: "Scalability Focus",
-                  content: "I ensure your systems can handle growth and peak loads without compromising performance.",
+                  title: "Headroom you can name",
+                  content: "I say what the current path can take, and what breaks first when traffic doubles.",
                 },
                 {
-                  title: "Continuous Improvement",
+                  title: "A number you can watch",
                   content:
-                    "I implement ongoing monitoring and optimization processes to maintain peak performance over time.",
+                    "I leave the graph in place so the next slowdown is visible.",
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
@@ -175,23 +175,23 @@ export default function PerformanceOptimization({ canonicalUrl }: { canonicalUrl
                 {
                   icon: BarChart,
                   title: "1. Assessment",
-                  content: "I conduct a thorough analysis of your current performance metrics and identify bottlenecks.",
+                  content: "I measure the slow path under load that looks like yours.",
                 },
                 {
                   icon: Code,
                   title: "2. Optimization Strategy",
-                  content: "I develop a tailored optimization plan based on my assessment findings.",
+                  content: "You get a short list, ordered by how much time it gives back.",
                 },
                 {
                   icon: Zap,
                   title: "3. Implementation",
-                  content: "I implement the optimization measures, focusing on high-impact improvements.",
+                  content: "I change the slowest thing first, then measure again.",
                 },
                 {
                   icon: Users,
                   title: "4. Monitoring & Refinement",
                   content:
-                    "I set up ongoing monitoring and continuously refine the optimizations based on real-world data.",
+                    "I leave the dashboard so you can see if it stays fast.",
                 },
               ].map((step, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -213,7 +213,7 @@ export default function PerformanceOptimization({ canonicalUrl }: { canonicalUrl
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
-              Ready to supercharge your application's performance?
+              If it's slow, measure the path before you add capacity.
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Link href="/consultation">

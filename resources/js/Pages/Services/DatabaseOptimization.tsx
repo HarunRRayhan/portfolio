@@ -95,19 +95,19 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
                   icon: Zap,
                   title: "Performance Tuning",
                   content:
-                    "Optimize queries, indexes, and database configurations to significantly improve response times.",
+                    "I fix the queries, indexes, and connection limits that show up under real load.",
                 },
                 {
                   icon: Lock,
                   title: "Security Enhancement",
                   content:
-                    "Implement robust security measures to protect your data from unauthorized access and potential threats.",
+                    "I look at who can reach the database, and close the accounts that don't need to.",
                 },
                 {
                   icon: Database,
                   title: "Scalability Planning",
                   content:
-                    "Design and implement strategies to ensure your database can handle growing data volumes and user loads.",
+                    "I plan for more rows and more connections before the database is the outage.",
                 },
               ].map((service, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -127,29 +127,29 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              How I handle Database Optimization
+              Why work with me
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
                 {
-                  title: "Expertise Across Database Systems",
+                  title: "The database you already run",
                   content:
                     "I work with MySQL, PostgreSQL, and the usual managed databases, and I start from the queries you actually run.",
                 },
                 {
-                  title: "Data-Driven Approach",
+                  title: "The slow query, not a guess",
                   content:
-                    "I use advanced analytics and monitoring tools to identify bottlenecks and optimize based on real usage patterns.",
+                    "I start from the queries that are actually slow, not from a checklist.",
                 },
                 {
-                  title: "Holistic Optimization",
+                  title: "The query and the app around it",
                   content:
-                    "I consider all aspects of your database ecosystem, including hardware, software, and application layers.",
+                    "A missing index and an N+1 in the app are different fixes. I check both.",
                 },
                 {
-                  title: "Continuous Improvement",
+                  title: "A number you can watch",
                   content:
-                    "I implement ongoing monitoring and optimization processes to ensure sustained performance over time.",
+                    "I leave a way to see the slow queries after I leave.",
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
@@ -175,24 +175,24 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
                   icon: BarChart,
                   title: "1. Assessment",
                   content:
-                    "I thoroughly analyze your current database performance, identifying bottlenecks and areas for improvement.",
+                    "I look at the slow log, the locks, and the connection count.",
                 },
                 {
                   icon: GitBranch,
                   title: "2. Strategy Development",
                   content:
-                    "I create a tailored optimization plan based on my assessment and your specific business needs.",
+                    "You get a short list, ordered by what hurts users first.",
                 },
                 {
                   icon: Database,
                   title: "3. Implementation",
-                  content: "I execute the optimization strategies, carefully monitoring the impact on your system.",
+                  content: "I change one thing at a time and watch the query time.",
                 },
                 {
                   icon: Cloud,
                   title: "4. Monitoring & Refinement",
                   content:
-                    "I set up ongoing monitoring and continuously refine my optimizations to ensure sustained performance.",
+                    "I leave the slow-query view in place so the next regression is obvious.",
                 },
               ].map((step, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -214,7 +214,7 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
-              Ready to optimize your database performance?
+              If the database is the slow part, start there.
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Link href="/consultation">

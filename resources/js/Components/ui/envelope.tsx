@@ -44,9 +44,9 @@ export const Envelope = ({ onComplete }: EnvelopeProps) => {
                     <Check className="w-10 h-10 text-white" />
                 </div>
                 <div className="space-y-2">
-                    <h3 className="text-2xl font-semibold text-gray-900">Message Sent Successfully!</h3>
+                    <h3 className="text-2xl font-semibold text-gray-900">Message sent</h3>
                     <p className="text-gray-600 text-lg">
-                        Thank you for reaching out. We'll get back to you soon.
+                        Thanks. I read these and reply myself.
                     </p>
                 </div>
                 <motion.button

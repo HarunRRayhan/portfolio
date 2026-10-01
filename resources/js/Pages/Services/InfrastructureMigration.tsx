@@ -89,18 +89,18 @@ export default function InfrastructureMigration({ canonicalUrl }: { canonicalUrl
                   icon: Cloud,
                   title: "Cloud Migration",
                   content:
-                    "Migrate your on-premises infrastructure to leading cloud platforms like AWS, Azure, or Google Cloud.",
+                    "I move what you run now, usually onto AWS, with a plan for the cutover.",
                 },
                 {
                   icon: Server,
                   title: "Data Center Consolidation",
-                  content: "Streamline your data centers, reducing costs and improving operational efficiency.",
+                  content: "If two rooms are doing one job, I plan which one goes away and when.",
                 },
                 {
                   icon: Database,
                   title: "Database Migration",
                   content:
-                    "Seamlessly transfer your databases to modern, scalable platforms while ensuring data integrity.",
+                    "The database moves with a row check, not a hope.",
                 },
               ].map((service, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -120,26 +120,26 @@ export default function InfrastructureMigration({ canonicalUrl }: { canonicalUrl
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              How I handle Infrastructure Migration
+              Why work with me
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
                 {
-                  title: "Minimal Downtime",
-                  content: "My migration strategies are designed to minimize disruption to your business operations.",
+                  title: "A planned window",
+                  content: "I name the window before we pick a night.",
                 },
                 {
-                  title: "Comprehensive Planning",
+                  title: "The first week after",
                   content:
-                    "I develop detailed migration plans tailored to your specific infrastructure and business needs.",
+                    "The plan covers downtime, the data, and the first week after cutover.",
                 },
                 {
-                  title: "Security-First Approach",
-                  content: "I prioritize the security of your data and systems throughout the migration process.",
+                  title: "Who can reach it during the move",
+                  content: "The temporary path used for the copy should not stay open afterward.",
                 },
                 {
-                  title: "Post-Migration Optimization",
-                  content: "I ensure your migrated infrastructure is optimized for performance and cost-efficiency.",
+                  title: "After cutover",
+                  content: "I watch the new side for a week: errors, cost, and the thing that got slower.",
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
@@ -165,24 +165,24 @@ export default function InfrastructureMigration({ canonicalUrl }: { canonicalUrl
                   icon: Server,
                   title: "1. Assessment",
                   content:
-                    "I thoroughly assess your current infrastructure and develop a comprehensive migration strategy.",
+                    "I write down what moves, what stays, and how we roll back.",
                 },
                 {
                   icon: Cloud,
                   title: "2. Planning",
                   content:
-                    "I create a detailed migration plan, including timelines, resources, and risk mitigation strategies.",
+                    "You get the order, the window, and what we do if the cutover fails.",
                 },
                 {
                   icon: ArrowRightLeft,
                   title: "3. Migration",
                   content:
-                    "I execute the migration process, ensuring data integrity and minimal disruption to operations.",
+                    "I move it in the window, and check the data before traffic follows.",
                 },
                 {
                   icon: Shield,
                   title: "4. Validation & Optimization",
-                  content: "I validate the migrated infrastructure and optimize it for performance and cost-efficiency.",
+                  content: "I watch errors and the bill for the first week, and fix what got slower.",
                 },
               ].map((step, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -204,7 +204,7 @@ export default function InfrastructureMigration({ canonicalUrl }: { canonicalUrl
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
-              Ready to modernize your infrastructure?
+              If the platform has to move, plan the first week after cutover.
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Link href="/consultation">

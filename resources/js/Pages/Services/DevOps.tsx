@@ -138,19 +138,19 @@ export default function DevOpsPage({ canonicalUrl }: { canonicalUrl?: string }) 
                   icon: GitBranch,
                   title: "CI/CD Pipeline Setup",
                   content:
-                    "Implement robust Continuous Integration and Continuous Deployment pipelines for faster, more reliable releases.",
+                    "I set up the pipeline that builds, tests, and ships, so a release is a button instead of a checklist.",
                 },
                 {
                   icon: Code,
                   title: "Infrastructure as Code",
                   content:
-                    "Automate your infrastructure provisioning and management using tools like Terraform and Ansible.",
+                    "I put the infrastructure in Terraform or Ansible, so the next change is a review instead of a console click.",
                 },
                 {
                   icon: Repeat,
                   title: "Continuous Monitoring",
                   content:
-                    "Set up comprehensive monitoring and alerting systems to ensure optimal performance and quick issue resolution.",
+                    "I add the metrics and the alarms that page someone before users write in.",
                 },
               ].map((service, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -170,29 +170,29 @@ export default function DevOpsPage({ canonicalUrl }: { canonicalUrl?: string }) 
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              How I handle DevOps Implementation
+              Why work with me
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
                 {
-                  title: "Expertise Across Tools",
+                  title: "The stack you already have",
                   content:
                     "I use the tools that fit the stack you already have.",
                 },
                 {
-                  title: "Tailored Solutions",
+                  title: "Fit to the repo",
                   content:
-                    "I design DevOps implementations that are specifically tailored to your business goals and existing workflows.",
+                    "I fit the pipeline to the repo and the deploy you already use.",
                 },
                 {
-                  title: "Focus on Automation",
+                  title: "Less manual release work",
                   content:
-                    "I prioritize automation to increase efficiency, reduce errors, and free up your team for more valuable tasks.",
+                    "The point is a release your team can run without me in the room.",
                 },
                 {
-                  title: "Continuous Improvement",
+                  title: "A number you can watch",
                   content:
-                    "I implement feedback loops and metrics to ensure your DevOps practices evolve with your business needs.",
+                    "I track how often you ship, how long a change takes, and how often it fails.",
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
@@ -217,22 +217,22 @@ export default function DevOpsPage({ canonicalUrl }: { canonicalUrl?: string }) 
                 {
                   icon: GitBranch,
                   title: "1. Assessment",
-                  content: "I evaluate your current processes and identify areas for DevOps improvement.",
+                  content: "I look at how a change gets from a pull request to production.",
                 },
                 {
                   icon: Code,
                   title: "2. Strategy",
-                  content: "I develop a tailored DevOps strategy aligned with your business objectives.",
+                  content: "You get a short list: the pipeline, the infrastructure code, and what to measure.",
                 },
                 {
                   icon: Repeat,
                   title: "3. Implementation",
-                  content: "I implement DevOps practices and tools, focusing on automation and integration.",
+                  content: "I wire the tools into the repo you already have, in small changes.",
                 },
                 {
                   icon: Users,
                   title: "4. Training & Support",
-                  content: "I provide comprehensive training and ongoing support to ensure successful adoption.",
+                  content: "I walk the team through the pipeline and leave notes for the next change.",
                 },
               ].map((step, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -298,7 +298,7 @@ export default function DevOpsPage({ canonicalUrl }: { canonicalUrl?: string }) 
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
-              Ready to implement DevOps in your organization?
+              If the release still needs you in the room, start there.
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Link href="/consultation">
