@@ -38,3 +38,11 @@ Property: `sc-domain:harun.dev`
 4. Coverage: the 16 `/services/*` URLs, `/bio`, `/hrr`, and `/products` should start appearing over the next crawl cycle.
 
 `php artisan seo:ping-sitemap` prints the GSC and Bing Webmaster resubmit steps. Google and Bing both retired `/ping?sitemap=`.
+
+## Bing and the origin crawl budget
+
+Code now publishes Content Signals (`search=yes, ai-input=yes, ai-train=yes`), a Hire section in `/llms.txt`, an IndexNow key file, and a per-IP origin cap. Plan: `docs/plans/ai-readiness.md`.
+
+1. `php artisan seo:ai-readiness` locally, then `php artisan seo:ai-readiness --live` after deploy.
+2. Set `INDEXNOW_KEY` on Railway `web` and `scheduler` (the key file is served by web; scheduled publishes notify IndexNow from the scheduler). Confirm `https://harun.dev/{key}.txt`, then `php artisan seo:indexnow --site=https://harun.dev`.
+3. Set `BING_SITE_VERIFICATION` to the Bing Webmaster `msvalidate.01` value and submit `https://harun.dev/sitemap.xml` in Bing Webmaster Tools.

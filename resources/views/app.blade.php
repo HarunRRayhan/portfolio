@@ -24,6 +24,14 @@
             @endforeach
         @endif
 
+        <link rel="alternate" type="text/markdown" href="{{ \App\Support\SiteCatalog::siteUrl() }}/llms.txt" title="LLM site index">
+        @php
+            $bingSiteVerification = (string) config('ai.bing_site_verification');
+        @endphp
+        @if ($bingSiteVerification !== '' && preg_match('/^[A-Za-z0-9]+$/', $bingSiteVerification))
+            <meta name="msvalidate.01" content="{{ $bingSiteVerification }}">
+        @endif
+
         <!-- Favicon -->
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" type="image/svg+xml" href="/favicon.svg">
