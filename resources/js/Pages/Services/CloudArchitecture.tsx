@@ -12,13 +12,7 @@ import {
   ArrowRight, 
   CheckCircle, 
   BarChart, 
-  Users,
-  Landmark, 
-  Stethoscope, 
-  ShoppingCart, 
-  GraduationCap, 
-  Factory, 
-  Film 
+  Users
 } from "lucide-react"
 import { Link } from "@inertiajs/react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/Components/ui/accordion"
@@ -96,19 +90,19 @@ export default function CloudArchitecturePage() {
                 {
                   icon: Cloud,
                   title: "Scalable Infrastructure",
-                  content: "Design cloud architectures that can seamlessly scale to meet your growing business demands.",
+                  content: "I design the layout so more traffic means more capacity, not a rewrite.",
                 },
                 {
                   icon: Server,
-                  title: "Cost Optimization",
+                  title: "The bill",
                   content:
-                    "Implement strategies to optimize cloud costs while maintaining high performance and reliability.",
+                    "I stop paying for capacity the app isn't using.",
                 },
                 {
                   icon: Lock,
                   title: "Security-First Design",
                   content:
-                    "Ensure your cloud architecture adheres to best security practices and compliance requirements.",
+                    "IAM, network boundaries, and the logs. I close the paths that are wider than the job.",
                 },
               ].map((service, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -128,29 +122,29 @@ export default function CloudArchitecturePage() {
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              How I handle Cloud Architecture
+              Why work with me
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
                 {
-                  title: "Expertise Across Major Cloud Platforms",
+                  title: "Mostly AWS",
                   content:
                     "I work mostly on AWS. I use Azure or Google Cloud when the account is already there.",
                 },
                 {
-                  title: "Tailored Solutions",
+                  title: "Fit to the repo",
                   content:
-                    "I design cloud architectures that are specifically tailored to your business goals and requirements.",
+                    "The diagram starts from the app, not from a catalog of cloud products.",
                 },
                 {
-                  title: "Focus on Security and Compliance",
+                  title: "The paths that are too wide",
                   content:
-                    "I prioritize security and ensure your cloud architecture meets all necessary compliance standards.",
+                    "I name the control that's missing. I don't paper over it.",
                 },
                 {
-                  title: "Continuous Optimization",
+                  title: "After it ships",
                   content:
-                    "I don't just set it and forget it. I continuously monitor and optimize your cloud architecture for peak performance and cost-efficiency.",
+                    "After the change I leave monitoring and a note on what still costs more than it should.",
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
@@ -175,7 +169,7 @@ export default function CloudArchitecturePage() {
                 {
                   icon: BarChart,
                   title: "1. Assessment",
-                  content: "I begin by thoroughly assessing your current infrastructure and business needs.",
+                  content: "I start with the accounts and the bill, then the app that has to keep running.",
                 },
                 {
                   icon: Cloud,
@@ -185,12 +179,12 @@ export default function CloudArchitecturePage() {
                 {
                   icon: Server,
                   title: "3. Implementation",
-                  content: "I implement the designed architecture with a focus on security and scalability.",
+                  content: "I apply the layout in small changes, so a bad plan is easy to stop.",
                 },
                 {
                   icon: Users,
                   title: "4. Support & Optimization",
-                  content: "I provide ongoing support and continuously optimize your cloud infrastructure.",
+                  content: "I leave the diagram, the alarms, and a list of what to look at next.",
                 },
               ].map((step, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -207,29 +201,6 @@ export default function CloudArchitecturePage() {
           </div>
         </motion.section>
 
-        <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
-          <div className="container mx-auto px-4">
-            <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Industries I Serve
-            </motion.h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
-              {[
-                { name: "Finance", icon: Landmark },
-                { name: "Healthcare", icon: Stethoscope },
-                { name: "E-commerce", icon: ShoppingCart },
-                { name: "Education", icon: GraduationCap },
-                { name: "Manufacturing", icon: Factory },
-                { name: "Media", icon: Film },
-              ].map((industry, index) => (
-                <motion.div key={industry.name} className="flex flex-col items-center" variants={fadeInUp}>
-                  <industry.icon className="w-12 h-12 text-amber-600 mb-4" />
-                  <h3 className="text-lg font-semibold text-center">{industry.name}</h3>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </motion.section>
-
         <section ref={sectionRef} className="py-24 bg-[#F8F9FA] overflow-hidden">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -238,7 +209,7 @@ export default function CloudArchitecturePage() {
             className="container mx-auto px-4 text-center mb-12"
           >
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Technologies I Use</h2>
-            <p className="text-xl text-gray-600">Proficient in a wide range of modern cloud and DevOps technologies.</p>
+            <p className="text-xl text-gray-600">These are the tools I use when they fit the job.</p>
           </motion.div>
 
           <div className="relative w-full">
@@ -278,7 +249,7 @@ export default function CloudArchitecturePage() {
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
-              Ready to optimize your cloud architecture?
+              If the layout is expensive or fragile, start there.
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Link href="/consultation">

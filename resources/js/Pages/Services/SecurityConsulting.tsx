@@ -105,19 +105,19 @@ export default function SecurityConsulting({ canonicalUrl }: { canonicalUrl?: st
                   icon: AlertTriangle,
                   title: "Vulnerability Assessment",
                   content:
-                    "Identify and prioritize security vulnerabilities in your systems, applications, and infrastructure.",
+                    "I list what's exposed, and which of those a stranger could actually use.",
                 },
                 {
                   icon: FileSearch,
                   title: "Security Audits",
                   content:
-                    "Conduct comprehensive security audits to ensure compliance with industry standards and best practices.",
+                    "I compare the account to the control an audit will ask about, and say what's missing.",
                 },
                 {
                   icon: Lock,
                   title: "Security Architecture Design",
                   content:
-                    "Design and implement robust security architectures tailored to your organization's needs and risk profile.",
+                    "I change IAM, the network, and the logs. I don't add a product for its own sake.",
                 },
               ].map((service, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -137,27 +137,27 @@ export default function SecurityConsulting({ canonicalUrl }: { canonicalUrl?: st
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              How I handle Security Consulting
+              Why work with me
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
                 {
-                  title: "Experienced Security Experts",
+                  title: "IAM, network, logs",
                   content:
                     "I look at IAM, the network, and the logs, then tell you which path is wider than the job.",
                 },
                 {
-                  title: "Comprehensive Approach",
-                  content: "I take a holistic view of security, addressing technical, operational, and human factors.",
+                  title: "The path, not the poster",
+                  content: "I look at the permission, the network rule, and who gets paged.",
                 },
                 {
-                  title: "Cutting-edge Tools and Techniques",
-                  content: "I utilize the latest security tools and methodologies to stay ahead of emerging threats.",
+                  title: "The tools that fit",
+                  content: "I use the scanner and the logs you can already run. A new tool has to earn it.",
                 },
                 {
-                  title: "Tailored Solutions",
+                  title: "What to close first",
                   content:
-                    "My recommendations are customized to your specific business needs, risk profile, and compliance requirements.",
+                    "The list is what to close first, not every finding the scanner printed.",
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
@@ -183,23 +183,23 @@ export default function SecurityConsulting({ canonicalUrl }: { canonicalUrl?: st
                   icon: Eye,
                   title: "1. Assessment",
                   content:
-                    "I conduct a thorough assessment of your current security posture, identifying vulnerabilities and risks.",
+                    "I look at IAM, the network, and the logs, and write down the wide paths.",
                 },
                 {
                   icon: BarChart,
                   title: "2. Analysis",
                   content:
-                    "I analyze the findings and develop a comprehensive security strategy tailored to your needs.",
+                    "You get a short list, ordered by what a stranger could use.",
                 },
                 {
                   icon: Shield,
                   title: "3. Implementation",
-                  content: "I work with you to implement recommended security measures and best practices.",
+                  content: "I make the changes we agreed, in the account, and show you the diff.",
                 },
                 {
                   icon: Users,
                   title: "4. Training & Support",
-                  content: "I provide ongoing training and support to ensure long-term security effectiveness.",
+                  content: "I leave notes your team can follow the next time someone needs access.",
                 },
               ].map((step, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -221,7 +221,7 @@ export default function SecurityConsulting({ canonicalUrl }: { canonicalUrl?: st
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
-              Ready to enhance your security posture?
+              If a path is wider than the job, close it.
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Link href="/consultation">

@@ -95,19 +95,19 @@ export default function MonitoringObservability({ canonicalUrl }: { canonicalUrl
                   icon: MonitorSmartphone,
                   title: "Infrastructure Monitoring",
                   content:
-                    "Implement comprehensive monitoring solutions for your entire infrastructure, from servers to cloud services.",
+                    "I put metrics on the hosts, the app, and the cloud services you already run.",
                 },
                 {
                   icon: BarChart,
                   title: "Application Performance Monitoring",
                   content:
-                    "Set up detailed application performance monitoring to track and optimize your software's performance.",
+                    "I trace the slow request so you can see which call ate the time.",
                 },
                 {
                   icon: Bell,
                   title: "Alerting and Incident Response",
                   content:
-                    "Develop robust alerting systems and incident response processes to quickly address issues as they arise.",
+                    "An alarm should reach the person who can fix it, and it should not fire all day.",
                 },
               ].map((service, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -127,28 +127,28 @@ export default function MonitoringObservability({ canonicalUrl }: { canonicalUrl
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              How I handle Monitoring and Observability
+              Why work with me
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
                 {
-                  title: "Holistic Approach",
+                  title: "The whole path",
                   content:
-                    "I provide end-to-end monitoring solutions that cover your entire stack, from infrastructure to applications.",
+                    "Host, app, and the dependency in between. A green dashboard that hides the failure is useless.",
                 },
                 {
-                  title: "Custom Dashboards",
+                  title: "A dashboard you will open",
                   content:
-                    "I create tailored dashboards that give you instant visibility into the metrics that matter most to your business.",
+                    "I put the few graphs you'd check during an incident on one screen.",
                 },
                 {
-                  title: "Proactive Issue Detection",
+                  title: "Page before the users do",
                   content:
-                    "My advanced alerting systems help you catch and resolve issues before they impact your users.",
+                    "The alarm fires on the thing that breaks the app, not on every CPU twitch.",
                 },
                 {
-                  title: "Continuous Improvement",
-                  content: "I help you leverage monitoring data to continuously optimize your systems and processes.",
+                  title: "After the graphs exist",
+                  content: "Once the graphs exist, the slow path and the wasted capacity are easier to see.",
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
@@ -174,25 +174,25 @@ export default function MonitoringObservability({ canonicalUrl }: { canonicalUrl
                   icon: MonitorSmartphone,
                   title: "1. Assessment",
                   content:
-                    "I evaluate your current monitoring setup and identify areas for improvement and coverage gaps.",
+                    "I look at what you can already see, and what fails silently.",
                 },
                 {
                   icon: Cloud,
                   title: "2. Design",
                   content:
-                    "I design a comprehensive monitoring and observability strategy tailored to your specific needs.",
+                    "You get the metrics, the logs, and which alarm pages a person.",
                 },
                 {
                   icon: GitBranch,
                   title: "3. Implementation",
                   content:
-                    "I set up and configure monitoring tools, create custom dashboards, and implement alerting systems.",
+                    "I install it, build the dashboard, and send a test page.",
                 },
                 {
                   icon: BarChart,
                   title: "4. Optimization",
                   content:
-                    "I continuously refine your monitoring setup, adjusting thresholds and adding new metrics as needed.",
+                    "I tune the noisy alarms before I add more graphs.",
                 },
               ].map((step, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -214,7 +214,7 @@ export default function MonitoringObservability({ canonicalUrl }: { canonicalUrl
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
-              Ready to enhance your monitoring and observability?
+              If users hear about a failure before you do, start there.
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Link href="/consultation">

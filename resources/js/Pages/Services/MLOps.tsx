@@ -95,19 +95,19 @@ export default function MLOps({ canonicalUrl }: { canonicalUrl?: string }) {
                   icon: Cloud,
                   title: "ML Infrastructure Design",
                   content:
-                    "Design scalable and efficient infrastructure to support your AI/ML workflows and model deployments.",
+                    "Training jobs, a place to put the model, and a way to serve it.",
                 },
                 {
                   icon: GitBranch,
                   title: "CI/CD for ML",
                   content:
-                    "Implement continuous integration and deployment pipelines specifically tailored for machine learning models.",
+                    "A model change should go through a pipeline, the same way an app change does.",
                 },
                 {
                   icon: BarChart,
                   title: "Model Monitoring",
                   content:
-                    "Set up comprehensive monitoring systems to track model performance, data drift, and system health.",
+                    "I watch whether the model still answers well, and whether the data going in has changed.",
                 },
               ].map((service, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -127,7 +127,7 @@ export default function MLOps({ canonicalUrl }: { canonicalUrl?: string }) {
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              How I handle MLOps
+              Why work with me
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
@@ -137,19 +137,19 @@ export default function MLOps({ canonicalUrl }: { canonicalUrl?: string }) {
                     "I work on the infrastructure around the model: training jobs, deploys, and the checks that tell you it drifted.",
                 },
                 {
-                  title: "Scalable Solutions",
+                  title: "From the notebook to production",
                   content:
-                    "I design MLOps solutions that can scale with your AI/ML initiatives, from proof-of-concept to enterprise-wide deployments.",
+                    "The notebook can stay. The production path cannot be 'run it on my laptop'.",
                 },
                 {
-                  title: "Best Practices Implementation",
+                  title: "You can rebuild it",
                   content:
-                    "I implement industry best practices for reproducibility, versioning, and governance in ML workflows.",
+                    "I version the data, the code, and the model, so last month's result can be rebuilt.",
                 },
                 {
-                  title: "Cloud-Agnostic Approach",
+                  title: "Where it already runs",
                   content:
-                    "My MLOps solutions work across major cloud providers and on-premises infrastructure, giving you flexibility and avoiding vendor lock-in.",
+                    "I use the cloud the training job already runs on. I don't move it for the sake of a diagram.",
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
@@ -175,23 +175,23 @@ export default function MLOps({ canonicalUrl }: { canonicalUrl?: string }) {
                   icon: Brain,
                   title: "1. Assessment",
                   content:
-                    "I evaluate your current ML workflows and infrastructure to identify areas for improvement and automation.",
+                    "I look at how a model gets from a notebook to something a user can hit.",
                 },
                 {
                   icon: Cloud,
                   title: "2. Design",
-                  content: "I design a comprehensive MLOps architecture tailored to your specific needs and scale.",
+                  content: "You get the training job, the registry, and how a new model gets served.",
                 },
                 {
                   icon: GitBranch,
                   title: "3. Implementation",
-                  content: "I implement the MLOps solution, integrating with your existing tools and processes.",
+                  content: "I wire it into the repo and the cloud account you already have.",
                 },
                 {
                   icon: Users,
                   title: "4. Training & Support",
                   content:
-                    "I provide thorough training and ongoing support to ensure successful adoption of MLOps practices.",
+                    "I walk through one training run and one deploy, and leave the notes beside them.",
                 },
               ].map((step, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -213,7 +213,7 @@ export default function MLOps({ canonicalUrl }: { canonicalUrl?: string }) {
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
-              Ready to optimize your AI/ML infrastructure?
+              If the model works in a notebook and stalls in production, start there.
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Link href="/consultation">

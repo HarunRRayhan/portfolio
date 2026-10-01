@@ -78,19 +78,19 @@ export default function DatabaseMigration({ canonicalUrl }: { canonicalUrl?: str
                   icon: Database,
                   title: "Database Assessment",
                   content:
-                    "Thoroughly assess your current database architecture and develop a tailored migration strategy.",
+                    "I map the schema, the size, and how long you can be offline.",
                 },
                 {
                   icon: ArrowRightLeft,
                   title: "Data Migration",
                   content:
-                    "Securely migrate your data to the new database platform with minimal downtime and data loss risk.",
+                    "I copy the data, check the rows on both sides, then cut over.",
                 },
                 {
                   icon: Shield,
                   title: "Post-Migration Support",
                   content:
-                    "Provide ongoing support and optimization to ensure smooth operation of your new database environment.",
+                    "After cutover I watch the new database for the queries that got slower.",
                 },
               ].map((service, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -110,28 +110,28 @@ export default function DatabaseMigration({ canonicalUrl }: { canonicalUrl?: str
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              How I handle Database Migration
+              Why work with me
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
                 {
-                  title: "Expertise Across Database Platforms",
+                  title: "Check both sides",
                   content:
                     "I move MySQL, PostgreSQL, and the managed databases people usually mean, and I check the rows on both sides before cutover.",
                 },
                 {
-                  title: "Minimal Downtime",
-                  content: "I use advanced migration techniques to minimize disruption to your business operations.",
+                  title: "A planned window",
+                  content: "I say how long the window is before we pick a night.",
                 },
                 {
-                  title: "Data Integrity Assurance",
+                  title: "The row counts",
                   content:
-                    "I implement rigorous validation processes to ensure data accuracy and completeness during migration.",
+                    "I compare counts and checksums before anything points at the new database.",
                 },
                 {
-                  title: "Performance Optimization",
+                  title: "The new database has to be fast enough",
                   content:
-                    "I optimize your database structure and queries for improved performance in the new environment.",
+                    "I check the slow queries on the new side before you call it done.",
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
@@ -156,23 +156,23 @@ export default function DatabaseMigration({ canonicalUrl }: { canonicalUrl?: str
                 {
                   icon: Database,
                   title: "1. Assessment",
-                  content: "I assess your current database architecture and develop a comprehensive migration plan.",
+                  content: "I write down the size, the downtime, and how we roll back.",
                 },
                 {
                   icon: Cloud,
                   title: "2. Preparation",
-                  content: "I prepare the target environment and set up necessary tools for the migration process.",
+                  content: "The new database is up, and the copy tool is tested on a slice of the data.",
                 },
                 {
                   icon: ArrowRightLeft,
                   title: "3. Migration",
-                  content: "I execute the migration, ensuring data integrity and minimal disruption to your operations.",
+                  content: "I run the copy, then the cutover, in the window we agreed.",
                 },
                 {
                   icon: BarChart,
                   title: "4. Validation & Optimization",
                   content:
-                    "I validate the migrated data and optimize the new database environment for peak performance.",
+                    "I check the rows, then the queries that matter, before I call it done.",
                 },
               ].map((step, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -194,7 +194,7 @@ export default function DatabaseMigration({ canonicalUrl }: { canonicalUrl?: str
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
-              Ready to migrate your database?
+              If the database has to move, plan the cutover first.
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Link href="/consultation">

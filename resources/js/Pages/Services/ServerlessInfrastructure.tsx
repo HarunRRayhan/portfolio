@@ -117,18 +117,18 @@ export default function ServerlessInfrastructure({ canonicalUrl }: { canonicalUr
                   icon: Cloud,
                   title: "Serverless Architecture Design",
                   content:
-                    "Design scalable and cost-effective serverless architectures tailored to your specific business needs.",
+                    "Lambda, queues, and the data store. I only add a piece if the app needs it.",
                 },
                 {
                   icon: Code,
                   title: "Function Development",
                   content:
-                    "Develop and optimize serverless functions with best practices for performance and cost efficiency.",
+                    "I write the function, set the memory, and check that a cold start isn't the thing users wait on.",
                 },
                 {
                   icon: Database,
                   title: "Data Integration",
-                  content: "Seamlessly integrate serverless functions with databases, storage, and other cloud services.",
+                  content: "The function has to talk to the database and the queue you already use.",
                 },
               ].map((service, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -148,29 +148,29 @@ export default function ServerlessInfrastructure({ canonicalUrl }: { canonicalUr
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              How I handle Serverless Infrastructure
+              Why work with me
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
                 {
-                  title: "Cloud Provider Expertise",
+                  title: "Mostly Lambda",
                   content:
-                    "Deep expertise across major cloud providers' serverless offerings, including AWS Lambda, Azure Functions, and Google Cloud Functions.",
+                    "I use AWS Lambda. Azure or Google Cloud functions only if the project already lives there.",
                 },
                 {
-                  title: "Cost Optimization",
+                  title: "The bill",
                   content:
-                    "Implement cost-effective serverless architectures with optimized function execution and resource utilization.",
+                    "A function that runs all day is a server with extra steps. I check the bill.",
                 },
                 {
                   title: "Performance Tuning",
                   content:
-                    "Optimize function performance through code optimization, memory allocation, and execution environment configuration.",
+                    "I change memory and the code path, then look at the duration, not a feeling.",
                 },
                 {
                   title: "Security First",
                   content:
-                    "Implement robust security measures including IAM policies, encryption, and secure API endpoints.",
+                    "The function gets the IAM role it needs, and not the admin role next to it.",
                 },
               ].map((item, index) => (
                 <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
@@ -196,22 +196,22 @@ export default function ServerlessInfrastructure({ canonicalUrl }: { canonicalUr
                   icon: BarChart,
                   title: "1. Assessment",
                   content:
-                    "Evaluate your current architecture and requirements to determine the optimal serverless approach.",
+                    "I look at what is always on, and what only runs when a request shows up.",
                 },
                 {
                   icon: Code,
                   title: "2. Design",
-                  content: "Design a scalable serverless architecture that meets your performance and cost requirements.",
+                  content: "You get the functions, the queue, and what stays a normal server.",
                 },
                 {
                   icon: GitBranch,
                   title: "3. Implementation",
-                  content: "Develop and deploy serverless functions with proper testing, monitoring, and error handling.",
+                  content: "I ship the function with a test, a log line, and an alarm.",
                 },
                 {
                   icon: Users,
                   title: "4. Optimization",
-                  content: "Continuously monitor and optimize function performance, costs, and resource utilization.",
+                  content: "I check duration and the bill after it has real traffic.",
                 },
               ].map((step, index) => (
                 <motion.div key={index} variants={fadeInUp}>
@@ -233,7 +233,7 @@ export default function ServerlessInfrastructure({ canonicalUrl }: { canonicalUr
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
-              Ready to go serverless?
+              If you want less to patch, and a bill that follows the traffic.
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Link href="/consultation">
