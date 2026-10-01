@@ -4,14 +4,14 @@ import * as React from 'react'
 import { Link, router, usePage } from '@inertiajs/react'
 import { cn } from '@/lib/utils'
 import { Logo } from './Logo'
-import { ArrowRight, Calendar, ChevronDown, Heart, Link2, LogOut, Menu, Package, Presentation, User, UserRound, Video } from 'lucide-react'
+import { ArrowRight, Briefcase, Calendar, ChevronDown, Heart, Layers, Link2, LogOut, Mail, Menu, Presentation, User, Video } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 const MobileNavigation = React.lazy(() => import('@/Components/MobileNavigation'))
 
 const mainNavItems = [
   { name: 'Home', href: '/' },
-  { name: 'Case Studies', href: '/case-studies' },
-  { name: 'Services', href: '/services' },
+  { name: 'About', href: '/about' },
+  { name: 'Products', href: '/products' },
   { name: 'Blog', href: '/blog' },
 ]
 
@@ -30,17 +30,18 @@ type MoreGroup = {
 
 const moreGroups: MoreGroup[] = [
   {
-    title: 'About',
+    title: 'Work',
     items: [
-      { name: 'About', href: '/about', icon: UserRound, description: 'Background, experience, and how I work.' },
-      { name: 'Bio', href: '/bio', icon: Link2, description: 'Links, profiles, and ways to reach me.' },
+      { name: 'Case Studies', href: '/case-studies', icon: Briefcase, description: 'Real engagements, with the client name left out.' },
+      { name: 'Services', href: '/services', icon: Layers, description: 'The problems I take on.' },
+      { name: 'Sponsor my work', href: '/sponsor-me', icon: Heart, description: 'Help keep the writing and tools free.', featured: true },
     ],
   },
   {
-    title: 'Work',
+    title: 'Reach me',
     items: [
-      { name: 'Sponsor my work', href: '/sponsor-me', icon: Heart, description: 'Help keep the writing and tools free.', featured: true },
-      { name: 'Products', href: '/products', icon: Package, description: 'Tools and apps I have built and shipped.' },
+      { name: 'Bio', href: '/bio', icon: Link2, description: 'Links, profiles, and ways to reach me.' },
+      { name: 'Contact', href: '/contact', icon: Mail, description: 'Send a note. I read it and reply myself.' },
     ],
   },
   {
@@ -117,9 +118,9 @@ export function Menubar() {
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:px-8">
         <Link href="/" aria-label="Harun R. Rayhan home" className="flex shrink-0 items-center gap-3">
           <Logo className="h-9 w-9" />
-          <div className="hidden sm:block">
-            <p className="text-sm font-semibold tracking-tight text-slate-900">Harun R. Rayhan</p>
-            <p className="text-xs text-slate-600">DevOps, AI/ML, Cloud, and Product Engineering</p>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold tracking-tight text-slate-900">Harun R. Rayhan</p>
+            <p className="hidden text-xs text-slate-600 sm:block">DevOps, AI/ML, Cloud, and Product Engineering</p>
           </div>
         </Link>
 
@@ -314,15 +315,7 @@ export function Menubar() {
                 </div>
               )}
             </div>
-          ) : (
-            <Link
-              href="/login"
-              aria-label="Sign in"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
-            >
-              <User className="h-4 w-4" />
-            </Link>
-          )}
+          ) : null}
         </div>
 
         {/* Mobile hamburger */}

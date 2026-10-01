@@ -3,6 +3,7 @@ import { ArrowRight, CalendarDays, Clock3, Share2, Sparkles } from 'lucide-react
 import { CaseStudyArticleBody } from '@/Components/CaseStudyArticleBody'
 import { ShareButton } from '@/Components/ShareButton'
 import type { CaseStudySummary } from '@/Pages/CaseStudies/Index'
+import { caseStudyReaderTitle } from '@/lib/caseStudyTitle'
 
 export type CaseStudyDetail = CaseStudySummary & {
   contentHtml: string
@@ -193,7 +194,7 @@ export default function CaseStudyDetailPage({ study, relatedStudies, canonicalUr
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-800">
                       {related.industry}
                     </p>
-                    <p className="mt-2 font-semibold text-slate-950">{related.codename}</p>
+                    <p className="mt-2 font-semibold text-slate-950">{caseStudyReaderTitle(related)}</p>
                     <p className="mt-2 line-clamp-2 text-sm text-slate-600">{related.headlineOutcome}</p>
                   </Link>
                 ))}

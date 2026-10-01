@@ -3,6 +3,7 @@
 import { Link } from '@inertiajs/react'
 import { useEffect, useMemo, useRef } from 'react'
 import { BlogDiscussion } from '@/Components/BlogDiscussion'
+import { SubscribeButton } from '@/Components/SubscribeButton'
 import { ShareButton } from '@/Components/ShareButton'
 import { ArrowRight, BookOpen, CalendarDays, ChevronDown, Clock3, Eye, MessageCircle, Share2, Sparkles, Tag } from 'lucide-react'
 
@@ -372,13 +373,6 @@ export default function BlogPostPage({
 
           <section id="article" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
             <article className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-              <div className="border-b border-slate-200 bg-slate-50/80 px-6 py-5 md:px-8">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Article</p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  Clean reading surface, wider measure, lighter code blocks, and no sidebar clutter.
-                </p>
-              </div>
-
               <div className="px-6 py-8 md:px-8 lg:px-10">
                 <div ref={contentRef} className="mx-auto max-w-[78ch]">
                   <div
@@ -388,6 +382,16 @@ export default function BlogPostPage({
                 </div>
               </div>
             </article>
+          </section>
+
+          <section className="mx-auto max-w-3xl px-4 py-4 sm:px-6">
+            <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+              <h2 className="text-2xl font-semibold tracking-tight text-slate-950">Get the next note</h2>
+              <p className="mt-2 text-slate-600">
+                I email when a new post goes up. One send a week, and only if there's something new.
+              </p>
+              <SubscribeButton source="post-end" label="Subscribe" className="mt-5" />
+            </div>
           </section>
 
           {relatedPosts.length > 0 ? (

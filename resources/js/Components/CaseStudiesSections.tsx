@@ -1,8 +1,10 @@
 import { Link } from '@inertiajs/react'
 import { ArrowRight, Briefcase, Sparkles } from 'lucide-react'
+import { caseStudyReaderTitle } from '@/lib/caseStudyTitle'
 
 export type CaseStudyCardSummary = {
   slug: string
+  title?: string
   codename: string
   client: string
   industry: string
@@ -57,7 +59,7 @@ export function ServiceRelatedCaseStudies({ studies }: Props) {
                   <Sparkles className="h-3.5 w-3.5" />
                   {study.industry}
                 </div>
-                <h3 className="mt-3 text-xl font-semibold text-slate-950">{study.codename}</h3>
+                <h3 className="mt-3 text-xl font-semibold text-slate-950">{caseStudyReaderTitle(study)}</h3>
                 <p className="mt-2 line-clamp-2 text-sm text-slate-600">{study.client}</p>
                 <p className="mt-4 text-sm font-medium text-slate-900">{study.headlineOutcome}</p>
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -95,7 +97,7 @@ export function CaseStudiesHomeSection({ studies }: HomeProps) {
           <Briefcase className="mx-auto h-8 w-8 text-slate-400" />
           <h2 className="mt-4 text-2xl font-semibold text-slate-950">Case studies launching soon</h2>
           <p className="mx-auto mt-3 max-w-xl text-slate-600">
-            Constellation-codenamed stories from real engagements. First publish drops on a Tuesday when you are ready.
+            Stories from real engagements, with the client name left out.
           </p>
           <Link
             href="/case-studies"
@@ -156,7 +158,7 @@ export function CaseStudiesHomeSection({ studies }: HomeProps) {
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-800">
                     {study.industry}
                   </p>
-                  <h3 className="mt-2 text-xl font-semibold text-slate-950">{study.codename}</h3>
+                  <h3 className="mt-2 text-xl font-semibold text-slate-950">{caseStudyReaderTitle(study)}</h3>
                   <p className="mt-3 line-clamp-3 text-sm leading-7 text-slate-600">{study.problem}</p>
                   <p className="mt-4 text-sm font-semibold text-slate-900">{study.headlineOutcome}</p>
                 </div>

@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { Link } from "@inertiajs/react"
 import { Button } from "@/Components/ui/button"
 import { FileDown } from "lucide-react"
 import { getImageUrl } from "../lib/imageUtils"
@@ -18,13 +19,14 @@ export function AboutHero() {
           >
             <h1 className="text-4xl lg:text-5xl font-bold mb-6 text-white">About</h1>
             <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto lg:mx-0">
-              With over 15 years of experience in software engineering, cloud architecture, and DevOps, I've dedicated
-              my career to building scalable solutions and empowering teams through innovation and best practices.
+              I've spent 15 years building and running software, mostly on AWS. These days that means cloud architecture,
+              release automation, and taking apps that already have users and making them hold up in production.
             </p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
+              className="flex flex-col items-center gap-4 sm:flex-row lg:justify-start"
             >
               <Button
                 variant="default"
@@ -35,6 +37,9 @@ export function AboutHero() {
                 <FileDown className="mr-2 h-5 w-5 group-hover:translate-y-0.5 transition-transform duration-300" />
                 Download CV
               </Button>
+              <Link href="/consultation" className="text-sm font-medium text-white underline-offset-4 hover:underline">
+                Book a consult
+              </Link>
             </motion.div>
           </motion.div>
           <motion.div

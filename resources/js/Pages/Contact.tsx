@@ -8,7 +8,7 @@ import {ChevronsUpDown, Plus, Send} from "lucide-react"
 import {cn} from "@/lib/utils"
 import {Popover, PopoverContent, PopoverTrigger} from "@/Components/ui/popover"
 import type React from "react"
-import {router} from '@inertiajs/react'
+import {Link, router} from '@inertiajs/react'
 import {toast} from "@/lib/toast"
 import { PageProps as InertiaPageProps } from '@inertiajs/core'
 import confetti from 'canvas-confetti';
@@ -186,9 +186,10 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
                                 transition={{duration: 0.8}}
                                 className="text-center max-w-3xl mx-auto"
                             >
-                                <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Get in Touch</h1>
+                                <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Send a note</h1>
                                 <p className="text-xl text-white/80">
-                                    Have a project in mind? Let's discuss how we can help you achieve your goals.
+                                    I read these and reply myself. If you want a time on the calendar,{' '}
+                                    <Link href="/consultation" className="underline underline-offset-4 hover:text-white">book a consult</Link>.
                                 </p>
                             </motion.div>
                         </div>

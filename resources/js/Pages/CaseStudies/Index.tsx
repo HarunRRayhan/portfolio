@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react'
 import { ArrowRight, CalendarDays, Clock3, Sparkles } from 'lucide-react'
+import { caseStudyReaderTitle } from '@/lib/caseStudyTitle'
 
 export type CaseStudySummary = {
   slug: string
@@ -49,9 +50,7 @@ export default function CaseStudiesIndex({ studies, canonicalUrl }: Props) {
             <div className="mt-16 rounded-[2rem] border border-dashed border-slate-300 bg-white p-12 text-center">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Coming soon</p>
               <p className="mx-auto mt-4 max-w-lg text-slate-600">
-                The first story publishes on a Tuesday when you add it to{' '}
-                <code className="rounded bg-slate-100 px-1.5 py-0.5 text-sm">resources/case-studies/PLAN.md</code>{' '}
-                and ship a markdown file. Your 5pm Tuesday cron will nudge you to pick an idea.
+                Stories from real engagements, with the client name left out. The next one shows up here when it's ready.
               </p>
               <Link
                 href="/services"
@@ -100,7 +99,7 @@ export default function CaseStudiesIndex({ studies, canonicalUrl }: Props) {
                       <p className="mt-3 text-xs font-semibold uppercase tracking-[0.2em] text-amber-800">
                         {study.industry}
                       </p>
-                      <h2 className="mt-2 text-2xl font-semibold text-slate-950">{study.codename}</h2>
+                      <h2 className="mt-2 text-2xl font-semibold text-slate-950">{caseStudyReaderTitle(study)}</h2>
                       <p className="mt-2 text-sm text-slate-600">{study.client}</p>
                       <p className="mt-4 text-sm font-semibold text-slate-900">{study.headlineOutcome}</p>
                       <div className="mt-4 flex flex-wrap gap-2">

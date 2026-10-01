@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Link } from '@inertiajs/react'
+import { Link, usePage } from '@inertiajs/react'
 import { ArrowRight, Terminal } from 'lucide-react'
 import { Github, Linkedin, Mail, Twitter } from '@/lib/icons'
 import { Button } from '@/Components/ui/button'
@@ -28,6 +28,7 @@ const links: FooterLinkGroup[] = [
             { label: 'Home', href: '/' },
             { label: 'Blog', href: '/blog' },
             { label: 'About', href: '/about' },
+            { label: 'Products', href: '/products' },
             { label: 'Sponsor', href: '/sponsor-me' },
             { label: 'Contact', href: '/contact' },
             { label: 'Bio', href: '/bio' },
@@ -38,13 +39,6 @@ const links: FooterLinkGroup[] = [
         items: [
             { label: 'Privacy', href: '/privacy' },
             { label: 'Terms', href: '/terms' },
-        ],
-    },
-    {
-        title: 'For AI Agents',
-        items: [
-            { label: 'llms.txt', href: '/llms.txt', external: true },
-            { label: 'llms-full.txt', href: '/llms-full.txt', external: true },
         ],
     },
 ]
@@ -58,6 +52,7 @@ const socials = [
 
 export function Footer() {
     const { openPopup } = useSubscribePopup()
+    const user = usePage().props.auth?.user
 
     return (
         <footer className="relative border-t border-slate-800 bg-slate-950 text-white">
@@ -94,9 +89,9 @@ export function Footer() {
                             </p>
 
                             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                                <Link href="/contact">
+                                <Link href="/consultation">
                                     <Button className="w-full rounded-lg bg-white px-6 text-slate-900 transition hover:bg-slate-100 active:scale-[0.98] sm:w-auto">
-                                        Start a project
+                                        Book a consult
                                         <ArrowRight className="ml-2 h-4 w-4" />
                                     </Button>
                                 </Link>
@@ -155,23 +150,6 @@ export function Footer() {
                                         <Mail className="h-4 w-4 shrink-0" aria-hidden="true" />
                                         Subscribe to newsletter
                                     </Button>
-                                    <a
-                                        href="https://www.google.com/preferences/source?q=harun.dev"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        aria-label="Add harun.dev as a preferred source on Google (opens in a new tab)"
-                                        className="inline-flex h-10 w-fit max-w-full items-center gap-2 rounded-full border border-[#5f6368] bg-[#202124] pl-3.5 pr-4 font-[Arial,sans-serif] text-sm font-medium tracking-[0.1px] text-[#e8eaed] transition hover:bg-[#303134] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
-                                    >
-                                        <img
-                                            src="/images/google-g-gradient.svg"
-                                            alt=""
-                                            aria-hidden="true"
-                                            width={22}
-                                            height={22}
-                                            className="h-[22px] w-[22px] shrink-0"
-                                        />
-                                        <span className="whitespace-nowrap">Add to Preferred Sources</span>
-                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -182,6 +160,14 @@ export function Footer() {
                 <div className="mt-10 flex flex-col gap-6 border-t border-slate-800 pt-8 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-sm text-slate-400">
                         &copy; {new Date().getFullYear()} Harun R. Rayhan. Built with a focus on clarity and reliability.
+                        {user ? null : (
+                            <>
+                                {' '}
+                                <Link href="/login" className="text-slate-500 underline-offset-4 hover:text-white hover:underline">
+                                    Sign in
+                                </Link>
+                            </>
+                        )}
                     </p>
 
                     <div className="flex items-center gap-2">

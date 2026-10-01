@@ -28,85 +28,96 @@ import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/Co
 const services = [
     {
         icon: Gauge,
+        group: "shipped",
         title: "Vibe Scaler",
         description:
-            "We take an app you built fast with AI coding tools and scale it in place to handle real traffic and payments.",
+            "You built it fast with an AI coding tool and it found users. I scale that app in place so it can take real traffic and payments.",
         link: "/services/vibe-scaling",
     },
     {
         icon: Replace,
+        group: "shipped",
         title: "Vibe Code Migration",
         description:
-            "We port an app you built fast with AI coding tools to a production language and framework, feature for feature, without losing data or users.",
+            "When that stack can't carry the product any further, I port it to a production language and framework and keep the features.",
         link: "/services/vibe-code-migration",
     },
     {
         icon: Cloud,
+        group: "aws",
         title: "Multi-Cloud Architecture",
         description:
-            "Design and implement robust multi-cloud solutions that leverage the best of AWS, Azure, and Google Cloud Platform.",
+            "A setup that uses AWS plus Azure or Google Cloud, when one provider isn't the whole answer.",
         link: "/services/multi-cloud-architecture",
     },
     {
         icon: Cloud,
+        group: "aws",
         title: "AWS Cloud",
-        description: "Leverage the full power of Amazon Web Services with our expert AWS cloud solutions and management.",
+        description: "Accounts, networking, compute, and the managed services around them.",
         link: "/services/aws-cloud",
     },
     {
         icon: Code,
+        group: "release",
         title: "DevOps Implementation",
-        description: "Streamline your development and operations with cutting-edge DevOps practices and tools.",
+        description: "CI, infrastructure as code, and a release path the team can run without me in the room.",
         link: "/services/devops",
     },
     {
         icon: Server,
+        group: "release",
         title: "Infrastructure as Code",
-        description: "Implement and manage your infrastructure using modern IaC tools like Terraform and AWS CDK.",
+        description: "Terraform and AWS CDK so the infrastructure is reviewed like application code.",
         link: "/services/infrastructure-as-code",
     },
     {
         icon: Cloud,
+        group: "release",
         title: "Serverless Infrastructure",
-        description: "Design and implement scalable serverless solutions to reduce operational overhead and costs.",
+        description: "Lambda, queues, and the rest of a serverless setup when you want less to patch.",
         link: "/services/serverless-infrastructure",
     },
     {
         icon: Zap,
+        group: "release",
         title: "Automated Deployment (CI/CD)",
-        description:
-            "Implement efficient CI/CD pipelines for faster, more reliable software delivery and deployment processes.",
+        description: "Pipelines that build, test, and ship without a checklist in someone's head.",
         link: "/services/automated-deployment",
     },
     {
         icon: Lock,
+        group: "aws",
         title: "Security Consulting",
-        description: "Enhance your cloud and application security with expert consulting and implementation services.",
+        description: "IAM, network boundaries, encryption, and the logging that shows what happened.",
         link: "/services/security-consulting",
     },
     {
         icon: Zap,
+        group: "aws",
         title: "Performance Optimization",
-        description:
-            "Boost your application and infrastructure performance with expert analysis and optimization techniques.",
+        description: "Find the slow path, fix that, and stop paying for capacity you don't need.",
         link: "/services/performance-optimization",
     },
     {
         icon: ArrowRightLeft,
+        group: "aws",
         title: "Infrastructure Migration",
-        description: "Seamlessly migrate your infrastructure to modern, scalable platforms with minimal downtime.",
+        description: "Move the platform with a plan for downtime, data, and the first week after cutover.",
         link: "/services/infrastructure-migration",
     },
     {
         icon: Brain,
+        group: "release",
         title: "MLOps (AI/ML Infrastructure)",
-        description: "Build and manage robust infrastructure for AI/ML workflows, from development to production.",
+        description: "The infrastructure around training and serving models, from the notebook to production.",
         link: "/services/mlops",
     },
     {
         icon: Database,
+        group: "aws",
         title: "Database Migration",
-        description: "Migrate your databases to modern platforms while ensuring data integrity and minimal disruption.",
+        description: "Move the database and check the data on both sides before anything goes live.",
         link: "/services/database-migration",
     },
     // {
@@ -117,8 +128,9 @@ const services = [
     // },
     {
         icon: MonitorSmartphone,
+        group: "aws",
         title: "Monitoring and Observability",
-        description: "Implement comprehensive monitoring and observability solutions for your entire stack.",
+        description: "Metrics, logs, and traces so you hear about a failure before your users do.",
         link: "/services/monitoring-observability",
     },
     // {
@@ -130,36 +142,54 @@ const services = [
     // },
 ]
 
+const serviceGroups = [
+    {
+        id: "shipped",
+        title: "An AI-built app that has to survive production",
+        lede: "You shipped it fast. It has users. Now it has to stay up.",
+    },
+    {
+        id: "aws",
+        title: "An AWS setup that's expensive or fragile",
+        lede: "The account works, until the bill, the outage, or the next migration.",
+    },
+    {
+        id: "release",
+        title: "A release process you don't trust",
+        lede: "Deploys depend on a person remembering the steps.",
+    },
+]
+
 const faqs = [
     {
         question: "What cloud platforms do you specialize in?",
         answer:
-            "We specialize in AWS (Amazon Web Services), but also have expertise in other major cloud platforms such as Microsoft Azure and Google Cloud Platform. Our team is certified in multiple AWS domains, ensuring we can provide comprehensive solutions across the entire AWS ecosystem.",
+            "Mostly AWS. I use Azure or Google Cloud when the project already lives there, or when one provider isn't the whole answer.",
     },
     {
         question: "How can DevOps practices benefit my business?",
         answer:
-            "DevOps practices can significantly benefit your business by improving collaboration between development and operations teams, accelerating software delivery, increasing reliability, and reducing time-to-market. Our DevOps implementation services focus on automating processes, implementing continuous integration and delivery (CI/CD), and fostering a culture of shared responsibility and continuous improvement.",
+            "You get a release you can repeat. I set up CI, infrastructure as code, and the checks that stop a bad deploy from becoming an incident.",
     },
     {
         question: "What types of database optimization services do you offer?",
         answer:
-            "Our database optimization services cover a wide range of areas including query performance tuning, indexing strategies, data modeling, replication setup, and scalability planning. We work with various database systems including SQL databases like MySQL and PostgreSQL, as well as NoSQL databases like MongoDB and DynamoDB.",
+            "Slow queries, missing indexes, connection limits, and a migration plan when the database itself has to move. I work with MySQL, PostgreSQL, and the usual managed options on AWS.",
     },
     {
         question: "How do you approach cloud security in your projects?",
         answer:
-            "Security is a foundational aspect of all our cloud projects. We implement a defense-in-depth strategy that includes identity and access management, network security, encryption, monitoring, and compliance. We follow security best practices from major cloud providers and industry standards like CIS and NIST. Our approach includes regular security assessments, automated security testing in CI/CD pipelines, and comprehensive logging and monitoring to detect and respond to potential security incidents.",
+            "IAM first, then network boundaries, encryption, and logs you can actually search. I look for the open path and the permission that's wider than the job.",
     },
     {
         question: "What is Infrastructure as Code (IaC) and why is it important?",
         answer:
-            "Infrastructure as Code (IaC) is the practice of managing and provisioning computing infrastructure through machine-readable definition files, rather than physical hardware configuration or interactive configuration tools. It's important because it allows for consistent, version-controlled, and repeatable infrastructure deployments, reducing human error and increasing efficiency. We specialize in tools like Terraform and AWS CloudFormation to implement IaC solutions.",
+            "The infrastructure lives in files you can review, like application code. I use Terraform and AWS CDK so a change is a pull request, not a click in the console.",
     },
     {
         question: "How can your performance optimization services improve my application?",
         answer:
-            "Our performance optimization services can improve your application in several ways. We conduct thorough performance audits to identify bottlenecks, optimize database queries and application code, implement caching strategies, and fine-tune server configurations. We also leverage cloud services for auto-scaling and load balancing to ensure your application performs well under varying loads. The result is faster response times, improved user experience, and more efficient resource utilization.",
+            "I measure the slow path first, then fix that. Caching, queries, and capacity you aren't using. The aim is a faster response and a smaller bill, in that order.",
     },
 ]
 
@@ -169,35 +199,41 @@ export default function ServicesPage({ canonicalUrl }: { canonicalUrl?: string }
             <main className="flex flex-col min-h-screen">
                 <ServiceHero
                     icon={Grid}
-                    title="Our Services"
-                    description="Elevate your business with our comprehensive range of software engineering and cloud services."
+                    title="What I can help with"
+                    description="Three kinds of work. Pick the one that sounds like your problem."
                     backgroundImage="/service-assets/services/hero.jpg"
                 />
 
                 <section className="py-24 bg-white">
                     <div className="container mx-auto px-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {services.map((service, index) => (
-                                <Card key={index} className="flex flex-col">
-                                    <CardHeader>
-                                        <div
-                                            className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center mb-4">
-                                            <service.icon className="w-6 h-6 text-slate-700"/>
-                                        </div>
-                                        <CardTitle>{service.title}</CardTitle>
-                                        <CardDescription>{service.description}</CardDescription>
-                                    </CardHeader>
-                                    <CardFooter className="mt-auto">
-                                        <Link href={service.link}>
-                                            <Button variant="outline" className="w-full">
-                                                Learn More
-                                                <ArrowRight className="w-4 h-4 ml-2"/>
-                                            </Button>
-                                        </Link>
-                                    </CardFooter>
-                                </Card>
-                            ))}
-                        </div>
+                        {serviceGroups.map((group) => (
+                            <div key={group.id} className="mt-16 first:mt-0">
+                                <h2 className="text-2xl font-semibold tracking-tight text-slate-950 md:text-3xl">{group.title}</h2>
+                                <p className="mt-2 max-w-2xl text-slate-600">{group.lede}</p>
+                                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                    {services.filter((service) => service.group === group.id).map((service) => (
+                                        <Card key={service.link} className="flex flex-col">
+                                            <CardHeader>
+                                                <div
+                                                    className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center mb-4">
+                                                    <service.icon className="w-6 h-6 text-slate-700"/>
+                                                </div>
+                                                <CardTitle>{service.title}</CardTitle>
+                                                <CardDescription>{service.description}</CardDescription>
+                                            </CardHeader>
+                                            <CardFooter className="mt-auto">
+                                                <Link href={service.link}>
+                                                    <Button variant="outline" className="w-full">
+                                                        Read more
+                                                        <ArrowRight className="w-4 h-4 ml-2"/>
+                                                    </Button>
+                                                </Link>
+                                            </CardFooter>
+                                        </Card>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
                         <div className="mt-16 text-center">
                             <Link href="/contact">
                                 <Button
@@ -206,7 +242,7 @@ export default function ServicesPage({ canonicalUrl }: { canonicalUrl?: string }
                                     className="h-auto w-full max-w-xl whitespace-normal bg-white py-3 text-center text-slate-700 transition-all duration-300 hover:bg-slate-900 hover:text-white border-slate-300"
                                 >
                                     <MessageSquare className="w-5 h-5 mr-2 shrink-0"/>
-                                    Is the service you're looking for missing? We might do it. Send us a message.
+                                    Don't see it? Send me a note.
                                 </Button>
                             </Link>
                         </div>

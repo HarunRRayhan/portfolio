@@ -76,8 +76,8 @@ export default function MobileNavigation({ open, onOpenChange, onCloseAutoFocus,
             </div>
           ) : (
             <SheetClose asChild>
-              <Link href="/login" className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
-                <User className="h-4 w-4" />Sign in
+              <Link href="/login" className="block px-3 py-2 text-center text-sm text-slate-500 underline-offset-4 hover:text-slate-900 hover:underline">
+                Sign in
               </Link>
             </SheetClose>
           )}
