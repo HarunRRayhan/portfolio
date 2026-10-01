@@ -5,58 +5,57 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Button } from "@/Components/ui/button"
 import { MessageCircle } from "lucide-react"
 import { Link } from "@inertiajs/react"
-import { getImageUrl } from "../lib/imageUtils"
 
 const faqs = [
   {
-    question: "What is Harun's expertise in AWS and cloud architecture?",
+    question: "What do you work on in AWS?",
     answer:
-      "With 12 AWS certifications and over 7 years of AWS experience, I specialize in designing and implementing scalable cloud architectures. I've successfully reduced cloud costs by 30-40% while improving performance for various organizations. My expertise includes serverless architecture, containerization, and implementing infrastructure as code (IaC) using Terraform and AWS CDK.",
+      "The account you already have: compute, network, and the managed services around them. Infrastructure changes go through Terraform, and you can read the plan before anything is applied.",
   },
   {
-    question: "How does Harun approach DevOps and CI/CD implementation?",
+    question: "How do you handle a release?",
     answer:
-      "I implement robust CI/CD pipelines using tools like Jenkins, GitHub Actions, and AWS CodePipeline. My approach focuses on automation, continuous testing, and infrastructure as code. I've helped teams achieve 3x faster deployment cycles and 99.9% uptime through effective DevOps practices.",
+      "I set up the pipeline that builds, tests, and ships, so a release is a button instead of a checklist. Your team should be able to run it without me in the room.",
   },
   {
-    question: "What experience does Harun have with containerization and Kubernetes?",
+    question: "Do you use Kubernetes?",
     answer:
-      "As a certified Kubernetes administrator, I have extensive experience orchestrating containerized applications. I've implemented and managed Kubernetes clusters on AWS EKS, handling microservices architectures serving millions of requests. I also work with Docker for containerization and implement container security best practices.",
+      "When the app already runs that way, usually on EKS. I don't add a cluster for its own sake. Docker is enough for a lot of apps.",
   },
   {
-    question: "Can Harun help with cloud cost optimization?",
+    question: "Can you help with the AWS bill?",
     answer:
-      "Yes, I specialize in cloud cost optimization. I've helped multiple organizations reduce their AWS costs by 30-40% through right-sizing instances, implementing auto-scaling, utilizing spot instances, and optimizing resource usage. I also implement FinOps practices for long-term cost management.",
+      "Yes. I look at what you're paying for and not using, then right-size it or turn it off.",
   },
   {
-    question: "What programming languages does Harun work with?",
+    question: "Which languages do you write?",
     answer:
-      "I'm proficient in multiple programming languages including Python, Go, Node.js, and PHP (Laravel). I use these languages for backend development, automation scripts, and cloud-native applications. My polyglot approach allows me to choose the best tool for specific use cases.",
+      "PHP, mostly Laravel. Python, Go, or Node when the project is already in that language.",
   },
   {
-    question: "How does Harun handle application security?",
+    question: "How do you handle security?",
     answer:
-      "Security is integral to my work. I implement security best practices including IAM policies, network security, encryption at rest and in transit, and security compliance. I also have experience with AWS security services and implementing security automation in CI/CD pipelines.",
+      "IAM, the network, and the logs. I close the paths that are wider than the job, and I put the checks in the pipeline.",
   },
   {
-    question: "What is Harun's experience with infrastructure as code (IaC)?",
+    question: "How do you work with Terraform?",
     answer:
-      "I'm an expert in infrastructure as code using Terraform and AWS CDK. I've implemented IaC for complete cloud infrastructures, reducing deployment times from days to hours and ensuring consistency across environments. I also maintain infrastructure version control and implement automated testing for infrastructure code.",
+      "I read the modules and the state you already have, make the change, and review the plan before it is applied. You keep the notes for the next change.",
   },
   {
-    question: "How does Harun approach system monitoring and observability?",
+    question: "How do you set up monitoring?",
     answer:
-      "I implement comprehensive monitoring solutions using tools like AWS CloudWatch, Prometheus, and Grafana. My approach includes setting up automated alerts, creating detailed dashboards, and implementing logging strategies. This ensures high availability and quick problem resolution.",
+      "Metrics, logs, and an alarm that pages a person. CloudWatch, Prometheus, or Grafana, whichever you already run.",
   },
   {
-    question: "What is Harun's experience with serverless architecture?",
+    question: "When do you use serverless?",
     answer:
-      "I have extensive experience building serverless applications using AWS Lambda, API Gateway, and other AWS serverless services. I've helped organizations reduce operational overhead and improve scalability through serverless architectures, while implementing best practices for serverless security and performance optimization.",
+      "Lambda and queues, when you want less to patch and a bill that follows the traffic. A function that runs all day is just a server.",
   },
   {
-    question: "How does Harun contribute to team development and mentoring?",
+    question: "Do you mentor?",
     answer:
-      "As an AWS Community Builder and technical leader, I actively mentor team members in cloud and DevOps practices. I conduct workshops, create documentation, and share knowledge through blog posts and presentations. I believe in building strong, collaborative teams that can deliver high-quality solutions.",
+      "I write about the work, and I'm an AWS Community Builder. The notes are on the blog.",
   },
 ]
 
@@ -71,10 +70,9 @@ export function FAQSection() {
           transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
+          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">Questions people ask</h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Common questions about my expertise, experience, and approach to software engineering and cloud
-            architecture.
+            AWS, releases, and the bill. If yours isn't here, send a note.
           </p>
         </motion.div>
 
@@ -116,7 +114,7 @@ export function FAQSection() {
                 className="bg-slate-900 hover:bg-slate-800 text-white transition-all duration-300 group"
               >
                 <MessageCircle className="w-5 h-5 mr-2 group-hover:animate-bounce" />
-                Not covered your question? Ask Harun
+                Have another question? Send a note.
               </Button>
             </Link>
           </motion.div>

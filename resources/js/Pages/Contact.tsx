@@ -97,7 +97,7 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
             onSuccess: (page) => {
                 const submissionFlash = (page.props as PageProps).flash
                 if (submissionFlash?.type !== 'success') {
-                    setSubmissionError(submissionFlash?.message || "We couldn't confirm your message was sent. Please try again.")
+                    setSubmissionError(submissionFlash?.message || "I couldn't confirm your message was sent. Please try again.")
                     return
                 }
 
@@ -106,7 +106,7 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
                 setShowForm(false)
                 triggerConfetti()
                 window.scrollTo({ top: 0, behavior: 'smooth' })
-                toast.success("Thank you for your message! We will get back to you soon.", {
+                toast.success("Thanks. I read these and reply myself.", {
                     duration: 5000,
                     position: 'top-right'
                 })

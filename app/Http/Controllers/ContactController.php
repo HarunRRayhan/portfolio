@@ -32,7 +32,7 @@ class ContactController extends Controller
 
             return redirect()->back()->with('flash', [
                 'type' => 'success',
-                'message' => 'Thank you for your message! We will get back to you soon.'
+                'message' => 'Thanks. I read these and reply myself.'
             ]);
         } catch (\Exception $e) {
             report($e);
