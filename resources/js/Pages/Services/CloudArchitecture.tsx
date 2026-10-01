@@ -278,22 +278,22 @@ export default function CloudArchitecturePage() {
                   {
                     question: "How do you ensure scalability in cloud architecture?",
                     answer:
-                      "I design cloud architectures with scalability in mind from the ground up. This includes using auto-scaling groups, load balancers, and serverless technologies where appropriate. I also implement best practices for database scaling and caching to ensure your application can handle increased loads seamlessly.",
+                      "Auto-scaling and a load balancer where the app needs them, plus caching in front of the database. I don't add a service because it's fashionable.",
                   },
                   {
                     question: "Can you help with cloud migration?",
                     answer:
-                      "Yes, I offer comprehensive cloud migration services. I'll assess your current infrastructure, develop a migration strategy, and execute the migration with minimal downtime. My approach ensures data integrity and maintains business continuity throughout the process.",
+                      "Yes. I write down the downtime, the data check, and how we roll back before anything moves.",
                   },
                   {
                     question: "How do you address security concerns in cloud architecture?",
                     answer:
-                      "Security is a top priority in my cloud architecture designs. I implement best practices such as encryption at rest and in transit, identity and access management (IAM), network segmentation, and regular security audits. I also ensure compliance with relevant industry standards and regulations.",
+                      "Encryption, IAM, and a network that isn't one flat open space. I name the control an audit will ask for.",
                   },
                   {
                     question: "What's your approach to cost optimization in cloud architecture?",
                     answer:
-                      "I take a proactive approach to cost optimization. This includes right-sizing resources, leveraging reserved instances or savings plans, implementing auto-scaling to match demand, and using cost allocation tags. I also provide ongoing monitoring and recommendations to ensure your cloud spend remains optimized as your needs evolve.",
+                      "I cut what you're not using, then look at steady load for a savings plan. Tags so the bill has names on it.",
                   },
                 ].map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index + 1}`}>

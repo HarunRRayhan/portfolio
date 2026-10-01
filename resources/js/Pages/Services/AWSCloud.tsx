@@ -237,22 +237,22 @@ export default function AWSCloud({ canonicalUrl }: { canonicalUrl?: string }) {
                   {
                     question: "What are the benefits of using AWS for my business?",
                     answer:
-                      "AWS offers numerous benefits including scalability, cost-effectiveness, global reach, and access to a wide range of cloud services. It allows businesses to innovate faster, reduce IT costs, and scale their infrastructure as needed. With AWS, you can quickly deploy applications, easily manage your IT resources, and benefit from built-in security features.",
+                      "You pay for what you use, and you can add capacity without buying a machine. The useful part is the managed services around the app, not the size of the catalog.",
                   },
                   {
                     question: "How do you ensure security in AWS environments?",
                     answer:
-                      "I implement a multi-layered security approach in AWS environments. This includes using AWS Identity and Access Management (IAM) for fine-grained access control, implementing network security through Virtual Private Clouds (VPCs) and security groups, encrypting data at rest and in transit, and utilizing AWS security services like GuardDuty and Security Hub. I also follow AWS security best practices and can help with compliance requirements.",
+                      "IAM, the network, and encryption in transit and at rest. I add GuardDuty or Security Hub only if they tell you something the logs don't.",
                   },
                   {
                     question: "Can you help migrate our existing infrastructure to AWS?",
                     answer:
-                      "Yes, I specialize in AWS migrations. My process involves assessing your current infrastructure, designing an optimal AWS architecture, planning the migration strategy, and executing the migration with minimal downtime. I use AWS migration tools and best practices to ensure a smooth transition. This includes services like AWS Database Migration Service (DMS) for database migrations and AWS Application Discovery Service to help plan your migration. I also implement strategies to minimize risks and ensure business continuity throughout the migration process.",
+                      "Yes. I look at what you run now, write the cutover plan, and check the data before traffic moves.",
                   },
                   {
                     question: "How do you handle cost optimization in AWS?",
                     answer:
-                      "Cost optimization is a key focus in my AWS management approach. I employ several strategies including: 1) Right-sizing instances to ensure you're not over-provisioning resources, 2) Utilizing AWS cost management tools like AWS Cost Explorer and AWS Budgets, 3) Implementing auto-scaling to match resource allocation with demand, 4) Leveraging reserved instances and savings plans for predictable workloads, 5) Identifying and removing unused resources, and 6) Continuously monitoring and optimizing your AWS environment for cost-efficiency.",
+                      "I look at what you're paying for and not using, then right-size it or turn it off. A savings plan only for load that is actually steady.",
                   },
                   {
                     question: "Can you help with AWS compliance requirements?",

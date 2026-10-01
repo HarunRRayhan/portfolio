@@ -238,27 +238,27 @@ export default function MonitoringObservability({ canonicalUrl }: { canonicalUrl
                   {
                     question: "What's the difference between monitoring and observability?",
                     answer:
-                      "While monitoring and observability are related, they serve different purposes. Monitoring typically involves tracking predefined sets of metrics and logs to understand the health and performance of systems. Observability, on the other hand, goes a step further by providing deeper insights into the internal states of systems based on the data they generate. It allows you to understand and debug complex systems, even when facing unforeseen issues.",
+                      "Monitoring is the metric you already decided to watch. Observability is being able to ask why a request was slow when you didn't predict the question.",
                   },
                   {
                     question: "What tools do you use for monitoring and observability?",
                     answer:
-                      "I use a variety of tools depending on the specific needs and existing infrastructure of each client. Some common tools I work with include Prometheus, Grafana, ELK stack (Elasticsearch, Logstash, Kibana), Datadog, New Relic, and cloud-native solutions like AWS CloudWatch or Google Cloud's operations suite. I can also integrate with existing tools you may already be using.",
+                      "Prometheus, Grafana, and CloudWatch. Datadog or an ELK stack if you already pay for one. I start with what you have.",
                   },
                   {
                     question: "How can improved monitoring and observability benefit my business?",
                     answer:
-                      "Improved monitoring and observability can significantly benefit your business by providing real-time insights into your systems' performance and health. This leads to faster problem detection and resolution, reduced downtime, improved user experience, and more efficient resource utilization. It also enables data-driven decision making and can help in capacity planning and cost optimization.",
+                      "You hear about a failure before your users do, and you can see which part ate the time.",
                   },
                   {
                     question: "Can you help with setting up custom dashboards and alerts?",
                     answer:
-                      "Yes, I specialize in creating custom dashboards and alert systems tailored to your specific needs. I work closely with your team to understand what metrics and indicators are most important for your business, and then design intuitive, informative dashboards to visualize this data. I also set up intelligent alerting systems that can notify the right people at the right time, helping to minimize false alarms and ensure quick responses to real issues.",
+                      "Yes. A few graphs you'd open during an incident, and an alarm that pages a person. Not a wall of green boxes.",
                   },
                   {
                     question: "How do you handle monitoring for microservices architectures?",
                     answer:
-                      "Monitoring microservices architectures requires a specialized approach due to their distributed nature. I implement distributed tracing to track requests across multiple services, use service meshes for improved visibility, and set up centralized logging and monitoring solutions. I also focus on implementing effective health checks, dependency mapping, and anomaly detection to ensure the overall health and performance of your microservices ecosystem.",
+                      "I trace one request across the services, put the logs in one place, and give each service a health check.",
                   },
                 ].map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index + 1}`}>

@@ -237,32 +237,32 @@ export default function PerformanceOptimization({ canonicalUrl }: { canonicalUrl
                   {
                     question: "What areas of performance do you focus on?",
                     answer:
-                      "I focus on all aspects of application and infrastructure performance, including frontend responsiveness, backend efficiency, database optimization, network latency reduction, and infrastructure scalability. My goal is to improve overall system performance, reduce response times, and enhance user experience.",
+                      "The slow request. That might be the front end, the app, the database, or the network. I start where the time goes.",
                   },
                   {
                     question: "How long does the performance optimization process typically take?",
                     answer:
-                      "The duration of the optimization process varies depending on the complexity of your system and the scope of improvements needed. A typical engagement might last 4-8 weeks for the initial assessment and implementation of key optimizations. However, I also offer ongoing optimization services to ensure continued performance improvements over time.",
+                      "Often a few weeks for the slow paths. I measure again before talking about more work.",
                   },
                   {
                     question: "Can you help with mobile app performance optimization?",
                     answer:
-                      "Yes, I have expertise in optimizing both native mobile apps and mobile web applications. My mobile optimization services include improving app launch times, reducing battery consumption, optimizing network requests, and enhancing overall app responsiveness. I use mobile-specific profiling tools and follow best practices for iOS and Android platforms.",
+                      "I can look at a slow start and chatty network calls. If it's a native problem I don't know, I'll say so.",
                   },
                   {
                     question: "How do you approach database performance optimization?",
                     answer:
-                      "My database optimization approach includes analyzing query performance, optimizing indexing strategies, improving data models, and fine-tuning database configurations. I work with various database systems, including SQL databases like MySQL and PostgreSQL, as well as NoSQL databases like MongoDB. I also implement caching strategies and database sharding when necessary to improve scalability.",
+                      "Slow queries, indexes, and caching. MySQL, PostgreSQL, or MongoDB if that's what you run.",
                   },
                   {
                     question: "Do you offer performance optimization for e-commerce platforms?",
                     answer:
-                      "Absolutely. I have extensive experience optimizing e-commerce platforms to handle high traffic volumes, especially during peak sales periods. My e-commerce optimization services include improving page load times, optimizing checkout processes, implementing efficient caching strategies, and ensuring seamless integration with payment gateways and inventory management systems.",
+                      "Same measurement. Checkout and the catalog under load, including a sale spike if that's the failure you care about.",
                   },
                   {
                     question: "How do you measure the success of performance optimizations?",
                     answer:
-                      "I use a variety of metrics to measure the success of my optimizations, including response times, throughput, error rates, and resource utilization. I also focus on business-relevant metrics such as conversion rates, user engagement, and customer satisfaction scores. I implement comprehensive monitoring solutions to track these metrics before, during, and after the optimization process, providing you with clear visibility into the improvements achieved.",
+                      "Response time and error rate, before and after. If you care about conversion, we look at that too.",
                   },
                 ].map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index + 1}`}>

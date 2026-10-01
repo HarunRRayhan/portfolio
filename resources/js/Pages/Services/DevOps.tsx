@@ -322,27 +322,27 @@ export default function DevOpsPage({ canonicalUrl }: { canonicalUrl?: string }) 
                   {
                     question: "What DevOps tools do you use?",
                     answer:
-                      "I use a wide range of DevOps tools, including but not limited to Jenkins, GitLab CI/CD, Docker, Kubernetes, Ansible, and Terraform. I'll help you choose and implement the best tools for your specific needs and existing technology stack.",
+                      "GitLab CI or Jenkins, Docker, Kubernetes when you already need it, Ansible, and Terraform. I pick what fits the stack you have.",
                   },
                   {
                     question: "How long does it take to implement DevOps practices?",
                     answer:
-                      "The timeline for implementing DevOps practices varies depending on the size and complexity of your organization. Typically, initial implementation can take 3-6 months, with ongoing optimization and cultural shifts continuing beyond that. I'll work with you to create a tailored implementation plan.",
+                      "A first pipeline is weeks, not a six-month program. After that it's your team using it.",
                   },
                   {
                     question: "How do you measure the success of DevOps implementation?",
                     answer:
-                      "I measure success through various metrics, including deployment frequency, lead time for changes, mean time to recovery (MTTR), and change failure rate. I'll also look at team satisfaction and collaboration improvements. I'll work with you to establish baseline metrics and track improvements over time.",
+                      "How often you ship, how long a change takes, and how often it fails. I write those down before and after.",
                   },
                   {
                     question: "Can DevOps practices be implemented in a non-tech company?",
                     answer:
-                      "While DevOps originated in the tech industry, its principles can be applied to any organization that develops or maintains software, regardless of the industry. I have experience implementing DevOps practices in various sectors, including finance, healthcare, and manufacturing.",
+                      "If you ship software, yes. The industry doesn't change the pipeline.",
                   },
                   {
                     question: "How does DevOps impact security?",
                     answer:
-                      "DevOps and security go hand-in-hand in what's often called DevSecOps. By integrating security practices into the DevOps workflow, I can improve your overall security posture. This includes implementing automated security testing, continuous monitoring, and rapid response to vulnerabilities. The result is a more secure development and deployment process.",
+                      "Security checks go in the pipeline. Dependency scans, and secrets that never land in the log.",
                   },
                 ].map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index + 1}`}>

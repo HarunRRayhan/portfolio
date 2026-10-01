@@ -257,32 +257,32 @@ export default function ServerlessInfrastructure({ canonicalUrl }: { canonicalUr
                   {
                     question: "What is serverless infrastructure?",
                     answer:
-                      "Serverless infrastructure is a cloud computing execution model where the cloud provider automatically manages the infrastructure needed to run your code. You only pay for the actual compute time used by your functions, making it highly cost-effective for many use cases. This approach eliminates the need to provision and manage servers, allowing developers to focus solely on writing code.",
+                      "You deploy a function. The cloud runs it when something happens, and you pay for that run. You still own the bugs.",
                   },
                   {
                     question: "What are the benefits of going serverless?",
                     answer:
-                      "Serverless offers numerous benefits including: 1) Reduced operational costs - pay only for actual usage, 2) Automatic scaling - handles varying workloads efficiently, 3) Reduced maintenance - no server management required, 4) Faster time to market - focus on code, not infrastructure, 5) Built-in high availability and fault tolerance, and 6) Improved developer productivity through simplified deployment and operations.",
+                      "Less to patch, and the bill follows the traffic. A function that runs all day is just a server.",
                   },
                   {
                     question: "Is serverless suitable for all applications?",
                     answer:
-                      "While serverless is powerful, it's not a one-size-fits-all solution. It's particularly well-suited for event-driven applications, APIs, data processing, and applications with variable workloads. However, applications with consistent, long-running processes or those requiring very low latency might be better served by traditional server-based architectures. I can help evaluate your specific use case to determine if serverless is the right choice.",
+                      "Good for APIs, jobs, and spiky traffic. A steady, long-running process is often happier on a normal service.",
                   },
                   {
                     question: "How do you handle monitoring and debugging in serverless applications?",
                     answer:
-                      "I implement comprehensive monitoring and debugging strategies using cloud-native tools and third-party solutions. This includes: 1) Distributed tracing for function execution, 2) Detailed logging and error tracking, 3) Performance metrics monitoring, 4) Cost tracking and optimization, and 5) Real-time alerts for issues. I also implement proper error handling and retry mechanisms to ensure reliable operation.",
+                      "Logs, a trace, the duration, and an alarm. Plus the bill.",
                   },
                   {
                     question: "How do you ensure security in serverless applications?",
                     answer:
-                      "Security in serverless applications involves multiple layers: 1) Function-level security through proper IAM roles and permissions, 2) API security using authentication and authorization, 3) Data security through encryption at rest and in transit, 4) Network security with VPC integration when needed, 5) Regular security audits and vulnerability scanning, and 6) Compliance with relevant standards and regulations.",
+                      "The function gets the IAM role it needs, not admin. The API checks who is calling.",
                   },
                   {
                     question: "How do you handle state management in serverless applications?",
                     answer:
-                      "While serverless functions are stateless by nature, I implement various strategies for state management: 1) Using managed database services like DynamoDB or Aurora Serverless, 2) Leveraging caching services for performance optimization, 3) Implementing event-driven architectures for complex workflows, 4) Using step functions for orchestration, and 5) Integrating with message queues for asynchronous processing.",
+                      "The function itself doesn't keep state. That lives in a database, a queue, or a cache.",
                   },
                 ].map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index + 1}`}>

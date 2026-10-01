@@ -237,32 +237,32 @@ export default function AutomatedDeployment({ canonicalUrl }: { canonicalUrl?: s
                   {
                     question: "What is CI/CD and why is it important?",
                     answer:
-                      "CI/CD stands for Continuous Integration and Continuous Delivery/Deployment. It's a set of practices that automate the process of building, testing, and deploying software. CI/CD is important because it helps teams deliver high-quality software faster and more reliably, reducing the risk of errors and improving overall efficiency.",
+                      "A pull request builds and tests before it merges, and the same pipeline ships it. A release stops being a checklist in someone's head.",
                   },
                   {
                     question: "How long does it take to implement a CI/CD pipeline?",
                     answer:
-                      "The time to implement a CI/CD pipeline can vary depending on the complexity of your project and your current infrastructure. A basic pipeline can be set up in a few days, while more complex setups might take a few weeks. I work closely with your team to ensure a smooth implementation and knowledge transfer throughout the process.",
+                      "A small pipeline is a few days. One with several services and a database is a few weeks.",
                   },
                   {
                     question: "Can you integrate CI/CD with our existing tools and workflows?",
                     answer:
-                      "Yes, I design CI/CD pipelines to integrate seamlessly with your existing tools and workflows. Whether you're using specific version control systems, project management tools, or deployment environments, I can create a pipeline that fits into your current processes while improving efficiency and reliability.",
+                      "Yes. I use the git host and the deploy target you already have.",
                   },
                   {
                     question: "How do you ensure security in CI/CD pipelines?",
                     answer:
-                      "Security is a crucial aspect of my CI/CD implementations. I incorporate security best practices such as secret management, access control, and vulnerability scanning into the pipeline. I also integrate security testing tools to catch potential issues early in the development process and ensure that only approved, secure code makes it to production.",
+                      "Secrets stay out of the log, and a known-bad dependency fails the build.",
                   },
                   {
                     question: "What are the benefits of automated deployment?",
                     answer:
-                      "Automated deployment offers numerous benefits, including: 1) Faster and more frequent releases, 2) Reduced human error in the deployment process, 3) Consistent and repeatable deployments across different environments, 4) Easier rollbacks in case of issues, 5) Improved collaboration between development and operations teams, and 6) More time for developers to focus on building features rather than managing deployments.",
+                      "You can ship more often, roll back, and stop retyping the same steps.",
                   },
                   {
                     question: "How do you handle database changes in CI/CD pipelines?",
                     answer:
-                      "Handling database changes in CI/CD pipelines is crucial for maintaining data integrity and ensuring smooth deployments. I typically use database migration tools that can be integrated into the CI/CD process. These tools allow version control of database schemas and data, automated testing of migrations, and rollback capabilities. I also implement strategies like blue-green deployments or canary releases to minimize downtime and risk when deploying database changes.",
+                      "Schema changes go through versioned migrations in the same pipeline, with a rollback. I don't hand-edit production.",
                   },
                 ].map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index + 1}`}>
