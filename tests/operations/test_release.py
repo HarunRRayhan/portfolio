@@ -1,10 +1,12 @@
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
 import subprocess
 import tempfile
 import unittest
+import urllib.error
 from unittest.mock import patch
 
 SCRIPT = Path(__file__).resolve().parents[2] / 'scripts/release-production.py'
@@ -73,11 +75,73 @@ class ReleaseTests(unittest.TestCase):
             self.assertIn('commitSha:$sha', query)
             self.assertEqual(variables['sha'], 'a' * 40)
 
+    def test_uncertain_web_request_reconciles_before_scheduler(self):
+        events = []
+        records = iter([
+            ('web', []),
+            ('web', [{'id': 'web-new', 'status': 'BUILDING', 'meta': {'commitHash': 'a' * 40}}]),
+            ('web', [{'id': 'web-new', 'status': 'SUCCESS', 'meta': {'commitHash': 'a' * 40}}]),
+            ('scheduler', []),
+            ('scheduler', [{'id': 'scheduler-new', 'status': 'SUCCESS', 'meta': {'commitHash': 'a' * 40}}]),
+        ])
+        def deployments(service):
+            expected, response = next(records)
+            self.assertEqual(service, expected)
+            events.append(('read', service, response))
+            return response
+        def mutation(query, variables):
+            events.append(('mutation', variables['service']))
+            if variables['service'] == 'web':
+                raise self.release.UncertainRequestError('request timed out')
+            return {'serviceInstanceDeploy': True}
+        self.release.deployments = deployments
+        with patch.object(self.release, 'graphql', side_effect=mutation) as request, patch.object(self.release.time, 'sleep'):
+            self.release.release('a' * 40, 'web', 'scheduler')
+        self.assertEqual(request.call_count, 2)
+        self.assertEqual([event for event in events if event[0] == 'mutation'], [('mutation', 'web'), ('mutation', 'scheduler')])
+
+    def test_uncertain_request_without_new_deployment_expires(self):
+        self.release.deployments = lambda service: [{'id': 'old', 'status': 'SUCCESS', 'meta': {'commitHash': 'a' * 40}}]
+        clock = iter([0, 0, 2])
+        with patch.object(self.release, 'graphql', side_effect=self.release.UncertainRequestError('timeout')) as mutation:
+            with patch.object(self.release.time, 'sleep'), patch.object(self.release.time, 'monotonic', side_effect=lambda: next(clock)):
+                with self.assertRaises(TimeoutError):
+                    self.release.deploy_service('web', 'a' * 40, timeout=1)
+        self.assertEqual(mutation.call_count, 1)
+
+    def test_explicit_deployment_rejection_does_not_poll(self):
+        for result in [False, None]:
+            with patch.object(self.release, 'deployments', return_value=[]) as records:
+                with patch.object(self.release, 'graphql', return_value={'serviceInstanceDeploy': result}) as mutation:
+                    with self.assertRaisesRegex(RuntimeError, 'did not accept'):
+                        self.release.deploy_service('web', 'a' * 40)
+                self.assertEqual(records.call_count, 1)
+                self.assertEqual(mutation.call_count, 1)
+
+    def test_definite_graphql_error_does_not_reconcile(self):
+        with patch.object(self.release, 'deployments', return_value=[]) as records:
+            with patch.object(self.release, 'graphql', side_effect=RuntimeError('GraphQL rejected')):
+                with self.assertRaisesRegex(RuntimeError, 'GraphQL rejected'):
+                    self.release.deploy_service('web', 'a' * 40)
+            self.assertEqual(records.call_count, 1)
+
     def test_mutation_timeout_is_not_retried(self):
         with patch.dict(os.environ, {'RAILWAY_PROJECT_TOKEN': 'isolated-test-token'}):
             with patch.object(self.release.urllib.request, 'urlopen', side_effect=TimeoutError) as request:
-                with self.assertRaises(RuntimeError):
+                with self.assertRaises(self.release.UncertainRequestError):
                     self.release.graphql('mutation { operation }', {})
+                self.assertEqual(request.call_count, 1)
+
+    def test_http_error_is_definite_and_not_retried(self):
+        error = urllib.error.HTTPError(
+            'https://backboard.railway.com/graphql/v2', 401, 'Unauthorized', hdrs=None, fp=io.BytesIO(b''),
+        )
+        self.addCleanup(error.close)
+        with patch.dict(os.environ, {'RAILWAY_PROJECT_TOKEN': 'isolated-test-token'}):
+            with patch.object(self.release.urllib.request, 'urlopen', side_effect=error) as request:
+                with self.assertRaises(RuntimeError) as caught:
+                    self.release.graphql('mutation { operation }', {})
+                self.assertNotIsInstance(caught.exception, self.release.UncertainRequestError)
                 self.assertEqual(request.call_count, 1)
 
     def test_query_timeout_has_bounded_retries(self):
