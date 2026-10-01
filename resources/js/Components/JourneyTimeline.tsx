@@ -11,7 +11,7 @@ const timelineEvents = [
     company: "South River Mortgage",
     location: "Annapolis, Maryland, USA (Remote)",
     description:
-      "Modernized infrastructure to AWS cloud, reducing expenses by 30% and improving page speed from 50% to 90%.",
+      "Moved the mortgage site onto AWS and worked on the slow pages and the bill.",
     icon: Briefcase,
   },
   {
@@ -20,7 +20,7 @@ const timelineEvents = [
     company: "SocialHP inc.",
     location: "Toronto, Canada (Remote)",
     description:
-      "Engineered AWS and Google Cloud infrastructure with 99.9% uptime, reducing scaling costs by 35% and improving deployment frequency by 30%.",
+      "Set up the AWS and Google Cloud side, and made releases something the team could run.",
     icon: Briefcase,
   },
   {
@@ -29,7 +29,7 @@ const timelineEvents = [
     company: "Trinax Singapore",
     location: "Singapore (Remote)",
     description:
-      "Led backend team in deploying AWS cloud infrastructures, supporting high-traffic applications with 99.9% uptime for multinational corporations.",
+      "Led the backend work that put client apps on AWS.",
     icon: Briefcase,
   },
   {
@@ -38,7 +38,7 @@ const timelineEvents = [
     company: "United Innovations Pty Ltd",
     location: "Australia (Remote)",
     description:
-      "Built scalable infrastructure on AWS Cloud serving millions of requests with sub-100ms response times.",
+      "Built the AWS setup the product ran on.",
     icon: Briefcase,
   },
 ]
