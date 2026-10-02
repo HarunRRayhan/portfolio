@@ -6,40 +6,13 @@ test.beforeEach(async ({ page }, testInfo) => {
   }
 })
 
-test('contact services can be searched, selected and removed with the keyboard', async ({ page }) => {
+test('contact form asks for a note without a service menu', async ({ page }) => {
   await page.goto('/contact')
-  const trigger = page.getByLabel('Services', { exact: true })
-  await trigger.focus()
-  await page.keyboard.press('Enter')
-  const search = page.getByRole('searchbox', { name: 'Search services', exact: true })
-  await expect(search).toBeFocused()
-  await search.fill('Cloud')
-  await page.keyboard.press('Tab')
-  const cloud = page.getByRole('checkbox', { name: 'Cloud Architecture & Migration', exact: true })
-  await expect(cloud).toBeFocused()
-  await page.keyboard.press('Space')
-  await expect(cloud).toBeChecked()
-  await page.keyboard.press('Escape')
-  await expect(trigger).toBeFocused()
-  await expect(trigger).toContainText('1 selected')
-  const remove = page.getByRole('button', { name: 'Remove Cloud Architecture & Migration', exact: true })
-  await remove.focus()
-  await page.keyboard.press('Enter')
-  await expect(trigger).toContainText('Select services')
-})
-
-test('custom contact services stay selected when the picker is reopened', async ({ page }) => {
-  await page.goto('/contact')
-  const trigger = page.getByLabel('Services', { exact: true })
-  await trigger.click()
-  await page.getByRole('searchbox', { name: 'Search services', exact: true }).fill('Browser custom service')
-  const add = page.getByRole('button', { name: 'Add "Browser custom service"', exact: true })
-  await add.focus()
-  await page.keyboard.press('Enter')
-  await expect(page.getByRole('checkbox', { name: 'Browser custom service', exact: true })).toBeChecked()
-  await page.keyboard.press('Escape')
-  await trigger.press('Enter')
-  await expect(page.getByRole('checkbox', { name: 'Browser custom service', exact: true })).toBeChecked()
+  const form = page.locator('form')
+  await expect(form.getByLabel(/^Name/)).toBeVisible()
+  await expect(form.getByLabel(/^Email/)).toBeVisible()
+  await expect(form.getByLabel(/^Message/)).toBeVisible()
+  await expect(page.getByLabel('Services', { exact: true })).toHaveCount(0)
 })
 
 test('newsletter dialog contains focus, closes with Escape and restores its trigger', async ({ page }) => {

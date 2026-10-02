@@ -15,7 +15,7 @@ export function VolunteeringSection() {
           transition={{ duration: 0.8 }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">Community Involvement</h2>
+          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">AWS Community Builder</h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             I write about AWS, and I&apos;m in the Community Builder program.
           </p>
