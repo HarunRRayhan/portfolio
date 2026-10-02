@@ -20,22 +20,22 @@ final class SiteCatalog
     public static function services(): array
     {
         return [
-            ['Cloud Architecture', '/services/cloud-architecture', 'Scalable, secure, and cost-effective cloud architecture design and implementation.'],
-            ['DevOps', '/services/devops', 'Modern DevOps practices that streamline development and operations workflows.'],
-            ['Infrastructure as Code', '/services/infrastructure-as-code', 'Terraform and IaC tooling for consistent, repeatable, version-controlled infrastructure.'],
-            ['Serverless Infrastructure', '/services/serverless-infrastructure', 'Serverless designs that cut operational overhead and cost while scaling on demand.'],
-            ['Automated Deployment', '/services/automated-deployment', 'CI/CD pipelines for faster, more reliable software delivery.'],
-            ['Security Consulting', '/services/security-consulting', 'Cloud security assessments and hardening across accounts, networks, and workloads.'],
-            ['Performance Optimization', '/services/performance-optimization', 'Tuning cloud infrastructure for throughput, latency, and cost efficiency.'],
-            ['Infrastructure Migration', '/services/infrastructure-migration', 'Migrations to modern, scalable platforms with minimal downtime.'],
-            ['MLOps', '/services/mlops', 'Automated machine learning workflows and the infrastructure that runs them.'],
-            ['Database Migration', '/services/database-migration', 'Database moves to cloud platforms with minimal downtime and no data loss.'],
-            ['Monitoring and Observability', '/services/monitoring-observability', 'Metrics, logs, and traces that give real insight into infrastructure and apps.'],
-            ['Database Optimization', '/services/database-optimization', 'Query, schema, and instance tuning for faster and more reliable databases.'],
-            ['AWS Cloud', '/services/aws-cloud', 'AWS consulting across compute, networking, storage, and managed services.'],
-            ['Multi-Cloud Architecture', '/services/multi-cloud-architecture', 'Architectures that use the strengths of more than one cloud provider.'],
-            ['Vibe Scaling', '/services/vibe-scaling', 'Taking an AI-built app that found real users and making it hold up under real traffic.'],
-            ['Vibe Code Migration', '/services/vibe-code-migration', 'Moving an AI-built prototype onto a production language and framework, feature for feature.'],
+            ['Cloud Architecture', '/services/cloud-architecture', 'I design the AWS layout: accounts, network, and the services the app actually needs.'],
+            ['DevOps', '/services/devops', 'CI, infrastructure as code, and a release path the team can run without me in the room.'],
+            ['Infrastructure as Code', '/services/infrastructure-as-code', 'Need to change AWS infrastructure without guessing what Terraform will touch? I can help review the current stack, make the change, and check the plan before it is applied.'],
+            ['Serverless Infrastructure', '/services/serverless-infrastructure', 'Lambda, queues, and the rest of a serverless setup, when you want less to patch and a bill that follows the traffic.'],
+            ['Automated Deployment', '/services/automated-deployment', 'Pipelines that build, test, and ship, without a checklist in someone\'s head.'],
+            ['Security Consulting', '/services/security-consulting', 'I look at IAM, network boundaries, and the logs, then close the paths that are wider than the job.'],
+            ['Performance Optimization', '/services/performance-optimization', 'I measure the slow path, fix that, and stop paying for capacity you aren\'t using.'],
+            ['Infrastructure Migration', '/services/infrastructure-migration', 'I move the platform with a plan for downtime, the data, and the first week after cutover.'],
+            ['MLOps', '/services/mlops', 'The infrastructure around training and serving models, from the notebook to production.'],
+            ['Database Migration', '/services/database-migration', 'I move the database and check the data on both sides before anything goes live.'],
+            ['Monitoring and Observability', '/services/monitoring-observability', 'Metrics, logs, and traces, so you hear about a failure before your users do.'],
+            ['Database Optimization', '/services/database-optimization', 'Slow queries, missing indexes, and connection limits. I fix the ones that show up under real load.'],
+            ['AWS Cloud', '/services/aws-cloud', 'Accounts, networking, compute, and the managed services around them.'],
+            ['Multi-Cloud Architecture', '/services/multi-cloud-architecture', 'A setup that uses more than one cloud, when AWS alone isn\'t the whole answer.'],
+            ['Vibe Scaling', '/services/vibe-scaling', 'You built it fast with an AI coding tool and it found users. I scale that app in place so it can take the traffic and the payments.'],
+            ['Vibe Code Migration', '/services/vibe-code-migration', 'The prototype found users. When that stack can\'t carry it, I port it to a production language and framework and keep the features working.'],
         ];
     }
 

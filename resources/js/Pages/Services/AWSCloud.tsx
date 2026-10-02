@@ -72,7 +72,7 @@ export default function AWSCloud({ canonicalUrl }: { canonicalUrl?: string }) {
       <main className="flex flex-col min-h-screen">
         <ServiceHero
           icon={Cloud}
-          title="AWS Cloud Services"
+          title="AWS Cloud"
           description="Accounts, networking, compute, and the managed services around them."
           backgroundImage="/service-assets/aws-cloud/hero.jpg"
         />

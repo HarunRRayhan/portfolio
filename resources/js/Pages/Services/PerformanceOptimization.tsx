@@ -77,7 +77,7 @@ export default function PerformanceOptimization({ canonicalUrl }: { canonicalUrl
       <main className="flex flex-col min-h-screen">
         <ServiceHero
           icon={Zap}
-          title="The new database has to be fast enough"
+          title="Performance Optimization"
           description="I measure the slow path, fix that, and stop paying for capacity you aren't using."
           backgroundImage="/service-assets/performance-optimization/hero.jpg"
         />

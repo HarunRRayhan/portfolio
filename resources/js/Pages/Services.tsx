@@ -60,7 +60,7 @@ const services = [
     {
         icon: Code,
         group: "release",
-        title: "DevOps Implementation",
+        title: "DevOps",
         description: "CI, infrastructure as code, and a release path the team can run without me in the room.",
         link: "/services/devops",
     },
