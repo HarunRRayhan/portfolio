@@ -20,6 +20,8 @@ export type HeroCaseStudy = {
     headlineOutcome: string
     industry?: string
     url: string
+    coverImageUrl?: string | null
+    coverImageAlt?: string
 }
 
 export function HeroSectionV2({ study = null }: { study?: HeroCaseStudy | null }) {
@@ -129,14 +131,23 @@ export function HeroSectionV2({ study = null }: { study?: HeroCaseStudy | null }
                         </div>
 
                         {study && proofTitle ? (
-                            <Link href={study.url} className="mt-5 block rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:border-slate-300">
-                                <p className="text-xs font-medium text-amber-800">{study.industry || study.codename}</p>
-                                <p className="mt-2 text-base font-semibold leading-snug text-slate-950">{proofTitle}</p>
-                                <p className="mt-2 text-sm leading-6 text-slate-600">{study.headlineOutcome}</p>
-                                <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-slate-900">
-                                    Read the case study
-                                    <ArrowRight className="h-4 w-4" />
-                                </span>
+                            <Link href={study.url} className="mt-5 block overflow-hidden rounded-xl border border-slate-200 bg-slate-50 transition hover:border-slate-300">
+                                {study.coverImageUrl ? (
+                                    <img
+                                        src={study.coverImageUrl}
+                                        alt=""
+                                        className="aspect-[16/9] w-full object-cover"
+                                    />
+                                ) : null}
+                                <div className="p-4">
+                                    <p className="text-xs font-medium text-amber-800">{study.industry || study.codename}</p>
+                                    <p className="mt-2 text-base font-semibold leading-snug text-slate-950">{proofTitle}</p>
+                                    <p className="mt-2 text-sm leading-6 text-slate-600">{study.headlineOutcome}</p>
+                                    <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-slate-900">
+                                        Read the case study
+                                        <ArrowRight className="h-4 w-4" />
+                                    </span>
+                                </div>
                             </Link>
                         ) : (
                             <Link href="/case-studies" className="mt-5 block rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 transition hover:border-slate-300">
