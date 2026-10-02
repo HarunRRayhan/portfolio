@@ -113,9 +113,27 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
-    'to' => [
+    /*
+    |--------------------------------------------------------------------------
+    | Owner inbox
+    |--------------------------------------------------------------------------
+    |
+    | Contact mail and consultation admin alerts go here. This must not live
+    | under the "to" key: Laravel treats mail.to as a global always-to and
+    | would deliver customer mail to this address as well.
+    |
+    */
+
+    'owner' => [
         'address' => env('MAIL_TO_ADDRESS', 'me@harun.dev'),
         'name' => env('MAIL_TO_NAME', 'Harun R. Rayhan'),
+    ],
+
+    'markdown' => [
+        'theme' => 'default',
+        'paths' => [
+            resource_path('views/vendor/mail'),
+        ],
     ],
 
 ];

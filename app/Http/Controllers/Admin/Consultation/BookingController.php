@@ -69,10 +69,13 @@ class BookingController extends Controller
 
     public function approve(Request $request, ConsultationBooking $booking, BookingWorkflowService $workflow): RedirectResponse
     {
-        $data = $request->validate(['admin_note' => ['nullable', 'string', 'max:2000']]);
+        $data = $request->validate([
+            'admin_note' => ['nullable', 'string', 'max:2000'],
+            'client_message' => ['nullable', 'string', 'max:2000'],
+        ]);
 
         try {
-            $workflow->approve($booking, $data['admin_note'] ?? null);
+            $workflow->approve($booking, $data['admin_note'] ?? null, $data['client_message'] ?? null);
         } catch (\InvalidArgumentException $e) {
             return back()->with('flash', ['type' => 'error', 'message' => $e->getMessage()]);
         } catch (\RuntimeException) {
@@ -88,6 +91,7 @@ class BookingController extends Controller
             'block_slot' => ['sometimes', 'boolean'],
             'task_title' => ['nullable', 'string', 'max:200'],
             'admin_note' => ['nullable', 'string', 'max:2000'],
+            'client_message' => ['nullable', 'string', 'max:2000'],
         ]);
 
         try {
@@ -96,6 +100,7 @@ class BookingController extends Controller
                 (bool) ($data['block_slot'] ?? false),
                 $data['task_title'] ?? null,
                 $data['admin_note'] ?? null,
+                $data['client_message'] ?? null,
             );
         } catch (\InvalidArgumentException $e) {
             return back()->with('flash', ['type' => 'error', 'message' => $e->getMessage()]);

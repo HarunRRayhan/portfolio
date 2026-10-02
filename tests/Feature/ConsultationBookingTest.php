@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Mail\Consultation\BookingCancellationDeniedMail;
 use App\Mail\Consultation\BookingConfirmedMail;
+use App\Mail\Consultation\BookingDeclinedMail;
 use App\Mail\Consultation\BookingRescheduleDeniedMail;
 use App\Models\ConsultationAvailabilityWindow;
 use App\Models\ConsultationBooking;
@@ -19,6 +20,7 @@ use App\Services\Consultation\GoogleCalendarService;
 use App\Services\Consultation\StripeCheckoutService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Mail\Transport\ArrayTransport;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
@@ -116,6 +118,91 @@ class ConsultationBookingTest extends TestCase
         $this->get('/consultation?sa_ref='.str_repeat('A', 32))
             ->assertOk()
             ->assertHeader('Referrer-Policy', 'no-referrer');
+    }
+
+    public function test_booking_request_mail_reaches_the_client_and_the_owner_separately(): void
+    {
+        $this->assertNull(config('mail.to.address'));
+        config(['mail.owner.address' => 'owner@example.com']);
+
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $this->app->make(BookingWorkflowService::class)->requestBooking(
+            $tier,
+            'Shehab',
+            'shehab@example.com',
+            'Azure guidelines',
+            $this->nextWeekdayAt(11),
+        );
+
+        $transport = Mail::mailer()->getSymfonyTransport();
+        $this->assertInstanceOf(ArrayTransport::class, $transport);
+
+        $byRecipient = [];
+        foreach ($transport->messages() as $sent) {
+            $addresses = array_map(
+                fn ($address) => $address->getAddress(),
+                $sent->getEnvelope()->getRecipients(),
+            );
+            $this->assertCount(1, $addresses);
+            $byRecipient[$addresses[0]] = (string) $sent->getOriginalMessage()->getHtmlBody();
+        }
+
+        $this->assertSame(['owner@example.com', 'shehab@example.com'], collect(array_keys($byRecipient))->sort()->values()->all());
+        $this->assertStringContainsString('Hi Shehab', $byRecipient['shehab@example.com']);
+        $this->assertStringContainsString('harun-logo-full-email.png', $byRecipient['shehab@example.com']);
+        $this->assertStringContainsString('New consultation request', $byRecipient['owner@example.com']);
+        $this->assertStringContainsString('shehab@example.com', $byRecipient['owner@example.com']);
+    }
+
+    public function test_a_decline_email_includes_the_customer_message_and_hides_the_internal_note(): void
+    {
+        Mail::fake();
+
+        $google = $this->createMock(GoogleCalendarService::class);
+        $google->method('isConnected')->willReturn(false);
+        $google->method('deleteEvent')->willReturn(true);
+        $this->app->instance(GoogleCalendarService::class, $google);
+
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $startsAt = $this->nextWeekdayAt(10);
+        $booking = ConsultationBooking::create([
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Shehab',
+            'client_email' => 'shehab@example.com',
+            'starts_at' => $startsAt,
+            'ends_at' => $startsAt->copy()->addMinutes($tier->duration_minutes),
+            'status' => ConsultationBooking::STATUS_PENDING_APPROVAL,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'access_token_hash' => hash('sha256', 'decline-message'),
+        ]);
+
+        $this->app->make(BookingWorkflowService::class)->decline(
+            $booking,
+            false,
+            null,
+            'internal: private calendar hold',
+            "This overlaps another commitment.\nPlease pick a later afternoon.",
+        );
+
+        $booking->refresh();
+        $this->assertSame('internal: private calendar hold', $booking->admin_note);
+        $this->assertSame("This overlaps another commitment.\nPlease pick a later afternoon.", $booking->client_message);
+
+        Mail::assertSent(BookingDeclinedMail::class, function (BookingDeclinedMail $mail) {
+            $html = $mail->render();
+
+            $messageAt = strpos($html, 'This overlaps another commitment.');
+            $stockAt = strpos($html, 'Unfortunately we');
+
+            return $mail->hasTo('shehab@example.com')
+                && $messageAt !== false
+                && $stockAt !== false
+                && $messageAt < $stockAt
+                && str_contains($html, 'Please pick a later afternoon.')
+                && ! str_contains($html, 'internal: private calendar hold');
+        });
     }
 
     public function test_first_one_thousand_one_booking_requests_receive_the_launch_discount(): void

@@ -24,6 +24,7 @@ type Booking = {
   payment_due_at: string | null
   meet_link: string | null
   admin_note: string | null
+  client_message: string | null
   proposed_slots: { start: string; end: string }[] | null
   tier: { name: string; slug: string; duration_minutes: number } | null
   coupon_code: string | null
@@ -57,6 +58,7 @@ export default function Show({
   const [blockSlot, setBlockSlot] = useState(false)
   const [taskTitle, setTaskTitle] = useState('')
   const [adminNote, setAdminNote] = useState('')
+  const [clientMessage, setClientMessage] = useState('')
   const [selectedPropose, setSelectedPropose] = useState<string[]>([])
   useEffect(() => {
     const available = new Set(slots.map(slot => slot.start))
@@ -71,7 +73,10 @@ export default function Show({
   const bookingAmount = new Intl.NumberFormat(undefined, { style: 'currency', currency: cancellation.currency.toUpperCase() }).format(cancellation.bookingAmountCents / 100)
 
   const approve = () => {
-    action.submit(`/admin/consultations/bookings/${booking.id}/approve`, { admin_note: adminNote })
+    action.submit(`/admin/consultations/bookings/${booking.id}/approve`, {
+      admin_note: adminNote,
+      client_message: clientMessage,
+    })
   }
 
   const decline = () => {
@@ -79,6 +84,7 @@ export default function Show({
       block_slot: blockSlot,
       task_title: taskTitle,
       admin_note: adminNote,
+      client_message: clientMessage,
     })
   }
 
@@ -184,6 +190,12 @@ export default function Show({
                   {booking.notes}
                 </p>
               )}
+              {booking.client_message && (
+                <p>
+                  <span className="text-gray-400">Message sent · </span>
+                  {booking.client_message}
+                </p>
+              )}
               {booking.meet_link && (
                 <p>
                   <span className="text-gray-400">Meet · </span>
@@ -199,36 +211,52 @@ export default function Show({
               booking.status === 'paid_reschedule_pending_approval') && (
               <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm space-y-4">
                 <h3 className="font-semibold text-gray-900">Review</h3>
-                <label htmlFor="booking-admin-note" className="block text-sm text-gray-700">Internal note (optional)</label>
-                <textarea
-                  id="booking-admin-note"
-                  disabled={action.processing}
-                  {...fieldErrorProps(action.errors, 'admin_note', summaryId)}
-                  value={adminNote}
-                  onChange={(e) => setAdminNote(e.target.value)}
-                  placeholder="Internal note (optional)"
-                  className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm"
-                  rows={2}
-                />
                 {(booking.status === 'pending_approval' || booking.status === 'paid_reschedule_pending_approval') && (
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
+                  <>
+                    <label htmlFor="booking-client-message" className="block text-sm text-gray-700">Message to the customer (optional)</label>
+                    <textarea
+                      id="booking-client-message"
+                      autoFocus
                       disabled={action.processing}
-                      onClick={approve}
-                      className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      type="button"
-                      disabled={action.processing}
-                      onClick={decline}
-                      className="rounded-md bg-rose-600 px-4 py-2 text-sm font-medium text-white hover:bg-rose-700"
-                    >
-                      {booking.status === 'paid_reschedule_pending_approval' ? 'Decline new time' : 'Decline'}
-                    </button>
-                  </div>
+                      {...fieldErrorProps(action.errors, 'client_message', summaryId)}
+                      value={clientMessage}
+                      onChange={(e) => setClientMessage(e.target.value)}
+                      placeholder="Included in the approval or decline email"
+                      className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm"
+                      rows={3}
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        disabled={action.processing}
+                        onClick={approve}
+                        className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        type="button"
+                        disabled={action.processing}
+                        onClick={decline}
+                        className="rounded-md bg-rose-600 px-4 py-2 text-sm font-medium text-white hover:bg-rose-700"
+                      >
+                        {booking.status === 'paid_reschedule_pending_approval' ? 'Decline new time' : 'Decline'}
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="booking-admin-note" className="block text-sm text-gray-700">Internal note (optional)</label>
+                      <textarea
+                        id="booking-admin-note"
+                        disabled={action.processing}
+                        {...fieldErrorProps(action.errors, 'admin_note', summaryId)}
+                        value={adminNote}
+                        onChange={(e) => setAdminNote(e.target.value)}
+                        placeholder="Only visible in admin"
+                        className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm"
+                        rows={2}
+                      />
+                    </div>
+                  </>
                 )}
                 {booking.status === 'pending_approval' && (
                   <div className="space-y-2 border-t border-gray-100 pt-4">
@@ -270,6 +298,21 @@ export default function Show({
                       Send proposed times
                     </button>
                   </form>
+                )}
+                {booking.status === 'reschedule_requested' && (
+                  <div className="space-y-2 border-t border-gray-100 pt-4">
+                    <label htmlFor="booking-admin-note" className="block text-sm text-gray-700">Internal note (optional)</label>
+                    <textarea
+                      id="booking-admin-note"
+                      disabled={action.processing}
+                      {...fieldErrorProps(action.errors, 'admin_note', summaryId)}
+                      value={adminNote}
+                      onChange={(e) => setAdminNote(e.target.value)}
+                      placeholder="Only visible in admin"
+                      className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm"
+                      rows={2}
+                    />
+                  </div>
                 )}
               </div>
             )}
