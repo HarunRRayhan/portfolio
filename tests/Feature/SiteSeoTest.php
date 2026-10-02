@@ -169,8 +169,8 @@ class SiteSeoTest extends TestCase
         $html = $response->getContent();
 
         $this->assertStringContainsString('<link rel="canonical" href="'.$siteUrl.'/"', $html);
-        $this->assertStringContainsString('name="description" content="Expert software engineer and DevOps consultant specializing in cloud architecture, AWS solutions, and infrastructure automation."', $html);
-        $this->assertStringContainsString('property="og:description" content="Expert software engineer and DevOps consultant specializing in cloud architecture, AWS solutions, and infrastructure automation."', $html);
+        $this->assertStringContainsString('name="description" content="I design, ship, and run AWS infrastructure. The account, the pipeline, and what happens after it ships."', $html);
+        $this->assertStringContainsString('property="og:description" content="I design, ship, and run AWS infrastructure. The account, the pipeline, and what happens after it ships."', $html);
         $this->assertStringContainsString('property="og:title"', $html);
         $this->assertStringContainsString('property="og:site_name" content="Harun R. Rayhan"', $html);
         $this->assertStringContainsString('property="og:image"', $html);

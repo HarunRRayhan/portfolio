@@ -8,7 +8,7 @@ import { getImageUrl } from "../lib/imageUtils"
 
 export function AboutHero() {
   return (
-    <section className="relative py-20 overflow-hidden bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950">
+    <section className="relative overflow-hidden bg-slate-950 pb-10 pt-28 sm:pb-12 sm:pt-32">
       <div className="container mx-auto">
         <div className="flex flex-col lg:flex-row items-center justify-between">
           <motion.div
@@ -17,10 +17,9 @@ export function AboutHero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-4xl lg:text-5xl font-bold mb-6 text-white">About</h1>
-            <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto lg:mx-0">
-              I've spent 15 years building and running software, mostly on AWS. These days that means cloud architecture,
-              release automation, and taking apps that already have users and making them hold up in production.
+            <h1 className="mb-4 text-4xl font-bold text-white lg:text-5xl">15 years, mostly on AWS.</h1>
+            <p className="mx-auto mb-8 max-w-2xl text-lg leading-8 text-white/90 lg:mx-0">
+              Cloud architecture, release automation, and apps that already have users and have to hold up in production.
             </p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -54,7 +53,7 @@ export function AboutHero() {
                 alt="Harun R. Rayhan - Software Engineer and Cloud Architect"
                 width={320}
                 height={320}
-                className="h-56 w-56 rounded-full border-4 border-white/20 object-cover shadow-2xl sm:h-72 sm:w-72 lg:h-80 lg:w-80"
+                className="h-40 w-40 rounded-full border-4 border-white/20 object-cover shadow-2xl sm:h-52 sm:w-52 lg:h-60 lg:w-60"
                 loading="eager"
                 fetchPriority="high"
                 decoding="async"
@@ -63,7 +62,7 @@ export function AboutHero() {
           </motion.div>
         </div>
       </div>
-      <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent"></div>
+      <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent"></div>
     </section>
   )
 }
