@@ -24,12 +24,15 @@
 - The booking form keeps coupon codes out of the visible UI. Accept coupon links through the `coupon` or `coupon_code` query parameter.
 - Company name is optional and must remain nullable for existing bookings.
 - The launch promotion is `$100` off for the first `1,001` booking requests. Keep the count in `consultation_booking_promotion_claimed_count` and do not reset it manually.
+- Customer consultation mail goes to the booking's `client_email`. Admin alerts and the contact form go to `config('mail.owner')`, which reads `MAIL_TO_ADDRESS` and `MAIL_TO_NAME`. Never add a `to` key in `config/mail.php`. Laravel treats `mail.to` as a global always-to: it rewrites every recipient and display name, and drops cc/bcc. `Mail::fake()` does not reproduce that redirect. Assert recipients on the array transport's Symfony envelope.
+- Approve and decline may include a customer message. Store it on `consultation_bookings.client_message`, separate from `admin_note`, and send it in that same request. In the admin review form the message field sits above Approve and Decline, and the internal note sits directly under those buttons. Customer emails show the message immediately after the greeting and never include the internal note.
+- The consultation mail header is the full wordmark `public/images/brand/harun-logo-full-email.png`, served with `App\Support\Cdn`. Do not put Laravel's `logo` class on that image; the default mail CSS forces `.logo` to 75×75. The newsletter keeps the separate uncropped `harun-logo-wordmark-email.png`.
 
 ## Verification
 
 - Run the relevant PHPUnit tests and `npm run build` before shipping.
 - Use the `local-verify` skill for real browser checks. Keep browser checks read-only when verifying production.
-- Worktree `.env` files may link to the main checkout. Do not edit or swap them for local checks; use process environment overrides and an isolated database copy.
+- Worktree `.env` files may link to the main checkout. Do not edit or swap them for local checks; use process environment overrides and an isolated database copy. Keep preview `APP_ENV`, `APP_KEY`, `MAIL_MAILER`, and `DB_DATABASE` on that process only. `phpunit.xml` sets those names in both `<env force="true">` and `<server>`, because Laravel reads `$_SERVER` before `$_ENV` and a shell export would otherwise survive the env entry.
 - Frontend releases need separate checks for Railway `web` and `scheduler`, the GitHub asset-sync workflow, and the live response. CI build variables can change asset hashes; verify the hash from the published manifest or workflow rather than assuming a local hash will be served.
 
 ## Products catalog

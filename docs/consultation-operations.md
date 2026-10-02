@@ -7,7 +7,7 @@ commands from `routes/console.php`.
 
 ## Required settings
 
-Set these variables in Railway for `web`, `scheduler`, and `worker`:
+Set these variables in Railway for `web` and `scheduler`:
 
 - `STRIPE_KEY`
 - `STRIPE_SECRET`
@@ -16,16 +16,41 @@ Set these variables in Railway for `web`, `scheduler`, and `worker`:
 - `CONSULTATION_GOOGLE_CLIENT_SECRET`
 - `CONSULTATION_GOOGLE_REDIRECT_URI=https://harun.dev/admin/consultations/google/callback`
 - `CONSULTATION_GOOGLE_CALENDAR_ID=primary`
-- `MAIL_MAILER` and the matching mail transport variables
+- `MAIL_MAILER=resend`
+- `RESEND_API_KEY`
 - `MAIL_FROM_ADDRESS`
-- `MAIL_TO_ADDRESS` (owner inbox for admin alerts; customer mail is not redirected here)
+- `MAIL_TO_ADDRESS` (owner inbox only; see Mail below)
 - `APP_KEY`
 - `QUEUE_CONNECTION=database`
 - `DB_QUEUE_RETRY_AFTER=180`
-- `RAILPACK_SKIP_MIGRATIONS=true` on all three services
+- `RAILPACK_SKIP_MIGRATIONS=true` on both services
 
-`APP_KEY` must be identical on all three services. Notification and checkout
+`APP_KEY` must be identical on `web` and `scheduler`. Notification and checkout
 retry payloads are encrypted with it.
+
+## Mail
+
+Production mail goes out through Resend. `MAIL_TO_ADDRESS` is the owner inbox
+for consultation admin alerts and the contact form. Application code reads it
+from `config('mail.owner')`. There is no `mail.to` entry. Adding one makes
+Laravel rewrite every outgoing recipient to that inbox, including customer
+mail, and `Mail::fake()` will not show the rewrite.
+
+Customer messages use the booking email. Approve and decline can attach
+`client_message`. That text is stored on the booking and sent in the same web
+request, immediately after the greeting. `admin_note` stays on the admin
+screen, directly under Approve and Decline, and is omitted from customer mail.
+The scheduler command `consultations:retry-notifications` only retries a send
+that did not succeed in the request.
+
+The header image is `https://cdn.harun.dev/images/brand/harun-logo-full-email.png`.
+Leave the `logo` class off that image. Laravel's default mail stylesheet sizes
+`.logo` to 75×75. The weekly newsletter keeps the uncropped
+`harun-logo-wordmark-email.png`.
+
+Confirm a customer send in Resend: the recipient is the booker's address and
+`last_event` is `delivered`. The owner inbox is not a second copy of that
+message.
 
 ## Stripe
 
@@ -91,7 +116,6 @@ the `consultation_booking_promotion_claimed_count` setting; don't reset it
 manually while the promotion is running.
 
 The scheduler service should run continuously with
-`php artisan schedule:run --no-interaction`. The optional worker service uses
-`railway.worker.json`; keep it pointed at the same PostgreSQL database as
-`web`. The current consultation retries also run from the scheduler, so the
-worker is safe to add before queue-backed jobs are enabled.
+`php artisan schedule:run --no-interaction`. Production has no queue-worker
+service. Consultation retries run there, and approve or decline mail is sent
+by the web request. `railway.worker.json` is not attached to a Railway service.

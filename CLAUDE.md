@@ -22,7 +22,8 @@ from examples with `./scripts/link-secrets.sh`.
 ## Infra (Railway + Cloudflare)
 
 - **Railway's `preDeployCommand` runs in a separate, ephemeral container from the actual runtime instance.** Files written there (e.g. a downloaded database) do NOT persist to the serving container's filesystem unless a Railway volume is attached to the service. Don't assume a predeploy write is visible at runtime.
-- **`web` and `scheduler` are separate Railway services with no shared volume.** A file downloaded or written on one is invisible to the other.
+- **`web` and `scheduler` are separate Railway services with no shared volume.** A file downloaded or written on one is invisible to the other. There is no production queue-worker service.
+- **Consultation owner mail is `config('mail.owner')` (`MAIL_TO_ADDRESS`).** Never add Laravel's `mail.to` key. That setting is a global always-to and sends customer mail to the owner. Customer approve/decline notes, the internal-note placement, and the wordmark header are in `AGENTS.md`.
 - **Only `harun.dev` (Cloudflare-proxied) should be a public route to `web`.** The Railway-generated `*.up.railway.app` domain bypasses Cloudflare entirely and must stay removed (service → Settings → Networking) — any code that trusts a Cloudflare-only header (`Cf-Ipcountry`, etc.) depends on this staying true.
 - **Visitor country comes from Cloudflare's `Cf-Ipcountry` request header** (`app/Services/CountryResolver.php`), not a local GeoIP database — Cloudflare resolves it free at the edge on every proxied request. Prefer this pattern for any future IP-geo need before reaching for a paid or self-hosted service.
 
