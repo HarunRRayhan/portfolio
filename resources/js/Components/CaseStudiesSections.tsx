@@ -33,10 +33,10 @@ export function ServiceRelatedCaseStudies({ studies }: Props) {
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600">Case studies</p>
             <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
-              Related work (codenamed)
+              Related work
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-600">
-              Real engagements, anonymized with constellation codenames. Client details generalized per NDA.
+              The client name stays off these.
             </p>
           </div>
           <Link
@@ -121,7 +121,7 @@ export function CaseStudiesHomeSection({ studies }: HomeProps) {
               Case studies
             </h2>
             <p className="mt-3 max-w-2xl text-slate-600">
-              Problems, diagnosis, and outcomes from the field. Codenames only, no client names.
+              The client name stays off the page.
             </p>
           </div>
           <Link

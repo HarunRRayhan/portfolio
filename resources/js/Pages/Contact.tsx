@@ -139,9 +139,8 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
     return (
         <>
             {/* Hero Section */}
-                    <section
-                        className="min-h-[400px] bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 flex items-center">
-                        <div className="container mx-auto py-20">
+                    <section className="bg-slate-950">
+                        <div className="container mx-auto px-4 pb-8 pt-28 sm:pb-10 sm:pt-32">
                             <motion.div
                                 initial={{opacity: 0, y: 20}}
                                 animate={{opacity: 1, y: 0}}
@@ -158,7 +157,7 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
                     </section>
 
                     {/* Contact Form Section */}
-                    <section className="py-20 sm:py-28 lg:py-32 bg-gray-50">
+                    <section className="bg-gray-50 py-8 sm:py-12">
                         <div className="container mx-auto px-4">
                             <motion.div
                                 initial={{opacity: 0, y: 20}}
@@ -183,8 +182,7 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
                                                     <Input 
                                                         id="name" 
                                                         value={name} 
-                                                        onChange={handleInputChange} 
-                                                        placeholder="Enter your name"
+                                                        onChange={handleInputChange}
                                                         className={cn(
                                                             "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg h-14 px-4",
                                                             errors.name && "border-red-500 focus:border-red-500"
@@ -200,7 +198,6 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
                                                         type="email" 
                                                         value={email} 
                                                         onChange={handleInputChange}
-                                                        placeholder="Enter your email address"
                                                         className={cn(
                                                             "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg h-14 px-4",
                                                             errors.email && "border-red-500 focus:border-red-500"
@@ -230,7 +227,6 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
                                                         id="message"
                                                         value={message}
                                                         onChange={handleInputChange}
-                                                        placeholder="Write your message here..."
                                                         className={cn(
                                                             "min-h-[150px] resize-none overflow-hidden bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg p-4",
                                                             errors.message && "border-red-500 focus:border-red-500"
