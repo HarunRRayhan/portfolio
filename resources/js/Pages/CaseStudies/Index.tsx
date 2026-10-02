@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react'
-import { ArrowRight, CalendarDays, Clock3, Sparkles } from 'lucide-react'
+import { ArrowRight, CalendarDays, Clock3 } from 'lucide-react'
 import { caseStudyReaderTitle } from '@/lib/caseStudyTitle'
 
 export type CaseStudySummary = {
@@ -27,8 +27,7 @@ type Props = {
 }
 
 export default function CaseStudiesIndex({ studies, canonicalUrl }: Props) {
-  const description =
-    'Anonymized case studies from real cloud and DevOps engagements. Constellation codenames, concrete outcomes, no client names.'
+  const description = 'Work from real engagements. The client name stays off the page.'
 
   return (
     <>
@@ -36,11 +35,7 @@ export default function CaseStudiesIndex({ studies, canonicalUrl }: Props) {
       <div className="pt-24">
         <section className="mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
-            <p className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-slate-600">
-              <Sparkles className="h-3.5 w-3.5 text-amber-700" />
-              Constellation series
-            </p>
-            <h1 className="mt-6 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+            <h1 className="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
               Case studies
             </h1>
             <p className="mt-4 text-lg leading-8 text-slate-600">{description}</p>

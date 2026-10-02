@@ -170,7 +170,7 @@ final class SeoCatalog
 
         $pages['/case-studies'] = new SeoMeta(
             title: 'Case Studies | Harun R. Rayhan',
-            description: 'Anonymized cloud and DevOps case studies from client engagements.',
+            description: 'Work from real engagements. The client name stays off the page.',
             canonicalUrl: $siteUrl.'/case-studies',
         );
 

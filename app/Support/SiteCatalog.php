@@ -52,7 +52,7 @@ final class SiteCatalog
             ['Bio (Bangla)', '/hrr', 'Bangla bio and links.'],
             ['Consultation', '/consultation', 'Book a paid DevOps consultation.'],
             ['Products', '/products', 'Tools and products I build, including Crontinel.'],
-            ['Case Studies', '/case-studies', 'Index of client engagements and their outcomes.'],
+            ['Case Studies', '/case-studies', 'Work from real engagements. The client name stays off the page.'],
             ['Services', '/services', 'Index of all consulting services.'],
             ['Blog', '/blog', 'Index of all writing on cloud, DevOps, and AWS.'],
             ['Slides', '/slides', 'Talk decks and presentations.'],

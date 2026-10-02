@@ -54,7 +54,7 @@ export default function CaseStudyDetailPage({ study, relatedStudies, canonicalUr
                   </p>
                 ) : null}
                 <h1 className={`text-4xl font-semibold tracking-tight sm:text-5xl ${study.industry ? 'mt-4' : ''}`}>
-                  {study.title}
+                  {caseStudyReaderTitle(study)}
                 </h1>
                 {study.headlineOutcome ? (
                   <p className="mt-5 text-lg leading-8 text-white/80 sm:text-xl">{study.headlineOutcome}</p>
@@ -124,8 +124,7 @@ export default function CaseStudyDetailPage({ study, relatedStudies, canonicalUr
                 </div>
 
                 <p className="mt-10 border-t border-slate-200 pt-8 text-sm leading-7 text-slate-500">
-                  Client details have been anonymized to protect confidentiality. Codenames are assigned by Harun.
-                  Tech stack and outcomes are representative and have been generalized where required by NDA.
+                  The client name stays off this page.
                 </p>
               </div>
 

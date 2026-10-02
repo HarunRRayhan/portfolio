@@ -623,7 +623,7 @@ Route::get('/case-studies/feed.xml', function () {
   <channel>
     <title>Case Studies | Harun R. Rayhan</title>
     <link>{$escape($siteUrl.'/case-studies')}</link>
-    <description>Anonymized cloud and DevOps case studies (constellation codenames).</description>
+    <description>Work from real engagements. The client name stays off the page.</description>
     <language>en</language>
     <lastBuildDate>{$escape($publishedAt)}</lastBuildDate>
     {$items}
