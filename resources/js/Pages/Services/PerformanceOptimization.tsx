@@ -229,38 +229,38 @@ export default function PerformanceOptimization({ canonicalUrl }: { canonicalUrl
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Frequently Asked Questions
+              Questions people ask
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Accordion type="single" collapsible className="max-w-3xl mx-auto">
                 {[
                   {
-                    question: "What areas of performance do you focus on?",
+                    question: "Where do you start when something is slow?",
                     answer:
                       "The slow request. That might be the front end, the app, the database, or the network. I start where the time goes.",
                   },
                   {
-                    question: "How long does the performance optimization process typically take?",
+                    question: "How long does a performance pass take?",
                     answer:
                       "Often a few weeks for the slow paths. I measure again before talking about more work.",
                   },
                   {
-                    question: "Can you help with mobile app performance optimization?",
+                    question: "Can you look at a slow mobile app?",
                     answer:
                       "I can look at a slow start and chatty network calls. If it's a native problem I don't know, I'll say so.",
                   },
                   {
-                    question: "How do you approach database performance optimization?",
+                    question: "What if the database is the slow part?",
                     answer:
                       "Slow queries, indexes, and caching. MySQL, PostgreSQL, or MongoDB if that's what you run.",
                   },
                   {
-                    question: "Do you offer performance optimization for e-commerce platforms?",
+                    question: "Can you look at a slow checkout?",
                     answer:
                       "Same measurement. Checkout and the catalog under load, including a sale spike if that's the failure you care about.",
                   },
                   {
-                    question: "How do you measure the success of performance optimizations?",
+                    question: "How do you tell if it got faster?",
                     answer:
                       "Response time and error rate, before and after. If you care about conversion, we look at that too.",
                   },

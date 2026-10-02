@@ -229,18 +229,18 @@ export default function AutomatedDeployment({ canonicalUrl }: { canonicalUrl?: s
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Frequently Asked Questions
+              Questions people ask
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Accordion type="single" collapsible className="max-w-3xl mx-auto">
                 {[
                   {
-                    question: "What is CI/CD and why is it important?",
+                    question: "What is a pipeline, in practice?",
                     answer:
                       "A pull request builds and tests before it merges, and the same pipeline ships it. A release stops being a checklist in someone's head.",
                   },
                   {
-                    question: "How long does it take to implement a CI/CD pipeline?",
+                    question: "How long does a pipeline take?",
                     answer:
                       "A small pipeline is a few days. One with several services and a database is a few weeks.",
                   },
@@ -250,17 +250,17 @@ export default function AutomatedDeployment({ canonicalUrl }: { canonicalUrl?: s
                       "Yes. I use the git host and the deploy target you already have.",
                   },
                   {
-                    question: "How do you ensure security in CI/CD pipelines?",
+                    question: "How do you keep a pipeline from leaking secrets?",
                     answer:
                       "Secrets stay out of the log, and a known-bad dependency fails the build.",
                   },
                   {
-                    question: "What are the benefits of automated deployment?",
+                    question: "What changes once deploys are automated?",
                     answer:
                       "You can ship more often, roll back, and stop retyping the same steps.",
                   },
                   {
-                    question: "How do you handle database changes in CI/CD pipelines?",
+                    question: "Where do database changes go?",
                     answer:
                       "Schema changes go through versioned migrations in the same pipeline, with a rollback. I don't hand-edit production.",
                   },

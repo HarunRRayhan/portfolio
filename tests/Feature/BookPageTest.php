@@ -25,7 +25,7 @@ class BookPageTest extends TestCase
             ->has('tiers', 3)
             ->has('timezones')
             ->where('canonicalUrl', url('/consultation'))
-            ->where('seo.title', 'Consultation | Cloud & DevOps Expert - Harun R. Rayhan')
+            ->where('seo.title', 'Book a consult | Harun R. Rayhan')
             ->where('tiers.0.price_cents', 24900)
             ->where('tiers.1.price_cents', 34900)
             ->where('tiers.2.price_cents', 44900)

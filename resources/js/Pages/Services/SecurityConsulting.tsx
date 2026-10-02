@@ -237,13 +237,13 @@ export default function SecurityConsulting({ canonicalUrl }: { canonicalUrl?: st
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Frequently Asked Questions
+              Questions people ask
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Accordion type="single" collapsible className="max-w-3xl mx-auto">
                 {[
                   {
-                    question: "What types of security assessments do you offer?",
+                    question: "What do you actually review?",
                     answer:
                       "I review the cloud account, the network, and the app, and I run a vulnerability scan. If you need a full penetration test, I'll say whether that's the right job.",
                   },
@@ -253,22 +253,22 @@ export default function SecurityConsulting({ canonicalUrl }: { canonicalUrl?: st
                       "After a big change, and at least once a year if an auditor expects it. Critical systems more often.",
                   },
                   {
-                    question: "Can you help with compliance requirements (e.g., GDPR, HIPAA, PCI DSS)?",
+                    question: "Can you help with GDPR, HIPAA, or PCI?",
                     answer:
                       "I can help with the controls and the evidence an audit will ask for, including GDPR, HIPAA, PCI DSS, and ISO 27001. I will tell you if a control is missing instead of papering over it.",
                   },
                   {
-                    question: "How do you handle the security of cloud environments?",
+                    question: "How do you review a cloud account?",
                     answer:
                       "Mostly AWS. I read the account config, IAM, encryption, and the logs.",
                   },
                   {
-                    question: "What's your approach to incident response planning?",
+                    question: "What does an incident plan look like?",
                     answer:
                       "Who gets called, how you tell it's real, and a short practice run. A binder nobody opens doesn't count.",
                   },
                   {
-                    question: "How do you stay updated with the latest security threats and technologies?",
+                    question: "How do you keep up with new threats?",
                     answer:
                       "I keep up by reading the incidents, the vendor notes, and the certifications I actually hold. If a new issue matters to your stack, it goes in the review.",
                   },

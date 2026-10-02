@@ -229,18 +229,18 @@ export default function AWSCloud({ canonicalUrl }: { canonicalUrl?: string }) {
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Frequently Asked Questions
+              Questions people ask
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Accordion type="single" collapsible className="max-w-3xl mx-auto">
                 {[
                   {
-                    question: "What are the benefits of using AWS for my business?",
+                    question: "Why AWS?",
                     answer:
                       "You pay for what you use, and you can add capacity without buying a machine. The useful part is the managed services around the app, not the size of the catalog.",
                   },
                   {
-                    question: "How do you ensure security in AWS environments?",
+                    question: "How do you handle security on AWS?",
                     answer:
                       "IAM, the network, and encryption in transit and at rest. I add GuardDuty or Security Hub only if they tell you something the logs don't.",
                   },
@@ -250,17 +250,17 @@ export default function AWSCloud({ canonicalUrl }: { canonicalUrl?: string }) {
                       "Yes. I look at what you run now, write the cutover plan, and check the data before traffic moves.",
                   },
                   {
-                    question: "How do you handle cost optimization in AWS?",
+                    question: "What do you do about the AWS bill?",
                     answer:
                       "I look at what you're paying for and not using, then right-size it or turn it off. A savings plan only for load that is actually steady.",
                   },
                   {
-                    question: "Can you help with AWS compliance requirements?",
+                    question: "Can you help with HIPAA, PCI, or SOC 2?",
                     answer:
                       "I can help with HIPAA, PCI DSS, GDPR, and SOC 2. That means access, encryption, logging, and the paperwork an audit will ask for.",
                   },
                   {
-                    question: "What ongoing support do you provide for AWS environments?",
+                    question: "What do you leave behind when the AWS work is done?",
                     answer:
                       "After the change, I leave monitoring, a short list of what to patch, and notes on the cost. I do not staff a night desk. The alarms should reach the person who can fix the thing.",
                   },

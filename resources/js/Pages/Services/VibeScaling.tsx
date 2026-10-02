@@ -234,7 +234,7 @@ export default function VibeScaling({ canonicalUrl }: { canonicalUrl?: string })
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Frequently Asked Questions
+              Questions people ask
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Accordion type="single" collapsible className="max-w-3xl mx-auto">

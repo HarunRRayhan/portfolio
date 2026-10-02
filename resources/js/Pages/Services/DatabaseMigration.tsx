@@ -210,33 +210,33 @@ export default function DatabaseMigration({ canonicalUrl }: { canonicalUrl?: str
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Frequently Asked Questions
+              Questions people ask
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Accordion type="single" collapsible className="max-w-3xl mx-auto">
                 {[
                   {
-                    question: "Why should I consider database migration?",
+                    question: "When is a database move worth it?",
                     answer:
                       "When the current database is slow, expensive, or missing something you actually need. I won't move it just to be on something newer.",
                   },
                   {
-                    question: "How do you ensure data integrity during migration?",
+                    question: "How do you know the data made it?",
                     answer:
                       "I compare counts and checksums on both sides before traffic points at the new database. If they don't match, it doesn't cut over.",
                   },
                   {
-                    question: "How do you minimize downtime during database migration?",
+                    question: "How long is the database down?",
                     answer:
                       "I name the window. Replication can shrink it. If some downtime is required, we pick a quiet hour.",
                   },
                   {
-                    question: "Can you migrate between different types of databases?",
+                    question: "Can you move from one database type to another?",
                     answer:
                       "Yes, including from one relational database to another, or over to something else. The schema change is planned and tested before the real copy.",
                   },
                   {
-                    question: "How do you handle large-scale database migrations?",
+                    question: "What about a very large database?",
                     answer:
                       "I copy in slices, not one giant transfer, and I watch the new database under load before you call it done.",
                   },

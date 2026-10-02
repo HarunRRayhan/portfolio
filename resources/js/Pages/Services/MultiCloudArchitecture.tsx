@@ -224,38 +224,38 @@ export default function MultiCloudArchitecture({ canonicalUrl }: { canonicalUrl?
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Frequently Asked Questions
+              Questions people ask
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Accordion type="single" collapsible className="max-w-3xl mx-auto">
                 {[
                   {
-                    question: "What are the benefits of a multi-cloud architecture?",
+                    question: "When is more than one cloud worth it?",
                     answer:
                       "A second cloud helps when one provider is a failure you cannot accept. It also adds a bill and a network between them. I only recommend it for that reason.",
                   },
                   {
-                    question: "How do you handle security across multiple cloud providers?",
+                    question: "How do you handle security on both clouds?",
                     answer:
                       "The same idea for access on both sides, encryption between them, and one place that sees both.",
                   },
                   {
-                    question: "How do you ensure consistent performance across different cloud providers?",
+                    question: "What if the path between clouds is slow?",
                     answer:
                       "I measure the path that crosses clouds. If that hop is the slow part, the split was the wrong shape.",
                   },
                   {
-                    question: "How do you manage costs in a multi-cloud environment?",
+                    question: "How do you read two bills?",
                     answer:
                       "One view of both bills, and a reason each workload sits where it sits.",
                   },
                   {
-                    question: "How do you handle data synchronization between different cloud providers?",
+                    question: "How do you keep data in sync across clouds?",
                     answer:
                       "I name what has to be copied, how fresh it has to be, and what you do when the copy falls behind.",
                   },
                   {
-                    question: "What tools do you use for multi-cloud management?",
+                    question: "Which tools do you use for more than one cloud?",
                     answer:
                       "Terraform for both sides, and Prometheus or Grafana if you want one set of graphs. Kubernetes only if you're already running it.",
                   },

@@ -265,33 +265,33 @@ export default function CloudArchitecturePage() {
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Frequently Asked Questions
+              Questions people ask
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Accordion type="single" collapsible className="max-w-3xl mx-auto">
                 {[
                   {
-                    question: "What cloud platforms do you work with?",
+                    question: "Which clouds do you work on?",
                     answer:
                       "Mostly AWS. I use Azure or Google Cloud when the project already lives there, or when one provider is not the whole answer.",
                   },
                   {
-                    question: "How do you ensure scalability in cloud architecture?",
+                    question: "How do you handle more traffic?",
                     answer:
                       "Auto-scaling and a load balancer where the app needs them, plus caching in front of the database. I don't add a service because it's fashionable.",
                   },
                   {
-                    question: "Can you help with cloud migration?",
+                    question: "Can you move an existing setup?",
                     answer:
                       "Yes. I write down the downtime, the data check, and how we roll back before anything moves.",
                   },
                   {
-                    question: "How do you address security concerns in cloud architecture?",
+                    question: "How do you handle security in the design?",
                     answer:
                       "Encryption, IAM, and a network that isn't one flat open space. I name the control an audit will ask for.",
                   },
                   {
-                    question: "What's your approach to cost optimization in cloud architecture?",
+                    question: "What do you do about the bill?",
                     answer:
                       "I cut what you're not using, then look at steady load for a savings plan. Tags so the bill has names on it.",
                   },

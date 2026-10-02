@@ -54,7 +54,7 @@ export function JourneyTimeline() {
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
         >
-          My Professional Journey
+          Where I've worked
         </motion.h2>
         {/* Mobile: stacked list */}
         <div className="space-y-8 lg:hidden">

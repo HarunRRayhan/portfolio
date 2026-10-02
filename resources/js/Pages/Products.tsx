@@ -532,7 +532,7 @@ export default function Products() {
                                 focusRing
                             )}
                         >
-                            Get in touch
+                            Send a note
                             <ArrowUpRight
                                 aria-hidden="true"
                                 className="h-4 w-4"

@@ -37,7 +37,7 @@ tags:
 
 <h2>What we actually did</h2>
 
-<p>We rebuilt Polaris on Symfony, and we used the rebuild to fix the structure, not just swap the framework.</p>
+<p>I rebuilt Polaris on Symfony, and I used the rebuild to fix the structure, not just swap the framework.</p>
 
 <p>The big move was splitting the frontend off from the backend. Once those were separate, we could break the backend into smaller services, each one owning a single part of the system. After that, a change to orders no longer put finance at risk.</p>
 

@@ -230,38 +230,38 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Frequently Asked Questions
+              Questions people ask
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Accordion type="single" collapsible className="max-w-3xl mx-auto">
                 {[
                   {
-                    question: "What are the signs that my database needs optimization?",
+                    question: "How do I know the database is the problem?",
                     answer:
                       "Slow queries, timeouts, and a CPU graph that's pegged. If the app feels slow and the database is the wait, that's the sign.",
                   },
                   {
-                    question: "How can database optimization improve my business operations?",
+                    question: "What gets better when the database is faster?",
                     answer:
                       "Pages get faster, and you stop paying for a bigger database that a missing index would have fixed.",
                   },
                   {
-                    question: "Do you work with both SQL and NoSQL databases?",
+                    question: "Do you work with SQL and NoSQL?",
                     answer:
                       "Yes. I work with MySQL, PostgreSQL, and SQL Server, and with MongoDB and Redis when those are what you already run. The fix depends on which one is slow.",
                   },
                   {
-                    question: "How do you ensure data integrity during the optimization process?",
+                    question: "Will the data stay intact?",
                     answer:
                       "I try the change in staging first, and I take a backup before anything that rewrites data.",
                   },
                   {
-                    question: "Can you help with database optimization in cloud environments?",
+                    question: "Can you do this on a cloud database?",
                     answer:
                       "Yes. On AWS, and on Google Cloud or Azure if that's where it already runs.",
                   },
                   {
-                    question: "How long does the database optimization process typically take?",
+                    question: "How long does a database pass take?",
                     answer:
                       "A few days for the obvious queries. A few weeks if the schema itself is the problem.",
                   },

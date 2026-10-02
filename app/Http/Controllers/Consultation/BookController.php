@@ -28,12 +28,12 @@ class BookController extends Controller
         $seo['jsonLd'] = [[
             '@context' => 'https://schema.org',
             '@type' => 'Service',
-            'name' => 'Cloud & DevOps Consultation',
-            'description' => 'Paid DevOps and infrastructure consultation sessions',
+            'name' => 'Book a consult',
+            'description' => 'Pick a plan, then a time. I approve it, then you pay.',
             'provider' => [
                 '@type' => 'Person',
                 'name' => 'Harun R. Rayhan',
-                'jobTitle' => 'Cloud & DevOps Expert',
+                'jobTitle' => 'DevOps consultant',
             ],
             'offers' => $tiers->map(fn (array $tier) => [
                 '@type' => 'Offer',
