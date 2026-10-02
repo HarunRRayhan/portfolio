@@ -13,12 +13,19 @@ export default function Homepage() {
         featuredCaseStudies?: CaseStudyCardSummary[]
         canonicalUrl?: string
     }
+    const studies = featuredCaseStudies ?? []
+    const lead = studies[0] ?? null
+    const moreStudies = studies.slice(1)
 
     return (
         <>
-            <HeroSectionV2 study={featuredCaseStudies?.[0] ?? null} />
+            <HeroSectionV2 study={lead} />
             {/* Separate hydration work so React can yield to user input between sections. */}
-            <Suspense fallback={null}><CaseStudiesHomeSection studies={featuredCaseStudies ?? []} /></Suspense>
+            {studies.length === 0 ? (
+                <Suspense fallback={null}><CaseStudiesHomeSection studies={[]} /></Suspense>
+            ) : moreStudies.length > 0 ? (
+                <Suspense fallback={null}><CaseStudiesHomeSection studies={moreStudies} /></Suspense>
+            ) : null}
             <Suspense fallback={null}><LogoSection /></Suspense>
             <Suspense fallback={null}><SkillsSection /></Suspense>
             <Suspense fallback={null}><TechStackSection /></Suspense>
