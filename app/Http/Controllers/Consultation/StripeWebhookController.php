@@ -466,7 +466,7 @@ class StripeWebhookController extends Controller
              */
             return $notifications->enqueue(
                 null,
-                config('mail.to.address'),
+                config('mail.owner.address'),
                 ConsultationNotificationService::TYPE_STRIPE_WEBHOOK_UNMATCHED,
                 [
                     'event_id' => $current->event_id,

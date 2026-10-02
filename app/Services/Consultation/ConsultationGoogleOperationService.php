@@ -167,12 +167,17 @@ class ConsultationGoogleOperationService
 
             match ($claimed->operation) {
                 'hold' => $workflow->retryCreateHold($booking, $payload),
-                'approve' => $workflow->approve($booking, $payload['admin_note'] ?? null),
+                'approve' => $workflow->approve(
+                    $booking,
+                    $payload['admin_note'] ?? null,
+                    $payload['client_message'] ?? null,
+                ),
                 'decline' => $workflow->decline(
                     $booking,
                     (bool) ($payload['block_slot'] ?? false),
                     $payload['task_title'] ?? null,
                     $payload['admin_note'] ?? null,
+                    $payload['client_message'] ?? null,
                 ),
                 'client_pick' => $workflow->clientPickProposedSlot(
                     $booking,

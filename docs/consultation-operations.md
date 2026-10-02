@@ -18,7 +18,7 @@ Set these variables in Railway for `web`, `scheduler`, and `worker`:
 - `CONSULTATION_GOOGLE_CALENDAR_ID=primary`
 - `MAIL_MAILER` and the matching mail transport variables
 - `MAIL_FROM_ADDRESS`
-- `MAIL_TO_ADDRESS`
+- `MAIL_TO_ADDRESS` (owner inbox for admin alerts; customer mail is not redirected here)
 - `APP_KEY`
 - `QUEUE_CONNECTION=database`
 - `DB_QUEUE_RETRY_AFTER=180`

@@ -3,6 +3,8 @@
 
 Hi {{ $booking->client_name }},
 
+@include('emails.consultation.partials.client-message')
+
 Your **{{ $booking->tier->name }}** is confirmed for **{{ $booking->starts_at->utc()->toDayDateTimeString() }} UTC**.
 
 @if($booking->meet_link)

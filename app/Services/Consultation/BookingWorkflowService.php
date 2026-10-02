@@ -112,7 +112,7 @@ class BookingWorkflowService
 
             $this->notifications->enqueue(
                 $booking,
-                config('mail.to.address'),
+                config('mail.owner.address'),
                 ConsultationNotificationService::TYPE_PENDING_ADMIN,
                 [],
                 'consultation-booking-'.$booking->id.'-event-'.$requestEvent->id.'-requested-admin',
@@ -153,10 +153,12 @@ class BookingWorkflowService
         return ['booking' => $booking, 'plain_token' => $plainToken];
     }
 
-    public function approve(ConsultationBooking $booking, ?string $adminNote = null): ConsultationBooking
+    public function approve(ConsultationBooking $booking, ?string $adminNote = null, ?string $clientMessage = null): ConsultationBooking
     {
+        $clientMessage = $this->optionalText($clientMessage);
+
         try {
-            $approval = DB::transaction(function () use ($booking, $adminNote) {
+            $approval = DB::transaction(function () use ($booking, $adminNote, $clientMessage) {
                 $this->lockReservation();
 
                 $booking = ConsultationBooking::query()
@@ -192,6 +194,8 @@ class BookingWorkflowService
                 }
 
                 $booking->admin_note = $adminNote;
+                $booking->client_message = $clientMessage;
+                $booking->save();
 
                 if ($booking->amount_due_cents <= 0 || $alreadyPaid) {
                     return [
@@ -210,7 +214,10 @@ class BookingWorkflowService
                 ];
             });
         } catch (\Throwable $e) {
-            $this->recordGoogleFailure($booking, 'approve', ['admin_note' => $adminNote], $e);
+            $this->recordGoogleFailure($booking, 'approve', [
+                'admin_note' => $adminNote,
+                'client_message' => $clientMessage,
+            ], $e);
 
             throw $e;
         }
@@ -304,10 +311,12 @@ class BookingWorkflowService
         return $result['booking'];
     }
 
-    public function decline(ConsultationBooking $booking, bool $blockSlot = false, ?string $taskTitle = null, ?string $adminNote = null): ConsultationBooking
+    public function decline(ConsultationBooking $booking, bool $blockSlot = false, ?string $taskTitle = null, ?string $adminNote = null, ?string $clientMessage = null): ConsultationBooking
     {
+        $clientMessage = $this->optionalText($clientMessage);
+
         try {
-            $result = DB::transaction(function () use ($booking, $blockSlot, $taskTitle, $adminNote) {
+            $result = DB::transaction(function () use ($booking, $blockSlot, $taskTitle, $adminNote, $clientMessage) {
                 $this->lockReservation();
 
                 $booking = ConsultationBooking::query()
@@ -324,6 +333,7 @@ class BookingWorkflowService
 
                 $isPaidReschedule = $booking->status === ConsultationBooking::STATUS_PAID_RESCHEDULE_PENDING_APPROVAL;
                 $booking->admin_note = $adminNote;
+                $booking->client_message = $clientMessage;
                 $booking->decline_block_title = $blockSlot ? ($taskTitle ?: 'Blocked time') : null;
 
                 if ($isPaidReschedule) {
@@ -422,6 +432,7 @@ class BookingWorkflowService
                 'block_slot' => $blockSlot,
                 'task_title' => $taskTitle,
                 'admin_note' => $adminNote,
+                'client_message' => $clientMessage,
             ], $e);
 
             throw $e;
@@ -586,7 +597,7 @@ class BookingWorkflowService
 
                 $this->notifications->enqueue(
                     $booking,
-                    config('mail.to.address'),
+                    config('mail.owner.address'),
                     ConsultationNotificationService::TYPE_PENDING_ADMIN,
                     [],
                     'consultation-booking-'.$booking->id.'-event-'.$pickEvent->id.'-picked',
@@ -1173,7 +1184,7 @@ class BookingWorkflowService
             $requestEvent = $booking->recordEvent('cancel_requested', 'client');
             $this->notifications->enqueue(
                 $booking,
-                config('mail.to.address'),
+                config('mail.owner.address'),
                 ConsultationNotificationService::TYPE_PENDING_ADMIN,
                 [],
                 'consultation-booking-'.$booking->id.'-event-'.$requestEvent->id.'-cancel-requested',
@@ -1206,7 +1217,7 @@ class BookingWorkflowService
             $requestEvent = $booking->recordEvent('reschedule_requested', 'client');
             $this->notifications->enqueue(
                 $booking,
-                config('mail.to.address'),
+                config('mail.owner.address'),
                 ConsultationNotificationService::TYPE_PENDING_ADMIN,
                 [],
                 'consultation-booking-'.$booking->id.'-event-'.$requestEvent->id.'-reschedule-requested',
@@ -1786,6 +1797,17 @@ class BookingWorkflowService
         }
 
         return $booking->ends_at->copy()->addDays((int) config('consultation.access_token_days', 90));
+    }
+
+    protected function optionalText(?string $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $value = trim($value);
+
+        return $value === '' ? null : $value;
     }
 
     protected function lockReservation(): void
