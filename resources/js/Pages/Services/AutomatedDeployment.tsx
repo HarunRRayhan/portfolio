@@ -93,18 +93,18 @@ export default function AutomatedDeployment({ canonicalUrl }: { canonicalUrl?: s
               {[
                 {
                   icon: GitBranch,
-                  title: "Continuous Integration",
+                  title: "Build and test on the pull request",
                   content: "A pull request builds and tests before anyone merges it.",
                 },
                 {
                   icon: Zap,
-                  title: "Continuous Delivery",
+                  title: "Staging and production, same pipeline",
                   content:
                     "The same pipeline ships to staging and production. No one retypes the steps.",
                 },
                 {
                   icon: Repeat,
-                  title: "Pipeline Optimization",
+                  title: "Fix the slow pipeline first",
                   content:
                     "If the pipeline is slow or flaky, I fix that before I add more stages.",
                 },
@@ -126,7 +126,7 @@ export default function AutomatedDeployment({ canonicalUrl }: { canonicalUrl?: s
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why work with me
+              What you get
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
@@ -172,24 +172,24 @@ export default function AutomatedDeployment({ canonicalUrl }: { canonicalUrl?: s
               {[
                 {
                   icon: BarChart,
-                  title: "1. Assessment",
+                  title: "Watch one release",
                   content:
                     "I watch one release from commit to production and write down the manual steps.",
                 },
                 {
                   icon: Code,
-                  title: "2. Design",
+                  title: "Stages and a rollback",
                   content: "You get the stages, the checks, and where a rollback happens.",
                 },
                 {
                   icon: Cloud,
-                  title: "3. Implementation",
+                  title: "A real deploy",
                   content:
                     "I wire it into the repo and run a real deploy, not a demo.",
                 },
                 {
                   icon: Users,
-                  title: "4. Training & Support",
+                  title: "Notes next to the pipeline",
                   content:
                     "I walk the team through a release and leave the notes next to the pipeline.",
                 },

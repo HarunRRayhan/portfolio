@@ -151,7 +151,7 @@ export function HeroSectionV2({ study = null }: { study?: HeroCaseStudy | null }
                             </Link>
                         ) : (
                             <Link href="/case-studies" className="mt-5 block rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 transition hover:border-slate-300">
-                                Case studies from real engagements, with the client name left out.
+                                Work from real engagements. The client name stays off the page.
                             </Link>
                         )}
                     </div>

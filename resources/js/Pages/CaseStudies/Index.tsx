@@ -27,8 +27,6 @@ type Props = {
 }
 
 export default function CaseStudiesIndex({ studies, canonicalUrl }: Props) {
-  const description = 'Work from real engagements. The client name stays off the page.'
-
   return (
     <>
 
@@ -36,9 +34,9 @@ export default function CaseStudiesIndex({ studies, canonicalUrl }: Props) {
         <section className="mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
             <h1 className="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
-              Case studies
+              Work from real engagements
             </h1>
-            <p className="mt-4 text-lg leading-8 text-slate-600">{description}</p>
+            <p className="mt-4 text-lg leading-8 text-slate-600">The client name stays off the page.</p>
           </div>
 
           {studies.length === 0 ? (

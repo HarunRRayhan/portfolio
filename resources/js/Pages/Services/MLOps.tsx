@@ -93,19 +93,19 @@ export default function MLOps({ canonicalUrl }: { canonicalUrl?: string }) {
               {[
                 {
                   icon: Cloud,
-                  title: "ML Infrastructure Design",
+                  title: "Train it, store it, serve it",
                   content:
                     "Training jobs, a place to put the model, and a way to serve it.",
                 },
                 {
                   icon: GitBranch,
-                  title: "CI/CD for ML",
+                  title: "A model change goes through a pipeline",
                   content:
                     "A model change should go through a pipeline, the same way an app change does.",
                 },
                 {
                   icon: BarChart,
-                  title: "Model Monitoring",
+                  title: "Did the answers change",
                   content:
                     "I watch whether the model still answers well, and whether the data going in has changed.",
                 },
@@ -127,12 +127,12 @@ export default function MLOps({ canonicalUrl }: { canonicalUrl?: string }) {
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why work with me
+              What you get
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
                 {
-                  title: "End-to-End Expertise",
+                  title: "The infrastructure around the model",
                   content:
                     "I work on the infrastructure around the model: training jobs, deploys, and the checks that tell you it drifted.",
                 },
@@ -173,23 +173,23 @@ export default function MLOps({ canonicalUrl }: { canonicalUrl?: string }) {
               {[
                 {
                   icon: Brain,
-                  title: "1. Assessment",
+                  title: "From a notebook to a user",
                   content:
                     "I look at how a model gets from a notebook to something a user can hit.",
                 },
                 {
                   icon: Cloud,
-                  title: "2. Design",
+                  title: "Training, registry, serving",
                   content: "You get the training job, the registry, and how a new model gets served.",
                 },
                 {
                   icon: GitBranch,
-                  title: "3. Implementation",
+                  title: "In the repo you already have",
                   content: "I wire it into the repo and the cloud account you already have.",
                 },
                 {
                   icon: Users,
-                  title: "4. Training & Support",
+                  title: "One training run, one deploy",
                   content:
                     "I walk through one training run and one deploy, and leave the notes beside them.",
                 },

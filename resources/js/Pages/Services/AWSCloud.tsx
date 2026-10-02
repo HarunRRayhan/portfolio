@@ -91,19 +91,19 @@ export default function AWSCloud({ canonicalUrl }: { canonicalUrl?: string }) {
               {[
                 {
                   icon: Cloud,
-                  title: "AWS Infrastructure Design",
+                  title: "The accounts and the network",
                   content:
                     "I lay out the accounts, the network, and the services the app actually needs.",
                 },
                 {
                   icon: Server,
-                  title: "AWS Migration",
+                  title: "The move onto AWS",
                   content:
                     "I move what you already run onto AWS, with a plan for the cutover and the first week after.",
                 },
                 {
                   icon: Lock,
-                  title: "AWS Security & Compliance",
+                  title: "The paths that are too wide",
                   content:
                     "I close the IAM and network paths that are wider than the job, and line up the evidence an audit will ask for.",
                 },
@@ -125,7 +125,7 @@ export default function AWSCloud({ canonicalUrl }: { canonicalUrl?: string }) {
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why work with me
+              What you get
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
@@ -171,25 +171,25 @@ export default function AWSCloud({ canonicalUrl }: { canonicalUrl?: string }) {
               {[
                 {
                   icon: BarChart,
-                  title: "1. Assessment",
+                  title: "What runs, what it costs",
                   content:
                     "I look at the account you have: what runs, what it costs, and what fails.",
                 },
                 {
                   icon: Code,
-                  title: "2. Design",
+                  title: "A diagram you can read",
                   content:
                     "You get a diagram of accounts, network, and the services the app needs.",
                 },
                 {
                   icon: Cloud,
-                  title: "3. Implementation",
+                  title: "A plan, then the change",
                   content:
                     "I apply the change in the account, with a plan you can read first.",
                 },
                 {
                   icon: Users,
-                  title: "4. Optimization & Support",
+                  title: "Alarms and the bill",
                   content:
                     "I leave alarms, a short patch list, and notes on the cost. I don't staff a night desk.",
                 },

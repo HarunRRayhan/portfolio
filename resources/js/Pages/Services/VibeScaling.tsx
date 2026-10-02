@@ -130,7 +130,7 @@ export default function VibeScaling({ canonicalUrl }: { canonicalUrl?: string })
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why work with me
+              What you get
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
@@ -170,31 +170,31 @@ export default function VibeScaling({ canonicalUrl }: { canonicalUrl?: string })
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              How It Works
+              How the work goes
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               {[
                 {
                   icon: Search,
-                  title: "1. Audit",
+                  title: "Run it under load",
                   content:
                     "I go through your code, database, and hosting, then run the app under realistic load to see where it strains.",
                 },
                 {
                   icon: ClipboardList,
-                  title: "2. Plan",
+                  title: "A short list of fixes",
                   content:
                     "You get a short list of what is slowing the app down and what each fix takes, ordered by how much it helps.",
                 },
                 {
                   icon: Wrench,
-                  title: "3. Harden",
+                  title: "Small changes",
                   content:
                     "I do the work: caching, indexes, background jobs, connection limits, and whatever else the audit turned up. It ships in small changes so nothing breaks at once.",
                 },
                 {
                   icon: LineChart,
-                  title: "4. Monitor",
+                  title: "Dashboards your team can read",
                   content:
                     "I set up dashboards and alerts so problems surface early, and show your team how to read them.",
                 },

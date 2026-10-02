@@ -86,19 +86,19 @@ export default function MultiCloudArchitecture({ canonicalUrl }: { canonicalUrl?
               {[
                 {
                   icon: Cloud,
-                  title: "Multi-Cloud Strategy",
+                  title: "Only when one cloud isn't enough",
                   content:
                     "I split the work across clouds only when one provider is not the whole answer.",
                 },
                 {
                   icon: Network,
-                  title: "Cloud Integration",
+                  title: "How the two sides talk",
                   content:
                     "The two sides need a clear way to talk, and a failure on one side shouldn't take the other down silently.",
                 },
                 {
                   icon: Shield,
-                  title: "Unified Management",
+                  title: "One place to see both",
                   content:
                     "One place to see both clouds. Two consoles and no alarm is how these setups rot.",
                 },
@@ -120,12 +120,12 @@ export default function MultiCloudArchitecture({ canonicalUrl }: { canonicalUrl?
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why work with me
+              What you get
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
                 {
-                  title: "Cross-Platform Expertise",
+                  title: "AWS, and the cloud you already use",
                   content:
                     "I work mostly on AWS, and I use Azure or Google Cloud when the project already lives there.",
                 },
@@ -166,25 +166,25 @@ export default function MultiCloudArchitecture({ canonicalUrl }: { canonicalUrl?
               {[
                 {
                   icon: BarChart,
-                  title: "1. Assessment",
+                  title: "The failure you cannot accept",
                   content:
                     "I start from the failure you cannot accept, then decide if a second cloud helps.",
                 },
                 {
                   icon: Code,
-                  title: "2. Design",
+                  title: "What lives where",
                   content:
                     "You get a diagram of what lives where, and how the two sides talk.",
                 },
                 {
                   icon: Cloud,
-                  title: "3. Implementation",
+                  title: "Both sides in code",
                   content:
                     "I put both sides in code, so the split isn't a pile of console clicks.",
                 },
                 {
                   icon: Users,
-                  title: "4. Management",
+                  title: "Which cloud failed",
                   content:
                     "I leave one dashboard and an alarm that names which cloud failed.",
                 },

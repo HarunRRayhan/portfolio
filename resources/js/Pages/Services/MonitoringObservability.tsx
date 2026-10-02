@@ -93,19 +93,19 @@ export default function MonitoringObservability({ canonicalUrl }: { canonicalUrl
               {[
                 {
                   icon: MonitorSmartphone,
-                  title: "Infrastructure Monitoring",
+                  title: "Metrics on what you already run",
                   content:
                     "I put metrics on the hosts, the app, and the cloud services you already run.",
                 },
                 {
                   icon: BarChart,
-                  title: "Application Performance Monitoring",
+                  title: "Which call ate the time",
                   content:
                     "I trace the slow request so you can see which call ate the time.",
                 },
                 {
                   icon: Bell,
-                  title: "Alerting and Incident Response",
+                  title: "An alarm that reaches a person",
                   content:
                     "An alarm should reach the person who can fix it, and it should not fire all day.",
                 },
@@ -127,7 +127,7 @@ export default function MonitoringObservability({ canonicalUrl }: { canonicalUrl
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why work with me
+              What you get
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
@@ -172,25 +172,25 @@ export default function MonitoringObservability({ canonicalUrl }: { canonicalUrl
               {[
                 {
                   icon: MonitorSmartphone,
-                  title: "1. Assessment",
+                  title: "What fails silently",
                   content:
                     "I look at what you can already see, and what fails silently.",
                 },
                 {
                   icon: Cloud,
-                  title: "2. Design",
+                  title: "Which alarm pages a person",
                   content:
                     "You get the metrics, the logs, and which alarm pages a person.",
                 },
                 {
                   icon: GitBranch,
-                  title: "3. Implementation",
+                  title: "A dashboard and a test page",
                   content:
                     "I install it, build the dashboard, and send a test page.",
                 },
                 {
                   icon: BarChart,
-                  title: "4. Optimization",
+                  title: "Quiet the noisy alarms",
                   content:
                     "I tune the noisy alarms before I add more graphs.",
                 },

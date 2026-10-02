@@ -136,7 +136,7 @@ export default function DevOpsPage({ canonicalUrl }: { canonicalUrl?: string }) 
               {[
                 {
                   icon: GitBranch,
-                  title: "CI/CD Pipeline Setup",
+                  title: "A release is a button",
                   content:
                     "I set up the pipeline that builds, tests, and ships, so a release is a button instead of a checklist.",
                 },
@@ -148,7 +148,7 @@ export default function DevOpsPage({ canonicalUrl }: { canonicalUrl?: string }) 
                 },
                 {
                   icon: Repeat,
-                  title: "Continuous Monitoring",
+                  title: "Alarms before users write in",
                   content:
                     "I add the metrics and the alarms that page someone before users write in.",
                 },
@@ -170,7 +170,7 @@ export default function DevOpsPage({ canonicalUrl }: { canonicalUrl?: string }) 
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why work with me
+              What you get
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
@@ -216,22 +216,22 @@ export default function DevOpsPage({ canonicalUrl }: { canonicalUrl?: string }) 
               {[
                 {
                   icon: GitBranch,
-                  title: "1. Assessment",
+                  title: "From pull request to production",
                   content: "I look at how a change gets from a pull request to production.",
                 },
                 {
                   icon: Code,
-                  title: "2. Strategy",
+                  title: "A short list",
                   content: "You get a short list: the pipeline, the infrastructure code, and what to measure.",
                 },
                 {
                   icon: Repeat,
-                  title: "3. Implementation",
+                  title: "Small changes in the repo",
                   content: "I wire the tools into the repo you already have, in small changes.",
                 },
                 {
                   icon: Users,
-                  title: "4. Training & Support",
+                  title: "Notes for the next change",
                   content: "I walk the team through the pipeline and leave notes for the next change.",
                 },
               ].map((step, index) => (

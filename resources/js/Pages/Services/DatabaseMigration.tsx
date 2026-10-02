@@ -76,19 +76,19 @@ export default function DatabaseMigration({ canonicalUrl }: { canonicalUrl?: str
               {[
                 {
                   icon: Database,
-                  title: "Database Assessment",
+                  title: "Size and downtime",
                   content:
                     "I map the schema, the size, and how long you can be offline.",
                 },
                 {
                   icon: ArrowRightLeft,
-                  title: "Data Migration",
+                  title: "Copy, check, cut over",
                   content:
                     "I copy the data, check the rows on both sides, then cut over.",
                 },
                 {
                   icon: Shield,
-                  title: "Post-Migration Support",
+                  title: "The queries that got slower",
                   content:
                     "After cutover I watch the new database for the queries that got slower.",
                 },
@@ -110,7 +110,7 @@ export default function DatabaseMigration({ canonicalUrl }: { canonicalUrl?: str
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why work with me
+              What you get
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
@@ -155,22 +155,22 @@ export default function DatabaseMigration({ canonicalUrl }: { canonicalUrl?: str
               {[
                 {
                   icon: Database,
-                  title: "1. Assessment",
+                  title: "Size, downtime, rollback",
                   content: "I write down the size, the downtime, and how we roll back.",
                 },
                 {
                   icon: Cloud,
-                  title: "2. Preparation",
+                  title: "Test the copy first",
                   content: "The new database is up, and the copy tool is tested on a slice of the data.",
                 },
                 {
                   icon: ArrowRightLeft,
-                  title: "3. Migration",
+                  title: "The window we agreed",
                   content: "I run the copy, then the cutover, in the window we agreed.",
                 },
                 {
                   icon: BarChart,
-                  title: "4. Validation & Optimization",
+                  title: "Rows, then the slow queries",
                   content:
                     "I check the rows, then the queries that matter, before I call it done.",
                 },
