@@ -249,38 +249,38 @@ export default function ServerlessInfrastructure({ canonicalUrl }: { canonicalUr
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Frequently Asked Questions
+              Questions people ask
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Accordion type="single" collapsible className="max-w-3xl mx-auto">
                 {[
                   {
-                    question: "What is serverless infrastructure?",
+                    question: "What do you mean by serverless?",
                     answer:
                       "You deploy a function. The cloud runs it when something happens, and you pay for that run. You still own the bugs.",
                   },
                   {
-                    question: "What are the benefits of going serverless?",
+                    question: "When is serverless the right shape?",
                     answer:
                       "Less to patch, and the bill follows the traffic. A function that runs all day is just a server.",
                   },
                   {
-                    question: "Is serverless suitable for all applications?",
+                    question: "Is serverless a fit for every app?",
                     answer:
                       "Good for APIs, jobs, and spiky traffic. A steady, long-running process is often happier on a normal service.",
                   },
                   {
-                    question: "How do you handle monitoring and debugging in serverless applications?",
+                    question: "How do you debug a function?",
                     answer:
                       "Logs, a trace, the duration, and an alarm. Plus the bill.",
                   },
                   {
-                    question: "How do you ensure security in serverless applications?",
+                    question: "How do you lock down a function?",
                     answer:
                       "The function gets the IAM role it needs, not admin. The API checks who is calling.",
                   },
                   {
-                    question: "How do you handle state management in serverless applications?",
+                    question: "Where does the data live?",
                     answer:
                       "The function itself doesn't keep state. That lives in a database, a queue, or a cache.",
                   },

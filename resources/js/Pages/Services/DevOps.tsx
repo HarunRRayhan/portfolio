@@ -314,7 +314,7 @@ export default function DevOpsPage({ canonicalUrl }: { canonicalUrl?: string }) 
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Frequently Asked Questions
+              Questions people ask
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Accordion type="single" collapsible className="max-w-3xl mx-auto">
@@ -325,22 +325,22 @@ export default function DevOpsPage({ canonicalUrl }: { canonicalUrl?: string }) 
                       "GitLab CI or Jenkins, Docker, Kubernetes when you already need it, Ansible, and Terraform. I pick what fits the stack you have.",
                   },
                   {
-                    question: "How long does it take to implement DevOps practices?",
+                    question: "How long until the team can ship without me?",
                     answer:
                       "A first pipeline is weeks, not a six-month program. After that it's your team using it.",
                   },
                   {
-                    question: "How do you measure the success of DevOps implementation?",
+                    question: "How do you tell if it worked?",
                     answer:
                       "How often you ship, how long a change takes, and how often it fails. I write those down before and after.",
                   },
                   {
-                    question: "Can DevOps practices be implemented in a non-tech company?",
+                    question: "Does this only work at a software company?",
                     answer:
                       "If you ship software, yes. The industry doesn't change the pipeline.",
                   },
                   {
-                    question: "How does DevOps impact security?",
+                    question: "Where does security fit?",
                     answer:
                       "Security checks go in the pipeline. Dependency scans, and secrets that never land in the log.",
                   },

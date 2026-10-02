@@ -229,38 +229,38 @@ export default function MLOps({ canonicalUrl }: { canonicalUrl?: string }) {
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Frequently Asked Questions
+              Questions people ask
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Accordion type="single" collapsible className="max-w-3xl mx-auto">
                 {[
                   {
-                    question: "What is MLOps and why is it important?",
+                    question: "What is MLOps?",
                     answer:
                       "The path from a notebook to a model that users hit, with a way to train it again and see if it drifted.",
                   },
                   {
-                    question: "How does MLOps differ from traditional DevOps?",
+                    question: "How is this different from a normal deploy pipeline?",
                     answer:
                       "DevOps versions code. This also has to version the data and the model, and watch whether the answers got worse.",
                   },
                   {
-                    question: "What are the key components of an MLOps pipeline?",
+                    question: "What does the pipeline include?",
                     answer:
                       "Data in, a training job, a registry, a way to serve the model, and an alarm when it drifts.",
                   },
                   {
-                    question: "How do you handle model versioning in MLOps?",
+                    question: "How do you version a model?",
                     answer:
                       "I version the data, the code, and the model, usually with MLflow or DVC, so last month's result can be rebuilt.",
                   },
                   {
-                    question: "How do you ensure the security of ML models and data in an MLOps setup?",
+                    question: "How do you lock down the model and the data?",
                     answer:
                       "The training data and the endpoint get real access control, and the data is encrypted. I follow the policy your security people already have.",
                   },
                   {
-                    question: "Can you help with the transition from traditional data science workflows to MLOps?",
+                    question: "Can you take a notebook and make it a deploy?",
                     answer:
                       "I look at how a model leaves the notebook today, then add the pipeline and the registry. Your team sees one training run and one deploy.",
                   },

@@ -80,7 +80,7 @@ final class SeoCatalog
         $pages = [];
 
         $pages['/'] = new SeoMeta(
-            title: 'Harun R. Rayhan - Senior Software Engineer & DevOps Consultant',
+            title: 'Harun R. Rayhan | AWS infrastructure',
             description: 'I design, ship, and run AWS infrastructure. The account, the pipeline, and what happens after it ships.',
             canonicalUrl: $siteUrl.'/',
             ogImage: self::defaultOgImage(),
@@ -89,7 +89,7 @@ final class SeoCatalog
         );
 
         $pages['/about'] = new SeoMeta(
-            title: 'About Harun | Cloud Architect & DevOps Engineer',
+            title: '15 years, mostly on AWS | Harun R. Rayhan',
             description: '15 years, mostly on AWS. Cloud architecture, release automation, and production.',
             canonicalUrl: $siteUrl.'/about',
             ogType: 'profile',
@@ -104,7 +104,7 @@ final class SeoCatalog
         );
 
         $pages['/services'] = new SeoMeta(
-            title: 'Professional Cloud & DevOps Services | Harun\'s Portfolio',
+            title: 'What I can help with | Harun R. Rayhan',
             description: 'An AI-built app that has to survive production, an AWS setup that\'s expensive or fragile, or a release process you don\'t trust.',
             canonicalUrl: $siteUrl.'/services',
             ogImage: self::assetUrl('/service-assets/services/hero.jpg'),
@@ -130,14 +130,14 @@ final class SeoCatalog
         );
 
         $pages['/contact'] = new SeoMeta(
-            title: 'Contact Harun | Cloud & DevOps Consulting Services',
+            title: 'Send a note | Harun R. Rayhan',
             description: 'Send a note. I read these and reply myself.',
             canonicalUrl: $siteUrl.'/contact',
             jsonLd: [self::webPageGraph('ContactPage', 'Contact Harun', $siteUrl.'/contact')],
         );
 
         $pages['/consultation'] = new SeoMeta(
-            title: 'Consultation | Cloud & DevOps Expert - Harun R. Rayhan',
+            title: 'Book a consult | Harun R. Rayhan',
             description: 'Book a paid DevOps consultation (Light, Pro, or Max). The first 1,001 booking requests get $100 off before any valid coupon is applied.',
             canonicalUrl: $siteUrl.'/consultation',
         );

@@ -220,18 +220,18 @@ export default function InfrastructureMigration({ canonicalUrl }: { canonicalUrl
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Frequently Asked Questions
+              Questions people ask
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Accordion type="single" collapsible className="max-w-3xl mx-auto">
                 {[
                   {
-                    question: "How long does a typical infrastructure migration take?",
+                    question: "How long does a move take?",
                     answer:
                       "A small move is a few weeks. A large one is months. I'll say which after I see what has to move.",
                   },
                   {
-                    question: "How do you ensure data security during the migration process?",
+                    question: "How do you keep the data safe during the move?",
                     answer:
                       "The copy is encrypted, and the temporary path is closed when the move is done.",
                   },
@@ -241,17 +241,17 @@ export default function InfrastructureMigration({ canonicalUrl }: { canonicalUrl
                       "Yes, when the move really needs more than one cloud. I plan the split around cost, the failure you cannot accept, and how the two sides talk to each other.",
                   },
                   {
-                    question: "How do you handle legacy systems during migration?",
+                    question: "What happens to the old system?",
                     answer:
                       "I list what it depends on, then we pick a lift-and-shift or a rewrite. I won't rewrite it by default.",
                   },
                   {
-                    question: "What kind of support do you provide post-migration?",
+                    question: "What happens the week after the move?",
                     answer:
                       "I watch the first week: errors, cost, and what got slower. I don't stay on as a night desk.",
                   },
                   {
-                    question: "How do you minimize downtime during the migration process?",
+                    question: "How long is the system down?",
                     answer:
                       "I name the window and how we roll back. A parallel environment can shrink it. Near zero only if the app can actually do that.",
                   },

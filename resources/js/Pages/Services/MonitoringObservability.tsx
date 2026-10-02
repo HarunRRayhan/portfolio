@@ -230,33 +230,33 @@ export default function MonitoringObservability({ canonicalUrl }: { canonicalUrl
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Frequently Asked Questions
+              Questions people ask
             </motion.h2>
             <motion.div variants={fadeInUp}>
               <Accordion type="single" collapsible className="max-w-3xl mx-auto">
                 {[
                   {
-                    question: "What's the difference between monitoring and observability?",
+                    question: "What is the difference between a metric and being able to ask why?",
                     answer:
                       "Monitoring is the metric you already decided to watch. Observability is being able to ask why a request was slow when you didn't predict the question.",
                   },
                   {
-                    question: "What tools do you use for monitoring and observability?",
+                    question: "Which tools do you use?",
                     answer:
                       "Prometheus, Grafana, and CloudWatch. Datadog or an ELK stack if you already pay for one. I start with what you have.",
                   },
                   {
-                    question: "How can improved monitoring and observability benefit my business?",
+                    question: "What changes once you can see a failure?",
                     answer:
                       "You hear about a failure before your users do, and you can see which part ate the time.",
                   },
                   {
-                    question: "Can you help with setting up custom dashboards and alerts?",
+                    question: "Can you set up a few graphs and an alarm?",
                     answer:
                       "Yes. A few graphs you'd open during an incident, and an alarm that pages a person. Not a wall of green boxes.",
                   },
                   {
-                    question: "How do you handle monitoring for microservices architectures?",
+                    question: "How do you watch a system made of many services?",
                     answer:
                       "I trace one request across the services, put the logs in one place, and give each service a health check.",
                   },
