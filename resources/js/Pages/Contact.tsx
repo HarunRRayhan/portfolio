@@ -1,12 +1,11 @@
-import {useState, useEffect, useRef, FormEvent, ChangeEvent} from "react"
+import {useState, useEffect, FormEvent, ChangeEvent} from "react"
 import {motion} from "framer-motion"
 import {Button} from "@/Components/ui/button"
 import {Input} from "@/Components/ui/input"
 import {Textarea} from "@/Components/ui/textarea"
 import {Label} from "@/Components/ui/label"
-import {ChevronsUpDown, Plus, Send} from "lucide-react"
+import {Send} from "lucide-react"
 import {cn} from "@/lib/utils"
-import {Popover, PopoverContent, PopoverTrigger} from "@/Components/ui/popover"
 import type React from "react"
 import {Link, router} from '@inertiajs/react'
 import {toast} from "@/lib/toast"
@@ -14,23 +13,7 @@ import { PageProps as InertiaPageProps } from '@inertiajs/core'
 import confetti from 'canvas-confetti';
 import { Envelope } from "@/Components/ui/envelope"
 import { AnimatePresence } from "framer-motion"
-import { getImageUrl } from "@/lib/imageUtils"
 import { trackLeadConversion } from "@/lib/analytics"
-
-const predefinedServices = [
-    "Cloud Architecture & Migration",
-    "DevOps Implementation",
-    "Infrastructure as Code (IaC)",
-    "Containerization & Orchestration",
-    "CI/CD Pipeline Optimization",
-    "Serverless Architecture",
-    "Microservices Design",
-    "Performance Optimization",
-    "Security & Compliance",
-    "Monitoring & Logging",
-    "Database Management",
-    "Scalability Solutions",
-]
 
 interface PageProps extends InertiaPageProps {
     flash?: {
@@ -44,11 +27,6 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
     const [email, setEmail] = useState("")
     const [subject, setSubject] = useState("")
     const [message, setMessage] = useState("")
-    const [selectedServices, setSelectedServices] = useState<string[]>([])
-    const [open, setOpen] = useState(false)
-    const [searchValue, setSearchValue] = useState("")
-    const serviceSearchRef = useRef<HTMLInputElement>(null)
-    const [services, setServices] = useState<string[]>(predefinedServices)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [referrer, setReferrer] = useState("")
     const [errors, setErrors] = useState<Record<string, string>>({})
@@ -90,7 +68,7 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
             email,
             subject,
             message,
-            services: selectedServices,
+            services: [],
             referrer
         }, {
             preserveScroll: true,
@@ -133,7 +111,6 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
         setEmail("")
         setSubject("")
         setMessage("")
-        setSelectedServices([])
         setShowForm(true)
     }
 
@@ -156,21 +133,6 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
                     e.target.style.height = `${e.target.scrollHeight}px`
                 }
                 break
-        }
-    }
-
-    const toggleService = (service: string) => {
-        setSelectedServices((current) =>
-            current.includes(service) ? current.filter((s) => s !== service) : [...current, service],
-        )
-    }
-
-    const addCustomService = (value: string) => {
-        const newService = value.trim()
-        if (newService && !services.includes(newService)) {
-            setServices((prev) => [...prev, newService])
-            setSelectedServices((prev) => [...prev, newService])
-            setSearchValue("")
         }
     }
 
@@ -276,88 +238,6 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
                                                         required
                                                     />
                                                     {errors.message && <p className="text-red-500 text-sm mt-1">{errors.message}</p>}
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <Label htmlFor="services" className="text-lg font-medium">Services</Label>
-                                                    <Popover open={open} onOpenChange={setOpen}>
-                                                        <PopoverTrigger asChild>
-                                                            <Button
-                                                                id="services"
-                                                                type="button"
-                                                                variant="outline"
-                                                                aria-expanded={open}
-                                                                className="w-full justify-between bg-gray-50/50 border-gray-200 hover:bg-gray-50/80 text-lg h-14 px-4 focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 focus:border-amber-500"
-                                                            >
-                                                                {selectedServices.length > 0 ? `${selectedServices.length} selected` : "Select services"}
-                                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" aria-hidden="true"/>
-                                                            </Button>
-                                                        </PopoverTrigger>
-                                                        <PopoverContent
-                                                            aria-label="Choose services"
-                                                            className="w-[--radix-popover-trigger-width] p-0 bg-white"
-                                                            onOpenAutoFocus={(event) => {
-                                                                event.preventDefault()
-                                                                serviceSearchRef.current?.focus()
-                                                            }}
-                                                        >
-                                                            <div className="border-b p-3">
-                                                                <Label htmlFor="service-search" className="sr-only">Search services</Label>
-                                                                <Input
-                                                                    ref={serviceSearchRef}
-                                                                    id="service-search"
-                                                                    type="search"
-                                                                    placeholder="Search or add services..."
-                                                                    value={searchValue}
-                                                                    onChange={(event) => setSearchValue(event.target.value)}
-                                                                />
-                                                            </div>
-                                                            <fieldset className="max-h-[300px] overflow-y-auto p-3">
-                                                                <legend className="sr-only">Available services</legend>
-                                                                {services
-                                                                    .filter((service) => service.toLowerCase().includes(searchValue.toLowerCase()))
-                                                                    .map((service) => (
-                                                                        <label key={service} className="flex cursor-pointer items-center gap-3 rounded-sm px-2 py-2 text-sm hover:bg-slate-100 focus-within:bg-slate-100">
-                                                                            <input
-                                                                                type="checkbox"
-                                                                                checked={selectedServices.includes(service)}
-                                                                                onChange={() => toggleService(service)}
-                                                                                className="h-4 w-4 rounded border-slate-400 text-amber-700 focus:ring-amber-700"
-                                                                            />
-                                                                            {service}
-                                                                        </label>
-                                                                    ))}
-                                                                {!services.some((service) => service.toLowerCase().includes(searchValue.toLowerCase())) && (
-                                                                    <p className="px-2 py-2 text-sm text-slate-600">No matching services.</p>
-                                                                )}
-                                                                {searchValue.trim() && !services.some((service) => service.toLowerCase() === searchValue.trim().toLowerCase()) && (
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => {
-                                                                            addCustomService(searchValue)
-                                                                            serviceSearchRef.current?.focus()
-                                                                        }}
-                                                                        className="flex w-full items-center gap-2 rounded-sm p-2 text-sm hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-700"
-                                                                    >
-                                                                        <Plus className="h-4 w-4" aria-hidden="true"/>
-                                                                        Add &quot;{searchValue.trim()}&quot;
-                                                                    </button>
-                                                                )}
-                                                            </fieldset>
-                                                        </PopoverContent>
-                                                    </Popover>
-                                                    <div className="mt-2 flex flex-wrap gap-2">
-                                                        {selectedServices.map((service) => (
-                                                            <span key={service}
-                                                                  className="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-sm">
-                            {service}
-                                                            <button type="button" onClick={() => toggleService(service)}
-                                                                    aria-label={`Remove ${service}`}
-                                                                    className="ml-2 rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-700">
-                                                              &times;
-                                                            </button>
-                                                          </span>
-                                                        ))}
-                                                    </div>
                                                 </div>
                                                 {submissionError && (
                                                     <p role="alert" className="text-red-500 text-sm">{submissionError}</p>

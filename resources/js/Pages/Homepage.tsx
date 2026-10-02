@@ -18,10 +18,10 @@ export default function Homepage() {
         <>
             <HeroSectionV2 study={featuredCaseStudies?.[0] ?? null} />
             {/* Separate hydration work so React can yield to user input between sections. */}
+            <Suspense fallback={null}><CaseStudiesHomeSection studies={featuredCaseStudies ?? []} /></Suspense>
             <Suspense fallback={null}><LogoSection /></Suspense>
             <Suspense fallback={null}><SkillsSection /></Suspense>
             <Suspense fallback={null}><TechStackSection /></Suspense>
-            <Suspense fallback={null}><CaseStudiesHomeSection studies={featuredCaseStudies ?? []} /></Suspense>
             <Suspense fallback={null}><ReviewSlideSection /></Suspense>
         </>
     )

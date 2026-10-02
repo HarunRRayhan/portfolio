@@ -14,12 +14,6 @@ const highlights = [
     { label: 'Focus', value: 'AWS' },
 ]
 
-const capabilities = [
-    'The AWS account you already have',
-    'Terraform and a pipeline the team can run',
-    'Metrics, logs, and the bill',
-]
-
 export type HeroCaseStudy = {
     title?: string
     codename: string
@@ -89,17 +83,6 @@ export function HeroSectionV2({ study = null }: { study?: HeroCaseStudy | null }
                                     <div className="mt-0.5 text-[11px] font-medium uppercase tracking-[0.12em] text-slate-600 sm:text-xs">
                                         {item.label}
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="mt-8 hidden space-y-3 text-sm text-slate-600 sm:block">
-                            {capabilities.map((item) => (
-                                <div key={item} className="flex items-start gap-3">
-                                    <span className="mt-1.5 flex h-4 w-4 items-center justify-center rounded border border-amber-200 bg-amber-50 text-[10px] font-bold text-amber-600">
-                                        ✓
-                                    </span>
-                                    <span>{item}</span>
                                 </div>
                             ))}
                         </div>
