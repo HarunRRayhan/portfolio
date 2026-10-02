@@ -8,9 +8,10 @@ test.beforeEach(async ({ page }, testInfo) => {
 
 test('contact form asks for a note without a service menu', async ({ page }) => {
   await page.goto('/contact')
-  await expect(page.getByLabel(/^Name/)).toBeVisible()
-  await expect(page.getByLabel(/^Email/)).toBeVisible()
-  await expect(page.getByLabel(/^Message/)).toBeVisible()
+  const form = page.locator('form')
+  await expect(form.getByLabel(/^Name/)).toBeVisible()
+  await expect(form.getByLabel(/^Email/)).toBeVisible()
+  await expect(form.getByLabel(/^Message/)).toBeVisible()
   await expect(page.getByLabel('Services', { exact: true })).toHaveCount(0)
 })
 
