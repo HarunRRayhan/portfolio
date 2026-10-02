@@ -3,6 +3,8 @@
 
 Hi {{ $booking->client_name }},
 
+@include('emails.consultation.partials.client-message')
+
 I couldn’t approve a new time for your **{{ $booking->tier->name }}** consultation.
 
 Your original appointment is still scheduled for **{{ $booking->starts_at->utc()->toDayDateTimeString() }} UTC**.

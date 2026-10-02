@@ -3,6 +3,8 @@
 
 Hi {{ $booking->client_name }},
 
+@include('emails.consultation.partials.client-message')
+
 Unfortunately we can’t take the **{{ $booking->tier->name }}** slot you requested for **{{ $booking->starts_at->utc()->toDayDateTimeString() }} UTC**.
 
 You’re welcome to pick another time on the booking page.

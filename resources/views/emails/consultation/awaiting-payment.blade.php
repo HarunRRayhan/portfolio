@@ -3,6 +3,8 @@
 
 Hi {{ $booking->client_name }},
 
+@include('emails.consultation.partials.client-message')
+
 Your **{{ $booking->tier->name }}** on **{{ $booking->starts_at->utc()->toDayDateTimeString() }} UTC** is approved.
 
 Amount due: **${{ number_format($booking->amount_due_cents / 100, 2) }}**  
