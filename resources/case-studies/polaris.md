@@ -8,7 +8,7 @@ duration: "6 to 12 months"
 industry: "Enterprise ERP platform"
 client: "A company that builds and operates an ERP platform used by multiple Fortune 500 clients"
 problem: "The ERP ran on Zend Framework 1, a PHP framework roughly 15 years old. It couldn't scale, had lost community and vendor support, was hard to hire for, and carried security and compliance gaps while feature work slowed to a crawl."
-approach: "We rebuilt the system on Symfony, split the frontend off from the backend, and broke the backend into microservices so the team could change one part without risking the rest."
+approach: "I rebuilt the system on Symfony, split the frontend off from the backend, and broke the backend into microservices so the team could change one part without risking the rest."
 outcome:
   - "Noticeably faster for day-to-day operations"
   - "Far fewer production incidents"
@@ -49,8 +49,8 @@ tags:
 <p>None of these get better on their own. They compound.</p>
 
 <h2>Approach</h2>
-<p>We rebuilt the backend on Symfony with API Platform, and used the rebuild to fix the structure, not just the framework.</p>
-<p>The big move was splitting the frontend off from the backend. The new frontend runs on React and Next.js, talking to the Symfony API over HTTP. Once the two were separate, we could break the backend into smaller services, each owning one part of the system. A change to orders no longer put finance at risk.</p>
+<p>I rebuilt the backend on Symfony with API Platform, and used the rebuild to fix the structure, not just the framework.</p>
+<p>The big move was splitting the frontend off from the backend. The new frontend runs on React and Next.js, talking to the Symfony API over HTTP. Once the two were separate, I broke the backend into smaller services, each owning one part of the system. A change to orders no longer put finance at risk.</p>
 <p>Not every job belongs in the main backend. Work that runs on its own schedule or scales in bursts moved to microservices on AWS Lambda, written in Python or Node.js depending on the task. A few smaller side services run on Laravel. Each piece sits on the stack that fits it, instead of one aging framework carrying everything.</p>
 <p>With a larger team working over 6 to 12 months, a big-bang cutover was never the plan. The safe path is to move module by module. You run the old and new systems side by side during the handover, so operations keep running while pieces cross over one at a time.</p>
 

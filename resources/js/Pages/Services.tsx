@@ -162,32 +162,32 @@ const serviceGroups = [
 
 const faqs = [
     {
-        question: "What cloud platforms do you specialize in?",
+        question: "Which clouds do you work on?",
         answer:
             "Mostly AWS. I use Azure or Google Cloud when the project already lives there, or when one provider isn't the whole answer.",
     },
     {
-        question: "How can DevOps practices benefit my business?",
+        question: "What does the DevOps work actually change?",
         answer:
             "You get a release you can repeat. I set up CI, infrastructure as code, and the checks that stop a bad deploy from becoming an incident.",
     },
     {
-        question: "What types of database optimization services do you offer?",
+        question: "Can you look at a slow database?",
         answer:
             "Slow queries, missing indexes, connection limits, and a migration plan when the database itself has to move. I work with MySQL, PostgreSQL, and the usual managed options on AWS.",
     },
     {
-        question: "How do you approach cloud security in your projects?",
+        question: "How do you look at cloud security?",
         answer:
             "IAM first, then network boundaries, encryption, and logs you can actually search. I look for the open path and the permission that's wider than the job.",
     },
     {
-        question: "What is Infrastructure as Code (IaC) and why is it important?",
+        question: "What is infrastructure as code?",
         answer:
             "The infrastructure lives in files you can review, like application code. I use Terraform and AWS CDK so a change is a pull request, not a click in the console.",
     },
     {
-        question: "How can your performance optimization services improve my application?",
+        question: "Can you make an app faster?",
         answer:
             "I measure the slow path first, then fix that. Caching, queries, and capacity you aren't using. The aim is a faster response and a smaller bill, in that order.",
     },
@@ -251,8 +251,7 @@ export default function ServicesPage({ canonicalUrl }: { canonicalUrl?: string }
 
                 <section className="py-24 bg-gray-50">
                     <div className="container mx-auto px-4">
-                        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-12 text-center">Frequently Asked
-                            Questions</h2>
+                        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-12 text-center">Questions people ask</h2>
                         <Accordion type="single" collapsible className="max-w-3xl mx-auto">
                             {faqs.map((faq, index) => (
                                 <AccordionItem key={index} value={`item-${index}`}>

@@ -81,7 +81,7 @@ final class SeoCatalog
 
         $pages['/'] = new SeoMeta(
             title: 'Harun R. Rayhan - Senior Software Engineer & DevOps Consultant',
-            description: 'Expert software engineer and DevOps consultant specializing in cloud architecture, AWS solutions, and infrastructure automation.',
+            description: 'I design, ship, and run AWS infrastructure. The account, the pipeline, and what happens after it ships.',
             canonicalUrl: $siteUrl.'/',
             ogImage: self::defaultOgImage(),
             ogType: 'website',
@@ -90,7 +90,7 @@ final class SeoCatalog
 
         $pages['/about'] = new SeoMeta(
             title: 'About Harun | Cloud Architect & DevOps Engineer',
-            description: 'Learn about Harun\'s journey, expertise in cloud architecture, DevOps engineering, and professional experience.',
+            description: '15 years, mostly on AWS. Cloud architecture, release automation, and production.',
             canonicalUrl: $siteUrl.'/about',
             ogType: 'profile',
             jsonLd: [self::webPageGraph('AboutPage', 'About Harun', $siteUrl.'/about')],
@@ -105,7 +105,7 @@ final class SeoCatalog
 
         $pages['/services'] = new SeoMeta(
             title: 'Professional Cloud & DevOps Services | Harun\'s Portfolio',
-            description: 'Expert cloud computing, DevOps, and software engineering services including AWS, Infrastructure as Code, CI/CD, security consulting, and performance optimization.',
+            description: 'An AI-built app that has to survive production, an AWS setup that\'s expensive or fragile, or a release process you don\'t trust.',
             canonicalUrl: $siteUrl.'/services',
             ogImage: self::assetUrl('/service-assets/services/hero.jpg'),
             jsonLd: [[
@@ -131,7 +131,7 @@ final class SeoCatalog
 
         $pages['/contact'] = new SeoMeta(
             title: 'Contact Harun | Cloud & DevOps Consulting Services',
-            description: 'Get in touch for expert cloud computing and DevOps consulting services. Let\'s discuss your project needs in AWS, infrastructure automation, CI/CD, or any other cloud services.',
+            description: 'Send a note. I read these and reply myself.',
             canonicalUrl: $siteUrl.'/contact',
             jsonLd: [self::webPageGraph('ContactPage', 'Contact Harun', $siteUrl.'/contact')],
         );
@@ -336,7 +336,7 @@ final class SeoCatalog
             '@id' => $siteUrl.'/#person',
             'name' => 'Harun R. Rayhan',
             'jobTitle' => 'Senior Software Engineer & DevOps Consultant',
-            'description' => 'Expert software engineer and DevOps consultant specializing in cloud architecture and AWS solutions',
+            'description' => 'I design, ship, and run AWS infrastructure.',
             'url' => $siteUrl.'/',
             'sameAs' => self::personSameAs(),
             'worksFor' => [

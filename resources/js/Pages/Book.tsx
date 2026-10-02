@@ -331,11 +331,11 @@ export default function Book({
               animate={{ opacity: 1, y: 0 }}
               className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl"
             >
-              DevOps consultations that ship clarity
+              Pick a plan, then a time.
             </motion.h1>
             <p className="mt-4 text-lg leading-7 text-slate-500">
-              Pick a plan, request a slot (≥{minLeadHours}h ahead). I approve, then you pay via Stripe.
-              Nothing goes on the calendar as confirmed until both happen.
+              Request a slot at least {minLeadHours} hours ahead. I approve it, then you pay.
+              Nothing is confirmed on the calendar until both happen.
             </p>
             {launchAvailable && (
               <p className="mt-4 text-sm font-medium text-amber-700">

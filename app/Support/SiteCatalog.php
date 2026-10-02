@@ -45,7 +45,7 @@ final class SiteCatalog
     public static function pages(): array
     {
         return [
-            ['About', '/about', 'Background, experience, and how I work with teams.'],
+            ['About', '/about', '15 years, mostly on AWS. Cloud architecture, release automation, and production.'],
             ['Sponsor', '/sponsor-me', 'Support the writing, tools, and experiments I share.'],
             ['Contact', '/contact', 'Send a note. Harun reads it and replies himself.'],
             ['Bio', '/bio', 'Short bio and links.'],
@@ -53,7 +53,7 @@ final class SiteCatalog
             ['Consultation', '/consultation', 'Book a paid DevOps consultation.'],
             ['Products', '/products', 'Tools and products I build, including Crontinel.'],
             ['Case Studies', '/case-studies', 'Work from real engagements. The client name stays off the page.'],
-            ['Services', '/services', 'Index of all consulting services.'],
+            ['Services', '/services', 'An AI-built app that has to survive production, an AWS setup that\'s expensive or fragile, or a release process you don\'t trust.'],
             ['Blog', '/blog', 'Index of all writing on cloud, DevOps, and AWS.'],
             ['Slides', '/slides', 'Talk decks and presentations.'],
             ['Videos', '/videos', 'Recorded talks and walkthroughs.'],
