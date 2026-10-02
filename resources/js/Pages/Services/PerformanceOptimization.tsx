@@ -96,19 +96,19 @@ export default function PerformanceOptimization({ canonicalUrl }: { canonicalUrl
               {[
                 {
                   icon: Gauge,
-                  title: "Application Performance Tuning",
+                  title: "The slow request",
                   content:
                     "I find the slow request and fix that path: code, query, or both.",
                 },
                 {
                   icon: Cloud,
-                  title: "Infrastructure Optimization",
+                  title: "Capacity after the slow path",
                   content:
                     "I add capacity only after the slow path is fixed. Extra servers hide a bad query.",
                 },
                 {
                   icon: BarChart,
-                  title: "Performance Monitoring & Analysis",
+                  title: "A number before and after",
                   content:
                     "I measure before and after, so the change has a number on it.",
                 },
@@ -130,7 +130,7 @@ export default function PerformanceOptimization({ canonicalUrl }: { canonicalUrl
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why work with me
+              What you get
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
@@ -174,22 +174,22 @@ export default function PerformanceOptimization({ canonicalUrl }: { canonicalUrl
               {[
                 {
                   icon: BarChart,
-                  title: "1. Assessment",
+                  title: "Measure the slow path",
                   content: "I measure the slow path under load that looks like yours.",
                 },
                 {
                   icon: Code,
-                  title: "2. Optimization Strategy",
+                  title: "Ordered by time saved",
                   content: "You get a short list, ordered by how much time it gives back.",
                 },
                 {
                   icon: Zap,
-                  title: "3. Implementation",
+                  title: "The slowest thing first",
                   content: "I change the slowest thing first, then measure again.",
                 },
                 {
                   icon: Users,
-                  title: "4. Monitoring & Refinement",
+                  title: "A dashboard that stays",
                   content:
                     "I leave the dashboard so you can see if it stays fast.",
                 },

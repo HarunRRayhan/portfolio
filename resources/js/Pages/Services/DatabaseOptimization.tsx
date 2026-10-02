@@ -93,19 +93,19 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
               {[
                 {
                   icon: Zap,
-                  title: "Performance Tuning",
+                  title: "Queries, indexes, connections",
                   content:
                     "I fix the queries, indexes, and connection limits that show up under real load.",
                 },
                 {
                   icon: Lock,
-                  title: "Security Enhancement",
+                  title: "Who can reach the database",
                   content:
                     "I look at who can reach the database, and close the accounts that don't need to.",
                 },
                 {
                   icon: Database,
-                  title: "Scalability Planning",
+                  title: "More rows, before the outage",
                   content:
                     "I plan for more rows and more connections before the database is the outage.",
                 },
@@ -127,7 +127,7 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why work with me
+              What you get
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
@@ -173,24 +173,24 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
               {[
                 {
                   icon: BarChart,
-                  title: "1. Assessment",
+                  title: "The slow log",
                   content:
                     "I look at the slow log, the locks, and the connection count.",
                 },
                 {
                   icon: GitBranch,
-                  title: "2. Strategy Development",
+                  title: "What hurts users first",
                   content:
                     "You get a short list, ordered by what hurts users first.",
                 },
                 {
                   icon: Database,
-                  title: "3. Implementation",
+                  title: "One change at a time",
                   content: "I change one thing at a time and watch the query time.",
                 },
                 {
                   icon: Cloud,
-                  title: "4. Monitoring & Refinement",
+                  title: "The slow-query view stays",
                   content:
                     "I leave the slow-query view in place so the next regression is obvious.",
                 },

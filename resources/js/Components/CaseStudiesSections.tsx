@@ -31,7 +31,7 @@ export function ServiceRelatedCaseStudies({ studies }: Props) {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600">Case studies</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600">Work</p>
             <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
               Related work
             </h2>
@@ -43,7 +43,7 @@ export function ServiceRelatedCaseStudies({ studies }: Props) {
             href="/case-studies"
             className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900 hover:text-amber-800"
           >
-            All case studies
+            All the work
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -95,7 +95,7 @@ export function CaseStudiesHomeSection({ studies }: HomeProps) {
       <section className="border-y border-slate-200 bg-white py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
           <Briefcase className="mx-auto h-8 w-8 text-slate-400" />
-          <h2 className="mt-4 text-2xl font-semibold text-slate-950">Case studies launching soon</h2>
+          <h2 className="mt-4 text-2xl font-semibold text-slate-950">The next one shows up when it's ready</h2>
           <p className="mx-auto mt-3 max-w-xl text-slate-600">
             Stories from real engagements, with the client name left out.
           </p>
@@ -103,7 +103,7 @@ export function CaseStudiesHomeSection({ studies }: HomeProps) {
             href="/case-studies"
             className="mt-6 inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
           >
-            View case studies
+            See the work
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -118,7 +118,7 @@ export function CaseStudiesHomeSection({ studies }: HomeProps) {
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-600">Selected work</p>
             <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-              Case studies
+              More from real engagements
             </h2>
             <p className="mt-3 max-w-2xl text-slate-600">
               The client name stays off the page.

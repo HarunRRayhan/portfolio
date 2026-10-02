@@ -103,19 +103,19 @@ export default function SecurityConsulting({ canonicalUrl }: { canonicalUrl?: st
               {[
                 {
                   icon: AlertTriangle,
-                  title: "Vulnerability Assessment",
+                  title: "What's actually exposed",
                   content:
                     "I list what's exposed, and which of those a stranger could actually use.",
                 },
                 {
                   icon: FileSearch,
-                  title: "Security Audits",
+                  title: "What an audit will ask",
                   content:
                     "I compare the account to the control an audit will ask about, and say what's missing.",
                 },
                 {
                   icon: Lock,
-                  title: "Security Architecture Design",
+                  title: "IAM, network, and the logs",
                   content:
                     "I change IAM, the network, and the logs. I don't add a product for its own sake.",
                 },
@@ -137,7 +137,7 @@ export default function SecurityConsulting({ canonicalUrl }: { canonicalUrl?: st
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why work with me
+              What you get
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
@@ -181,24 +181,24 @@ export default function SecurityConsulting({ canonicalUrl }: { canonicalUrl?: st
               {[
                 {
                   icon: Eye,
-                  title: "1. Assessment",
+                  title: "The wide paths",
                   content:
                     "I look at IAM, the network, and the logs, and write down the wide paths.",
                 },
                 {
                   icon: BarChart,
-                  title: "2. Analysis",
+                  title: "What a stranger could use",
                   content:
                     "You get a short list, ordered by what a stranger could use.",
                 },
                 {
                   icon: Shield,
-                  title: "3. Implementation",
+                  title: "The diff in the account",
                   content: "I make the changes we agreed, in the account, and show you the diff.",
                 },
                 {
                   icon: Users,
-                  title: "4. Training & Support",
+                  title: "Notes for the next access change",
                   content: "I leave notes your team can follow the next time someone needs access.",
                 },
               ].map((step, index) => (

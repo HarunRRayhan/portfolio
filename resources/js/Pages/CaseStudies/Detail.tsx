@@ -41,7 +41,7 @@ export default function CaseStudyDetailPage({ study, relatedStudies, canonicalUr
             <div className="border-b border-slate-200 bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-12 text-white sm:px-10 sm:py-16 lg:px-12">
               <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/50">
                 <Link href="/case-studies" className="transition-colors hover:text-white">
-                  Case studies
+                  Work
                 </Link>
                 <span className="text-white/30">/</span>
                 <span className="text-white/80">{study.codename}</span>

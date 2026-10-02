@@ -130,7 +130,7 @@ export default function VibeCodeMigration({ canonicalUrl }: { canonicalUrl?: str
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why work with me
+              What you get
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
@@ -170,31 +170,31 @@ export default function VibeCodeMigration({ canonicalUrl }: { canonicalUrl?: str
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              How It Works
+              How the work goes
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               {[
                 {
                   icon: Search,
-                  title: "1. Map",
+                  title: "Map the app",
                   content:
                     "I go through the current app and write down what it does: every feature, rule, and integration. That map becomes the checklist the new build has to satisfy.",
                 },
                 {
                   icon: ClipboardList,
-                  title: "2. Plan",
+                  title: "Pick the stack",
                   content:
                     "I pick the target language and framework that fit where the product is going, then lay out the order of work and how the data will move, before writing new code.",
                 },
                 {
                   icon: Code,
-                  title: "3. Port",
+                  title: "Port it in pieces",
                   content:
                     "I rebuild the app on the new stack feature by feature, checking each one against the original with parity tests. Work ships in pieces so progress stays visible.",
                 },
                 {
                   icon: Rocket,
-                  title: "4. Cut Over",
+                  title: "Move traffic across",
                   content:
                     "I run the new app alongside the old one, move traffic across gradually, and keep the old version ready as a fallback until the new one has proven itself in production.",
                 },

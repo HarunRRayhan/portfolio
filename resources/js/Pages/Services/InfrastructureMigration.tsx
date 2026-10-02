@@ -87,18 +87,18 @@ export default function InfrastructureMigration({ canonicalUrl }: { canonicalUrl
               {[
                 {
                   icon: Cloud,
-                  title: "Cloud Migration",
+                  title: "The move, with a cutover plan",
                   content:
                     "I move what you run now, usually onto AWS, with a plan for the cutover.",
                 },
                 {
                   icon: Server,
-                  title: "Data Center Consolidation",
+                  title: "Which room goes away",
                   content: "If two rooms are doing one job, I plan which one goes away and when.",
                 },
                 {
                   icon: Database,
-                  title: "Database Migration",
+                  title: "A row check, not a hope",
                   content:
                     "The database moves with a row check, not a hope.",
                 },
@@ -120,7 +120,7 @@ export default function InfrastructureMigration({ canonicalUrl }: { canonicalUrl
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why work with me
+              What you get
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
@@ -163,25 +163,25 @@ export default function InfrastructureMigration({ canonicalUrl }: { canonicalUrl
               {[
                 {
                   icon: Server,
-                  title: "1. Assessment",
+                  title: "What moves, and the rollback",
                   content:
                     "I write down what moves, what stays, and how we roll back.",
                 },
                 {
                   icon: Cloud,
-                  title: "2. Planning",
+                  title: "The order and the window",
                   content:
                     "You get the order, the window, and what we do if the cutover fails.",
                 },
                 {
                   icon: ArrowRightLeft,
-                  title: "3. Migration",
+                  title: "Check the data before traffic",
                   content:
                     "I move it in the window, and check the data before traffic follows.",
                 },
                 {
                   icon: Shield,
-                  title: "4. Validation & Optimization",
+                  title: "The first week",
                   content: "I watch errors and the bill for the first week, and fix what got slower.",
                 },
               ].map((step, index) => (

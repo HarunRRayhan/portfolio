@@ -232,7 +232,7 @@ export default function Book({
       .catch(() => {
         if (!active) return
         setSlots([])
-        setSlotsError('I couldn’t load available times. Retry, or contact me and I’ll find a time.')
+        setSlotsError('I couldn’t load available times. Retry, or send a note and I’ll find a time.')
       })
       .finally(() => {
         window.clearTimeout(timeout)
@@ -567,14 +567,14 @@ export default function Book({
                           >
                             Retry
                           </button>
-                          <a href="/contact" className="underline underline-offset-4">Contact me</a>
+                          <a href="/contact" className="underline underline-offset-4">Send a note</a>
                         </div>
                       </div>
                     ) : slots.length === 0 ? (
                       <p className="border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
                         No open slots right now. Please check back later or{' '}
-                        <a href="/contact" className="font-medium text-slate-700 underline underline-offset-4">contact me</a>{' '}
-                        to arrange a session.
+                        <a href="/contact" className="font-medium text-slate-700 underline underline-offset-4">send a note</a>{' '}
+                        to arrange a time.
                       </p>
                     ) : (
                       <>

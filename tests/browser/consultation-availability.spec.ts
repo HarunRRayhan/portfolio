@@ -52,7 +52,7 @@ test('an empty successful response offers contact rather than a failure', async 
   await page.goto('/consultation')
   await page.getByRole('button', { name: 'Book Light', exact: true }).click()
   await expect(page.getByText('No open slots', { exact: false })).toBeVisible()
-  await expect(page.locator('main').getByRole('link', { name: /contact/i })).toHaveAttribute('href', '/contact')
+  await expect(page.locator('main').getByRole('link', { name: /send a note/i })).toHaveAttribute('href', '/contact')
   await expect(page.getByRole('button', { name: 'Retry' })).toHaveCount(0)
 })
 

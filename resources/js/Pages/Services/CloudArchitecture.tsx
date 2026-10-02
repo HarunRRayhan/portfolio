@@ -89,7 +89,7 @@ export default function CloudArchitecturePage() {
               {[
                 {
                   icon: Cloud,
-                  title: "Scalable Infrastructure",
+                  title: "More traffic, same app",
                   content: "I design the layout so more traffic means more capacity, not a rewrite.",
                 },
                 {
@@ -100,7 +100,7 @@ export default function CloudArchitecturePage() {
                 },
                 {
                   icon: Lock,
-                  title: "Security-First Design",
+                  title: "Close the wide paths",
                   content:
                     "IAM, network boundaries, and the logs. I close the paths that are wider than the job.",
                 },
@@ -122,7 +122,7 @@ export default function CloudArchitecturePage() {
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why work with me
+              What you get
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
@@ -168,22 +168,22 @@ export default function CloudArchitecturePage() {
               {[
                 {
                   icon: BarChart,
-                  title: "1. Assessment",
+                  title: "The account and the bill",
                   content: "I start with the accounts and the bill, then the app that has to keep running.",
                 },
                 {
                   icon: Cloud,
-                  title: "2. Design",
+                  title: "A sketch of the layout",
                   content: "I sketch the accounts, the network, and the services the app actually needs.",
                 },
                 {
                   icon: Server,
-                  title: "3. Implementation",
+                  title: "Small changes",
                   content: "I apply the layout in small changes, so a bad plan is easy to stop.",
                 },
                 {
                   icon: Users,
-                  title: "4. Support & Optimization",
+                  title: "The diagram and the alarms",
                   content: "I leave the diagram, the alarms, and a list of what to look at next.",
                 },
               ].map((step, index) => (

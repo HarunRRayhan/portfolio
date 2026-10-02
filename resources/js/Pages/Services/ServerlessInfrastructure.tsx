@@ -115,19 +115,19 @@ export default function ServerlessInfrastructure({ canonicalUrl }: { canonicalUr
               {[
                 {
                   icon: Cloud,
-                  title: "Serverless Architecture Design",
+                  title: "Lambda, queues, and the data",
                   content:
                     "Lambda, queues, and the data store. I only add a piece if the app needs it.",
                 },
                 {
                   icon: Code,
-                  title: "Function Development",
+                  title: "Memory, and the cold start",
                   content:
                     "I write the function, set the memory, and check that a cold start isn't the thing users wait on.",
                 },
                 {
                   icon: Database,
-                  title: "Data Integration",
+                  title: "The database and queue you already use",
                   content: "The function has to talk to the database and the queue you already use.",
                 },
               ].map((service, index) => (
@@ -148,7 +148,7 @@ export default function ServerlessInfrastructure({ canonicalUrl }: { canonicalUr
         <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
-              Why work with me
+              What you get
             </motion.h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {[
@@ -163,12 +163,12 @@ export default function ServerlessInfrastructure({ canonicalUrl }: { canonicalUr
                     "A function that runs all day is a server with extra steps. I check the bill.",
                 },
                 {
-                  title: "Performance Tuning",
+                  title: "Duration, not a feeling",
                   content:
                     "I change memory and the code path, then look at the duration, not a feeling.",
                 },
                 {
-                  title: "Security First",
+                  title: "The role it needs",
                   content:
                     "The function gets the IAM role it needs, and not the admin role next to it.",
                 },
@@ -194,23 +194,23 @@ export default function ServerlessInfrastructure({ canonicalUrl }: { canonicalUr
               {[
                 {
                   icon: BarChart,
-                  title: "1. Assessment",
+                  title: "What's always on",
                   content:
                     "I look at what is always on, and what only runs when a request shows up.",
                 },
                 {
                   icon: Code,
-                  title: "2. Design",
+                  title: "What stays a normal server",
                   content: "You get the functions, the queue, and what stays a normal server.",
                 },
                 {
                   icon: GitBranch,
-                  title: "3. Implementation",
+                  title: "A test, a log, an alarm",
                   content: "I ship the function with a test, a log line, and an alarm.",
                 },
                 {
                   icon: Users,
-                  title: "4. Optimization",
+                  title: "Duration and the bill",
                   content: "I check duration and the bill after it has real traffic.",
                 },
               ].map((step, index) => (
