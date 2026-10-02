@@ -117,7 +117,7 @@ export default function DevOpsPage({ canonicalUrl }: { canonicalUrl?: string }) 
       <main className="flex flex-col min-h-screen">
         <ServiceHero
           icon={GitBranch}
-          title="DevOps Services"
+          title="DevOps"
           description="CI, infrastructure as code, and a release path the team can run without me in the room."
           backgroundImage="/service-assets/devops/hero.jpg"
         />

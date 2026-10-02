@@ -234,63 +234,63 @@ final class SeoCatalog
                 'description' => 'I design the AWS layout: accounts, network, and the services the app actually needs.',
             ],
             'devops' => [
-                'title' => 'DevOps Implementation & Consulting Services | Harun R. Rayhan',
+                'title' => 'DevOps | Harun R. Rayhan',
                 'description' => 'CI, infrastructure as code, and a release path the team can run without me in the room.',
             ],
             'infrastructure-as-code' => [
-                'title' => 'Infrastructure as Code (IaC) Services | Harun R. Rayhan',
-                'description' => 'Get help with Terraform changes, plan reviews, state and IAM checks, and CI workflows for AWS infrastructure. See how Harun approaches the work.',
+                'title' => 'Infrastructure as Code | Harun R. Rayhan',
+                'description' => 'Need to change AWS infrastructure without guessing what Terraform will touch? I can help review the current stack, make the change, and check the plan before it is applied.',
             ],
             'serverless-infrastructure' => [
-                'title' => 'Serverless Infrastructure Services | Harun R. Rayhan',
+                'title' => 'Serverless Infrastructure | Harun R. Rayhan',
                 'description' => 'Lambda, queues, and the rest of a serverless setup, when you want less to patch and a bill that follows the traffic.',
             ],
             'automated-deployment' => [
-                'title' => 'Automated Deployment & CI/CD Services | Harun R. Rayhan',
+                'title' => 'Automated Deployment | Harun R. Rayhan',
                 'description' => 'Pipelines that build, test, and ship, without a checklist in someone\'s head.',
             ],
             'security-consulting' => [
-                'title' => 'Security Consulting & Implementation Services | Harun R. Rayhan',
+                'title' => 'Security Consulting | Harun R. Rayhan',
                 'description' => 'I look at IAM, network boundaries, and the logs, then close the paths that are wider than the job.',
             ],
             'performance-optimization' => [
-                'title' => 'Cloud Performance Optimization Services | Harun R. Rayhan',
+                'title' => 'Performance Optimization | Harun R. Rayhan',
                 'description' => 'I measure the slow path, fix that, and stop paying for capacity you aren\'t using.',
             ],
             'infrastructure-migration' => [
-                'title' => 'Infrastructure Migration Services | Harun R. Rayhan',
+                'title' => 'Infrastructure Migration | Harun R. Rayhan',
                 'description' => 'I move the platform with a plan for downtime, the data, and the first week after cutover.',
             ],
             'mlops' => [
-                'title' => 'MLOps & Machine Learning Operations Services | Harun R. Rayhan',
+                'title' => 'MLOps | Harun R. Rayhan',
                 'description' => 'The infrastructure around training and serving models, from the notebook to production.',
             ],
             'database-migration' => [
-                'title' => 'Database Migration Services | Harun R. Rayhan',
+                'title' => 'Database Migration | Harun R. Rayhan',
                 'description' => 'I move the database and check the data on both sides before anything goes live.',
             ],
             'monitoring-observability' => [
-                'title' => 'Monitoring & Observability Services | Harun R. Rayhan',
+                'title' => 'Monitoring & Observability | Harun R. Rayhan',
                 'description' => 'Metrics, logs, and traces, so you hear about a failure before your users do.',
             ],
             'database-optimization' => [
-                'title' => 'Database Performance Optimization Services | Harun R. Rayhan',
+                'title' => 'Database Optimization | Harun R. Rayhan',
                 'description' => 'Slow queries, missing indexes, and connection limits. I fix the ones that show up under real load.',
             ],
             'aws-cloud' => [
-                'title' => 'AWS Cloud Services & Solutions | Harun R. Rayhan',
+                'title' => 'AWS Cloud | Harun R. Rayhan',
                 'description' => 'Accounts, networking, compute, and the managed services around them.',
             ],
             'multi-cloud-architecture' => [
-                'title' => 'Multi-Cloud Architecture Services | Harun R. Rayhan',
+                'title' => 'Multi-Cloud Architecture | Harun R. Rayhan',
                 'description' => 'A setup that uses more than one cloud, when AWS alone isn\'t the whole answer.',
             ],
             'vibe-scaling' => [
-                'title' => 'Vibe Scaler: Scale Your AI-Built App | Harun R. Rayhan',
+                'title' => 'Vibe Scaler | Harun R. Rayhan',
                 'description' => 'You built it fast with an AI coding tool and it found users. I scale that app in place so it can take the traffic and the payments.',
             ],
             'vibe-code-migration' => [
-                'title' => 'Vibe Code Migration: Port Your AI-Built App to a Production Stack | Harun R. Rayhan',
+                'title' => 'Vibe Code Migration | Harun R. Rayhan',
                 'description' => 'The prototype found users. When that stack can\'t carry it, I port it to a production language and framework and keep the features working.',
             ],
         ];
@@ -353,8 +353,8 @@ final class SeoCatalog
             ],
             'offers' => [
                 '@type' => 'Offer',
-                'name' => 'DevOps and Cloud Consulting Services',
-                'description' => 'Professional consulting services in cloud architecture, DevOps implementation, and infrastructure automation',
+                'name' => 'AWS infrastructure',
+                'description' => 'I design, ship, and run AWS infrastructure.',
             ],
         ];
     }
