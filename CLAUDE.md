@@ -69,11 +69,20 @@ The auto-mode classifier blocks these Railway/infra actions from Bash even after
   to post, show the scored top 10 with a one-line angle each, wait for a
   number, then draft. Don't default-pick and write in the same turn. Details
   are in `.claude/agents/blog-writer.md`.
+- **Draft `publishedAt` stays in the future.** `blog:publish-scheduled` publishes every
+  draft that is already due, and CI runs that command on the real catalog. A past timestamp
+  rewrites the file during PHPUnit and can block the Railway release. Set the real timestamp
+  only when publishing.
+- **Catalog cache outlives the deploy.** Production keeps
+  `blog.repository.payload.meta4.*` in the database for about 15 minutes. A successful
+  Railway deploy can still 404 a just-published slug, or keep serving a draft, until that
+  row expires. Confirm with a fresh request after the TTL. Do not purge all of Cloudflare
+  to bust it.
 - **HTML tables in posts are supported.** `resources/js/Pages/Blog/Post.tsx`
   styles `<table>` (borders, padding, zebra rows, horizontal scroll shell).
   Prefer a real table over a smashed plain-text comparison.
 - **Frontend / media after merge** ship via the GitHub Action
-  "Build and Sync Assets to R2". A merged CSS/JS/image change is not fully live
-  on harun.dev until that workflow finishes (and CDN prefixes are purged).
-  Railway deploys PHP independently — BlogRepository/TTFB fixes can go live
-  before R2 finishes.
+  "Build and Sync Assets to R2". That workflow syncs assets, purges CDN prefixes
+  only, waits for the main-branch PR checks on the same commit, then deploys
+  Railway `web` and `scheduler`. A failed main check blocks activation even
+  when the pull request checks were already green.
