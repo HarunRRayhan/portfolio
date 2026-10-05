@@ -2,9 +2,7 @@
 title: "I Stopped Putting an ALB in Front of My Private MCP Just for TLS"
 slug: "agentcore-gateway-private-ca-without-the-alb"
 brief: "AgentCore Gateway can now trust your private CA on VPC Lattice MCP, OpenAPI, and HTTP targets. Here is the API shape, what Terraform still cannot express, and the expiry alarm I would add."
-publishedAt: "2026-10-07T18:00:00.000Z"
-draft: true
-draftToken: "2450739e837ca90594f110d9aa0b9879"
+publishedAt: "2026-10-05T07:00:00.000Z"
 readTimeInMinutes: 9
 coverImageUrl: "/blog-assets/agentcore-gateway-private-ca-without-the-alb/cover.jpg"
 reactionCount: 0
