@@ -208,6 +208,7 @@ MARKDOWN);
         $this->assertNull(Cache::get('llms.txt.v1'));
         $this->assertIsString($contents = file_get_contents($path));
         $this->assertStringNotContainsString('draft: true', $contents);
+        $this->assertSame(1, preg_match('/^---\R(.*?)\R---\R(.*)\z/s', $contents));
 
         Http::assertSent(function ($request) use ($slug): bool {
             $data = $request->data();
