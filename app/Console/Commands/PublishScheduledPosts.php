@@ -58,7 +58,7 @@ class PublishScheduledPosts extends Command
             $meta = preg_replace('/^draft:\s*true\s*\n/m', '', $meta);
             $meta = preg_replace('/^draftToken:\s*".*?"\s*\n/m', '', $meta);
 
-            $newContents = "---\n{$meta}---\n{$body}";
+            $newContents = "---\n{$meta}\n---\n{$body}";
 
             if ($this->option('dry-run')) {
                 $this->line(sprintf('  Would publish: %s', basename($file)));
