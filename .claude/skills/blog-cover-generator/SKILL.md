@@ -69,8 +69,13 @@ recognizable across posts:
   outline with a checkmark inside.
 - **General "AI"** — teal/green square, a brain-or-circuit glyph (keep it
   visually distinct from the Bedrock node icon).
-- **Terraform** — purple square, the Terraform "T" mark or a stacked-layers
+- **Terraform** — purple `#7b42bc` square, the Terraform "T" mark or a stacked-layers
   glyph.
+- **MCP** — near-black `#18181b` square, white interlocking strokes (the MCP mark).
+  Keep it separate from the Bedrock node glyph.
+- **Private CA / certificate** — amber-brown `#b45309` square, a certificate page
+  with a rosette seal. Use this for TLS trust posts. A padlock badge next to it
+  reads as the same idea, so pick one.
 - **IAM / lock-down** — darker purple or near-black square, a padlock glyph.
 - **S3** — green square, a bucket glyph.
 - **DynamoDB** — indigo/blue square, a stacked-disks glyph.
@@ -148,9 +153,12 @@ render has to go through a local HTTP server:
 1. Write the filled-in template to a scratch `.html` file. If it's the photo
    variant, put the source image next to it in the same scratch dir (e.g.
    `stock-bg.jpg`) so the `url('stock-bg.jpg')` reference resolves.
-2. Serve its directory: `python3 -m http.server <port> &` (background it,
-   pick a free port, run it from the scratch dir so the URL is just
-   `cover-template.html`).
+2. Serve its directory with `python3 -m http.server <port>` from the scratch
+   dir, as its own long-lived process, on a free port, so the URL is
+   `http://127.0.0.1:<port>/cover-template.html`. A one-shot shell that
+   backgrounds the server with `&` kills it when that command exits, and the
+   screenshot then fails. Stop the server only after `cover.jpg` is installed.
+   A later exit of that process is cleanup, not a failed render.
 3. Load the deferred Playwright tools if not already available:
    `ToolSearch("select:mcp__plugin_playwright_playwright__browser_navigate,mcp__plugin_playwright_playwright__browser_resize,mcp__plugin_playwright_playwright__browser_take_screenshot,mcp__plugin_playwright_playwright__browser_evaluate")`.
 4. `browser_resize` to `1600x840`, then verify with

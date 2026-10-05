@@ -58,10 +58,14 @@ When the human asks what to post about, or for a scored shortlist / top N topics
        slug: tag
    ---
    ```
-   Always set `draft: true` — a human flips it to live when ready. Include `draftToken` so the
-   preview URL `/blog/{slug}/draft/{draftToken}` works. Use today's date for `publishedAt` unless
-   told otherwise. Gitleaks may warn on `draftToken` as a generic-api-key; that matches existing
-   posts and is fine.
+   Always set `draft: true`. A human flips it live when ready. Include `draftToken` so the
+   preview URL `/blog/{slug}/draft/{draftToken}` works. While `draft: true`, `publishedAt` must
+   be a UTC timestamp **later than now**. `php artisan blog:publish-scheduled` publishes every
+   draft whose `publishedAt` is not in the future, and `tests/Feature/AiReadinessTest.php` runs
+   that command against the real `resources/blog/posts` catalog. A due draft gets rewritten
+   during PHPUnit, the IndexNow assertion expects only the test fixture, and a bad rewrite
+   500s every later test that loads the catalog. Railway then refuses to activate the release.
+   Gitleaks may warn on `draftToken` as a generic-api-key. That matches existing posts and is fine.
 
 4. **Use code examples prefixed `hrr_`** (Terraform resource names, function names, etc.), never
    `pbx_` or any other project-derived prefix — a past reference project is under NDA and must not
@@ -95,8 +99,15 @@ Match what `php artisan blog:publish-scheduled` does by hand:
   immediately (a future `publishedAt` is fine for scheduled publish, but a "ship now" request needs
   `now` or earlier).
 - Keep `coverImageUrl` pointing at the existing cover.
-- Clear blog cache when verifying locally (`php artisan cache:clear`) so `BlogRepository` doesn't
-  keep serving the draft snapshot for up to 15 minutes.
+- The publisher must leave the closing `---` on its own line (`---\n{$meta}\n---\n{$body}`).
+  The captured frontmatter has no trailing newline. Gluing `---` onto the last line makes
+  `BlogRepository` reject the file.
+- Clear the blog catalog cache when verifying locally (`php artisan cache:clear`). Production
+  `CACHE_STORE=database` keeps `blog.repository.payload.meta4.*` for about 15 minutes, and a
+  new Railway container still reads that row. After "Build and Sync Assets to R2" reports
+  success, the public URL can 404 and the draft URL can still 200 until that row expires.
+  Confirm with a fresh request after the TTL. A local `cache:clear` does not touch production.
+  Leave Cloudflare's full-zone purge alone.
 
 ## What you don't do
 

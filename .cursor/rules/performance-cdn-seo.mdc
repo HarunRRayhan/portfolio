@@ -19,6 +19,7 @@ alwaysApply: true
 - Don't purge Cloudflare **everything** on deploy; purge `cdn.harun.dev` prefixes only.
 - Don't strip Blade SEO (title, canonical, OG, JSON-LD) or weaken auth/CSP for speed.
 - Don't assume R2 has new files until the GHA sync finishes — origin can still 200 with stale or missing CDN objects.
+- Don't treat a just-published blog URL as a failed release while `blog.repository.payload.meta4.*` is still inside its 15-minute database TTL. That row survives the new Railway container.
 
 ## SEO note
 
