@@ -7,8 +7,8 @@ import LoadBalancerActivity from '@/Components/BlogActivities/LoadBalancerActivi
 import PresignedUrlActivity from '@/Components/BlogActivities/PresignedUrlActivity'
 import TerraformPulumiActivity from '@/Components/BlogActivities/TerraformPulumiActivity'
 
-const activities: Record<string, () => ReactNode> = {
-  'load-balancer': () => <LoadBalancerActivity />,
+const activities: Record<string, (node: HTMLElement) => ReactNode> = {
+  'load-balancer': (node) => <LoadBalancerActivity algorithmId={node.dataset.algorithm ?? ''} />,
   's3-presigned-url': () => <PresignedUrlActivity />,
   'terraform-vs-pulumi': () => <TerraformPulumiActivity />,
   'language-race': () => <LanguageRaceActivity />,
@@ -45,7 +45,7 @@ export function mountBlogActivities(root: HTMLElement): () => void {
 
     reactRoot.render(
       <ActivityBoundary>
-        {render ? render() : <p className="text-sm text-slate-500">This figure is unavailable.</p>}
+        {render ? render(node) : <p className="text-sm text-slate-500">This figure is unavailable.</p>}
       </ActivityBoundary>,
     )
     roots.push(reactRoot)
