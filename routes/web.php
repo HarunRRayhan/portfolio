@@ -927,7 +927,7 @@ Route::get('/blog/{slug}/draft/{previewToken}', function (Request $request, stri
     ]);
 
     return $response;
-})->where('previewToken', '[A-Fa-f0-9]{32}')->name('blog.preview');
+})->where('previewToken', '[A-Fa-f0-9]{32}')->middleware(['auth', 'verified', 'role:admin'])->name('blog.preview');
 
 // Track blog post views
 Route::post('/blog/{slug}/view', function (string $slug) {
