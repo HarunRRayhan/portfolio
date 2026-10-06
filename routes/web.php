@@ -146,12 +146,13 @@ Route::get('/admin/posts', function () {
             'draftPosts' => $posts->count() - $published->count(),
             'totalViews' => (int) $published->sum(fn (array $post) => (int) ($views[$post['slug']] ?? 0)),
         ],
-        'posts' => $posts->map(fn (array $post) => $blog->summarizePost(
+        'posts' => $posts->map(fn (array $post) => $blog->withCalendar($blog->summarizePost(
             $post,
             (int) ($views[$post['slug']] ?? 0),
             false,
-        ))->all(),
+        )))->all(),
         'scheduleTimezone' => BlogRepository::SCHEDULE_TIMEZONE,
+        'today' => now()->timezone(BlogRepository::SCHEDULE_TIMEZONE)->toDateString(),
     ]);
 })->middleware(['auth', 'verified', 'role:admin'])->name('admin.posts.index');
 

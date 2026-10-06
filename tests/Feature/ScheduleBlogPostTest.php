@@ -42,10 +42,12 @@ class ScheduleBlogPostTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Admin/Posts/Index')
                 ->where('scheduleTimezone', 'Asia/Dhaka')
+                ->where('today', fn ($today) => is_string($today) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $today) === 1)
                 ->where('posts', fn ($posts) => collect($posts)->contains(
                     fn ($post) => $post['slug'] === $draft['slug']
                         && $post['canSchedule'] === true
                         && $post['isScheduled'] === false
+                        && $post['calendarDate'] === null
                 )));
 
         $this->actingAs($admin)
@@ -59,6 +61,17 @@ class ScheduleBlogPostTest extends TestCase
                 'publish_at' => '2026-10-13T11:00',
             ])
             ->assertRedirect(route('admin.posts.index'));
+
+        $this->actingAs($admin)
+            ->get(route('admin.posts.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('posts', fn ($posts) => collect($posts)->contains(
+                    fn ($post) => $post['slug'] === $draft['slug']
+                        && $post['calendarDate'] === '2026-10-13'
+                        && $post['calendarTime'] === '11:00 AM'
+                        && $post['isScheduled'] === true
+                )));
 
         $schedule = BlogPostSchedule::query()->where('slug', $draft['slug'])->first();
         $this->assertNotNull($schedule);

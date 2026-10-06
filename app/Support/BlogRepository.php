@@ -339,6 +339,32 @@ class BlogRepository
     }
 
     /**
+     * Dates for the admin calendar, in the schedule timezone. An unscheduled
+     * draft has no real publish day, so it stays off the grid.
+     *
+     * @param  array<string, mixed>  $summary
+     * @return array<string, mixed>
+     */
+    public function withCalendar(array $summary): array
+    {
+        $onCalendar = ! (($summary['isDraft'] ?? false) && ! ($summary['isScheduled'] ?? false));
+
+        if (! $onCalendar) {
+            return $summary + [
+                'calendarDate' => null,
+                'calendarTime' => null,
+            ];
+        }
+
+        $at = Carbon::parse((string) $summary['publishedAt'])->timezone(self::SCHEDULE_TIMEZONE);
+
+        return $summary + [
+            'calendarDate' => $at->format('Y-m-d'),
+            'calendarTime' => $at->format('g:i A'),
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function toPostPagePayload(array $post): array
