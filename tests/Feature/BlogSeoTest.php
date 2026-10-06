@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\CreatesDraftBlogPost;
@@ -40,17 +41,30 @@ class BlogSeoTest extends TestCase
     }
 
     #[Test]
-    public function it_hides_draft_posts_behind_a_private_preview_link(): void
+    public function it_hides_draft_posts_behind_an_admin_preview(): void
     {
         $draft = $this->createDraftBlogPost();
         $draftSlug = $draft['slug'];
+        $preview = '/blog/'.$draftSlug.'/draft/'.$draft['token'];
 
-        $directResponse = $this->get('/blog/'.$draftSlug);
-        $previewResponse = $this->get('/blog/'.$draftSlug.'/draft/'.$draft['token']);
+        $this->get('/blog/'.$draftSlug)->assertNotFound();
+        $this->get($preview)->assertRedirect('/login');
 
-        $directResponse->assertNotFound();
+        $reader = User::factory()->create([
+            'role' => 'user',
+            'email_verified_at' => now(),
+        ]);
+        $this->actingAs($reader)->get($preview)->assertForbidden();
+
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'email_verified_at' => now(),
+        ]);
+        $previewResponse = $this->actingAs($admin)->get($preview);
+
         $previewResponse->assertOk();
         $previewResponse->assertSee('noindex, nofollow, noarchive', false);
+        $this->actingAs($admin)->get('/blog/'.$draftSlug.'/draft/'.str_repeat('a', 32))->assertNotFound();
     }
 
     #[Test]
