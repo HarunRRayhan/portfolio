@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\Consultation\CouponController as ConsultationCoup
 use App\Http\Controllers\Admin\Consultation\GoogleOAuthController as ConsultationGoogleOAuthController;
 use App\Http\Controllers\Admin\MediaItemController;
 use App\Http\Controllers\Admin\NewsletterController as AdminNewsletterController;
+use App\Http\Controllers\Admin\ScheduleBlogPostController;
 use App\Http\Controllers\Admin\ShortLinkController;
 use App\Http\Controllers\BlogCommentController;
 use App\Http\Controllers\Consultation\BookController;
@@ -65,8 +66,8 @@ Route::get('/', function () {
 $renderDashboard = function () {
     $blog = new BlogRepository;
     $posts = $blog->posts();
-    $publishedPosts = array_values(array_filter($posts, fn (array $post) => ! (bool) ($post['draft'] ?? false)));
-    $draftPosts = array_values(array_filter($posts, fn (array $post) => (bool) ($post['draft'] ?? false)));
+    $publishedPosts = array_values(array_filter($posts, fn (array $post) => $blog->isPublic($post)));
+    $draftPosts = array_values(array_filter($posts, fn (array $post) => ! $blog->isPublic($post)));
 
     $postsByMonth = [];
     foreach ($publishedPosts as $post) {
@@ -118,8 +119,9 @@ Route::redirect('/dashboard', '/admin/dashboard');
 
 Route::get('/admin/analytics', function () {
     $since = now()->subDays(29)->startOfDay();
-    $publishedSlugs = collect((new BlogRepository)->posts())
-        ->reject(fn (array $post) => (bool) $post['draft'])
+    $blog = new BlogRepository;
+    $publishedSlugs = collect($blog->posts())
+        ->filter(fn (array $post) => $blog->isPublic($post))
         ->pluck('slug');
 
     return Inertia::render('Admin/Analytics', [
@@ -135,7 +137,7 @@ Route::get('/admin/posts', function () {
     $blog = new BlogRepository;
     $posts = collect($blog->posts());
     $views = DB::table('blog_post_views')->whereIn('slug', $posts->pluck('slug'))->pluck('count', 'slug');
-    $published = $posts->reject(fn (array $post) => (bool) $post['draft']);
+    $published = $posts->filter(fn (array $post) => $blog->isPublic($post));
 
     return Inertia::render('Admin/Posts/Index', [
         'stats' => [
@@ -149,12 +151,17 @@ Route::get('/admin/posts', function () {
             (int) ($views[$post['slug']] ?? 0),
             false,
         ))->all(),
+        'scheduleTimezone' => BlogRepository::SCHEDULE_TIMEZONE,
     ]);
 })->middleware(['auth', 'verified', 'role:admin'])->name('admin.posts.index');
 
+Route::post('/admin/posts/{slug}/schedule', [ScheduleBlogPostController::class, 'store'])
+    ->middleware(['auth', 'verified', 'role:admin'])
+    ->name('admin.posts.schedule');
+
 Route::get('/admin/posts/analytics', function () {
     $blog = new BlogRepository;
-    $posts = collect($blog->posts())->reject(fn (array $post) => (bool) $post['draft']);
+    $posts = collect($blog->posts())->filter(fn (array $post) => $blog->isPublic($post));
     $views = DB::table('blog_post_views')->whereIn('slug', $posts->pluck('slug'))->pluck('count', 'slug');
     $rows = $posts->map(fn (array $post) => [
         'title' => (string) $post['title'],
@@ -857,8 +864,10 @@ Route::get('/blog/feed.xml', function () {
 
     $xml = <<<XML
 <?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
+    <atom:link rel="hub" href="https://pubsubhubbub.appspot.com/"/>
+    <atom:link rel="self" href="{$escape($siteUrl.'/blog/feed.xml')}"/>
     <title>{$escape($publication['title'])}</title>
     <link>{$escape($siteUrl.'/blog')}</link>
     <description>{$escape('AWS, DevOps, Laravel, and serverless articles from Harun.')}</description>
@@ -877,6 +886,10 @@ Route::get('/blog/{slug}/draft/{previewToken}', function (Request $request, stri
     $post = $blog->find($slug);
 
     abort_unless($post, 404);
+
+    if ($blog->isPublic($post)) {
+        return redirect('/blog/'.$slug, 301);
+    }
 
     $isDraft = (bool) ($post['draft'] ?? false);
     $expectedToken = (string) ($post['draftToken'] ?? '');
@@ -921,9 +934,7 @@ Route::post('/blog/{slug}/view', function (string $slug) {
     $blog = new BlogRepository;
     $post = $blog->find($slug);
     abort_unless($post, 404);
-    if ((bool) ($post['draft'] ?? false)) {
-        abort(404);
-    }
+    abort_unless($blog->isPublic($post), 404);
     // Persist to database immediately, warm the cache
     $now = Carbon::now();
     DB::table('blog_post_views')->upsert(
@@ -945,7 +956,7 @@ Route::get('/blog/{slug}', function (Request $request, string $slug) {
 
     abort_unless($post, 404);
 
-    if ((bool) ($post['draft'] ?? false)) {
+    if (! $blog->isPublic($post)) {
         abort(404);
     }
 

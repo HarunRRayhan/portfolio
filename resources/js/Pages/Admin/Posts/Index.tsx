@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { BarChart3, ExternalLink, FileText, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -11,6 +11,9 @@ interface Post {
     readTimeLabel: string;
     url: string;
     isDraft: boolean;
+    isScheduled: boolean;
+    canSchedule: boolean;
+    scheduledForHuman: string | null;
     draftPreviewUrl: string | null;
     viewCount: number;
 }
@@ -18,16 +21,51 @@ interface Post {
 interface Props {
     stats: { totalPosts: number; publishedPosts: number; draftPosts: number; totalViews: number };
     posts: Post[];
+    scheduleTimezone: string;
 }
 
-type Filter = 'all' | 'published' | 'draft';
+type Filter = 'all' | 'published' | 'scheduled' | 'draft';
 
-export default function PostsIndex({ stats, posts }: Props) {
+function ScheduleForm({ slug, timezone, scheduled }: { slug: string; timezone: string; scheduled: boolean }) {
+    const form = useForm({ publish_at: '' });
+
+    return (
+        <form
+            className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end"
+            onSubmit={(event) => {
+                event.preventDefault();
+                form.post(route('admin.posts.schedule', slug));
+            }}
+        >
+            <label className="block text-xs font-medium text-muted-foreground">
+                Goes live ({timezone})
+                <input
+                    type="datetime-local"
+                    required
+                    value={form.data.publish_at}
+                    onChange={(event) => form.setData('publish_at', event.target.value)}
+                    className="mt-1 block w-full rounded-md border bg-background px-2 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary sm:w-56"
+                />
+            </label>
+            <button
+                type="submit"
+                disabled={form.processing}
+                className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-60"
+            >
+                {scheduled ? 'Reschedule' : 'Schedule'}
+            </button>
+            {form.errors.publish_at && <p className="text-xs text-red-600 dark:text-red-400">{form.errors.publish_at}</p>}
+        </form>
+    );
+}
+
+export default function PostsIndex({ stats, posts, scheduleTimezone }: Props) {
     const [filter, setFilter] = useState<Filter>('all');
     const [query, setQuery] = useState('');
     const visiblePosts = useMemo(() => posts.filter((post) => {
         if (filter === 'published' && post.isDraft) return false;
-        if (filter === 'draft' && !post.isDraft) return false;
+        if (filter === 'scheduled' && !post.isScheduled) return false;
+        if (filter === 'draft' && (!post.isDraft || post.isScheduled)) return false;
         const search = query.trim().toLowerCase();
         return !search || `${post.title} ${post.brief}`.toLowerCase().includes(search);
     }), [posts, filter, query]);
@@ -39,7 +77,7 @@ export default function PostsIndex({ stats, posts }: Props) {
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                         <h2 className="text-2xl font-semibold text-foreground">All posts</h2>
-                        <p className="mt-1 text-sm text-muted-foreground">Published posts and drafts in one place.</p>
+                        <p className="mt-1 text-sm text-muted-foreground">Schedule a draft and it goes live at that time.</p>
                     </div>
                     <Link href={route('admin.posts.analytics')}
                         className="inline-flex items-center gap-2 rounded-md border bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
@@ -64,11 +102,11 @@ export default function PostsIndex({ stats, posts }: Props) {
                 <div className="overflow-hidden rounded-lg border bg-background">
                     <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex gap-1" aria-label="Filter posts">
-                            {(['all', 'published', 'draft'] as const).map((option) => (
+                            {(['all', 'published', 'scheduled', 'draft'] as const).map((option) => (
                                 <button key={option} type="button" aria-pressed={filter === option} onClick={() => setFilter(option)}
                                     className={'rounded-md px-3 py-1.5 text-sm font-medium capitalize focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ' +
                                         (filter === option ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground')}>
-                                    {option === 'all' ? 'All' : option === 'draft' ? 'Drafts' : 'Published'}
+                                    {option === 'all' ? 'All' : option === 'draft' ? 'Drafts' : option === 'scheduled' ? 'Scheduled' : 'Published'}
                                 </button>
                             ))}
                         </div>
@@ -87,17 +125,27 @@ export default function PostsIndex({ stats, posts }: Props) {
                                     <div className="min-w-0">
                                         <div className="flex flex-wrap items-center gap-2">
                                             <h3 className="text-sm font-semibold text-foreground">{post.title}</h3>
-                                            <span className={'rounded px-1.5 py-0.5 text-xs font-medium ' + (post.isDraft
-                                                ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
-                                                : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300')}>
-                                                {post.isDraft ? 'Draft' : 'Published'}
+                                            <span className={'rounded px-1.5 py-0.5 text-xs font-medium ' + (post.isScheduled
+                                                ? 'bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300'
+                                                : post.isDraft
+                                                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                                                    : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300')}>
+                                                {post.isScheduled ? 'Scheduled' : post.isDraft ? 'Draft' : 'Published'}
                                             </span>
                                         </div>
                                         <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{post.brief}</p>
                                         <p className="mt-2 text-xs text-muted-foreground">
-                                            {post.isDraft ? 'Draft' : post.publishedAtHuman} · {post.readTimeLabel}
+                                            {post.isScheduled ? `Scheduled for ${post.scheduledForHuman} ${scheduleTimezone}` : post.isDraft ? 'Draft' : post.publishedAtHuman} · {post.readTimeLabel}
                                             {!post.isDraft && <> · {post.viewCount.toLocaleString()} views</>}
                                         </p>
+                                        {post.canSchedule && (
+                                            <ScheduleForm slug={post.slug} timezone={scheduleTimezone} scheduled={post.isScheduled} />
+                                        )}
+                                        {post.canSchedule && (
+                                            <p className="mt-2 text-xs text-muted-foreground">
+                                                When it goes live, IndexNow hears about it. Google reads the new URL from the sitemap.
+                                            </p>
+                                        )}
                                     </div>
                                     {destination && <a href={destination} target="_blank" rel="noopener noreferrer"
                                         className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
@@ -110,6 +158,7 @@ export default function PostsIndex({ stats, posts }: Props) {
                                 <FileText className="h-6 w-6" />
                                 <p className="text-sm">{filter === 'draft' && stats.draftPosts === 0
                                     ? 'No draft posts.'
+                                    : filter === 'scheduled' && !query ? 'No scheduled posts.'
                                     : query ? 'No posts match your search.' : 'No posts in this view.'}</p>
                             </div>
                         )}

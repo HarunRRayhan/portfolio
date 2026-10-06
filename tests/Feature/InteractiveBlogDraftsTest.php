@@ -12,7 +12,7 @@ class InteractiveBlogDraftsTest extends TestCase
     {
         $repository = app(BlogRepository::class);
         $expected = [
-            'five-load-balancer-algorithms' => 'load-balancer',
+            'eight-load-balancer-algorithms' => 'load-balancer',
             'why-s3-presigned-urls' => 's3-presigned-url',
             'terraform-or-pulumi' => 'terraform-vs-pulumi',
             'why-rust-is-faster-than-python-javascript-php-and-go' => 'language-race',
@@ -29,6 +29,21 @@ class InteractiveBlogDraftsTest extends TestCase
                 $hydrated['content']['html'],
                 $slug,
             );
+
+            if ($slug === 'eight-load-balancer-algorithms') {
+                foreach ([
+                    'round-robin',
+                    'weighted-round-robin',
+                    'least-connections',
+                    'weighted-least-connections',
+                    'least-response-time',
+                    'ip-hash',
+                    'consistent-hash',
+                    'power-of-two',
+                ] as $algorithm) {
+                    $this->assertStringContainsString('data-algorithm="'.$algorithm.'"', $hydrated['content']['html']);
+                }
+            }
         }
     }
 }

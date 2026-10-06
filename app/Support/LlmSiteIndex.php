@@ -57,7 +57,7 @@ final class LlmSiteIndex
         $caseStudyRepo = new CaseStudyRepository;
 
         $blogBodies = collect($blog->posts())
-            ->reject(fn (array $post) => (bool) ($post['draft'] ?? false))
+            ->filter(fn (array $post) => $blog->isPublic($post))
             ->map(function (array $post) use ($blog) {
                 $post = $blog->withContent($post);
                 $url = $blog->absoluteUrl($post['slug']);
