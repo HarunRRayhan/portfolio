@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { BarChart3, ExternalLink, FileText, Search } from 'lucide-react';
+import { BarChart3, ChevronLeft, ChevronRight, ExternalLink, FileText, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 interface Post {
@@ -14,6 +14,8 @@ interface Post {
     isScheduled: boolean;
     canSchedule: boolean;
     scheduledForHuman: string | null;
+    calendarDate: string | null;
+    calendarTime: string | null;
     draftPreviewUrl: string | null;
     viewCount: number;
 }
@@ -22,9 +24,147 @@ interface Props {
     stats: { totalPosts: number; publishedPosts: number; draftPosts: number; totalViews: number };
     posts: Post[];
     scheduleTimezone: string;
+    today: string;
 }
 
 type Filter = 'all' | 'published' | 'scheduled' | 'draft';
+
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+function monthParts(date: string): { year: number; month: number } {
+    const [year, month] = date.split('-').map(Number);
+
+    return { year, month: month - 1 };
+}
+
+function dateKey(year: number, month: number, day: number): string {
+    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+function dayLabel(key: string): string {
+    const [year, month, day] = key.split('-').map(Number);
+    const weekday = WEEKDAYS[new Date(Date.UTC(year, month - 1, day)).getUTCDay()];
+
+    return `${weekday}, ${MONTHS[month - 1].slice(0, 3)} ${day}, ${year}`;
+}
+
+function PostCalendar({ posts, timezone, today }: { posts: Post[]; timezone: string; today: string }) {
+    const start = monthParts(today);
+    const [cursor, setCursor] = useState(start);
+    const [selected, setSelected] = useState(today);
+    const byDate = useMemo(() => {
+        const map = new Map<string, Post[]>();
+        posts.forEach((post) => {
+            if (!post.calendarDate) return;
+            map.set(post.calendarDate, [...(map.get(post.calendarDate) ?? []), post]);
+        });
+
+        return map;
+    }, [posts]);
+    const daysInMonth = new Date(Date.UTC(cursor.year, cursor.month + 1, 0)).getUTCDate();
+    const leadingBlankDays = new Date(Date.UTC(cursor.year, cursor.month, 1)).getUTCDay();
+    const cells = [
+        ...Array.from({ length: leadingBlankDays }, () => null),
+        ...Array.from({ length: daysInMonth }, (_, index) => index + 1),
+    ];
+    const selectedPosts = byDate.get(selected) ?? [];
+    const viewingToday = cursor.year === start.year && cursor.month === start.month;
+
+    function shiftMonth(delta: number) {
+        const next = new Date(Date.UTC(cursor.year, cursor.month + delta, 1));
+        const year = next.getUTCFullYear();
+        const month = next.getUTCMonth();
+        setCursor({ year, month });
+        setSelected(year === start.year && month === start.month ? today : dateKey(year, month, 1));
+    }
+
+    return (
+        <section id="calendar" className="overflow-hidden rounded-lg border bg-background" aria-labelledby="post-calendar-heading">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b p-4">
+                <div>
+                    <h2 id="post-calendar-heading" className="text-lg font-semibold text-foreground">Calendar</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">Published posts and scheduled drafts, in {timezone}.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <button type="button" onClick={() => shiftMonth(-1)} aria-label="Previous month"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-md border text-foreground hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+                        <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <p className="min-w-36 text-center text-sm font-medium text-foreground">{MONTHS[cursor.month]} {cursor.year}</p>
+                    <button type="button" onClick={() => shiftMonth(1)} aria-label="Next month"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-md border text-foreground hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+                        <ChevronRight className="h-4 w-4" />
+                    </button>
+                    {!viewingToday && (
+                        <button type="button" onClick={() => { setCursor(start); setSelected(today); }}
+                            className="rounded-md border px-2 py-1 text-sm font-medium text-foreground hover:bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+                            Today
+                        </button>
+                    )}
+                </div>
+            </div>
+            <div className="flex gap-4 px-4 pt-3 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-emerald-500" />Published</span>
+                <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-sky-500" />Scheduled</span>
+            </div>
+            <div className="grid grid-cols-7 gap-px bg-border p-px" role="grid" aria-label={`${MONTHS[cursor.month]} ${cursor.year}`}>
+                {WEEKDAYS.map((day) => (
+                    <div key={day} className="bg-background px-1 py-2 text-center text-[11px] font-medium text-muted-foreground">{day}</div>
+                ))}
+                {cells.map((day, index) => {
+                    if (day === null) {
+                        return <div key={`blank-${index}`} className="min-h-14 bg-muted/30 sm:min-h-20" />;
+                    }
+                    const key = dateKey(cursor.year, cursor.month, day);
+                    const dayPosts = byDate.get(key) ?? [];
+                    const isSelected = key === selected;
+                    const isToday = key === today;
+
+                    return (
+                        <button key={key} type="button" role="gridcell" aria-pressed={isSelected} aria-label={`${MONTHS[cursor.month]} ${day}, ${dayPosts.length} ${dayPosts.length === 1 ? 'post' : 'posts'}`}
+                            onClick={() => setSelected(key)}
+                            className={'min-h-14 bg-background p-1 text-left hover:bg-muted/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary sm:min-h-20 sm:p-1.5 ' + (isSelected ? 'ring-2 ring-inset ring-primary' : '')}>
+                            <span className={'inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-medium ' + (isToday ? 'bg-primary text-primary-foreground' : 'text-foreground')}>{day}</span>
+                            <span className="mt-1 flex gap-1 sm:hidden" aria-hidden="true">
+                                {dayPosts.some((post) => !post.isScheduled) && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />}
+                                {dayPosts.some((post) => post.isScheduled) && <span className="h-1.5 w-1.5 rounded-full bg-sky-500" />}
+                            </span>
+                            <span className="mt-1 hidden space-y-0.5 sm:block">
+                                {dayPosts.slice(0, 2).map((post) => (
+                                    <span key={post.slug} className={'block truncate rounded px-1 text-[10px] leading-4 ' + (post.isScheduled ? 'bg-sky-100 text-sky-900 dark:bg-sky-950 dark:text-sky-200' : 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200')}>
+                                        {post.title}
+                                    </span>
+                                ))}
+                                {dayPosts.length > 2 && <span className="block px-1 text-[10px] text-muted-foreground">+{dayPosts.length - 2}</span>}
+                            </span>
+                        </button>
+                    );
+                })}
+            </div>
+            <div className="border-t p-4">
+                <h3 className="text-sm font-semibold text-foreground">{dayLabel(selected)}</h3>
+                {selectedPosts.length ? (
+                    <ul className="mt-2 divide-y">
+                        {selectedPosts.map((post) => (
+                            <li key={post.slug} className="flex items-start justify-between gap-3 py-2">
+                                <div className="min-w-0">
+                                    <p className="truncate text-sm font-medium text-foreground">{post.title}</p>
+                                    <p className="text-xs text-muted-foreground">{post.calendarTime} · {post.isScheduled ? 'Scheduled' : 'Published'}</p>
+                                </div>
+                                <span className={'shrink-0 rounded px-1.5 py-0.5 text-xs font-medium ' + (post.isScheduled ? 'bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300')}>
+                                    {post.isScheduled ? 'Scheduled' : 'Published'}
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p className="mt-2 text-sm text-muted-foreground">Nothing published or scheduled on this day.</p>
+                )}
+            </div>
+        </section>
+    );
+}
 
 function ScheduleForm({ slug, timezone, scheduled }: { slug: string; timezone: string; scheduled: boolean }) {
     const form = useForm({ publish_at: '' });
@@ -59,7 +199,7 @@ function ScheduleForm({ slug, timezone, scheduled }: { slug: string; timezone: s
     );
 }
 
-export default function PostsIndex({ stats, posts, scheduleTimezone }: Props) {
+export default function PostsIndex({ stats, posts, scheduleTimezone, today }: Props) {
     const [filter, setFilter] = useState<Filter>('all');
     const [query, setQuery] = useState('');
     const visiblePosts = useMemo(() => posts.filter((post) => {
@@ -98,6 +238,8 @@ export default function PostsIndex({ stats, posts, scheduleTimezone }: Props) {
                         </div>
                     ))}
                 </div>
+
+                <PostCalendar posts={posts} timezone={scheduleTimezone} today={today} />
 
                 <div className="overflow-hidden rounded-lg border bg-background">
                     <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between">
