@@ -1,11 +1,11 @@
 ---
-title: "18 Load Balancer Algorithms You Should Know Cold"
+title: "8 Load Balancer Algorithms You Should Know Cold"
 slug: "eight-load-balancer-algorithms"
-brief: "18 ways a balancer picks the next server. Each one has its own picture, under the section that explains it."
+brief: "8 ways a balancer picks the next server. Each one has its own picture, under the section that explains it."
 publishedAt: "2099-06-01T18:00:00.000Z"
 draft: true
 draftToken: "0244a19b63b72390aea9abe4216731d1"
-readTimeInMinutes: 16
+readTimeInMinutes: 11
 coverImageUrl: "/blog-assets/eight-load-balancer-algorithms/cover.jpg"
 reactionCount: 0
 responseCount: 0
@@ -21,7 +21,7 @@ tags:
 
 <p>The algorithm was doing what it was told. I had just never watched the requests land.</p>
 
-<p>There are 18 of them below. Each one gets its own figure. Press play and the requests walk in. Next and Previous move one step. Send one more adds a single request on top of the step you are on. Speed changes how fast the walk moves.</p>
+<p>There are 8 below. Each one gets its own figure. Press play and the requests walk in. Next and Previous move one step. Send one more adds a single request on top of the step you are on. Speed changes how fast the walk moves.</p>
 
 <h2>1. Round robin</h2>
 
@@ -86,86 +86,6 @@ tags:
 <div data-blog-activity="load-balancer" data-algorithm="power-of-two"></div>
 
 <p>Plain random is the version that does not take the second look. Power of two is the one worth remembering. Envoy and a lot of service meshes use a form of it. You will not find a radio button with this name on an Application Load Balancer.</p>
-
-<h2>9. Random</h2>
-
-<p>Skip the memory. Each request is a new draw, so 3 requests in a row can hit the same box. nginx calls this <code>random</code>. I only use it when every request is cheap and the same size.</p>
-
-<div data-blog-activity="load-balancer" data-algorithm="random"></div>
-
-<p>The clumps are the feature. If a clump would hurt, you wanted number 8, not this.</p>
-
-<h2>10. Weighted random</h2>
-
-<p>Same idea, with the sizes put back in. A weight of 5 against two weights of 1 means A should see about 5 of every 7 requests, but not on a fixed lap.</p>
-
-<div data-blog-activity="load-balancer" data-algorithm="weighted-random"></div>
-
-<p>nginx is <code>random</code> plus <code>weight</code> on the server. B can win twice in a row. Number 2 will not do that.</p>
-
-<h2>11. Least bandwidth</h2>
-
-<p>Count bytes, not connections. A 20 MB upload should keep its server out of the rotation longer than 20 calls to <code>/health</code>.</p>
-
-<div data-blog-activity="load-balancer" data-algorithm="least-bandwidth"></div>
-
-<p>Appliance balancers expose this. Stock nginx does not. If you cannot see bytes at the balancer, least connections is the stand-in.</p>
-
-<h2>12. Cookie affinity</h2>
-
-<p>The first request uses whatever algorithm you already picked. The balancer sets a cookie, and the next 10 requests from that browser skip the math and follow it.</p>
-
-<div data-blog-activity="load-balancer" data-algorithm="cookie-affinity"></div>
-
-<p>An Application Load Balancer calls this stickiness on the target group. It keeps one browser on one process. It does not split an office NAT.</p>
-
-<h2>13. Maglev</h2>
-
-<p>Google's balancer builds a lookup table. Key 18 always hits the same slot, and the slot names a server. It is consistent hashing built for a VIP that has to answer quickly.</p>
-
-<div data-blog-activity="load-balancer" data-algorithm="maglev"></div>
-
-<p>When 1 backend out of 100 dies, Maglev moves about 1 percent of the keys. A naive hash of the key moves almost all of them.</p>
-
-<h2>14. Rendezvous hashing</h2>
-
-<p>Also called highest random weight. Each key scores all 3 servers and picks the winner. No ring, no table to rebuild by hand.</p>
-
-<div data-blog-activity="load-balancer" data-algorithm="rendezvous"></div>
-
-<p>Add a 4th server and about 1 key in 4 moves. The other 3 stay. That is why caches like it.</p>
-
-<h2>15. IP and port hash</h2>
-
-<p>Number 6 hashes the address and glues a whole NAT to one box. This one also hashes the source port, so 40 laptops behind 1 public IP can land on 3 servers.</p>
-
-<div data-blog-activity="load-balancer" data-algorithm="ip-port-hash"></div>
-
-<p>A Network Load Balancer flow hash works this way for the life of the connection. <code>ip_hash</code> in nginx does not look at the port.</p>
-
-<h2>16. Priority and failover</h2>
-
-<p>This one does not spread load. The first requests stay on A until A is down or over its cap, then they spill to B.</p>
-
-<div data-blog-activity="load-balancer" data-algorithm="priority-failover"></div>
-
-<p>nginx marks the others <code>backup</code>. HAProxy uses a <code>backup</code> server. I use it for a warm standby, not for a pool.</p>
-
-<h2>17. Header hash</h2>
-
-<p>Hash <code>x-user-id</code>, not the IP. User 18 stays on one server when the phone moves from office wifi to a mobile network. The 40 laptops on the NAT do not share a user id, so they do not share a server.</p>
-
-<div data-blog-activity="load-balancer" data-algorithm="header-hash"></div>
-
-<p>Envoy can hash a header. If the header is missing, every anonymous request becomes 1 hot key. Require the header, or fall through to number 8.</p>
-
-<h2>18. Peak EWMA</h2>
-
-<p>Number 5 can forgive a server after one fast reply. Peak EWMA does not. A spike to 400 ms keeps that server quiet while the 12 ms and 18 ms servers take the next requests.</p>
-
-<div data-blog-activity="load-balancer" data-algorithm="peak-ewma"></div>
-
-<p>Linkerd uses this inside the mesh. The average is exponential, and the peak is what it refuses to forget.</p>
 
 <h2>What I check before I pick one</h2>
 
