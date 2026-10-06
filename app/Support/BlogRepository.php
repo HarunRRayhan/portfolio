@@ -101,14 +101,51 @@ class BlogRepository
      */
     public function related(string $slug, int $limit = 3): array
     {
+        $current = $this->find($slug);
+        $currentTags = $this->tagSlugs($current ?? []);
+
         return collect($this->posts())
             ->reject(fn (array $post) => $post['slug'] === $slug)
             ->reject(fn (array $post) => (bool) ($post['draft'] ?? false))
-            ->sortByDesc('publishedAt')
+            ->sort(function (array $left, array $right) use ($currentTags): int {
+                $overlap = $this->sharedTagCount($right, $currentTags) <=> $this->sharedTagCount($left, $currentTags);
+
+                if ($overlap !== 0) {
+                    return $overlap;
+                }
+
+                return strcmp((string) $right['publishedAt'], (string) $left['publishedAt']);
+            })
             ->take($limit)
             ->map(fn (array $post) => $this->summarizePost($post, useShortShareUrl: false))
             ->values()
             ->all();
+    }
+
+    /**
+     * @param  array<string, mixed>  $post
+     * @return list<string>
+     */
+    private function tagSlugs(array $post): array
+    {
+        return collect($post['tags'] ?? [])
+            ->map(fn (mixed $tag) => is_array($tag) ? (string) ($tag['slug'] ?? '') : '')
+            ->filter(fn (string $slug) => $slug !== '')
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  array<string, mixed>  $post
+     * @param  list<string>  $tags
+     */
+    private function sharedTagCount(array $post, array $tags): int
+    {
+        if ($tags === []) {
+            return 0;
+        }
+
+        return count(array_intersect($this->tagSlugs($post), $tags));
     }
 
     public function previewUrl(string $slug): ?string

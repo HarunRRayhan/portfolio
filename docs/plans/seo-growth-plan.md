@@ -143,6 +143,19 @@ Local verification completed on September 23, 2026. Deployment evidence belongs 
 - More schema, AI-specific markup, or AI text files. Google says its AI search features have no extra technical requirements or special schema; the existing SEO basics still apply.
 - A broad site audit unless Search Console or a crawl error points to a real issue.
 
+## October 6: internal links, separate from the September edits
+
+Readonly Search Console pull on October 6, 2026, property `sc-domain:harun.dev`, scope `webmasters.readonly`, permission `siteOwner`. Finalized web data ends October 3. Working file: ignored `reports/search-console-2026-10-06.json`.
+
+- September 6–October 3: 50 clicks, 5,332 impressions, 0.94% CTR, average position 7.70.
+- August 9–September 5: 79 clicks, 6,782 impressions, 1.16% CTR, average position 11.96.
+- Claude Code/Terraform article, same windows: 14 clicks / 547 impressions / position 6.16, then 25 clicks / 1,128 impressions / position 8.52. URL Inspection on October 6 says submitted and indexed, last crawl October 6 at 03:34:46 UTC, after the September 30 description release.
+- `/services/infrastructure-as-code` still has no impressions in either window. URL Inspection still says crawled but not indexed, last crawl August 29, 2026. That September 28 rewrite has not been recrawled.
+- Sitemap `https://harun.dev/sitemap.xml` last downloaded October 4, 2026, with 0 errors and 0 warnings.
+- Indexed service URLs: devops, security-consulting, database-migration, vibe-scaling, vibe-code-migration. `/bio` and `/hrr` are indexed. `/products`, `/services/cloud-architecture`, and `/services/database-optimization` are discovered but not indexed. `/services/automated-deployment` is unknown to Google. `/services/performance-optimization` is reported not found from a September 13 crawl; a live request on October 6 returned HTTP 200.
+
+The internal-link change (tag-based related posts, one service link on posts, reading links on service pages, and hub cards for Cloud Architecture and Database Optimization) is separate from the September 30 description edit and the September 28 Infrastructure as Code body. Those two page bodies were left as they were. Compare the September windows against data from before this change is crawled. Do not attribute a later crawl of those pages to the September copy edits alone.
+
 ## Research references
 
 - [Google SEO Starter Guide](https://developers.google.com/search/docs/fundamentals/seo-starter-guide): helpful content, clear titles, links, and Search Console; no guaranteed ranking tricks.

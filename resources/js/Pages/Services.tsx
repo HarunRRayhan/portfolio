@@ -1,11 +1,10 @@
 "use client"
 
 import React from "react"
-import {Link} from "@inertiajs/react"
+import {Link, usePage} from "@inertiajs/react"
 import {Button} from "@/Components/ui/button"
 import {ServiceHero} from "@/Components/ServiceHero"
-import {getImageUrl} from "@/lib/imageUtils"
-import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/Components/ui/card/index"
+import {Card, CardDescription, CardFooter, CardHeader, CardTitle} from "@/Components/ui/card/index"
 import {
     ArrowRight,
     Cloud,
@@ -16,7 +15,6 @@ import {
     Zap,
     ArrowRightLeft,
     Brain,
-    Network,
     MonitorSmartphone,
     MessageSquare,
     Grid,
@@ -25,122 +23,31 @@ import {
 } from "lucide-react"
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/Components/ui/accordion"
 
-const services = [
-    {
-        icon: Gauge,
-        group: "shipped",
-        title: "Vibe Scaler",
-        description:
-            "You built it fast with an AI coding tool and it found users. I scale that app in place so it can take real traffic and payments.",
-        link: "/services/vibe-scaling",
-    },
-    {
-        icon: Replace,
-        group: "shipped",
-        title: "Vibe Code Migration",
-        description:
-            "When that stack can't carry the product any further, I port it to a production language and framework and keep the features.",
-        link: "/services/vibe-code-migration",
-    },
-    {
-        icon: Cloud,
-        group: "aws",
-        title: "Multi-Cloud Architecture",
-        description:
-            "A setup that uses AWS plus Azure or Google Cloud, when one provider isn't the whole answer.",
-        link: "/services/multi-cloud-architecture",
-    },
-    {
-        icon: Cloud,
-        group: "aws",
-        title: "AWS Cloud",
-        description: "Accounts, networking, compute, and the managed services around them.",
-        link: "/services/aws-cloud",
-    },
-    {
-        icon: Code,
-        group: "release",
-        title: "DevOps",
-        description: "CI, infrastructure as code, and a release path the team can run without me in the room.",
-        link: "/services/devops",
-    },
-    {
-        icon: Server,
-        group: "release",
-        title: "Infrastructure as Code",
-        description: "Terraform and AWS CDK so the infrastructure is reviewed like application code.",
-        link: "/services/infrastructure-as-code",
-    },
-    {
-        icon: Cloud,
-        group: "release",
-        title: "Serverless Infrastructure",
-        description: "Lambda, queues, and the rest of a serverless setup when you want less to patch.",
-        link: "/services/serverless-infrastructure",
-    },
-    {
-        icon: Zap,
-        group: "release",
-        title: "Automated Deployment (CI/CD)",
-        description: "Pipelines that build, test, and ship without a checklist in someone's head.",
-        link: "/services/automated-deployment",
-    },
-    {
-        icon: Lock,
-        group: "aws",
-        title: "Security Consulting",
-        description: "IAM, network boundaries, encryption, and the logging that shows what happened.",
-        link: "/services/security-consulting",
-    },
-    {
-        icon: Zap,
-        group: "aws",
-        title: "Performance Optimization",
-        description: "Find the slow path, fix that, and stop paying for capacity you don't need.",
-        link: "/services/performance-optimization",
-    },
-    {
-        icon: ArrowRightLeft,
-        group: "aws",
-        title: "Infrastructure Migration",
-        description: "Move the platform with a plan for downtime, data, and the first week after cutover.",
-        link: "/services/infrastructure-migration",
-    },
-    {
-        icon: Brain,
-        group: "release",
-        title: "MLOps (AI/ML Infrastructure)",
-        description: "The infrastructure around training and serving models, from the notebook to production.",
-        link: "/services/mlops",
-    },
-    {
-        icon: Database,
-        group: "aws",
-        title: "Database Migration",
-        description: "Move the database and check the data on both sides before anything goes live.",
-        link: "/services/database-migration",
-    },
-    // {
-    //     icon: Network,
-    //     title: "Network Optimization",
-    //     description: "Enhance your network infrastructure for improved performance, security, and reliability.",
-    //     link: "/services/network-optimization",
-    // },
-    {
-        icon: MonitorSmartphone,
-        group: "aws",
-        title: "Monitoring and Observability",
-        description: "Metrics, logs, and traces so you hear about a failure before your users do.",
-        link: "/services/monitoring-observability",
-    },
-    // {
-    //     icon: Database,
-    //     title: "Database Optimization",
-    //     description:
-    //         "Optimize your database performance, security, and scalability for improved application responsiveness.",
-    //     link: "/services/database-optimization",
-    // },
-]
+const serviceIcons = {
+    "/services/vibe-scaling": Gauge,
+    "/services/vibe-code-migration": Replace,
+    "/services/cloud-architecture": Cloud,
+    "/services/multi-cloud-architecture": Cloud,
+    "/services/aws-cloud": Cloud,
+    "/services/devops": Code,
+    "/services/infrastructure-as-code": Server,
+    "/services/serverless-infrastructure": Cloud,
+    "/services/automated-deployment": Zap,
+    "/services/security-consulting": Lock,
+    "/services/performance-optimization": Zap,
+    "/services/infrastructure-migration": ArrowRightLeft,
+    "/services/mlops": Brain,
+    "/services/database-migration": Database,
+    "/services/database-optimization": Database,
+    "/services/monitoring-observability": MonitorSmartphone,
+}
+
+type ServiceIndexCard = {
+    title: string
+    path: string
+    description: string
+    group: string
+}
 
 const serviceGroups = [
     {
@@ -193,7 +100,9 @@ const faqs = [
     },
 ]
 
-export default function ServicesPage({ canonicalUrl }: { canonicalUrl?: string }) {
+export default function ServicesPage() {
+    const { serviceIndex = [] } = usePage().props as { serviceIndex?: ServiceIndexCard[] }
+
     return (
         <>
             <main className="flex flex-col min-h-screen">
@@ -211,18 +120,21 @@ export default function ServicesPage({ canonicalUrl }: { canonicalUrl?: string }
                                 <h2 className="text-2xl font-semibold tracking-tight text-slate-950 md:text-3xl">{group.title}</h2>
                                 <p className="mt-2 max-w-2xl text-slate-600">{group.lede}</p>
                                 <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                    {services.filter((service) => service.group === group.id).map((service) => (
-                                        <Card key={service.link} className="flex flex-col">
+                                    {serviceIndex.filter((service) => service.group === group.id).map((service) => {
+                                        const Icon = serviceIcons[service.path as keyof typeof serviceIcons] ?? Cloud
+
+                                        return (
+                                        <Card key={service.path} className="flex flex-col">
                                             <CardHeader>
                                                 <div
                                                     className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center mb-4">
-                                                    <service.icon className="w-6 h-6 text-slate-700"/>
+                                                    <Icon className="w-6 h-6 text-slate-700"/>
                                                 </div>
                                                 <CardTitle>{service.title}</CardTitle>
                                                 <CardDescription>{service.description}</CardDescription>
                                             </CardHeader>
                                             <CardFooter className="mt-auto">
-                                                <Link href={service.link}>
+                                                <Link href={service.path}>
                                                     <Button variant="outline" className="w-full">
                                                         Read more
                                                         <ArrowRight className="w-4 h-4 ml-2"/>
@@ -230,7 +142,8 @@ export default function ServicesPage({ canonicalUrl }: { canonicalUrl?: string }
                                                 </Link>
                                             </CardFooter>
                                         </Card>
-                                    ))}
+                                        )
+                                    })}
                                 </div>
                             </div>
                         ))}
