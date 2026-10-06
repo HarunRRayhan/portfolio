@@ -3,6 +3,7 @@ import { Menubar } from '@/Components/Menubar'
 import { Footer } from '@/Components/Footer'
 import { ErrorBoundary } from '@/Components/ErrorBoundary'
 import { ServicePageCaseStudies } from '@/Components/ServicePageCaseStudies'
+import { ServicePageReading } from '@/Components/ServicePageReading'
 import { SeoHead } from '@/Components/SeoHead'
 
 interface PublicLayoutProps {
@@ -26,6 +27,9 @@ export default function PublicLayout({
       <main>
         <ErrorBoundary>{children}</ErrorBoundary>
       </main>
+      <ErrorBoundary>
+        <ServicePageReading />
+      </ErrorBoundary>
       <ErrorBoundary>
         <ServicePageCaseStudies />
       </ErrorBoundary>

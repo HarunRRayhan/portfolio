@@ -64,6 +64,10 @@ interface BlogPostPageProps {
   }
   post: BlogPost
   relatedPosts: BlogPostSummary[]
+  relatedService?: {
+    title: string
+    url: string
+  } | null
   canonicalUrl: string
   siteUrl: string
   commentCount: number
@@ -234,6 +238,7 @@ function enhanceTables(root: HTMLElement) {
 export default function BlogPostPage({
   post,
   relatedPosts,
+  relatedService = null,
   canonicalUrl,
   siteUrl,
   commentCount,
@@ -388,6 +393,18 @@ export default function BlogPostPage({
               </div>
             </article>
           </section>
+
+          {relatedService ? (
+            <section className="mx-auto max-w-3xl px-4 py-4 sm:px-6">
+              <p className="text-lg leading-8 text-slate-700">
+                If you want this done on your account, see{' '}
+                <Link href={relatedService.url} className="font-semibold text-slate-950 underline underline-offset-4">
+                  {relatedService.title}
+                </Link>
+                .
+              </p>
+            </section>
+          ) : null}
 
           <section className="mx-auto max-w-3xl px-4 py-4 sm:px-6">
             <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
