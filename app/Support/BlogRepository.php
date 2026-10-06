@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\BlogPostSchedule;
 use App\Models\ShortLink;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -11,6 +12,8 @@ use Symfony\Component\Yaml\Yaml;
 
 class BlogRepository
 {
+    public const SCHEDULE_TIMEZONE = 'Asia/Dhaka';
+
     private const CONTENT_DIR = 'blog/posts';
 
     private const PUBLICATION_PATH = 'blog/publication.yml';
@@ -48,6 +51,11 @@ class BlogRepository
     private ?BlogCoverImages $coverImages = null;
 
     /**
+     * @var array<string, BlogPostSchedule>|null
+     */
+    private ?array $schedules = null;
+
+    /**
      * @return array<string, mixed>
      */
     public function publication(): array
@@ -71,7 +79,7 @@ class BlogRepository
     public function indexPosts(): array
     {
         $posts = collect($this->posts())
-            ->reject(fn (array $post) => (bool) ($post['draft'] ?? false))
+            ->filter(fn (array $post) => $this->isPublic($post))
             ->values();
 
         $viewCounts = $this->viewCountsBySlug(
@@ -106,7 +114,7 @@ class BlogRepository
 
         return collect($this->posts())
             ->reject(fn (array $post) => $post['slug'] === $slug)
-            ->reject(fn (array $post) => (bool) ($post['draft'] ?? false))
+            ->filter(fn (array $post) => $this->isPublic($post))
             ->sort(function (array $left, array $right) use ($currentTags): int {
                 $overlap = $this->sharedTagCount($right, $currentTags) <=> $this->sharedTagCount($left, $currentTags);
 
@@ -166,6 +174,62 @@ class BlogRepository
     }
 
     /**
+     * A file draft stays off the public site until its schedule (or the file
+     * date, when nobody has scheduled it) has arrived. The live app and the
+     * scheduler do not share a disk, so going live cannot depend on rewriting
+     * the markdown.
+     *
+     * @param  array<string, mixed>  $post
+     */
+    public function isPublic(array $post): bool
+    {
+        if (! (bool) ($post['draft'] ?? false)) {
+            return true;
+        }
+
+        return $this->effectivePublishedAt($post)->lessThanOrEqualTo(Carbon::now());
+    }
+
+    /**
+     * @param  array<string, mixed>  $post
+     */
+    public function isScheduled(array $post): bool
+    {
+        if (! (bool) ($post['draft'] ?? false) || $this->isPublic($post)) {
+            return false;
+        }
+
+        return $this->scheduleFor((string) ($post['slug'] ?? '')) !== null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $post
+     */
+    public function effectivePublishedAt(array $post): Carbon
+    {
+        $schedule = $this->scheduleFor((string) ($post['slug'] ?? ''));
+
+        if ($schedule !== null) {
+            return $schedule->publish_at->copy();
+        }
+
+        return Carbon::parse((string) $post['publishedAt']);
+    }
+
+    private function scheduleFor(string $slug): ?BlogPostSchedule
+    {
+        if ($slug === '') {
+            return null;
+        }
+
+        if ($this->schedules === null) {
+            $this->schedules = BlogPostSchedule::query()->get()->keyBy('slug')->all();
+        }
+
+        return $this->schedules[$slug] ?? null;
+    }
+
+    /**
      * Attach HTML (and plain-text) body from the on-disk markdown file.
      * Index/list paths never call this, so the shared DB cache stays small.
      *
@@ -220,15 +284,19 @@ class BlogRepository
     public function summarizePost(array $post, ?int $viewCount = null, bool $useShortShareUrl = true): array
     {
         $absoluteUrl = $this->absoluteUrl($post['slug']);
+        $publishedAt = $this->effectivePublishedAt($post);
+        $fileDraft = (bool) ($post['draft'] ?? false);
+        $public = $this->isPublic($post);
+        $fromSchedule = $this->scheduleFor((string) $post['slug']) !== null;
 
         return [
             'title' => $post['title'],
             'slug' => $post['slug'],
             'brief' => $post['brief'],
-            'publishedAt' => $post['publishedAt'],
-            'publishedAtHuman' => Carbon::parse($post['publishedAt'])->format('M j, Y'),
-            'publishedAtIso' => Carbon::parse($post['publishedAt'])->toAtomString(),
-            'lastModifiedAtIso' => ContentDates::lastModified($post['publishedAt'], $post['updatedAt'] ?? null),
+            'publishedAt' => $publishedAt->toIso8601String(),
+            'publishedAtHuman' => ($fromSchedule ? $publishedAt->copy()->timezone(self::SCHEDULE_TIMEZONE) : Carbon::parse((string) $post['publishedAt']))->format('M j, Y'),
+            'publishedAtIso' => $publishedAt->toAtomString(),
+            'lastModifiedAtIso' => ContentDates::lastModified($publishedAt->toIso8601String(), $post['updatedAt'] ?? null),
             'readTimeInMinutes' => $post['readTimeInMinutes'],
             'readTimeLabel' => $post['readTimeInMinutes'].' min read',
             'reactionCount' => $post['reactionCount'],
@@ -249,8 +317,13 @@ class BlogRepository
                     return 0;
                 }
             }),
-            'isDraft' => (bool) ($post['draft'] ?? false),
-            'draftPreviewUrl' => $this->previewUrl($post['slug']),
+            'isDraft' => $fileDraft && ! $public,
+            'isScheduled' => $this->isScheduled($post),
+            'canSchedule' => $fileDraft && ! $public,
+            'scheduledForHuman' => $this->isScheduled($post)
+                ? $publishedAt->copy()->timezone(self::SCHEDULE_TIMEZONE)->format('D, M j, Y g:i A')
+                : null,
+            'draftPreviewUrl' => ($fileDraft && ! $public) ? $this->previewUrl($post['slug']) : null,
             'tags' => collect($post['tags'] ?? [])
                 ->map(fn (array $tag) => [
                     'name' => $tag['name'],

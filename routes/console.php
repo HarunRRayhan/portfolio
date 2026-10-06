@@ -150,6 +150,11 @@ Schedule::command('consultations:retry-stripe-webhooks')
     ->withoutOverlapping()
     ->onOneServer();
 
+Schedule::command('blog:publish-scheduled')
+    ->everyMinute()
+    ->withoutOverlapping()
+    ->onOneServer();
+
 Schedule::command('newsletter:send-weekly')
     ->weeklyOn(config('newsletter.schedule.day'), config('newsletter.schedule.time'))
     ->timezone(config('newsletter.schedule.timezone'))

@@ -163,7 +163,7 @@ final class ContentLinks
             ->map(function (string $slug) use ($blog): ?array {
                 $post = $blog->find($slug);
 
-                if ($post === null || (bool) ($post['draft'] ?? false)) {
+                if ($post === null || ! $blog->isPublic($post)) {
                     return null;
                 }
 
