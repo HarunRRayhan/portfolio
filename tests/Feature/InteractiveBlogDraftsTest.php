@@ -31,7 +31,7 @@ class InteractiveBlogDraftsTest extends TestCase
             );
 
             if ($slug === 'eight-load-balancer-algorithms') {
-                $this->assertSame('8 Load Balancer Algorithms You Should Know Cold', $post['title']);
+                $this->assertSame('Top 8 Load Balancer Algorithms You Should Know About', $post['title']);
                 foreach ([
                     'round-robin',
                     'weighted-round-robin',

@@ -1,5 +1,5 @@
 ---
-title: "8 Load Balancer Algorithms You Should Know Cold"
+title: "Top 8 Load Balancer Algorithms You Should Know About"
 slug: "eight-load-balancer-algorithms"
 brief: "8 ways a balancer picks the next server. Each one has its own picture, under the section that explains it."
 publishedAt: "2099-06-01T18:00:00.000Z"
