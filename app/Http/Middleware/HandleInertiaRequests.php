@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Subscriber;
 use App\Support\CaseStudyRepository;
+use App\Support\ContentLinks;
 use App\Support\SeoCatalog;
 use App\Support\SeoMeta;
 use Illuminate\Http\Request;
@@ -46,6 +47,9 @@ class HandleInertiaRequests extends Middleware
             ],
             'caseStudiesByService' => fn () => $request->is('services/*')
                 ? array_intersect_key($caseStudies->groupedByServiceSlug(), [$request->segment(2) => true])
+                : [],
+            'serviceReading' => fn () => $request->is('services/*')
+                ? ContentLinks::readingForService((string) $request->segment(2))
                 : [],
             'featuredCaseStudies' => fn () => $request->is('/') ? $caseStudies->featured(3) : [],
             'newsletter' => [

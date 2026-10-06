@@ -29,6 +29,7 @@ use App\Services\Sponsorship\SponsorCheckoutService;
 use App\Support\AiCrawlerPolicy;
 use App\Support\BlogRepository;
 use App\Support\CaseStudyRepository;
+use App\Support\ContentLinks;
 use App\Support\LlmSiteIndex;
 use App\Support\MediaEmbeds;
 use App\Support\PublicSitemap;
@@ -447,7 +448,9 @@ Route::get('/products', function () {
 })->name('products');
 
 Route::get('/services', function () {
-    return Inertia::render('Services');
+    return Inertia::render('Services', [
+        'serviceIndex' => SiteCatalog::serviceIndex(),
+    ]);
 })->name('services');
 
 Route::get('/services/cloud-architecture', function () {
@@ -902,6 +905,7 @@ Route::get('/blog/{slug}/draft/{previewToken}', function (Request $request, stri
         'publication' => $blog->publication(),
         'post' => $payload,
         'relatedPosts' => $blog->related($slug, 3),
+        'relatedService' => ContentLinks::forPost($post),
         'canonicalUrl' => $canonicalUrl,
         'siteUrl' => rtrim(request()->root(), '/'),
         'commentCount' => 0,
@@ -994,6 +998,7 @@ Route::get('/blog/{slug}', function (Request $request, string $slug) {
         'publication' => $blog->publication(),
         'post' => $payload,
         'relatedPosts' => $blog->related($slug, 3),
+        'relatedService' => ContentLinks::forPost($post),
         'canonicalUrl' => $canonicalUrl,
         'siteUrl' => rtrim(request()->root(), '/'),
         'commentCount' => $commentCount,

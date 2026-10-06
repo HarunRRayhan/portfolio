@@ -106,6 +106,58 @@ final class SiteCatalog
         return $paths;
     }
 
+    /**
+     * Cards on /services, in hub order. Every catalog service is included.
+     *
+     * @return list<array{title: string, path: string, description: string, group: string}>
+     */
+    public static function serviceIndex(): array
+    {
+        $byPath = [];
+
+        foreach (self::services() as $row) {
+            $byPath[$row[1]] = $row;
+        }
+
+        $order = [
+            '/services/vibe-scaling' => 'shipped',
+            '/services/vibe-code-migration' => 'shipped',
+            '/services/cloud-architecture' => 'aws',
+            '/services/multi-cloud-architecture' => 'aws',
+            '/services/aws-cloud' => 'aws',
+            '/services/security-consulting' => 'aws',
+            '/services/performance-optimization' => 'aws',
+            '/services/infrastructure-migration' => 'aws',
+            '/services/database-migration' => 'aws',
+            '/services/database-optimization' => 'aws',
+            '/services/monitoring-observability' => 'aws',
+            '/services/devops' => 'release',
+            '/services/infrastructure-as-code' => 'release',
+            '/services/serverless-infrastructure' => 'release',
+            '/services/automated-deployment' => 'release',
+            '/services/mlops' => 'release',
+        ];
+
+        $index = [];
+
+        foreach ($order as $path => $group) {
+            $row = $byPath[$path] ?? null;
+
+            if ($row === null) {
+                throw new \RuntimeException("Missing service catalog row for {$path}");
+            }
+
+            $index[] = [
+                'title' => $row[0],
+                'path' => $row[1],
+                'description' => $row[2],
+                'group' => $group,
+            ];
+        }
+
+        return $index;
+    }
+
     public static function llmsLinkSections(?string $siteUrl = null): string
     {
         $siteUrl ??= self::siteUrl();
