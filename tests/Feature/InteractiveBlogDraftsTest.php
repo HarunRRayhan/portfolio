@@ -31,7 +31,7 @@ class InteractiveBlogDraftsTest extends TestCase
             );
 
             if ($slug === 'eight-load-balancer-algorithms') {
-                $this->assertSame('18 Load Balancer Algorithms You Should Know Cold', $post['title']);
+                $this->assertSame('8 Load Balancer Algorithms You Should Know Cold', $post['title']);
                 foreach ([
                     'round-robin',
                     'weighted-round-robin',
@@ -41,16 +41,6 @@ class InteractiveBlogDraftsTest extends TestCase
                     'ip-hash',
                     'consistent-hash',
                     'power-of-two',
-                    'random',
-                    'weighted-random',
-                    'least-bandwidth',
-                    'cookie-affinity',
-                    'maglev',
-                    'rendezvous',
-                    'ip-port-hash',
-                    'priority-failover',
-                    'header-hash',
-                    'peak-ewma',
                 ] as $algorithm) {
                     $this->assertStringContainsString('data-algorithm="'.$algorithm.'"', $hydrated['content']['html']);
                 }

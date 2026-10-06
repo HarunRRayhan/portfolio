@@ -223,187 +223,12 @@ const ALGORITHMS: Record<string, Algorithm> = {
       },
     ],
   },
-  random: {
-    id: 'random',
-    title: 'Random',
-    serverNotes: ['', '', ''],
-    legend: 'requests',
-    phases: [
-      { id: 'draw', title: 'Each request is a fresh draw', caption: 'Nothing remembers request 1. Request 2 can land on the same server.', durationMs: 2800 },
-      { id: 'clump', title: 'Clumps are normal', caption: 'Three in a row on one box is not a bug. It is what random looks like at a small count.', durationMs: 2800 },
-      { id: 'full', title: 'Fine only when the work is identical', caption: 'nginx calls this random. It is the version power of two improves on.', durationMs: 3200 },
-    ],
-  },
-  'weighted-random': {
-    id: 'weighted-random',
-    title: 'Weighted random',
-    serverNotes: ['weight 5', 'weight 1', 'weight 1'],
-    legend: 'requests',
-    phases: [
-      { id: 'bias', title: 'A is five times more likely', caption: 'The next request is a draw, not the next seat in a lap.', durationMs: 2800 },
-      { id: 'skip', title: 'A light server can win twice', caption: 'B can show up back to back. Weighted round robin would not allow that.', durationMs: 2800 },
-      { id: 'full', title: 'The ratio shows up over time', caption: 'nginx writes this as random, plus a weight on the upstream server.', durationMs: 3200 },
-    ],
-  },
-  'least-bandwidth': {
-    id: 'least-bandwidth',
-    title: 'Least bandwidth',
-    serverNotes: ['', '', ''],
-    legend: 'requests',
-    phases: [
-      { id: 'bytes', title: 'Bytes, not connection count', caption: 'A 5 MB upload counts more than five tiny health checks.', durationMs: 3000 },
-      { id: 'hold', title: 'The heavy transfer keeps its server quiet', caption: 'New small requests go to the servers that have moved fewer bytes.', durationMs: 3000 },
-      { id: 'full', title: 'Use it when request size varies', caption: 'You meet this on appliance balancers. nginx does not ship it as a directive.', durationMs: 3200 },
-    ],
-  },
-  'cookie-affinity': {
-    id: 'cookie-affinity',
-    title: 'Cookie affinity',
-    serverNotes: ['', '', ''],
-    legend: 'clients',
-    phases: [
-      { id: 'first', title: 'The first request can land anywhere', caption: 'Client A starts on server A. Client B starts on server B.', durationMs: 2800 },
-      { id: 'stick', title: 'The cookie brings them back', caption: 'Later requests from the same browser skip the algorithm and follow the cookie.', durationMs: 2800 },
-      { id: 'full', title: 'A new browser is a new draw', caption: 'An Application Load Balancer calls this target group stickiness.', durationMs: 3200 },
-    ],
-  },
-  maglev: {
-    id: 'maglev',
-    title: 'Maglev',
-    serverNotes: ['', '', ''],
-    legend: 'keys',
-    phases: [
-      { id: 'table', title: 'A lookup table, not a walk around a ring', caption: 'Each key maps to one slot. The slot names a server.', durationMs: 2800 },
-      { id: 'stable', title: 'The same key stays', caption: 'A repeat does not move. That is the point of a connection table in front of a VIP.', durationMs: 2800 },
-      { id: 'full', title: 'Google uses this in front of a lot of traffic', caption: 'When one backend dies, Maglev moves fewer keys than a naive hash.', durationMs: 3200 },
-    ],
-  },
-  rendezvous: {
-    id: 'rendezvous',
-    title: 'Rendezvous hashing',
-    serverNotes: ['', '', ''],
-    legend: 'keys',
-    phases: [
-      { id: 'score', title: 'Every key scores every server', caption: 'The highest score wins. There is no ring to walk.', durationMs: 2800 },
-      { id: 'stay', title: 'The winner stays the winner', caption: 'Key A keeps picking server C until the set of servers changes.', durationMs: 2800 },
-      { id: 'full', title: 'Adding a node moves about one share', caption: 'Also called highest random weight. Caches use it so one new box does not reshuffle the fleet.', durationMs: 3200 },
-    ],
-  },
-  'ip-port-hash': {
-    id: 'ip-port-hash',
-    title: 'IP and port hash',
-    serverNotes: ['', '', ''],
-    legend: 'requests',
-    phases: [
-      { id: 'ports', title: 'Same office, different source ports', caption: 'One public IP no longer glues every laptop to one box.', durationMs: 2800 },
-      { id: 'spread', title: 'The NAT spreads out', caption: 'Each flow hashes on the port as well as the address.', durationMs: 2800 },
-      { id: 'full', title: 'This is a flow hash', caption: 'A Network Load Balancer does this for the life of the connection. nginx ip_hash does not.', durationMs: 3200 },
-    ],
-  },
-  'priority-failover': {
-    id: 'priority-failover',
-    title: 'Priority and failover',
-    serverNotes: ['primary', 'backup', 'backup'],
-    legend: 'requests',
-    phases: [
-      { id: 'primary', title: 'Everything starts on A', caption: 'B and C are idle on purpose. They are the backup, not the pool.', durationMs: 2800 },
-      { id: 'spill', title: 'A fills, then work spills', caption: 'Once the primary is marked down or over its limit, B takes the next request.', durationMs: 2800 },
-      { id: 'full', title: 'nginx calls the others backup', caption: 'HAProxy does the same with a backup server line. This is not load spreading.', durationMs: 3200 },
-    ],
-  },
-  'header-hash': {
-    id: 'header-hash',
-    title: 'Header hash',
-    serverNotes: ['', '', ''],
-    legend: 'keys',
-    phases: [
-      { id: 'user', title: 'Hash the user, not the IP', caption: 'x-user-id 18 stays on one server even when the laptop changes networks.', durationMs: 2800 },
-      { id: 'repeat', title: 'The same header comes back', caption: 'A NAT full of people does not collapse, because they do not share a user id.', durationMs: 2800 },
-      { id: 'full', title: 'Envoy hashes a header', caption: 'Pick a header the client cannot omit, or the empty value becomes its own hot key.', durationMs: 3200 },
-    ],
-  },
-  'peak-ewma': {
-    id: 'peak-ewma',
-    title: 'Peak EWMA',
-    serverNotes: ['spiked', '12 ms', '18 ms'],
-    legend: 'requests',
-    phases: [
-      { id: 'spike', title: 'A just got slow', caption: 'The moving average remembers the spike. A stays out even after one fast response.', durationMs: 3000 },
-      { id: 'others', title: 'B and C take the work', caption: '12 ms and 18 ms both beat a server whose recent peak is still high.', durationMs: 3000 },
-      { id: 'full', title: 'Linkerd uses this', caption: 'It is least response time with a memory. One slow sample weighs more than one fast sample.', durationMs: 3200 },
-    ],
-  },
 }
 
 const PHASE_COUNTS = [3, 6, 8]
 
-function cycle(pattern: number[], count: number): number[] {
-  return Array.from({ length: count }, (_, index) => pattern[index % pattern.length])
-}
-
 function assign(algorithm: string, count: number): number[] {
   const placements: number[] = []
-  const patterns: Record<string, number[]> = {
-    random: [0, 2, 2, 1, 0, 2, 1, 0],
-    'weighted-random': [0, 0, 0, 0, 1, 0, 2, 0],
-    'cookie-affinity': [0, 1, 0, 1, 0, 1, 2, 2],
-    maglev: [0, 2, 1, 0, 2, 1],
-    rendezvous: [2, 0, 1, 2, 0, 1],
-    'ip-port-hash': [0, 1, 2, 1, 0, 2],
-    'header-hash': [1, 1, 1, 0, 2, 2],
-  }
-
-  if (patterns[algorithm]) {
-    return cycle(patterns[algorithm], count)
-  }
-
-  if (algorithm === 'least-bandwidth') {
-    const size = [5, 1, 1, 4, 1, 2, 1, 3]
-    const moved = [0, 0, 0]
-
-    for (let index = 0; index < count; index += 1) {
-      let pick = 0
-
-      for (let server = 1; server < 3; server += 1) {
-        if (moved[server] < moved[pick]) {
-          pick = server
-        }
-      }
-
-      placements.push(pick)
-      moved[pick] += size[index % size.length]
-    }
-
-    return placements
-  }
-
-  if (algorithm === 'priority-failover') {
-    for (let index = 0; index < count; index += 1) {
-      placements.push(index < 5 ? 0 : 1)
-    }
-
-    return placements
-  }
-
-  if (algorithm === 'peak-ewma') {
-    const latency = [80, 12, 18]
-    const active = [0, 0, 0]
-
-    for (let index = 0; index < count; index += 1) {
-      let pick = 0
-
-      for (let server = 1; server < 3; server += 1) {
-        if ((active[server] + 1) * latency[server] < (active[pick] + 1) * latency[pick]) {
-          pick = server
-        }
-      }
-
-      placements.push(pick)
-      active[pick] += 1
-    }
-
-    return placements
-  }
 
   if (algorithm === 'weighted-round-robin') {
     const pattern = [0, 0, 0, 0, 0, 1, 2]
@@ -527,12 +352,8 @@ function dotClass(algorithm: string, index: number, count: number): string {
     return 'bg-amber-500'
   }
 
-  if (algorithm === 'consistent-hash' || algorithm === 'maglev' || algorithm === 'rendezvous' || algorithm === 'header-hash') {
+  if (algorithm === 'consistent-hash') {
     return ['bg-sky-600', 'bg-amber-500', 'bg-emerald-500'][index % 3]
-  }
-
-  if (algorithm === 'cookie-affinity') {
-    return ['bg-sky-600', 'bg-amber-500', 'bg-emerald-500'][index < 6 ? index % 2 : 2]
   }
 
   return 'bg-sky-600'
