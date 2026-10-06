@@ -2,9 +2,11 @@
 
 import { Link } from '@inertiajs/react'
 import { useEffect, useMemo, useRef } from 'react'
+import { mountBlogActivities } from '@/Components/BlogActivities/mountBlogActivities'
 import { BlogDiscussion } from '@/Components/BlogDiscussion'
 import { SubscribeButton } from '@/Components/SubscribeButton'
 import { ShareButton } from '@/Components/ShareButton'
+import { viewCountLabel } from '@/lib/viewCountLabel'
 import { ArrowRight, BookOpen, CalendarDays, ChevronDown, Clock3, Eye, MessageCircle, Share2, Sparkles, Tag } from 'lucide-react'
 
 interface BlogPostTag {
@@ -254,9 +256,12 @@ export default function BlogPostPage({
       return
     }
 
-    void enhanceCodeBlocks(contentRef.current)
-    enhanceTables(contentRef.current)
-    enhanceContentImages(contentRef.current)
+    const root = contentRef.current
+    void enhanceCodeBlocks(root)
+    enhanceTables(root)
+    enhanceContentImages(root)
+
+    return mountBlogActivities(root)
   }, [post.slug, post.contentHtml])
 
   // Track page view
@@ -327,7 +332,7 @@ export default function BlogPostPage({
                   </a>
                   <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 font-medium text-slate-700">
                     <Eye className="h-4 w-4" />
-                    {post.viewCount ?? 0} views
+                    {viewCountLabel(post.viewCount ?? 0)}
                   </span>
                   <ShareButton
                     url={post.shareUrl}
