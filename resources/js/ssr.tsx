@@ -20,8 +20,10 @@ export const renderPage = (page: Page) => createInertiaApp({
     render: renderToString,
     title: (title) => resolveDocumentTitle(title ?? '', import.meta.env.VITE_APP_NAME),
     resolve: (name) => {
-        const component = ({ Homepage, 'Blog/Index': BlogIndex, 'Blog/Post': BlogPost } as Record<string, ComponentType | undefined>)[name]
-            ?? extraPages[`./Pages/${name}.tsx`]?.default;
+        const component = name === 'Homepage' ? Homepage
+            : name === 'Blog/Index' ? BlogIndex
+            : name === 'Blog/Post' ? BlogPost
+            : extraPages[`./Pages/${name}.tsx`]?.default;
         const props = page.props as { post?: { isDraft?: boolean }; auth?: { user?: unknown } };
         if (!component || props.auth?.user || props.post?.isDraft) {
             throw new Error(`SSR is not enabled for ${name}`);
