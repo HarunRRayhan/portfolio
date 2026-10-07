@@ -14,9 +14,9 @@ final class PublicSitemap
         $blog = new BlogRepository;
         $siteUrl = SiteCatalog::siteUrl();
 
-        $staticUrls = collect(SiteCatalog::sitemapStaticPaths())->map(fn (string $path) => [
-            'loc' => $siteUrl.$path,
-        ]);
+        $staticUrls = collect(SiteCatalog::sitemapStaticPaths())->map(
+            fn (string $path) => self::datedEntry($siteUrl.$path, SiteCatalog::sitemapLastModified($path)),
+        );
 
         $blogUrls = collect($blog->indexPosts())->map(fn (array $post) => [
             'loc' => $blog->absoluteUrl($post['slug']),

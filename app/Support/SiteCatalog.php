@@ -76,6 +76,14 @@ final class SiteCatalog
     }
 
     /**
+     * Service hub and service pages were edited after Google's last crawl of
+     * /services (2026-08-22) and its 2026-09-13 fetch of
+     * /services/performance-optimization, which it still stores as a 404.
+     * A fixed date, not a deploy file time: the image stamps every file.
+     */
+    public const SERVICE_PAGES_LASTMOD = '2026-10-06';
+
+    /**
      * Indexable paths for /sitemap.xml. Privacy and terms stay out so they
      * do not compete with commercial pages; they remain in llms Optional.
      *
@@ -104,6 +112,25 @@ final class SiteCatalog
         }
 
         return $paths;
+    }
+
+    /**
+     * Sitemap lastmod for a static path. Null means the URL has no date we
+     * can stand behind, and the sitemap omits the tag.
+     */
+    public static function sitemapLastModified(string $path): ?string
+    {
+        if ($path === '/services') {
+            return self::SERVICE_PAGES_LASTMOD;
+        }
+
+        foreach (self::services() as $service) {
+            if ($service[1] === $path) {
+                return self::SERVICE_PAGES_LASTMOD;
+            }
+        }
+
+        return null;
     }
 
     /**
