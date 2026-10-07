@@ -394,17 +394,30 @@ function IconButton({
   )
 }
 
+function Packet({ duration }: { duration: number }) {
+  return (
+    <motion.span
+      className="absolute left-1/2 h-3 w-3 -translate-x-1/2 rounded-full bg-sky-500 shadow-[0_0_0_4px_rgba(14,165,233,0.25)]"
+      initial={{ top: 0 }}
+      animate={{ top: 'calc(100% - 0.75rem)' }}
+      transition={{ duration, ease: 'easeInOut' }}
+    />
+  )
+}
+
 function Stage({
   algorithm,
   count,
   placements,
-  hotServer,
+  flight,
+  hopSeconds,
   controls,
 }: {
   algorithm: Algorithm
   count: number
   placements: number[]
-  hotServer: number | null
+  flight: { server: number; phase: 'user' | 'balancer' | 'service' } | null
+  hopSeconds: number
   controls: ReactNode
 }) {
   const reducedMotion = useReducedMotion()
@@ -414,67 +427,78 @@ function Stage({
     totals[server] += 1
   })
 
+  const balancerHot = flight?.phase === 'balancer' || flight?.phase === 'service'
+
   return (
     <div>
-      <div className="grid grid-cols-[minmax(5.75rem,7.75rem)_2.25rem_minmax(0,1fr)] items-stretch gap-y-3">
-        <div
-          className={`row-span-3 flex h-full flex-col items-center justify-center rounded-2xl px-2 py-4 text-center text-white ${
-            hotServer !== null ? 'bg-sky-600' : 'bg-slate-950'
-          }`}
-        >
-          <p className="!my-0 text-[0.7rem] text-sky-100">Load balancer</p>
-          <p className="!my-0 mt-1 text-sm font-semibold leading-5">{algorithm.title}</p>
-          <p className="!my-0 mt-2 text-xs tabular-nums text-sky-100">{count} sent</p>
+      <div className="mx-auto flex w-full max-w-xl flex-col items-center">
+        <div className={`flex items-center gap-2 rounded-full border px-3 py-1.5 ${flight?.phase === 'user' ? 'border-sky-500 bg-sky-50' : 'border-slate-200 bg-white'}`}>
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-950 text-white">
+            <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <circle cx="9" cy="6" r="2.4" stroke="currentColor" strokeWidth="1.6" />
+              <path d="M4.2 15.2c.7-2.4 2.5-3.6 4.8-3.6s4.1 1.2 4.8 3.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+          </span>
+          <p className="!my-0 text-sm font-semibold text-slate-950">You</p>
         </div>
-        {SERVERS.map((name, server) => {
-          const owned = placements
-            .map((target, index) => ({ target, index }))
-            .filter((item) => item.target === server)
-            .slice(-3)
-          const hot = hotServer === server
 
-          return (
-            <div key={name} className="contents">
-              <div className="relative h-16">
-                <div className={`absolute top-1/2 right-0 left-0 h-px ${hot ? 'bg-sky-500' : 'bg-slate-300'}`} />
-                {hot && !reducedMotion ? (
-                  <motion.span
-                    className="absolute top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-sky-500"
-                    initial={{ left: 0 }}
-                    animate={{ left: 'calc(100% - 0.625rem)' }}
-                    transition={{ duration: 0.35, ease: 'easeOut' }}
-                  />
-                ) : null}
-              </div>
-              <div
-                aria-label={name.replace('Server ', 'Service ')}
-                className={`flex h-16 items-center justify-between gap-2 rounded-2xl border px-3 ${
-                  hot ? 'border-sky-500 bg-sky-50' : 'border-slate-200 bg-white'
-                }`}
-              >
-                <div className="min-w-0">
-                  <p className="!my-0 text-sm font-semibold whitespace-nowrap text-slate-950">
-                    {name.replace('Server ', '')}
-                  </p>
-                  {algorithm.serverNotes[server] ? (
-                    <p className="!my-0 text-[0.7rem] text-slate-500">{algorithm.serverNotes[server]}</p>
-                  ) : null}
+        <div className="relative h-10 w-px bg-slate-300">
+          {flight?.phase === 'user' && !reducedMotion ? <Packet duration={hopSeconds} /> : null}
+        </div>
+
+        <div className={`flex w-48 flex-col items-center rounded-2xl px-4 py-4 text-center text-white ${balancerHot ? 'bg-sky-600' : 'bg-slate-950'}`}>
+          <p className="!my-0 text-xs text-sky-100">Load balancer</p>
+          <p className="!my-0 mt-1 text-sm font-semibold leading-5">{algorithm.title}</p>
+        </div>
+
+        <div className="h-4 w-px bg-slate-300" />
+
+        <div className="relative grid w-full grid-cols-3 gap-3">
+          <div className="pointer-events-none absolute top-0 right-[16.5%] left-[16.5%] h-px bg-slate-300" />
+          {SERVERS.map((name, server) => {
+            const owned = placements
+              .map((target, index) => ({ target, index }))
+              .filter((item) => item.target === server)
+              .slice(-12)
+            const dropping = flight?.phase === 'service' && flight.server === server
+
+            return (
+              <div key={name} className="flex flex-col items-center">
+                <div className={`relative h-8 w-px ${dropping ? 'bg-sky-500' : 'bg-slate-300'}`}>
+                  {dropping && !reducedMotion ? <Packet duration={hopSeconds} /> : null}
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex w-10 flex-col justify-end gap-1">
+                <div
+                  aria-label={name.replace('Server ', 'Service ')}
+                  className={`flex h-64 w-full flex-col overflow-hidden rounded-2xl md:h-72 ${dropping ? 'bg-sky-700' : 'bg-slate-950'}`}
+                >
+                  <div className="flex items-start justify-between gap-1 px-2.5 py-2">
+                    <div>
+                      <p className="!my-0 text-[0.65rem] text-sky-100">Service</p>
+                      <p className="!my-0 text-base font-semibold leading-5 text-white">{name.replace('Server ', '')}</p>
+                      {algorithm.serverNotes[server] ? (
+                        <p className="!my-0 text-[0.65rem] text-sky-100">{algorithm.serverNotes[server]}</p>
+                      ) : null}
+                    </div>
+                    <p className="!my-0 text-2xl font-semibold tabular-nums leading-none text-white">{totals[server]}</p>
+                  </div>
+                  <div className="flex min-h-0 flex-1 flex-col justify-end overflow-hidden px-2 pb-2">
+                    <div className="flex flex-col-reverse gap-1">
                     {owned.map((item) => (
-                      <span
+                      <motion.span
                         key={`${algorithm.id}-${item.index}`}
-                        className={`h-1.5 w-full rounded-sm ${dotClass(algorithm.id, item.index, count)}`}
+                        className={`h-3 w-full origin-left rounded-sm ${dotClass(algorithm.id, item.index, count)}`}
+                        initial={reducedMotion || item.index !== count - 1 ? false : { opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: reducedMotion ? 0 : 0.2 }}
                       />
                     ))}
+                    </div>
                   </div>
-                  <p className="!my-0 w-8 text-right text-xl font-semibold tabular-nums text-slate-950">{totals[server]}</p>
                 </div>
               </div>
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
       </div>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-3">
         {controls}
@@ -505,7 +529,7 @@ function explanation(algorithm: Algorithm, count: number): ActivityStep {
     return {
       id: 'empty',
       title: 'No requests yet',
-      caption: 'This figure sends on its own while it is on screen. Each request takes one of the three connections.',
+      caption: 'A request leaves you, reaches the load balancer, then stacks on one service.',
       durationMs: 1,
     }
   }
@@ -513,7 +537,7 @@ function explanation(algorithm: Algorithm, count: number): ActivityStep {
   return {
     id: 'landing',
     title: 'Requests are landing',
-    caption: 'Each new request takes the next open connection.',
+    caption: 'The next one takes a different service. The count on that service goes up when the request lands.',
     durationMs: 1,
   }
 }
@@ -526,11 +550,12 @@ export default function LoadBalancerActivity({ algorithmId }: { algorithmId: str
   const [auto, setAuto] = useState(false)
   const [count, setCount] = useState(0)
   const [speed, setSpeed] = useState<(typeof SPEEDS)[number]>(1)
-  const [hotServer, setHotServer] = useState<number | null>(null)
+  const [flight, setFlight] = useState<{ server: number; phase: 'user' | 'balancer' | 'service' } | null>(null)
   const placements = useMemo(
     () => (algorithm ? assign(algorithm.id, count) : []),
     [algorithm, count],
   )
+  const hopSeconds = (reducedMotion ? 0.01 : 0.42) / speed
 
   useEffect(() => {
     const node = rootRef.current
@@ -556,28 +581,42 @@ export default function LoadBalancerActivity({ algorithmId }: { algorithmId: str
   }, [reducedMotion])
 
   useEffect(() => {
-    if (!auto) {
+    if (!auto || flight || !algorithm) {
       return
     }
 
     const timer = window.setTimeout(() => {
-      setCount((current) => current + 1)
-    }, 900 / speed)
+      const next = assign(algorithm.id, count + 1)
+      setFlight({ server: next[next.length - 1] ?? 0, phase: 'user' })
+    }, 180 / speed)
 
     return () => window.clearTimeout(timer)
-  }, [auto, count, speed])
+  }, [algorithm, auto, count, flight, speed])
 
   useEffect(() => {
-    if (count === 0) {
-      setHotServer(null)
+    if (!flight) {
       return
     }
 
-    setHotServer(placements[placements.length - 1] ?? null)
-    const done = window.setTimeout(() => setHotServer(null), reducedMotion ? 0 : 420)
+    const hop = hopSeconds * 1000
 
-    return () => window.clearTimeout(done)
-  }, [count, placements, reducedMotion])
+    if (flight.phase === 'user') {
+      const timer = window.setTimeout(() => setFlight({ ...flight, phase: 'balancer' }), hop)
+      return () => window.clearTimeout(timer)
+    }
+
+    if (flight.phase === 'balancer') {
+      const timer = window.setTimeout(() => setFlight({ ...flight, phase: 'service' }), hop * 0.55)
+      return () => window.clearTimeout(timer)
+    }
+
+    const timer = window.setTimeout(() => {
+      setCount((current) => current + 1)
+      setFlight(null)
+    }, hop)
+
+    return () => window.clearTimeout(timer)
+  }, [flight, hopSeconds])
 
   if (!algorithm) {
     return <p className="!my-0 text-sm text-slate-500">This figure is unavailable.</p>
@@ -596,7 +635,8 @@ export default function LoadBalancerActivity({ algorithmId }: { algorithmId: str
             algorithm={algorithm}
             count={count}
             placements={placements}
-            hotServer={hotServer}
+            flight={flight}
+            hopSeconds={hopSeconds}
             controls={
               <>
                 <div className="flex items-center gap-1" role="group" aria-label="How fast requests arrive">
@@ -618,7 +658,10 @@ export default function LoadBalancerActivity({ algorithmId }: { algorithmId: str
                 <IconButton
                   label="Reset"
                   disabled={count === 0}
-                  onClick={() => setCount(0)}
+                  onClick={() => {
+                    setFlight(null)
+                    setCount(0)
+                  }}
                   testId="reset"
                 >
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
