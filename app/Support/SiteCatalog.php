@@ -79,9 +79,10 @@ final class SiteCatalog
      * Service hub and service pages were edited after Google's last crawl of
      * /services (2026-08-22) and its 2026-09-13 fetch of
      * /services/performance-optimization, which it still stores as a 404.
-     * A fixed date, not a deploy file time: the image stamps every file.
+     * 2026-10-07 is the day those pages started shipping in the first HTML
+     * response. A fixed date, not a deploy file time: the image stamps every file.
      */
-    public const SERVICE_PAGES_LASTMOD = '2026-10-06';
+    public const SERVICE_PAGES_LASTMOD = '2026-10-07';
 
     /**
      * Indexable paths for /sitemap.xml. Privacy and terms stay out so they
