@@ -23,7 +23,7 @@ tags:
 
 <p>A pre-signed URL is the narrower tool. Your API signs one request. The browser uses that URL. The object stays private.</p>
 
-<p>The figure walks the failure, the signature, the download, and what happens after the clock runs out. The two buttons at the bottom are the choice I actually had: make the object public, or hand out a URL that dies.</p>
+<p>The figure starts sending when it is on screen. The Browser button sends the request from the browser. The API button signs one URL. A request leaves you, lights the box it is in, and stacks where it lands. Speed and reset sit at the bottom.</p>
 
 <div data-blog-activity="s3-presigned-url"></div>
 
@@ -43,7 +43,7 @@ tags:
 
 <h2>The public object</h2>
 
-<p>Press "Make the object public" on the last step. The same URL still works tomorrow, and so does any other URL that points at that key. Block Public Access on the account is there because this fix keeps coming back.</p>
+<p>The last request in the loop is the public object. The browser asks S3 directly and gets 200, and the next day would too. Block Public Access on the account is there because this fix keeps coming back.</p>
 
 <p>I still make an object public when it is meant to be public: a cover image, a package on a CDN, something I would put on a website without a login. A customer's export is not that.</p>
 
