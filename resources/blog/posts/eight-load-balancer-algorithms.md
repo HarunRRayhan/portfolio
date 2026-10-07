@@ -21,7 +21,7 @@ tags:
 
 <p>The algorithm was doing what it was told. I had just never watched the requests land.</p>
 
-<p>There are 8 below. Each one gets its own figure. You are on the left. Send request sends one request through the load balancer in the middle. Play keeps sending until you press stop.</p>
+<p>There are 8 below. Each one gets its own figure. It starts sending when the figure is on screen, and it stops when you scroll away. Speed is under the picture. Reset clears the lap and starts it again.</p>
 
 <h2>1. Round robin</h2>
 
@@ -29,7 +29,104 @@ tags:
 
 <div data-blog-activity="load-balancer" data-algorithm="round-robin"></div>
 
+<p>Round robin does not look at the servers. It keeps a list, and it walks that list. Request 1 is A, request 2 is B, request 3 is C. Request 4 is A again, because the list ran out.</p>
+
+<h3>How one lap lands</h3>
+
+<table>
+<thead>
+<tr>
+<th>Request</th>
+<th>Server</th>
+<th>Why that server</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>A</td>
+<td>First name in the list</td>
+</tr>
+<tr>
+<td>2</td>
+<td>B</td>
+<td>Next name</td>
+</tr>
+<tr>
+<td>3</td>
+<td>C</td>
+<td>Next name</td>
+</tr>
+<tr>
+<td>4</td>
+<td>A</td>
+<td>The list ended, so it starts over</td>
+</tr>
+<tr>
+<td>5</td>
+<td>B</td>
+<td>Same seat as request 2</td>
+</tr>
+<tr>
+<td>6</td>
+<td>C</td>
+<td>Same seat as request 3</td>
+</tr>
+</tbody>
+</table>
+
+<p>Six requests is two full laps, so A, B, and C each hold two. Request 7 starts a third lap on A. Nothing in that walk asks whether A is already busy.</p>
+
 <p>It is fair when every request costs about the same. It is a bad fit when one request uploads a video and the next one hits <code>/health</code>. The video stays on A while B and C keep taking cheap checks.</p>
+
+<h3>What round robin decides</h3>
+
+<table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Answer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>What it counts</td>
+<td>The next name in a fixed list</td>
+</tr>
+<tr>
+<td>What it ignores</td>
+<td>CPU, open connections, response time, and request size</td>
+</tr>
+<tr>
+<td>nginx</td>
+<td>This is the default. You write a directive only when you want a different algorithm</td>
+</tr>
+<tr>
+<td>HAProxy</td>
+<td><code>balance roundrobin</code></td>
+</tr>
+<tr>
+<td>Same client, next request</td>
+<td>Can land on a different server. This is not sticky</td>
+</tr>
+<tr>
+<td>Equal machines, short requests</td>
+<td>This is enough</td>
+</tr>
+<tr>
+<td>One huge upload, then health checks</td>
+<td>The upload stays where it landed. The cheap checks keep walking the list</td>
+</tr>
+<tr>
+<td>A server that is slow</td>
+<td>It still gets its turn</td>
+</tr>
+<tr>
+<td>Against least connections</td>
+<td>Least connections skips a busy box. Round robin does not</td>
+</tr>
+</tbody>
+</table>
 
 <h2>2. Weighted round robin</h2>
 

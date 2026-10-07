@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, useReducedMotion } from 'framer-motion'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import BlogActivityFrame, { type ActivityStep } from '@/Components/BlogActivities/BlogActivityFrame'
 
 const SERVERS = ['Server A', 'Server B', 'Server C'] as const
@@ -399,14 +399,12 @@ function Stage({
   count,
   placements,
   hotServer,
-  balancerHot,
   controls,
 }: {
   algorithm: Algorithm
   count: number
   placements: number[]
   hotServer: number | null
-  balancerHot: boolean
   controls: ReactNode
 }) {
   const reducedMotion = useReducedMotion()
@@ -417,102 +415,79 @@ function Stage({
   })
 
   return (
-    <div className="space-y-3">
-    <div className="flex flex-col gap-4 md:flex-row md:items-center">
-      <div className="flex flex-col items-start gap-3 md:w-56">
-        <div className="flex items-center gap-2">
-          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-950 text-white">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-              <circle cx="9" cy="6" r="2.4" stroke="currentColor" strokeWidth="1.6" />
-              <path d="M4.2 15.2c.7-2.4 2.5-3.6 4.8-3.6s4.1 1.2 4.8 3.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-            </svg>
-          </span>
-          <span>
-            <p className="!my-0 text-sm font-semibold text-slate-950">You</p>
-            <p className="!my-0 text-xs tabular-nums text-slate-500">{count} sent</p>
-          </span>
+    <div>
+      <div className="grid grid-cols-[minmax(5.75rem,7.75rem)_2.25rem_minmax(0,1fr)] items-stretch gap-y-3">
+        <div
+          className={`row-span-3 flex h-full flex-col items-center justify-center rounded-2xl px-2 py-4 text-center text-white ${
+            hotServer !== null ? 'bg-sky-600' : 'bg-slate-950'
+          }`}
+        >
+          <p className="!my-0 text-[0.7rem] text-sky-100">Load balancer</p>
+          <p className="!my-0 mt-1 text-sm font-semibold leading-5">{algorithm.title}</p>
+          <p className="!my-0 mt-2 text-xs tabular-nums text-sky-100">{count} sent</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">{controls}</div>
-      </div>
-
-      <div className="relative flex h-8 items-center justify-center md:h-auto md:w-10">
-        <div className="h-full w-px bg-slate-300 md:h-px md:w-full" />
-        {balancerHot && !reducedMotion ? (
-          <>
-            <motion.span
-              className="absolute h-2.5 w-2.5 rounded-full bg-sky-500 md:hidden"
-              initial={{ y: -10 }}
-              animate={{ y: 10 }}
-              transition={{ duration: 0.22 }}
-            />
-            <motion.span
-              className="absolute hidden h-2.5 w-2.5 rounded-full bg-sky-500 md:block"
-              initial={{ x: -14 }}
-              animate={{ x: 14 }}
-              transition={{ duration: 0.22 }}
-            />
-          </>
-        ) : null}
-      </div>
-
-      <div
-        className={`flex min-h-24 flex-1 flex-col items-center justify-center rounded-2xl px-4 py-4 text-center text-white md:w-40 md:flex-none ${
-          balancerHot ? 'bg-sky-600' : 'bg-slate-950'
-        }`}
-      >
-        <p className="!my-0 text-xs text-sky-100">Load balancer</p>
-        <p className="!my-0 mt-1 text-sm font-semibold leading-5">{algorithm.title}</p>
-      </div>
-
-      <div className="relative flex h-8 items-center justify-center md:h-auto md:w-8">
-        <div className="h-full w-px bg-slate-300 md:h-px md:w-full" />
-      </div>
-
-      <div className="grid min-w-0 flex-1 grid-cols-3 overflow-hidden rounded-2xl bg-slate-950">
         {SERVERS.map((name, server) => {
           const owned = placements
             .map((target, index) => ({ target, index }))
             .filter((item) => item.target === server)
-            .slice(-VISIBLE_BARS)
+            .slice(-3)
           const hot = hotServer === server
 
           return (
-            <div key={name} className="flex flex-col border-l border-white/10 first:border-l-0">
-              <div className={`px-2 py-2 ${hot ? 'bg-sky-600' : ''}`}>
-                <div className="flex items-baseline justify-between gap-1">
-                  <p className="!my-0 text-xs font-semibold text-white">{name.replace('Server ', '')}</p>
-                  <p className="!my-0 text-lg font-semibold tabular-nums leading-none text-white">{totals[server]}</p>
-                </div>
-                {algorithm.serverNotes[server] ? (
-                  <p className="!my-0 mt-1 text-[0.7rem] text-sky-100">{algorithm.serverNotes[server]}</p>
+            <div key={name} className="contents">
+              <div className="relative h-16">
+                <div className={`absolute top-1/2 right-0 left-0 h-px ${hot ? 'bg-sky-500' : 'bg-slate-300'}`} />
+                {hot && !reducedMotion ? (
+                  <motion.span
+                    className="absolute top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-sky-500"
+                    initial={{ left: 0 }}
+                    animate={{ left: 'calc(100% - 0.625rem)' }}
+                    transition={{ duration: 0.35, ease: 'easeOut' }}
+                  />
                 ) : null}
               </div>
-              <div className="flex h-44 flex-col-reverse gap-1.5 overflow-hidden bg-slate-900 px-2 py-2 [mask-image:linear-gradient(to_bottom,transparent,black_16px)] md:h-56">
-                {owned.map((item) => (
-                  <motion.span
-                    key={`${algorithm.id}-${item.index}`}
-                    className={`h-4 w-full origin-left rounded-sm ${dotClass(algorithm.id, item.index, count)}`}
-                    initial={reducedMotion || item.index !== count - 1 ? false : { opacity: 0, scaleX: 0.4 }}
-                    animate={{ opacity: 1, scaleX: 1 }}
-                    transition={{ duration: reducedMotion ? 0 : 0.2 }}
-                  />
-                ))}
+              <div
+                aria-label={name.replace('Server ', 'Service ')}
+                className={`flex h-16 items-center justify-between gap-2 rounded-2xl border px-3 ${
+                  hot ? 'border-sky-500 bg-sky-50' : 'border-slate-200 bg-white'
+                }`}
+              >
+                <div className="min-w-0">
+                  <p className="!my-0 text-sm font-semibold whitespace-nowrap text-slate-950">
+                    {name.replace('Server ', '')}
+                  </p>
+                  {algorithm.serverNotes[server] ? (
+                    <p className="!my-0 text-[0.7rem] text-slate-500">{algorithm.serverNotes[server]}</p>
+                  ) : null}
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex w-10 flex-col justify-end gap-1">
+                    {owned.map((item) => (
+                      <span
+                        key={`${algorithm.id}-${item.index}`}
+                        className={`h-1.5 w-full rounded-sm ${dotClass(algorithm.id, item.index, count)}`}
+                      />
+                    ))}
+                  </div>
+                  <p className="!my-0 w-8 text-right text-xl font-semibold tabular-nums text-slate-950">{totals[server]}</p>
+                </div>
               </div>
             </div>
           )
         })}
       </div>
-    </div>
-    {algorithm.legend === 'clients' ? (
-      <p className="!my-0 text-xs text-slate-500">Sky is client A. Amber is client B.</p>
-    ) : null}
-    {algorithm.legend === 'keys' ? (
-      <p className="!my-0 text-xs text-slate-500">Sky is key A, amber is key B, green is key C.</p>
-    ) : null}
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-3">
+        {controls}
+      </div>
+      {algorithm.legend === 'clients' ? (
+        <p className="!my-0 mt-2 text-xs text-slate-500">Sky is client A. Amber is client B.</p>
+      ) : null}
+      {algorithm.legend === 'keys' ? (
+        <p className="!my-0 mt-2 text-xs text-slate-500">Sky is key A, amber is key B, green is key C.</p>
+      ) : null}
     </div>
   )
 }
-
 function explanation(algorithm: Algorithm, count: number): ActivityStep {
   if (count >= PHASE_COUNTS[2]) {
     return algorithm.phases[2]
@@ -530,7 +505,7 @@ function explanation(algorithm: Algorithm, count: number): ActivityStep {
     return {
       id: 'empty',
       title: 'No requests yet',
-      caption: 'Send a request. It lands on one server, using this algorithm.',
+      caption: 'This figure sends on its own while it is on screen. Each request takes one of the three connections.',
       durationMs: 1,
     }
   }
@@ -538,7 +513,7 @@ function explanation(algorithm: Algorithm, count: number): ActivityStep {
   return {
     id: 'landing',
     title: 'Requests are landing',
-    caption: 'Keep sending. The pattern shows up after a few requests.',
+    caption: 'Each new request takes the next open connection.',
     durationMs: 1,
   }
 }
@@ -546,15 +521,39 @@ function explanation(algorithm: Algorithm, count: number): ActivityStep {
 export default function LoadBalancerActivity({ algorithmId }: { algorithmId: string }) {
   const algorithm = ALGORITHMS[algorithmId]
   const reducedMotion = useReducedMotion()
-  const [count, setCount] = useState(0)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const onScreen = useRef(false)
   const [auto, setAuto] = useState(false)
+  const [count, setCount] = useState(0)
   const [speed, setSpeed] = useState<(typeof SPEEDS)[number]>(1)
-  const [flight, setFlight] = useState<'balancer' | 'server' | null>(null)
+  const [hotServer, setHotServer] = useState<number | null>(null)
   const placements = useMemo(
     () => (algorithm ? assign(algorithm.id, count) : []),
     [algorithm, count],
   )
-  const hotServer = flight === 'server' ? (placements[placements.length - 1] ?? null) : null
+
+  useEffect(() => {
+    const node = rootRef.current
+
+    if (!node || reducedMotion !== false) {
+      setAuto(false)
+      return
+    }
+
+    const sync = () => setAuto(onScreen.current && !document.hidden)
+    const observer = new IntersectionObserver(([entry]) => {
+      onScreen.current = entry.isIntersecting
+      sync()
+    }, { threshold: 0.35 })
+
+    observer.observe(node)
+    document.addEventListener('visibilitychange', sync)
+
+    return () => {
+      observer.disconnect()
+      document.removeEventListener('visibilitychange', sync)
+    }
+  }, [reducedMotion])
 
   useEffect(() => {
     if (!auto) {
@@ -563,26 +562,22 @@ export default function LoadBalancerActivity({ algorithmId }: { algorithmId: str
 
     const timer = window.setTimeout(() => {
       setCount((current) => current + 1)
-    }, 720 / speed)
+    }, 900 / speed)
 
     return () => window.clearTimeout(timer)
   }, [auto, count, speed])
 
   useEffect(() => {
     if (count === 0) {
-      setFlight(null)
+      setHotServer(null)
       return
     }
 
-    setFlight('balancer')
-    const hop = window.setTimeout(() => setFlight('server'), reducedMotion ? 0 : 240)
-    const done = window.setTimeout(() => setFlight(null), reducedMotion ? 0 : 520)
+    setHotServer(placements[placements.length - 1] ?? null)
+    const done = window.setTimeout(() => setHotServer(null), reducedMotion ? 0 : 420)
 
-    return () => {
-      window.clearTimeout(hop)
-      window.clearTimeout(done)
-    }
-  }, [count, reducedMotion])
+    return () => window.clearTimeout(done)
+  }, [count, placements, reducedMotion])
 
   if (!algorithm) {
     return <p className="!my-0 text-sm text-slate-500">This figure is unavailable.</p>
@@ -591,55 +586,19 @@ export default function LoadBalancerActivity({ algorithmId }: { algorithmId: str
   const step = explanation(algorithm, count)
 
   return (
-    <BlogActivityFrame
-      title={algorithm.title}
-      steps={[step]}
-      playback={false}
-      renderStage={() => (
-        <Stage
-          algorithm={algorithm}
-          count={count}
-          placements={placements}
-          hotServer={hotServer}
-          balancerHot={flight === 'balancer'}
-          controls={
-            <>
-              <button
-                type="button"
-                data-activity-send-request=""
-                onClick={() => setCount((current) => current + 1)}
-                className="rounded-full bg-slate-950 px-3.5 py-2 text-sm font-semibold text-white"
-              >
-                Send request
-              </button>
-              {auto ? (
-                <IconButton label="Stop" pressed onClick={() => setAuto(false)} testId="stop">
-                  <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-                    <rect x="1.5" y="1.5" width="9" height="9" rx="1" fill="currentColor" />
-                  </svg>
-                </IconButton>
-              ) : (
-                <IconButton label="Send automatically" onClick={() => setAuto(true)} testId="auto">
-                  <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-                    <path d="M3 1.8v8.4l7.2-4.2L3 1.8z" fill="currentColor" />
-                  </svg>
-                </IconButton>
-              )}
-              <IconButton
-                label="Start over"
-                disabled={count === 0}
-                onClick={() => {
-                  setAuto(false)
-                  setCount(0)
-                }}
-                testId="reset"
-              >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                  <path d="M2.2 7a4.8 4.8 0 1 0 1.2-3.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                  <path d="M2 2.2v3h3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </IconButton>
-              {auto ? (
+    <div ref={rootRef}>
+      <BlogActivityFrame
+        title={algorithm.title}
+        steps={[step]}
+        playback={false}
+        renderStage={() => (
+          <Stage
+            algorithm={algorithm}
+            count={count}
+            placements={placements}
+            hotServer={hotServer}
+            controls={
+              <>
                 <div className="flex items-center gap-1" role="group" aria-label="How fast requests arrive">
                   {SPEEDS.map((value) => (
                     <button
@@ -648,7 +607,7 @@ export default function LoadBalancerActivity({ algorithmId }: { algorithmId: str
                       data-activity-speed={value}
                       aria-pressed={speed === value}
                       onClick={() => setSpeed(value)}
-                      className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                      className={`rounded-full px-2.5 py-1.5 text-xs font-semibold ${
                         speed === value ? 'bg-slate-950 text-white' : 'border border-slate-200 text-slate-700'
                       }`}
                     >
@@ -656,11 +615,22 @@ export default function LoadBalancerActivity({ algorithmId }: { algorithmId: str
                     </button>
                   ))}
                 </div>
-              ) : null}
-            </>
-          }
-        />
-      )}
-    />
+                <IconButton
+                  label="Reset"
+                  disabled={count === 0}
+                  onClick={() => setCount(0)}
+                  testId="reset"
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path d="M2.2 7a4.8 4.8 0 1 0 1.2-3.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                    <path d="M2 2.2v3h3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </IconButton>
+              </>
+            }
+          />
+        )}
+      />
+    </div>
   )
 }
