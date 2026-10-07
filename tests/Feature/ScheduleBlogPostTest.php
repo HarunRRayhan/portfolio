@@ -115,4 +115,11 @@ class ScheduleBlogPostTest extends TestCase
         $this->artisan('blog:publish-scheduled')->assertSuccessful();
         Http::assertSentCount(1);
     }
+
+    public function test_the_load_balancer_schedule_migration_stays_out_of_the_test_database(): void
+    {
+        $this->assertNull(
+            BlogPostSchedule::query()->where('slug', 'eight-load-balancer-algorithms')->first(),
+        );
+    }
 }
