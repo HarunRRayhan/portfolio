@@ -78,6 +78,7 @@ recognizable across posts:
   reads as the same idea, so pick one.
 - **IAM / lock-down** — darker purple or near-black square, a padlock glyph.
 - **S3** — green square, a bucket glyph.
+- **Upload** — blue `#1d4ed8` square, an arrow rising off a baseline. Use this for a file leaving the browser, not for a certificate.
 - **DynamoDB** — indigo/blue square, a stacked-disks glyph.
 - **RAG / citations / retrieval** — cyan `#0ea5b9` square, a document page (folded
   corner + 3 text lines) with a magnifier overlapping its bottom-right corner. Fill

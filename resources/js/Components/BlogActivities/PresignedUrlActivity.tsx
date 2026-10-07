@@ -18,70 +18,41 @@ type Beat = {
 
 const SPEEDS = [0.5, 1, 2] as const
 
-const BEATS: Beat[] = [
-  {
-    id: 'direct',
-    actor: 'browser',
-    tone: 'deny',
-    title: 'The upload has no signature',
-    caption: 'The browser tries to PUT 240 MB straight to S3. No signature, so S3 answers 403. The file stays on the device.',
-  },
+const CYCLE: Beat[] = [
   {
     id: 'sign',
     actor: 'api',
     tone: 'sign',
-    title: 'The API signs one PUT',
-    caption: 'The API holds the credentials. It signs one PUT, one key, one Content-Type, and a short expiry. The 240 MB file does not pass through the API.',
+    title: 'The API request signs the PUT',
+    caption: 'You send a PUT. The API holds the credentials and signs one key, one Content-Type, and a short expiry. The 240 MB file does not move.',
   },
   {
     id: 'upload',
     actor: 'browser',
     tone: 'ok',
-    title: 'The file lands on S3',
-    caption: 'The browser uploads those 240 MB to the signed URL. The API is not in the middle. S3 answers 200.',
-  },
-  {
-    id: 'expired',
-    actor: 'browser',
-    tone: 'deny',
-    title: 'The same URL is dead',
-    caption: 'The expiry passed. The browser tries the same upload and S3 answers 403.',
-  },
-  {
-    id: 'public',
-    actor: 'browser',
-    tone: 'ok',
-    title: 'A public bucket stays open',
-    caption: 'With no signature, the browser can still PUT the file, and it could tomorrow too. That is the bucket policy I do not want on a customer export.',
+    title: 'The browser uploads the big file',
+    caption: 'The browser PUTs the 240 MB static file to that URL. The API is not in the middle. S3 answers 200.',
   },
 ]
 
-function nextBeat(landed: Beat[], forced: Actor | null): Beat {
-  if (forced === 'api') {
-    return BEATS[1]
+const BROWSER_DENIED: Beat = {
+  id: 'direct',
+  actor: 'browser',
+  tone: 'deny',
+  title: 'The upload has no signature',
+  caption: 'Browser is selected, and no PUT has been signed yet. S3 answers 403. Choose API to sign the request, then come back.',
+}
+
+function nextBeat(landed: Beat[], choice: 'cycle' | Actor): Beat {
+  if (choice === 'api') {
+    return CYCLE[0]
   }
 
-  if (forced === 'browser') {
-    const sawSign = landed.some((beat) => beat.id === 'sign')
-    const sawUpload = landed.some((beat) => beat.id === 'upload')
-    const sawExpired = landed.some((beat) => beat.id === 'expired')
-
-    if (!sawSign) {
-      return BEATS[0]
-    }
-
-    if (!sawUpload) {
-      return BEATS[2]
-    }
-
-    if (!sawExpired) {
-      return BEATS[3]
-    }
-
-    return BEATS[4]
+  if (choice === 'browser') {
+    return landed.some((beat) => beat.id === 'sign') ? CYCLE[1] : BROWSER_DENIED
   }
 
-  return BEATS[landed.length % BEATS.length]
+  return CYCLE[landed.length % CYCLE.length]
 }
 
 function Packet({ duration, file = false }: { duration: number; file?: boolean }) {
@@ -210,13 +181,13 @@ export default function PresignedUrlActivity() {
   const [auto, setAuto] = useState(false)
   const [speed, setSpeed] = useState<(typeof SPEEDS)[number]>(1)
   const [landed, setLanded] = useState<Beat[]>([])
-  const [forced, setForced] = useState<Actor | null>(null)
+  const [choice, setChoice] = useState<'cycle' | Actor>('cycle')
   const [flight, setFlight] = useState<{ beat: Beat; phase: Phase } | null>(null)
   const hopSeconds = (reducedMotion ? 0.01 : 0.42) / speed
-  const upcoming = nextBeat(landed, forced)
-  const browserHot = flight?.beat.actor === 'browser' || (!flight && (forced === 'browser' || upcoming.actor === 'browser'))
-  const apiHot = flight?.beat.actor === 'api' || (!flight && (forced === 'api' || (forced === null && upcoming.actor === 'api')))
-  const publicObject = flight?.beat.id === 'public' || (!flight && landed[landed.length - 1]?.id === 'public')
+  const upcoming = nextBeat(landed, choice)
+  const activeActor = flight?.beat.actor ?? upcoming.actor
+  const browserSelected = choice === 'browser'
+  const apiSelected = choice === 'api'
   const browserBars = landed.filter((beat) => beat.actor === 'browser')
   const apiBars = landed.filter((beat) => beat.actor === 'api')
   const s3Bars = landed.filter((beat) => beat.actor === 'browser')
@@ -226,7 +197,7 @@ export default function PresignedUrlActivity() {
     : {
         id: 'empty',
         title: 'No requests yet',
-          caption: 'The Browser button uploads the file. The API button signs one PUT. The file stacks on S3 when the upload lands.',
+          caption: 'Pick Browser or API to stay on that side. Leave them and the cycle signs the PUT, then uploads the 240 MB file.',
         durationMs: 1,
       }
 
@@ -254,18 +225,16 @@ export default function PresignedUrlActivity() {
   }, [reducedMotion])
 
   useEffect(() => {
-    if (flight || (!auto && !forced)) {
+    if (flight || (!auto && choice === 'cycle')) {
       return
     }
 
     const timer = window.setTimeout(() => {
-      const beat = nextBeat(landed, forced)
-      setForced(null)
-      setFlight({ beat, phase: 'you' })
-    }, forced ? 40 : 180 / speed)
+      setFlight({ beat: nextBeat(landed, choice), phase: 'you' })
+    }, choice === 'cycle' ? 180 / speed : 40)
 
     return () => window.clearTimeout(timer)
-  }, [auto, flight, forced, landed, speed])
+  }, [auto, choice, flight, landed, speed])
 
   useEffect(() => {
     if (!flight) {
@@ -305,7 +274,7 @@ export default function PresignedUrlActivity() {
   return (
     <div ref={rootRef}>
       <BlogActivityFrame
-        title="Uploading a 240 MB file"
+        title="Uploading a big static file"
         steps={[step]}
         playback={false}
         renderStage={() => (
@@ -326,9 +295,9 @@ export default function PresignedUrlActivity() {
               </div>
 
               <div className={`flex w-48 flex-col items-center rounded-2xl px-4 py-4 text-center text-white ${flight && flight.phase !== 'you' ? 'bg-sky-600' : 'bg-slate-950'}`}>
-                <p className="!my-0 text-xs text-sky-100">{(flight?.beat.actor ?? upcoming.actor) === 'api' ? 'API' : 'Browser'}</p>
+                <p className="!my-0 text-xs text-sky-100">PUT</p>
                 <p className="!my-0 mt-1 text-sm font-semibold leading-5">
-                  {(flight?.beat.actor ?? upcoming.actor) === 'api' ? 'Signs the PUT' : 'Uploads the file'}
+                  {activeActor === 'api' ? 'API request' : 'Upload the file'}
                 </p>
               </div>
 
@@ -359,7 +328,7 @@ export default function PresignedUrlActivity() {
                 />
                 <Column
                   name="S3"
-                  note={publicObject ? 'public' : 'private'}
+                  note="private"
                   hot={flight?.phase === 's3'}
                   count={s3Bars.length}
                   bars={s3Bars}
@@ -377,10 +346,14 @@ export default function PresignedUrlActivity() {
                   <button
                     type="button"
                     data-activity-actor="browser"
-                    aria-pressed={browserHot}
-                    onClick={() => setForced('browser')}
+                    aria-pressed={browserSelected}
+                    onClick={() => setChoice((current) => (current === 'browser' ? 'cycle' : 'browser'))}
                     className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-                      browserHot ? 'bg-slate-950 text-white' : 'border border-slate-200 text-slate-700'
+                      browserSelected
+                        ? 'bg-slate-950 text-white'
+                        : choice === 'cycle' && activeActor === 'browser'
+                          ? 'border border-sky-500 bg-sky-50 text-sky-950'
+                          : 'border border-slate-200 text-slate-700'
                     }`}
                   >
                     Browser
@@ -388,10 +361,14 @@ export default function PresignedUrlActivity() {
                   <button
                     type="button"
                     data-activity-actor="api"
-                    aria-pressed={apiHot}
-                    onClick={() => setForced('api')}
+                    aria-pressed={apiSelected}
+                    onClick={() => setChoice((current) => (current === 'api' ? 'cycle' : 'api'))}
                     className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-                      apiHot ? 'bg-slate-950 text-white' : 'border border-slate-200 text-slate-700'
+                      apiSelected
+                        ? 'bg-slate-950 text-white'
+                        : choice === 'cycle' && activeActor === 'api'
+                          ? 'border border-sky-500 bg-sky-50 text-sky-950'
+                          : 'border border-slate-200 text-slate-700'
                     }`}
                   >
                     API
@@ -420,7 +397,7 @@ export default function PresignedUrlActivity() {
                 onClick={() => {
                   setFlight(null)
                   setLanded([])
-                  setForced(null)
+                  setChoice('cycle')
                 }}
               >
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
@@ -429,7 +406,13 @@ export default function PresignedUrlActivity() {
                 </svg>
               </IconButton>
             </div>
-            <p className="!my-0 mt-2 text-xs text-slate-500">Rose on S3 is a rejected upload. The tall green bar is the 240 MB file. Sky on the API is the signed PUT.</p>
+            <p className="!my-0 mt-2 text-xs text-slate-500">
+              {choice === 'api'
+                ? 'API stays selected. Each request signs a PUT. The big file does not move.'
+                : choice === 'browser'
+                  ? 'Browser stays selected. Each request uploads the 240 MB file.'
+                  : 'Full cycle: the API signs the PUT, then the browser uploads the file. Pick Browser or API to stay there.'}
+            </p>
           </div>
         )}
       />
