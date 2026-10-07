@@ -37,6 +37,7 @@ jobs:
       - run: npm run build
       - run: node tests/ssr/seo-head.test.mjs
       - run: node tests/ssr/blog.test.mjs
+      - run: node tests/ssr/services.test.mjs
       - run: node tests/ssr/blog-startup.test.mjs
       - run: python3 -m unittest discover -s tests/operations -p 'test_*.py'
       - run: php -d memory_limit=512M vendor/bin/phpunit

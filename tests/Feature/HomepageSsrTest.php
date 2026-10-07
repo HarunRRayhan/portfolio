@@ -2,9 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
+use App\Support\BlogRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
-use App\Models\User;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 use Tests\TestCase;
 
 class HomepageSsrTest extends TestCase
@@ -41,7 +44,7 @@ class HomepageSsrTest extends TestCase
         Http::fake(['127.0.0.1:13714/*' => Http::response([
             'head' => [], 'body' => '<div id="app"><h1>Server rendered blog</h1></div>',
         ])]);
-        $post = (new \App\Support\BlogRepository)->indexPosts()[0];
+        $post = (new BlogRepository)->indexPosts()[0];
         $this->get($post['url'])->assertOk()->assertSee('<h1>Server rendered blog</h1>', false);
         Http::assertSent(fn ($request) => $request['component'] === 'Blog/Post');
     }
@@ -57,11 +60,42 @@ class HomepageSsrTest extends TestCase
     {
         Http::fake();
         // Exercise the named preview boundary without adding a draft to the shipped catalog.
-        \Illuminate\Support\Facades\Route::middleware('web')->get('/ssr-preview-fixture',
-            fn () => \Inertia\Inertia::render('Blog/Post', ['post' => ['isDraft' => true]])
+        Route::middleware('web')->get('/ssr-preview-fixture',
+            fn () => Inertia::render('Blog/Post', ['post' => ['isDraft' => true]])
         )->name('blog.preview');
         $this->get('/ssr-preview-fixture')->assertOk();
         Http::assertNothingSent();
+    }
+
+    public function test_services_hub_uses_the_renderer(): void
+    {
+        Http::fake(['127.0.0.1:13714/*' => Http::response([
+            'head' => [], 'body' => '<div id="app"><h1>Server rendered services</h1></div>',
+        ])]);
+
+        $this->get('/services')->assertOk()->assertSee('<h1>Server rendered services</h1>', false);
+        Http::assertSent(fn ($request) => $request['component'] === 'Services');
+    }
+
+    public function test_service_page_uses_the_renderer(): void
+    {
+        Http::fake(['127.0.0.1:13714/*' => Http::response([
+            'head' => [], 'body' => '<div id="app"><h1>Server rendered performance</h1></div>',
+        ])]);
+
+        $this->get('/services/performance-optimization')->assertOk()
+            ->assertSee('<h1>Server rendered performance</h1>', false);
+        Http::assertSent(fn ($request) => $request['component'] === 'Services/PerformanceOptimization');
+    }
+
+    public function test_products_page_uses_the_renderer(): void
+    {
+        Http::fake(['127.0.0.1:13714/*' => Http::response([
+            'head' => [], 'body' => '<div id="app"><h1>Server rendered products</h1></div>',
+        ])]);
+
+        $this->get('/products')->assertOk()->assertSee('<h1>Server rendered products</h1>', false);
+        Http::assertSent(fn ($request) => $request['component'] === 'Products');
     }
 
     public function test_unverified_pages_do_not_call_the_renderer(): void

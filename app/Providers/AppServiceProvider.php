@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\PersonalAccessToken;
+use App\Support\HomepageStyles;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -10,8 +11,8 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
-use Laravel\Sanctum\Sanctum;
 use Inertia\Inertia;
+use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -29,7 +30,14 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Explicit public route allowlist excludes draft previews and authenticated pages.
-        Inertia::disableSsr(fn () => ! request()->routeIs('home', 'blog.index', 'blog.post') || request()->user() !== null);
+        Inertia::disableSsr(fn () => ! request()->routeIs(
+            'home',
+            'blog.index',
+            'blog.post',
+            'products',
+            'services',
+            'services.*',
+        ) || request()->user() !== null);
 
         // The homepage already has HTML. Give its stylesheet priority over
         // hydration downloads, without postponing interactive code execution.
@@ -37,7 +45,7 @@ class AppServiceProvider extends ServiceProvider
         Vite::usePreloadTagAttributes(fn ($src, $url) => request()->is('/') && request()->user() === null && str_ends_with($url, '.js')
             ? ['fetchpriority' => 'low']
             : []);
-        Vite::useStyleTagAttributes(fn () => \App\Support\HomepageStyles::available()
+        Vite::useStyleTagAttributes(fn () => HomepageStyles::available()
             ? [
                 'media' => 'print',
                 'data-deferred-app-styles' => true,
