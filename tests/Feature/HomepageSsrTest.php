@@ -67,24 +67,33 @@ class HomepageSsrTest extends TestCase
         Http::assertNothingSent();
     }
 
-    public function test_service_and_product_pages_use_the_renderer(): void
+    public function test_services_hub_uses_the_renderer(): void
     {
         Http::fake(['127.0.0.1:13714/*' => Http::response([
-            'head' => [], 'body' => '<div id="app"><h1>Server rendered service</h1></div>',
+            'head' => [], 'body' => '<div id="app"><h1>Server rendered services</h1></div>',
         ])]);
 
-        $this->get('/services')->assertOk()->assertSee('<h1>Server rendered service</h1>', false);
+        $this->get('/services')->assertOk()->assertSee('<h1>Server rendered services</h1>', false);
         Http::assertSent(fn ($request) => $request['component'] === 'Services');
+    }
 
+    public function test_service_page_uses_the_renderer(): void
+    {
         Http::fake(['127.0.0.1:13714/*' => Http::response([
             'head' => [], 'body' => '<div id="app"><h1>Server rendered performance</h1></div>',
         ])]);
-        $this->get('/services/performance-optimization')->assertOk()->assertSee('<h1>Server rendered performance</h1>', false);
-        Http::assertSent(fn ($request) => $request['component'] === 'Services/PerformanceOptimization');
 
+        $this->get('/services/performance-optimization')->assertOk()
+            ->assertSee('<h1>Server rendered performance</h1>', false);
+        Http::assertSent(fn ($request) => $request['component'] === 'Services/PerformanceOptimization');
+    }
+
+    public function test_products_page_uses_the_renderer(): void
+    {
         Http::fake(['127.0.0.1:13714/*' => Http::response([
             'head' => [], 'body' => '<div id="app"><h1>Server rendered products</h1></div>',
         ])]);
+
         $this->get('/products')->assertOk()->assertSee('<h1>Server rendered products</h1>', false);
         Http::assertSent(fn ($request) => $request['component'] === 'Products');
     }
