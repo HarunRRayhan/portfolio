@@ -243,25 +243,33 @@ function assign(algorithm: string, count: number): number[] {
   }
 
   if (algorithm === 'least-connections') {
-    const active = [0, 0, 0]
+    const open = [0, 0, 0]
+    const remaining: number[][] = [[], [], []]
+    const holdFor = [4, 1, 1]
+    let cursor = 0
 
-    for (let index = 0; index < count; index += 1) {
-      let pick = 0
-
-      if (active[1] < active[pick]) {
-        pick = 1
+    while (placements.length < count) {
+      for (let server = 0; server < 3; server += 1) {
+        remaining[server] = remaining[server].map((ticks) => ticks - 1).filter((ticks) => ticks > 0)
+        open[server] = remaining[server].length
       }
 
-      if (active[2] < active[pick]) {
-        pick = 2
+      const least = Math.min(...open)
+      let pick = cursor
+
+      for (let step = 0; step < 3; step += 1) {
+        const server = (cursor + step) % 3
+
+        if (open[server] === least) {
+          pick = server
+          break
+        }
       }
 
+      cursor = (pick + 1) % 3
       placements.push(pick)
-      active[pick] += [3, 1, 2][index % 3]
-
-      for (let server = 0; server < active.length; server += 1) {
-        active[server] = Math.max(0, active[server] - 1)
-      }
+      remaining[pick].push(holdFor[pick])
+      open[pick] = remaining[pick].length
     }
 
     return placements
