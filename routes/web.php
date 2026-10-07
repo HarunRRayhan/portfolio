@@ -31,6 +31,7 @@ use App\Support\AiCrawlerPolicy;
 use App\Support\BlogRepository;
 use App\Support\CaseStudyRepository;
 use App\Support\ContentLinks;
+use App\Support\LegacyBlogRedirect;
 use App\Support\LlmSiteIndex;
 use App\Support\MediaEmbeds;
 use App\Support\PublicSitemap;
@@ -44,17 +45,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::domain('blog.harun.dev')->any('{path?}', function (Request $request, ?string $path = null) {
-    $targetPath = '/blog/'.ltrim((string) $path, '/');
-    $targetPath = rtrim($targetPath, '/');
-
-    if ($targetPath === '/blog') {
-        $targetPath .= '/';
-    }
-
-    $query = $request->getQueryString();
-    $targetUrl = 'https://harun.dev'.$targetPath.($query ? '?'.$query : '');
-
-    return redirect()->away($targetUrl, 301);
+    return redirect()->away(LegacyBlogRedirect::absoluteUrl($path, $request->getQueryString()), 301);
 })->where('path', '.*');
 
 Route::get('/', function () {
@@ -840,6 +831,23 @@ Route::get('/blog', function (Request $request) {
         'seo' => $seo?->toArray(),
     ]);
 })->name('blog.index');
+
+$redirectLegacyBlogAlias = function (Request $request) {
+    $target = LegacyBlogRedirect::harunAlias('/'.$request->path());
+
+    abort_if($target === null, 404);
+
+    $query = $request->getQueryString();
+
+    return redirect()->to($target.($query !== null && $query !== '' ? '?'.$query : ''), 301);
+};
+
+Route::get('/feed', $redirectLegacyBlogAlias);
+Route::get('/rss', $redirectLegacyBlogAlias);
+Route::get('/blog/feed', $redirectLegacyBlogAlias);
+Route::get('/blog/rss', $redirectLegacyBlogAlias);
+Route::get('/blog/tag/{tag?}', $redirectLegacyBlogAlias)->where('tag', '.*');
+Route::get('/blog/page/{page?}', $redirectLegacyBlogAlias)->where('page', '.*');
 
 Route::get('/blog/feed.xml', function () {
     $blog = new BlogRepository;

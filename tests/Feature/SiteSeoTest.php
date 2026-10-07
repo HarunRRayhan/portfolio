@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Support\SiteCatalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -108,25 +109,34 @@ class SiteSeoTest extends TestCase
     }
 
     #[Test]
-    public function it_omits_lastmod_for_static_urls_without_a_reliable_update_date(): void
+    public function it_dates_service_urls_in_the_sitemap_and_omits_lastmod_elsewhere(): void
     {
         $response = $this->get('/sitemap.xml');
         $response->assertOk();
 
-        $document = new \DOMDocument();
+        $document = new \DOMDocument;
         $this->assertTrue($document->loadXML($response->getContent(), LIBXML_NONET));
 
         $xpath = new \DOMXPath($document);
         $xpath->registerNamespace('s', 'http://www.sitemaps.org/schemas/sitemap/0.9');
 
         $siteUrl = rtrim(config('app.url', url('/')), '/');
-        $staticEntries = $xpath->query('//s:url[s:loc="'.$siteUrl.'/services"]');
-        $this->assertNotFalse($staticEntries);
-        $this->assertSame(1, $staticEntries->length);
 
-        $staticLastmod = $xpath->query('./s:lastmod', $staticEntries->item(0));
-        $this->assertNotFalse($staticLastmod);
-        $this->assertSame(0, $staticLastmod->length);
+        foreach (['/services', '/services/performance-optimization', '/services/automated-deployment'] as $path) {
+            $entries = $xpath->query('//s:url[s:loc="'.$siteUrl.$path.'"]');
+            $this->assertNotFalse($entries);
+            $this->assertSame(1, $entries->length, $path);
+            $this->assertSame(
+                SiteCatalog::SERVICE_PAGES_LASTMOD,
+                trim($xpath->query('./s:lastmod', $entries->item(0))->item(0)->textContent),
+                $path,
+            );
+        }
+
+        $undated = $xpath->query('//s:url[s:loc="'.$siteUrl.'/about"]');
+        $this->assertNotFalse($undated);
+        $this->assertSame(1, $undated->length);
+        $this->assertSame(0, $xpath->query('./s:lastmod', $undated->item(0))->length);
 
         $postEntries = $xpath->query('//s:url[s:loc="'.$siteUrl.'/blog/production-ai-code-review-for-terraform-and-lambda-prs"]');
         $this->assertNotFalse($postEntries);
