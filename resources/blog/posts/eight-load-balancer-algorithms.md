@@ -21,7 +21,7 @@ tags:
 
 <p>The algorithm was doing what it was told. I had just never watched the requests land.</p>
 
-<p>There are 8 below. Each one gets its own figure. Press play and the requests walk in. Next and Previous move one step. Send one more adds a single request on top of the step you are on. Speed changes how fast the walk moves.</p>
+<p>There are 8 below. Each one gets its own figure. Send request puts the next request on a server. Send automatically keeps sending them, and the speed buttons only show up while that is running.</p>
 
 <h2>1. Round robin</h2>
 

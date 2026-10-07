@@ -24,6 +24,7 @@ type BlogActivityFrameProps = {
   detail?: string
   onStepIndexChange?: (index: number) => void
   footer?: (api: ActivityFrameApi) => ReactNode
+  playback?: boolean
 }
 
 export default function BlogActivityFrame({
@@ -33,6 +34,7 @@ export default function BlogActivityFrame({
   detail,
   onStepIndexChange,
   footer,
+  playback = true,
 }: BlogActivityFrameProps) {
   const reducedMotion = useReducedMotion()
   const allowAutoplay = reducedMotion === false
@@ -44,10 +46,10 @@ export default function BlogActivityFrame({
   const step = steps[safeIndex]
 
   useEffect(() => {
-    if (allowAutoplay) {
+    if (playback && allowAutoplay) {
       setPlaying(true)
     }
-  }, [allowAutoplay])
+  }, [allowAutoplay, playback])
 
   useEffect(() => {
     onStepIndexChange?.(safeIndex)
@@ -97,6 +99,10 @@ export default function BlogActivityFrame({
       tabIndex={0}
       data-activity-frame=""
       onKeyDown={(event) => {
+        if (!playback) {
+          return
+        }
+
         if (event.key === 'ArrowRight') {
           event.preventDefault()
           advance('button')
@@ -113,9 +119,11 @@ export default function BlogActivityFrame({
         <p id={titleId} className="!my-0 text-base font-semibold tracking-tight text-slate-950">
           {title}
         </p>
-        <p className="!my-0 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-          {safeIndex + 1} / {steps.length}
-        </p>
+        {playback ? (
+          <p className="!my-0 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+            {safeIndex + 1} / {steps.length}
+          </p>
+        ) : null}
       </div>
 
       <div className="min-h-[280px] px-4 py-5">{step ? renderStage(safeIndex, speed) : null}</div>
@@ -130,7 +138,7 @@ export default function BlogActivityFrame({
         {detail ? <p className="!my-0 text-sm leading-6 text-slate-800">{detail}</p> : null}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 px-4 py-3">
+      {playback ? <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 px-4 py-3">
         <button
           type="button"
           data-activity-play=""
@@ -172,7 +180,7 @@ export default function BlogActivityFrame({
             </button>
           ))}
         </div>
-      </div>
+      </div> : null}
 
       {footer ? (
         <div className="flex flex-wrap gap-2 border-t border-slate-200 px-4 py-3">

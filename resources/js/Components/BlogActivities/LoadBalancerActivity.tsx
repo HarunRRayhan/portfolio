@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, useReducedMotion } from 'framer-motion'
-import { useCallback, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import BlogActivityFrame, { type ActivityStep } from '@/Components/BlogActivities/BlogActivityFrame'
 
 const SERVERS = ['Server A', 'Server B', 'Server C'] as const
@@ -226,6 +226,8 @@ const ALGORITHMS: Record<string, Algorithm> = {
 }
 
 const PHASE_COUNTS = [3, 6, 8]
+const MAX_REQUESTS = 12
+const SPEEDS = [0.5, 1, 2] as const
 
 function assign(algorithm: string, count: number): number[] {
   const placements: number[] = []
@@ -359,7 +361,7 @@ function dotClass(algorithm: string, index: number, count: number): string {
   return 'bg-sky-600'
 }
 
-function Stage({ algorithm, count, speed }: { algorithm: Algorithm; count: number; speed: number }) {
+function Stage({ algorithm, count }: { algorithm: Algorithm; count: number }) {
   const reducedMotion = useReducedMotion()
   const placements = assign(algorithm.id, count)
   const totals = [0, 0, 0]
@@ -401,11 +403,11 @@ function Stage({ algorithm, count, speed }: { algorithm: Algorithm; count: numbe
               {placements.map((target, index) =>
                 target === server ? (
                   <motion.span
-                    key={`${algorithm.id}-${count}-${index}`}
+                    key={`${algorithm.id}-${index}`}
                     className={`h-3 w-12 shrink-0 rounded-full ${dotClass(algorithm.id, index, count)}`}
-                    initial={reducedMotion ? false : { opacity: 0, y: -8 }}
+                    initial={reducedMotion || index !== count - 1 ? false : { opacity: 0, y: -8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.28 / speed, delay: reducedMotion ? 0 : index * (0.04 / speed) }}
+                    transition={{ duration: reducedMotion || index !== count - 1 ? 0 : 0.28 }}
                   />
                 ) : null,
               )}
@@ -417,41 +419,143 @@ function Stage({ algorithm, count, speed }: { algorithm: Algorithm; count: numbe
   )
 }
 
+function explanation(algorithm: Algorithm, count: number): ActivityStep {
+  if (count >= PHASE_COUNTS[2]) {
+    return algorithm.phases[2]
+  }
+
+  if (count >= PHASE_COUNTS[1]) {
+    return algorithm.phases[1]
+  }
+
+  if (count >= PHASE_COUNTS[0]) {
+    return algorithm.phases[0]
+  }
+
+  if (count === 0) {
+    return {
+      id: 'empty',
+      title: 'No requests yet',
+      caption: 'Send a request. It lands on one server, using this algorithm.',
+      durationMs: 1,
+    }
+  }
+
+  return {
+    id: 'landing',
+    title: 'Requests are landing',
+    caption: 'Keep sending. The pattern shows up after a few requests.',
+    durationMs: 1,
+  }
+}
+
 export default function LoadBalancerActivity({ algorithmId }: { algorithmId: string }) {
   const algorithm = ALGORITHMS[algorithmId]
-  const [extra, setExtra] = useState(0)
-  const stepRef = useRef(0)
-  const handleStep = useCallback((index: number) => {
-    if (stepRef.current === index) {
+  const [count, setCount] = useState(0)
+  const [auto, setAuto] = useState(false)
+  const [speed, setSpeed] = useState<(typeof SPEEDS)[number]>(1)
+  const full = count >= MAX_REQUESTS
+
+  useEffect(() => {
+    if (!auto || full) {
       return
     }
 
-    stepRef.current = index
-    setExtra(0)
-  }, [])
+    const timer = window.setTimeout(() => {
+      setCount((current) => Math.min(current + 1, MAX_REQUESTS))
+    }, 1100 / speed)
+
+    return () => window.clearTimeout(timer)
+  }, [auto, count, full, speed])
+
+  useEffect(() => {
+    if (full) {
+      setAuto(false)
+    }
+  }, [full])
 
   if (!algorithm) {
     return <p className="!my-0 text-sm text-slate-500">This figure is unavailable.</p>
   }
 
+  const step = explanation(algorithm, count)
+
   return (
     <BlogActivityFrame
       title={algorithm.title}
-      steps={algorithm.phases}
-      onStepIndexChange={handleStep}
-      detail={extra > 0 ? `${extra} extra ${extra === 1 ? 'request was' : 'requests were'} sent on top of this step.` : undefined}
-      renderStage={(stepIndex, speed) => (
-        <Stage algorithm={algorithm} count={PHASE_COUNTS[stepIndex] + extra} speed={speed} />
-      )}
-      footer={() => (
-        <button
-          type="button"
-          data-activity-branch="send-one-more"
-          onClick={() => setExtra((current) => current + 1)}
-          className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-800"
-        >
-          Send one more
-        </button>
+      steps={[step]}
+      playback={false}
+      detail={full ? 'Twelve requests is enough to see the pattern. Start over to send them again.' : undefined}
+      renderStage={() => (
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+          <div className="flex shrink-0 flex-col gap-2 sm:w-40">
+            <button
+              type="button"
+              data-activity-send-request=""
+              disabled={full}
+              onClick={() => setCount((current) => Math.min(current + 1, MAX_REQUESTS))}
+              className="rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Send request
+            </button>
+            <button
+              type="button"
+              data-activity-auto=""
+              aria-pressed={auto}
+              disabled={full && !auto}
+              onClick={() => setAuto((current) => !current)}
+              className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                auto ? 'bg-slate-950 text-white' : 'border border-slate-200 text-slate-800'
+              } disabled:cursor-not-allowed disabled:opacity-40`}
+            >
+              {auto ? 'Pause sending' : 'Send automatically'}
+            </button>
+            {auto ? (
+              <div className="flex items-center gap-1" role="group" aria-label="How fast requests arrive">
+                {SPEEDS.map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    data-activity-speed={value}
+                    aria-pressed={speed === value}
+                    onClick={() => setSpeed(value)}
+                    className={`rounded-full px-2.5 py-1.5 text-xs font-semibold ${
+                      speed === value ? 'bg-slate-950 text-white' : 'border border-slate-200 text-slate-700'
+                    }`}
+                  >
+                    {value}x
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            {count > 0 && !auto ? (
+              <button
+                type="button"
+                data-activity-undo=""
+                onClick={() => setCount((current) => Math.max(current - 1, 0))}
+                className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-800"
+              >
+                Undo last request
+              </button>
+            ) : null}
+            {count > 0 ? (
+              <button
+                type="button"
+                data-activity-reset=""
+                onClick={() => {
+                  setAuto(false)
+                  setCount(0)
+                }}
+                className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-800"
+              >
+                Start over
+              </button>
+            ) : null}
+          </div>
+          <div className="min-w-0 flex-1">
+            <Stage algorithm={algorithm} count={count} />
+          </div>
+        </div>
       )}
     />
   )
