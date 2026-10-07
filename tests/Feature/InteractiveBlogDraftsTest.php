@@ -31,8 +31,9 @@ class InteractiveBlogDraftsTest extends TestCase
             );
 
             if ($slug === 'why-s3-presigned-urls') {
-                $this->assertStringContainsString('The Browser button sends the request from the browser', $hydrated['content']['html']);
-                $this->assertStringContainsString('The API button signs one URL', $hydrated['content']['html']);
+                $this->assertStringContainsString('The Browser button uploads the file', $hydrated['content']['html']);
+                $this->assertStringContainsString('The API button signs one PUT', $hydrated['content']['html']);
+                $this->assertStringNotContainsString('Who can fetch the object', $hydrated['content']['html']);
                 $this->assertStringNotContainsString('Make the object public', $hydrated['content']['html']);
             }
 

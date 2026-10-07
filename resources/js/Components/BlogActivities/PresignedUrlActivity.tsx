@@ -23,36 +23,36 @@ const BEATS: Beat[] = [
     id: 'direct',
     actor: 'browser',
     tone: 'deny',
-    title: 'The browser asked S3',
-    caption: 'No signature on the request. S3 answers 403. The object stays private.',
+    title: 'The upload has no signature',
+    caption: 'The browser tries to PUT 240 MB straight to S3. No signature, so S3 answers 403. The file stays on the device.',
   },
   {
     id: 'sign',
     actor: 'api',
     tone: 'sign',
-    title: 'The API signs one URL',
-    caption: 'The API holds the credentials. It signs one GET, one key, and an expiry. The file does not move.',
+    title: 'The API signs one PUT',
+    caption: 'The API holds the credentials. It signs one PUT, one key, one Content-Type, and a short expiry. The 240 MB file does not pass through the API.',
   },
   {
-    id: 'fetch',
+    id: 'upload',
     actor: 'browser',
     tone: 'ok',
-    title: 'The browser uses that URL',
-    caption: 'The signed request goes from the browser to S3. The API is not in the middle. S3 answers 200.',
+    title: 'The file lands on S3',
+    caption: 'The browser uploads those 240 MB to the signed URL. The API is not in the middle. S3 answers 200.',
   },
   {
     id: 'expired',
     actor: 'browser',
     tone: 'deny',
     title: 'The same URL is dead',
-    caption: 'The expiry passed. The browser tries the same URL and S3 answers 403.',
+    caption: 'The expiry passed. The browser tries the same upload and S3 answers 403.',
   },
   {
     id: 'public',
     actor: 'browser',
     tone: 'ok',
-    title: 'A public object stays open',
-    caption: 'The browser asks S3 directly and gets 200. The same request tomorrow would get 200 too.',
+    title: 'A public bucket stays open',
+    caption: 'With no signature, the browser can still PUT the file, and it could tomorrow too. That is the bucket policy I do not want on a customer export.',
   },
 ]
 
@@ -63,14 +63,14 @@ function nextBeat(landed: Beat[], forced: Actor | null): Beat {
 
   if (forced === 'browser') {
     const sawSign = landed.some((beat) => beat.id === 'sign')
-    const sawFetch = landed.some((beat) => beat.id === 'fetch')
+    const sawUpload = landed.some((beat) => beat.id === 'upload')
     const sawExpired = landed.some((beat) => beat.id === 'expired')
 
     if (!sawSign) {
       return BEATS[0]
     }
 
-    if (!sawFetch) {
+    if (!sawUpload) {
       return BEATS[2]
     }
 
@@ -84,7 +84,20 @@ function nextBeat(landed: Beat[], forced: Actor | null): Beat {
   return BEATS[landed.length % BEATS.length]
 }
 
-function Packet({ duration }: { duration: number }) {
+function Packet({ duration, file = false }: { duration: number; file?: boolean }) {
+  if (file) {
+    return (
+      <motion.span
+        className="absolute left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-md bg-emerald-500 px-1.5 py-0.5 text-[0.6rem] font-semibold leading-4 text-white shadow-sm"
+        initial={{ top: 0 }}
+        animate={{ top: 'calc(100% - 1.15rem)' }}
+        transition={{ duration, ease: 'easeInOut' }}
+      >
+        240 MB
+      </motion.span>
+    )
+  }
+
   return (
     <motion.span
       className="absolute left-1/2 h-3 w-3 -translate-x-1/2 rounded-full bg-sky-500 shadow-[0_0_0_4px_rgba(14,165,233,0.25)]"
@@ -140,6 +153,7 @@ function Column({
   count,
   bars,
   packet,
+  filePacket = false,
   hopSeconds,
   reducedMotion,
 }: {
@@ -149,13 +163,14 @@ function Column({
   count: number
   bars: Beat[]
   packet: boolean
+  filePacket?: boolean
   hopSeconds: number
   reducedMotion: boolean
 }) {
   return (
     <div className="flex flex-col items-center">
       <div className={`relative h-8 w-px ${packet ? 'bg-sky-500' : 'bg-slate-300'}`}>
-        {packet && !reducedMotion ? <Packet duration={hopSeconds} /> : null}
+        {packet && !reducedMotion ? <Packet duration={hopSeconds} file={filePacket} /> : null}
       </div>
       <div
         aria-label={name}
@@ -173,11 +188,13 @@ function Column({
             {bars.slice(-12).map((beat, index) => (
               <motion.span
                 key={`${name}-${bars.length - bars.slice(-12).length + index}`}
-                className={`h-3 w-full rounded-sm ${barClass(name === 'Browser' ? 'sign' : beat.tone)}`}
+                className={`${name === 'S3' && beat.tone === 'ok' ? 'flex h-8 items-center justify-center text-[0.6rem] font-semibold text-white' : 'h-3'} w-full rounded-sm ${barClass(name === 'Browser' || name === 'API' ? 'sign' : beat.tone)}`}
                 initial={reducedMotion ? false : { opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: reducedMotion ? 0 : 0.2 }}
-              />
+              >
+                {name === 'S3' && beat.tone === 'ok' ? '240 MB' : null}
+              </motion.span>
             ))}
           </div>
         </div>
@@ -209,7 +226,7 @@ export default function PresignedUrlActivity() {
     : {
         id: 'empty',
         title: 'No requests yet',
-        caption: 'The Browser button sends the request from the browser. The API button signs one URL. The bar stacks when the request lands.',
+          caption: 'The Browser button uploads the file. The API button signs one PUT. The file stacks on S3 when the upload lands.',
         durationMs: 1,
       }
 
@@ -288,7 +305,7 @@ export default function PresignedUrlActivity() {
   return (
     <div ref={rootRef}>
       <BlogActivityFrame
-        title="Who can fetch the object"
+        title="Uploading a 240 MB file"
         steps={[step]}
         playback={false}
         renderStage={() => (
@@ -305,13 +322,13 @@ export default function PresignedUrlActivity() {
               </div>
 
               <div className="relative h-10 w-px bg-slate-300">
-                {flight?.phase === 'you' && !reducedMotion ? <Packet duration={hopSeconds} /> : null}
+                {flight?.phase === 'you' && !reducedMotion ? <Packet duration={hopSeconds} file={flight.beat.actor === 'browser'} /> : null}
               </div>
 
               <div className={`flex w-48 flex-col items-center rounded-2xl px-4 py-4 text-center text-white ${flight && flight.phase !== 'you' ? 'bg-sky-600' : 'bg-slate-950'}`}>
                 <p className="!my-0 text-xs text-sky-100">{(flight?.beat.actor ?? upcoming.actor) === 'api' ? 'API' : 'Browser'}</p>
                 <p className="!my-0 mt-1 text-sm font-semibold leading-5">
-                  {(flight?.beat.actor ?? upcoming.actor) === 'api' ? 'Signs one URL' : 'Sends the request'}
+                  {(flight?.beat.actor ?? upcoming.actor) === 'api' ? 'Signs the PUT' : 'Uploads the file'}
                 </p>
               </div>
 
@@ -331,11 +348,12 @@ export default function PresignedUrlActivity() {
                 />
                 <Column
                   name="Browser"
-                  note="request"
+                  note="upload"
                   hot={flight?.phase === 'browser'}
                   count={browserBars.length}
                   bars={browserBars}
                   packet={flight?.phase === 'browser'}
+                  filePacket={flight?.beat.actor === 'browser'}
                   hopSeconds={hopSeconds * 0.55}
                   reducedMotion={reducedMotion === true}
                 />
@@ -346,6 +364,7 @@ export default function PresignedUrlActivity() {
                   count={s3Bars.length}
                   bars={s3Bars}
                   packet={flight?.phase === 's3'}
+                  filePacket
                   hopSeconds={hopSeconds}
                   reducedMotion={reducedMotion === true}
                 />
@@ -354,7 +373,7 @@ export default function PresignedUrlActivity() {
 
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-3">
               <div className="flex flex-wrap items-center gap-2">
-                <div className="flex items-center gap-1" role="group" aria-label="Who sends the next request">
+                <div className="flex items-center gap-1" role="group" aria-label="Browser uploads or API signs">
                   <button
                     type="button"
                     data-activity-actor="browser"
@@ -410,7 +429,7 @@ export default function PresignedUrlActivity() {
                 </svg>
               </IconButton>
             </div>
-            <p className="!my-0 mt-2 text-xs text-slate-500">Rose on S3 is 403. Green on S3 is 200. Sky on the API is a signature.</p>
+            <p className="!my-0 mt-2 text-xs text-slate-500">Rose on S3 is a rejected upload. The tall green bar is the 240 MB file. Sky on the API is the signed PUT.</p>
           </div>
         )}
       />
