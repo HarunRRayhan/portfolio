@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, useReducedMotion } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import BlogActivityFrame, { type ActivityStep } from '@/Components/BlogActivities/BlogActivityFrame'
 
 const SERVERS = ['Server A', 'Server B', 'Server C'] as const
@@ -226,8 +226,8 @@ const ALGORITHMS: Record<string, Algorithm> = {
 }
 
 const PHASE_COUNTS = [3, 6, 8]
-const MAX_REQUESTS = 12
 const SPEEDS = [0.5, 1, 2] as const
+const VISIBLE_BARS = 9
 
 function assign(algorithm: string, count: number): number[] {
   const placements: number[] = []
@@ -361,9 +361,55 @@ function dotClass(algorithm: string, index: number, count: number): string {
   return 'bg-sky-600'
 }
 
-function Stage({ algorithm, count }: { algorithm: Algorithm; count: number }) {
+function IconButton({
+  label,
+  pressed,
+  disabled,
+  onClick,
+  children,
+  testId,
+}: {
+  label: string
+  pressed?: boolean
+  disabled?: boolean
+  onClick: () => void
+  children: ReactNode
+  testId: string
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      aria-pressed={pressed}
+      disabled={disabled}
+      data-activity-control={testId}
+      onClick={onClick}
+      className={`inline-flex h-10 w-10 items-center justify-center rounded-full border text-slate-900 disabled:cursor-not-allowed disabled:opacity-30 ${
+        pressed ? 'border-slate-950 bg-slate-950 text-white' : 'border-slate-200 bg-white'
+      }`}
+    >
+      {children}
+    </button>
+  )
+}
+
+function Stage({
+  algorithm,
+  count,
+  placements,
+  hotServer,
+  balancerHot,
+  controls,
+}: {
+  algorithm: Algorithm
+  count: number
+  placements: number[]
+  hotServer: number | null
+  balancerHot: boolean
+  controls: ReactNode
+}) {
   const reducedMotion = useReducedMotion()
-  const placements = assign(algorithm.id, count)
   const totals = [0, 0, 0]
 
   placements.forEach((server) => {
@@ -371,50 +417,98 @@ function Stage({ algorithm, count }: { algorithm: Algorithm; count: number }) {
   })
 
   return (
-    <div>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-xs font-medium text-slate-500">
-        <span>{count} {count === 1 ? 'request' : 'requests'}</span>
-        {algorithm.legend === 'clients' ? (
-          <span className="inline-flex items-center gap-3">
-            <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-sky-600" /> Client A</span>
-            <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-500" /> Client B</span>
+    <div className="space-y-3">
+    <div className="flex flex-col gap-4 md:flex-row md:items-center">
+      <div className="flex flex-col items-start gap-3 md:w-56">
+        <div className="flex items-center gap-2">
+          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-950 text-white">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <circle cx="9" cy="6" r="2.4" stroke="currentColor" strokeWidth="1.6" />
+              <path d="M4.2 15.2c.7-2.4 2.5-3.6 4.8-3.6s4.1 1.2 4.8 3.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
           </span>
-        ) : null}
-        {algorithm.legend === 'keys' ? (
-          <span className="inline-flex items-center gap-3">
-            <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-sky-600" /> Key A</span>
-            <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-500" /> Key B</span>
-            <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-500" /> Key C</span>
+          <span>
+            <p className="!my-0 text-sm font-semibold text-slate-950">You</p>
+            <p className="!my-0 text-xs tabular-nums text-slate-500">{count} sent</p>
           </span>
-        ) : null}
-        {algorithm.legend === 'requests' ? <span>Each bar is one request</span> : null}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">{controls}</div>
       </div>
-      <div className="grid grid-cols-3 gap-3">
-        {SERVERS.map((name, server) => (
-          <div key={name} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-            <div className="flex items-center justify-between gap-2">
-              <p className="!my-0 text-xs font-semibold text-slate-800">{name}</p>
-              <p className="!my-0 text-xs tabular-nums text-slate-500">{totals[server]}</p>
-            </div>
-            {algorithm.serverNotes[server] ? (
-              <p className="!my-0 mt-1 text-[0.7rem] text-slate-500">{algorithm.serverNotes[server]}</p>
-            ) : null}
-            <div className="mt-3 flex h-36 flex-col-reverse items-center gap-1 overflow-hidden rounded-lg bg-white px-2 py-2">
-              {placements.map((target, index) =>
-                target === server ? (
+
+      <div className="relative flex h-8 items-center justify-center md:h-auto md:w-10">
+        <div className="h-full w-px bg-slate-300 md:h-px md:w-full" />
+        {balancerHot && !reducedMotion ? (
+          <>
+            <motion.span
+              className="absolute h-2.5 w-2.5 rounded-full bg-sky-500 md:hidden"
+              initial={{ y: -10 }}
+              animate={{ y: 10 }}
+              transition={{ duration: 0.22 }}
+            />
+            <motion.span
+              className="absolute hidden h-2.5 w-2.5 rounded-full bg-sky-500 md:block"
+              initial={{ x: -14 }}
+              animate={{ x: 14 }}
+              transition={{ duration: 0.22 }}
+            />
+          </>
+        ) : null}
+      </div>
+
+      <div
+        className={`flex min-h-24 flex-1 flex-col items-center justify-center rounded-2xl px-4 py-4 text-center text-white md:w-40 md:flex-none ${
+          balancerHot ? 'bg-sky-600' : 'bg-slate-950'
+        }`}
+      >
+        <p className="!my-0 text-xs text-sky-100">Load balancer</p>
+        <p className="!my-0 mt-1 text-sm font-semibold leading-5">{algorithm.title}</p>
+      </div>
+
+      <div className="relative flex h-8 items-center justify-center md:h-auto md:w-8">
+        <div className="h-full w-px bg-slate-300 md:h-px md:w-full" />
+      </div>
+
+      <div className="grid min-w-0 flex-1 grid-cols-3 overflow-hidden rounded-2xl bg-slate-950">
+        {SERVERS.map((name, server) => {
+          const owned = placements
+            .map((target, index) => ({ target, index }))
+            .filter((item) => item.target === server)
+            .slice(-VISIBLE_BARS)
+          const hot = hotServer === server
+
+          return (
+            <div key={name} className="flex flex-col border-l border-white/10 first:border-l-0">
+              <div className={`px-2 py-2 ${hot ? 'bg-sky-600' : ''}`}>
+                <div className="flex items-baseline justify-between gap-1">
+                  <p className="!my-0 text-xs font-semibold text-white">{name.replace('Server ', '')}</p>
+                  <p className="!my-0 text-lg font-semibold tabular-nums leading-none text-white">{totals[server]}</p>
+                </div>
+                {algorithm.serverNotes[server] ? (
+                  <p className="!my-0 mt-1 text-[0.7rem] text-sky-100">{algorithm.serverNotes[server]}</p>
+                ) : null}
+              </div>
+              <div className="flex h-44 flex-col-reverse gap-1.5 overflow-hidden bg-slate-900 px-2 py-2 [mask-image:linear-gradient(to_bottom,transparent,black_16px)] md:h-56">
+                {owned.map((item) => (
                   <motion.span
-                    key={`${algorithm.id}-${index}`}
-                    className={`h-3 w-12 shrink-0 rounded-full ${dotClass(algorithm.id, index, count)}`}
-                    initial={reducedMotion || index !== count - 1 ? false : { opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: reducedMotion || index !== count - 1 ? 0 : 0.28 }}
+                    key={`${algorithm.id}-${item.index}`}
+                    className={`h-4 w-full origin-left rounded-sm ${dotClass(algorithm.id, item.index, count)}`}
+                    initial={reducedMotion || item.index !== count - 1 ? false : { opacity: 0, scaleX: 0.4 }}
+                    animate={{ opacity: 1, scaleX: 1 }}
+                    transition={{ duration: reducedMotion ? 0 : 0.2 }}
                   />
-                ) : null,
-              )}
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
+    </div>
+    {algorithm.legend === 'clients' ? (
+      <p className="!my-0 text-xs text-slate-500">Sky is client A. Amber is client B.</p>
+    ) : null}
+    {algorithm.legend === 'keys' ? (
+      <p className="!my-0 text-xs text-slate-500">Sky is key A, amber is key B, green is key C.</p>
+    ) : null}
     </div>
   )
 }
@@ -451,28 +545,44 @@ function explanation(algorithm: Algorithm, count: number): ActivityStep {
 
 export default function LoadBalancerActivity({ algorithmId }: { algorithmId: string }) {
   const algorithm = ALGORITHMS[algorithmId]
+  const reducedMotion = useReducedMotion()
   const [count, setCount] = useState(0)
   const [auto, setAuto] = useState(false)
   const [speed, setSpeed] = useState<(typeof SPEEDS)[number]>(1)
-  const full = count >= MAX_REQUESTS
+  const [flight, setFlight] = useState<'balancer' | 'server' | null>(null)
+  const placements = useMemo(
+    () => (algorithm ? assign(algorithm.id, count) : []),
+    [algorithm, count],
+  )
+  const hotServer = flight === 'server' ? (placements[placements.length - 1] ?? null) : null
 
   useEffect(() => {
-    if (!auto || full) {
+    if (!auto) {
       return
     }
 
     const timer = window.setTimeout(() => {
-      setCount((current) => Math.min(current + 1, MAX_REQUESTS))
-    }, 1100 / speed)
+      setCount((current) => current + 1)
+    }, 720 / speed)
 
     return () => window.clearTimeout(timer)
-  }, [auto, count, full, speed])
+  }, [auto, count, speed])
 
   useEffect(() => {
-    if (full) {
-      setAuto(false)
+    if (count === 0) {
+      setFlight(null)
+      return
     }
-  }, [full])
+
+    setFlight('balancer')
+    const hop = window.setTimeout(() => setFlight('server'), reducedMotion ? 0 : 240)
+    const done = window.setTimeout(() => setFlight(null), reducedMotion ? 0 : 520)
+
+    return () => {
+      window.clearTimeout(hop)
+      window.clearTimeout(done)
+    }
+  }, [count, reducedMotion])
 
   if (!algorithm) {
     return <p className="!my-0 text-sm text-slate-500">This figure is unavailable.</p>
@@ -485,77 +595,71 @@ export default function LoadBalancerActivity({ algorithmId }: { algorithmId: str
       title={algorithm.title}
       steps={[step]}
       playback={false}
-      detail={full ? 'Twelve requests is enough to see the pattern. Start over to send them again.' : undefined}
       renderStage={() => (
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-          <div className="flex shrink-0 flex-col gap-2 sm:w-40">
-            <button
-              type="button"
-              data-activity-send-request=""
-              disabled={full}
-              onClick={() => setCount((current) => Math.min(current + 1, MAX_REQUESTS))}
-              className="rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Send request
-            </button>
-            <button
-              type="button"
-              data-activity-auto=""
-              aria-pressed={auto}
-              disabled={full && !auto}
-              onClick={() => setAuto((current) => !current)}
-              className={`rounded-xl px-3 py-2 text-xs font-semibold ${
-                auto ? 'bg-slate-950 text-white' : 'border border-slate-200 text-slate-800'
-              } disabled:cursor-not-allowed disabled:opacity-40`}
-            >
-              {auto ? 'Pause sending' : 'Send automatically'}
-            </button>
-            {auto ? (
-              <div className="flex items-center gap-1" role="group" aria-label="How fast requests arrive">
-                {SPEEDS.map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    data-activity-speed={value}
-                    aria-pressed={speed === value}
-                    onClick={() => setSpeed(value)}
-                    className={`rounded-full px-2.5 py-1.5 text-xs font-semibold ${
-                      speed === value ? 'bg-slate-950 text-white' : 'border border-slate-200 text-slate-700'
-                    }`}
-                  >
-                    {value}x
-                  </button>
-                ))}
-              </div>
-            ) : null}
-            {count > 0 && !auto ? (
+        <Stage
+          algorithm={algorithm}
+          count={count}
+          placements={placements}
+          hotServer={hotServer}
+          balancerHot={flight === 'balancer'}
+          controls={
+            <>
               <button
                 type="button"
-                data-activity-undo=""
-                onClick={() => setCount((current) => Math.max(current - 1, 0))}
-                className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-800"
+                data-activity-send-request=""
+                onClick={() => setCount((current) => current + 1)}
+                className="rounded-full bg-slate-950 px-3.5 py-2 text-sm font-semibold text-white"
               >
-                Undo last request
+                Send request
               </button>
-            ) : null}
-            {count > 0 ? (
-              <button
-                type="button"
-                data-activity-reset=""
+              {auto ? (
+                <IconButton label="Stop" pressed onClick={() => setAuto(false)} testId="stop">
+                  <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+                    <rect x="1.5" y="1.5" width="9" height="9" rx="1" fill="currentColor" />
+                  </svg>
+                </IconButton>
+              ) : (
+                <IconButton label="Send automatically" onClick={() => setAuto(true)} testId="auto">
+                  <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+                    <path d="M3 1.8v8.4l7.2-4.2L3 1.8z" fill="currentColor" />
+                  </svg>
+                </IconButton>
+              )}
+              <IconButton
+                label="Start over"
+                disabled={count === 0}
                 onClick={() => {
                   setAuto(false)
                   setCount(0)
                 }}
-                className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-800"
+                testId="reset"
               >
-                Start over
-              </button>
-            ) : null}
-          </div>
-          <div className="min-w-0 flex-1">
-            <Stage algorithm={algorithm} count={count} />
-          </div>
-        </div>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                  <path d="M2.2 7a4.8 4.8 0 1 0 1.2-3.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  <path d="M2 2.2v3h3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </IconButton>
+              {auto ? (
+                <div className="flex items-center gap-1" role="group" aria-label="How fast requests arrive">
+                  {SPEEDS.map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      data-activity-speed={value}
+                      aria-pressed={speed === value}
+                      onClick={() => setSpeed(value)}
+                      className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                        speed === value ? 'bg-slate-950 text-white' : 'border border-slate-200 text-slate-700'
+                      }`}
+                    >
+                      {value}x
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </>
+          }
+        />
       )}
     />
   )

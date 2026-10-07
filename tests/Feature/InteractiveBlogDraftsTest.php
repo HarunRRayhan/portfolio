@@ -32,7 +32,7 @@ class InteractiveBlogDraftsTest extends TestCase
 
             if ($slug === 'eight-load-balancer-algorithms') {
                 $this->assertSame('Top 8 Load Balancer Algorithms You Should Know About', $post['title']);
-                $this->assertStringContainsString('Send request puts the next request on a server.', $hydrated['content']['html']);
+                $this->assertStringContainsString('Send request sends one request through the load balancer in the middle.', $hydrated['content']['html']);
                 $this->assertStringNotContainsString('Send one more', $hydrated['content']['html']);
                 foreach ([
                     'round-robin',
