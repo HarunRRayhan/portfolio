@@ -21,7 +21,7 @@ tags:
 
 <p>The algorithm was doing what it was told. I had just never watched the requests land.</p>
 
-<p>There are 8 below. Each one gets its own figure. Send request puts the next request on a server. Send automatically keeps sending them, and the speed buttons only show up while that is running.</p>
+<p>There are 8 below. Each one gets its own figure. You are on the left. Send request sends one request through the load balancer in the middle. Play keeps sending until you press stop.</p>
 
 <h2>1. Round robin</h2>
 
