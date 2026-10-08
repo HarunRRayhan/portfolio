@@ -73,13 +73,14 @@ class InteractiveBlogDraftsTest extends TestCase
             if ($slug === 'why-rust-is-faster-than-python-javascript-php-and-go') {
                 $this->assertSame('Why Rust Finishes That Loop Before Python, PHP, JavaScript, and Go', $post['title']);
                 $this->assertStringContainsString('The race starts when the block is on screen', $hydrated['content']['html']);
-                $this->assertStringContainsString('At 1× it is very slow on purpose', $hydrated['content']['html']);
-                $this->assertStringContainsString('bounces left and right', $hydrated['content']['html']);
+                $this->assertStringContainsString('At 1× it is a crawl on purpose', $hydrated['content']['html']);
+                $this->assertStringContainsString('Slide toward 100× to see full race speed', $hydrated['content']['html']);
+                $this->assertStringContainsString('left to right, then back left again', $hydrated['content']['html']);
                 $this->assertStringContainsString('Relative speed', $hydrated['content']['html']);
                 $this->assertStringContainsString('>100×</td>', $hydrated['content']['html']);
                 $this->assertStringContainsString('>25×</td>', $hydrated['content']['html']);
                 $this->assertStringContainsString('>4×</td>', $hydrated['content']['html']);
-                $this->assertStringContainsString('Each ball bounces left and right', $hydrated['content']['html']);
+                $this->assertStringContainsString('Each ball runs left to right, then back left again', $hydrated['content']['html']);
                 $this->assertStringContainsString('What the model is measuring', $hydrated['content']['html']);
                 $this->assertStringContainsString('When the chart lies', $hydrated['content']['html']);
                 $this->assertStringContainsString('href="https://x.com/harundotdev"', $hydrated['content']['html']);

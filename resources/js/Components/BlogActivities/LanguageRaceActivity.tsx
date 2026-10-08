@@ -16,8 +16,11 @@ type Lane = {
 
 const PLAYBACK_MIN = 0.5
 const PLAYBACK_MAX = 100
-/** Seconds for Python to cross one way at 1x. Very slow on purpose. */
-const BASE_SECONDS = 48
+/**
+ * Seconds for Python to cross one way at 1x playback.
+ * 100x on the slider restores the watchable pace (~48s for Python).
+ */
+const BASE_SECONDS = 4800
 
 /**
  * Relative speeds (Python = 1×): managed runtimes stay close;
@@ -186,8 +189,8 @@ export default function LanguageRaceActivity() {
 
   const sliderValue = useMemo(() => playbackToSlider(playback), [playback])
   const caption = running
-    ? 'Balls keep bouncing left and right at language speed. The slider only speeds up the picture.'
-    : 'At 1x the balls crawl back and forth. Python is slowest. Drag the slider to speed up.'
+    ? 'Balls bounce left to right, then back again, forever. 1x is a crawl. Drag toward 100x for full speed.'
+    : 'At 1x each ball barely crawls. Slide up to 100x to watch the full race speed.'
 
   const restart = useCallback((nextPlayback?: number) => {
     if (typeof nextPlayback === 'number') {
@@ -245,8 +248,8 @@ export default function LanguageRaceActivity() {
     <div ref={rootRef} className="not-prose rounded-3xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
       <style>{`
         @keyframes language-race-ball {
-          from { left: 1.25rem; }
-          to { left: calc(100% - 1.25rem); }
+          0% { left: 1.25rem; }
+          100% { left: calc(100% - 1.25rem); }
         }
       `}</style>
       <div className="mb-4">
@@ -293,12 +296,12 @@ export default function LanguageRaceActivity() {
         />
         <div className="mt-1 flex justify-between text-[0.65rem] text-slate-500">
           <span>0.5×</span>
-          <span>1× default (slow)</span>
-          <span>100×</span>
+          <span>1× crawl</span>
+          <span>100× full speed</span>
         </div>
       </div>
       <p className="!my-0 mt-2 text-xs text-slate-500">
-        Language ratios stay 1× / 2× / 4× / 25× / 100×. Balls bounce forever. The slider only changes playback speed.
+        Language ratios stay 1× / 2× / 4× / 25× / 100×. Balls reverse at each end. The slider only changes playback speed.
       </p>
     </div>
   )
