@@ -1,11 +1,11 @@
 ---
 title: "Why You Should Use S3 Presigned URLs to Upload Big Static Files"
 slug: "why-s3-presigned-urls"
-brief: "A 240 MB static file, an API request that signs one PUT, and a browser upload that never passes through the API."
+brief: "A 2 GB video, an API that starts multipart and signs each part, and a browser that uploads those parts straight to S3."
 publishedAt: "2099-06-01T18:00:00.000Z"
 draft: true
 draftToken: "9383e96dda32884b6cbeb006fd6c4024"
-readTimeInMinutes: 11
+readTimeInMinutes: 12
 coverImageUrl: "/blog-assets/why-s3-presigned-urls/cover.jpg"
 reactionCount: 0
 responseCount: 0
@@ -19,25 +19,25 @@ tags:
     slug: security
 ---
 
-<p>A 240 MB zip, a video, a pile of images. That is a static file. Someone needed it on S3 from a phone. The fast fix was a bucket policy with <code>Principal: "*"</code>. The upload worked. So did every other key in the bucket, for as long as that policy stayed.</p>
+<p>A 2 GB video. Someone needed it on S3 from a phone. The fast fix was a bucket policy with <code>Principal: "*"</code>. The upload worked. So did every other key in the bucket, for as long as that policy stayed.</p>
 
-<p>A pre-signed URL is the narrower tool. The API request signs one PUT. The browser uploads the big file straight to S3. The object stays private. The figure below is that cycle as a small game: watch it run, or lock Browser or API and see what each side actually does.</p>
+<p>A pre-signed URL is the narrower tool. For a file this size you do not sign one giant PUT. The API starts a multipart upload, signs each part, and the browser PUTs those parts straight to S3. The object stays private. The figure below is that cycle as a small game: watch the parts land, or lock Browser or API and see what each side does.</p>
 
-<p>The figure starts when it is on screen. First the API request signs the PUT. Then the browser uploads the 240 MB file. Choose Browser or API and it stays on that side. Click the selected one again to return to the full cycle. Speed and reset sit at the bottom.</p>
+<p>The figure starts when it is on screen. First the API creates the multipart upload and signs the part URLs. Then the browser uploads Part 1 through Part 4 of the 2 GB video. Then the API completes the upload so S3 assembles the object. Choose Browser or API and it stays on that side. Click the selected one again to return to the full cycle. Speed and reset sit at the bottom.</p>
 
 <div data-blog-activity="s3-presigned-url"></div>
 
 <h2>Why the API should not carry the file</h2>
 
-<p>The tempting shape is: browser posts the file to your API, the API writes it to S3 with the AWS SDK, and you call it done. That shape breaks once the file is a few hundred megabytes.</p>
+<p>The tempting shape is: browser posts the video to your API, the API writes it to S3 with the AWS SDK, and you call it done. That shape breaks once the file is measured in gigabytes.</p>
 
-<p>API Gateway has a hard 10 MB payload limit. A Lambda behind it times out at 15 minutes and still has to hold the body in memory while it streams to S3. You pay for the ingress into the API and the egress out to S3. A small EC2 or container box has the same problem: two hops, double bandwidth, and a socket that dies when the phone drops wifi mid-upload.</p>
+<p>API Gateway has a hard 10 MB payload limit. A Lambda behind it times out at 15 minutes and still has to hold the body while it streams to S3. You pay for the ingress into the API and the egress out to S3. A small EC2 or container box has the same problem: two hops, double bandwidth, and a socket that dies when the phone drops wifi mid-upload.</p>
 
-<p>The other failure mode is credentials. If the browser talks to S3 with a long-lived access key, that key leaves your VPC. A pre-signed URL is temporary permission for one request. The IAM secret never ships to the client.</p>
+<p>The other failure mode is credentials. If the browser talks to S3 with a long-lived access key, that key leaves your VPC. A pre-signed part URL is temporary permission for one part. The IAM secret never ships to the client.</p>
 
-<h2>The two requests that make the cycle</h2>
+<h2>The requests that make a multipart cycle</h2>
 
-<p>There are two HTTP requests. Only one of them moves the 240 MB.</p>
+<p>A 2 GB video is not one PUT. S3 multipart splits it into parts (minimum 5 MB except the last part). In the figure I use four parts of about 512 MB each so you can see them stack.</p>
 
 <table>
 <thead>
@@ -52,122 +52,175 @@ tags:
 <tr>
 <td>1</td>
 <td>Browser → your API</td>
-<td>JSON: key, content type, maybe a job id</td>
+<td>JSON: filename, content type, size</td>
 <td>Nothing yet</td>
 </tr>
 <tr>
 <td>2</td>
-<td>Your API → signing library</td>
-<td>SigV4 over a PUT for that key</td>
-<td>Nothing yet</td>
+<td>Your API → S3 + signing library</td>
+<td><code>CreateMultipartUpload</code>, then SigV4 over each <code>UploadPart</code></td>
+<td>An open multipart upload id</td>
 </tr>
 <tr>
 <td>3</td>
 <td>Browser → S3</td>
-<td>The 240 MB body on a PUT to the signed URL</td>
-<td>One object write, then 200</td>
+<td>PUT part 1…N to each signed URL (~512 MB each)</td>
+<td>Parts land with ETags</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Browser → your API → S3</td>
+<td>Part numbers + ETags</td>
+<td><code>CompleteMultipartUpload</code> assembles the 2 GB object</td>
 </tr>
 </tbody>
 </table>
 
-<p>Step 1 is small on purpose. The API checks auth, picks a key like <code>uploads/hrr_export/2026-10-07.zip</code>, and returns a URL. Step 3 is the only place the bytes go. In the figure, the API column is step 1 and 2. The Browser column plus the green 240 MB bar on S3 is step 3.</p>
+<p>Steps 1, 2, and 4 are small on purpose. The API checks auth, picks a key like <code>uploads/hrr_export/2026-10-08/video.mp4</code>, opens the multipart upload, and returns signed part URLs. Step 3 is the only place the video bytes go. In the figure, the Lambda column is the signing and the complete. The Browser column plus the part bars on S3 are the uploads. The final 2 GB bar is the assembled object.</p>
 
-<p>If you lock Browser before any sign has landed, the figure shows a 403. That matches a real bucket with Block Public Access on and no signature in the query string.</p>
+<p>If you lock Browser before any multipart session has started, the figure shows a 403. That matches a real bucket with Block Public Access on and no signature in the query string.</p>
 
-<h2>How the signature is built</h2>
+<h2>How each part signature is built</h2>
 
-<p>The API holds the IAM credentials. The browser does not. The signature is Signature Version 4 over a specific request: method, bucket, key, region, time window, and the headers you chose to sign.</p>
+<p>The API holds the IAM credentials. The browser does not. Each part URL is Signature Version 4 over a specific <code>UploadPart</code> request: method, bucket, key, upload id, part number, region, time window, and the headers you chose to sign.</p>
 
-<p>You will see that in the query string after the API returns the URL:</p>
+<p>You will see the usual query params on every part URL:</p>
 
 <ul>
   <li><code>X-Amz-Algorithm</code>: always <code>AWS4-HMAC-SHA256</code> for SigV4.</li>
   <li><code>X-Amz-Credential</code>: access key id, date, region, service (<code>s3</code>), and the literal <code>aws4_request</code>.</li>
   <li><code>X-Amz-Date</code>: when the signature was created, in UTC.</li>
-  <li><code>X-Amz-Expires</code>: lifetime in seconds from that date. I use minutes for uploads, not days.</li>
-  <li><code>X-Amz-SignedHeaders</code>: which headers were part of the string to sign. Often <code>host</code> and <code>content-type</code>.</li>
-  <li><code>X-Amz-Signature</code>: the hex HMAC. Change the key, the method, or a signed header and this value no longer matches, so S3 rejects the PUT.</li>
+  <li><code>X-Amz-Expires</code>: lifetime in seconds from that date. Parts of a 2 GB video need enough time for a slow mobile link. I still keep this in minutes or a couple of hours, not days.</li>
+  <li><code>X-Amz-SignedHeaders</code>: which headers were part of the string to sign. Often just <code>host</code> for part uploads.</li>
+  <li><code>X-Amz-Signature</code>: the hex HMAC. Change the part number, the upload id, or the key and S3 rejects that part.</li>
 </ul>
 
-<p>For a PUT, sign <code>Content-Type</code> if you care what lands in the object. If you leave it out of the signed headers, a client can upload <code>application/octet-stream</code> under a key you thought was a zip. I set the type on the command when I sign, and I make the browser send the same header on the PUT.</p>
+<p>The upload id from <code>CreateMultipartUpload</code> ties the parts together. A signature for part 2 will not write part 3. A complete call with the wrong ETag list fails. That is the point: each URL is one part of one object, not a key to the bucket.</p>
 
-<p>An upload link I handed out does not need to work next week. Five to fifteen minutes is enough for a 240 MB file on a normal connection. Longer windows are more time for a leaked URL to be reused.</p>
+<h2>The API that starts multipart and signs the parts</h2>
 
-<h2>The API that signs the PUT</h2>
+<p>This is the shape I use with the AWS SDK for JavaScript v3. The handler never sees the video body.</p>
 
-<p>This is the shape I use with the AWS SDK for JavaScript v3. The handler never sees the file body.</p>
-
-<pre><code class="language-typescript">import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+<pre><code class="language-typescript">import {
+  S3Client,
+  CreateMultipartUploadCommand,
+  UploadPartCommand,
+  CompleteMultipartUploadCommand,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { randomUUID } from "crypto";
 
 const hrr_s3 = new S3Client({ region: "us-east-1" });
 const HRR_BUCKET = process.env.HRR_UPLOAD_BUCKET!;
+const HRR_PART_COUNT = 4;
 
-export async function hrr_createUploadUrl(input: {
+export async function hrr_createMultipartUpload(input: {
   filename: string;
   contentType: string;
 }) {
   const uploadId = randomUUID();
   const key = `uploads/${uploadId}/${input.filename}`;
 
-  const command = new PutObjectCommand({
-    Bucket: HRR_BUCKET,
-    Key: key,
-    ContentType: input.contentType,
-  });
+  const created = await hrr_s3.send(
+    new CreateMultipartUploadCommand({
+      Bucket: HRR_BUCKET,
+      Key: key,
+      ContentType: input.contentType,
+    }),
+  );
 
-  const uploadUrl = await getSignedUrl(hrr_s3, command, { expiresIn: 900 });
+  const multipartUploadId = created.UploadId!;
+  const partUrls: string[] = [];
+
+  for (let partNumber = 1; partNumber &lt;= HRR_PART_COUNT; partNumber += 1) {
+    const command = new UploadPartCommand({
+      Bucket: HRR_BUCKET,
+      Key: key,
+      UploadId: multipartUploadId,
+      PartNumber: partNumber,
+    });
+
+    partUrls.push(await getSignedUrl(hrr_s3, command, { expiresIn: 3600 }));
+  }
 
   return {
-    uploadId,
     key,
-    uploadUrl,
-    expiresIn: 900,
+    uploadId: multipartUploadId,
+    partUrls,
+    partCount: HRR_PART_COUNT,
+    expiresIn: 3600,
   };
+}
+
+export async function hrr_completeMultipartUpload(input: {
+  key: string;
+  uploadId: string;
+  parts: { ETag: string; PartNumber: number }[];
+}) {
+  await hrr_s3.send(
+    new CompleteMultipartUploadCommand({
+      Bucket: HRR_BUCKET,
+      Key: input.key,
+      UploadId: input.uploadId,
+      MultipartUpload: { Parts: input.parts },
+    }),
+  );
 }</code></pre>
 
-<p><code>getSignedUrl</code> builds the canonical request, derives the signing key from the IAM secret, and appends the <code>X-Amz-*</code> query params. The role on this Lambda only needs <code>s3:PutObject</code> on that prefix. It does not need <code>s3:GetObject</code> or <code>s3:ListBucket</code> for the upload path.</p>
+<p><code>getSignedUrl</code> builds the canonical request for each part, derives the signing key from the IAM secret, and appends the <code>X-Amz-*</code> query params. The role on this Lambda needs <code>s3:CreateMultipartUpload</code>, <code>s3:UploadPart</code> (for signing), and <code>s3:CompleteMultipartUpload</code> on that prefix. It does not need to read the video bytes.</p>
 
-<h2>The browser that uploads the file</h2>
+<h2>The browser that uploads the parts</h2>
 
-<p>The browser takes the URL and PUTs the bytes. No AWS SDK in the client. No Authorization header of your own. The query string is the auth.</p>
+<p>The browser slices the 2 GB file, PUTs each slice to its signed URL, and keeps the ETag S3 returns. No AWS SDK in the client. The query string is the auth.</p>
 
-<pre><code class="language-typescript">async function hrr_uploadStaticFile(
-  uploadUrl: string,
+<pre><code class="language-typescript">async function hrr_uploadVideoParts(
   file: File,
+  partUrls: string[],
 ) {
-  const response = await fetch(uploadUrl, {
-    method: "PUT",
-    headers: {
-      "Content-Type": file.type || "application/octet-stream",
-    },
-    body: file,
-  });
+  const partSize = Math.ceil(file.size / partUrls.length);
+  const parts: { ETag: string; PartNumber: number }[] = [];
 
-  if (!response.ok) {
-    throw new Error(`S3 upload failed: ${response.status}`);
+  for (let index = 0; index &lt; partUrls.length; index += 1) {
+    const start = index * partSize;
+    const blob = file.slice(start, start + partSize);
+    const response = await fetch(partUrls[index], {
+      method: "PUT",
+      body: blob,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Part ${index + 1} failed: ${response.status}`);
+    }
+
+    const etag = response.headers.get("ETag");
+    if (!etag) {
+      throw new Error(`Part ${index + 1} missing ETag`);
+    }
+
+    parts.push({ ETag: etag, PartNumber: index + 1 });
   }
+
+  return parts;
 }</code></pre>
 
-<p>That <code>Content-Type</code> has to match what you signed. A mismatch is a common 403 that looks like a CORS problem until you compare the signed headers with the request that left the browser.</p>
+<p>After every part succeeds, the browser posts the ETag list back to your API so it can call <code>CompleteMultipartUpload</code>. Until that call, S3 still holds loose parts, not a finished object. If the phone dies mid-upload, you can resume from the next missing part instead of restarting the whole 2 GB.</p>
 
-<p>CORS still matters. The bucket needs a rule that allows <code>PUT</code> from your origin, and it must expose enough headers for the browser to read the status. The pre-signed URL does not replace CORS. It replaces long-lived credentials.</p>
+<p>CORS still matters. The bucket needs a rule that allows <code>PUT</code> from your origin, and it must expose <code>ETag</code> so the browser can read it. The pre-signed URL does not replace CORS. It replaces long-lived credentials.</p>
 
 <h2>What the URL does not cover</h2>
 
-<p>The URL is not a key to the bucket. It will not list objects. It will not PUT a different key. It will not switch from PUT to GET or DELETE. Each of those needs its own signature, or IAM on a server you control.</p>
+<p>A part URL is not a key to the bucket. It will not list objects. It will not write a different key or a different part number. It will not switch from PUT to GET or DELETE. Completing or aborting the multipart upload is a separate signed call on the API.</p>
 
-<p>It is also not a secret you can paste into a ticket and forget. Anyone who has the URL can perform that one operation until <code>X-Amz-Expires</code> passes. Treat a leaked link like a temporary password for one object. Log when you mint them. Prefer one URL per upload attempt, not one URL shared across a team chat.</p>
+<p>It is also not a secret you can paste into a ticket and forget. Anyone who has a part URL can PUT that one part until <code>X-Amz-Expires</code> passes. Treat a leaked link like a temporary password for one slice of one object. Log when you mint them. Prefer one set of part URLs per upload attempt.</p>
 
-<p>For files much larger than a few hundred megabytes, or uploads that have to resume after a dropped connection, move to multipart upload with pre-signed part URLs. The idea is the same: the API signs, the browser talks to S3, credentials stay server-side. The figure stays on a single PUT because that is the path most static exports actually take.</p>
+<p>If a part fails or the user cancels, call <code>AbortMultipartUpload</code> so you do not leave billed incomplete parts sitting in the bucket.</p>
 
 <h2>Keep the bucket private</h2>
 
-<p>I do not open the bucket to get a big static file uploaded. A public bucket would accept that PUT tomorrow, and every other key too. Block Public Access on the account is there because this fix keeps coming back.</p>
+<p>I do not open the bucket to get a 2 GB video uploaded. A public bucket would accept those PUTs tomorrow, and every other key too. Block Public Access on the account is there because this fix keeps coming back.</p>
 
-<p>I still make an object public when it is meant to be public: a cover image, a package on a CDN, something I would put on a website without a login. A customer's export is not that. Upload with a pre-signed PUT. Read it later with a short-lived pre-signed GET, or serve it through CloudFront with an origin access control. Those are separate decisions from the upload.</p>
+<p>I still make an object public when it is meant to be public: a cover image, a package on a CDN, something I would put on a website without a login. A customer's video export is not that. Upload with pre-signed multipart parts. Read it later with a short-lived pre-signed GET, or serve it through CloudFront with an origin access control. Those are separate decisions from the upload.</p>
 
-<p>The 240 MB file in the figure goes from the browser to S3. The API request signs the PUT and then gets out of the way. That is the whole reason to use a pre-signed URL for big static files: one narrow permission, one object, no proxy in the middle.</p>
+<p>The 2 GB video in the figure goes from the browser to S3 in parts. The API starts the multipart upload, signs each part, completes the object, and stays out of the byte path. That is the whole reason to use pre-signed URLs for big static files: narrow permission, resumable parts, no proxy in the middle.</p>
 
-<p>Hope you enjoyed this one. If a pre-signed PUT has bitten you on <code>Content-Type</code>, find me on X at https://x.com/harundotdev.</p>
+<p>Hope you enjoyed this one. If a multipart part has bitten you on a missing <code>ETag</code> header in CORS, find me on X at https://x.com/harundotdev.</p>
