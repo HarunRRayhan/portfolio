@@ -1,7 +1,7 @@
 ---
 title: "Why Rust Finishes That Loop Before Python, PHP, JavaScript, and Go"
 slug: "why-rust-is-faster-than-python-javascript-php-and-go"
-brief: "Five colored balls cross left to right at stock-runtime speed vs CPython. Python is 1×. The slider only speeds up the picture."
+brief: "Five balls crawl left to right at language speed. Python is 1×. Drag the slider only to speed up the animation."
 publishedAt: "2099-06-01T18:00:00.000Z"
 draft: true
 draftToken: "deae83e5dc92e2055cd6b8e8b40d2ada"
@@ -19,19 +19,19 @@ tags:
 
 <p>The clip is always the same shape. Five terminals, one loop, Rust prints the time first, and the caption says "100x". The clip never says what the loop did, or whether the program was waiting on a socket the whole time.</p>
 
-<p>This figure is a model, not a timing run from my laptop. Each ball moves left to right at a relative speed taken from stock runtimes on a CPU-bound n-body workload in the Computer Language Benchmarks Game: CPython, PHP CLI, Node, Go, and a release Rust binary. No web framework. No extra library stack. Python is 1×. The race starts when the block is on screen. The slider only speeds up the picture.</p>
+<p>This figure is a model, not a timing run from my laptop. Each ball runs left to right at a relative speed. At 1× the picture is slow on purpose so you can see the gap. The slider at the bottom only speeds up the animation. It does not change the ratios. No web framework. No extra library stack. The race starts when the block is on screen.</p>
 
 <div data-blog-activity="language-race"></div>
 
 <h2>What the model is measuring</h2>
 
-<p>One numeric loop in memory. No disk. No HTTP. No database. Ball speed is throughput compared with CPython.</p>
+<p>One CPU-bound loop in memory. No disk. No HTTP. No database. Python is the 1× baseline. The others are how much faster that same class of work feels on stock runtimes, not a claim about every app you will ship.</p>
 
 <table>
 <thead>
 <tr>
 <th>Language</th>
-<th>Relative speed vs Python</th>
+<th>Relative speed</th>
 </tr>
 </thead>
 <tbody>
@@ -41,36 +41,32 @@ tags:
 </tr>
 <tr>
 <td>PHP</td>
-<td>~1.8×</td>
+<td>2×</td>
 </tr>
 <tr>
-<td>JavaScript (Node)</td>
-<td>~40×</td>
+<td>JavaScript</td>
+<td>4×</td>
 </tr>
 <tr>
 <td>Go</td>
-<td>~53×</td>
+<td>25×</td>
 </tr>
 <tr>
 <td>Rust</td>
-<td>~68×</td>
+<td>100×</td>
 </tr>
 </tbody>
 </table>
 
-<p>Those are rounded from plain-ish n-body wall times (Python ~372s, PHP ~204s, Node ~9s, Go ~7s, Rust ~5.5s). If your real work waits on Postgres, this chart is the wrong tool. The socket wins.</p>
+<p>JavaScript sits near PHP and Python here on purpose. Hot microbenchmarks after a JIT warms up can put Node next to Go. That is not how most day-to-day code feels, and it is not this figure. Go is clearly ahead of the managed runtimes. Rust is clearly ahead of Go. If your real work waits on Postgres, this chart is the wrong tool. The socket wins.</p>
 
-<h2>Why the slow balls stay slow on this workload</h2>
+<h2>Why Python, PHP, and JavaScript stay in a cluster</h2>
 
-<p>CPython and the PHP CLI run the loop through their default interpreters. A tight arithmetic loop pays that cost on every pass. That is why they sit near 1× and ~1.8× here. Both are still the right tool for a script you run once and throw away.</p>
+<p>CPython and the PHP CLI run through their default interpreters. Stock JavaScript is still a managed runtime. On ordinary CPU work they are in the same neighborhood compared with a compiled binary. That is why the balls stay close at 1×, 2×, and 4×.</p>
 
-<h2>Why Node sits in the middle</h2>
+<h2>Why Go and Rust pull away</h2>
 
-<p>Stock Node is still a managed runtime. On this kind of numeric loop it lands far ahead of the interpreters and behind the compiled binaries. The figure uses that default Node process, not a hand-tuned native addon.</p>
-
-<h2>Why Go and Rust pull ahead</h2>
-
-<p>Go and Rust ship a compiled binary for the loop. On this CPU-bound work they cross first. Rust edges Go in the n-body numbers this model uses. That gap is real for this workload and still small next to the jump from Python to either of them.</p>
+<p>Go and Rust ship a compiled binary for the loop. On this kind of CPU-bound work they leave the managed runtimes behind. Rust sits much further ahead of Go in this model than a screenshot that puts them almost tied.</p>
 
 <p>None of that says a Rust HTTP handler beats a Go one when both wait on the same database.</p>
 
