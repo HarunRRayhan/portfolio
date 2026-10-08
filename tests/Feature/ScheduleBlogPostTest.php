@@ -129,4 +129,11 @@ class ScheduleBlogPostTest extends TestCase
             BlogPostSchedule::query()->where('slug', 'why-s3-presigned-urls')->first(),
         );
     }
+
+    public function test_the_terraform_or_pulumi_schedule_migration_stays_out_of_the_test_database(): void
+    {
+        $this->assertNull(
+            BlogPostSchedule::query()->where('slug', 'terraform-or-pulumi')->first(),
+        );
+    }
 }
