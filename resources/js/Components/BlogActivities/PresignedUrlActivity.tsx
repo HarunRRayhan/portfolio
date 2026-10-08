@@ -26,7 +26,8 @@ const PART_SIZE = '512 MB'
 const FILE_SIZE = '2 GB'
 
 const LOGOS = {
-  api: getImageUrl('/images/logos/tech/Amazon_Lambda_architecture_logo.svg'),
+  browser: getImageUrl('/images/logos/tech/google-chrome-logo.svg'),
+  api: getImageUrl('/images/logos/tech/api-signing-key.svg'),
   s3: getImageUrl('/images/logos/tech/Amazon-S3-Logo.svg'),
 } as const
 
@@ -48,7 +49,7 @@ const INITIATE: Beat = {
   actor: 'api',
   tone: 'sign',
   title: 'The API starts multipart and signs the parts',
-  caption: `You ask the API to upload a ${FILE_SIZE} video. It calls CreateMultipartUpload, then signs ${PART_COUNT} part URLs. The video bytes do not move yet.`,
+  caption: `You ask the API to upload a ${FILE_SIZE} video. The API keeps the IAM key, calls CreateMultipartUpload, then signs ${PART_COUNT} part URLs. The Chrome client never sees the secret. The video bytes do not move yet.`,
 }
 
 const COMPLETE: Beat = {
@@ -176,18 +177,6 @@ function Packet({ duration, label }: { duration: number; label?: string }) {
       animate={{ top: 'calc(100% - 0.75rem)' }}
       transition={{ duration, ease: 'easeInOut' }}
     />
-  )
-}
-
-function BrowserMark() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-      <rect x="1.5" y="2.5" width="15" height="13" rx="2" stroke="currentColor" strokeWidth="1.4" />
-      <path d="M1.5 6.2h15" stroke="currentColor" strokeWidth="1.4" />
-      <circle cx="4.2" cy="4.35" r="0.7" fill="currentColor" />
-      <circle cx="6.2" cy="4.35" r="0.7" fill="currentColor" />
-      <circle cx="8.2" cy="4.35" r="0.7" fill="currentColor" />
-    </svg>
   )
 }
 
@@ -484,7 +473,7 @@ export default function PresignedUrlActivity() {
                 <div className="pointer-events-none absolute top-0 right-[16.5%] left-[16.5%] h-px bg-slate-300" />
                 <Column
                   name="API"
-                  note="Lambda"
+                  note="signs"
                   hot={flight?.phase === 'api'}
                   count={apiBars.length}
                   bars={apiBars}
@@ -492,11 +481,11 @@ export default function PresignedUrlActivity() {
                   hopSeconds={hopSeconds}
                   reducedMotion={reducedMotion === true}
                   logoSrc={LOGOS.api}
-                  logoFallback={<span className="text-[0.65rem] font-bold">λ</span>}
+                  logoFallback={<span className="text-[0.65rem] font-bold">key</span>}
                 />
                 <Column
                   name="Browser"
-                  note="parts"
+                  note="Chrome"
                   hot={flight?.phase === 'browser'}
                   count={browserBars.filter((beat) => beat.tone === 'ok').length}
                   bars={browserBars}
@@ -504,7 +493,8 @@ export default function PresignedUrlActivity() {
                   packetLabel={filePacket ? flight?.beat.packetLabel ?? PART_SIZE : undefined}
                   hopSeconds={hopSeconds * 0.55}
                   reducedMotion={reducedMotion === true}
-                  logoFallback={<BrowserMark />}
+                  logoSrc={LOGOS.browser}
+                  logoFallback={<span className="text-[0.55rem] font-bold">Chrome</span>}
                 />
                 <Column
                   name="S3"
@@ -538,7 +528,7 @@ export default function PresignedUrlActivity() {
                           : 'border border-slate-200 text-slate-700'
                     }`}
                   >
-                    <BrowserMark />
+                    <img src={LOGOS.browser} alt="" className="h-3.5 w-3.5 object-contain" />
                     Browser
                   </button>
                   <button
@@ -554,7 +544,7 @@ export default function PresignedUrlActivity() {
                           : 'border border-slate-200 text-slate-700'
                     }`}
                   >
-                    <img src={LOGOS.api} alt="" className="h-3.5 w-3.5 object-contain" />
+                    <img src={LOGOS.api} alt="" className="h-3.5 w-3.5 rounded-sm object-contain" />
                     API
                   </button>
                 </div>

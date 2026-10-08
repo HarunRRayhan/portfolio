@@ -5,7 +5,7 @@ brief: "A 2 GB video, an API that starts multipart and signs each part, and a br
 publishedAt: "2099-06-01T18:00:00.000Z"
 draft: true
 draftToken: "9383e96dda32884b6cbeb006fd6c4024"
-readTimeInMinutes: 12
+readTimeInMinutes: 13
 coverImageUrl: "/blog-assets/why-s3-presigned-urls/cover.jpg"
 reactionCount: 0
 responseCount: 0
@@ -207,13 +207,29 @@ export async function hrr_completeMultipartUpload(input: {
 
 <p>CORS still matters. The bucket needs a rule that allows <code>PUT</code> from your origin, and it must expose <code>ETag</code> so the browser can read it. The pre-signed URL does not replace CORS. It replaces long-lived credentials.</p>
 
-<h2>What the URL does not cover</h2>
+<h2>Is this secure?</h2>
 
-<p>A part URL is not a key to the bucket. It will not list objects. It will not write a different key or a different part number. It will not switch from PUT to GET or DELETE. Completing or aborting the multipart upload is a separate signed call on the API.</p>
+<p>Yes, when you keep the bucket private and you treat each part URL as a short-lived ticket for one slice of one object. It is more secure than shipping IAM keys to Chrome, and more secure than opening the bucket with <code>Principal: "*"</code>.</p>
 
-<p>It is also not a secret you can paste into a ticket and forget. Anyone who has a part URL can PUT that one part until <code>X-Amz-Expires</code> passes. Treat a leaked link like a temporary password for one slice of one object. Log when you mint them. Prefer one set of part URLs per upload attempt.</p>
+<p>It is not magic. A leaked part URL still lets whoever has it upload that one part until expiry. Security here is narrow permission plus a short clock, not "the URL is secret forever."</p>
 
-<p>If a part fails or the user cancels, call <code>AbortMultipartUpload</code> so you do not leave billed incomplete parts sitting in the bucket.</p>
+<h2>How?</h2>
+
+<p>The IAM access key and secret stay on the API. Chrome only receives signed URLs. Those URLs encode SigV4 over a fixed request: this bucket, this key, this multipart upload id, this part number, this expiry. Change any of those and the signature stops matching, so S3 returns 403.</p>
+
+<p>That is what the figure is showing. Lock Browser before the API has signed anything and S3 denies the upload. After the API signs, Chrome can PUT parts, but it still cannot list the bucket, read other keys, or complete the multipart upload without another call that only the API is allowed to make.</p>
+
+<p>A few habits keep that promise honest:</p>
+
+<ul>
+  <li>Leave Block Public Access on. Do not open the bucket to make the upload "just work."</li>
+  <li>Sign only the part numbers you need. Prefer one set of part URLs per upload attempt.</li>
+  <li>Keep <code>X-Amz-Expires</code> short enough for a slow mobile upload, not for a week of Slack forwards.</li>
+  <li>On cancel or failure, call <code>AbortMultipartUpload</code> so incomplete parts do not sit around.</li>
+  <li>Treat a pasted part URL like a temporary password for one slice. Log when you mint them.</li>
+</ul>
+
+<p>A part URL will not list objects. It will not write a different key or a different part number. It will not switch from PUT to GET or DELETE. Completing or aborting the multipart upload stays on the API.</p>
 
 <h2>Keep the bucket private</h2>
 
@@ -221,6 +237,6 @@ export async function hrr_completeMultipartUpload(input: {
 
 <p>I still make an object public when it is meant to be public: a cover image, a package on a CDN, something I would put on a website without a login. A customer's video export is not that. Upload with pre-signed multipart parts. Read it later with a short-lived pre-signed GET, or serve it through CloudFront with an origin access control. Those are separate decisions from the upload.</p>
 
-<p>The 2 GB video in the figure goes from the browser to S3 in parts. The API starts the multipart upload, signs each part, completes the object, and stays out of the byte path. That is the whole reason to use pre-signed URLs for big static files: narrow permission, resumable parts, no proxy in the middle.</p>
+<p>The 2 GB video in the figure goes from Chrome to S3 in parts. The API holds the key, starts the multipart upload, signs each part, completes the object, and stays out of the byte path. That is the whole reason to use pre-signed URLs for big static files: narrow permission, resumable parts, no proxy in the middle.</p>
 
-<p>Hope you enjoyed this one. If a multipart part has bitten you on a missing <code>ETag</code> header in CORS, find me on X at https://x.com/harundotdev.</p>
+<p>Hope you enjoyed this one. If a multipart part has bitten you on a missing <code>ETag</code> header in CORS, find me on X at <a href="https://x.com/harundotdev" target="_blank" rel="noopener noreferrer">https://x.com/harundotdev</a>, and grab every other link from my bio at <a href="https://harun.dev/bio" target="_blank" rel="noopener noreferrer">https://harun.dev/bio</a>.</p>

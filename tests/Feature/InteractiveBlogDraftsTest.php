@@ -39,6 +39,12 @@ class InteractiveBlogDraftsTest extends TestCase
                 $this->assertStringContainsString('hrr_createMultipartUpload', $hydrated['content']['html']);
                 $this->assertStringContainsString('hrr_uploadVideoParts', $hydrated['content']['html']);
                 $this->assertStringContainsString('2 GB', $hydrated['content']['html']);
+                $this->assertStringContainsString('Is this secure?', $hydrated['content']['html']);
+                $this->assertStringContainsString('<h2>How?</h2>', $hydrated['content']['html']);
+                $this->assertStringContainsString('href="https://x.com/harundotdev"', $hydrated['content']['html']);
+                $this->assertStringContainsString('href="https://harun.dev/bio"', $hydrated['content']['html']);
+                $this->assertStringContainsString('target="_blank"', $hydrated['content']['html']);
+                $this->assertStringContainsString('rel="noopener noreferrer"', $hydrated['content']['html']);
                 $this->assertStringNotContainsString('Who can fetch the object', $hydrated['content']['html']);
                 $this->assertStringNotContainsString('Make the object public', $hydrated['content']['html']);
                 $this->assertStringNotContainsString('—', $hydrated['content']['html']);

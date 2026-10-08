@@ -1,0 +1,23 @@
+---
+description: Closing links for harun.dev blog posts (X + bio, new tab)
+globs: resources/blog/posts/**
+alwaysApply: false
+---
+
+# Blog post closing
+
+End every post with a short "Hope you enjoyed..." line, then point people to X and the full bio.
+
+Required HTML shape (raw HTML bodies):
+
+```html
+<p>Hope you enjoyed this one. … Find me on X at <a href="https://x.com/harundotdev" target="_blank" rel="noopener noreferrer">https://x.com/harundotdev</a>, and grab every other link from my bio at <a href="https://harun.dev/bio" target="_blank" rel="noopener noreferrer">https://harun.dev/bio</a>.</p>
+```
+
+Rules:
+
+- Always use real `<a>` tags for both URLs. Do not leave bare `https://x.com/...` text.
+- Both links open in a new tab: `target="_blank"` and `rel="noopener noreferrer"`.
+- Always include `https://harun.dev/bio` so readers can find other socials and links.
+- Keep the wording first person and concrete. No "In summary" / "In conclusion".
+- No em dashes in the closing (or elsewhere in the post).
