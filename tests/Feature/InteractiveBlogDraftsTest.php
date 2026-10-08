@@ -73,12 +73,17 @@ class InteractiveBlogDraftsTest extends TestCase
             if ($slug === 'why-rust-is-faster-than-python-javascript-php-and-go') {
                 $this->assertSame('Why Rust Finishes That Loop Before Python, PHP, JavaScript, and Go', $post['title']);
                 $this->assertStringContainsString('The race starts when the block is on screen', $hydrated['content']['html']);
+                $this->assertStringContainsString('Computer Language Benchmarks Game', $hydrated['content']['html']);
+                $this->assertStringContainsString('Relative speed (Python = 1×)', $hydrated['content']['html']);
+                $this->assertStringContainsString('~70×', $hydrated['content']['html']);
                 $this->assertStringContainsString('What the model is measuring', $hydrated['content']['html']);
                 $this->assertStringContainsString('When the chart lies', $hydrated['content']['html']);
                 $this->assertStringContainsString('href="https://x.com/harundotdev"', $hydrated['content']['html']);
                 $this->assertStringContainsString('href="https://harun.dev/bio"', $hydrated['content']['html']);
                 $this->assertStringContainsString('target="_blank"', $hydrated['content']['html']);
                 $this->assertStringContainsString('rel="noopener noreferrer"', $hydrated['content']['html']);
+                $this->assertStringNotContainsString('Interpreter reads opcodes', $hydrated['content']['html']);
+                $this->assertStringNotContainsString('data-activity-play', $hydrated['content']['html']);
                 $this->assertStringNotContainsString('—', $hydrated['content']['html']);
             }
 
