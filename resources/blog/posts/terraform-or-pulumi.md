@@ -5,7 +5,7 @@ brief: "Both tools preview a change, apply it, and write state. The figure runs 
 publishedAt: "2099-06-01T18:00:00.000Z"
 draft: true
 draftToken: "4172d8f219888e9f4fe3b324c86cc6f2"
-readTimeInMinutes: 8
+readTimeInMinutes: 11
 coverImageUrl: "/blog-assets/terraform-or-pulumi/cover.jpg"
 reactionCount: 0
 responseCount: 0
@@ -21,36 +21,119 @@ tags:
 
 <p>The argument started as a logo fight. Terraform on one side, Pulumi on the other, as if the cloud would behave once we picked the right binary.</p>
 
-<p>Both tools do the same loop. You describe the resources. You preview. You apply. State records what actually exists. The figure plays that loop in both columns. The buttons underneath are the question I ask first.</p>
+<p>Both tools do the same loop. You describe the resources. You preview. You apply. State records what actually exists. The figure plays that loop with real logos. Choose Terraform or Pulumi and it stays on that side. Leave them alone and both columns walk the cycle together. Speed and reset sit at the bottom.</p>
 
 <div data-blog-activity="terraform-vs-pulumi"></div>
 
-<h2>State does not care which CLI wrote it</h2>
+<h2>The loop is the product</h2>
 
-<p>A Terraform state file can hold database passwords, access keys, and a map of the account. A Pulumi stack file can hold the same class of values. Switching tools does not delete that file. It renames it.</p>
+<p>I stop people when the debate is only about HCL versus TypeScript. The product is the loop:</p>
 
-<p>I wrote up the Terraform side in <a href="/blog/terraform-state-more-sensitive-than-env">Why Your Terraform State Is More Sensitive Than Your .env File</a>. The rules transfer. Keep state out of git, lock it, and limit who can read it. For Terraform I use an S3 backend and a lock. For Pulumi I use a backend I can restrict the same way, not a laptop.</p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Terraform</th>
+<th>Pulumi</th>
+<th>What you are checking</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Describe</td>
+<td><code>main.tf</code> / modules</td>
+<td><code>index.ts</code> (or Python, Go, …)</td>
+<td>Desired state is readable by the people who must review it</td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>terraform plan</code></td>
+<td><code>pulumi preview</code></td>
+<td>Creates, updates, and deletes before anything changes</td>
+</tr>
+<tr>
+<td>Apply</td>
+<td><code>terraform apply</code></td>
+<td><code>pulumi up</code></td>
+<td>Cloud APIs run with credentials you intended</td>
+</tr>
+<tr>
+<td>State</td>
+<td><code>terraform.tfstate</code> (remote)</td>
+<td>stack state (remote)</td>
+<td>Real IDs, and often secrets, stay locked down</td>
+</tr>
+</tbody>
+</table>
 
-<h2>Preview is the review</h2>
+<p>Miss the preview and you get surprise destroys. Miss the state lock and two applies race. Miss who can read state and you leak database passwords. The CLI brand does not fix those.</p>
 
-<p><code>terraform plan</code> and <code>pulumi preview</code> are the diff. I do not apply from a laptop against production without that diff in the pull request. The language of the description changes who can read the diff. It does not remove the need for one.</p>
+<h2>Same bucket, two descriptions</h2>
+
+<p>Here is an S3 bucket both ways. Prefixes stay <code>hrr_</code>.</p>
 
 <pre><code class="language-hcl">resource "aws_s3_bucket" "hrr_uploads" {
   bucket = "hrr-uploads-example"
+
+  tags = {
+    Project = "hrr-demo"
+  }
 }
 </code></pre>
 
-<pre><code class="language-typescript">const hrrUploads = new aws.s3.Bucket("hrrUploads", {
+<pre><code class="language-typescript">import * as aws from "@pulumi/aws";
+
+const hrrUploads = new aws.s3.Bucket("hrrUploads", {
   bucket: "hrr-uploads-example",
+  tags: {
+    Project: "hrr-demo",
+  },
 });
 </code></pre>
 
-<p>Same bucket. One is HCL the whole team already reviews. The other sits in the app repo next to the code that calls it.</p>
+<p>Same object in AWS after apply. The review question is who can read the diff in the pull request. If half the reviewers do not write TypeScript, the Pulumi preview is noise. If the app team already owns the account and the repo, HCL is the foreign language.</p>
 
-<h2>The team you already have</h2>
+<h2>State does not care which CLI wrote it</h2>
 
-<p>If the people who review infrastructure write HCL, stay on Terraform. A TypeScript program is a worse review when half the reviewers do not write TypeScript. Pulumi's win shows up when the same people already own the app and the account, and they want loops, types, and a shared repo.</p>
+<p>A Terraform state file can hold database passwords, access keys, and a map of the account. A Pulumi stack can hold the same class of values. Switching tools does not delete that risk. It renames the file.</p>
+
+<p>I wrote up the Terraform side in <a href="/blog/terraform-state-more-sensitive-than-env">Why Your Terraform State Is More Sensitive Than Your .env File</a>. The rules transfer:</p>
+
+<ul>
+  <li>Keep state out of git.</li>
+  <li>Use a remote backend you can lock.</li>
+  <li>Limit who can read the bucket or the Pulumi backend.</li>
+  <li>Encrypt at rest. Prefer a KMS key you control.</li>
+</ul>
+
+<p>For Terraform I use an S3 backend with a lock. For Pulumi I use a backend I can restrict the same way, not a laptop and not a shared login with write access for everyone on Slack.</p>
+
+<pre><code class="language-hcl">terraform {
+  backend "s3" {
+    bucket       = "hrr-terraform-state"
+    key          = "demo/production/terraform.tfstate"
+    region       = "us-east-1"
+    encrypt      = true
+    use_lockfile = true
+  }
+}
+</code></pre>
+
+<h2>Preview is the review</h2>
+
+<p><code>terraform plan</code> and <code>pulumi preview</code> are the diff. I do not apply from a laptop against production without that diff in the pull request. CI should run the preview on every change that touches infra. Humans read the create/update/delete list. The language of the description changes who can read it. It does not remove the need for one.</p>
+
+<p>When the plan says destroy on a database, stop. When the preview is empty and you expected a change, stop. The figure's preview step is that gate. Apply is only honest after it.</p>
+
+<h2>Which one should you pick?</h2>
+
+<p>Pick from the team you have, not the conference talk you liked.</p>
+
+<ul>
+  <li><strong>Stay on Terraform</strong> when infrastructure reviewers already write and review HCL, when you have a module library that works, and when operators live in the Terraform workflow.</li>
+  <li><strong>Choose Pulumi</strong> when the same people already own the app and the account, when loops and types would cut real duplication, and when the preview will be read by TypeScript (or Python) developers.</li>
+</ul>
 
 <p>I have used both. The outages I remember came from state that anyone could read, and from an apply that nobody previewed. They did not come from the extension on the file.</p>
 
-<p>Hope you enjoyed this one. If your team is mid-argument about this, find me on X at https://x.com/harundotdev.</p>
+<p>Hope you enjoyed this one. If your team is mid-argument about this, find me on X at <a href="https://x.com/harundotdev" target="_blank" rel="noopener noreferrer">https://x.com/harundotdev</a>, and grab every other link from my bio at <a href="https://harun.dev/bio" target="_blank" rel="noopener noreferrer">https://harun.dev/bio</a>.</p>

@@ -69,6 +69,18 @@ class InteractiveBlogDraftsTest extends TestCase
                     $this->assertStringContainsString('data-algorithm="'.$algorithm.'"', $hydrated['content']['html']);
                 }
             }
+
+            if ($slug === 'terraform-or-pulumi') {
+                $this->assertSame('Terraform or Pulumi, Pick From the Team You Have', $post['title']);
+                $this->assertStringContainsString('Choose Terraform or Pulumi and it stays on that side', $hydrated['content']['html']);
+                $this->assertStringContainsString('The loop is the product', $hydrated['content']['html']);
+                $this->assertStringContainsString('Which one should you pick?', $hydrated['content']['html']);
+                $this->assertStringContainsString('href="https://x.com/harundotdev"', $hydrated['content']['html']);
+                $this->assertStringContainsString('href="https://harun.dev/bio"', $hydrated['content']['html']);
+                $this->assertStringContainsString('target="_blank"', $hydrated['content']['html']);
+                $this->assertStringContainsString('rel="noopener noreferrer"', $hydrated['content']['html']);
+                $this->assertStringNotContainsString('—', $hydrated['content']['html']);
+            }
         }
     }
 }
