@@ -76,8 +76,11 @@ When the human asks what to post about, or for a scored shortlist / top N topics
    - Contractions throughout.
    - Short, concrete sentences with real numbers, exact error messages, actual file paths — not
      adjectives.
-   - End with: a short "Hope you enjoyed..." line plus a call to follow
-     `https://x.com/harundotdev`. No "In summary" / "In conclusion" wrap-up before it.
+   - End with: a short "Hope you enjoyed..." line, then linked X and bio closings
+     that open in a new tab. Exact shape:
+     `Find me on X at <a href="https://x.com/harundotdev" target="_blank" rel="noopener noreferrer">https://x.com/harundotdev</a>, and grab every other link from my bio at <a href="https://harun.dev/bio" target="_blank" rel="noopener noreferrer">https://harun.dev/bio</a>.`
+     Never leave bare `https://x.com/...` text. Always include `https://harun.dev/bio`.
+     No "In summary" / "In conclusion" wrap-up before it. See `.cursor/rules/blog-post-closing.mdc`.
 
 6. **Don't rehash** a topic already covered on the blog. Grep `resources/blog/posts/*.md` titles/tags
    first if there's any doubt about overlap.

@@ -69,6 +69,10 @@ The auto-mode classifier blocks these Railway/infra actions from Bash even after
   to post, show the scored top 10 with a one-line angle each, wait for a
   number, then draft. Don't default-pick and write in the same turn. Details
   are in `.claude/agents/blog-writer.md`.
+- **Post closing:** always link X and the bio in new tabs
+  (`https://x.com/harundotdev`, `https://harun.dev/bio`, both with
+  `target="_blank"` `rel="noopener noreferrer"`). Rule file:
+  `.cursor/rules/blog-post-closing.mdc`.
 - **Draft `publishedAt` stays in the future.** `blog:publish-scheduled` publishes every
   draft that is already due, and CI runs that command on the real catalog. A past timestamp
   rewrites the file during PHPUnit and can block the Railway release. Set the real timestamp

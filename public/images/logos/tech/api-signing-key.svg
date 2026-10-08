@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="API signing key">
+  <rect width="48" height="48" rx="12" fill="#0f172a"/>
+  <circle cx="18" cy="24" r="8" fill="none" stroke="#fbbf24" stroke-width="3"/>
+  <circle cx="18" cy="24" r="3" fill="#fbbf24"/>
+  <path d="M25 24h14v3.2H35V32h-3.2v-4.8H29.5V32H26.3v-8z" fill="#fbbf24"/>
+</svg>
