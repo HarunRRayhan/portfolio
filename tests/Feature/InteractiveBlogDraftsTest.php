@@ -33,11 +33,12 @@ class InteractiveBlogDraftsTest extends TestCase
             if ($slug === 'why-s3-presigned-urls') {
                 $this->assertSame('Why You Should Use S3 Presigned URLs to Upload Big Static Files', $post['title']);
                 $this->assertStringContainsString('Choose Browser or API and it stays on that side', $hydrated['content']['html']);
-                $this->assertStringContainsString('the API request signs the PUT', $hydrated['content']['html']);
+                $this->assertStringContainsString('creates the multipart upload and signs the part URLs', $hydrated['content']['html']);
                 $this->assertStringContainsString('Why the API should not carry the file', $hydrated['content']['html']);
-                $this->assertStringContainsString('The two requests that make the cycle', $hydrated['content']['html']);
-                $this->assertStringContainsString('hrr_createUploadUrl', $hydrated['content']['html']);
-                $this->assertStringContainsString('hrr_uploadStaticFile', $hydrated['content']['html']);
+                $this->assertStringContainsString('The requests that make a multipart cycle', $hydrated['content']['html']);
+                $this->assertStringContainsString('hrr_createMultipartUpload', $hydrated['content']['html']);
+                $this->assertStringContainsString('hrr_uploadVideoParts', $hydrated['content']['html']);
+                $this->assertStringContainsString('2 GB', $hydrated['content']['html']);
                 $this->assertStringNotContainsString('Who can fetch the object', $hydrated['content']['html']);
                 $this->assertStringNotContainsString('Make the object public', $hydrated['content']['html']);
                 $this->assertStringNotContainsString('—', $hydrated['content']['html']);
