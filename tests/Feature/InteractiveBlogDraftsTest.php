@@ -74,6 +74,9 @@ class InteractiveBlogDraftsTest extends TestCase
                 $this->assertSame('Terraform or Pulumi, Pick From the Team You Have', $post['title']);
                 $this->assertStringContainsString('The two terminals below run that deploy side by side', $hydrated['content']['html']);
                 $this->assertStringContainsString('The loop is the product', $hydrated['content']['html']);
+                $this->assertStringContainsString('The Terraform state caveat', $hydrated['content']['html']);
+                $this->assertStringContainsString('The Pulumi equivalent', $hydrated['content']['html']);
+                $this->assertStringContainsString('stack state', $hydrated['content']['html']);
                 $this->assertStringContainsString('Which one should you pick?', $hydrated['content']['html']);
                 $this->assertStringContainsString('/images/logos/tech/terraformio-icon.svg', $hydrated['content']['html']);
                 $this->assertStringContainsString('/images/logos/tech/pulumi-logo.svg', $hydrated['content']['html']);

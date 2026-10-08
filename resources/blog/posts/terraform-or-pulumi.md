@@ -5,7 +5,7 @@ brief: "Both tools preview a change, apply it, and write state. Two terminals sh
 publishedAt: "2099-06-01T18:00:00.000Z"
 draft: true
 draftToken: "4172d8f219888e9f4fe3b324c86cc6f2"
-readTimeInMinutes: 11
+readTimeInMinutes: 13
 coverImageUrl: "/blog-assets/terraform-or-pulumi/cover.jpg"
 reactionCount: 0
 responseCount: 0
@@ -95,18 +95,25 @@ const hrrUploads = new aws.s3.Bucket("hrrUploads", {
 
 <h2>State does not care which CLI wrote it</h2>
 
-<p>A Terraform state file can hold database passwords, access keys, and a map of the account. A Pulumi stack can hold the same class of values. Switching tools does not delete that risk. It renames the file.</p>
+<p>Both tools need a memory of what they created. That memory is more sensitive than a <code>.env</code> file, and switching CLIs does not delete the risk. It renames the file.</p>
 
-<p>I wrote up the Terraform side in <a href="/blog/terraform-state-more-sensitive-than-env">Why Your Terraform State Is More Sensitive Than Your .env File</a>. The rules transfer:</p>
+<h3>The Terraform state caveat</h3>
+
+<p><code>terraform.tfstate</code> is JSON that maps your configuration to real cloud objects. After an apply it commonly holds:</p>
 
 <ul>
-  <li>Keep state out of git.</li>
-  <li>Use a remote backend you can lock.</li>
-  <li>Limit who can read the bucket or the Pulumi backend.</li>
-  <li>Encrypt at rest. Prefer a KMS key you control.</li>
+  <li>resource IDs, ARNs, and relationships across the stack</li>
+  <li>database usernames and passwords passed as resource arguments</li>
+  <li>IAM access key secrets Terraform created</li>
+  <li>private keys from the TLS provider</li>
+  <li>API tokens, webhook URLs, and Lambda environment variables</li>
 </ul>
 
-<p>For Terraform I use an S3 backend with a lock. For Pulumi I use a backend I can restrict the same way, not a laptop and not a shared login with write access for everyone on Slack.</p>
+<p>Marking a variable <code>sensitive = true</code> hides it from normal CLI output. It does not remove the value from state. Terraform needs those attributes to plan the next diff. Treat every production state snapshot as if it contains credentials, even when last month's file looked clean. Providers change. Modules grow. A data source you used while debugging can leave a secret behind.</p>
+
+<p>Two operators applying at once without a lock can corrupt that file. A state file in git, in a CI artifact, or in a bucket every developer can read is a credential dump with a map of your account attached. I wrote the fuller Terraform treatment in <a href="/blog/terraform-state-more-sensitive-than-env">Why Your Terraform State Is More Sensitive Than Your .env File</a>.</p>
+
+<p>My minimum remote backend looks like this:</p>
 
 <pre><code class="language-hcl">terraform {
   backend "s3" {
@@ -118,6 +125,27 @@ const hrrUploads = new aws.s3.Bucket("hrrUploads", {
   }
 }
 </code></pre>
+
+<p>Dedicated bucket. Encryption on. Lock on. Read access only for the people and CI roles that must run plan and apply. Not the uploads bucket. Not a laptop copy "just for today."</p>
+
+<h3>The Pulumi equivalent</h3>
+
+<p>Pulumi's equivalent is <strong>stack state</strong>. Same job as Terraform state: remember which cloud objects belong to this stack so the next preview and up are honest.</p>
+
+<p>Where it lives depends on the backend you chose: Pulumi Cloud, an S3/DIY backend, or another supported store. The product name changes. The contents do not get safer. Stack state still carries resource identities and can carry secrets from configuration and provider outputs. Pulumi can encrypt secret values in state and config, which is useful. Encryption at rest is not the same as "anyone on the team can download the stack export."</p>
+
+<p>So I apply the same rules:</p>
+
+<ul>
+  <li>Do not keep stack state on a developer laptop as the source of truth.</li>
+  <li>Use a remote backend you can lock and audit.</li>
+  <li>Limit who can read the stack, export it, or decrypt secrets.</li>
+  <li>Prefer a passphrase or KMS-backed secrets provider you control, not a shared Slack password.</li>
+</ul>
+
+<p>What is <em>not</em> the same: the file format, the CLI commands, and the migration path. You do not "rename" <code>terraform.tfstate</code> into a Pulumi stack and call it done. Importing or rebuilding state is a project of its own. The caveat that transfers is the security model, not the bytes on disk.</p>
+
+<p>In the terminals above, both sides end on a locked remote state line for a reason. The green "1 added" / "1 created" is incomplete until that record is somewhere you would trust with a production password.</p>
 
 <h2>Preview is the review</h2>
 
