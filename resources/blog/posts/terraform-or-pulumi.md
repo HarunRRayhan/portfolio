@@ -1,7 +1,7 @@
 ---
 title: "Terraform or Pulumi, Pick From the Team You Have"
 slug: "terraform-or-pulumi"
-brief: "Both tools preview a change, apply it, and write state. The figure runs that loop. The buttons are the only choice that has mattered on my teams."
+brief: "Both tools preview a change, apply it, and write state. Two terminals show the same deploy. Pick from the team that has to review it."
 publishedAt: "2099-06-01T18:00:00.000Z"
 draft: true
 draftToken: "4172d8f219888e9f4fe3b324c86cc6f2"
@@ -21,7 +21,7 @@ tags:
 
 <p>The argument started as a logo fight. Terraform on one side, Pulumi on the other, as if the cloud would behave once we picked the right binary.</p>
 
-<p>Both tools do the same loop. You describe the resources. You preview. You apply. State records what actually exists. The figure plays that loop with real logos. Choose Terraform or Pulumi and it stays on that side. Leave them alone and both columns walk the cycle together. Speed and reset sit at the bottom.</p>
+<p>Both tools do the same loop. You describe the resources. You preview. You apply. State records what actually exists. The two terminals below run that deploy side by side for the same S3 bucket. Speed and reset sit at the bottom.</p>
 
 <div data-blog-activity="terraform-vs-pulumi"></div>
 
@@ -33,8 +33,8 @@ tags:
 <thead>
 <tr>
 <th>Step</th>
-<th>Terraform</th>
-<th>Pulumi</th>
+<th><span style="display:inline-flex;align-items:center;gap:0.4rem"><img src="/images/logos/tech/terraformio-icon.svg" alt="" width="18" height="18" style="margin:0;border:0;border-radius:0;box-shadow:none;display:inline-block;vertical-align:middle" /> Terraform</span></th>
+<th><span style="display:inline-flex;align-items:center;gap:0.4rem"><img src="/images/logos/tech/pulumi-logo.svg" alt="" width="18" height="18" style="margin:0;border:0;border-radius:0;box-shadow:none;display:inline-block;vertical-align:middle" /> Pulumi</span></th>
 <th>What you are checking</th>
 </tr>
 </thead>
@@ -123,7 +123,7 @@ const hrrUploads = new aws.s3.Bucket("hrrUploads", {
 
 <p><code>terraform plan</code> and <code>pulumi preview</code> are the diff. I do not apply from a laptop against production without that diff in the pull request. CI should run the preview on every change that touches infra. Humans read the create/update/delete list. The language of the description changes who can read it. It does not remove the need for one.</p>
 
-<p>When the plan says destroy on a database, stop. When the preview is empty and you expected a change, stop. The figure's preview step is that gate. Apply is only honest after it.</p>
+<p>When the plan says destroy on a database, stop. When the preview is empty and you expected a change, stop. The green "1 added" / "1 created" lines in the terminals only show up after that gate. Apply is only honest after it.</p>
 
 <h2>Which one should you pick?</h2>
 
