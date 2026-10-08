@@ -73,18 +73,20 @@ class InteractiveBlogDraftsTest extends TestCase
             if ($slug === 'why-rust-is-faster-than-python-javascript-php-and-go') {
                 $this->assertSame('Why Rust Finishes That Loop Before Python, PHP, JavaScript, and Go', $post['title']);
                 $this->assertStringContainsString('The race starts when the block is on screen', $hydrated['content']['html']);
-                $this->assertStringContainsString('Computer Language Benchmarks Game', $hydrated['content']['html']);
-                $this->assertStringContainsString('Relative speed vs Python', $hydrated['content']['html']);
-                $this->assertStringContainsString('~68×', $hydrated['content']['html']);
-                $this->assertStringContainsString('~53×', $hydrated['content']['html']);
-                $this->assertStringContainsString('Each ball moves left to right', $hydrated['content']['html']);
+                $this->assertStringContainsString('At 1× the picture is slow on purpose', $hydrated['content']['html']);
+                $this->assertStringContainsString('Relative speed', $hydrated['content']['html']);
+                $this->assertStringContainsString('>100×</td>', $hydrated['content']['html']);
+                $this->assertStringContainsString('>25×</td>', $hydrated['content']['html']);
+                $this->assertStringContainsString('>4×</td>', $hydrated['content']['html']);
+                $this->assertStringContainsString('Each ball runs left to right', $hydrated['content']['html']);
                 $this->assertStringContainsString('What the model is measuring', $hydrated['content']['html']);
                 $this->assertStringContainsString('When the chart lies', $hydrated['content']['html']);
                 $this->assertStringContainsString('href="https://x.com/harundotdev"', $hydrated['content']['html']);
                 $this->assertStringContainsString('href="https://harun.dev/bio"', $hydrated['content']['html']);
                 $this->assertStringContainsString('target="_blank"', $hydrated['content']['html']);
                 $this->assertStringContainsString('rel="noopener noreferrer"', $hydrated['content']['html']);
-                $this->assertStringNotContainsString('Interpreter reads opcodes', $hydrated['content']['html']);
+                $this->assertStringNotContainsString('Relative speed vs Python', $hydrated['content']['html']);
+                $this->assertStringNotContainsString('~40×', $hydrated['content']['html']);
                 $this->assertStringNotContainsString('<th>Finish</th>', $hydrated['content']['html']);
                 $this->assertStringNotContainsString('data-activity-play', $hydrated['content']['html']);
                 $this->assertStringNotContainsString('—', $hydrated['content']['html']);

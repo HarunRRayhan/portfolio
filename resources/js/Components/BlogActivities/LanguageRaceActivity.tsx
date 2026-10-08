@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 type Lane = {
   id: string
   name: string
-  /** Throughput vs CPython on the n-body model. Python = 1. */
+  /** Relative throughput. Python = 1. */
   relative: number
   color: string
   seam: string
@@ -14,19 +14,21 @@ type Lane = {
 
 const PLAYBACK_MIN = 0.5
 const PLAYBACK_MAX = 100
-/** Wall time for the slowest ball (Python) when the slider is at 1x. */
-const BASE_SECONDS = 14
+/** Wall time for Python at 1x playback. Slow on purpose so the race is readable. */
+const BASE_SECONDS = 24
 
 /**
- * Relative speeds from Computer Language Benchmarks Game n-body wall times
- * (plain-ish stock entries): Python ~372s, PHP ~204s, Node ~9s, Go ~7s, Rust ~5.5s.
+ * Relative speeds for this figure (Python = 1×):
+ * managed runtimes stay close; Go pulls ahead; Rust is clearly ahead of Go.
+ * JS ~4× follows USENIX ATC'22-style gaps vs native (JS ~8×, Python ~29× vs C++),
+ * not CLBG hot-loop Node numbers that put JS next to Go.
  */
 const LANES: Lane[] = [
   { id: 'python', name: 'Python', relative: 1, color: '#3776AB', seam: '#2A5A85' },
-  { id: 'php', name: 'PHP', relative: 1.8, color: '#777BB4', seam: '#5B5F8F' },
-  { id: 'javascript', name: 'JavaScript', relative: 40, color: '#F0DB4F', seam: '#C4B03A' },
-  { id: 'go', name: 'Go', relative: 53, color: '#00ADD8', seam: '#0089AB' },
-  { id: 'rust', name: 'Rust', relative: 68, color: '#DEA584', seam: '#B07D5C' },
+  { id: 'php', name: 'PHP', relative: 2, color: '#777BB4', seam: '#5B5F8F' },
+  { id: 'javascript', name: 'JavaScript', relative: 4, color: '#F0DB4F', seam: '#C4B03A' },
+  { id: 'go', name: 'Go', relative: 25, color: '#00ADD8', seam: '#0089AB' },
+  { id: 'rust', name: 'Rust', relative: 100, color: '#DEA584', seam: '#B07D5C' },
 ]
 
 function durationFor(relative: number, playback: number): number {
@@ -54,11 +56,7 @@ function formatPlayback(playback: number): string {
 }
 
 function formatRelative(relative: number): string {
-  if (relative < 10) {
-    return `${relative}×`
-  }
-
-  return `${Math.round(relative)}×`
+  return `${relative}×`
 }
 
 function TennisBall({ color, seam }: { color: string; seam: string }) {
@@ -103,7 +101,7 @@ function LaneRow({
       <div className="min-w-0">
         <p className="!my-0 truncate text-sm font-semibold text-slate-950">{lane.name}</p>
         <p className="!my-0 text-[0.7rem] leading-4 tabular-nums text-slate-500">
-          {formatRelative(lane.relative)} vs Python
+          {formatRelative(lane.relative)}
         </p>
       </div>
       <div className="relative h-12 overflow-hidden rounded-full bg-slate-100">
@@ -153,8 +151,8 @@ export default function LanguageRaceActivity() {
 
   const sliderValue = useMemo(() => playbackToSlider(playback), [playback])
   const caption = finished
-    ? 'Ball speed is fixed by the language ratios. The slider only changes how fast the picture moves.'
-    : "Each ball crosses left to right at that language's speed vs CPython. Python is 1×."
+    ? 'Language ratios stay fixed. The slider only speeds up how fast you watch the same race.'
+    : "At 1x the balls crawl left to right at each language's speed. Python is slowest. Use the slider to speed up the picture."
 
   const startRace = useCallback((nextPlayback?: number) => {
     if (typeof nextPlayback === 'number') {
@@ -250,7 +248,7 @@ export default function LanguageRaceActivity() {
       <div className="mt-4 border-t border-slate-200 pt-3">
         <div className="flex items-center justify-between gap-3">
           <label htmlFor="language-race-playback" className="!my-0 text-xs font-semibold text-slate-700">
-            Speed up
+            Speed up the animation
           </label>
           <p className="!my-0 text-sm font-semibold tabular-nums text-slate-950" data-activity-playback="">
             {formatPlayback(playback)}
@@ -273,11 +271,12 @@ export default function LanguageRaceActivity() {
         />
         <div className="mt-1 flex justify-between text-[0.65rem] text-slate-500">
           <span>0.5×</span>
+          <span>1× default</span>
           <span>100×</span>
         </div>
       </div>
       <p className="!my-0 mt-2 text-xs text-slate-500">
-        Ratios from Benchmarks Game n-body (CPython = 1×). Slider only speeds up the animation. No finish ranking.
+        Ball speed is the language ratio (1× / 2× / 4× / 25× / 100×). The slider only makes the same race finish sooner.
       </p>
     </div>
   )
