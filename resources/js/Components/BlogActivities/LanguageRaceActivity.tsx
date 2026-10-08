@@ -1,16 +1,14 @@
 'use client'
 
-import { motion, useReducedMotion } from 'framer-motion'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useReducedMotion } from 'framer-motion'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 type Lane = {
   id: string
   name: string
   /** Throughput vs CPython on the n-body model. Python = 1. */
   relative: number
-  /** Ball fill color. */
   color: string
-  /** Darker seam / shadow tint. */
   seam: string
 }
 
@@ -22,7 +20,6 @@ const BASE_SECONDS = 14
 /**
  * Relative speeds from Computer Language Benchmarks Game n-body wall times
  * (plain-ish stock entries): Python ~372s, PHP ~204s, Node ~9s, Go ~7s, Rust ~5.5s.
- * Rounded. Not a timing run from this site.
  */
 const LANES: Lane[] = [
   { id: 'python', name: 'Python', relative: 1, color: '#3776AB', seam: '#2A5A85' },
@@ -67,7 +64,7 @@ function formatRelative(relative: number): string {
 function TennisBall({ color, seam }: { color: string; seam: string }) {
   return (
     <span
-      className="relative block h-9 w-9 shrink-0 rounded-full shadow-md"
+      className="relative block h-9 w-9 shrink-0 rounded-full"
       style={{
         background: `radial-gradient(circle at 32% 28%, #ffffffaa 0%, ${color} 42%, ${seam} 100%)`,
         boxShadow: `inset -2px -3px 6px ${seam}88, 0 2px 4px rgb(15 23 42 / 0.18)`,
@@ -88,18 +85,18 @@ function TennisBall({ color, seam }: { color: string; seam: string }) {
 
 function LaneRow({
   lane,
-  arrived,
-  running,
+  raceKey,
   duration,
   reducedMotion,
+  onArrived,
 }: {
   lane: Lane
-  arrived: boolean
-  running: boolean
+  raceKey: number
   duration: number
   reducedMotion: boolean
+  onArrived: (id: string) => void
 }) {
-  const atFinish = running || arrived || reducedMotion
+  const idle = raceKey === 0 && !reducedMotion
 
   return (
     <div className="grid grid-cols-[6.25rem_minmax(0,1fr)] items-center gap-x-3 sm:grid-cols-[7.5rem_minmax(0,1fr)]">
@@ -114,19 +111,30 @@ function LaneRow({
           className="pointer-events-none absolute inset-y-[1.15rem] left-4 right-4 rounded-full bg-slate-200/80"
           aria-hidden="true"
         />
-        <motion.div
-          className="absolute top-1/2 z-10"
-          style={{ x: '-50%', y: '-50%' }}
-          initial={false}
-          animate={{ left: atFinish ? 'calc(100% - 1.35rem)' : '1.35rem' }}
-          transition={
-            reducedMotion || !running
-              ? { duration: 0 }
-              : { duration, ease: 'linear' }
+        <div
+          key={`${lane.id}-${raceKey}`}
+          data-race-ball={lane.id}
+          className="absolute top-1/2 z-10 -translate-x-1/2 -translate-y-1/2"
+          style={
+            idle
+              ? { left: '1.25rem' }
+              : reducedMotion
+                ? { left: 'calc(100% - 1.25rem)' }
+                : {
+                    left: '1.25rem',
+                    animation: `language-race-ball ${duration}s linear forwards`,
+                  }
           }
+          onAnimationEnd={() => {
+            if (idle || reducedMotion) {
+              return
+            }
+
+            onArrived(lane.id)
+          }}
         >
           <TennisBall color={lane.color} seam={lane.seam} />
-        </motion.div>
+        </div>
       </div>
     </div>
   )
@@ -136,26 +144,40 @@ export default function LanguageRaceActivity() {
   const reducedMotion = useReducedMotion()
   const rootRef = useRef<HTMLDivElement>(null)
   const onScreen = useRef(false)
+  const arrivedRef = useRef<Set<string>>(new Set())
   const [auto, setAuto] = useState(false)
   const [playback, setPlayback] = useState(1)
-  const [running, setRunning] = useState(false)
-  const [arrived, setArrived] = useState<Record<string, true>>({})
-  const [lap, setLap] = useState(0)
+  const [raceKey, setRaceKey] = useState(0)
+  const [racing, setRacing] = useState(false)
+  const [finished, setFinished] = useState(false)
 
-  const finished = Object.keys(arrived).length === LANES.length
   const sliderValue = useMemo(() => playbackToSlider(playback), [playback])
   const caption = finished
     ? 'Ball speed is fixed by the language ratios. The slider only changes how fast the picture moves.'
     : "Each ball crosses left to right at that language's speed vs CPython. Python is 1×."
 
-  const restart = (nextPlayback?: number) => {
+  const startRace = useCallback((nextPlayback?: number) => {
     if (typeof nextPlayback === 'number') {
       setPlayback(nextPlayback)
     }
-    setRunning(false)
-    setArrived({})
-    setLap((value) => value + 1)
-  }
+    arrivedRef.current = new Set()
+    setFinished(false)
+    setRacing(true)
+    setRaceKey((value) => value + 1)
+  }, [])
+
+  const markArrived = useCallback((id: string) => {
+    if (arrivedRef.current.has(id)) {
+      return
+    }
+
+    arrivedRef.current.add(id)
+
+    if (arrivedRef.current.size >= LANES.length) {
+      setRacing(false)
+      setFinished(true)
+    }
+  }, [])
 
   useEffect(() => {
     const node = rootRef.current
@@ -181,68 +203,32 @@ export default function LanguageRaceActivity() {
   }, [reducedMotion])
 
   useEffect(() => {
-    if (reducedMotion !== true) {
-      return
+    if (reducedMotion === true) {
+      arrivedRef.current = new Set(LANES.map((lane) => lane.id))
+      setFinished(true)
+      setRacing(false)
     }
-
-    const next: Record<string, true> = {}
-    LANES.forEach((lane) => {
-      next[lane.id] = true
-    })
-    setArrived(next)
-    setRunning(false)
   }, [reducedMotion])
 
   useEffect(() => {
-    if (!auto || running || reducedMotion !== false) {
+    if (!auto || racing || reducedMotion !== false) {
       return
     }
 
-    if (finished) {
-      const timer = window.setTimeout(() => setArrived({}), 2200)
-
-      return () => window.clearTimeout(timer)
-    }
-
-    const timer = window.setTimeout(() => {
-      setArrived({})
-      setRunning(true)
-      setLap((value) => value + 1)
-    }, 180)
+    const delay = finished ? 2200 : 220
+    const timer = window.setTimeout(() => startRace(), delay)
 
     return () => window.clearTimeout(timer)
-  }, [auto, finished, reducedMotion, running])
-
-  useEffect(() => {
-    if (!running || reducedMotion !== false) {
-      return
-    }
-
-    const timers = LANES.map((lane) => {
-      const ms = durationFor(lane.relative, playback) * 1000
-
-      return window.setTimeout(() => {
-        setArrived((current) => {
-          if (current[lane.id]) {
-            return current
-          }
-
-          return { ...current, [lane.id]: true }
-        })
-      }, ms)
-    })
-
-    const longest = Math.max(...LANES.map((lane) => durationFor(lane.relative, playback))) * 1000 + 40
-    const done = window.setTimeout(() => setRunning(false), longest)
-
-    return () => {
-      timers.forEach((timer) => window.clearTimeout(timer))
-      window.clearTimeout(done)
-    }
-  }, [lap, playback, reducedMotion, running])
+  }, [auto, finished, racing, reducedMotion, startRace])
 
   return (
     <div ref={rootRef} className="not-prose rounded-3xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
+      <style>{`
+        @keyframes language-race-ball {
+          from { left: 1.25rem; }
+          to { left: calc(100% - 1.25rem); }
+        }
+      `}</style>
       <div className="mb-4">
         <p className="!my-0 text-sm font-semibold text-slate-950">Same work, five balls</p>
         <p className="!my-0 mt-1 text-sm text-slate-600">{caption}</p>
@@ -251,12 +237,12 @@ export default function LanguageRaceActivity() {
       <div className="space-y-3.5">
         {LANES.map((lane) => (
           <LaneRow
-            key={`${lane.id}-${lap}`}
+            key={lane.id}
             lane={lane}
-            arrived={arrived[lane.id] === true}
-            running={running}
+            raceKey={raceKey}
             duration={durationFor(lane.relative, playback)}
             reducedMotion={reducedMotion === true}
+            onArrived={markArrived}
           />
         ))}
       </div>
@@ -282,9 +268,7 @@ export default function LanguageRaceActivity() {
           aria-valuenow={Number(playback.toFixed(2))}
           aria-valuetext={formatPlayback(playback)}
           data-activity-speed-slider=""
-          onChange={(event) => {
-            restart(sliderToPlayback(Number(event.target.value)))
-          }}
+          onChange={(event) => startRace(sliderToPlayback(Number(event.target.value)))}
           className="mt-2 h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-200 accent-slate-950"
         />
         <div className="mt-1 flex justify-between text-[0.65rem] text-slate-500">
@@ -293,7 +277,7 @@ export default function LanguageRaceActivity() {
         </div>
       </div>
       <p className="!my-0 mt-2 text-xs text-slate-500">
-        Ratios from Benchmarks Game n-body (CPython = 1×). Slider only speeds up the animation.
+        Ratios from Benchmarks Game n-body (CPython = 1×). Slider only speeds up the animation. No finish ranking.
       </p>
     </div>
   )
