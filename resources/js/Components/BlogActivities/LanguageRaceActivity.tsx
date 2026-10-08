@@ -2,15 +2,16 @@
 
 import { motion, useReducedMotion } from 'framer-motion'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { getImageUrl } from '@/lib/imageUtils'
 
 type Lane = {
   id: string
   name: string
-  /** Throughput vs Python on the n-body-style model. Python = 1. */
+  /** Throughput vs CPython on the n-body model. Python = 1. */
   relative: number
-  logo: string
-  ball: string
+  /** Ball fill color. */
+  color: string
+  /** Darker seam / shadow tint. */
+  seam: string
 }
 
 const PLAYBACK_MIN = 0.5
@@ -21,44 +22,14 @@ const BASE_SECONDS = 14
 /**
  * Relative speeds from Computer Language Benchmarks Game n-body wall times
  * (plain-ish stock entries): Python ~372s, PHP ~204s, Node ~9s, Go ~7s, Rust ~5.5s.
- * Rounded for the figure. Not a timing run from this site.
+ * Rounded. Not a timing run from this site.
  */
 const LANES: Lane[] = [
-  {
-    id: 'python',
-    name: 'Python',
-    relative: 1,
-    logo: getImageUrl('/images/tech/python.svg'),
-    ball: 'bg-[#3776AB]',
-  },
-  {
-    id: 'php',
-    name: 'PHP',
-    relative: 1.8,
-    logo: getImageUrl('/images/logos/tech/php-logo.svg'),
-    ball: 'bg-[#777BB4]',
-  },
-  {
-    id: 'javascript',
-    name: 'JavaScript',
-    relative: 40,
-    logo: getImageUrl('/images/tech/nodejs.svg'),
-    ball: 'bg-[#5FA04E]',
-  },
-  {
-    id: 'go',
-    name: 'Go',
-    relative: 50,
-    logo: getImageUrl('/images/tech/go.svg'),
-    ball: 'bg-[#00ADD8]',
-  },
-  {
-    id: 'rust',
-    name: 'Rust',
-    relative: 70,
-    logo: getImageUrl('/images/logos/tech/rust-logo.svg'),
-    ball: 'bg-[#DEA584]',
-  },
+  { id: 'python', name: 'Python', relative: 1, color: '#3776AB', seam: '#2A5A85' },
+  { id: 'php', name: 'PHP', relative: 1.8, color: '#777BB4', seam: '#5B5F8F' },
+  { id: 'javascript', name: 'JavaScript', relative: 40, color: '#F0DB4F', seam: '#C4B03A' },
+  { id: 'go', name: 'Go', relative: 53, color: '#00ADD8', seam: '#0089AB' },
+  { id: 'rust', name: 'Rust', relative: 68, color: '#DEA584', seam: '#B07D5C' },
 ]
 
 function durationFor(relative: number, playback: number): number {
@@ -93,57 +64,70 @@ function formatRelative(relative: number): string {
   return `${Math.round(relative)}×`
 }
 
+function TennisBall({ color, seam }: { color: string; seam: string }) {
+  return (
+    <span
+      className="relative block h-9 w-9 shrink-0 rounded-full shadow-md"
+      style={{
+        background: `radial-gradient(circle at 32% 28%, #ffffffaa 0%, ${color} 42%, ${seam} 100%)`,
+        boxShadow: `inset -2px -3px 6px ${seam}88, 0 2px 4px rgb(15 23 42 / 0.18)`,
+      }}
+      aria-hidden="true"
+    >
+      <span
+        className="absolute inset-[18%] rounded-full border-2 border-transparent"
+        style={{
+          borderLeftColor: `${seam}cc`,
+          borderRightColor: `${seam}cc`,
+          transform: 'rotate(18deg)',
+        }}
+      />
+    </span>
+  )
+}
+
 function LaneRow({
   lane,
-  place,
+  arrived,
   running,
   duration,
   reducedMotion,
 }: {
   lane: Lane
-  place: number | null
+  arrived: boolean
   running: boolean
   duration: number
   reducedMotion: boolean
 }) {
-  const finished = place !== null
-  const atFinish = running || finished || reducedMotion
+  const atFinish = running || arrived || reducedMotion
 
   return (
-    <div className="grid grid-cols-[5.5rem_minmax(0,1fr)_2.5rem] items-center gap-x-2 sm:grid-cols-[6.5rem_minmax(0,1fr)_2.75rem]">
+    <div className="grid grid-cols-[6.25rem_minmax(0,1fr)] items-center gap-x-3 sm:grid-cols-[7.5rem_minmax(0,1fr)]">
       <div className="min-w-0">
         <p className="!my-0 truncate text-sm font-semibold text-slate-950">{lane.name}</p>
-        <p className="!my-0 text-[0.65rem] leading-4 text-slate-500">{formatRelative(lane.relative)}</p>
+        <p className="!my-0 text-[0.7rem] leading-4 tabular-nums text-slate-500">
+          {formatRelative(lane.relative)} vs Python
+        </p>
       </div>
-      <div className="relative h-11 overflow-hidden rounded-full bg-slate-100">
-        <div className="pointer-events-none absolute inset-y-3 left-3 right-3 rounded-full border border-dashed border-slate-200/80" aria-hidden="true" />
+      <div className="relative h-12 overflow-hidden rounded-full bg-slate-100">
+        <div
+          className="pointer-events-none absolute inset-y-[1.15rem] left-4 right-4 rounded-full bg-slate-200/80"
+          aria-hidden="true"
+        />
         <motion.div
           className="absolute top-1/2 z-10"
           style={{ x: '-50%', y: '-50%' }}
           initial={false}
-          animate={{ left: atFinish ? 'calc(100% - 1.4rem)' : '1.4rem' }}
+          animate={{ left: atFinish ? 'calc(100% - 1.35rem)' : '1.35rem' }}
           transition={
             reducedMotion || !running
               ? { duration: 0 }
               : { duration, ease: 'linear' }
           }
         >
-          <div
-            className={`flex h-9 w-9 items-center justify-center rounded-full shadow-md ring-2 ring-white ${lane.ball}`}
-          >
-            <img
-              src={lane.logo}
-              alt=""
-              className="h-5 w-5 object-contain"
-              loading="lazy"
-              decoding="async"
-            />
-          </div>
+          <TennisBall color={lane.color} seam={lane.seam} />
         </motion.div>
       </div>
-      <p className="!my-0 text-right text-sm font-semibold tabular-nums text-slate-950">
-        {place ? `#${place}` : ''}
-      </p>
     </div>
   )
 }
@@ -155,21 +139,21 @@ export default function LanguageRaceActivity() {
   const [auto, setAuto] = useState(false)
   const [playback, setPlayback] = useState(1)
   const [running, setRunning] = useState(false)
-  const [places, setPlaces] = useState<Record<string, number>>({})
+  const [arrived, setArrived] = useState<Record<string, true>>({})
   const [lap, setLap] = useState(0)
 
-  const finished = Object.keys(places).length === LANES.length
+  const finished = Object.keys(arrived).length === LANES.length
   const sliderValue = useMemo(() => playbackToSlider(playback), [playback])
   const caption = finished
-    ? 'Finish order is fixed in this model. The slider only changes how fast the picture moves.'
-    : 'Same CPU-bound loop on stock runtimes. Ball speed follows relative throughput. Python is 1×.'
+    ? 'Ball speed is fixed by the language ratios. The slider only changes how fast the picture moves.'
+    : "Each ball crosses left to right at that language's speed vs CPython. Python is 1×."
 
   const restart = (nextPlayback?: number) => {
     if (typeof nextPlayback === 'number') {
       setPlayback(nextPlayback)
     }
     setRunning(false)
-    setPlaces({})
+    setArrived({})
     setLap((value) => value + 1)
   }
 
@@ -201,13 +185,11 @@ export default function LanguageRaceActivity() {
       return
     }
 
-    const next: Record<string, number> = {}
-    ;[...LANES]
-      .sort((a, b) => b.relative - a.relative)
-      .forEach((lane, index) => {
-        next[lane.id] = index + 1
-      })
-    setPlaces(next)
+    const next: Record<string, true> = {}
+    LANES.forEach((lane) => {
+      next[lane.id] = true
+    })
+    setArrived(next)
     setRunning(false)
   }, [reducedMotion])
 
@@ -217,13 +199,13 @@ export default function LanguageRaceActivity() {
     }
 
     if (finished) {
-      const timer = window.setTimeout(() => setPlaces({}), 2200)
+      const timer = window.setTimeout(() => setArrived({}), 2200)
 
       return () => window.clearTimeout(timer)
     }
 
     const timer = window.setTimeout(() => {
-      setPlaces({})
+      setArrived({})
       setRunning(true)
       setLap((value) => value + 1)
     }, 180)
@@ -240,12 +222,12 @@ export default function LanguageRaceActivity() {
       const ms = durationFor(lane.relative, playback) * 1000
 
       return window.setTimeout(() => {
-        setPlaces((current) => {
+        setArrived((current) => {
           if (current[lane.id]) {
             return current
           }
 
-          return { ...current, [lane.id]: Object.keys(current).length + 1 }
+          return { ...current, [lane.id]: true }
         })
       }, ms)
     })
@@ -266,12 +248,12 @@ export default function LanguageRaceActivity() {
         <p className="!my-0 mt-1 text-sm text-slate-600">{caption}</p>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3.5">
         {LANES.map((lane) => (
           <LaneRow
             key={`${lane.id}-${lap}`}
             lane={lane}
-            place={places[lane.id] ?? null}
+            arrived={arrived[lane.id] === true}
             running={running}
             duration={durationFor(lane.relative, playback)}
             reducedMotion={reducedMotion === true}
@@ -282,7 +264,7 @@ export default function LanguageRaceActivity() {
       <div className="mt-4 border-t border-slate-200 pt-3">
         <div className="flex items-center justify-between gap-3">
           <label htmlFor="language-race-playback" className="!my-0 text-xs font-semibold text-slate-700">
-            Playback
+            Speed up
           </label>
           <p className="!my-0 text-sm font-semibold tabular-nums text-slate-950" data-activity-playback="">
             {formatPlayback(playback)}
@@ -301,8 +283,7 @@ export default function LanguageRaceActivity() {
           aria-valuetext={formatPlayback(playback)}
           data-activity-speed-slider=""
           onChange={(event) => {
-            const next = sliderToPlayback(Number(event.target.value))
-            restart(next)
+            restart(sliderToPlayback(Number(event.target.value)))
           }}
           className="mt-2 h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-200 accent-slate-950"
         />
@@ -312,7 +293,7 @@ export default function LanguageRaceActivity() {
         </div>
       </div>
       <p className="!my-0 mt-2 text-xs text-slate-500">
-        Relative speeds follow n-body-style stock runtimes (Python = 1×). Slider is playback only.
+        Ratios from Benchmarks Game n-body (CPython = 1×). Slider only speeds up the animation.
       </p>
     </div>
   )
