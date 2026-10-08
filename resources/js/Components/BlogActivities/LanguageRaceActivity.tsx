@@ -21,6 +21,8 @@ const PLAYBACK_MAX = 100
  * 100x on the slider restores the watchable pace (~48s for Python).
  */
 const BASE_SECONDS = 4800
+/** Horizontal inset from each track edge to the ball center (1.25rem). */
+const TRACK_INSET_PX = 20
 
 /**
  * Relative speeds (Python = 1×): managed runtimes stay close;
@@ -97,6 +99,14 @@ function formatRelative(relative: number): string {
   return `${relative}×`
 }
 
+/** Triangle wave 0→1→0… so the ball never stops at either end. */
+function pingPongProgress(elapsedSeconds: number, oneWaySeconds: number): number {
+  const cycle = elapsedSeconds / Math.max(oneWaySeconds, 0.001)
+  const phase = cycle % 2
+
+  return phase <= 1 ? phase : 2 - phase
+}
+
 function TennisBall({ color, seam }: { color: string; seam: string }) {
   return (
     <span
@@ -121,15 +131,11 @@ function TennisBall({ color, seam }: { color: string; seam: string }) {
 
 function LaneRow({
   lane,
-  raceKey,
-  duration,
-  running,
+  ballRef,
   reducedMotion,
 }: {
   lane: Lane
-  raceKey: number
-  duration: number
-  running: boolean
+  ballRef: (node: HTMLDivElement | null) => void
   reducedMotion: boolean
 }) {
   return (
@@ -151,25 +157,21 @@ function LaneRow({
           </p>
         </div>
       </div>
-      <div className="relative h-12 overflow-hidden rounded-full bg-slate-100">
+      <div data-race-track={lane.id} className="relative h-12 overflow-hidden rounded-full bg-slate-100">
         <div
           className="pointer-events-none absolute inset-y-[1.15rem] left-4 right-4 rounded-full bg-slate-200/80"
           aria-hidden="true"
         />
         <div
-          key={`${lane.id}-${raceKey}`}
+          ref={ballRef}
           data-race-ball={lane.id}
-          className="absolute top-1/2 z-10 -translate-x-1/2 -translate-y-1/2"
-          style={
-            reducedMotion
-              ? { left: '50%' }
-              : running
-                ? {
-                    left: '1.25rem',
-                    animation: `language-race-ball ${duration}s linear infinite alternate`,
-                  }
-                : { left: '1.25rem' }
-          }
+          className="absolute top-1/2 z-10"
+          style={{
+            left: TRACK_INSET_PX,
+            transform: reducedMotion
+              ? 'translate3d(0, -50%, 0) translateX(-50%)'
+              : 'translate3d(0, -50%, 0) translateX(-50%)',
+          }}
         >
           <TennisBall color={lane.color} seam={lane.seam} />
         </div>
@@ -182,22 +184,22 @@ export default function LanguageRaceActivity() {
   const reducedMotion = useReducedMotion()
   const rootRef = useRef<HTMLDivElement>(null)
   const onScreen = useRef(false)
+  const startedAtRef = useRef<number | null>(null)
+  const playbackRef = useRef(1)
+  const ballsRef = useRef<Record<string, HTMLDivElement | null>>({})
   const [auto, setAuto] = useState(false)
   const [playback, setPlayback] = useState(1)
-  const [raceKey, setRaceKey] = useState(0)
   const [running, setRunning] = useState(false)
+
+  playbackRef.current = playback
 
   const sliderValue = useMemo(() => playbackToSlider(playback), [playback])
   const caption = running
-    ? 'Balls bounce left to right, then back again, forever. 1x is a crawl. Drag toward 100x for full speed.'
-    : 'At 1x each ball barely crawls. Slide up to 100x to watch the full race speed.'
+    ? 'Balls run left to right, then reverse, forever. 1× crawls. 100× is full race speed.'
+    : 'At 1× each ball barely crawls. Slide to 100× for the full race speed (today’s old 1× pace).'
 
-  const restart = useCallback((nextPlayback?: number) => {
-    if (typeof nextPlayback === 'number') {
-      setPlayback(nextPlayback)
-    }
-    setRunning(true)
-    setRaceKey((value) => value + 1)
+  const setBallRef = useCallback((id: string) => (node: HTMLDivElement | null) => {
+    ballsRef.current[id] = node
   }, [])
 
   useEffect(() => {
@@ -213,7 +215,7 @@ export default function LanguageRaceActivity() {
     const observer = new IntersectionObserver(([entry]) => {
       onScreen.current = entry.isIntersecting
       sync()
-    }, { threshold: 0.35 })
+    }, { threshold: 0.15 })
 
     observer.observe(node)
     document.addEventListener('visibilitychange', sync)
@@ -225,33 +227,77 @@ export default function LanguageRaceActivity() {
   }, [reducedMotion])
 
   useEffect(() => {
-    if (!auto || running || reducedMotion !== false) {
+    if (reducedMotion !== false) {
+      setRunning(false)
+      startedAtRef.current = null
       return
     }
 
-    const timer = window.setTimeout(() => restart(), 220)
+    if (auto) {
+      setRunning(true)
+      if (startedAtRef.current === null) {
+        startedAtRef.current = performance.now()
+      }
+      return
+    }
 
-    return () => window.clearTimeout(timer)
-  }, [auto, reducedMotion, restart, running])
+    setRunning(false)
+  }, [auto, reducedMotion])
 
   useEffect(() => {
-    if (auto && running) {
+    if (reducedMotion === true) {
+      LANES.forEach((lane) => {
+        const ball = ballsRef.current[lane.id]
+        const track = ball?.parentElement
+        if (!ball || !track) {
+          return
+        }
+        const travel = Math.max(0, track.clientWidth - TRACK_INSET_PX * 2)
+        ball.style.transform = `translate3d(${travel / 2}px, -50%, 0) translateX(-50%)`
+      })
       return
     }
 
-    if (!auto && running && reducedMotion === false) {
-      setRunning(false)
+    if (!running) {
+      LANES.forEach((lane) => {
+        const ball = ballsRef.current[lane.id]
+        if (!ball) {
+          return
+        }
+        ball.style.transform = 'translate3d(0, -50%, 0) translateX(-50%)'
+      })
+      return
     }
-  }, [auto, reducedMotion, running])
+
+    let frame = 0
+    const tick = (now: number) => {
+      const startedAt = startedAtRef.current ?? now
+      startedAtRef.current = startedAt
+      const elapsed = (now - startedAt) / 1000
+      const rate = playbackRef.current
+
+      LANES.forEach((lane) => {
+        const ball = ballsRef.current[lane.id]
+        const track = ball?.parentElement
+        if (!ball || !track) {
+          return
+        }
+        const travel = Math.max(0, track.clientWidth - TRACK_INSET_PX * 2)
+        const oneWay = durationFor(lane.relative, rate)
+        const progress = pingPongProgress(elapsed, oneWay)
+        ball.style.transform = `translate3d(${progress * travel}px, -50%, 0) translateX(-50%)`
+      })
+
+      frame = window.requestAnimationFrame(tick)
+    }
+
+    frame = window.requestAnimationFrame(tick)
+
+    return () => window.cancelAnimationFrame(frame)
+  }, [reducedMotion, running])
 
   return (
     <div ref={rootRef} className="not-prose rounded-3xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
-      <style>{`
-        @keyframes language-race-ball {
-          0% { left: 1.25rem; }
-          100% { left: calc(100% - 1.25rem); }
-        }
-      `}</style>
       <div className="mb-4">
         <p className="!my-0 text-sm font-semibold text-slate-950">Same work, five balls</p>
         <p className="!my-0 mt-1 text-sm text-slate-600">{caption}</p>
@@ -262,9 +308,7 @@ export default function LanguageRaceActivity() {
           <LaneRow
             key={lane.id}
             lane={lane}
-            raceKey={raceKey}
-            duration={durationFor(lane.relative, playback)}
-            running={running && reducedMotion === false}
+            ballRef={setBallRef(lane.id)}
             reducedMotion={reducedMotion === true}
           />
         ))}
@@ -291,7 +335,7 @@ export default function LanguageRaceActivity() {
           aria-valuenow={Number(playback.toFixed(2))}
           aria-valuetext={formatPlayback(playback)}
           data-activity-speed-slider=""
-          onChange={(event) => restart(sliderToPlayback(Number(event.target.value)))}
+          onChange={(event) => setPlayback(sliderToPlayback(Number(event.target.value)))}
           className="mt-2 h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-200 accent-slate-950"
         />
         <div className="mt-1 flex justify-between text-[0.65rem] text-slate-500">
@@ -301,7 +345,7 @@ export default function LanguageRaceActivity() {
         </div>
       </div>
       <p className="!my-0 mt-2 text-xs text-slate-500">
-        Language ratios stay 1× / 2× / 4× / 25× / 100×. Balls reverse at each end. The slider only changes playback speed.
+        Language ratios stay 1× / 2× / 4× / 25× / 100×. Each ball reverses at the end and keeps going. The slider only changes playback speed.
       </p>
     </div>
   )
