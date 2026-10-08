@@ -1,11 +1,11 @@
 ---
 title: "Why Rust Finishes That Loop Before Python, PHP, JavaScript, and Go"
 slug: "why-rust-is-faster-than-python-javascript-php-and-go"
-brief: "A five-lane model of one small CPU loop. Logos, costs, and a fixed finish order. Speed changes the picture, not who wins."
+brief: "Five logo balls on one CPU-bound loop. Python is 1×. The others move by stock-runtime relative speed. The slider only changes playback."
 publishedAt: "2099-06-01T18:00:00.000Z"
 draft: true
 draftToken: "deae83e5dc92e2055cd6b8e8b40d2ada"
-readTimeInMinutes: 10
+readTimeInMinutes: 9
 coverImageUrl: "/blog-assets/why-rust-is-faster-than-python-javascript-php-and-go/cover.jpg"
 reactionCount: 0
 responseCount: 0
@@ -19,70 +19,66 @@ tags:
 
 <p>The clip is always the same shape. Five terminals, one loop, Rust prints the time first, and the caption says "100x". The clip never says what the loop did, or whether the program was waiting on a socket the whole time.</p>
 
-<p>This figure is a model, not a timing run from my laptop. Each lane counts, allocates, and hashes. The race starts when the block is on screen. Speed only changes how fast the picture moves. It does not change who finishes first.</p>
+<p>This figure is a model, not a timing run from my laptop. The ratios follow stock runtimes on a CPU-bound n-body-style workload from the Computer Language Benchmarks Game: CPython, PHP CLI, Node, Go, and a release Rust binary. No web framework. No extra library stack. The race starts when the block is on screen. The slider only changes how fast the picture moves.</p>
 
 <div data-blog-activity="language-race"></div>
 
 <h2>What the model is measuring</h2>
 
-<p>The workload is intentionally tiny and CPU-bound: a tight loop that does arithmetic, builds short-lived values, and hashes. No disk. No HTTP. No database. That is the only place this ranking is honest.</p>
+<p>One numeric loop in memory. No disk. No HTTP. No database. Ball speed is relative throughput with Python as 1×.</p>
 
 <table>
 <thead>
 <tr>
-<th>Lane</th>
-<th>Where the time goes in this model</th>
+<th>Language</th>
+<th>Relative speed (Python = 1×)</th>
 <th>Finish</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>Python</td>
-<td>Interpreter reads opcodes as it runs</td>
+<td>1×</td>
 <td>#5</td>
 </tr>
 <tr>
 <td>PHP</td>
-<td>Interpreter, same class of loop tax</td>
+<td>~1.8×</td>
 <td>#4</td>
 </tr>
 <tr>
-<td>JavaScript</td>
-<td>JIT speeds the hot loop after warmup; allocation still costs</td>
+<td>JavaScript (Node)</td>
+<td>~40×</td>
 <td>#3</td>
 </tr>
 <tr>
 <td>Go</td>
-<td>Compiled binary, then GC scans what the loop allocated</td>
+<td>~50×</td>
 <td>#2</td>
 </tr>
 <tr>
 <td>Rust</td>
-<td>Compiled binary; this loop does not pause for a collector</td>
+<td>~70×</td>
 <td>#1</td>
 </tr>
 </tbody>
 </table>
 
-<p>If your real program waits on Postgres, this chart is the wrong tool. The socket wins. The language debate is theatre until the hot path is actually CPU in memory.</p>
+<p>Those are rounded from plain-ish n-body wall times, not a claim about every program you will write. If your real work waits on Postgres, this chart is the wrong tool. The socket wins.</p>
 
-<h2>Python and PHP walk the program while they run it</h2>
+<h2>Why the slow lanes stay slow on this workload</h2>
 
-<p>CPython and the PHP interpreter read the opcodes as they go. A tight loop pays that cost on every iteration. That is the long part of those two lanes. It is also why a script that runs once, reads a file, and exits is a fine job for either of them. You are not in that loop a million times.</p>
+<p>CPython and the PHP CLI run the loop through their default interpreters. A tight arithmetic loop pays that cost on every pass. That is why they sit near 1× and ~1.8× here. Both are still the right tool for a script you run once and throw away.</p>
 
-<h2>JavaScript gets faster after the JIT has seen the loop</h2>
+<h2>Why Node sits in the middle</h2>
 
-<p>V8 and the other engines watch a hot function and compile it. The first passes are slower. The later passes are closer to compiled code. Allocation and garbage collection still show up if the loop builds objects on every iteration. The lane finishes ahead of the interpreters and behind Go and Rust.</p>
+<p>Stock Node is still a managed runtime. On this kind of numeric loop it lands far ahead of the interpreters and behind the compiled binaries. The figure uses that default Node process, not a hand-tuned native addon.</p>
 
-<h2>Go compiles, then the collector still has work</h2>
+<h2>Why Go and Rust pull ahead</h2>
 
-<p>Go builds a binary. You do not pay an interpreter on each iteration. If the loop allocates, the garbage collector has to scan that memory. On a short CPU-bound function that is the gap between the Go lane and the Rust lane in this model.</p>
+<p>Go and Rust ship a compiled binary for the loop. On this CPU-bound work they finish first. Rust edges Go in the n-body numbers this model uses. That gap is real for this workload and still small next to the jump from Python to either of them.</p>
 
-<h2>Rust does not stop to collect this loop</h2>
-
-<p>Rust compiles ahead of time. Ownership is checked when you build, so this workload does not pause later for a collector. The cost moved to the compiler and to the time you spend satisfying the borrow checker. The binary does less at runtime.</p>
-
-<p>That is the whole picture for this kind of loop. It is not a claim that a Rust HTTP handler is faster than a Go one when both are waiting on Postgres.</p>
+<p>None of that says a Rust HTTP handler beats a Go one when both wait on the same database.</p>
 
 <h2>When the chart lies</h2>
 
