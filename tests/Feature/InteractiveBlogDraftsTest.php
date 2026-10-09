@@ -77,9 +77,11 @@ class InteractiveBlogDraftsTest extends TestCase
                 $this->assertStringContainsString('Slide toward 100× to see full race speed', $hydrated['content']['html']);
                 $this->assertStringContainsString('left to right, then back left again', $hydrated['content']['html']);
                 $this->assertStringContainsString('Relative speed', $hydrated['content']['html']);
-                $this->assertStringContainsString('>100×</td>', $hydrated['content']['html']);
-                $this->assertStringContainsString('>25×</td>', $hydrated['content']['html']);
-                $this->assertStringContainsString('>4×</td>', $hydrated['content']['html']);
+                $this->assertStringContainsString('benchmarksgame-team.pages.debian.net/benchmarksgame/performance/nbody.html', $hydrated['content']['html']);
+                $this->assertStringContainsString('>108×</td>', $hydrated['content']['html']);
+                $this->assertStringContainsString('>58×</td>', $hydrated['content']['html']);
+                $this->assertStringContainsString('>44×</td>', $hydrated['content']['html']);
+                $this->assertStringContainsString('>1.8×</td>', $hydrated['content']['html']);
                 $this->assertStringContainsString('Each ball runs left to right, then back left again', $hydrated['content']['html']);
                 $this->assertStringContainsString('What the model is measuring', $hydrated['content']['html']);
                 $this->assertStringContainsString('When the chart lies', $hydrated['content']['html']);

@@ -19,54 +19,64 @@ tags:
 
 <p>The clip is always the same shape. Five terminals, one loop, Rust prints the time first, and the caption says "100x". The clip never says what the loop did, or whether the program was waiting on a socket the whole time.</p>
 
-<p>This figure is a model, not a timing run from my laptop. Each ball runs left to right, then back left again, forever, at a relative speed. At 1× it is a crawl on purpose. Slide toward 100× to see full race speed. The slider does not change the language ratios. No web framework. No extra library stack. The race starts when the block is on screen.</p>
+<p>This figure is a model, not a timing run from my laptop. Each ball runs left to right, then back left again, forever, at a relative speed taken from a public CPU benchmark. At 1× it is a crawl on purpose. Slide toward 100× to see full race speed. The slider does not change the language ratios. No web framework. No extra library stack. The race starts when the block is on screen.</p>
 
 <div data-blog-activity="language-race"></div>
 
 <h2>What the model is measuring</h2>
 
-<p>One CPU-bound loop in memory. No disk. No HTTP. No database. Python is the 1× baseline. The others are how much faster that same class of work feels on stock runtimes, not a claim about every app you will ship.</p>
+<p>One CPU-bound numeric loop in memory. No disk. No HTTP. No database. Python is the 1× baseline. The ratios are rounded speedups from the <a href="https://benchmarksgame-team.pages.debian.net/benchmarksgame/performance/nbody.html" target="_blank" rel="noopener noreferrer">Computer Language Benchmarks Game n-body</a> task: best elapsed time for each language divided into Python’s best elapsed time on the same machine.</p>
 
 <table>
 <thead>
 <tr>
 <th>Language</th>
+<th>n-body (secs)</th>
 <th>Relative speed</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Python</td>
+<td>Python 3</td>
+<td>372.41</td>
 <td>1×</td>
 </tr>
 <tr>
-<td>PHP</td>
-<td>2×</td>
+<td>PHP #3</td>
+<td>204.10</td>
+<td>1.8×</td>
 </tr>
 <tr>
-<td>JavaScript</td>
-<td>4×</td>
+<td>Node.js #6</td>
+<td>8.55</td>
+<td>44×</td>
 </tr>
 <tr>
-<td>Go</td>
-<td>25×</td>
+<td>Go #3</td>
+<td>6.39</td>
+<td>58×</td>
 </tr>
 <tr>
-<td>Rust</td>
-<td>100×</td>
+<td>Rust #3</td>
+<td>3.46</td>
+<td>108×</td>
 </tr>
 </tbody>
 </table>
 
-<p>JavaScript sits near PHP and Python here on purpose. Hot microbenchmarks after a JIT warms up can put Node next to Go. That is not how most day-to-day code feels, and it is not this figure. Go is clearly ahead of the managed runtimes. Rust is clearly ahead of Go. If your real work waits on Postgres, this chart is the wrong tool. The socket wins.</p>
+<p>That is why Go is not “25× Python” here. On this task it is about 58×. Node’s JIT lands near Go (44×), not next to PHP. PHP only edges Python (~1.8×). Rust #3 (without the SIMD-flagged entries) is about 108× Python, roughly 1.9× Go. If your real work waits on Postgres, this chart is the wrong tool. The socket wins.</p>
 
-<h2>Why Python, PHP, and JavaScript stay in a cluster</h2>
+<h2>Why PHP stays near Python</h2>
 
-<p>CPython and the PHP CLI run through their default interpreters. Stock JavaScript is still a managed runtime. On ordinary CPU work they are in the same neighborhood compared with a compiled binary. That is why the balls stay close at 1×, 2×, and 4×.</p>
+<p>Both are still doing the float loop through a managed runtime. PHP 8 is faster than CPython on this task, but not by a compiled-binary margin. That is why those two balls stay close.</p>
 
-<h2>Why Go and Rust pull away</h2>
+<h2>Why Node sits near Go</h2>
 
-<p>Go and Rust ship a compiled binary for the loop. On this kind of CPU-bound work they leave the managed runtimes behind. Rust sits much further ahead of Go in this model than a screenshot that puts them almost tied.</p>
+<p>V8’s JIT turns a hot numeric loop into something that races a Go binary. That surprises people who only compare cold scripts. It is what the n-body numbers show. A short script that never warms up will not look like this.</p>
+
+<h2>Why Rust still wins the loop</h2>
+
+<p>Rust ships a compiled binary with no GC pauses on this path. On n-body it finishes ahead of Go and Node. A SIMD-heavy Rust entry on the same page is even faster; this figure uses the plain Rust #3 timing so the claim stays conservative.</p>
 
 <p>None of that says a Rust HTTP handler beats a Go one when both wait on the same database.</p>
 
