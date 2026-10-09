@@ -57,6 +57,8 @@ const socials = [
 export function Footer() {
     const { openPopup } = useSubscribePopup()
     const user = usePage().props.auth?.user
+    const pageUrl = usePage().url
+    const onBlog = pageUrl === '/blog' || pageUrl.startsWith('/blog/')
 
     return (
         <footer className="relative border-t border-slate-800 bg-slate-950 text-white">
@@ -70,11 +72,12 @@ export function Footer() {
                 }}
             />
             <div className="container relative mx-auto py-16 sm:py-20">
-                {/* CTA section */}
+                {/* CTA section — skip the consult pitch on blog posts; the article already has one end CTA */}
                 <div
                     className="rounded-xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm backdrop-blur sm:p-8 lg:p-10"
                 >
-                    <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+                    <div className={`grid gap-10 ${onBlog ? '' : 'lg:grid-cols-[1.1fr_0.9fr] lg:items-center'}`}>
+                        {!onBlog ? (
                         <div>
                             <div className="inline-flex items-center gap-2 rounded-md border border-slate-700 bg-slate-800/80 px-3 py-1.5">
                                 <Terminal className="h-3.5 w-3.5 text-emerald-400" />
@@ -108,8 +111,9 @@ export function Footer() {
                                 </Link>
                             </div>
                         </div>
+                        ) : null}
 
-                        <div className="grid gap-8 sm:grid-cols-2">
+                        <div className={`grid gap-8 sm:grid-cols-2 ${onBlog ? 'lg:grid-cols-2' : ''}`}>
                             {links.map((group) => (
                                 <div key={group.title}>
                                     <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400">
