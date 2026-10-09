@@ -1,7 +1,7 @@
 ---
 title: "Why Rust Finishes That Loop Before Python, PHP, JavaScript, and Go"
 slug: "why-rust-is-faster-than-python-javascript-php-and-go"
-brief: "Five balls bounce left and right at language speed. 1x is a crawl. Slide to 400x to make Rust blur."
+brief: "Five balls bounce left and right at language speed. Slide from 1x to 100x to make Rust blur."
 publishedAt: "2099-06-01T18:00:00.000Z"
 draft: true
 draftToken: "deae83e5dc92e2055cd6b8e8b40d2ada"
@@ -19,7 +19,7 @@ tags:
 
 <p>The clip is always the same shape. Five terminals, one loop, Rust prints the time first, and the caption says "100x". The clip never says what the loop did, or whether the program was waiting on a socket the whole time.</p>
 
-<p>This figure is a model, not a timing run from my laptop. Each ball runs left to right, then back left again, forever, at a relative speed. At 1× it is a crawl on purpose. Slide toward 400× when you want Rust to look unfairly fast. The slider does not change the language ratios. No web framework. No extra library stack. The race starts when the block is on screen.</p>
+<p>This figure is a model, not a timing run from my laptop. Each ball runs left to right, then back left again, forever, at a relative speed. At 1× the pace stays readable. Slide toward 100× when you want Rust to look unfairly fast. The slider does not change the language ratios. No web framework. No extra library stack. The race starts when the block is on screen.</p>
 
 <div data-blog-activity="language-race"></div>
 
