@@ -21,6 +21,11 @@ tags:
 
 <p>This figure is a model, not a timing run from my laptop. Each ball runs left to right, then back left again, forever, at a relative speed. At 1× the pace stays readable. Slide toward 100× when you want Rust to look unfairly fast. The slider does not change the language ratios. No web framework. No extra library stack. The race starts when the block is on screen.</p>
 
+<figure>
+  <img src="/blog-assets/why-rust-is-faster-than-python-javascript-php-and-go/diagram-speed-race.jpg" alt="Bar race of Python 1x, PHP 3x, JavaScript 13x, Go 53x, and Rust 115x on the same CPU loop" width="1400" height="920" loading="lazy" decoding="async" />
+  <figcaption>One picture of the gap. The interactive race below uses the same ratios.</figcaption>
+</figure>
+
 <div data-blog-activity="language-race"></div>
 
 <h2>What the model is measuring</h2>

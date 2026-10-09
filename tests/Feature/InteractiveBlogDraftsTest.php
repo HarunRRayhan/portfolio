@@ -76,6 +76,8 @@ class InteractiveBlogDraftsTest extends TestCase
                 $this->assertStringContainsString('At 1× the pace stays readable', $hydrated['content']['html']);
                 $this->assertStringContainsString('Slide toward 100× when you want Rust to look unfairly fast', $hydrated['content']['html']);
                 $this->assertStringContainsString('left to right, then back left again', $hydrated['content']['html']);
+                $this->assertStringContainsString('diagram-speed-race.jpg', $hydrated['content']['html']);
+                $this->assertStringContainsString('<figcaption>', $hydrated['content']['html']);
                 $this->assertStringContainsString('Relative speed', $hydrated['content']['html']);
                 $this->assertStringContainsString('>115×</td>', $hydrated['content']['html']);
                 $this->assertStringContainsString('>53×</td>', $hydrated['content']['html']);
