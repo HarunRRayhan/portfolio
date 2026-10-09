@@ -25,8 +25,10 @@ const BASE_SECONDS = 4800
 const TRACK_INSET_PX = 20
 
 /**
- * Relative speeds (Python = 1×): managed runtimes stay close;
- * Go pulls ahead; Rust is clearly ahead of Go.
+ * Relative throughput vs Python on the Computer Language Benchmarks Game
+ * n-body task (best elapsed secs → Python_secs / lang_secs, rounded).
+ * Source: https://benchmarksgame-team.pages.debian.net/benchmarksgame/performance/nbody.html
+ * Python 372.41s, PHP #3 204.10s, Node #6 8.55s, Go #3 6.39s, Rust #3 3.46s.
  */
 const LANES: Lane[] = [
   {
@@ -40,7 +42,7 @@ const LANES: Lane[] = [
   {
     id: 'php',
     name: 'PHP',
-    relative: 2,
+    relative: 1.8,
     color: '#777BB4',
     seam: '#5B5F8F',
     logo: getImageUrl('/images/logos/tech/php-logo.svg'),
@@ -48,7 +50,7 @@ const LANES: Lane[] = [
   {
     id: 'javascript',
     name: 'JavaScript',
-    relative: 4,
+    relative: 44,
     color: '#F0DB4F',
     seam: '#C4B03A',
     logo: getImageUrl('/images/tech/nodejs.svg'),
@@ -56,7 +58,7 @@ const LANES: Lane[] = [
   {
     id: 'go',
     name: 'Go',
-    relative: 25,
+    relative: 58,
     color: '#00ADD8',
     seam: '#0089AB',
     logo: getImageUrl('/images/tech/go.svg'),
@@ -64,7 +66,7 @@ const LANES: Lane[] = [
   {
     id: 'rust',
     name: 'Rust',
-    relative: 100,
+    relative: 108,
     color: '#DEA584',
     seam: '#B07D5C',
     logo: getImageUrl('/images/logos/tech/rust-logo.svg'),
@@ -96,7 +98,11 @@ function formatPlayback(playback: number): string {
 }
 
 function formatRelative(relative: number): string {
-  return `${relative}×`
+  if (Number.isInteger(relative)) {
+    return `${relative}×`
+  }
+
+  return `${relative.toFixed(1)}×`
 }
 
 /** Triangle wave 0→1→0… so the ball never stops at either end. */
@@ -345,7 +351,7 @@ export default function LanguageRaceActivity() {
         </div>
       </div>
       <p className="!my-0 mt-2 text-xs text-slate-500">
-        Language ratios stay 1× / 2× / 4× / 25× / 100×. Each ball reverses at the end and keeps going. The slider only changes playback speed.
+        Ratios follow Benchmarks Game n-body vs Python (1× / 1.8× / 44× / 58× / 108×). Each ball reverses at the end. The slider only changes playback speed.
       </p>
     </div>
   )
