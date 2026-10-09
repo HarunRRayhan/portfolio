@@ -83,6 +83,10 @@ class InteractiveBlogDraftsTest extends TestCase
                 $this->assertStringContainsString('>53×</td>', $hydrated['content']['html']);
                 $this->assertStringContainsString('>13×</td>', $hydrated['content']['html']);
                 $this->assertStringContainsString('>3×</td>', $hydrated['content']['html']);
+                $this->assertStringContainsString('Three kinds of language', $hydrated['content']['html']);
+                $this->assertStringContainsString('Interpreted high-level', $hydrated['content']['html']);
+                $this->assertStringContainsString('Compiled high-level', $hydrated['content']['html']);
+                $this->assertStringContainsString('Compiled low-level', $hydrated['content']['html']);
                 $this->assertStringContainsString('The program under test', $hydrated['content']['html']);
                 $this->assertStringContainsString('What the model is measuring', $hydrated['content']['html']);
                 $this->assertStringContainsString('When the chart lies', $hydrated['content']['html']);

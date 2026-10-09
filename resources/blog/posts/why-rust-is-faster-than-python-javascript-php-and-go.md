@@ -1,11 +1,11 @@
 ---
 title: "Why Rust Finishes That Loop Before Python, PHP, JavaScript, and Go"
 slug: "why-rust-is-faster-than-python-javascript-php-and-go"
-brief: "Five balls bounce left and right at language speed. Slide from 1x to 100x to make Rust blur."
+brief: "Interpreter, compiled+GC, compiled without GC on the path. Same loop. Slide the race to 100x."
 publishedAt: "2099-06-01T18:00:00.000Z"
 draft: true
 draftToken: "deae83e5dc92e2055cd6b8e8b40d2ada"
-readTimeInMinutes: 11
+readTimeInMinutes: 12
 coverImageUrl: "/blog-assets/why-rust-is-faster-than-python-javascript-php-and-go/cover.jpg"
 reactionCount: 0
 responseCount: 0
@@ -19,16 +19,24 @@ tags:
 
 <p>The clip is always the same shape. Five terminals, one loop, Rust prints the time first, and the caption says "100x". The clip never says what the loop did, or whether the program was waiting on a socket the whole time.</p>
 
-<p>This post is a model for one kind of work: a CPU-bound checksum in memory. No HTTP. No disk. No Postgres. Python is 1×. The other languages are relative throughput for that same class of loop on stock runtimes.</p>
+<p>This post is a model for one kind of work: a CPU-bound checksum in memory. No HTTP. No disk. No Postgres. The interesting part is not the screenshot. It is which kind of language is running the loop.</p>
 
 <figure>
-  <img src="/blog-assets/why-rust-is-faster-than-python-javascript-php-and-go/diagram-speed-race.jpg" alt="Example checksum loop beside a bar race of Python 1x, PHP 3x, JavaScript 13x, Go 53x, and Rust 115x" width="1400" height="1180" loading="eager" decoding="async" />
-  <figcaption>Left: the shape of the program. Right: relative finish for that shape. The interactive race below uses the same ratios.</figcaption>
+  <img src="/blog-assets/why-rust-is-faster-than-python-javascript-php-and-go/diagram-speed-race.jpg" alt="Three pipelines: interpreted high-level Python PHP JavaScript, compiled high-level Go with GC, and compiled low-level Rust with no GC on the path" width="1400" height="1100" loading="eager" decoding="async" />
+  <figcaption>Same job, three runtimes. Interpreted high-level languages still pay for the loop at runtime. Go compiles ahead of time but keeps a GC. Rust compiles ahead of time and, on this path, has no GC tax per iteration.</figcaption>
 </figure>
 
 <div data-blog-activity="language-race"></div>
 
 <p>At 1× the balls stay readable. Slide toward 100× when you want Rust to look unfair. The slider only changes playback. It does not change the language ratios.</p>
+
+<h2>Three kinds of language</h2>
+
+<p><strong>Interpreted high-level:</strong> Python, PHP, JavaScript. You ship source. CPython, Zend, or V8 still walks bytecode (or JITs after warmup) while the loop runs. That dispatch cost is why these three sit at about 1×, 3×, and 13×.</p>
+
+<p><strong>Compiled high-level:</strong> Go. The compiler builds a native binary ahead of time, so the hot path is machine code. A garbage collector and runtime still ride along. That is why Go jumps to about 53× without matching Rust.</p>
+
+<p><strong>Compiled low-level:</strong> Rust. <code>rustc</code> and LLVM also emit machine code ahead of time. On this checksum there is no GC on the path: ownership did that work at compile time. That is the ~115× lane.</p>
 
 <h2>The program under test</h2>
 
@@ -103,13 +111,13 @@ fn main() {
 
 <p>PHP stays near the managed cluster (~3×). JavaScript’s JIT pulls it ahead of PHP (~13×) without catching a compiled binary. Go is clearly ahead (~53×). Rust is clearly ahead of Go (~115×, about 2× Go).</p>
 
-<h2>Why the managed runtimes trail</h2>
+<h2>Why the interpreted lane trails</h2>
 
 <p>CPython and the PHP CLI walk bytecode (or similar) for every trip around the loop. Stock JavaScript is still a managed runtime, even when V8 helps after warmup. On ordinary CPU work they trail a compiled binary. That is why those three balls stay behind Go and Rust in the figure.</p>
 
-<h2>Why Go and Rust pull away</h2>
+<h2>Why Go and Rust pull away, and why they split</h2>
 
-<p>Go and Rust ship a native binary for this loop. On CPU-bound work they leave the managed runtimes behind. Rust sits further ahead of Go here than a screenshot that puts them almost tied.</p>
+<p>Go and Rust both ship machine code for this loop, so they leave the interpreted lane behind. Go still carries a GC runtime. Rust does not on this path. That gap is the difference between ~53× and ~115× here: not "Go is slow," and not a web framework benchmark.</p>
 
 <p>None of that says a Rust HTTP handler beats a Go one when both wait on the same database.</p>
 
