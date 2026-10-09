@@ -394,18 +394,6 @@ export default function BlogPostPage({
             </article>
           </section>
 
-          {relatedService ? (
-            <section className="mx-auto max-w-3xl px-4 py-4 sm:px-6">
-              <p className="text-lg leading-8 text-slate-700">
-                If you want this done on your account, see{' '}
-                <Link href={relatedService.url} className="font-semibold text-slate-950 underline underline-offset-4">
-                  {relatedService.title}
-                </Link>
-                .
-              </p>
-            </section>
-          ) : null}
-
           <section className="mx-auto max-w-3xl px-4 py-4 sm:px-6">
             <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
               <h2 className="text-2xl font-semibold tracking-tight text-slate-950">Get the next note</h2>
@@ -413,6 +401,25 @@ export default function BlogPostPage({
                 I email when a new post goes up. One send a week, and only if there's something new.
               </p>
               <SubscribeButton source="post-end" label="Subscribe" className="mt-5" />
+              <p className="mt-6 text-sm leading-6 text-slate-600">
+                {relatedService ? (
+                  <>
+                    Want this applied on your account? Start with{' '}
+                    <Link href={relatedService.url} className="font-semibold text-slate-950 underline underline-offset-4">
+                      {relatedService.title}
+                    </Link>
+                    .
+                  </>
+                ) : (
+                  <>
+                    Need a second pair of eyes on a hot path?{' '}
+                    <Link href="/consultation" className="font-semibold text-slate-950 underline underline-offset-4">
+                      Book a consultation
+                    </Link>
+                    .
+                  </>
+                )}
+              </p>
             </div>
           </section>
 

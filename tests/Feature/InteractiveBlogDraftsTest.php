@@ -72,18 +72,18 @@ class InteractiveBlogDraftsTest extends TestCase
 
             if ($slug === 'why-rust-is-faster-than-python-javascript-php-and-go') {
                 $this->assertSame('Why Rust Finishes That Loop Before Python, PHP, JavaScript, and Go', $post['title']);
-                $this->assertStringContainsString('The race starts when the block is on screen', $hydrated['content']['html']);
-                $this->assertStringContainsString('At 1× the pace stays readable', $hydrated['content']['html']);
-                $this->assertStringContainsString('Slide toward 100× when you want Rust to look unfairly fast', $hydrated['content']['html']);
-                $this->assertStringContainsString('left to right, then back left again', $hydrated['content']['html']);
+                $this->assertStringContainsString('CPU-bound checksum in memory', $hydrated['content']['html']);
+                $this->assertStringContainsString('At 1× the balls stay readable', $hydrated['content']['html']);
+                $this->assertStringContainsString('Slide toward 100× when you want Rust to look unfair', $hydrated['content']['html']);
                 $this->assertStringContainsString('diagram-speed-race.jpg', $hydrated['content']['html']);
                 $this->assertStringContainsString('<figcaption>', $hydrated['content']['html']);
+                $this->assertStringContainsString('hrr_checksum', $hydrated['content']['html']);
                 $this->assertStringContainsString('Relative speed', $hydrated['content']['html']);
                 $this->assertStringContainsString('>115×</td>', $hydrated['content']['html']);
                 $this->assertStringContainsString('>53×</td>', $hydrated['content']['html']);
                 $this->assertStringContainsString('>13×</td>', $hydrated['content']['html']);
                 $this->assertStringContainsString('>3×</td>', $hydrated['content']['html']);
-                $this->assertStringContainsString('Each ball runs left to right, then back left again', $hydrated['content']['html']);
+                $this->assertStringContainsString('The program under test', $hydrated['content']['html']);
                 $this->assertStringContainsString('What the model is measuring', $hydrated['content']['html']);
                 $this->assertStringContainsString('When the chart lies', $hydrated['content']['html']);
                 $this->assertStringContainsString('href="https://x.com/harundotdev"', $hydrated['content']['html']);

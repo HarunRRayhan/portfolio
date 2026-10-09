@@ -5,7 +5,7 @@ brief: "Five balls bounce left and right at language speed. Slide from 1x to 100
 publishedAt: "2099-06-01T18:00:00.000Z"
 draft: true
 draftToken: "deae83e5dc92e2055cd6b8e8b40d2ada"
-readTimeInMinutes: 9
+readTimeInMinutes: 11
 coverImageUrl: "/blog-assets/why-rust-is-faster-than-python-javascript-php-and-go/cover.jpg"
 reactionCount: 0
 responseCount: 0
@@ -19,59 +19,97 @@ tags:
 
 <p>The clip is always the same shape. Five terminals, one loop, Rust prints the time first, and the caption says "100x". The clip never says what the loop did, or whether the program was waiting on a socket the whole time.</p>
 
-<p>This figure is a model, not a timing run from my laptop. Each ball runs left to right, then back left again, forever, at a relative speed. At 1× the pace stays readable. Slide toward 100× when you want Rust to look unfairly fast. The slider does not change the language ratios. No web framework. No extra library stack. The race starts when the block is on screen.</p>
+<p>This post is a model for one kind of work: a CPU-bound checksum in memory. No HTTP. No disk. No Postgres. Python is 1×. The other languages are relative throughput for that same class of loop on stock runtimes.</p>
 
 <figure>
-  <img src="/blog-assets/why-rust-is-faster-than-python-javascript-php-and-go/diagram-speed-race.jpg" alt="Bar race of Python 1x, PHP 3x, JavaScript 13x, Go 53x, and Rust 115x on the same CPU loop" width="1400" height="920" loading="lazy" decoding="async" />
-  <figcaption>One picture of the gap. The interactive race below uses the same ratios.</figcaption>
+  <img src="/blog-assets/why-rust-is-faster-than-python-javascript-php-and-go/diagram-speed-race.jpg" alt="Example checksum loop beside a bar race of Python 1x, PHP 3x, JavaScript 13x, Go 53x, and Rust 115x" width="1400" height="1180" loading="eager" decoding="async" />
+  <figcaption>Left: the shape of the program. Right: relative finish for that shape. The interactive race below uses the same ratios.</figcaption>
 </figure>
 
 <div data-blog-activity="language-race"></div>
 
+<p>At 1× the balls stay readable. Slide toward 100× when you want Rust to look unfair. The slider only changes playback. It does not change the language ratios.</p>
+
+<h2>The program under test</h2>
+
+<p>Here is the job in Python. The other languages do the same math: walk <code>0 .. n-1</code>, accumulate <code>i * i</code>, keep a 32-bit mask so the optimizer cannot delete the loop.</p>
+
+<pre><code class="language-python">def hrr_checksum(n: int) -&gt; int:
+    total = 0
+    for i in range(n):
+        total = (total + i * i) &amp; 0xFFFFFFFF
+    return total
+
+print(hrr_checksum(50_000_000))
+</code></pre>
+
+<p>Same shape in Rust:</p>
+
+<pre><code class="language-rust">fn hrr_checksum(n: u64) -&gt; u32 {
+    let mut total: u32 = 0;
+    for i in 0..n {
+        total = total.wrapping_add(((i * i) as u32));
+    }
+    total
+}
+
+fn main() {
+    println!("{}", hrr_checksum(50_000_000));
+}
+</code></pre>
+
+<p>I am not timing a framework, an ORM, or a JSON handler. If your real p99 is waiting on the network, this post is the wrong tool.</p>
+
 <h2>What the model is measuring</h2>
 
-<p>One CPU-bound loop in memory. No disk. No HTTP. No database. Python is the 1× baseline. The others are relative throughput for that same class of work on stock runtimes, not a claim about every app you will ship.</p>
+<p>Python is the 1× baseline. The ratios below are relative throughput for that loop class on stock runtimes, rounded so the race stays readable.</p>
 
 <table>
 <thead>
 <tr>
 <th>Language</th>
 <th>Relative speed</th>
+<th>What usually eats the time</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>Python</td>
 <td>1×</td>
+<td>Interpreter dispatch per iteration</td>
 </tr>
 <tr>
 <td>PHP</td>
 <td>3×</td>
+<td>Still managed, often a bit tighter than CPython here</td>
 </tr>
 <tr>
 <td>JavaScript</td>
 <td>13×</td>
+<td>JIT warms up and accelerates the hot path</td>
 </tr>
 <tr>
 <td>Go</td>
 <td>53×</td>
+<td>Compiled binary, GC still in the picture</td>
 </tr>
 <tr>
 <td>Rust</td>
 <td>115×</td>
+<td>Compiled binary, no GC on this path</td>
 </tr>
 </tbody>
 </table>
 
-<p>PHP stays in the managed-runtime neighborhood (~3×). JavaScript’s JIT pulls it ahead of PHP (~13×) without catching a compiled binary. Go is clearly ahead (~53×). Rust is clearly ahead of Go (~115×, about 2× Go). If your real work waits on Postgres, this chart is the wrong tool. The socket wins.</p>
+<p>PHP stays near the managed cluster (~3×). JavaScript’s JIT pulls it ahead of PHP (~13×) without catching a compiled binary. Go is clearly ahead (~53×). Rust is clearly ahead of Go (~115×, about 2× Go).</p>
 
-<h2>Why Python, PHP, and JavaScript stay behind the binaries</h2>
+<h2>Why the managed runtimes trail</h2>
 
-<p>CPython and the PHP CLI run through their default interpreters. Stock JavaScript is still a managed runtime, even when the JIT helps. On ordinary CPU work they trail a compiled binary. That is why those three balls stay behind Go and Rust.</p>
+<p>CPython and the PHP CLI walk bytecode (or similar) for every trip around the loop. Stock JavaScript is still a managed runtime, even when V8 helps after warmup. On ordinary CPU work they trail a compiled binary. That is why those three balls stay behind Go and Rust in the figure.</p>
 
 <h2>Why Go and Rust pull away</h2>
 
-<p>Go and Rust ship a compiled binary for the loop. On this kind of CPU-bound work they leave the managed runtimes behind. Rust sits further ahead of Go in this model than a screenshot that puts them almost tied.</p>
+<p>Go and Rust ship a native binary for this loop. On CPU-bound work they leave the managed runtimes behind. Rust sits further ahead of Go here than a screenshot that puts them almost tied.</p>
 
 <p>None of that says a Rust HTTP handler beats a Go one when both wait on the same database.</p>
 
