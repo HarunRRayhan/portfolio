@@ -74,7 +74,7 @@ class InteractiveBlogDraftsTest extends TestCase
                 $this->assertSame('Why Rust Finishes That Loop Before Python, PHP, JavaScript, and Go', $post['title']);
                 $this->assertStringContainsString('The race starts when the block is on screen', $hydrated['content']['html']);
                 $this->assertStringContainsString('At 1× it is a crawl on purpose', $hydrated['content']['html']);
-                $this->assertStringContainsString('Slide toward 400× when you want Rust to look unfairly fast', $hydrated['content']['html']);
+                $this->assertStringContainsString('Slide toward 100× when you want Rust to look unfairly fast', $hydrated['content']['html']);
                 $this->assertStringContainsString('left to right, then back left again', $hydrated['content']['html']);
                 $this->assertStringContainsString('Relative speed', $hydrated['content']['html']);
                 $this->assertStringContainsString('>115×</td>', $hydrated['content']['html']);
