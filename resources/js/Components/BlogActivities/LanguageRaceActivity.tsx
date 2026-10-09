@@ -15,10 +15,11 @@ type Lane = {
 }
 
 const PLAYBACK_MIN = 0.5
-const PLAYBACK_MAX = 100
+/** Top of the slider: 4× the old 100× cap so Rust can blur at full throw. */
+const PLAYBACK_MAX = 400
 /**
  * Seconds for Python to cross one way at 1x playback.
- * 100x on the slider restores the watchable pace (~48s for Python).
+ * 100× ≈ prior watchable pace (~48s for Python); 400× is four times that.
  */
 const BASE_SECONDS = 4800
 /** Horizontal inset from each track edge to the ball center (1.25rem). */
@@ -201,8 +202,8 @@ export default function LanguageRaceActivity() {
 
   const sliderValue = useMemo(() => playbackToSlider(playback), [playback])
   const caption = running
-    ? 'Balls run left to right, then reverse, forever. 1× crawls. 100× is full race speed.'
-    : 'At 1× each ball barely crawls. Slide to 100× for the full race speed (today’s old 1× pace).'
+    ? 'Balls run left to right, then reverse, forever. 1× crawls. Drag toward 400× to make Rust blur.'
+    : 'At 1× each ball barely crawls. Slide toward 400× when you want the race to scream.'
 
   const setBallRef = useCallback((id: string) => (node: HTMLDivElement | null) => {
     ballsRef.current[id] = node
@@ -347,7 +348,7 @@ export default function LanguageRaceActivity() {
         <div className="mt-1 flex justify-between text-[0.65rem] text-slate-500">
           <span>0.5×</span>
           <span>1× crawl</span>
-          <span>100× full speed</span>
+          <span>400×</span>
         </div>
       </div>
       <p className="!my-0 mt-2 text-xs text-slate-500">
