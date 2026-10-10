@@ -34,7 +34,7 @@ class InteractiveBlogDraftsTest extends TestCase
                 $this->assertSame('Why You Should Use S3 Presigned URLs to Upload Big Static Files', $post['title']);
                 $this->assertStringContainsString('Choose Browser or API and it stays on that side', $hydrated['content']['html']);
                 $this->assertStringContainsString('diagram-multipart-architecture.jpg', $hydrated['content']['html']);
-                $this->assertStringContainsString('cover-v3.jpg', (string) ($post['coverImageUrl'] ?? ''));
+                $this->assertStringContainsString('cover-v4.jpg', (string) ($post['coverImageUrl'] ?? ''));
                 $this->assertStringContainsString('creates the multipart upload and signs the part URLs', $hydrated['content']['html']);
                 $this->assertStringContainsString('Why the API should not carry the file', $hydrated['content']['html']);
                 $this->assertStringContainsString('The requests that make a multipart cycle', $hydrated['content']['html']);

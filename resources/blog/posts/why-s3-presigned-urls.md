@@ -6,7 +6,7 @@ publishedAt: "2099-06-01T18:00:00.000Z"
 draft: true
 draftToken: "9383e96dda32884b6cbeb006fd6c4024"
 readTimeInMinutes: 13
-coverImageUrl: "/blog-assets/why-s3-presigned-urls/cover-v3.jpg"
+coverImageUrl: "/blog-assets/why-s3-presigned-urls/cover-v4.jpg"
 reactionCount: 0
 responseCount: 0
 replyCount: 0
