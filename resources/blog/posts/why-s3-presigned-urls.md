@@ -6,7 +6,7 @@ publishedAt: "2099-06-01T18:00:00.000Z"
 draft: true
 draftToken: "9383e96dda32884b6cbeb006fd6c4024"
 readTimeInMinutes: 13
-coverImageUrl: "/blog-assets/why-s3-presigned-urls/cover-v2.jpg"
+coverImageUrl: "/blog-assets/why-s3-presigned-urls/cover-v3.jpg"
 reactionCount: 0
 responseCount: 0
 replyCount: 0
@@ -24,7 +24,7 @@ tags:
 <p>A pre-signed URL is the narrower tool. For a file this size you do not sign one giant PUT. The API starts a multipart upload, signs each part, and the browser PUTs those parts straight to S3. The object stays private. The figure below is that cycle as a small game: watch the parts land, or lock Browser or API and see what each side does.</p>
 
 <figure>
-  <img src="/blog-assets/why-s3-presigned-urls/diagram-multipart-flow.jpg" alt="Three lanes: the browser asks the API, which creates a multipart upload and signs four part URLs; the browser PUTs each 512 MB part straight to S3; the API then completes the upload so S3 assembles one private 2 GB object" width="1400" height="960" loading="eager" decoding="async" />
+  <img src="/blog-assets/why-s3-presigned-urls/diagram-multipart-architecture.jpg" alt="Architecture: the browser asks your API for four signed part URLs, PUTs each 512 MB part straight to a private S3 bucket, then your API completes the multipart upload. The 2 GB never passes through the API" width="2000" height="1000" loading="eager" decoding="async" />
   <figcaption>Your API only signs and completes. The 2 GB of bytes go from the browser to S3 and never pass through the API.</figcaption>
 </figure>
 
