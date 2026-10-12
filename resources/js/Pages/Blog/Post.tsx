@@ -207,6 +207,7 @@ function enhanceTables(root: HTMLElement) {
     }
 
     table.dataset.enhanced = 'true'
+    table.style.margin = '0'
     table.className =
       'w-full min-w-[36rem] border-collapse text-[0.95rem] leading-6 text-slate-700'
 

@@ -38,8 +38,8 @@ tags:
 <thead>
 <tr>
 <th>Step</th>
-<th><span style="display:inline-flex;align-items:center;gap:0.4rem"><img src="/images/logos/tech/terraformio-icon.svg" alt="" width="18" height="18" style="margin:0;border:0;border-radius:0;box-shadow:none;display:inline-block;vertical-align:middle" /> Terraform</span></th>
-<th><span style="display:inline-flex;align-items:center;gap:0.4rem"><img src="/images/logos/tech/pulumi-logo.svg" alt="" width="18" height="18" style="margin:0;border:0;border-radius:0;box-shadow:none;display:inline-block;vertical-align:middle" /> Pulumi</span></th>
+<th><span style="display:inline-flex;align-items:center;gap:0.4rem"><img src="/images/logos/tech/terraformio-icon.svg" alt="" width="18" height="18" style="width:18px;height:18px;max-width:none;flex:none;margin:0;border:0;border-radius:0;box-shadow:none;display:inline-block;vertical-align:middle" /> Terraform</span></th>
+<th><span style="display:inline-flex;align-items:center;gap:0.4rem"><img src="/images/logos/tech/pulumi-logo.svg" alt="" width="18" height="18" style="width:18px;height:18px;max-width:none;flex:none;margin:0;border:0;border-radius:0;box-shadow:none;display:inline-block;vertical-align:middle" /> Pulumi</span></th>
 <th>What you are checking</th>
 </tr>
 </thead>
