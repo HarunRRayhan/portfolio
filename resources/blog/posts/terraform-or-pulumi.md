@@ -6,7 +6,7 @@ publishedAt: "2099-06-01T18:00:00.000Z"
 draft: true
 draftToken: "4172d8f219888e9f4fe3b324c86cc6f2"
 readTimeInMinutes: 13
-coverImageUrl: "/blog-assets/terraform-or-pulumi/cover.jpg"
+coverImageUrl: "/blog-assets/terraform-or-pulumi/cover-v2.jpg"
 reactionCount: 0
 responseCount: 0
 replyCount: 0
@@ -22,6 +22,11 @@ tags:
 <p>The argument started as a logo fight. Terraform on one side, Pulumi on the other, as if the cloud would behave once we picked the right binary.</p>
 
 <p>Both tools do the same loop. You describe the resources. You preview. You apply. State records what actually exists. The two terminals below run that deploy side by side for the same S3 bucket. Speed and reset sit at the bottom.</p>
+
+<figure>
+  <img src="/blog-assets/terraform-or-pulumi/diagram-same-loop.jpg" alt="Terraform HCL and Pulumi TypeScript both feed one preview step, then apply to the same S3 bucket, and both record what exists in a private, locked remote state" width="2000" height="1000" loading="eager" decoding="async" />
+  <figcaption>Same loop either way: describe it, preview it, apply it, record it in state. Only the language you describe it in changes.</figcaption>
+</figure>
 
 <div data-blog-activity="terraform-vs-pulumi"></div>
 

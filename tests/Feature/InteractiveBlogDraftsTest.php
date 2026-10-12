@@ -106,6 +106,8 @@ class InteractiveBlogDraftsTest extends TestCase
             }
 
             if ($slug === 'terraform-or-pulumi') {
+                $this->assertStringContainsString('diagram-same-loop.jpg', $hydrated['content']['html']);
+                $this->assertStringContainsString('cover-v2.jpg', (string) ($post['coverImageUrl'] ?? ''));
                 $this->assertSame('Terraform or Pulumi, Pick From the Team You Have', $post['title']);
                 $this->assertStringContainsString('The two terminals below run that deploy side by side', $hydrated['content']['html']);
                 $this->assertStringContainsString('The loop is the product', $hydrated['content']['html']);
