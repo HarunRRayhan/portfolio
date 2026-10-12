@@ -4,7 +4,7 @@ slug: "persistence-is-not-permission-rag-citation-reauth-chat-replay"
 brief: "A contractor lost access to a folder in March and could still read the source cards from it in September, because our chat history endpoint served citations that had been authorized once, at write time, and never again. Here's the fix on API Gateway, Lambda, DynamoDB, and pgvector: store citation refs instead of blobs, re-run the live entitlement check on every history read, tombstone what the caller can no longer see, and fail closed on both unknown and denied sessions."
 publishedAt: "2026-08-29T18:00:00.000Z"
 readTimeInMinutes: 15
-coverImageUrl: "/blog-assets/persistence-is-not-permission-rag-citation-reauth-chat-replay/cover.jpg"
+coverImageUrl: "/blog-assets/persistence-is-not-permission-rag-citation-reauth-chat-replay/cover-v2.jpg"
 reactionCount: 0
 responseCount: 0
 replyCount: 0
@@ -30,6 +30,11 @@ tags:
 <p>Nothing was broken. The history endpoint did precisely what I wrote it to do. It read the turn out of DynamoDB and returned the citation objects that were saved on it. Those objects were authorized once, at write time, in February, by a check that had been correct that day.</p>
 
 <p>The bug was an assumption I'd never written down anywhere: that because she'd already seen it, showing it again was free.</p>
+
+<figure>
+  <img src="/blog-assets/persistence-is-not-permission-rag-citation-reauth-chat-replay/diagram-write-read-reauth.jpg" alt="Diagram of chat replay. The write path stores a chat turn with citationRefs (marker, docId, chunkId, page) in DynamoDB, with no title, snippet, url, or score. The read path runs a session check, then one entitlement check. Allowed citations resolve title and snippet and emit no event; denied citations become a tombstone and an audit event with document IDs only. Unknown or other-tenant sessions both return the same 404." width="2000" height="1000" loading="eager" decoding="async" />
+  <figcaption>Citations are stored as references on write and re-checked against live entitlements on every history read.</figcaption>
+</figure>
 
 <h2>The source card is a read path, and I never treated it like one</h2>
 
