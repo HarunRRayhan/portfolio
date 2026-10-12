@@ -18,7 +18,7 @@ const SPEEDS = [0.5, 1, 2] as const
 
 const LOGOS = {
   terraform: getImageUrl('/images/logos/tech/terraformio-icon.svg'),
-  pulumi: getImageUrl('/images/logos/tech/pulumi-logo.svg'),
+  pulumi: getImageUrl('/images/logos/tech/pulumi-mark.svg'),
 } as const
 
 const STEPS: Step[] = [
