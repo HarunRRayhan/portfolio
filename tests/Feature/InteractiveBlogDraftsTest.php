@@ -77,8 +77,8 @@ class InteractiveBlogDraftsTest extends TestCase
                 $this->assertStringContainsString('CPU-bound checksum in memory', $hydrated['content']['html']);
                 $this->assertStringContainsString('At 1× the balls stay readable', $hydrated['content']['html']);
                 $this->assertStringContainsString('Slide toward 100× when you want Rust to look unfair', $hydrated['content']['html']);
-                $this->assertStringContainsString('diagram-runtime-tiers.jpg', $hydrated['content']['html']);
-                $this->assertStringContainsString('cover-v2.jpg', (string) ($post['coverImageUrl'] ?? ''));
+                $this->assertStringContainsString('diagram-reach-the-cpu.jpg', $hydrated['content']['html']);
+                $this->assertStringContainsString('cover-v3.jpg', (string) ($post['coverImageUrl'] ?? ''));
                 $this->assertStringNotContainsString('diagram-speed-race.jpg', $hydrated['content']['html']);
                 $this->assertStringContainsString('<figcaption>', $hydrated['content']['html']);
                 $this->assertStringContainsString('hrr_checksum', $hydrated['content']['html']);
