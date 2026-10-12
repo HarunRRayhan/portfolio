@@ -6,7 +6,7 @@ publishedAt: "2099-06-01T18:00:00.000Z"
 draft: true
 draftToken: "deae83e5dc92e2055cd6b8e8b40d2ada"
 readTimeInMinutes: 12
-coverImageUrl: "/blog-assets/why-rust-is-faster-than-python-javascript-php-and-go/cover-v2.jpg"
+coverImageUrl: "/blog-assets/why-rust-is-faster-than-python-javascript-php-and-go/cover-v3.jpg"
 reactionCount: 0
 responseCount: 0
 replyCount: 0
@@ -22,8 +22,8 @@ tags:
 <p>This post is a model for one kind of work: a CPU-bound checksum in memory. No HTTP. No disk. No Postgres. The interesting part is not the screenshot. It is which kind of language is running the loop.</p>
 
 <figure>
-  <img src="/blog-assets/why-rust-is-faster-than-python-javascript-php-and-go/diagram-runtime-tiers.jpg" alt="Vertical high-to-low board: non-compiled high-level Python PHP JavaScript keep an interpreter on the hot path; compiled high-level Go ships a binary with GC; compiled low-level Rust ships machine code with no GC on the path" width="1400" height="1280" loading="eager" decoding="async" />
-  <figcaption>High to low. Non-compiled languages still pay a dispatch tax every loop. Go compiles ahead of time but keeps a GC under the binary. Rust compiles to machine code with no GC on this path.</figcaption>
+  <img src="/blog-assets/why-rust-is-faster-than-python-javascript-php-and-go/diagram-reach-the-cpu.jpg" alt="Three lanes. Interpreted Python, PHP and JavaScript run through an interpreter with a dispatch tax on every loop trip. Go compiles ahead of time but keeps a garbage collector. Rust compiles to tight machine code with no GC on the path. Relative speed: about 1x, 3x and 13x, then 53x, then 115x" width="2000" height="1000" loading="eager" decoding="async" />
+  <figcaption>Same checksum loop, three ways to reach the CPU. Interpreters pay a dispatch tax every trip. Go compiles ahead of time but keeps a GC. Rust compiles to machine code with no GC on this path.</figcaption>
 </figure>
 
 <div data-blog-activity="language-race"></div>
