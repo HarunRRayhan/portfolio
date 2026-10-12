@@ -4,7 +4,7 @@ slug: "agentcore-gateway-private-ca-without-the-alb"
 brief: "AgentCore Gateway can now trust your private CA on VPC Lattice MCP, OpenAPI, and HTTP targets. Here is the API shape, what Terraform still cannot express, and the expiry alarm I would add."
 publishedAt: "2026-10-05T07:00:00.000Z"
 readTimeInMinutes: 9
-coverImageUrl: "/blog-assets/agentcore-gateway-private-ca-without-the-alb/cover.jpg"
+coverImageUrl: "/blog-assets/agentcore-gateway-private-ca-without-the-alb/cover-v2.jpg"
 reactionCount: 0
 responseCount: 0
 replyCount: 0
@@ -28,6 +28,11 @@ tags:
 <p>That worked. It also meant a load balancer, a listener, a target group, and a public name for a server that was never supposed to have one. The ALB existed so the gateway would trust a certificate. It did not exist because I needed to balance anything.</p>
 
 <p>On October 2, AWS shipped the other option. You register the private CA on the gateway target. The gateway fetches the PEM from S3 or Secrets Manager and uses it as the trust anchor for that target. No ALB in the middle.</p>
+
+<figure>
+  <img src="/blog-assets/agentcore-gateway-private-ca-without-the-alb/diagram-architecture.jpg" alt="Two flows. Before October 2, AgentCore Gateway reached a private MCP server through an internal ALB with a public ACM certificate. After October 2, the gateway target registers a private CA PEM read from S3, encrypts it with a KMS key, and reaches the server through VPC Lattice with no ALB, and an expiry alarm watches EarliestCertificateDaysToExpiry." width="2000" height="1040" loading="eager" decoding="async" />
+  <figcaption>The ALB path versus registering the private CA directly on the gateway target.</figcaption>
+</figure>
 
 <h2>What October 2 actually changed</h2>
 
