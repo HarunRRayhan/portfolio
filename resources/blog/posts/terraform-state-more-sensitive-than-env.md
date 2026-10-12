@@ -4,7 +4,7 @@ slug: "terraform-state-more-sensitive-than-env"
 brief: "Terraform state can contain passwords, access keys, and a map of your infrastructure. Here is how I keep it out of Git, lock it in S3, and limit who can read it."
 publishedAt: "2026-09-19T09:00:00.000Z"
 readTimeInMinutes: 9
-coverImageUrl: "/blog-assets/terraform-state-more-sensitive-than-env/cover.jpg"
+coverImageUrl: "/blog-assets/terraform-state-more-sensitive-than-env/cover-v2.jpg"
 reactionCount: 0
 responseCount: 0
 replyCount: 0
@@ -28,6 +28,11 @@ tags:
 <p>Terraform state can contain database passwords, generated access keys, private key material, connection strings, and values returned by data sources. Even when there are no credentials in it, state is a detailed map of the account: resource names, ARNs, network IDs, endpoints, roles, and relationships.</p>
 
 <p>The dangerous part is that Terraform makes sensitive values look safer than they are.</p>
+
+<figure>
+  <img src="/blog-assets/terraform-state-more-sensitive-than-env/diagram-state-locations.jpg" alt="Diagram of what terraform.tfstate contains, the dedicated encrypted S3 state bucket with a lock file and narrow CI and break-glass roles, and the places state must not be stored: Git, a laptop copy, a CI artifact, or read access for the whole team." width="2000" height="1040" loading="eager" decoding="async" />
+  <figcaption>Terraform state holds secrets, so it belongs in a locked, encrypted S3 backend with narrow read access, not in Git or on a laptop.</figcaption>
+</figure>
 
 <h2><code>sensitive = true</code> hides output, not data</h2>
 

@@ -4,8 +4,8 @@ slug: mcp-authentication-fix-401-remote-server
 brief: 'Debug remote MCP authentication step by step: OAuth discovery, callback failures, token audiences, scopes, and AWS API Gateway responses.'
 publishedAt: "2026-09-26T14:49:46.000Z"
 readTimeInMinutes: 9
-coverImageUrl: "/blog-assets/mcp-authentication-fix-401-remote-server/cover-v3.jpg"
-coverImageAlt: "MCP Authentication: Fix 401 Errors, with a rejected access card and key."
+coverImageUrl: "/blog-assets/mcp-authentication-fix-401-remote-server/cover-v4.jpg"
+coverImageAlt: "Fix Remote MCP 401 Errors: three panels for discover, log in, and validate, with the takeaway to find the failed request before rotating keys."
 reactionCount: 0
 responseCount: 0
 replyCount: 0
@@ -27,6 +27,10 @@ tags:
 <p>An “Unauthorized” error from a remote MCP server doesn’t necessarily mean your credentials are wrong. The first 401 may be the server asking the client to start an OAuth login. If the client has already logged in and sent an access token, that same status points to a different problem.</p>
 <p>Before rotating keys or signing in again, find the request that failed. Was it the first call to <code>/mcp</code>, the token exchange, or a tool calling another API? That distinction will save you a lot of guessing.</p>
 <p>The examples here cover OAuth on remote HTTP servers, using the <a href="https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization">2026-07-28 MCP revision</a>. Local stdio servers handle credentials differently. Check your client and SDK versions before copying anything; older implementations may use an earlier flow. Replace the example URLs with your own. The snippets are diagnostic examples, not a tested integration for a particular desktop client.</p>
+<figure>
+  <img src="/blog-assets/mcp-authentication-fix-401-remote-server/diagram-401-flow.jpg" alt="Flow diagram of remote MCP 401 debugging in four groups: challenge and metadata discovery, client registration, login and code exchange, token validation and retry, and an API Gateway and Lambda path, with failure points marked in red." width="2000" height="1000" loading="eager" decoding="async" />
+  <figcaption>The debugging path follows the request from the first 401 through discovery, login, token validation, and retry, with red marking the failure points this guide covers.</figcaption>
+</figure>
 <h2>Find the last request that worked</h2>
 <p>Open the client’s network trace or the server’s access logs and look for the last successful request. Keep the request IDs so you can follow the same attempt across services. Remove tokens, authorization codes, and cookies before sharing logs.</p>
 <table>
