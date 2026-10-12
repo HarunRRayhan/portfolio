@@ -53,6 +53,8 @@ class InteractiveBlogDraftsTest extends TestCase
             }
 
             if ($slug === 'eight-load-balancer-algorithms') {
+                $this->assertStringContainsString('diagram-eight-algorithms.jpg', $hydrated['content']['html']);
+                $this->assertStringContainsString('cover-v2.jpg', (string) ($post['coverImageUrl'] ?? ''));
                 $this->assertSame('Top 8 Load Balancer Algorithms You Should Know About', $post['title']);
                 $this->assertStringContainsString('It starts sending when the figure is on screen', $hydrated['content']['html']);
                 $this->assertStringContainsString('How one lap lands', $hydrated['content']['html']);

@@ -6,7 +6,7 @@ publishedAt: "2099-06-01T18:00:00.000Z"
 draft: true
 draftToken: "0244a19b63b72390aea9abe4216731d1"
 readTimeInMinutes: 11
-coverImageUrl: "/blog-assets/eight-load-balancer-algorithms/cover.jpg"
+coverImageUrl: "/blog-assets/eight-load-balancer-algorithms/cover-v2.jpg"
 reactionCount: 0
 responseCount: 0
 replyCount: 0
@@ -22,6 +22,11 @@ tags:
 <p>The algorithm was doing what it was told. I had just never watched the requests land.</p>
 
 <p>There are 8 below. Each one gets its own figure. It starts sending when the figure is on screen, and it stops when you scroll away. Speed is under the picture. Reset clears the lap and starts it again.</p>
+
+<figure>
+  <img src="/blog-assets/eight-load-balancer-algorithms/diagram-eight-algorithms.jpg" alt="Eight cards, one per load balancer algorithm: round robin, weighted round robin, least connections, weighted least connections, least response time, IP hash, consistent hashing, and power of two choices. Each card shows the rule and which of three servers gets the next request" width="2000" height="1040" loading="eager" decoding="async" />
+  <figcaption>All eight at a glance. Green is the server that gets the next request under each rule.</figcaption>
+</figure>
 
 <h2>1. Round robin</h2>
 
