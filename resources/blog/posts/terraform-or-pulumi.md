@@ -6,7 +6,7 @@ publishedAt: "2099-06-01T18:00:00.000Z"
 draft: true
 draftToken: "4172d8f219888e9f4fe3b324c86cc6f2"
 readTimeInMinutes: 13
-coverImageUrl: "/blog-assets/terraform-or-pulumi/cover-v2.jpg"
+coverImageUrl: "/blog-assets/terraform-or-pulumi/cover-v3.jpg"
 reactionCount: 0
 responseCount: 0
 replyCount: 0
@@ -24,7 +24,7 @@ tags:
 <p>Both tools do the same loop. You describe the resources. You preview. You apply. State records what actually exists. The two terminals below run that deploy side by side for the same S3 bucket. Speed and reset sit at the bottom.</p>
 
 <figure>
-  <img src="/blog-assets/terraform-or-pulumi/diagram-same-loop.jpg" alt="Terraform HCL and Pulumi TypeScript both feed one preview step, then apply to the same S3 bucket, and both record what exists in a private, locked remote state" width="2000" height="1000" loading="eager" decoding="async" />
+  <img src="/blog-assets/terraform-or-pulumi/diagram-same-loop-v2.jpg" alt="Terraform HCL and Pulumi TypeScript both feed one preview step, then apply to the same S3 bucket, and both record what exists in a private, locked remote state" width="2000" height="1000" loading="eager" decoding="async" />
   <figcaption>Same loop either way: describe it, preview it, apply it, record it in state. Only the language you describe it in changes.</figcaption>
 </figure>
 
@@ -32,14 +32,14 @@ tags:
 
 <h2>The loop is the product</h2>
 
-<p>I stop people when the debate is only about HCL versus TypeScript. The product is the loop:</p>
+<p>I stop people when the debate is only about HCL versus TypeScript. The product is the loop. Pulumi can now run existing Terraform HCL too (<code>runtime: hcl</code>), so even the language is no longer a hard line:</p>
 
 <table>
 <thead>
 <tr>
 <th>Step</th>
-<th><span style="display:inline-flex;align-items:center;gap:0.4rem"><img src="/images/logos/tech/terraformio-icon.svg" alt="" width="18" height="18" style="width:18px;height:18px;max-width:none;flex:none;margin:0;border:0;border-radius:0;box-shadow:none;display:inline-block;vertical-align:middle" /> Terraform</span></th>
-<th><span style="display:inline-flex;align-items:center;gap:0.4rem"><img src="/images/logos/tech/pulumi-logo.svg" alt="" width="18" height="18" style="width:18px;height:18px;max-width:none;flex:none;margin:0;border:0;border-radius:0;box-shadow:none;display:inline-block;vertical-align:middle" /> Pulumi</span></th>
+<th><span style="display:inline-flex;align-items:center;gap:0.4rem"><img src="/images/logos/tech/terraformio-icon.svg" alt="" width="18" height="18" style="width:18px !important;height:18px !important;max-width:none !important;flex:none;margin:0;border:0;border-radius:0;box-shadow:none;display:inline-block;vertical-align:middle" /> Terraform</span></th>
+<th><span style="display:inline-flex;align-items:center;gap:0.4rem"><img src="/images/logos/tech/pulumi-mark.svg" alt="" width="18" height="18" style="width:18px !important;height:18px !important;max-width:none !important;flex:none;margin:0;border:0;border-radius:0;box-shadow:none;display:inline-block;vertical-align:middle" /> Pulumi</span></th>
 <th>What you are checking</th>
 </tr>
 </thead>
@@ -47,7 +47,7 @@ tags:
 <tr>
 <td>Describe</td>
 <td><code>main.tf</code> / modules</td>
-<td><code>index.ts</code> (or Python, Go, …)</td>
+<td><code>index.ts</code> (or Python, Go, HCL, …)</td>
 <td>Desired state is readable by the people who must review it</td>
 </tr>
 <tr>
@@ -96,7 +96,7 @@ const hrrUploads = new aws.s3.Bucket("hrrUploads", {
 });
 </code></pre>
 
-<p>Same object in AWS after apply. The review question is who can read the diff in the pull request. If half the reviewers do not write TypeScript, the Pulumi preview is noise. If the app team already owns the account and the repo, HCL is the foreign language.</p>
+<p>Same object in AWS after apply. The review question is who can read the diff in the pull request. If half the reviewers do not write TypeScript, the Pulumi preview is noise. Pulumi can also run your existing <code>.tf</code> files through its HCL runtime, which softens that gap. It is new, so try it on a non-critical stack first. If the app team already owns the account and the repo, HCL is the foreign language.</p>
 
 <h2>State does not care which CLI wrote it</h2>
 
