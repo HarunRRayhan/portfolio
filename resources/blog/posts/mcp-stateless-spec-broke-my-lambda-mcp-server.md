@@ -4,7 +4,7 @@ slug: "mcp-stateless-spec-broke-my-lambda-mcp-server"
 brief: "The 2026-07-28 MCP spec deleted the initialize handshake and Mcp-Session-Id, which should have been free for a Lambda server that was already stateless. It wasn't: a CORS allow-list, a missing server/discover, a 404 that should have been a 405, and a notification stream an HTTP API can't hold open all broke behind API Gateway."
 publishedAt: "2026-08-19T13:46:39.000Z"
 readTimeInMinutes: 13
-coverImageUrl: "/blog-assets/mcp-stateless-spec-broke-my-lambda-mcp-server/cover.jpg"
+coverImageUrl: "/blog-assets/mcp-stateless-spec-broke-my-lambda-mcp-server/cover-v2.jpg"
 reactionCount: 0
 responseCount: 0
 replyCount: 0
@@ -32,6 +32,11 @@ tags:
 <p>The annoying part is that I thought I was immune. The headline change in 2026-07-28 is that MCP dropped protocol-level sessions, and my server never had sessions. I'd set <code>sessionIdGenerator: undefined</code> on day one because Lambda can't guarantee the same instance handles consecutive requests. I read the changelog, saw "sessions removed," and figured I'd already paid that tax.</p>
 
 <p>The session removal was free. Everything the spec did <em>around</em> it was not.</p>
+
+<figure>
+  <img src="/blog-assets/mcp-stateless-spec-broke-my-lambda-mcp-server/diagram-five-breaks.jpg" alt="Diagram of an MCP client sending POST requests through API Gateway HTTP API to a Lambda handler, with five numbered breaks and a list of the protocol pieces the 2026-07-28 spec deleted." width="2000" height="1040" loading="eager" decoding="async" />
+  <figcaption>The request path from the MCP client through API Gateway to Lambda, with the five breaks numbered where they occurred.</figcaption>
+</figure>
 
 <h2>What 2026-07-28 actually deleted</h2>
 
