@@ -33,7 +33,7 @@ class ScheduleBlogPostTest extends TestCase
         ]);
 
         $this->post(route('admin.posts.schedule', $draft['slug']), [
-            'publish_at' => '2026-10-13T11:00',
+            'publish_at' => '2030-10-13T11:00',
         ])->assertRedirect('/login');
 
         $this->actingAs($admin)
@@ -58,7 +58,7 @@ class ScheduleBlogPostTest extends TestCase
 
         $this->actingAs($admin)
             ->post(route('admin.posts.schedule', $draft['slug']), [
-                'publish_at' => '2026-10-13T11:00',
+                'publish_at' => '2030-10-13T11:00',
             ])
             ->assertRedirect(route('admin.posts.index'));
 
@@ -68,20 +68,20 @@ class ScheduleBlogPostTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->where('posts', fn ($posts) => collect($posts)->contains(
                     fn ($post) => $post['slug'] === $draft['slug']
-                        && $post['calendarDate'] === '2026-10-13'
+                        && $post['calendarDate'] === '2030-10-13'
                         && $post['calendarTime'] === '11:00 AM'
                         && $post['isScheduled'] === true
                 )));
 
         $schedule = BlogPostSchedule::query()->where('slug', $draft['slug'])->first();
         $this->assertNotNull($schedule);
-        $this->assertSame('2026-10-13 05:00:00', $schedule->publish_at->utc()->format('Y-m-d H:i:s'));
+        $this->assertSame('2030-10-13 05:00:00', $schedule->publish_at->utc()->format('Y-m-d H:i:s'));
         $this->assertNull($schedule->notified_at);
 
         $this->get('/blog/'.$draft['slug'])->assertNotFound();
         $this->get('/blog/'.$draft['slug'].'/draft/'.$draft['token'])->assertOk();
 
-        Carbon::setTestNow(Carbon::parse('2026-10-13 05:00:00', 'UTC'));
+        Carbon::setTestNow(Carbon::parse('2030-10-13 05:00:00', 'UTC'));
 
         $this->get('/blog/'.$draft['slug'])->assertOk();
         $this->get('/blog/'.$draft['slug'].'/draft/'.$draft['token'])->assertRedirect('/blog/'.$draft['slug']);
