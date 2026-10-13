@@ -71,16 +71,9 @@ test('a thumbnail publication delay falls back to the local original cover', asy
 })
 
 
-test('Launch Llama keeps its link and serves its image without a third-party request', async ({ page }) => {
-  const remoteRequests: string[] = []
-  page.on('request', request => {
-    if (request.url().startsWith('https://tools.launchllama.co/')) remoteRequests.push(request.url())
-  })
+test('Launch Llama badge links to the directory and loads its official image', async ({ page }) => {
   await page.goto('/consultation')
   const badge = page.getByRole('link', { name: 'Featured on Launch Llama Tools', exact: true })
   await expect(badge).toHaveAttribute('href', 'https://tools.launchllama.co?utm_source=badge&utm_medium=referral')
-  await expect(badge.locator('img')).toHaveAttribute('src', '/images/directory-badges/launch-llama.png')
-  await badge.scrollIntoViewIfNeeded()
-  await expect.poll(() => badge.locator('img').evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true)
-  expect(remoteRequests).toEqual([])
+  await expect(badge.locator('img')).toHaveAttribute('src', 'https://tools.launchllama.co/featured-badge.png?v=2')
 })

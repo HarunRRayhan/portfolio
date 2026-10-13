@@ -13,7 +13,7 @@ const directoryBadges = [
     `<a href="https://dododirectory.com" target="_blank" rel="dofollow"><img src="https://dododirectory.com/badge-light.png" alt="Featured on DodoDirectory" width="200" height="54" /></a>`,
     `<a href="https://wired.business" target="_blank"><img src="https://wired.business/badge0-white.svg" alt="Featured on Wired Business" width="200" height="54"></a>`,
     `<a href="https://tools.launchllama.co?utm_source=badge&utm_medium=referral" target="_blank" rel="noopener noreferrer">
-  <img src="/images/directory-badges/launch-llama.png"
+  <img src="https://tools.launchllama.co/featured-badge.png?v=2"
     alt="Featured on Launch Llama Tools"
     width="200" height="52" />
 </a>`,
@@ -52,7 +52,6 @@ const directoryBadges = [
 ]
 
 // Preserve badge links and imagery while deferring offscreen media.
-// Launch Llama is served locally because its image response sets a third-party cookie.
 const deferredBadges = directoryBadges.map(markup => markup.replace(/<img\b[^>]*>/g, tag => {
     const lazy = /\bloading=/.test(tag) ? tag : tag.replace('<img', '<img loading="lazy"')
     return /\bdecoding=/.test(lazy) ? lazy : lazy.replace('<img', '<img decoding="async"')
@@ -142,7 +141,7 @@ export function DirectoryBadgeSlider() {
         <section
             role="region"
             aria-label="Featured directory badges"
-            className="mt-8 border-t border-slate-800/80 pt-6"
+            className="w-full max-w-[21rem] py-1 [mask-image:linear-gradient(90deg,transparent,#000_1.5rem,#000_calc(100%-1.5rem),transparent)]"
             onPointerEnter={() => {
                 isPointerInsideRef.current = true
             }}
@@ -158,17 +157,16 @@ export function DirectoryBadgeSlider() {
                 }
             }}
         >
-            <div className="mx-auto w-full max-w-6xl">
-                <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">Featured on</p>
+            <div>
                 <div className="overflow-hidden" aria-live="off">
                     <div ref={trackRef} className="flex w-max will-change-transform">
                         {deferredBadges.map((markup, index) => (
                             <div
                                 key={index}
-                                className="flex h-[76px] w-[148px] shrink-0 items-center justify-center px-2 sm:w-[180px]"
+                                className="flex h-12 w-[148px] shrink-0 items-center justify-center px-2"
                             >
                                 <div
-                                    className="flex h-full w-full items-center justify-center text-sm text-slate-500 [&_a]:inline-flex [&_a]:max-w-full [&_a]:items-center [&_a]:justify-center [&_a]:text-slate-400 [&_a]:transition-colors [&_a:hover]:text-slate-200 [&_img]:block [&_img]:h-auto [&_img]:w-auto [&_img]:max-h-12 [&_img]:max-w-full [&_img]:object-contain [&_img]:opacity-80"
+                                    className="flex h-full w-full items-center justify-center text-sm text-slate-500 [&_a]:inline-flex [&_a]:max-w-full [&_a]:items-center [&_a]:justify-center [&_a]:text-slate-400 [&_a]:transition-colors [&_a:hover]:text-slate-200 [&_img]:block [&_img]:h-auto [&_img]:w-auto [&_img]:max-h-[38px] [&_img]:max-w-full [&_img]:object-contain [&_img]:opacity-80"
                                     dangerouslySetInnerHTML={{ __html: markup }}
                                 />
                             </div>
