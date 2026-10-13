@@ -121,13 +121,13 @@ export function Footer() {
                         <DirectoryBadgeSlider />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3 lg:max-w-3xl lg:flex-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.4fr)] lg:gap-x-12">
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1.4fr)] lg:max-w-3xl lg:flex-1 lg:gap-x-12">
                         {links.map((group) => (
                             <div key={group.title} className={group.items.length > 6 ? 'col-span-2 sm:col-span-1' : undefined}>
                                 <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400">
                                     {group.title}
                                 </div>
-                                <ul className={`mt-4 space-y-2.5 ${group.items.length > 6 ? 'lg:grid lg:grid-cols-2 lg:gap-x-10 lg:gap-y-2.5 lg:space-y-0' : ''}`}>
+                                <ul className={`mt-4 space-y-2.5 ${group.items.length > 6 ? 'sm:grid sm:grid-cols-2 sm:gap-x-10 sm:gap-y-2.5 sm:space-y-0' : ''}`}>
                                     {group.items.map((item) => (
                                         <li key={item.label}>
                                             {item.external ? (
