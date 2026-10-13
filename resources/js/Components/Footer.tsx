@@ -73,91 +73,98 @@ export function Footer() {
             />
             <div className="container relative mx-auto py-16 sm:py-20">
                 {/* CTA section — skip the consult pitch on blog posts; the article already has one end CTA */}
-                <div
-                    className="rounded-xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm backdrop-blur sm:p-8 lg:p-10"
-                >
-                    <div className={`grid gap-10 ${onBlog ? '' : 'lg:grid-cols-[1.1fr_0.9fr] lg:items-center'}`}>
-                        {!onBlog ? (
-                        <div>
-                            <div className="inline-flex items-center gap-2 rounded-md border border-slate-700 bg-slate-800/80 px-3 py-1.5">
-                                <Terminal className="h-3.5 w-3.5 text-emerald-400" />
-                                <span className="font-mono text-[11px] font-medium text-slate-300">
-                                    Available for remote consulting
-                                </span>
-                            </div>
-
-                            <h2 className="mt-6 max-w-xl text-3xl font-bold tracking-tight sm:text-4xl">
-                                If the release still needs you in the room, start there.
-                            </h2>
-
-                            <p className="mt-4 max-w-xl text-base leading-7 text-slate-400 sm:text-lg">
-                                I work on the AWS account, the pipeline, and what happens after it ships.
-                            </p>
-
-                            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                                <Link href="/consultation">
-                                    <Button className="w-full rounded-lg bg-white px-6 text-slate-900 transition hover:bg-slate-100 active:scale-[0.98] sm:w-auto">
-                                        Book a consult
-                                        <ArrowRight className="ml-2 h-4 w-4" />
-                                    </Button>
-                                </Link>
-                                <Link href="/blog">
-                                    <Button
-                                        variant="outline"
-                                        className="w-full rounded-lg border-slate-700 bg-transparent px-6 text-slate-300 transition hover:border-slate-600 hover:bg-slate-800 active:scale-[0.98] sm:w-auto"
-                                    >
-                                        Read the blog
-                                    </Button>
-                                </Link>
-                            </div>
+                {!onBlog ? (
+                    <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm backdrop-blur sm:p-8 lg:p-10">
+                        <div className="inline-flex items-center gap-2 rounded-md border border-slate-700 bg-slate-800/80 px-3 py-1.5">
+                            <Terminal className="h-3.5 w-3.5 text-emerald-400" />
+                            <span className="font-mono text-[11px] font-medium text-slate-300">
+                                Available for remote consulting
+                            </span>
                         </div>
-                        ) : null}
 
-                        <div className={`grid gap-8 sm:grid-cols-2 ${onBlog ? 'lg:grid-cols-2' : ''}`}>
-                            {links.map((group) => (
-                                <div key={group.title}>
-                                    <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400">
-                                        {group.title}
-                                    </div>
-                                    <ul className="mt-4 space-y-2.5">
-                                        {group.items.map((item) => (
-                                            <li key={item.label}>
-                                                {item.external ? (
-                                                    <a
-                                                        href={item.href}
-                                                        className="text-sm text-slate-400 transition hover:text-white"
-                                                    >
-                                                        {item.label}
-                                                    </a>
-                                                ) : (
-                                                    <Link
-                                                        href={item.href}
-                                                        className="text-sm text-slate-400 transition hover:text-white"
-                                                    >
-                                                        {item.label}
-                                                    </Link>
-                                                )}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            ))}
-                            <div className="lg:col-span-2 xl:col-span-1">
+                        <h2 className="mt-6 max-w-xl text-3xl font-bold tracking-tight sm:text-4xl">
+                            If the release still needs you in the room, start there.
+                        </h2>
+
+                        <p className="mt-4 max-w-xl text-base leading-7 text-slate-400 sm:text-lg">
+                            I work on the AWS account, the pipeline, and what happens after it ships.
+                        </p>
+
+                        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                            <Link href="/consultation">
+                                <Button className="w-full rounded-lg bg-white px-6 text-slate-900 transition hover:bg-slate-100 active:scale-[0.98] sm:w-auto">
+                                    Book a consult
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            </Link>
+                            <Link href="/blog">
+                                <Button
+                                    variant="outline"
+                                    className="w-full rounded-lg border-slate-700 bg-transparent px-6 text-slate-300 transition hover:border-slate-600 hover:bg-slate-800 active:scale-[0.98] sm:w-auto"
+                                >
+                                    Read the blog
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
+                ) : null}
+
+                {/* Brand + badge marquee on the left, link columns on the right */}
+                <div className={`flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between ${onBlog ? '' : 'mt-14'}`}>
+                    <div className="flex w-full max-w-sm shrink-0 flex-col gap-5 lg:w-[22rem] lg:max-w-none">
+                        <Link href="/" className="w-fit text-2xl font-semibold tracking-tight text-slate-100">
+                            harun.dev
+                        </Link>
+                        <p className="text-base leading-snug text-slate-400">
+                            Remote AWS, pipeline, and release consulting.
+                        </p>
+                        <DirectoryBadgeSlider />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3 lg:gap-x-12">
+                        {links.map((group) => (
+                            <div key={group.title}>
                                 <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400">
-                                    Stay connected
+                                    {group.title}
                                 </div>
-                                <div className="mt-4 flex flex-col items-stretch gap-3">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        aria-haspopup="dialog"
-                                        onClick={() => openPopup('footer', 'slate')}
-                                        className="h-auto min-h-10 justify-start gap-2 whitespace-normal rounded-lg border-slate-700 bg-transparent px-3 text-left text-slate-300 hover:border-slate-600 hover:bg-slate-800 hover:text-white focus-visible:ring-emerald-400"
-                                    >
-                                        <Mail className="h-4 w-4 shrink-0" aria-hidden="true" />
-                                        Subscribe to newsletter
-                                    </Button>
-                                </div>
+                                <ul className="mt-4 space-y-2.5">
+                                    {group.items.map((item) => (
+                                        <li key={item.label}>
+                                            {item.external ? (
+                                                <a
+                                                    href={item.href}
+                                                    className="text-sm text-slate-400 transition hover:text-white"
+                                                >
+                                                    {item.label}
+                                                </a>
+                                            ) : (
+                                                <Link
+                                                    href={item.href}
+                                                    className="text-sm text-slate-400 transition hover:text-white"
+                                                >
+                                                    {item.label}
+                                                </Link>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ))}
+                        <div>
+                            <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400">
+                                Stay connected
+                            </div>
+                            <div className="mt-4 flex flex-col items-stretch gap-3">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    aria-haspopup="dialog"
+                                    onClick={() => openPopup('footer', 'slate')}
+                                    className="h-auto min-h-10 justify-start gap-2 whitespace-normal rounded-lg border-slate-700 bg-transparent px-3 text-left text-slate-300 hover:border-slate-600 hover:bg-slate-800 hover:text-white focus-visible:ring-emerald-400"
+                                >
+                                    <Mail className="h-4 w-4 shrink-0" aria-hidden="true" />
+                                    Subscribe to newsletter
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -193,7 +200,6 @@ export function Footer() {
                     </div>
                 </div>
 
-                <DirectoryBadgeSlider />
             </div>
         </footer>
     )
