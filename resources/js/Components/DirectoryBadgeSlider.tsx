@@ -141,7 +141,7 @@ export function DirectoryBadgeSlider() {
         <section
             role="region"
             aria-label="Featured directory badges"
-            className="w-full max-w-[21rem] py-1 [mask-image:linear-gradient(90deg,transparent,#000_1.5rem,#000_calc(100%-1.5rem),transparent)]"
+            className="w-full max-w-sm py-1 [mask-image:linear-gradient(90deg,transparent,#000_1.5rem,#000_calc(100%-1.5rem),transparent)]"
             onPointerEnter={() => {
                 isPointerInsideRef.current = true
             }}
