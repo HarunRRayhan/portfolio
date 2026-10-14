@@ -86,7 +86,8 @@ The auto-mode classifier blocks these Railway/infra actions from Bash even after
   styles `<table>` (borders, padding, zebra rows, horizontal scroll shell).
   Prefer a real table over a smashed plain-text comparison.
 - **Cross-posting** (`blog:crosspost`, hourly in `routes/console.php`): sends public posts
-  from the last 7 days to dev.to and Hashnode with `canonical_url` back to harun.dev. Keys
+  that are 3-7 days old (`--delay-days`, `--within-days`), oldest first, at most one per platform
+  every 3 days (`--gap-days`), to dev.to and Hashnode with `canonical_url` back to harun.dev. Keys
   in `.secrets/devto.env` / `.secrets/hashnode.env` (platform skipped when missing). Ledger:
   `blog_crossposts`. Hashnode has no draft path (drafts can't carry the canonical), so it
   always publishes. React figures can't run there: each becomes a demo link plus

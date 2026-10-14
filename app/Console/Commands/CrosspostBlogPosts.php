@@ -22,6 +22,8 @@ class CrosspostBlogPosts extends Command
         {slug? : One post. Without it, every public post from the last --within-days is cross-posted}
         {--to=devto,hashnode : Comma-separated platforms}
         {--within-days=7 : Auto mode window, keeps the old backlog out}
+        {--delay-days=3 : Auto mode waits this long after the post goes live on harun.dev so Google indexes the original first}
+        {--gap-days=3 : Auto mode sends at most one post per platform in this many days}
         {--draft : Save as a draft (dev.to only; Hashnode drafts cannot carry a canonical URL)}
         {--force : Re-send a post that is already in the ledger (creates a second copy on dev.to)}
         {--dry-run : Print the Markdown instead of sending}';
@@ -41,7 +43,7 @@ class CrosspostBlogPosts extends Command
                     continue;
                 }
 
-                if (! $this->configured($platform)) {
+                if (! $this->configured($platform) || (! $this->argument('slug') && $this->inGap($platform))) {
                     continue;
                 }
 
@@ -74,12 +76,25 @@ class CrosspostBlogPosts extends Command
     private function posts(BlogRepository $blog): array
     {
         $slug = $this->argument('slug');
-        $cutoff = now()->subDays((int) $this->option('within-days'));
+        $oldest = now()->subDays((int) $this->option('within-days'));
+        $newest = now()->subDays((int) $this->option('delay-days'));
         $posts = $slug ? array_filter([$blog->find($slug)]) : $blog->posts();
 
         // Canonical must resolve, so drafts and scheduled posts never go out.
-        return array_values(array_filter($posts, fn (array $post) => $blog->isPublic($post)
-            && ($slug || $blog->effectivePublishedAt($post)->greaterThanOrEqualTo($cutoff))));
+        $posts = array_values(array_filter($posts, fn (array $post) => $blog->isPublic($post)
+            && ($slug || $blog->effectivePublishedAt($post)->between($oldest, $newest))));
+
+        // Oldest first, so the queue drains in publishing order.
+        usort($posts, fn (array $a, array $b) => $blog->effectivePublishedAt($a)->timestamp <=> $blog->effectivePublishedAt($b)->timestamp);
+
+        return $posts;
+    }
+
+    private function inGap(string $platform): bool
+    {
+        return BlogCrosspost::where('platform', $platform)
+            ->where('created_at', '>', now()->subDays((int) $this->option('gap-days')))
+            ->exists();
     }
 
     private function configured(string $platform): bool

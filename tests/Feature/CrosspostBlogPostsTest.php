@@ -76,6 +76,28 @@ class CrosspostBlogPostsTest extends TestCase
         Http::assertNothingSent();
     }
 
+    public function test_auto_mode_waits_for_delay_then_sends_and_respects_gap(): void
+    {
+        config(['services.devto.api_key' => 'k']);
+        Http::fake(['dev.to/*' => Http::response(['id' => 7, 'url' => 'https://dev.to/x/y'])]);
+
+        $this->travelTo('2026-06-04 12:00:00'); // post is 1 day old: too fresh
+        $this->artisan('blog:crosspost', ['--to' => 'devto'])->assertSuccessful();
+        $this->assertDatabaseMissing('blog_crossposts', ['slug' => self::SLUG]);
+
+        $this->travelTo('2026-06-07 12:00:00'); // 4 days old, but dev.to was used yesterday
+        BlogCrosspost::create(['slug' => 'other', 'platform' => 'devto', 'remote_id' => '1', 'remote_url' => 'u'])
+            ->forceFill(['created_at' => now()->subDay()])->save();
+        $this->artisan('blog:crosspost', ['--to' => 'devto'])->assertSuccessful();
+        $this->assertDatabaseMissing('blog_crossposts', ['slug' => self::SLUG]);
+
+        $this->travelTo('2026-06-09 12:00:00'); // gap over
+        $this->artisan('blog:crosspost', ['--to' => 'devto'])->assertSuccessful();
+        // Same-day posts: the older one goes first, only one per run.
+        $this->assertDatabaseHas('blog_crossposts', ['slug' => 'how-i-make-ai-coding-agents-safe-in-a-real-aws-codebase']);
+        $this->assertDatabaseMissing('blog_crossposts', ['slug' => self::SLUG]);
+    }
+
     public function test_activity_div_becomes_demo_link_and_markdown_has_canonical_footer(): void
     {
         $blog = app(BlogRepository::class);
