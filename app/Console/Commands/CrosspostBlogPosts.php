@@ -69,7 +69,9 @@ class CrosspostBlogPosts extends Command
             }
         }
 
-        return $failed ? self::FAILURE : self::SUCCESS;
+        // Scheduled runs must not fail the scheduler tick (it gates the heartbeat); a bad key
+        // or API outage retries next hour and the error is in the logs. Manual runs still fail loudly.
+        return $failed && $this->argument('slug') ? self::FAILURE : self::SUCCESS;
     }
 
     /** @return list<array<string, mixed>> */
