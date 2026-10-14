@@ -2,6 +2,12 @@
 
 Project-specific notes for Claude Code sessions working in this repo.
 
+## Shipping
+
+Done means shipped: open a PR, self-review the diff, get CI green, merge to `main`, then
+wait for the "Build and Sync Assets to R2" deploy to finish and confirm it. Don't stop at
+"PR opened" or ask before merging. Stop and report only if CI or the deploy fails.
+
 ## Secrets
 
 Local secrets live in this repo under `.secrets/` (same flat layout as
@@ -85,6 +91,15 @@ The auto-mode classifier blocks these Railway/infra actions from Bash even after
 - **HTML tables in posts are supported.** `resources/js/Pages/Blog/Post.tsx`
   styles `<table>` (borders, padding, zebra rows, horizontal scroll shell).
   Prefer a real table over a smashed plain-text comparison.
+- **Cross-posting** (`blog:crosspost`, hourly in `routes/console.php`): sends public posts
+  that are 3-7 days old (`--delay-days`, `--within-days`), oldest first, at most one per platform
+  every 3 days (`--gap-days`), to dev.to and Hashnode with `canonical_url` back to harun.dev. Keys
+  in `.secrets/devto.env` / `.secrets/hashnode.env` (platform skipped when missing). Ledger:
+  `blog_crossposts`. Hashnode has no draft path (drafts can't carry the canonical), so it
+  always publishes. React figures can't run there: each becomes a demo link plus
+  `public/blog-assets/{slug}/activity-{id}[-{algorithm}].gif`. Regenerate GIFs with
+  `node scripts/capture-activity-gifs.mjs <slug>` (local server, admin login for drafts).
+  Commit new GIFs before the post goes public so the R2 sync has them.
 - **Frontend / media after merge** ship via the GitHub Action
   "Build and Sync Assets to R2". That workflow syncs assets, purges CDN prefixes
   only, waits for the main-branch PR checks on the same commit, then deploys
