@@ -173,6 +173,87 @@ export default function InfrastructureAsCodePage({ canonicalUrl }: { canonicalUr
         </section>
 
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
+          <div className="container mx-auto px-4">
+            <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
+              Situations I get called in for
+            </motion.h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {[
+                {
+                  title: "The state no longer matches the account",
+                  content:
+                    "Someone fixed an incident in the AWS console. Now every plan shows changes nobody wrote, and the team is afraid to apply anything.",
+                },
+                {
+                  title: "A small edit wants to replace the database",
+                  content:
+                    "A rename or a changed attribute shows up as destroy and create on an RDS instance. I find out why before anyone types yes.",
+                },
+                {
+                  title: "Resources Terraform has never seen",
+                  content:
+                    "Part of the account was built by hand. I bring it under Terraform with import blocks and check that the next plan is empty.",
+                },
+                {
+                  title: "One state file holds everything",
+                  content:
+                    "Network, databases, and app services share one state. Every plan is slow, and every apply puts unrelated parts at risk. I split it along the lines that change at different speeds.",
+                },
+              ].map((item, index) => (
+                <motion.div key={index} variants={fadeInUp}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{item.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>{item.content}</CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+            <motion.h2 className="text-3xl font-bold text-center mt-20 mb-12" variants={fadeInUp}>
+              What I check first
+            </motion.h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {[
+                {
+                  title: "The state backend and its lock",
+                  content:
+                    "Where state lives, whether the S3 bucket has versioning on, and how locking works. Older setups lock with a DynamoDB table. Newer Terraform versions can lock in S3 itself with use_lockfile.",
+                },
+                {
+                  title: "Every line that says must be replaced",
+                  content:
+                    "On a stateful resource, forces replacement is where data loss starts. Sometimes the fix is a moved block. Sometimes it is prevent_destroy and a different change.",
+                },
+                {
+                  title: "Version pins and the lock file",
+                  content:
+                    "I check that the AWS provider and modules are pinned and that .terraform.lock.hcl is committed. A new major provider version can change defaults under you.",
+                },
+                {
+                  title: "Drift before the change",
+                  content:
+                    "I run terraform plan -refresh-only first. It shows what changed outside Terraform without proposing to touch real infrastructure. If the drift was intended, it goes into the code. If not, the next apply puts it back.",
+                },
+                {
+                  title: "IAM inside the plan",
+                  content:
+                    "Wildcard actions, iam:PassRole on every resource, and trust policies that let too many principals assume a role. These pass validation and still fail a review.",
+                },
+              ].map((item, index) => (
+                <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
+                  <CheckCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+                    <p>{item.content}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.section>
+
+        <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
               Need a second set of eyes on a Terraform change?

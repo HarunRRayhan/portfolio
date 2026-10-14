@@ -212,6 +212,87 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
         <InfiniteScrollTech technologies={technologies} backgroundColor="#F8F9FA" />
 
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
+          <div className="container mx-auto px-4">
+            <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
+              Situations I get called in for
+            </motion.h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-24">
+              {[
+                {
+                  title: "The database runs out of connections",
+                  content:
+                    "Errors start under load, or right after a deploy added more workers. Each PHP-FPM worker or Lambda can hold its own connection. I look at pooling with RDS Proxy or PgBouncer before raising max_connections.",
+                },
+                {
+                  title: "One page got slow as the table grew",
+                  content:
+                    "A page that was fine at launch is slow now, and the table behind it is much bigger. Usually a query scans the whole table, or sorts rows an index could return in order.",
+                },
+                {
+                  title: "A bigger instance didn't help",
+                  content:
+                    "You moved to a larger RDS or Aurora instance and it's still slow. I find out what the queries are waiting on before anyone resizes again.",
+                },
+                {
+                  title: "Users see stale data",
+                  content:
+                    "Reads go to a replica, and the replica falls behind. I check replica lag, what is writing heavily on the primary, and which reads should go to the primary instead.",
+                },
+              ].map((item, index) => (
+                <motion.div key={index} variants={fadeInUp}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{item.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>{item.content}</CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+            <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
+              What I check first
+            </motion.h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {[
+                {
+                  title: "Top queries by total time",
+                  content:
+                    "pg_stat_statements on PostgreSQL, the slow query log or Performance Schema on MySQL. A fast query that runs on every request can cost more than one slow report.",
+                },
+                {
+                  title: "EXPLAIN ANALYZE on the worst ones",
+                  content:
+                    "I look for sequential scans on big tables, row estimates far from the real count, and sorts that spill to disk.",
+                },
+                {
+                  title: "Indexes missing and unused",
+                  content:
+                    "Columns used in joins and WHERE clauses with no index. PostgreSQL does not index foreign keys for you. Unused indexes go too, since each one slows every write.",
+                },
+                {
+                  title: "Connections and open transactions",
+                  content:
+                    "The connection count against max_connections, and sessions sitting idle in transaction. On PostgreSQL, a long open transaction also stops vacuum from cleaning dead rows.",
+                },
+                {
+                  title: "The RDS metrics next to the queries",
+                  content:
+                    "CPUUtilization, FreeableMemory, and DatabaseConnections in CloudWatch. On gp2 storage I also check BurstBalance. When the burst credits run out, every query slows at once.",
+                },
+              ].map((item, index) => (
+                <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
+                  <CheckCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+                    <p>{item.content}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.section>
+
+        <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
               If the database is the slow part, start there.

@@ -212,6 +212,87 @@ export default function MonitoringObservability({ canonicalUrl }: { canonicalUrl
         <InfiniteScrollTech technologies={technologies} backgroundColor="#F8F9FA" />
 
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
+          <div className="container mx-auto px-4">
+            <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
+              Situations I get called in for
+            </motion.h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {[
+                {
+                  title: "Users report the outage before the alarm does",
+                  content:
+                    "The dashboards were green while checkout failed. The alarms watched CPU and disk, and nothing watched the requests that broke.",
+                },
+                {
+                  title: "On-call gets paged all night for nothing",
+                  content:
+                    "Most pages clear on their own before anyone opens a laptop. After a few weeks people stop reading them, and the real one gets missed.",
+                },
+                {
+                  title: "The monitoring bill grew faster than the app",
+                  content:
+                    "Debug logs ship at full volume, and custom metrics multiply with every new label. The CloudWatch or Datadog invoice becomes its own line item.",
+                },
+                {
+                  title: "A slow request with no clue where the time went",
+                  content:
+                    "The request passes through several services and a queue. Each log says it was fine. Without a trace, nobody can say which hop was slow.",
+                },
+              ].map((item, index) => (
+                <motion.div key={index} variants={fadeInUp}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{item.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>{item.content}</CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+            <motion.h2 className="text-3xl font-bold text-center mt-20 mb-12" variants={fadeInUp}>
+              What I check first
+            </motion.h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {[
+                {
+                  title: "Alarms on what users feel",
+                  content:
+                    "On an ALB I start with HTTPCode_Target_5XX_Count and TargetResponseTime. Errors and latency come before CPU, because users feel those first.",
+                },
+                {
+                  title: "Percentiles, not averages",
+                  content:
+                    "An average latency can look fine while one request in a hundred takes ten seconds. I alarm on p99, or at least p95.",
+                },
+                {
+                  title: "What happens when the data stops",
+                  content:
+                    "A CloudWatch alarm treats missing data as missing by default. A service that dies and stops sending metrics can sit in INSUFFICIENT_DATA instead of ALARM. For heartbeat metrics I set missing data to breaching.",
+                },
+                {
+                  title: "Label cardinality and log retention",
+                  content:
+                    "A Prometheus label holding a user ID or a raw URL creates a new series for every value. In CloudWatch, each dimension combination is a separate custom metric. Log groups also never expire unless someone sets retention.",
+                },
+                {
+                  title: "Trace context across every hop",
+                  content:
+                    "OpenTelemetry passes the W3C traceparent header over HTTP. A queue drops it unless the producer writes it into the message attributes and the consumer reads it back.",
+                },
+              ].map((item, index) => (
+                <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
+                  <CheckCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+                    <p>{item.content}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.section>
+
+        <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
               If users hear about a failure before you do, start there.

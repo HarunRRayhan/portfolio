@@ -202,6 +202,87 @@ export default function InfrastructureMigration({ canonicalUrl }: { canonicalUrl
         <InfiniteScrollTech technologies={technologies} backgroundColor="#F8F9FA" />
 
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
+          <div className="container mx-auto px-4">
+            <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
+              Situations I get called in for
+            </motion.h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {[
+                {
+                  title: "Everything runs on one old server",
+                  content:
+                    "The app, the database, the cron jobs, and the uploaded files share one VPS or one box in a rack. It has to move to AWS without losing any of them.",
+                },
+                {
+                  title: "The database is too big for dump and restore",
+                  content:
+                    "A full dump takes longer than any window you can accept. The data has to replicate ahead of time, so cutover only carries the last changes.",
+                },
+                {
+                  title: "Moving between AWS accounts or regions",
+                  content:
+                    "The workload grew up in a shared or personal account and now needs its own. Snapshots, keys, DNS, and IAM all have to cross that line.",
+                },
+                {
+                  title: "The last attempt was rolled back",
+                  content:
+                    "A cutover was tried, something broke, and the team went back. I find out what failed before we plan the next window.",
+                },
+              ].map((item, index) => (
+                <motion.div key={index} variants={fadeInUp}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{item.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>{item.content}</CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+            <motion.h2 className="text-3xl font-bold text-center mt-20 mb-12" variants={fadeInUp}>
+              What I check first
+            </motion.h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {[
+                {
+                  title: "DNS TTLs, days ahead",
+                  content:
+                    "Resolvers keep the old answer for as long as the old TTL says. I lower the TTL well before cutover, so the switch takes minutes and a rollback does too.",
+                },
+                {
+                  title: "Replication and a row count",
+                  content:
+                    "For a live database I use AWS DMS or native replication: a full load, then ongoing changes. MySQL needs row-based binary logging for that. Before traffic moves, I compare row counts and run DMS validation.",
+                },
+                {
+                  title: "Snapshots and KMS keys",
+                  content:
+                    "An RDS snapshot encrypted with the default AWS managed key cannot be shared with another account. If the data is crossing accounts, it needs a customer managed key first.",
+                },
+                {
+                  title: "Hardcoded addresses and allowlists",
+                  content:
+                    "A partner or payment provider may allowlist your old outbound IP. The new NAT gateway has a different Elastic IP. They need it before cutover, not after.",
+                },
+                {
+                  title: "Jobs and files that must run in one place",
+                  content:
+                    "Cron jobs and files written to local disk are easy to miss. During cutover each job runs on exactly one side, or it runs twice.",
+                },
+              ].map((item, index) => (
+                <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
+                  <CheckCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+                    <p>{item.content}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.section>
+
+        <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
               If the platform has to move, plan the first week after cutover.

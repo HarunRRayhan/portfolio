@@ -211,6 +211,87 @@ export default function AutomatedDeployment({ canonicalUrl }: { canonicalUrl?: s
         <InfiniteScrollTech technologies={technologies} backgroundColor="#F8F9FA" />
 
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
+          <div className="container mx-auto px-4">
+            <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
+              Situations I get called in for
+            </motion.h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-24">
+              {[
+                {
+                  title: "Deploys run from one laptop",
+                  content:
+                    "One person runs the deploy from their machine, with credentials only they have. When they're away, nothing ships. I move the deploy into the pipeline so anyone on the team can run it.",
+                },
+                {
+                  title: "Nobody ships on Friday",
+                  content:
+                    "A bad release takes hours to undo, so the team avoids releasing late in the week. I make rollback a step in the pipeline, and the team runs it once before they need it.",
+                },
+                {
+                  title: "The pipeline is too slow to wait for",
+                  content:
+                    "People batch changes because each run takes too long. I look at dependency caching, Docker layer order, test splitting, and which steps really need to run on every commit.",
+                },
+                {
+                  title: "A migration breaks the release",
+                  content:
+                    "The deploy fails halfway because new code expects a column that isn't there yet. I split schema changes so the old and new code can both run while the release rolls out.",
+                },
+              ].map((item, index) => (
+                <motion.div key={index} variants={fadeInUp}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{item.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>{item.content}</CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+            <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
+              What I check first
+            </motion.h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {[
+                {
+                  title: "One artifact, promoted",
+                  content:
+                    "Whether staging and production get the same build. If production rebuilds from source, what you tested is not what you shipped. I build one image, tag it with the commit SHA, and promote it.",
+                },
+                {
+                  title: "How the pipeline gets cloud access",
+                  content:
+                    "GitHub Actions and GitLab CI can both use OIDC to assume an AWS IAM role. Then there are no long-lived access keys sitting in CI secrets.",
+                },
+                {
+                  title: "What counts as healthy",
+                  content:
+                    "ECS, Kubernetes, and load balancers all decide on health checks. If the check only returns 200 from a static route, a broken release looks fine.",
+                },
+                {
+                  title: "The way back",
+                  content:
+                    "How to redeploy the previous image tag, and whether the migration that shipped with it can be reversed or has to roll forward.",
+                },
+                {
+                  title: "Tests that fail at random",
+                  content:
+                    "A flaky test teaches the team to hit rerun. Then a real failure gets rerun too. I fix or quarantine those before adding new stages.",
+                },
+              ].map((item, index) => (
+                <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
+                  <CheckCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+                    <p>{item.content}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.section>
+
+        <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
               If the release still lives in someone's head, start there.

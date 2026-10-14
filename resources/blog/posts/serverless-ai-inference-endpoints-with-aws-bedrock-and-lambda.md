@@ -1,7 +1,7 @@
 ---
-title: "Serverless AI Inference Endpoints with AWS Bedrock and Lambda"
+title: "Serverless AI Inference API with AWS Bedrock and Lambda"
 slug: "serverless-ai-inference-endpoints-with-aws-bedrock-and-lambda"
-brief: "I've been building AI APIs for the last year and most of them don't need a GPU server. Seriously. The majority of my inference workloads are just \"take this prompt, send it to a model, return the resu"
+brief: "Build a serverless AI inference API on Bedrock and Lambda: a basic endpoint, streaming through Function URLs, multi-model routing, and real cost math."
 publishedAt: "2026-05-16T09:00:00.000Z"
 readTimeInMinutes: 17
 reactionCount: 0
@@ -25,6 +25,7 @@ tags:
 <p>AWS Bedrock changed how I think about this. You get access to Claude, Titan, Llama, and a bunch of other models through a single API. Pay per token, zero infrastructure to manage. You don't download model weights or build container images. Just call the API and get a response.</p>
 <p>In this post, I'm going to walk through building serverless AI inference endpoints using Bedrock and Lambda. We'll start with a basic inference endpoint, then add streaming for real-time responses. After that, we'll build a multi-model router that picks the right model based on the job. I'll also break down the real costs so you know exactly what you're paying.</p>
 <p>If you've been wanting to add AI features to your product but the GPU infrastructure felt like too much, this one's for you. Let's get into it.</p>
+<p><strong>Short answer:</strong> Put a Node.js Lambda behind an API Gateway HTTP API and have it call Bedrock with <code>InvokeModelCommand</code>, so there's no GPU server to run. For streaming, use a Lambda Function URL in <code>RESPONSE_STREAM</code> mode, because API Gateway buffers the whole response. You pay per token, which means zero traffic costs zero, and 1M Claude Sonnet requests a month came to about $4,507 in my math.</p>
 <p><img src="https://images.pexels.com/photos/1424337/pexels-photo-1424337.jpeg?auto=compress&amp;cs=tinysrgb&amp;h=650&amp;w=940" alt="AWS serverless cloud computing" />
 <sub>Photo by <a href="https://www.pexels.com/@simon73">Simon Berger</a> on <a href="https://www.pexels.com/photo/blue-and-gray-sky-1424337/">Pexels</a></sub></p>
 <h2>Why Bedrock Instead of Self-Hosting</h2>
@@ -183,6 +184,7 @@ export const handler = async (event) =&gt; {
 <p>A few things worth pointing out. The <code>BedrockRuntimeClient</code> lives outside the handler so it gets reused across warm Lambda invocations. Creating a new client on every request wastes time and memory.</p>
 <p>The <code>anthropic_version</code> field in the request body is required for Claude models on Bedrock. Without it, you'll get a cryptic 400 error. I wasted 20 minutes on that one.</p>
 <p>I also return the token usage in the response. This is super useful for tracking costs and debugging. If a request is expensive, you can see exactly how many tokens it consumed.</p>
+<p>When you need to trace cost, retries, and failures across a production app, here's <a href="/blog/llm-observability-langfuse-lambda-cloudwatch">how I add LLM observability with Langfuse, Lambda, and CloudWatch</a>.</p>
 <p>The error handling catches <code>ThrottlingException</code> specifically and returns a 429 status. Bedrock has per-model rate limits, and if you hit them, you want the client to know it should retry with backoff instead of treating it as a server error.</p>
 <p><img src="https://images.pexels.com/photos/4164418/pexels-photo-4164418.jpeg?auto=compress&amp;cs=tinysrgb&amp;h=650&amp;w=940" alt="Developer writing Lambda function code" />
 <sub>Photo by <a href="https://www.pexels.com/@antonio-batinic-2573434">Antonio Batinić</a> on <a href="https://www.pexels.com/photo/black-screen-with-code-4164418/">Pexels</a></sub></p>
@@ -413,7 +415,17 @@ export const handler = async (event) =&gt; {
 <h2>Wrapping Up</h2>
 <p>Bedrock takes the entire GPU infrastructure problem off your plate. You call an API, get AI inference, and pay for what you use. Lambda handles compute scaling automatically. Together they let you build production AI endpoints without touching a single piece of infrastructure. It's honestly the easiest way I've found to ship AI features.</p>
 <p>The patterns we covered handle most AI API use cases I've run into. The basic endpoint works for any synchronous inference call. Streaming gives your users that real-time typing experience. The multi-model router lets you make smart tradeoffs between cost and quality depending on what the task actually needs.</p>
+<p>These handlers cover one prompt in and one answer out. When a feature needs several model calls in a row, I <a href="/blog/step-functions-llm-orchestration-replacing-lambda-chains">orchestrate them with Step Functions instead of chaining Lambdas</a>.</p>
 <p>If I were starting a new AI feature tomorrow, this is exactly the stack I'd reach for. Get the product working first. Validate that users actually want it. Then worry about optimization later. Bedrock's on-demand pricing means you can experiment without any commitment, and if nobody uses the feature, it costs you nothing.</p>
+<h2>FAQ</h2>
+<h3>Is Bedrock cheaper than self-hosting a model on a GPU?</h3>
+<p>It depends on volume. A p3.2xlarge costs about $2,200 a month whether it serves 1M requests or none. With Claude Sonnet at 500 input and 200 output tokens per request, Bedrock comes to about $4,500 at 1M requests, $450 at 100K, and $45 at 10K. Routing 70% of requests to Nova Micro drops the 1M figure to around $400.</p>
+<h3>Can API Gateway stream Bedrock responses?</h3>
+<p>No. API Gateway buffers the full response and has a 29-second timeout. I use a Lambda Function URL with <code>InvokeMode: RESPONSE_STREAM</code> and <code>InvokeModelWithResponseStreamCommand</code> for streaming, and keep API Gateway for the non-streaming endpoints.</p>
+<h3>What IAM permissions does Lambda need to call Bedrock?</h3>
+<p><code>bedrock:InvokeModel</code> and <code>bedrock:InvokeModelWithResponseStream</code> on the foundation model ARNs, plus <code>AWSLambdaBasicExecutionRole</code> for logs. You also have to enable each model under "Model access" in the Bedrock console first.</p>
+<h3>Why does my Claude request to Bedrock return a 400 error?</h3>
+<p>Check for <code>anthropic_version: "bedrock-2023-05-31"</code> in the request body. Claude models on Bedrock require it, and the error you get without it is cryptic.</p>
 <p>Hope you enjoyed this one. If you're building AI features on AWS or have questions about Bedrock pricing and model selection, I'd love to hear about it.</p>
 <hr />
 <p><em>Follow me on <a href="https://x.com/harundotdev">Twitter/X</a> for more posts about AWS, serverless, and building AI-powered products. I share the stuff that actually works in production.</em></p>

@@ -206,6 +206,87 @@ export default function MultiCloudArchitecture({ canonicalUrl }: { canonicalUrl?
         <InfiniteScrollTech technologies={technologies} backgroundColor="#F8F9FA" />
 
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
+          <div className="container mx-auto px-4">
+            <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
+              Situations I get called in for
+            </motion.h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-24">
+              {[
+                {
+                  title: "A contract asks for a second provider",
+                  content:
+                    "A customer or a regulator says one provider is a risk. I find out what they actually need. Sometimes a tested backup in another cloud answers it. Sometimes it means running live on both.",
+                },
+                {
+                  title: "Two teams, two clouds",
+                  content:
+                    "Your company merged with a team that runs on Azure or Google Cloud. I decide what stays where, what talks across, and what moves. Moving nothing is a valid answer.",
+                },
+                {
+                  title: "One service lives on another cloud",
+                  content:
+                    "The team wants BigQuery or another managed service while the app stays on AWS. Before that, I look at how much data has to leave AWS to reach it, and what that transfer costs.",
+                },
+                {
+                  title: "A second cloud nobody has tested",
+                  content:
+                    "A second cloud was set up for failover, and nobody has failed over since. I check if it would actually take traffic. If it wouldn't, and nobody needs it, I tell you to shut it down.",
+                },
+              ].map((item, index) => (
+                <motion.div key={index} variants={fadeInUp}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{item.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>{item.content}</CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+            <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
+              What I check first
+            </motion.h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {[
+                {
+                  title: "Egress between clouds",
+                  content:
+                    "Every byte that leaves a cloud is billed as data transfer out. A chatty service split across two providers can cost more in transfer than in compute.",
+                },
+                {
+                  title: "How each side proves who it is",
+                  content:
+                    "I prefer OIDC workload identity federation over long-lived keys copied into the other cloud's secret store. AWS IAM, Azure, and Google Cloud all support it.",
+                },
+                {
+                  title: "The network path",
+                  content:
+                    "Site-to-site VPN or a dedicated interconnect, overlapping CIDR ranges on the two sides, and where each side resolves the other's DNS names.",
+                },
+                {
+                  title: "What still fails together",
+                  content:
+                    "One DNS provider, one identity provider, one CI system, or one Terraform state bucket can take both clouds down at once. Two providers don't fix that.",
+                },
+                {
+                  title: "Whether failover has ever run",
+                  content:
+                    "A runbook nobody has followed is a guess. I want to see one failover done, with the data lag measured, before anyone counts on it.",
+                },
+              ].map((item, index) => (
+                <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
+                  <CheckCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+                    <p>{item.content}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.section>
+
+        <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
               If one cloud is not the whole answer, start there.

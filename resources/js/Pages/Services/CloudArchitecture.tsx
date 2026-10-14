@@ -247,6 +247,87 @@ export default function CloudArchitecturePage() {
         </section>
 
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
+          <div className="container mx-auto px-4">
+            <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
+              Situations I get called in for
+            </motion.h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-24">
+              {[
+                {
+                  title: "Before the first real deploy",
+                  content:
+                    "The app works on a laptop or a single server, and it's about to go on AWS for real. I draw the layout first, so the first build isn't the one you live with by accident.",
+                },
+                {
+                  title: "A new product or a new region",
+                  content:
+                    "You're adding a second product, a second region, or a customer with its own data rules. I decide where it lives and how it connects before anyone creates resources.",
+                },
+                {
+                  title: "A setup nobody can draw",
+                  content:
+                    "The account grew one console click at a time. I map what exists, then design what it should look like and the order of changes to get there.",
+                },
+                {
+                  title: "One piece takes everything down",
+                  content:
+                    "One instance, one Availability Zone, one NAT gateway. It works until it doesn't. I find the pieces that take the app down with them and decide which are worth paying to double.",
+                },
+              ].map((item, index) => (
+                <motion.div key={index} variants={fadeInUp}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{item.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>{item.content}</CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+            <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
+              What I check first
+            </motion.h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {[
+                {
+                  title: "The account boundaries",
+                  content:
+                    "How many AWS accounts, and why. A separate production account is a hard line for IAM and for the bill. I sketch the accounts before the network.",
+                },
+                {
+                  title: "Recovery time and data loss",
+                  content:
+                    "What RTO and RPO you can live with. That answer decides between backups, a warm standby, or a second region. I ask before I draw anything.",
+                },
+                {
+                  title: "Availability Zones",
+                  content:
+                    "Which pieces run in more than one zone. A load balancer across two zones doesn't help if the database or the only NAT gateway sits in one.",
+                },
+                {
+                  title: "Where state lives",
+                  content:
+                    "Sessions and uploads belong outside the app servers, in a database, a cache, or S3. Then an instance can be replaced without losing anything.",
+                },
+                {
+                  title: "Limits that show up later",
+                  content:
+                    "Service quotas like Lambda concurrency, the IP addresses left in each subnet, and rate limits on the APIs the app calls. They are cheap to plan for and painful to hit.",
+                },
+              ].map((item, index) => (
+                <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
+                  <CheckCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+                    <p>{item.content}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.section>
+
+        <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
               If the layout is expensive or fragile, start there.

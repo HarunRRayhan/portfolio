@@ -82,7 +82,7 @@ final class SiteCatalog
      * 2026-10-07 is the day those pages started shipping in the first HTML
      * response. A fixed date, not a deploy file time: the image stamps every file.
      */
-    public const SERVICE_PAGES_LASTMOD = '2026-10-07';
+    public const SERVICE_PAGES_LASTMOD = '2026-10-14';
 
     /**
      * Indexable paths for /sitemap.xml. Privacy and terms stay out so they

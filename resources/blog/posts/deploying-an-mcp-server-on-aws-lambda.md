@@ -1,7 +1,7 @@
 ---
-title: "Deploying an MCP Server on AWS Lambda"
+title: "How to Deploy an MCP Server on AWS Lambda (Streamable HTTP)"
 slug: "deploying-an-mcp-server-on-aws-lambda"
-brief: "I wanted Claude to be able to query my SaaS's data directly from the chat window. Not through some copy-paste workflow. Not by uploading CSVs. I wanted to type \"show me the top 10 users by activity th"
+brief: "How I deployed a remote MCP server on AWS Lambda behind API Gateway: stateless Streamable HTTP, API key auth, CloudFormation, and Claude Desktop setup."
 publishedAt: "2026-04-20T09:00:00.000Z"
 readTimeInMinutes: 20
 reactionCount: 0
@@ -27,6 +27,7 @@ tags:
 <p>But every tutorial I found showed the same thing: a local Node.js process, started with <code>npx</code>, talking over stdio. Great for trying it out on your laptop. Not great for a production SaaS that needs to be always available, authenticated, and deployed through CI/CD.</p>
 <p>I already had my backend running on Lambda with Fastify. I had the RAG pipeline I wrote about in my last post. So naturally, I wanted MCP to live on the same stack. Same deployment process. Same auth. Same near-zero cost when idle.</p>
 <p>It took some figuring out, but I got it working. Let me show you how.</p>
+<p><strong>Short answer:</strong> I run the MCP SDK inside a Lambda function behind an API Gateway HTTP API, using the Streamable HTTP transport in stateless mode (<code>sessionIdGenerator: undefined</code>). Each invocation gets a fresh transport, an API key check runs before the request reaches the SDK, and one CloudFormation template holds the function, the API, and the IAM role. It costs me about $7/month.</p>
 <p><img src="https://images.pexels.com/photos/32021560/pexels-photo-32021560.jpeg?auto=compress&amp;cs=tinysrgb&amp;h=650&amp;w=940" alt="Developer working with an AI chat assistant" />
 <sub>Photo by <a href="https://www.pexels.com/@tim-witzdam-1081250691">Tim Witzdam</a> on <a href="https://www.pexels.com/photo/smartphone-displaying-ai-chat-interface-32021560/">Pexels</a></sub></p>
 <h2>What Is MCP and Why It Matters</h2>
@@ -314,6 +315,7 @@ Outputs:
     Value: !Sub "https://\({McpHttpApi}.execute-api.\){AWS::Region}.amazonaws.com/prod/mcp"
 </code></pre>
 <p>That's the whole thing. No VPC, no NAT gateway, no load balancer. If your tools only call external APIs or other AWS services, you don't need VPC access. My user stats and events tools call DynamoDB and my existing API, so they work fine without a VPC. The RAG tool calls RDS through RDS Proxy, which does need VPC access. I added that tool to a separate Lambda in the same VPC as my main application.</p>
+<p>If your MCP server has to stay private inside a VPC with AgentCore Gateway in front of it, I wrote up how to <a href="/blog/agentcore-gateway-private-ca-without-the-alb">make the gateway trust a private CA without adding an ALB</a>.</p>
 <p>For deployment, I use the same GitHub Actions workflow from my first post. OIDC authentication with AWS, no stored credentials:</p>
 <pre><code class="language-yaml">name: Deploy MCP Server
 
@@ -434,6 +436,15 @@ jobs:
 <p>I think every SaaS should have an MCP server. Not today, maybe. But soon. The way we interact with our own products is changing. Instead of clicking through dashboards, you'll ask your AI assistant. And the SaaS products that make this easy, the ones that expose their data through MCP, will have a real advantage.</p>
 <p>If you already have a Lambda stack running, you're closer than you think. A few hundred lines of code and you've got a production MCP server.</p>
 <p>Now go give your AI assistant something useful to do.</p>
+<h2>FAQ</h2>
+<h3>Which MCP transport works on AWS Lambda?</h3>
+<p>Streamable HTTP. One POST carries the MCP message and the result comes back in the same response, which matches Lambda's request-response model. Stdio only works when the client spawns the server on the same machine, and SSE wants a long-lived connection that API Gateway cuts after 29 seconds.</p>
+<h3>Can I reuse the MCP transport across Lambda invocations?</h3>
+<p>No. I tried caching it outside the handler and requests started failing silently. Create a new transport per invocation. The <code>McpServer</code> instance and its registered tools can live at module level and be reused on warm invocations.</p>
+<h3>What tools does an MCP server on Lambda expose?</h3>
+<p>Whatever you register with <code>server.tool()</code>. Mine exposes <code>get_user_stats</code>, <code>list_recent_events</code>, and <code>query_documents</code>. The client discovers them on connect, and in Claude Desktop they show up under the hammer icon. Specific tool descriptions matter, because the model uses them to pick which tool to call.</p>
+<h3>How do I connect Claude Desktop to an MCP server on Lambda?</h3>
+<p>Add the API Gateway URL and an <code>Authorization: Bearer</code> header under <code>mcpServers</code> in <code>claude_desktop_config.json</code>, then restart Claude Desktop. Cursor takes the same block in <code>.cursor/mcp.json</code>.</p>
 <p>Hope you enjoyed this walkthrough. If you're building an MCP server on AWS or have questions about any of the pieces, I'd love to hear about it.</p>
 <hr />
 <p><em>Follow me on <a href="https://x.com/harundotdev">Twitter/X</a> for more posts about AWS, serverless, and building AI-powered products. I share the stuff that actually works in production.</em></p>

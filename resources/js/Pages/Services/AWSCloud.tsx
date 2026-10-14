@@ -211,6 +211,87 @@ export default function AWSCloud({ canonicalUrl }: { canonicalUrl?: string }) {
         <InfiniteScrollTech technologies={technologies} backgroundColor="#F8F9FA" />
 
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
+          <div className="container mx-auto px-4">
+            <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
+              Situations I get called in for
+            </motion.h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-24">
+              {[
+                {
+                  title: "Everything lives in one account",
+                  content:
+                    "Production, staging, and someone's test bucket share one AWS account and one set of keys. I split them into separate accounts under AWS Organizations, so a mistake in staging can't reach production.",
+                },
+                {
+                  title: "The NAT gateway line on the bill",
+                  content:
+                    "The bill has a large NAT gateway charge and nobody knows why. Often it's private subnets pulling from S3 through the NAT, when a gateway endpoint would carry that traffic at no charge.",
+                },
+                {
+                  title: "A server nobody wants to reboot",
+                  content:
+                    "The app runs on one EC2 instance that someone set up by hand. Nobody knows how to build it again. I move it to something you can rebuild, like a launch template or a container on ECS.",
+                },
+                {
+                  title: "A database the internet can reach",
+                  content:
+                    "The RDS instance is marked publicly accessible, or a security group allows 0.0.0.0/0 on the database port. I move it into private subnets and let only the app's security group in.",
+                },
+              ].map((item, index) => (
+                <motion.div key={index} variants={fadeInUp}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{item.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>{item.content}</CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+            <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
+              What I check first
+            </motion.h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {[
+                {
+                  title: "The root user and old keys",
+                  content:
+                    "Whether the root user has MFA and no access keys. Then which IAM users still hold long-lived keys that should be roles or IAM Identity Center logins.",
+                },
+                {
+                  title: "CloudTrail",
+                  content:
+                    "That CloudTrail is on in every region and writes to a bucket the app can't delete from. Without it, nobody can say who changed what.",
+                },
+                {
+                  title: "Subnets and route tables",
+                  content:
+                    "Which subnets route to an internet gateway and what sits in them. I also check that the VPC CIDR leaves room to peer with another network later.",
+                },
+                {
+                  title: "Security groups open to everyone",
+                  content:
+                    "Rules that allow 0.0.0.0/0 on SSH, RDP, or a database port. Then whether SSH is needed at all, since Session Manager can replace it.",
+                },
+                {
+                  title: "Cost Explorer by usage type",
+                  content:
+                    "Unattached EBS volumes, old snapshots, idle load balancers, and instances sized for traffic that never came.",
+                },
+              ].map((item, index) => (
+                <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
+                  <CheckCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+                    <p>{item.content}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.section>
+
+        <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
               If the AWS account is expensive or fragile, start there.
