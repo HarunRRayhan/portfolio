@@ -211,6 +211,87 @@ export default function MLOps({ canonicalUrl }: { canonicalUrl?: string }) {
         <InfiniteScrollTech technologies={technologies} backgroundColor="#F8F9FA" />
 
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
+          <div className="container mx-auto px-4">
+            <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
+              Situations I get called in for
+            </motion.h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {[
+                {
+                  title: "The model only trains on one laptop",
+                  content:
+                    "The package versions, the data paths, and the GPU drivers live on one person's machine. When they are away, nobody can retrain.",
+                },
+                {
+                  title: "Nobody can say which model is live",
+                  content:
+                    "There is no registry. Production loads a pickle from S3 with a date in the file name, and nobody is sure which training run made it.",
+                },
+                {
+                  title: "The GPU bill is high and the GPUs sit idle",
+                  content:
+                    "Notebook instances run over the weekend. Endpoints stay sized for a peak that happens once a month. I look at what is up and what is used.",
+                },
+                {
+                  title: "Accuracy dropped and users noticed first",
+                  content:
+                    "An upstream system changed a field, and the inputs no longer look like the training data. Nothing alarmed, because nothing was watching the inputs.",
+                },
+              ].map((item, index) => (
+                <motion.div key={index} variants={fadeInUp}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{item.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>{item.content}</CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+            <motion.h2 className="text-3xl font-bold text-center mt-20 mb-12" variants={fadeInUp}>
+              What I check first
+            </motion.h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {[
+                {
+                  title: "A pinned training environment",
+                  content:
+                    "I put training in a container image with the framework and CUDA versions pinned. A scikit-learn model saved with pickle or joblib is not guaranteed to load in a different scikit-learn version.",
+                },
+                {
+                  title: "A registry entry that points back",
+                  content:
+                    "In MLflow or the SageMaker Model Registry, each model version should link to its training run, the git commit, and the dataset version. Then a rollback is a pointer change.",
+                },
+                {
+                  title: "The same preprocessing in training and serving",
+                  content:
+                    "When feature code is rewritten for the serving path, small differences creep in. I check that both sides call the same code, so the model sees the inputs it was trained on.",
+                },
+                {
+                  title: "Compute that bills while idle",
+                  content:
+                    "A SageMaker real-time endpoint bills per instance hour, with or without traffic. For training jobs that can resume, managed spot training with checkpoints is often worth a look.",
+                },
+                {
+                  title: "Somewhere to see drift",
+                  content:
+                    "I log the inputs and predictions next to a baseline from the training data. SageMaker Model Monitor can capture endpoint traffic and compare it for you. A plain scheduled job works too.",
+                },
+              ].map((item, index) => (
+                <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
+                  <CheckCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+                    <p>{item.content}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.section>
+
+        <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
               If the model works in a notebook and stalls in production, start there.

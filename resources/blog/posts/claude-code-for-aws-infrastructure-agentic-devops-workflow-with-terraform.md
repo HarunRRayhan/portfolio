@@ -1,7 +1,7 @@
 ---
-title: "Claude Code for AWS Infrastructure: My Agentic DevOps Workflow with Terraform"
+title: "Claude Code + Terraform on AWS: My Agentic DevOps Workflow"
 slug: "claude-code-for-aws-infrastructure-agentic-devops-workflow-with-terraform"
-brief: "Use Claude Code with Terraform on AWS: set up CLAUDE.md, draft Lambda and SQS resources, and review Terraform plans and IAM permissions before applying changes."
+brief: "How I use Claude Code with Terraform on AWS: a CLAUDE.md for infra, a validate hook, and piping terraform plan to Claude to catch IAM and downtime risks."
 publishedAt: "2026-03-28T11:44:17.946Z"
 readTimeInMinutes: 15
 reactionCount: 0
@@ -26,6 +26,7 @@ tags:
 <p>I get it. Infrastructure code isn't flashy. There's no pretty UI to screenshot. But it's where small mistakes cost real money, and where context matters more than anywhere else in a codebase.</p>
 <p>A few months ago I started using Claude Code for my AWS infrastructure work. Not for generating boilerplate that I could copy from the Terraform docs anyway. As an actual collaborator that reads my existing stack, understands my naming conventions, knows which resources are already deployed, and helps me ship changes faster without making expensive mistakes.</p>
 <p>This post walks through my actual workflow. How I set up the CLAUDE.md file for infra projects, how I write Terraform with Claude Code, how I pipe <code>terraform plan</code> output to it for review, and where it still falls short. No toy demos. Just the process I use on real projects every week.</p>
+<p><strong>Short answer:</strong> I give Claude Code a CLAUDE.md with my AWS account, region, naming prefix, state backend, and never-touch rules, plus a hook that runs <code>terraform validate</code> every time it writes a <code>.tf</code> file. Claude drafts the resources from my existing files. Then I pipe <code>terraform show -json tfplan</code> back into it to flag downtime, overly broad IAM permissions, and destroyed resources before I apply.</p>
 <p><img src="https://images.pexels.com/photos/34803969/pexels-photo-34803969.jpeg?auto=compress&amp;cs=tinysrgb&amp;h=650&amp;w=940" alt="Developer working at a terminal with code on screen" />
 <sub>Photo by <a href="https://www.pexels.com/@dkomov">Daniil Komov</a> on <a href="https://www.pexels.com/photo/focused-coding-session-with-laptop-and-coffee-34803969/">Pexels</a></sub></p>
 <h2>The Project Setup: CLAUDE.md for Infrastructure</h2>
@@ -240,4 +241,13 @@ terraform show -json tfplan | claude "Review this plan. Flag anything that will 
 <p>The CLAUDE.md investment pays off quickly. Spend an hour writing a thorough one and Claude stops making rookie mistakes in your codebase. Add the hooks and you have automated guardrails that catch problems before they become deployment failures.</p>
 <p>If you're already working with Terraform and AWS, try this workflow on your next change. Start small. Add a security group rule or a new IAM policy. See how it goes. And if you find a better approach or run into something interesting, I'd love to hear about it.</p>
 <p>If your team needs help with Terraform or AWS infrastructure, see the <a href="/services/infrastructure-as-code">Infrastructure as Code service</a> or <a href="/contact">get in touch</a>.</p>
+<h2>FAQ</h2>
+<h3>Can Claude Code write Terraform for AWS?</h3>
+<p>Yes. In my setup it drafts the full set of resources for a change, like an SQS queue with a dead letter queue, an IAM role, a Lambda function, and the event source mapping. It follows the naming and variables it sees in my existing <code>.tf</code> files. I still review every line, and I watch IAM closely because it once gave me <code>sqs:*</code> on <code>*</code>.</p>
+<h3>How do I get Claude Code to review a terraform plan?</h3>
+<p>Run <code>terraform plan -out=tfplan</code>, then pipe <code>terraform show -json tfplan</code> into <code>claude</code> with a prompt asking it to flag downtime, broad IAM permissions, and destroyed resources. Pasting the plan into a session works too. That review caught an SSH rule open to <code>0.0.0.0/0</code> and an SQS visibility timeout that matched the Lambda timeout.</p>
+<h3>What should go in CLAUDE.md for a Terraform project?</h3>
+<p>The AWS account and region, your naming prefix, where state lives, a map of existing services, and hard rules. Mine says never touch the Aurora cluster without confirmation, no NAT gateways without asking, least-privilege IAM only, and data sources instead of hardcoded ARNs.</p>
+<h3>Where does Claude Code get Terraform wrong?</h3>
+<p>It can't see console changes, so state drift trips it up. It sometimes invents resource arguments, like <code>concurrent_executions</code> on <code>aws_lambda_function</code>. And it loses track in deeply nested modules. I run <code>terraform plan</code> before a session, check unfamiliar attributes in the provider docs, and open only the module I'm changing.</p>
 <p>Hope you enjoyed this post. If you have questions or want to share your own experience using AI tools for infrastructure work, reach out on Twitter at <a href="https://x.com/harundotdev">https://x.com/harundotdev</a>. I'm always happy to chat about this stuff.</p>

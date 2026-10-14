@@ -175,6 +175,7 @@ WWW-Authenticate: Bearer error=&quot;insufficient_scope&quot;, scope=&quot;repor
 </code></pre>
 <p>Add CloudFront or a WAF if your setup uses them. Match the gateway access logs to the Lambda logs. When there’s no corresponding Lambda invocation, investigate the gateway or the layer in front of it.</p>
 <p>Keep the public discovery routes reachable. If an upstream authorizer returns a generic rejection without the MCP challenge, the client still needs working well-known metadata routes.</p>
+<p>If AgentCore Gateway fronts a private MCP server instead, it rejects a private CA certificate during the TLS handshake by default, before any token is checked; here’s how I <a href="/blog/agentcore-gateway-private-ca-without-the-alb">got it to trust a private CA without an ALB</a>.</p>
 <p>Browser clients add another place to look: CORS. On HTTP APIs, API Gateway can handle preflight requests itself and override the integration’s CORS headers. If your <code>$default</code> route requires authorization, you may need an explicit unauthenticated <code>OPTIONS /{proxy+}</code> route. <a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-cors.html">AWS HTTP API CORS documentation</a></p>
 <p>Allow the request headers the client sends, and expose the response’s challenge header:</p>
 <pre><code class="language-http">Access-Control-Expose-Headers: WWW-Authenticate

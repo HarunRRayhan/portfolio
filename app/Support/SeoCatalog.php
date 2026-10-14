@@ -230,60 +230,60 @@ final class SeoCatalog
 
         $overrides = [
             'cloud-architecture' => [
-                'title' => 'Cloud Architecture | Harun R. Rayhan',
-                'description' => 'I design the AWS layout: accounts, network, and the services the app actually needs.',
+                'title' => 'AWS Cloud Architecture Consulting | Harun R. Rayhan',
+                'description' => 'AWS cloud architecture consulting: account structure, VPC and network layout, and the services your app needs, designed before anything is built.',
             ],
             'devops' => [
                 'title' => 'DevOps | Harun R. Rayhan',
                 'description' => 'CI, infrastructure as code, and a release path the team can run without me in the room.',
             ],
             'infrastructure-as-code' => [
-                'title' => 'Infrastructure as Code | Harun R. Rayhan',
-                'description' => 'Need to change AWS infrastructure without guessing what Terraform will touch? I can help review the current stack, make the change, and check the plan before it is applied.',
+                'title' => 'Terraform & Infrastructure as Code | Harun R. Rayhan',
+                'description' => 'Terraform and infrastructure as code for AWS: I review the current stack, make the change, and check the plan before anything is applied.',
             ],
             'serverless-infrastructure' => [
-                'title' => 'Serverless Infrastructure | Harun R. Rayhan',
-                'description' => 'Lambda, queues, and the rest of a serverless setup, when you want less to patch and a bill that follows the traffic.',
+                'title' => 'Serverless AWS Consulting | Harun R. Rayhan',
+                'description' => 'Serverless AWS consulting: Lambda, API Gateway, SQS, and Step Functions set up so there is less to patch and the bill follows traffic.',
             ],
             'automated-deployment' => [
-                'title' => 'Automated Deployment | Harun R. Rayhan',
-                'description' => 'Pipelines that build, test, and ship, without a checklist in someone\'s head.',
+                'title' => 'CI/CD & Automated Deployment | Harun R. Rayhan',
+                'description' => 'CI/CD pipelines on AWS that build, test, and ship, with rollbacks and no deploy checklist living in someone\'s head.',
             ],
             'security-consulting' => [
                 'title' => 'Security Consulting | Harun R. Rayhan',
                 'description' => 'I look at IAM, network boundaries, and the logs, then close the paths that are wider than the job.',
             ],
             'performance-optimization' => [
-                'title' => 'Performance Optimization | Harun R. Rayhan',
-                'description' => 'I measure the slow path, fix that, and stop paying for capacity you aren\'t using.',
+                'title' => 'AWS Performance Optimization | Harun R. Rayhan',
+                'description' => 'AWS performance optimization: I measure the slow path, fix it, and cut the capacity you pay for but don\'t use.',
             ],
             'infrastructure-migration' => [
-                'title' => 'Infrastructure Migration | Harun R. Rayhan',
-                'description' => 'I move the platform with a plan for downtime, the data, and the first week after cutover.',
+                'title' => 'AWS Infrastructure Migration | Harun R. Rayhan',
+                'description' => 'AWS infrastructure migration with a written plan for downtime, data checks, and the first week after cutover.',
             ],
             'mlops' => [
-                'title' => 'MLOps | Harun R. Rayhan',
-                'description' => 'The infrastructure around training and serving models, from the notebook to production.',
+                'title' => 'MLOps on AWS | Harun R. Rayhan',
+                'description' => 'MLOps on AWS: training jobs, a model registry, serving, and drift alarms, so a model leaves the notebook and runs in production.',
             ],
             'database-migration' => [
                 'title' => 'Database Migration | Harun R. Rayhan',
                 'description' => 'I move the database and check the data on both sides before anything goes live.',
             ],
             'monitoring-observability' => [
-                'title' => 'Monitoring & Observability | Harun R. Rayhan',
-                'description' => 'Metrics, logs, and traces, so you hear about a failure before your users do.',
+                'title' => 'Monitoring & Observability on AWS | Harun R. Rayhan',
+                'description' => 'AWS monitoring and observability: CloudWatch metrics, logs, traces, and alarms, so you hear about a failure before your users do.',
             ],
             'database-optimization' => [
-                'title' => 'Database Optimization | Harun R. Rayhan',
-                'description' => 'Slow queries, missing indexes, and connection limits. I fix the ones that show up under real load.',
+                'title' => 'Database Optimization for RDS & Postgres | Harun R. Rayhan',
+                'description' => 'Database optimization for RDS, Aurora, Postgres, and MySQL: slow queries, missing indexes, and connection limits that show up under real load.',
             ],
             'aws-cloud' => [
-                'title' => 'AWS Cloud | Harun R. Rayhan',
-                'description' => 'Accounts, networking, compute, and the managed services around them.',
+                'title' => 'AWS Cloud Consulting | Harun R. Rayhan',
+                'description' => 'AWS cloud consulting: account setup, networking, compute, and the managed services around them, set up to run in production.',
             ],
             'multi-cloud-architecture' => [
-                'title' => 'Multi-Cloud Architecture | Harun R. Rayhan',
-                'description' => 'A setup that uses more than one cloud, when AWS alone isn\'t the whole answer.',
+                'title' => 'Multi-Cloud Architecture Consulting | Harun R. Rayhan',
+                'description' => 'Multi-cloud architecture for teams that need more than AWS: when a second cloud is worth the cost, and how to keep it manageable.',
             ],
             'vibe-scaling' => [
                 'title' => 'Vibe Scaler | Harun R. Rayhan',

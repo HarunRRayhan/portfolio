@@ -1,7 +1,7 @@
 ---
-title: "How I Set Up CI/CD for AWS Lambda and Terraform with GitHub Actions"
+title: "GitHub Actions + Terraform CI/CD for AWS Lambda with OIDC"
 slug: "github-actions-lambda-terraform-cicd"
-brief: "For years I deployed Lambda functions by zipping the dist folder on my laptop and running aws lambda update-function-code from a terminal. It worked. It also failed at 11pm on a Friday when I forgot t"
+brief: "My GitHub Actions pipeline for AWS Lambda and Terraform: OIDC deploys with no stored AWS keys, S3 state locking, a prod approval gate, and alias rollback."
 publishedAt: "2026-04-18T17:16:49.891Z"
 readTimeInMinutes: 19
 reactionCount: 0
@@ -26,6 +26,7 @@ tags:
 <p>So I rebuilt the pipeline from scratch. Terraform owns the infrastructure. GitHub Actions runs every plan and apply. AWS sees a short-lived OIDC token instead of some access key sitting in a repo secret forever. Pull requests get a Terraform plan posted as a comment. Merging to main deploys staging automatically. Production needs a human to click approve.</p>
 <p>This post is the whole thing end to end: repo layout, the OIDC trust between GitHub and AWS, S3 remote state with DynamoDB locking, the deploy workflow, how Lambda code gets packaged, environment promotion with manual approval, and what I do when something bad still slips through.</p>
 <p>It all runs in production right now. Names are sanitized, patterns are real.</p>
+<p><strong>Short answer:</strong> Terraform owns the Lambda infrastructure and GitHub Actions runs every plan and apply. The workflow assumes an AWS IAM role through GitHub OIDC, so no long-lived access keys sit in repo secrets. Merging to main deploys staging automatically, and production waits for a reviewer to approve it in a GitHub Environment.</p>
 <p><img src="https://images.pexels.com/photos/18784617/pexels-photo-18784617.jpeg?auto=compress&amp;cs=tinysrgb&amp;h=650&amp;w=940" alt="Automated deployment pipeline" />
 <sub>Photo by <a href="https://www.pexels.com/@wolfgang-weiser-467045605">Wolfgang Weiser</a> on <a href="https://www.pexels.com/photo/view-of-pipelines-in-a-forest-18784617/">Pexels</a></sub></p>
 <h2>The repo structure</h2>
@@ -201,6 +202,7 @@ resource "aws_dynamodb_table" "hrr_tf_locks" {
 }
 </code></pre>
 <p>Versioning on the state bucket matters more than people realize. If something corrupts the state file, you can roll back to the previous object version and recover. Without versioning, a bad state push is gone for good.</p>
+<p>Lock down who can read this bucket too, because <a href="/blog/terraform-state-more-sensitive-than-env">Terraform state is more sensitive than your .env file</a> and can hold passwords and access keys.</p>
 <p>DynamoDB on-demand is the right billing mode here. State locks are infrequent, so on-demand costs basically nothing. Provisioned capacity would burn money sitting idle.</p>
 <p>Workspaces or separate state keys are both valid for staging vs prod. I use separate state keys (<code>api/staging/terraform.tfstate</code> and <code>api/prod/terraform.tfstate</code>) passed via <code>-backend-config</code> at init time. Workspaces and the data sources you build on top of them get awkward fast, and I would rather be explicit.</p>
 <p><img src="https://images.pexels.com/photos/5480781/pexels-photo-5480781.jpeg?auto=compress&amp;cs=tinysrgb&amp;h=650&amp;w=940" alt="Cloud state storage and locking" />
@@ -515,6 +517,15 @@ jobs:
 <h2>Wrapping up</h2>
 <p>Setting up CI/CD for Lambda and Terraform feels overwhelming when you stare at a blank repo, but each piece is small. The OIDC trust is one Terraform file. The remote state is another. The deploy workflow is one YAML file. Stitched together you get a pipeline that ships code safely without keeping any long-lived AWS credentials anywhere near your repo.</p>
 <p>The setup pays for itself the first time you push a hotfix at midnight and it lands in production in 5 minutes without you ever opening a terminal. That moment alone was worth the weekend I spent wiring it up.</p>
+<h2>FAQ</h2>
+<h3>How do I deploy Lambda from GitHub Actions without AWS access keys?</h3>
+<p>Use GitHub OIDC. Create an <code>aws_iam_openid_connect_provider</code> for <code>token.actions.githubusercontent.com</code>, then an IAM role whose trust policy checks the <code>aud</code> claim and limits the <code>sub</code> claim to your own repo's main branch, pull requests, and deploy environments. In the workflow, set <code>id-token: write</code> and pass the role to <code>aws-actions/configure-aws-credentials</code>. The credentials expire in an hour.</p>
+<h3>Why does configure-aws-credentials fail on the first OIDC run?</h3>
+<p>Check the <code>permissions</code> block. Without <code>id-token: write</code>, GitHub won't mint a token and the AWS credentials step fails with a fairly cryptic error.</p>
+<h3>How do I roll back a Lambda deploy made by Terraform?</h3>
+<p>Publish a new version on every deploy with <code>publish = true</code> and point API Gateway at a <code>live</code> alias. My rollback workflow runs <code>aws lambda update-alias</code> to an older version in about 15 seconds. Revert the bad commit right after, or the next <code>terraform apply</code> moves the alias forward again.</p>
+<h3>How much does this pipeline cost?</h3>
+<p>Actions minutes are free on public repos. On a private repo, the Free plan's 2,000 minutes cover about 400 deploys at roughly 5 minutes each. The AWS side is a few cents a month for the state bucket and DynamoDB lock requests.</p>
 <p>Hope you enjoyed this walkthrough. If you are setting up something similar or have questions about any of the patterns above, drop a comment below.</p>
 <hr />
 <p><em>Follow me on <a href="https://x.com/harundotdev">Twitter/X</a> for more posts about AWS, serverless architecture, and building SaaS products.</em></p>

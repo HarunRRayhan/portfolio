@@ -23,7 +23,7 @@ class BlogCommentTest extends TestCase
 
         $this->assertDatabaseHas('blog_comment_threads', [
             'slug' => 'github-actions-lambda-terraform-cicd',
-            'title' => 'How I Set Up CI/CD for AWS Lambda and Terraform with GitHub Actions',
+            'title' => 'GitHub Actions + Terraform CI/CD for AWS Lambda with OIDC',
         ]);
     }
 

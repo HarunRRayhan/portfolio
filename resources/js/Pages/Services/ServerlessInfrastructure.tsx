@@ -231,6 +231,87 @@ export default function ServerlessInfrastructure({ canonicalUrl }: { canonicalUr
         <InfiniteScrollTech technologies={technologies} backgroundColor="#F8F9FA" />
 
         <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
+          <div className="container mx-auto px-4">
+            <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
+              Situations I get called in for
+            </motion.h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {[
+                {
+                  title: "The Lambda bill grew faster than the traffic",
+                  content:
+                    "Lambda bills for duration, and time spent waiting on a slow API still counts. I look for oversized memory, retry loops, and functions that mostly wait.",
+                },
+                {
+                  title: "Messages pile up in the dead-letter queue",
+                  content:
+                    "A function fed by SQS keeps failing, the messages retry, and they end up in the DLQ. Nobody knows which input broke it. I read the logs for one failed message before I touch any retry setting.",
+                },
+                {
+                  title: "The database ran out of connections",
+                  content:
+                    "Lambda scales out, and each execution environment opens its own connections to RDS. A traffic spike becomes a connection spike. RDS Proxy is usually where I start.",
+                },
+                {
+                  title: "Requests time out at API Gateway",
+                  content:
+                    "A function can run for up to 15 minutes. API Gateway stops waiting long before that. Work that slow belongs behind a queue, not a synchronous request.",
+                },
+              ].map((item, index) => (
+                <motion.div key={index} variants={fadeInUp}>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{item.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>{item.content}</CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+            <motion.h2 className="text-3xl font-bold text-center mt-20 mb-12" variants={fadeInUp}>
+              What I check first
+            </motion.h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {[
+                {
+                  title: "Function timeout against the queue",
+                  content:
+                    "AWS recommends an SQS visibility timeout of at least six times the function timeout. If it is shorter, a message can become visible again while it is still being processed, and run twice.",
+                },
+                {
+                  title: "Partial batch failures",
+                  content:
+                    "Without ReportBatchItemFailures, one bad message fails the whole batch. The good messages retry with it. I turn it on and make the handler return the failed IDs.",
+                },
+                {
+                  title: "Concurrency across the account",
+                  content:
+                    "Concurrency is shared by every function in the region. One busy function can throttle the rest. Reserved concurrency caps it and protects the others.",
+                },
+                {
+                  title: "What runs before the handler",
+                  content:
+                    "SDK clients belong outside the handler so warm calls reuse them. I check package size and VPC config before I reach for provisioned concurrency.",
+                },
+                {
+                  title: "Log retention",
+                  content:
+                    "The log groups Lambda creates never expire by default. I set a retention period so old debug lines stop adding to the CloudWatch bill.",
+                },
+              ].map((item, index) => (
+                <motion.div key={index} className="flex items-start space-x-4" variants={fadeInUp}>
+                  <CheckCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+                    <p>{item.content}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.section>
+
+        <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
               If you want less to patch, and a bill that follows the traffic.
