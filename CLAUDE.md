@@ -2,6 +2,12 @@
 
 Project-specific notes for Claude Code sessions working in this repo.
 
+## Shipping
+
+Done means shipped: open a PR, self-review the diff, get CI green, merge to `main`, then
+wait for the "Build and Sync Assets to R2" deploy to finish and confirm it. Don't stop at
+"PR opened" or ask before merging. Stop and report only if CI or the deploy fails.
+
 ## Secrets
 
 Local secrets live in this repo under `.secrets/` (same flat layout as
