@@ -3,7 +3,7 @@ title: "How I Review Terraform and Lambda PRs with AI Before They Merge"
 slug: "production-ai-code-review-for-terraform-and-lambda-prs"
 brief: "How I use AI as a first-pass reviewer for Terraform and Lambda pull requests, while keeping human judgment on the risky parts"
 publishedAt: "2026-06-03T11:40:10.168Z"
-readTimeInMinutes: 9
+readTimeInMinutes: 7
 reactionCount: 0
 responseCount: 0
 replyCount: 0
@@ -29,7 +29,7 @@ tags:
 <p><strong>Short version:</strong> AI reviews the diff, I review the risk.</p>
 
 <h2>Why This Is a Different Post From My Other AI and AWS Articles</h2>
-<p>I already write about AI in AWS codebases, Terraform workflows, and agentic DevOps routines. This post is not another version of that same story.</p>
+<p>I already write about <a href="/blog/how-i-make-ai-coding-agents-safe-in-a-real-aws-codebase">AI in AWS codebases</a>, <a href="/blog/claude-code-for-aws-infrastructure-agentic-devops-workflow-with-terraform">Terraform workflows</a>, and <a href="/blog/multi-agent-claude-code-aws-devops-routines">agentic DevOps routines</a>. This post is not another version of that same story.</p>
 <p>The earlier posts focus on one of two things:</p>
 <ul>
   <li>how I use AI to help build infrastructure</li>
@@ -57,6 +57,7 @@ tags:
   <li>any recent deployment or incident notes that matter</li>
 </ul>
 <p>The quality of the review depends on the input. If I give it a sloppy prompt, I get a sloppy review. If I give it the real plan and the real diff, it can usually spot the things I want it to spot.</p>
+<p>One caution: redact before you paste. Plan output can include values that are not marked sensitive, so I strip anything I would not put in a public issue.</p>
 <p>I want the reviewer to answer a simple question: <strong>what would make this change risky to merge?</strong></p>
 
 <h2>The Checks I Care About Most</h2>
@@ -88,7 +89,7 @@ tags:
 <ul>
   <li>resources marked for replacement</li>
   <li>stateful resources with a destructive path</li>
-  <li>name changes that will force recreation</li>
+  <li>name changes that can force recreation</li>
   <li>security groups, targets, or buckets that could disappear briefly</li>
 </ul>
 

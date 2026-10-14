@@ -14,6 +14,8 @@ files=(
   google-calendar.env
   railway.env
   resend.env
+  devto.env
+  hashnode.env
 )
 
 for f in "${files[@]}"; do

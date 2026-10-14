@@ -51,6 +51,15 @@ return [
         'measurement_id' => env('GA4_MEASUREMENT_ID'),
     ],
 
+    'devto' => [
+        'api_key' => env('DEVTO_API_KEY'),
+    ],
+
+    'hashnode' => [
+        'token' => env('HASHNODE_TOKEN'),
+        'publication_id' => env('HASHNODE_PUBLICATION_ID'),
+    ],
+
     'assets' => [
         // Media CDN only. Keep ASSET_URL empty on Railway so /build JS/CSS stay same-origin
         // (GHA and Railway Vite hashes diverge). Prefer CDN_ASSET_URL.

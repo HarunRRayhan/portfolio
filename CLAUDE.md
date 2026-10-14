@@ -85,6 +85,14 @@ The auto-mode classifier blocks these Railway/infra actions from Bash even after
 - **HTML tables in posts are supported.** `resources/js/Pages/Blog/Post.tsx`
   styles `<table>` (borders, padding, zebra rows, horizontal scroll shell).
   Prefer a real table over a smashed plain-text comparison.
+- **Cross-posting** (`blog:crosspost`, hourly in `routes/console.php`): sends public posts
+  from the last 7 days to dev.to and Hashnode with `canonical_url` back to harun.dev. Keys
+  in `.secrets/devto.env` / `.secrets/hashnode.env` (platform skipped when missing). Ledger:
+  `blog_crossposts`. Hashnode has no draft path (drafts can't carry the canonical), so it
+  always publishes. React figures can't run there: each becomes a demo link plus
+  `public/blog-assets/{slug}/activity-{id}[-{algorithm}].gif`. Regenerate GIFs with
+  `node scripts/capture-activity-gifs.mjs <slug>` (local server, admin login for drafts).
+  Commit new GIFs before the post goes public so the R2 sync has them.
 - **Frontend / media after merge** ship via the GitHub Action
   "Build and Sync Assets to R2". That workflow syncs assets, purges CDN prefixes
   only, waits for the main-branch PR checks on the same commit, then deploys
