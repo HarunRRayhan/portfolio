@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\BlogCrosspost;
+use App\Support\BlogRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -69,5 +70,22 @@ class PingBlogPostTest extends TestCase
         $this->artisan('blog:ping', ['slug' => self::SLUG])->assertSuccessful();
 
         $this->assertDatabaseMissing('blog_crossposts', ['slug' => self::SLUG, 'platform' => 'mastodon']);
+    }
+
+    public function test_auto_mode_waits_until_the_page_is_live_then_announces(): void
+    {
+        $blog = new BlogRepository;
+        $this->travelTo($blog->effectivePublishedAt($blog->find(self::SLUG))->addMinutes(5));
+        config(['ai.indexnow_key' => '00000000']);
+        Http::fake([
+            'harun.dev/blog/'.self::SLUG => Http::sequence()->push('', 404)->push('ok', 200),
+            '*' => Http::response('', 204),
+        ]);
+
+        $this->artisan('blog:ping')->assertSuccessful();
+        $this->assertDatabaseMissing('blog_crossposts', ['slug' => self::SLUG, 'platform' => 'ping']);
+
+        $this->artisan('blog:ping')->assertSuccessful();
+        $this->assertDatabaseHas('blog_crossposts', ['slug' => self::SLUG, 'platform' => 'ping']);
     }
 }

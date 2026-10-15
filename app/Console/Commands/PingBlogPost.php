@@ -20,14 +20,18 @@ class PingBlogPost extends Command
 
     protected $signature = 'blog:ping
         {slug? : One post. Without it, every public post from the last --within-hours that is not announced yet}
-        {--within-hours=48 : Auto mode window, keeps the old backlog out}
-        {--settle-minutes=30 : Auto mode waits this long after going live so the catalog cache and CDN serve the post}';
+        {--within-hours=48 : Auto mode window, keeps the old backlog out}';
 
     protected $description = 'Announce a new post: IndexNow + WebSub ping, then Bluesky and Mastodon link posts';
 
     public function handle(BlogRepository $blog): int
     {
         foreach ($this->posts($blog) as $post) {
+            // Announce the moment the page serves (no guessing at cache or deploy delays).
+            if (! $this->argument('slug') && ! $this->isLive($post)) {
+                continue;
+            }
+
             foreach (['ping' => $this->ping(...), 'bluesky' => $this->bluesky(...), 'mastodon' => $this->mastodon(...)] as $channel => $send) {
                 if (BlogCrosspost::where(['slug' => $post['slug'], 'platform' => $channel])->exists()) {
                     continue;
@@ -57,11 +61,18 @@ class PingBlogPost extends Command
     {
         $slug = $this->argument('slug');
         $oldest = now()->subHours((int) $this->option('within-hours'));
-        $newest = now()->subMinutes((int) $this->option('settle-minutes'));
         $posts = $slug ? array_filter([$blog->find($slug)]) : $blog->posts();
 
         return array_values(array_filter($posts, fn (array $post) => $blog->isPublic($post)
-            && ($slug || $blog->effectivePublishedAt($post)->between($oldest, $newest))));
+            && ($slug || $blog->effectivePublishedAt($post)->between($oldest, now()))));
+    }
+
+    private function isLive(array $post): bool
+    {
+        // Only worth a request while something is still unannounced.
+        $pending = BlogCrosspost::where('slug', $post['slug'])->whereIn('platform', ['ping', 'bluesky', 'mastodon'])->count() < 3;
+
+        return $pending && Http::timeout(10)->get($this->url($post))->status() === 200;
     }
 
     private function url(array $post): string
