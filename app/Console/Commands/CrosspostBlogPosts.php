@@ -184,7 +184,7 @@ class CrosspostBlogPosts extends Command
             'coverImageOptions' => ($cover = $this->cover($post)) ? ['coverImageURL' => $cover] : null,
         ], fn ($v) => $v !== null);
 
-        $response = Http::withHeaders(['Authorization' => config('services.hashnode.token')])
+        $response = Http::withoutRedirecting()->withHeaders(['Authorization' => config('services.hashnode.token')])
             ->post('https://gql.hashnode.com/', [
                 'query' => 'mutation ($input: PublishPostInput!) { publishPost(input: $input) { post { id url } } }',
                 'variables' => ['input' => $input],
@@ -203,7 +203,7 @@ class CrosspostBlogPosts extends Command
             return $id;
         }
 
-        $response = Http::withHeaders(['Authorization' => config('services.hashnode.token')])
+        $response = Http::withoutRedirecting()->withHeaders(['Authorization' => config('services.hashnode.token')])
             ->post('https://gql.hashnode.com/', ['query' => '{ me { publications(first: 2) { edges { node { id } } } } }']);
         $this->ensureOk($response);
         $edges = $response->json('data.me.publications.edges', []);
@@ -222,10 +222,11 @@ class CrosspostBlogPosts extends Command
         return is_string($cover) && $cover !== '' ? (str_starts_with($cover, '/') ? self::CDN.$cover : $cover) : null;
     }
 
-    // Hashnode returns HTTP 200 with the failure in `errors`, so check both.
+    // Hashnode returns HTTP 200 with the failure in `errors`; without a Pro plan it 301s to a
+    // docs page, which must not read as an empty success.
     private function ensureOk(Response $response): void
     {
-        if ($response->failed() || $response->json('errors')) {
+        if ($response->failed() || $response->redirect() || $response->json('errors')) {
             throw new RuntimeException(mb_substr($response->body(), 0, 300));
         }
     }
