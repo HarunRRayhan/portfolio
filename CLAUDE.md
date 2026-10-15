@@ -96,7 +96,8 @@ The auto-mode classifier blocks these Railway/infra actions from Bash even after
   every 3 days (`--gap-days`), to dev.to and Hashnode with `canonical_url` back to harun.dev. Keys
   in `.secrets/devto.env` / `.secrets/hashnode.env` (platform skipped when missing). Ledger:
   `blog_crossposts`. Hashnode has no draft path (drafts can't carry the canonical), so it
-  always publishes. React figures can't run there: each becomes a demo link plus
+  always publishes. Its API needs a Pro plan on the publication (otherwise `gql.hashnode.com`
+  301s to a docs page, and the command fails). React figures can't run there: each becomes a demo link plus
   `public/blog-assets/{slug}/activity-{id}[-{algorithm}].gif`. Regenerate GIFs with
   `node scripts/capture-activity-gifs.mjs <slug>` (local server, admin login for drafts).
   Commit new GIFs before the post goes public so the R2 sync has them.

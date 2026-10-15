@@ -66,6 +66,15 @@ class CrosspostBlogPostsTest extends TestCase
         $this->assertSame(0, BlogCrosspost::count());
     }
 
+    public function test_hashnode_redirect_fails_instead_of_reading_as_empty(): void
+    {
+        config(['services.hashnode.token' => 't']);
+        Http::fake(['gql.hashnode.com/*' => Http::response('', 301, ['Location' => 'https://hashnode.com/announcements/graphql-api'])]);
+
+        $this->artisan('blog:crosspost', ['slug' => self::SLUG, '--to' => 'hashnode'])->assertFailed();
+        $this->assertSame(0, BlogCrosspost::count());
+    }
+
     public function test_auto_mode_skips_old_backlog_and_drafts(): void
     {
         config(['services.devto.api_key' => 'k']);
