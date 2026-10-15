@@ -93,7 +93,7 @@ The auto-mode classifier blocks these Railway/infra actions from Bash even after
   Prefer a real table over a smashed plain-text comparison.
 - **Cross-posting** (`blog:crosspost`, hourly in `routes/console.php`): sends public posts
   that are 3-7 days old (`--delay-days`, `--within-days`), oldest first, at most one per platform
-  every 3 days (`--gap-days`), to dev.to (default; Hashnode is opt-in via `--to=devto,hashnode`) with `canonical_url` back to harun.dev. daily.dev can't be posted to (no API, rejects personal blogs) but ingests dev.to. `blog:ping` (hourly) tells IndexNow and the WebSub hub about each new post once, 30 min after it goes live. Keys
+  every 3 days (`--gap-days`), to dev.to (default; Hashnode is opt-in via `--to=devto,hashnode`) with `canonical_url` back to harun.dev. daily.dev can't be posted to (no API, rejects personal blogs) but ingests dev.to. `blog:ping` (hourly) announces each new post once, 30 min after it goes live: IndexNow + WebSub ping, plus a Bluesky link card and a Mastodon post (no delay/gap rules; each channel has its own ledger row and retries on failure). Keys: `.secrets/bluesky.env`, `.secrets/mastodon.env`; channel skipped when missing. Keys
   in `.secrets/devto.env` / `.secrets/hashnode.env` (platform skipped when missing). Ledger:
   `blog_crossposts`. Hashnode has no draft path (drafts can't carry the canonical), so it
   always publishes. Its API needs a Pro plan on the publication (otherwise `gql.hashnode.com`

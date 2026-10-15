@@ -60,6 +60,16 @@ return [
         'publication_id' => env('HASHNODE_PUBLICATION_ID'),
     ],
 
+    'bluesky' => [
+        'handle' => env('BLUESKY_HANDLE'),
+        'password' => env('BLUESKY_APP_PASSWORD'),
+    ],
+
+    'mastodon' => [
+        'instance' => env('MASTODON_INSTANCE'),
+        'token' => env('MASTODON_ACCESS_TOKEN'),
+    ],
+
     'assets' => [
         // Media CDN only. Keep ASSET_URL empty on Railway so /build JS/CSS stay same-origin
         // (GHA and Railway Vite hashes diverge). Prefer CDN_ASSET_URL.

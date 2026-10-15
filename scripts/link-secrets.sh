@@ -16,6 +16,8 @@ files=(
   resend.env
   devto.env
   hashnode.env
+  bluesky.env
+  mastodon.env
 )
 
 for f in "${files[@]}"; do
