@@ -76,6 +76,10 @@ A separate GitHub Actions workflow, [`.github/workflows/deploy.yml`](.github/wor
 - **DNS/edge**: Cloudflare
 - **Triggers**: Push to `main`, or manual workflow dispatch (for the asset sync)
 
+## Publishing a blog post
+
+New posts are cross-posted and announced automatically. The manual steps (Medium import, feed and sitemap submissions, backlinks) are in [`docs/checklists/blog-distribution.md`](docs/checklists/blog-distribution.md).
+
 ## Contributing
 
 Contributions are welcome! Please submit a pull request to the `dev` branch for any changes or enhancements.

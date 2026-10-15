@@ -101,6 +101,7 @@ The auto-mode classifier blocks these Railway/infra actions from Bash even after
   `public/blog-assets/{slug}/activity-{id}[-{algorithm}].gif`. Regenerate GIFs with
   `node scripts/capture-activity-gifs.mjs <slug>` (local server, admin login for drafts).
   Commit new GIFs before the post goes public so the R2 sync has them.
+- **Medium** has no publish API. Admins see a panel under each post (`mediumAdmin` prop, `admin.posts.medium`) to open Medium's importer and record the story URL in `blog_crossposts` (platform `medium`). Manual steps: `docs/checklists/blog-distribution.md`.
 - **Frontend / media after merge** ship via the GitHub Action
   "Build and Sync Assets to R2". That workflow syncs assets, purges CDN prefixes
   only, waits for the main-branch PR checks on the same commit, then deploys

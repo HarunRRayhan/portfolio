@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\Consultation\BookingController as ConsultationBoo
 use App\Http\Controllers\Admin\Consultation\CouponController as ConsultationCouponController;
 use App\Http\Controllers\Admin\Consultation\GoogleOAuthController as ConsultationGoogleOAuthController;
 use App\Http\Controllers\Admin\MediaItemController;
+use App\Http\Controllers\Admin\MediumCrosspostController;
 use App\Http\Controllers\Admin\NewsletterController as AdminNewsletterController;
 use App\Http\Controllers\Admin\ScheduleBlogPostController;
 use App\Http\Controllers\Admin\ShortLinkController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\SponsorCheckoutController;
 use App\Models\BioLink;
 use App\Models\BioLinkClick;
 use App\Models\BlogCommentThread;
+use App\Models\BlogCrosspost;
 use App\Models\MediaItem;
 use App\Models\ShortLink;
 use App\Models\ShortLinkClick;
@@ -150,6 +152,10 @@ Route::get('/admin/posts', function () {
 Route::post('/admin/posts/{slug}/schedule', [ScheduleBlogPostController::class, 'store'])
     ->middleware(['auth', 'verified', 'role:admin'])
     ->name('admin.posts.schedule');
+
+Route::post('/admin/posts/{slug}/medium', [MediumCrosspostController::class, 'store'])
+    ->middleware(['auth', 'verified', 'role:admin'])
+    ->name('admin.posts.medium');
 
 Route::get('/admin/posts/analytics', function () {
     $blog = new BlogRepository;
@@ -1024,6 +1030,12 @@ Route::get('/blog/{slug}', function (Request $request, string $slug) {
         'commentCount' => $commentCount,
         'comments' => $comments,
         'seo' => $seo->toArray(),
+        // Admin-only: never serialized for visitors.
+        'mediumAdmin' => $request->user()?->isAdmin() ? [
+            'postUrl' => $canonicalUrl,
+            'publishedUrl' => BlogCrosspost::where(['slug' => $slug, 'platform' => 'medium'])->value('remote_url'),
+            'saveUrl' => route('admin.posts.medium', $slug),
+        ] : null,
     ]);
 
     return $response;
