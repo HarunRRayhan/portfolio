@@ -1,6 +1,6 @@
 'use client'
 
-import { Link } from '@inertiajs/react'
+import { Link, useForm } from '@inertiajs/react'
 import { useEffect, useMemo, useRef } from 'react'
 import { mountBlogActivities } from '@/Components/BlogActivities/mountBlogActivities'
 import { BlogDiscussion } from '@/Components/BlogDiscussion'
@@ -56,6 +56,65 @@ interface BlogCommentNode {
   children: BlogCommentNode[]
 }
 
+interface MediumAdmin {
+  postUrl: string
+  publishedUrl: string | null
+  saveUrl: string
+}
+
+function MediumAdminPanel({ postUrl, publishedUrl, saveUrl }: MediumAdmin) {
+  const form = useForm({ url: '' })
+
+  // Medium's importer has no URL parameter, so copy the link first and paste it there.
+  const openImporter = () => {
+    void navigator.clipboard?.writeText(postUrl)
+    window.open('https://medium.com/p/import', '_blank', 'noopener,noreferrer')
+  }
+
+  return (
+    <section className="mx-auto max-w-3xl px-4 py-4 sm:px-6">
+      <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-700">
+        <p className="font-semibold text-slate-950">Admin: Medium</p>
+        {publishedUrl ? (
+          <p className="mt-2">
+            Published on Medium:{' '}
+            <a className="font-medium underline underline-offset-4" href={publishedUrl} target="_blank" rel="noopener noreferrer">
+              {publishedUrl}
+            </a>
+          </p>
+        ) : (
+          <>
+            <p className="mt-2">Copies this post's URL, then opens Medium's importer. Paste it, import, review the draft, publish.</p>
+            <button type="button" onClick={openImporter} className="mt-3 rounded-full bg-slate-900 px-4 py-2 font-medium text-white">
+              Copy URL and open Medium import
+            </button>
+            <form
+              className="mt-4 flex flex-wrap gap-2"
+              onSubmit={(event) => {
+                event.preventDefault()
+                form.post(saveUrl, { preserveScroll: true, onSuccess: () => form.reset() })
+              }}
+            >
+              <input
+                type="url"
+                required
+                value={form.data.url}
+                onChange={(event) => form.setData('url', event.target.value)}
+                placeholder="https://medium.com/@you/your-story-123"
+                className="min-w-0 flex-1 rounded-full border border-slate-300 px-4 py-2"
+              />
+              <button type="submit" disabled={form.processing} className="rounded-full border border-slate-900 px-4 py-2 font-medium">
+                Mark published on Medium
+              </button>
+            </form>
+            {form.errors.url ? <p className="mt-2 text-red-700">{form.errors.url}</p> : null}
+          </>
+        )}
+      </div>
+    </section>
+  )
+}
+
 interface BlogPostPageProps {
   publication: {
     title: string
@@ -72,6 +131,7 @@ interface BlogPostPageProps {
   siteUrl: string
   commentCount: number
   comments: BlogCommentNode[]
+  mediumAdmin?: MediumAdmin | null
 }
 
 function buildRelatedTagList(posts: BlogPostSummary[]): string[] {
@@ -244,6 +304,7 @@ export default function BlogPostPage({
   siteUrl,
   commentCount,
   comments,
+  mediumAdmin = null,
 }: BlogPostPageProps) {
   const description = post.brief
   const contentRef = useRef<HTMLDivElement | null>(null)
@@ -394,6 +455,8 @@ export default function BlogPostPage({
               </div>
             </article>
           </section>
+
+          {mediumAdmin ? <MediumAdminPanel {...mediumAdmin} /> : null}
 
           <section className="mx-auto max-w-3xl px-4 py-4 sm:px-6">
             <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
