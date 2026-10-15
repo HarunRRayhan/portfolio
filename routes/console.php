@@ -156,7 +156,7 @@ Schedule::command('blog:publish-scheduled')
     ->onOneServer();
 
 Schedule::command('blog:ping')
-    ->hourly()
+    ->everyMinute()
     ->withoutOverlapping()
     ->onOneServer();
 
