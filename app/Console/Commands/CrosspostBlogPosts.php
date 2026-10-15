@@ -20,7 +20,7 @@ class CrosspostBlogPosts extends Command
 
     protected $signature = 'blog:crosspost
         {slug? : One post. Without it, every public post from the last --within-days is cross-posted}
-        {--to=devto,hashnode : Comma-separated platforms}
+        {--to=devto : Comma-separated platforms: devto, hashnode (needs a Pro plan, so opt-in)}
         {--within-days=7 : Auto mode window, keeps the old backlog out}
         {--delay-days=3 : Auto mode waits this long after the post goes live on harun.dev so Google indexes the original first}
         {--gap-days=3 : Auto mode sends at most one post per platform in this many days}
