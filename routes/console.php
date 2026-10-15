@@ -155,6 +155,11 @@ Schedule::command('blog:publish-scheduled')
     ->withoutOverlapping()
     ->onOneServer();
 
+Schedule::command('blog:ping')
+    ->hourly()
+    ->withoutOverlapping()
+    ->onOneServer();
+
 Schedule::command('blog:crosspost')
     ->hourly()
     ->withoutOverlapping()
