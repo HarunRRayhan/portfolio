@@ -388,10 +388,13 @@ class BlogRepository
         return preg_replace_callback(
             '#<div data-blog-activity="([\w-]+)"(?: data-algorithm="([\w-]+)")?></div>#',
             function (array $m) use ($slug, $url): string {
-                $gif = "/blog-assets/{$slug}/activity-{$m[1]}".(isset($m[2]) ? '-'.$m[2] : '').'.gif';
-                $img = is_file(public_path($gif)) ? '<p><a href="'.$url.'"><img src="'.Cdn::url($gif).'" alt="Interactive demo"></a></p>' : '';
+                $key = $m[1].(isset($m[2]) ? '-'.$m[2] : '');
+                $link = $url.'#activity-'.$key;
+                $gif = "/blog-assets/{$slug}/activity-{$key}.gif";
+                $img = is_file(public_path($gif)) ? '<p><a href="'.$link.'"><img src="'.Cdn::url($gif).'" alt="Interactive demo"></a></p>' : '';
 
-                return substr($m[0], 0, -6).'<noscript>'.$img.'<p><a href="'.$url.'">▶ Try the interactive demo on harun.dev</a></p></noscript></div>';
+                // The id lets the demo link land on this exact figure.
+                return '<div id="activity-'.$key.'"'.substr($m[0], 4, -6).'<noscript>'.$img.'<p><a href="'.$link.'">▶ Try the interactive demo on harun.dev</a></p></noscript></div>';
             },
             $html,
         ) ?? $html;
