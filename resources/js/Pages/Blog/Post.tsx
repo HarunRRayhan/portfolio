@@ -1,8 +1,9 @@
 'use client'
 
 import { Link, useForm } from '@inertiajs/react'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { mountBlogActivities } from '@/Components/BlogActivities/mountBlogActivities'
+import Modal from '@/Components/Modal'
 import { BlogDiscussion } from '@/Components/BlogDiscussion'
 import { SubscribeButton } from '@/Components/SubscribeButton'
 import { ShareButton } from '@/Components/ShareButton'
@@ -63,6 +64,7 @@ interface MediumAdmin {
 }
 
 function MediumAdminPanel({ postUrl, publishedUrl, saveUrl }: MediumAdmin) {
+  const [open, setOpen] = useState(false)
   const form = useForm({ url: '' })
 
   // Medium's importer has no URL parameter, so copy the link first and paste it there.
@@ -72,46 +74,59 @@ function MediumAdminPanel({ postUrl, publishedUrl, saveUrl }: MediumAdmin) {
   }
 
   return (
-    <section className="mx-auto max-w-3xl px-4 py-4 sm:px-6">
-      <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-700">
-        <p className="font-semibold text-slate-950">Admin: Medium</p>
-        {publishedUrl ? (
-          <p className="mt-2">
-            Published on Medium:{' '}
-            <a className="font-medium underline underline-offset-4" href={publishedUrl} target="_blank" rel="noopener noreferrer">
-              {publishedUrl}
-            </a>
-          </p>
-        ) : (
-          <>
-            <p className="mt-2">Copies this post's URL, then opens Medium's importer. Paste it, import, review the draft, publish.</p>
-            <button type="button" onClick={openImporter} className="mt-3 rounded-full bg-slate-900 px-4 py-2 font-medium text-white">
-              Copy URL and open Medium import
-            </button>
-            <form
-              className="mt-4 flex flex-wrap gap-2"
-              onSubmit={(event) => {
-                event.preventDefault()
-                form.post(saveUrl, { preserveScroll: true, onSuccess: () => form.reset() })
-              }}
-            >
-              <input
-                type="url"
-                required
-                value={form.data.url}
-                onChange={(event) => form.setData('url', event.target.value)}
-                placeholder="https://medium.com/@you/your-story-123"
-                className="min-w-0 flex-1 rounded-full border border-slate-300 px-4 py-2"
-              />
-              <button type="submit" disabled={form.processing} className="rounded-full border border-slate-900 px-4 py-2 font-medium">
-                Mark published on Medium
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="fixed bottom-5 right-5 z-40 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-lg"
+      >
+        {publishedUrl ? 'Medium: published' : 'Publish to Medium'}
+      </button>
+      <Modal show={open} onClose={() => setOpen(false)} maxWidth="lg">
+        <div className="space-y-4 p-6 text-sm text-slate-700">
+          <p className="text-base font-semibold text-slate-950">Medium (admin only)</p>
+          {publishedUrl ? (
+            <p>
+              Published on Medium:{' '}
+              <a className="font-medium underline underline-offset-4" href={publishedUrl} target="_blank" rel="noopener noreferrer">
+                {publishedUrl}
+              </a>
+            </p>
+          ) : (
+            <>
+              <p>1. Copies this post's URL and opens Medium's importer. Paste it, import, review, publish.</p>
+              <button type="button" onClick={openImporter} className="rounded-full bg-slate-900 px-4 py-2 font-medium text-white">
+                Copy URL and open Medium import
               </button>
-            </form>
-            {form.errors.url ? <p className="mt-2 text-red-700">{form.errors.url}</p> : null}
-          </>
-        )}
-      </div>
-    </section>
+              <form
+                className="flex flex-wrap gap-2"
+                onSubmit={(event) => {
+                  event.preventDefault()
+                  form.post(saveUrl, { preserveScroll: true, onSuccess: () => form.reset() })
+                }}
+              >
+                <p className="w-full">2. Paste the published Medium story URL, then mark it done.</p>
+                <input
+                  type="url"
+                  required
+                  value={form.data.url}
+                  onChange={(event) => form.setData('url', event.target.value)}
+                  placeholder="https://medium.com/@you/your-story-123"
+                  className="min-w-0 flex-1 rounded-full border border-slate-300 px-4 py-2"
+                />
+                <button type="submit" disabled={form.processing} className="rounded-full border border-slate-900 px-4 py-2 font-medium">
+                  Mark published on Medium
+                </button>
+              </form>
+              {form.errors.url ? <p className="text-red-700">{form.errors.url}</p> : null}
+            </>
+          )}
+          <button type="button" onClick={() => setOpen(false)} className="text-slate-500 underline underline-offset-4">
+            Close
+          </button>
+        </div>
+      </Modal>
+    </>
   )
 }
 
