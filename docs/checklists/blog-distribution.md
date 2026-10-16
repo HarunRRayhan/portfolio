@@ -6,7 +6,7 @@ announcement the minute the post is live. Details: `CLAUDE.md` > Blog > Cross-po
 Do these by hand for each post, after it is live on harun.dev.
 
 ## Medium (once the post is live; canonical link is set by the importer)
-- [ ] Open the post while logged in as admin, click **Copy URL and open Medium import**.
+- [ ] Open the post while logged in as admin, click **Publish to Medium** (bottom right), then **Copy URL and open Medium import**.
 - [ ] Paste the URL into Medium's importer, import, check formatting (code blocks, tables, figures), publish.
 - [ ] Back on the post, paste the Medium story URL and click **Mark published on Medium**.
 
