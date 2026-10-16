@@ -3,11 +3,14 @@
 namespace Tests\Feature;
 
 use App\Support\BlogRepository;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class InteractiveBlogDraftsTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_interactive_drafts_stay_unpublished_and_mount_their_figures(): void
     {
         $repository = app(BlogRepository::class);
@@ -127,5 +130,17 @@ class InteractiveBlogDraftsTest extends TestCase
                 $this->assertStringNotContainsString('—', $hydrated['content']['html']);
             }
         }
+    }
+
+    public function test_page_payload_wraps_figure_fallback_in_noscript(): void
+    {
+        $repository = app(BlogRepository::class);
+        $post = $repository->find('terraform-or-pulumi');
+        $html = $repository->toPostPagePayload($post)['contentHtml'];
+
+        $this->assertMatchesRegularExpression(
+            '#<div data-blog-activity="terraform-vs-pulumi"><noscript><p><a href="[^"]+"><img src="[^"]+activity-terraform-vs-pulumi\.gif"[^>]*></a></p><p><a href="[^"]+">▶ Try the interactive demo on harun\.dev</a></p></noscript></div>#',
+            $html,
+        );
     }
 }
