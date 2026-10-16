@@ -132,14 +132,14 @@ class InteractiveBlogDraftsTest extends TestCase
         }
     }
 
-    public function test_page_payload_wraps_figure_fallback_in_noscript(): void
+    public function test_page_payload_puts_figure_fallback_inside_the_mount_div(): void
     {
         $repository = app(BlogRepository::class);
         $post = $repository->find('terraform-or-pulumi');
         $html = $repository->toPostPagePayload($post)['contentHtml'];
 
         $this->assertMatchesRegularExpression(
-            '#<div id="activity-terraform-vs-pulumi" data-blog-activity="terraform-vs-pulumi"><noscript><p><a href="[^"]+\#activity-terraform-vs-pulumi"><img src="[^"]+activity-terraform-vs-pulumi\.gif"[^>]*></a></p><p><a href="[^"]+\#activity-terraform-vs-pulumi">▶ Try the interactive demo on harun\.dev</a></p></noscript></div>#',
+            '#<div id="activity-terraform-vs-pulumi" data-blog-activity="terraform-vs-pulumi"><p><a href="[^"]+\#activity-terraform-vs-pulumi"><img src="[^"]+activity-terraform-vs-pulumi\.gif"[^>]*></a></p><p><a href="[^"]+\#activity-terraform-vs-pulumi">▶ Try the interactive demo on harun\.dev</a></p></div>#',
             $html,
         );
     }
