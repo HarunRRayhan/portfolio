@@ -378,8 +378,8 @@ class BlogRepository
     }
 
     /**
-     * Importers (Medium) read the HTML without running JS. <noscript> is hidden from browsers
-     * that do, so visitors get the live figure and importers get the GIF plus a link to it.
+     * Importers (Medium) drop <noscript>, so the GIF + link sit in the div as plain content.
+     * The page's JS replaces the div's children with the live figure, so visitors never keep both.
      */
     private function withActivityFallbacks(string $html, string $slug): string
     {
@@ -391,10 +391,10 @@ class BlogRepository
                 $key = $m[1].(isset($m[2]) ? '-'.$m[2] : '');
                 $link = $url.'#activity-'.$key;
                 $gif = "/blog-assets/{$slug}/activity-{$key}.gif";
-                $img = is_file(public_path($gif)) ? '<p><a href="'.$link.'"><img src="'.Cdn::url($gif).'" alt="Interactive demo"></a></p>' : '';
+                $img = is_file(public_path($gif)) ? '<p><a href="'.$link.'"><img src="'.Cdn::url($gif).'" alt="Interactive demo" loading="lazy"></a></p>' : '';
 
                 // The id lets the demo link land on this exact figure.
-                return '<div id="activity-'.$key.'"'.substr($m[0], 4, -6).'<noscript>'.$img.'<p><a href="'.$link.'">▶ Try the interactive demo on harun.dev</a></p></noscript></div>';
+                return '<div id="activity-'.$key.'"'.substr($m[0], 4, -6).''.$img.'<p><a href="'.$link.'">▶ Try the interactive demo on harun.dev</a></p></div>';
             },
             $html,
         ) ?? $html;
