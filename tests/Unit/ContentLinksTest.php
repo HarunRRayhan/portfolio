@@ -68,4 +68,24 @@ class ContentLinksTest extends TestCase
             }
         }
     }
+
+    public function test_every_service_gets_internal_links_beyond_the_hub(): void
+    {
+        $inbound = [];
+
+        foreach (SiteCatalog::services() as [, $path]) {
+            $related = ContentLinks::relatedServices(basename($path));
+
+            $this->assertCount(2, $related, $path);
+
+            foreach ($related as $service) {
+                $this->assertNotSame($path, $service['url']);
+                $inbound[$service['url']] = ($inbound[$service['url']] ?? 0) + 1;
+            }
+        }
+
+        foreach (SiteCatalog::services() as [, $path]) {
+            $this->assertGreaterThanOrEqual(1, $inbound[$path] ?? 0, $path.' needs a related-service link');
+        }
+    }
 }

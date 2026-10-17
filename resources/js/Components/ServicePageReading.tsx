@@ -15,8 +15,9 @@ export function ServicePageReading() {
   }
 
   const posts = (props as { serviceReading?: ReadingPost[] }).serviceReading ?? []
+  const related = (props as { relatedServices?: { title: string; url: string }[] }).relatedServices ?? []
 
-  if (posts.length === 0) {
+  if (posts.length === 0 && related.length === 0) {
     return null
   }
 
@@ -41,6 +42,19 @@ export function ServicePageReading() {
             </article>
           ))}
         </div>
+        {related.length > 0 && (
+          <p className="mt-10 text-sm text-slate-600">
+            Related services:{' '}
+            {related.map((service, index) => (
+              <span key={service.url}>
+                {index > 0 && ' · '}
+                <Link href={service.url} className="font-medium text-slate-900 underline decoration-slate-300 underline-offset-4 hover:decoration-slate-900">
+                  {service.title}
+                </Link>
+              </span>
+            ))}
+          </p>
+        )}
       </div>
     </section>
   )
