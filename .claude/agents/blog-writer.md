@@ -43,6 +43,7 @@ When the human asks what to post about, or for a scored shortlist / top N topics
    ```
    ---
    title: "..."
+   seoTitle: "..."   # only when title is over 55 chars: a <=55-char version for the <title> tag
    slug: "..."
    brief: "..."
    publishedAt: "YYYY-MM-DDT18:00:00.000Z"

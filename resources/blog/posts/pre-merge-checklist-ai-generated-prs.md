@@ -1,5 +1,6 @@
 ---
 title: "Moving Past Vibe Coding: The Pre-Merge Checklist I Now Run on Every AI-Generated PR"
+seoTitle: "My Pre-Merge Checklist for AI-Generated PRs"
 slug: "pre-merge-checklist-ai-generated-prs"
 brief: "AI agents write code fast. They also write bugs, security holes, and nonsense. Here is the 12-item checklist I run before merging anything an agent touched."
 publishedAt: "2026-07-07T09:00:00.000Z"

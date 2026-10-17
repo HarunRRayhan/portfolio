@@ -1,5 +1,6 @@
 ---
 title: "ECS Fargate Spot + Capacity Providers - Saving 70% on Container Hosting"
+seoTitle: "ECS Fargate Spot: Saving 70% on Container Hosting"
 slug: "ecs-fargate-spot-capacity-providers"
 brief: "How to use Fargate Spot capacity providers to reduce container costs by up to 70%, with real Terraform configurations and interruption handling strategies."
 publishedAt: "2026-06-21T09:00:00.000Z"

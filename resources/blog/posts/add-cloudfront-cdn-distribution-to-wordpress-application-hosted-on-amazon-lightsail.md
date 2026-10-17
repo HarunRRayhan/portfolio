@@ -1,5 +1,6 @@
 ---
 title: "Add (Cloudfront) CDN Distribution to WordPress Application hosted on Amazon Lightsail"
+seoTitle: "Add a CloudFront CDN to WordPress on Amazon Lightsail"
 slug: "add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail"
 brief: "It's not very hard to add CDN Distribution to a WordPress app hosted on Amazon Lightsail. But if you are new, it can be cumbersome. This article is to demonstrate how to do it easily.
 Why Should I use CDN distribution?

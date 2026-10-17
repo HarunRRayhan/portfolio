@@ -1,5 +1,6 @@
 ---
 title: "AI Endpoints Aren't CRUD: Post-Generate Validation on Lambda + Bedrock + Fastify"
+seoTitle: "AI Endpoints Aren't CRUD: Validate Bedrock Output"
 slug: "ai-endpoints-post-generate-validation-lambda-bedrock-fastify"
 brief: "A Bedrock-backed Fastify route on Lambda needs a contract after the model answers, not just before it. Zod on the output, RAG context treated as untrusted data, one repair pass then a 422, idempotent SQS, and the CloudWatch metrics that catch it drifting."
 publishedAt: "2026-07-25T18:00:00.000Z"

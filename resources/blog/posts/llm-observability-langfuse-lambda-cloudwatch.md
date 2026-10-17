@@ -1,5 +1,6 @@
 ---
 title: "How I Add LLM Observability to a Real AWS App with Langfuse, Lambda, and CloudWatch"
+seoTitle: "LLM Observability with Langfuse, Lambda, and CloudWatch"
 slug: "llm-observability-langfuse-lambda-cloudwatch"
 brief: "How I connect Langfuse, Lambda, and CloudWatch so I can trace prompt behavior, cost, retries, and failures in a production AWS app"
 publishedAt: "2026-06-03T12:16:03.302Z"

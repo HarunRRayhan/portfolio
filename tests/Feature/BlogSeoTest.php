@@ -15,6 +15,15 @@ class BlogSeoTest extends TestCase
     use RefreshDatabase;
 
     #[Test]
+    public function seo_title_frontmatter_shortens_the_title_tag_but_not_the_headline(): void
+    {
+        $html = $this->get('/blog/ecs-fargate-spot-capacity-providers')->assertOk()->getContent();
+
+        $this->assertStringContainsString('<title data-inertia="">ECS Fargate Spot: Saving 70% on Container Hosting | Harun&#039;s Blog</title>', $html);
+        $this->assertStringContainsString('"headline":"ECS Fargate Spot + Capacity Providers - Saving 70% on Container Hosting"', $html);
+    }
+
+    #[Test]
     public function it_exposes_the_blog_index_in_the_sitemap_without_a_trailing_slash(): void
     {
         $response = $this->get('/sitemap.xml');

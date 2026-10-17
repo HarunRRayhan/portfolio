@@ -8,6 +8,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Inertia\Ssr\SsrState;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class HomepageSsrTest extends TestCase
@@ -107,7 +109,7 @@ class HomepageSsrTest extends TestCase
         ];
     }
 
-    #[\PHPUnit\Framework\Attributes\DataProvider('publicContentPages')]
+    #[DataProvider('publicContentPages')]
     public function test_public_content_pages_use_the_renderer(string $path, string $component): void
     {
         Http::fake(['127.0.0.1:13714/*' => Http::response([
@@ -134,6 +136,28 @@ class HomepageSsrTest extends TestCase
             ->assertDontSee('data-homepage-critical', false)
             ->assertDontSee('data-deferred-app-styles', false);
         Http::assertNothingSent();
+    }
+
+    public function test_identical_pages_reuse_the_cached_render(): void
+    {
+        Http::fake(['127.0.0.1:13714/*' => Http::response([
+            'head' => [], 'body' => '<div id="app"><h1>Server rendered once</h1></div>',
+        ])]);
+
+        $this->get('/about')->assertOk()->assertSee('<h1>Server rendered once</h1>', false);
+        $this->app->forgetInstance(SsrState::class);
+        $this->get('/about')->assertOk()->assertSee('<h1>Server rendered once</h1>', false);
+        Http::assertSentCount(1);
+
+        // Query strings always render fresh, so they cannot grow the cache.
+        $this->app->forgetInstance(SsrState::class);
+        $this->get('/about?x=1')->assertOk();
+        Http::assertSentCount(2);
+
+        // Signed-in visitors never get a cached public render.
+        $this->app->forgetInstance(SsrState::class);
+        $this->actingAs(User::factory()->create())->get('/about')
+            ->assertOk()->assertDontSee('Server rendered once', false);
     }
 
     public function test_homepage_falls_back_when_renderer_is_unavailable(): void

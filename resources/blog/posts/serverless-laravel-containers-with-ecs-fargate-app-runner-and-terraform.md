@@ -1,5 +1,6 @@
 ---
 title: "Serverless Laravel Containers with ECS Fargate, App Runner, and Terraform"
+seoTitle: "Serverless Laravel on ECS Fargate and App Runner"
 slug: "serverless-laravel-containers-with-ecs-fargate-app-runner-and-terraform"
 brief: "Deploy Laravel on ECS Fargate with Terraform. Compare queue workers and web hosting with App Runner, which is now limited to existing customers."
 publishedAt: "2026-05-02T09:00:00.000Z"
