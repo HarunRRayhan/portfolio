@@ -98,10 +98,30 @@ class HomepageSsrTest extends TestCase
         Http::assertSent(fn ($request) => $request['component'] === 'Products');
     }
 
-    public function test_unverified_pages_do_not_call_the_renderer(): void
+    public static function publicContentPages(): array
+    {
+        return [
+            ['/about', 'About'], ['/contact', 'Contact'], ['/privacy', 'Privacy'], ['/terms', 'Terms'],
+            ['/bio', 'Bio'], ['/hrr', 'Bio'], ['/sponsor-me', 'Sponsor'], ['/case-studies', 'CaseStudies/Index'],
+            ['/videos', 'Media/Index'], ['/slides', 'Media/Index'],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('publicContentPages')]
+    public function test_public_content_pages_use_the_renderer(string $path, string $component): void
+    {
+        Http::fake(['127.0.0.1:13714/*' => Http::response([
+            'head' => [], 'body' => '<div id="app"><h1>Server rendered page</h1></div>',
+        ])]);
+
+        $this->get($path)->assertOk()->assertSee('<h1>Server rendered page</h1>', false);
+        Http::assertSent(fn ($request) => $request['component'] === $component);
+    }
+
+    public function test_unlisted_pages_do_not_call_the_renderer(): void
     {
         Http::fake();
-        $this->get('/contact')->assertOk();
+        $this->get('/login')->assertOk();
         Http::assertNothingSent();
     }
 

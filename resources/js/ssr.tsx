@@ -11,7 +11,12 @@ import { resolveDocumentTitle } from './lib/documentTitle';
 import type { Page } from '@inertiajs/core';
 
 const extraPages = import.meta.glob(
-    ['./Pages/Services.tsx', './Pages/Services/*.tsx', './Pages/Products.tsx'],
+    [
+        './Pages/Services.tsx', './Pages/Services/*.tsx', './Pages/Products.tsx',
+        './Pages/About.tsx', './Pages/Bio.tsx', './Pages/Book.tsx', './Pages/Contact.tsx',
+        './Pages/Privacy.tsx', './Pages/Sponsor.tsx', './Pages/Terms.tsx',
+        './Pages/CaseStudies/*.tsx', './Pages/Media/*.tsx',
+    ],
     { eager: true },
 ) as Record<string, { default: ComponentType }>;
 
@@ -28,7 +33,8 @@ export const renderPage = (page: Page) => createInertiaApp({
         if (!component || props.auth?.user || props.post?.isDraft) {
             throw new Error(`SSR is not enabled for ${name}`);
         }
-        return Object.assign(component, { layout: PublicLayout });
+        // Same default as app.tsx: pages with their own layout (Bio) keep it.
+        return Object.assign(component, { layout: (component as { layout?: typeof PublicLayout }).layout ?? PublicLayout });
     },
     setup: ({ App, props }) => (
         <SubscribeProvider

@@ -30,14 +30,26 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Explicit public route allowlist excludes draft previews and authenticated pages.
-        Inertia::disableSsr(fn () => ! request()->routeIs(
+        Inertia::disableSsr(fn () => ! (request()->routeIs(
             'home',
             'blog.index',
             'blog.post',
             'products',
             'services',
             'services.*',
-        ) || request()->user() !== null);
+            'about',
+            'contact',
+            'privacy',
+            'terms',
+            'sponsor',
+            'consultation',
+            'case-studies.index',
+            'case-studies.show',
+            'slides.index',
+            'slides.show',
+            'videos.index',
+            'videos.show',
+        ) || request()->is('bio', 'hrr')) || request()->user() !== null);
 
         // The homepage already has HTML. Give its stylesheet priority over
         // hydration downloads, without postponing interactive code execution.

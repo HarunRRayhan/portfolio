@@ -90,7 +90,7 @@ final class SeoCatalog
 
         $pages['/about'] = new SeoMeta(
             title: '15 years, mostly on AWS | Harun R. Rayhan',
-            description: '15 years, mostly on AWS. Cloud architecture, release automation, and production.',
+            description: '15 years, mostly on AWS. Cloud architecture, release automation, and running production systems, plus the work I take on now.',
             canonicalUrl: $siteUrl.'/about',
             ogType: 'profile',
             jsonLd: [self::webPageGraph('AboutPage', 'About Harun', $siteUrl.'/about')],
@@ -110,9 +110,10 @@ final class SeoCatalog
             ogImage: self::assetUrl('/service-assets/services/hero.jpg'),
             jsonLd: [[
                 '@context' => 'https://schema.org',
-                '@type' => 'ProfessionalService',
+                '@type' => 'Service',
                 'name' => "Harun's Cloud & DevOps Services",
                 'url' => $siteUrl.'/services',
+                'provider' => ['@id' => $siteUrl.'/#person'],
                 'hasOfferCatalog' => [
                     '@type' => 'OfferCatalog',
                     'name' => 'Cloud & DevOps Services',
@@ -131,7 +132,7 @@ final class SeoCatalog
 
         $pages['/contact'] = new SeoMeta(
             title: 'Send a note | Harun R. Rayhan',
-            description: 'Send a note. I read these and reply myself.',
+            description: 'Send a note about a project, a question, or something that broke. I read every one of these myself and reply from my own inbox.',
             canonicalUrl: $siteUrl.'/contact',
             jsonLd: [self::webPageGraph('ContactPage', 'Contact Harun', $siteUrl.'/contact')],
         );
@@ -164,38 +165,38 @@ final class SeoCatalog
 
         $pages['/blog'] = new SeoMeta(
             title: 'Blog | Harun R. Rayhan',
-            description: 'Writing on AWS, DevOps, Laravel, serverless, and shipping production systems.',
+            description: 'Writing on AWS, DevOps, Laravel, serverless, and shipping production systems. Posts come from real builds, with the trade-offs left in.',
             canonicalUrl: $siteUrl.'/blog',
         );
 
         $pages['/case-studies'] = new SeoMeta(
             title: 'Work from real engagements | Harun R. Rayhan',
-            description: 'Work from real engagements. The client name stays off the page.',
+            description: 'Work from real engagements, with the problem, the approach, and the result. The client name stays off the page, every time.',
             canonicalUrl: $siteUrl.'/case-studies',
         );
 
         $pages['/slides'] = new SeoMeta(
             title: 'Slides | Harun R. Rayhan',
-            description: 'Talk decks and presentations on cloud, DevOps, and AWS.',
+            description: 'Talk decks and presentations on cloud, DevOps, and AWS. Open any deck in the browser, and the matching recorded talk is linked where one exists.',
             canonicalUrl: $siteUrl.'/slides',
         );
 
         $pages['/videos'] = new SeoMeta(
             title: 'Videos | Harun R. Rayhan',
-            description: 'Recorded talks and walkthroughs on cloud, DevOps, and AWS.',
+            description: 'Recorded talks and walkthroughs on cloud, DevOps, and AWS. Each video is listed with its date, and matching slides are linked when they exist.',
             canonicalUrl: $siteUrl.'/videos',
         );
 
         $pages['/privacy'] = new SeoMeta(
             title: 'Privacy Policy | Harun\'s Portfolio',
-            description: 'Privacy policy and data protection information for Harun\'s Portfolio website and services.',
+            description: 'How I handle personal data from this site: what the contact form and the site collect, and your rights over what I hold.',
             canonicalUrl: $siteUrl.'/privacy',
             jsonLd: [self::webPageGraph('WebPage', 'Privacy Policy', $siteUrl.'/privacy')],
         );
 
         $pages['/terms'] = new SeoMeta(
             title: 'Terms of Service | Harun\'s Portfolio',
-            description: 'Terms of service and conditions for using Harun\'s Portfolio website and services.',
+            description: 'Terms of use for harun.dev, the blog, and the consulting and services sold on it. Read them before you book or buy anything.',
             canonicalUrl: $siteUrl.'/terms',
             jsonLd: [self::webPageGraph('WebPage', 'Terms of Service', $siteUrl.'/terms')],
         );
@@ -235,7 +236,7 @@ final class SeoCatalog
             ],
             'devops' => [
                 'title' => 'DevOps | Harun R. Rayhan',
-                'description' => 'CI, infrastructure as code, and a release path the team can run without me in the room.',
+                'description' => 'CI, infrastructure as code, and a release path the team can run without me in the room. I set up the pipeline, the rollback, and the handover.',
             ],
             'infrastructure-as-code' => [
                 'title' => 'Terraform & Infrastructure as Code | Harun R. Rayhan',
@@ -251,7 +252,7 @@ final class SeoCatalog
             ],
             'security-consulting' => [
                 'title' => 'Security Consulting | Harun R. Rayhan',
-                'description' => 'I look at IAM, network boundaries, and the logs, then close the paths that are wider than the job.',
+                'description' => 'I look at IAM, network boundaries, and the logs, then close the paths that are wider than the job. I explain each change so your team can keep it.',
             ],
             'performance-optimization' => [
                 'title' => 'AWS Performance Optimization | Harun R. Rayhan',
@@ -267,7 +268,7 @@ final class SeoCatalog
             ],
             'database-migration' => [
                 'title' => 'Database Migration | Harun R. Rayhan',
-                'description' => 'I move the database and check the data on both sides before anything goes live.',
+                'description' => 'I move the database and check the data on both sides before anything goes live, with a plan for cutover day and a way back if it fails.',
             ],
             'monitoring-observability' => [
                 'title' => 'Monitoring & Observability on AWS | Harun R. Rayhan',
@@ -350,11 +351,6 @@ final class SeoCatalog
                 'Infrastructure Automation',
                 'CI/CD',
                 'Cloud Security',
-            ],
-            'offers' => [
-                '@type' => 'Offer',
-                'name' => 'AWS infrastructure',
-                'description' => 'I design, ship, and run AWS infrastructure.',
             ],
         ];
     }
@@ -465,7 +461,7 @@ final class SeoCatalog
         ?string $publisherUrl = null,
     ): SeoMeta {
         return new SeoMeta(
-            title: $title.' | Harun\'s Blog',
+            title: self::titleWithSuffix($title, ' | Harun\'s Blog'),
             description: $description,
             canonicalUrl: $canonicalUrl,
             ogImage: $ogImage,
@@ -484,6 +480,17 @@ final class SeoCatalog
         );
     }
 
+    /**
+     * Brand suffix only when the full title stays within the 70-character
+     * search-result budget. Longer titles ship bare rather than truncated.
+     */
+    private static function titleWithSuffix(string $title, string $suffix): string
+    {
+        $full = $title.$suffix;
+
+        return mb_strlen($full) <= 70 ? $full : $title;
+    }
+
     public static function forCaseStudy(
         string $title,
         string $description,
@@ -492,7 +499,7 @@ final class SeoCatalog
         ?string $datePublished = null,
     ): SeoMeta {
         return new SeoMeta(
-            title: $title.' | Case Studies',
+            title: self::titleWithSuffix($title, ' | Case Studies'),
             description: $description,
             canonicalUrl: $canonicalUrl,
             ogImage: $ogImage,
