@@ -1,5 +1,6 @@
 ---
 title: "How I Lock Down Bedrock Access So My Lambda Functions Can't Leak Data Through the LLM"
+seoTitle: "Locking Down Bedrock IAM So Lambda Cannot Leak Data"
 slug: "lock-down-bedrock-iam-lambda-data-leak"
 brief: "How to scope Bedrock IAM policies per Lambda function, build permission boundaries that block privilege escalation, catch misconfigurations with CloudTrail, and automate guardrails in CI so AI agents can't widen your blast radius."
 publishedAt: "2026-07-11T18:00:00.000Z"

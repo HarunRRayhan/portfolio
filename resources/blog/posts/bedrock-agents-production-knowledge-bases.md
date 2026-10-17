@@ -1,5 +1,6 @@
 ---
 title: "Building Bedrock Agents in Production - Knowledge Bases, Action Groups, and Guardrails"
+seoTitle: "Bedrock Agents in Production: Knowledge Bases"
 slug: "bedrock-agents-production-knowledge-bases"
 brief: "How to build a production-ready Bedrock Agent with S3 knowledge bases, Lambda action groups, and guardrails, all configured with Terraform."
 publishedAt: "2026-06-18T09:00:00.000Z"

@@ -1,5 +1,6 @@
 ---
 title: "How I Use Step Functions to Orchestrate LLM Workflows Without Chaining Lambdas"
+seoTitle: "Step Functions for LLM Workflows, Not Lambda Chains"
 slug: "step-functions-llm-orchestration-replacing-lambda-chains"
 brief: "Lambda chaining for multi-step AI workflows gets messy fast. Failed steps, retries, timeouts, and idle billing. Here is how I replaced manual Lambda chaining with AWS Step Functions for LLM orchestration."
 publishedAt: "2026-06-27T09:00:00.000Z"

@@ -1,5 +1,6 @@
 ---
 title: "How I Migrated a Lambda AI App to Bedrock’s OpenAI-Compatible APIs Without Rewriting Everything"
+seoTitle: "Moving a Lambda AI App to Bedrock's OpenAI API"
 slug: "migrated-lambda-ai-app-to-bedrock-openai-compatible-apis-without-rewriting-everything"
 brief: "A practical migration story about moving a Lambda AI app from a custom OpenAI-style integration to Amazon Bedrock without rewriting the whole codebase"
 publishedAt: "2026-06-06T05:43:54.819Z"

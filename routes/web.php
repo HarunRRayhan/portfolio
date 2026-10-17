@@ -927,6 +927,7 @@ Route::get('/blog/{slug}/draft/{previewToken}', function (Request $request, stri
         isset($payload['publishedAtIso']) ? (string) $payload['publishedAtIso'] : null,
         isset($publication['title']) ? (string) $publication['title'] : null,
         isset($publication['url']) ? (string) $publication['url'] : null,
+        isset($post['seoTitle']) ? (string) $post['seoTitle'] : null,
     );
 
     $response = Inertia::render('Blog/Post', [
@@ -1018,6 +1019,7 @@ Route::get('/blog/{slug}', function (Request $request, string $slug) {
         isset($payload['publishedAtIso']) ? (string) $payload['publishedAtIso'] : null,
         isset($publication['title']) ? (string) $publication['title'] : null,
         isset($publication['url']) ? (string) $publication['url'] : null,
+        isset($post['seoTitle']) ? (string) $post['seoTitle'] : null,
     );
 
     $response = Inertia::render('Blog/Post', [

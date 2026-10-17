@@ -1,5 +1,6 @@
 ---
 title: "AWS WAF + CloudFront for a Solo Dev - Rate Limiting, Bot Control, and IP Blocking"
+seoTitle: "AWS WAF + CloudFront: Rate Limits and Bot Control"
 slug: "aws-waf-cloudfront-solo-dev"
 brief: "How to set up AWS WAF in front of CloudFront for a solo-built application, with rate limiting, bot control, and IP block rules, all managed with Terraform."
 publishedAt: "2026-06-16T09:00:00.000Z"

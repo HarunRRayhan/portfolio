@@ -459,9 +459,10 @@ final class SeoCatalog
         ?string $datePublished = null,
         ?string $publisherName = null,
         ?string $publisherUrl = null,
+        ?string $seoTitle = null,
     ): SeoMeta {
         return new SeoMeta(
-            title: self::titleWithSuffix($title, ' | Harun\'s Blog'),
+            title: self::titleWithSuffix($seoTitle ?: $title, ' | Harun\'s Blog'),
             description: $description,
             canonicalUrl: $canonicalUrl,
             ogImage: $ogImage,

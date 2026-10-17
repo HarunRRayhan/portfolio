@@ -160,6 +160,12 @@ Schedule::command('blog:ping')
     ->withoutOverlapping()
     ->onOneServer();
 
+// Tell Bing and other IndexNow engines about pages whose title, description, or content changed.
+Schedule::command('seo:indexnow --changed')
+    ->hourly()
+    ->withoutOverlapping()
+    ->onOneServer();
+
 Schedule::command('blog:crosspost')
     ->hourly()
     ->withoutOverlapping()

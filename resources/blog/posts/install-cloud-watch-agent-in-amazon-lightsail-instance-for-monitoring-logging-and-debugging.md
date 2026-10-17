@@ -1,5 +1,6 @@
 ---
 title: "Install Cloud Watch Agent in Amazon Lightsail instance for Monitoring, Logging & Debugging"
+seoTitle: "Install the CloudWatch Agent on Amazon Lightsail"
 slug: "install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging"
 brief: "Use the Cloud Watch agent to send logging and debugging to Cloud Watch. You can check logs without logging into instances. It's accessible even after the instance is terminated.
 Life is far from perfect, and so does Amazon Lightsail instances. It can..."

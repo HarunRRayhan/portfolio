@@ -1,5 +1,6 @@
 ---
 title: "Add Lightsail Load Balancer to Application hosted in Amazon Lightsail instance(s)"
+seoTitle: "Add a Load Balancer to Amazon Lightsail Instances"
 slug: "add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances"
 brief: "Lightsail offers Load Balancer. It's very easy to provision one and attach one or multiple instances to it. Let's create one and attach instances to it.
 Prerequisites

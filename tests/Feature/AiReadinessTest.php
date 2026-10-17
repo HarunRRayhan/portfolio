@@ -128,6 +128,30 @@ class AiReadinessTest extends TestCase
     }
 
     #[Test]
+    public function indexnow_changed_only_resubmits_urls_whose_fingerprint_moved(): void
+    {
+        Http::fake(['https://api.indexnow.org/indexnow' => Http::response('', 202)]);
+        config(['ai.indexnow_key' => '0123456789abcdef']);
+
+        $this->artisan('seo:indexnow', ['--site' => 'https://harun.dev', '--changed' => true])->assertSuccessful();
+        Http::assertSentCount(1);
+
+        // Nothing changed since the ledger was written, so nothing is sent.
+        $this->artisan('seo:indexnow', ['--site' => 'https://harun.dev', '--changed' => true])
+            ->expectsOutput('No changed URLs to submit.')
+            ->assertSuccessful();
+        Http::assertSentCount(1);
+
+        $ledger = Cache::get('seo.indexnow.fingerprints');
+        $ledger['https://harun.dev/about'] = 'stale';
+        Cache::forever('seo.indexnow.fingerprints', $ledger);
+
+        $this->artisan('seo:indexnow', ['--site' => 'https://harun.dev', '--changed' => true])->assertSuccessful();
+        Http::assertSentCount(2);
+        Http::assertSent(fn ($request): bool => ($request->data()['urlList'] ?? null) === ['https://harun.dev/about']);
+    }
+
+    #[Test]
     public function indexnow_refuses_to_submit_a_local_origin(): void
     {
         config([

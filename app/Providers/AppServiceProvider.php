@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\PersonalAccessToken;
+use App\Support\CachedSsrGateway;
 use App\Support\HomepageStyles;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
+use Inertia\Ssr\HttpGateway;
 use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
@@ -21,7 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(HttpGateway::class, CachedSsrGateway::class);
     }
 
     /**
