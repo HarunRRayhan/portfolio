@@ -393,7 +393,9 @@ class BlogRepository
                 $key = $m[1].(isset($m[2]) ? '-'.$m[2] : '');
                 $link = $url.'#activity-'.$key;
                 $gif = "/blog-assets/{$slug}/activity-{$key}.gif";
-                $img = is_file(public_path($gif)) ? '<figure data-activity-fallback><img src="'.Cdn::url($gif).'" alt="Animated demo" loading="lazy"></figure>' : '';
+                // Medium imports harun.dev through Embedly, which skips images without explicit dimensions.
+                $size = is_file(public_path($gif)) ? getimagesize(public_path($gif)) : false;
+                $img = $size ? '<figure data-activity-fallback><img src="'.Cdn::url($gif).'" alt="Animated demo of the interactive figure" width="'.$size[0].'" height="'.$size[1].'" loading="lazy" decoding="async"></figure>' : '';
 
                 // The id lets the demo link land on this exact figure.
                 return $img.'<p data-activity-fallback>This figure is interactive on the original post, where you can play with it live. <a href="'.$link.'">Open the interactive demo on harun.dev</a>.</p>'
