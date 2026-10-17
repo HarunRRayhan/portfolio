@@ -380,8 +380,8 @@ class BlogRepository
     /**
      * Importers (Medium) don't run JS and drop a GIF wrapped in a div (Readability-style cleanup),
      * so the fallback is a plain <figure> + link <p> before the mount div. mountBlogActivities removes them.
-     * Medium also drops every image after the first once a post has more than ~5, so the link stays
-     * in its own paragraph to survive even when the GIF doesn't.
+     * The link sits in a sentence, not alone: Medium's importer drops link-only blocks and,
+     * with enough of them, the figures beside them too (verified by importing test pages).
      */
     private function withActivityFallbacks(string $html, string $slug): string
     {
@@ -396,7 +396,7 @@ class BlogRepository
                 $img = is_file(public_path($gif)) ? '<figure data-activity-fallback><img src="'.Cdn::url($gif).'" alt="Animated demo" loading="lazy"></figure>' : '';
 
                 // The id lets the demo link land on this exact figure.
-                return $img.'<p data-activity-fallback><a href="'.$link.'">▶ Try the interactive demo on harun.dev</a></p>'
+                return $img.'<p data-activity-fallback>This figure is interactive on the original post, where you can play with it live. <a href="'.$link.'">Open the interactive demo on harun.dev</a>.</p>'
                     .'<div id="activity-'.$key.'"'.substr($m[0], 4);
             },
             $html,
