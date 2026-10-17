@@ -149,6 +149,11 @@ class HomepageSsrTest extends TestCase
         $this->get('/about')->assertOk()->assertSee('<h1>Server rendered once</h1>', false);
         Http::assertSentCount(1);
 
+        // Query strings always render fresh, so they cannot grow the cache.
+        $this->app->forgetInstance(SsrState::class);
+        $this->get('/about?x=1')->assertOk();
+        Http::assertSentCount(2);
+
         // Signed-in visitors never get a cached public render.
         $this->app->forgetInstance(SsrState::class);
         $this->actingAs(User::factory()->create())->get('/about')

@@ -17,8 +17,15 @@ class CachedSsrGateway extends HttpGateway
 {
     public function dispatch(array $page, ?Request $request = null): ?Response
     {
-        if (! $this->ssrIsEnabled($request ?? request())) {
+        $request ??= request();
+
+        if (! $this->ssrIsEnabled($request)) {
             return null;
+        }
+
+        // Query strings are visitor-controlled; caching them would let anyone fill the disk.
+        if ($request->getQueryString() !== null) {
+            return parent::dispatch($page, $request);
         }
 
         $store = Cache::store(config('cache.default') === 'database' ? 'file' : null);
