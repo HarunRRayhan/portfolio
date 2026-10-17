@@ -27,7 +27,7 @@ assert.doesNotMatch(filtered.body, /<h3[^>]*>Published SSR article/)
 const article = await renderPage({ ...base, component: 'Blog/Post', url: post.url })
 assert.match(article.body, /Article body available before hydration/)
 assert.equal((article.head.join('').match(/rel="canonical"/g) ?? []).length, 1)
-for (const component of ['Dashboard', 'Admin/Posts/Index', 'Book']) {
+for (const component of ['Dashboard', 'Admin/Posts/Index', 'Book/Status']) {
   await assert.rejects(() => renderPage({ ...base, component, url: '/admin' }), /SSR is not enabled/)
 }
 await assert.rejects(() => renderPage({ ...base, component: 'Blog/Post', url: '/blog/published/draft/token', props: { ...base.props, post: { ...post, isDraft: true } } }), /SSR is not enabled/)

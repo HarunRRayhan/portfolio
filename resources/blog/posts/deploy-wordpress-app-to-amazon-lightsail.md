@@ -23,18 +23,18 @@ tags:
   - name: "Cloud"
     slug: "cloud"
 ---
-<h1 id="heading-introduction">Introduction</h1>
+<h2 id="heading-introduction">Introduction</h2>
 <p>AWS Lightsail can be the easiest entry to the AWS Cloud. It has fixed monthly pricing unlike most other services, so you don't have to worry about a huge monthly bill. </p>
 <p>Lightsail is really great for small to medium apps. It has out-of-the-box support for <strong>WordPress</strong>, Magento, Joomla, Prestashop, Drupal, Ghost, and Django apps. </p>
 <p>It provides pre-configured stacks like LAMP, NGINX, MEAN, and Node.js. You can also launch pre-configured Plesk, WHM &amp; cPanel in just a few clicks. </p>
 <p>But that's not all. You can launch any Linux-based and Windows OS instance. My personal favorites are <strong>Ubuntu</strong> and <strong>Amazon Linux 2</strong>.</p>
-<h1 id="heading-prerequisites">Prerequisites</h1>
+<h2 id="heading-prerequisites">Prerequisites</h2>
 <p>Need a valid AWS account to deploy the WP app. If you don't have one, just create one from <a target="_blank" href="https://portal.aws.amazon.com/billing/signup">here</a>. Before starting to deploy your app read about <a target="_blank" href="https://aws.amazon.com/lightsail/pricing/">Amazon Lightsail Pricing and Free-Tier</a>. Don't worry, I will try to keep everything within the free tier. At this time of writing, you can run a Lightsail instance for free for 3 months.</p>
-<h1 id="heading-install-wordpress-app">Install WordPress App</h1>
+<h2 id="heading-install-wordpress-app">Install WordPress App</h2>
 <p>Login to your AWS account if not already. Go to <a target="_blank" href="https://lightsail.aws.amazon.com">Lightsail homepage</a>. You should see a page like this:</p>
 <p><img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/7TgXRwaI1.png" alt="CleanShot 2022-04-27 at 17.59.20@2x.png" /></p>
 <p>Are you seeing this? Let's go 🏃‍♂️</p>
-<h2 id="heading-create-instance">Create Instance</h2>
+<h3 id="heading-create-instance">Create Instance</h3>
 <ol>
 <li><p>Now click on the big <strong>Create Instance</strong> button. If you don't see one, follow this:
 <img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/t7Kzr_AGl.png" alt="CleanShot 2022-04-27 at 18.04.31@2x.png" /></p>
@@ -52,7 +52,7 @@ D. Now choose <strong>WordPress</strong> from the app list. <em>Not the multisit
 <li><p>Finally scroll to the bottom of the page and click the <strong>Create instance</strong> button. Wait for the status to become <strong><em>Running</em></strong>. Congratulations, your instance has launched 🚀</p>
 </li>
 </ol>
-<h2 id="heading-assign-a-static-ip-optional">Assign a Static IP (optional)</h2>
+<h3 id="heading-assign-a-static-ip-optional">Assign a Static IP (optional)</h3>
 <p>AWS Lightsail Instance comes with public (and private) IP. Which changes every time Stop and Start the instance.  My Public IP was this when I launched the instance:
 <img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/xngXQF1qF.png" alt="CleanShot 2022-04-27 at 19.24.43@2x.png" /></p>
 <p>After Stop and Start the instance, it got a new Public IP address:
@@ -68,12 +68,12 @@ D. Now choose <strong>WordPress</strong> from the app list. <em>Not the multisit
 </blockquote>
 </li>
 </ol>
-<h2 id="heading-connect-to-the-instance-using-ssh">Connect to the instance using SSH</h2>
+<h3 id="heading-connect-to-the-instance-using-ssh">Connect to the instance using SSH</h3>
 <p>You can connect to an instance in two ways: </p>
-<h3 id="heading-using-browser">Using browser</h3>
+<h4 id="heading-using-browser">Using browser</h4>
 <p>That's the easiest. Go to the <strong>Connect</strong> tab and click <strong>Connect using SSH</strong>:
 <img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/ofhpf4_1M.png" alt="CleanShot 2022-04-27 at 20.07.41@2x.png" /></p>
-<h3 id="heading-using-ssh-client">Using SSH Client</h3>
+<h4 id="heading-using-ssh-client">Using SSH Client</h4>
 <ol>
 <li>Download the SSH key from here:
 <img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/OKPX9IZfO.png" alt="CleanShot 2022-04-27 at 20.10.12@2x.png" /></li>
@@ -87,7 +87,7 @@ chmod 400 &lt;path/to/your-lightsail-ssh-key&gt;.pem
 <span class="hljs-comment"># Username and Public IP can be found in "Connect" tab</span>
 ssh -i <span class="hljs-string">"&lt;path/to/your-lightsail-key&gt;.pem"</span> &lt;username&gt;@&lt;public_ip&gt;
 </code></pre>
-<h2 id="heading-get-admin-username-and-password">Get Admin Username and Password</h2>
+<h3 id="heading-get-admin-username-and-password">Get Admin Username and Password</h3>
 <ol>
 <li>You can get the username from the <strong>Connect</strong> tab. The username is <strong>user</strong> for this stack.</li>
 <li>To get the password, log in to SSH and run this command<pre><code class="lang-bash">cat bitnami_application_password
@@ -95,7 +95,7 @@ ssh -i <span class="hljs-string">"&lt;path/to/your-lightsail-key&gt;.pem"</span>
 <img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/Ehgt_JWU7.png" alt="CleanShot 2022-04-27 at 20.23.35@2x.png" /></li>
 <li>Now open a browser tab and go to <code>http://&lt;public_ip&gt;/wp-admin</code>. Enter username and password above. You should see the WP Admin dashboard like me.</li>
 </ol>
-<h1 id="heading-add-a-domain">Add a Domain</h1>
+<h2 id="heading-add-a-domain">Add a Domain</h2>
 <ol>
 <li>Go to the <strong>Home</strong> page. Click on the <strong>Networking</strong> tab and then hit <strong>Create DNS zone</strong> button
 <img src="/blog-assets/deploy-wordpress-app-to-amazon-lightsail/POkz7myRi.jpg" alt="CleanShot 2022-04-28 at 04.57.42@2x.png" /></li>
@@ -110,8 +110,8 @@ ssh -i <span class="hljs-string">"&lt;path/to/your-lightsail-key&gt;.pem"</span>
 </li>
 <li>Now update the domain name in <code>siteurl</code> and <code>home</code> rows of <code>wp_options</code> table.</li>
 </ol>
-<h1 id="heading-import-existing-app">Import Existing App</h1>
-<h2 id="heading-import-database">Import Database</h2>
+<h2 id="heading-import-existing-app">Import Existing App</h2>
+<h3 id="heading-import-database">Import Database</h3>
 <p>You may have an existing database. You can import your database to the Lightsail instance. You can use a Database client app like TablePlus, MySQL Workbench, or even just the terminal. </p>
 <p>Your database credentials exist in <code>wp-config.php</code> file. Connect to your instance via SSH and run this command: </p>
 <pre><code class="lang-bash">cat stack/wordpress/wp-config.php
@@ -121,7 +121,7 @@ ssh -i <span class="hljs-string">"&lt;path/to/your-lightsail-key&gt;.pem"</span>
 <blockquote>
 <p>ℹ️ Don't forget to change the domain name in <code>siteurl</code> and <code>home</code> rows of <code>wp_options</code> table.</p>
 </blockquote>
-<h2 id="heading-import-existing-files">Import existing files</h2>
+<h3 id="heading-import-existing-files">Import existing files</h3>
 <p>Application folder located in <code>stack/wordpress</code>. You can upload files in two ways: </p>
 <ol>
 <li>SFTP Client: You can use SFTP clients like FileZilla or Transmit to upload files. Use the same SSH credential to upload files. </li>
@@ -129,5 +129,5 @@ ssh -i <span class="hljs-string">"&lt;path/to/your-lightsail-key&gt;.pem"</span>
 </code></pre>
 Now pull your files from git using the git clone/pull command. </li>
 </ol>
-<h1 id="heading-conclusion">Conclusion</h1>
+<h2 id="heading-conclusion">Conclusion</h2>
 <p>This is just the first step toward deploying your WordPress app to Amazon Lightsail instance. There are lot more you can do. You are welcome to ask your questions, give me feedback, or any improvement request. </p>

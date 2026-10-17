@@ -85,8 +85,8 @@ final class SiteCatalog
     public const SERVICE_PAGES_LASTMOD = '2026-10-14';
 
     /**
-     * Indexable paths for /sitemap.xml. Privacy and terms stay out so they
-     * do not compete with commercial pages; they remain in llms Optional.
+     * Indexable paths for /sitemap.xml. Legal pages are indexable, so they
+     * are listed too; they have no lastmod date and stay in llms Optional.
      *
      * @return list<string>
      */
@@ -106,6 +106,8 @@ final class SiteCatalog
             '/bio',
             '/hrr',
             '/products',
+            '/privacy',
+            '/terms',
         ];
 
         foreach (self::services() as $service) {

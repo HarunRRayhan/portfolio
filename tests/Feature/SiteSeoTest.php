@@ -91,8 +91,8 @@ class SiteSeoTest extends TestCase
             $this->assertSame(1, count(array_filter($locs, fn (string $loc) => $loc === $url)), "{$url} must appear once");
         }
 
-        $this->assertNotContains($siteUrl.'/privacy', $locs);
-        $this->assertNotContains($siteUrl.'/terms', $locs);
+        $this->assertContains($siteUrl.'/privacy', $locs);
+        $this->assertContains($siteUrl.'/terms', $locs);
         $this->assertNotContains($siteUrl.'/book', $locs);
     }
 
@@ -279,7 +279,7 @@ class SiteSeoTest extends TestCase
     #[Test]
     public function public_page_titles_do_not_use_laravel_as_a_suffix(): void
     {
-        foreach (['/', '/blog', '/services/devops', '/blog/production-ai-code-review-for-terraform-and-lambda-prs'] as $path) {
+        foreach (['/', '/blog', '/services/devops', '/blog/everything-new-in-laravel-13'] as $path) {
             $html = $this->get($path)->assertOk()->getContent();
 
             $this->assertDoesNotMatchRegularExpression(

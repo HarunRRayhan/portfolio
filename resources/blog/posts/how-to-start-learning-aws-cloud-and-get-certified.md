@@ -80,7 +80,7 @@ tags:
 </ol>
 <p>Let me know on <a target="_blank" href="https://x.com/harundotdev">Twitter</a> how you are preparing for your certification exam. And don't forget to tweet mentioning me once you pass the exam. 🚀</p>
 <p>...</p>
-<h1 id="heading-conclusion">Conclusion</h1>
+<h2 id="heading-conclusion">Conclusion</h2>
 <p>I tried to cover every question I got over the years. If you have a question not covered in this post, ask in the comment or in <a target="_blank" href="https://x.com/harundotdev">Twitter</a>, and I will definitely answer those questions.</p>
 <p>If you want to appreciate my work, love ❤️ this post, share it with your friends, subscribe to the newsletter, and keep following updates here on the blog.</p>
 <p>I'm searching for the next topic to cover in this blog; if you have an idea, tweet me. Don't forget to follow me on <a target="_blank" href="https://x.com/harundotdev">Twitter</a>, and I regularly tweet about AWS, Laravel, Cloud, PHP, and various other Software Engineering topics.</p>

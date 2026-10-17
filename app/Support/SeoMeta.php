@@ -32,13 +32,35 @@ final class SeoMeta
     {
         return [
             'title' => $this->title,
-            'description' => $this->description,
+            'description' => self::clampDescription($this->description),
             'canonicalUrl' => $this->canonicalUrl,
             'ogImage' => $this->ogImage ?: SeoCatalog::defaultOgImage(),
             'ogType' => $this->ogType,
             'jsonLd' => $this->jsonLd,
             'noindex' => $this->noindex,
         ];
+    }
+
+    /**
+     * Search engines truncate meta descriptions past about 160 characters.
+     * Cut at a word boundary and count the ellipsis inside the limit.
+     */
+    public static function clampDescription(string $description): string
+    {
+        $description = trim($description);
+
+        if (mb_strlen($description) <= 160) {
+            return $description;
+        }
+
+        $cut = mb_substr($description, 0, 159);
+        $space = mb_strrpos($cut, ' ');
+
+        if ($space !== false) {
+            $cut = mb_substr($cut, 0, $space);
+        }
+
+        return rtrim($cut, " ,;:.-\u{2013}\u{2014}\u{2026}").'…';
     }
 
     /**

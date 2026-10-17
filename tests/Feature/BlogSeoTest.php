@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Support\SeoCatalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\CreatesDraftBlogPost;
@@ -74,6 +75,22 @@ class BlogSeoTest extends TestCase
 
         $response->assertOk();
         $response->assertDontSee('noindex, nofollow, noarchive', false);
+    }
+
+    #[Test]
+    public function it_drops_the_title_suffix_past_70_characters_and_clamps_descriptions(): void
+    {
+        $canonical = 'https://harun.dev/blog/example';
+
+        $short = SeoCatalog::forBlogPost('Short title', 'Body text.', $canonical, null)->toArray();
+        $this->assertSame("Short title | Harun's Blog", $short['title']);
+
+        $long = SeoCatalog::forBlogPost(str_repeat('A', 60), 'Body text.', $canonical, null)->toArray();
+        $this->assertSame(str_repeat('A', 60), $long['title']);
+
+        $clamped = SeoCatalog::forBlogPost('Short title', str_repeat('lorem ipsum ', 40), $canonical, null)->toArray();
+        $this->assertLessThanOrEqual(160, mb_strlen($clamped['description']));
+        $this->assertStringEndsWith(' ipsum…', $clamped['description']);
     }
 
     #[Test]
