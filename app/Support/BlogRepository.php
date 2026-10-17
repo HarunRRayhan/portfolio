@@ -378,8 +378,8 @@ class BlogRepository
     }
 
     /**
-     * Importers (Medium) drop <noscript>, so the GIF + link sit in the div as plain content.
-     * The page's JS replaces the div's children with the live figure, so visitors never keep both.
+     * Importers (Medium) don't run JS and drop a GIF wrapped in a div (Readability-style cleanup),
+     * so the fallback is a plain <figure> before the mount div. mountBlogActivities removes it.
      */
     private function withActivityFallbacks(string $html, string $slug): string
     {
@@ -391,10 +391,11 @@ class BlogRepository
                 $key = $m[1].(isset($m[2]) ? '-'.$m[2] : '');
                 $link = $url.'#activity-'.$key;
                 $gif = "/blog-assets/{$slug}/activity-{$key}.gif";
-                $img = is_file(public_path($gif)) ? '<p><a href="'.$link.'"><img src="'.Cdn::url($gif).'" alt="Interactive demo" loading="lazy"></a></p>' : '';
+                $img = is_file(public_path($gif)) ? '<img src="'.Cdn::url($gif).'" alt="Animated demo" loading="lazy">' : '';
 
                 // The id lets the demo link land on this exact figure.
-                return '<div id="activity-'.$key.'"'.substr($m[0], 4, -6).''.$img.'<p><a href="'.$link.'">▶ Try the interactive demo on harun.dev</a></p></div>';
+                return '<figure data-activity-fallback>'.$img.'<figcaption><a href="'.$link.'">▶ Try the interactive demo on harun.dev</a></figcaption></figure>'
+                    .'<div id="activity-'.$key.'"'.substr($m[0], 4);
             },
             $html,
         ) ?? $html;
