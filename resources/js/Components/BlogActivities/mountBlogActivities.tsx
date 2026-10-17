@@ -42,7 +42,7 @@ export function mountBlogActivities(root: HTMLElement): () => void {
     const id = node.dataset.blogActivity ?? ''
     const render = activities[id]
     // Server-side GIF fallback for importers; visitors get the live figure instead.
-    if (node.previousElementSibling?.hasAttribute('data-activity-fallback')) node.previousElementSibling.remove()
+    while (node.previousElementSibling?.hasAttribute('data-activity-fallback')) node.previousElementSibling.remove()
     const reactRoot = createRoot(node)
 
     reactRoot.render(
