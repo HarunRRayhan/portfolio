@@ -139,7 +139,7 @@ class InteractiveBlogDraftsTest extends TestCase
         $html = $repository->toPostPagePayload($post)['contentHtml'];
 
         $this->assertMatchesRegularExpression(
-            '#<figure data-activity-fallback><img src="[^"]+activity-terraform-vs-pulumi\.gif"[^>]*><figcaption><a href="[^"]+\#activity-terraform-vs-pulumi">▶ Try the interactive demo on harun\.dev</a></figcaption></figure><div id="activity-terraform-vs-pulumi" data-blog-activity="terraform-vs-pulumi"></div>#',
+            '#<figure data-activity-fallback><img src="[^"]+activity-terraform-vs-pulumi\.gif"[^>]*></figure><p data-activity-fallback><a href="[^"]+\#activity-terraform-vs-pulumi">▶ Try the interactive demo on harun\.dev</a></p><div id="activity-terraform-vs-pulumi" data-blog-activity="terraform-vs-pulumi"></div>#',
             $html,
         );
     }
