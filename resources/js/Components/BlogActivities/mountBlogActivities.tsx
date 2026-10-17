@@ -34,7 +34,12 @@ class ActivityBoundary extends Component<{ children: ReactNode }, { failed: bool
   }
 }
 
+// Medium imports through Embedly, which renders JS; importers keep the GIF + link fallback.
+const isImporter = (): boolean => navigator.webdriver || /embedly|headless|bot|crawler|spider/i.test(navigator.userAgent)
+
 export function mountBlogActivities(root: HTMLElement): () => void {
+  if (isImporter()) return () => {}
+
   const nodes = Array.from(root.querySelectorAll<HTMLElement>('[data-blog-activity]'))
   const roots: Root[] = []
 
