@@ -15,8 +15,10 @@ final class ContentLinks
      */
     private const TAG_SERVICE = [
         'cost-optimization' => '/services/performance-optimization',
-        'terraform' => '/services/infrastructure-as-code',
+        'observability' => '/services/monitoring-observability',
         'github-actions' => '/services/automated-deployment',
+        'ci-cd' => '/services/automated-deployment',
+        'terraform' => '/services/infrastructure-as-code',
         'security' => '/services/security-consulting',
         'iam' => '/services/security-consulting',
         'waf' => '/services/security-consulting',
@@ -90,7 +92,7 @@ final class ContentLinks
         '/services/mlops' => [
             'building-a-production-rag-pipeline-on-aws-lambda-pgvector',
             'bedrock-agents-production-knowledge-bases',
-            'llm-observability-langfuse-lambda-cloudwatch',
+            'how-to-use-aws-sagemaker-for-hipaa-compliant-data-a-complete-guide',
         ],
         '/services/database-migration' => [
             'add-database-to-application-hosted-in-amazon-lightsail',
@@ -108,8 +110,8 @@ final class ContentLinks
         ],
         '/services/aws-cloud' => [
             'deploy-laravel-application-to-amazon-ec2-instance',
-            'deploy-wordpress-app-to-amazon-lightsail',
-            'first-3-things-i-always-do-after-creating-a-new-aws-account',
+            'running-openclaw-on-amazon-ec2-with-claude-and-telegram',
+            'add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail',
         ],
         '/services/multi-cloud-architecture' => [
             'first-3-things-i-always-do-after-creating-a-new-aws-account',
@@ -126,6 +128,42 @@ final class ContentLinks
             'everything-new-in-laravel-13',
         ],
     ];
+
+    /**
+     * Two neighbouring services per service page, so no service depends on
+     * the /services hub as its only internal link.
+     *
+     * @var array<string, list<string>>
+     */
+    private const RELATED = [
+        'cloud-architecture' => ['multi-cloud-architecture', 'infrastructure-migration'],
+        'aws-cloud' => ['infrastructure-migration', 'security-consulting'],
+        'devops' => ['automated-deployment', 'monitoring-observability'],
+        'infrastructure-as-code' => ['automated-deployment', 'multi-cloud-architecture'],
+        'serverless-infrastructure' => ['automated-deployment', 'mlops'],
+        'automated-deployment' => ['devops', 'infrastructure-as-code'],
+        'security-consulting' => ['monitoring-observability', 'cloud-architecture'],
+        'performance-optimization' => ['monitoring-observability', 'database-optimization'],
+        'infrastructure-migration' => ['database-migration', 'aws-cloud'],
+        'mlops' => ['monitoring-observability', 'serverless-infrastructure'],
+        'database-migration' => ['database-optimization', 'infrastructure-migration'],
+        'monitoring-observability' => ['performance-optimization', 'devops'],
+        'database-optimization' => ['database-migration', 'performance-optimization'],
+        'multi-cloud-architecture' => ['cloud-architecture', 'infrastructure-migration'],
+        'vibe-scaling' => ['vibe-code-migration', 'database-optimization'],
+        'vibe-code-migration' => ['vibe-scaling', 'database-migration'],
+    ];
+
+    /**
+     * @return list<array{title: string, url: string}>
+     */
+    public static function relatedServices(string $serviceSlug): array
+    {
+        return array_map(
+            fn (string $slug) => self::service('/services/'.$slug),
+            self::RELATED[$serviceSlug] ?? [],
+        );
+    }
 
     /**
      * @param  array<string, mixed>|null  $post

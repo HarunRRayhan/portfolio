@@ -51,6 +51,9 @@ class HandleInertiaRequests extends Middleware
             'serviceReading' => fn () => $request->is('services/*')
                 ? ContentLinks::readingForService((string) $request->segment(2))
                 : [],
+            'relatedServices' => fn () => $request->is('services/*')
+                ? ContentLinks::relatedServices((string) $request->segment(2))
+                : [],
             'featuredCaseStudies' => fn () => $request->is('/') ? $caseStudies->featured(3) : [],
             'newsletter' => [
                 'subscriberCount' => function (): int {

@@ -21,6 +21,7 @@ const base = {
       { title: 'A related post', url: '/blog/ecs-fargate-spot-capacity-providers', brief: 'Spot capacity.' },
     ],
     caseStudiesByService: {},
+    relatedServices: [{ title: 'Monitoring and Observability', url: '/services/monitoring-observability' }],
     serviceIndex: [
       {
         title: 'Performance Optimization',
@@ -45,6 +46,7 @@ const page = await renderPage({
 assert.match(page.body, /Performance Optimization/)
 assert.match(page.body, /What I do/)
 assert.match(page.body, /href="\/blog\/ecs-fargate-spot-capacity-providers"/)
+assert.match(page.body, /href="\/services\/monitoring-observability"/)
 
 const products = await renderPage({ ...base, component: 'Products', url: '/products' })
 assert.match(products.body, /CloudPloy/)
