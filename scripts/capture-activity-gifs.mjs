@@ -13,7 +13,12 @@ const FRAMES = 40
 const FRAME_MS = 200
 
 const browser = await chromium.launch({ channel: process.env.PLAYWRIGHT_CHANNEL ?? 'chrome' })
-const page = await browser.newPage({ viewport: { width: 900, height: 1000 } })
+const page = await browser.newPage({
+  viewport: { width: 900, height: 1000 },
+  // mountBlogActivities skips automated browsers (importers keep the GIF fallback); look like a visitor.
+  userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
+})
+await page.addInitScript(() => Object.defineProperty(navigator, 'webdriver', { get: () => false }))
 
 if (process.env.CAPTURE_EMAIL) {
   await page.goto(`${base}/login`)
