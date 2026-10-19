@@ -8,6 +8,7 @@ export type SeoPayload = {
   ogType?: string
   jsonLd?: Record<string, unknown>[]
   noindex?: boolean
+  ogTitle?: string
 }
 
 export function SeoHead() {
@@ -17,13 +18,13 @@ export function SeoHead() {
     <Head title={seo?.title}>
       {seo ? [
         <meta key="description" head-key="description" name="description" content={seo.description} />,
-        <meta key="og:title" head-key="og:title" property="og:title" content={seo.title} />,
+        <meta key="og:title" head-key="og:title" property="og:title" content={seo.ogTitle ?? seo.title} />,
         <meta key="og:description" head-key="og:description" property="og:description" content={seo.description} />,
         <meta key="og:type" head-key="og:type" property="og:type" content={seo.ogType ?? 'website'} />,
         <meta key="og:url" head-key="og:url" property="og:url" content={seo.canonicalUrl} />,
         <meta key="og:site_name" head-key="og:site_name" property="og:site_name" content="Harun R. Rayhan" />,
         <meta key="twitter:card" head-key="twitter:card" name="twitter:card" content="summary_large_image" />,
-        <meta key="twitter:title" head-key="twitter:title" name="twitter:title" content={seo.title} />,
+        <meta key="twitter:title" head-key="twitter:title" name="twitter:title" content={seo.ogTitle ?? seo.title} />,
         <meta key="twitter:description" head-key="twitter:description" name="twitter:description" content={seo.description} />,
         <link key="canonical" head-key="canonical" rel="canonical" href={seo.canonicalUrl} />,
       ] : null}

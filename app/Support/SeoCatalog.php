@@ -478,6 +478,8 @@ final class SeoCatalog
                 $publisherUrl,
             )],
             noindex: $noindex,
+            // Share cards and Medium's importer use og:title; the suffix there ends up in the story title.
+            ogTitle: $title,
         );
     }
 

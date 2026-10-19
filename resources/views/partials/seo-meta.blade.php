@@ -1,6 +1,7 @@
 @php
     /** @var array<string, mixed> $seo */
     $title = (string) ($seo['title'] ?? '');
+    $ogTitle = (string) ($seo['ogTitle'] ?? $title);
     $description = (string) ($seo['description'] ?? '');
     $canonicalUrl = (string) ($seo['canonicalUrl'] ?? '');
     $ogImage = isset($seo['ogImage']) && $seo['ogImage'] !== ''
@@ -13,8 +14,8 @@
 @endphp
 @if ($title !== '')
     <title data-inertia="">{{ $title }}</title>
-    <meta property="og:title" content="{{ $title }}" data-inertia="og:title">
-    <meta name="twitter:title" content="{{ $title }}" data-inertia="twitter:title">
+    <meta property="og:title" content="{{ $ogTitle }}" data-inertia="og:title">
+    <meta name="twitter:title" content="{{ $ogTitle }}" data-inertia="twitter:title">
 @endif
 @if ($description !== '')
     <meta name="description" content="{{ $description }}" data-inertia="description">
