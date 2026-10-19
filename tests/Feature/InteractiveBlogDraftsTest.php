@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Support\BlogRepository;
+use App\Support\SeoCatalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
@@ -142,5 +143,26 @@ class InteractiveBlogDraftsTest extends TestCase
             '#<figure data-activity-fallback><img src="[^"]+activity-terraform-vs-pulumi\.gif"[^>]*></figure><p data-activity-fallback>This figure is interactive on the original post, where you can play with it live\. <a href="[^"]+\#activity-terraform-vs-pulumi">Open the interactive demo on harun\.dev</a>\.</p><div id="activity-terraform-vs-pulumi" data-blog-activity="terraform-vs-pulumi"></div>#',
             $html,
         );
+    }
+
+    public function test_medium_importer_gets_tables_as_paragraphs_and_a_bare_og_title(): void
+    {
+        $repository = app(BlogRepository::class);
+        $post = $repository->find('eight-load-balancer-algorithms');
+
+        $this->assertStringContainsString('<table>', $repository->toPostPagePayload($post)['contentHtml']);
+
+        request()->headers->set('User-Agent', 'Mozilla/5.0 (compatible; Embedly/0.2; +http://support.embed.ly/)');
+        $html = $repository->toPostPagePayload($post)['contentHtml'];
+
+        $this->assertStringNotContainsString('<table', $html);
+        $this->assertStringContainsString('<p><strong>What it counts</strong>: The next name in a fixed list</p>', $html);
+        $this->assertStringContainsString('<p><strong>1</strong>: Server: A; Why that server: First name in the list</p>', $html);
+        $this->assertStringNotContainsString('<figcaption', $html);
+        $this->assertStringContainsString('</figure><p><em>All eight at a glance.', $html);
+
+        $seo = SeoCatalog::forBlogPost('Short title', 'Description', 'https://harun.dev/blog/x', null)->toArray();
+        $this->assertSame('Short title | Harun\'s Blog', $seo['title']);
+        $this->assertSame('Short title', $seo['ogTitle']);
     }
 }

@@ -15,6 +15,7 @@ final class SeoMeta
         public readonly string $ogType = 'website',
         public readonly array $jsonLd = [],
         public readonly bool $noindex = false,
+        public readonly ?string $ogTitle = null,
     ) {}
 
     /**
@@ -25,7 +26,8 @@ final class SeoMeta
      *     ogImage: ?string,
      *     ogType: string,
      *     jsonLd: list<array<string, mixed>>,
-     *     noindex: bool
+     *     noindex: bool,
+     *     ogTitle: string
      * }
      */
     public function toArray(): array
@@ -38,6 +40,7 @@ final class SeoMeta
             'ogType' => $this->ogType,
             'jsonLd' => $this->jsonLd,
             'noindex' => $this->noindex,
+            'ogTitle' => $this->ogTitle ?? $this->title,
         ];
     }
 
@@ -76,6 +79,7 @@ final class SeoMeta
             ogType: (string) ($data['ogType'] ?? 'website'),
             jsonLd: is_array($data['jsonLd'] ?? null) ? $data['jsonLd'] : [],
             noindex: (bool) ($data['noindex'] ?? false),
+            ogTitle: isset($data['ogTitle']) ? (string) $data['ogTitle'] : null,
         );
     }
 

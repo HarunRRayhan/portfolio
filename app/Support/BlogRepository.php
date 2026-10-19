@@ -372,9 +372,49 @@ class BlogRepository
         $post = $this->withContent($post);
         $summary = $this->summarizePost($post);
 
-        return array_merge($summary, [
-            'contentHtml' => $this->withActivityFallbacks($post['content']['html'] ?? '', $post['slug']),
-        ]);
+        $html = $this->withActivityFallbacks($post['content']['html'] ?? '', $post['slug']);
+
+        // Medium imports through Embedly. Readers never get this variant.
+        if (str_contains((string) request()->userAgent(), 'Embedly')) {
+            $html = $this->forMediumImport($html);
+        }
+
+        return array_merge($summary, ['contentHtml' => $html]);
+    }
+
+    /**
+     * Medium has no tables (it splits every cell into its own line) and drops <figcaption>.
+     * Rows become "<strong>first cell</strong>: rest" paragraphs (a <ul> version got dropped),
+     * and captions become an italic line under the figure. Verified by importing test pages.
+     */
+    private function forMediumImport(string $html): string
+    {
+        $cells = fn (string $row, string $tag): array => array_map(
+            fn (string $cell): string => trim($cell),
+            preg_match_all("#<{$tag}[^>]*>(.*?)</{$tag}>#s", $row, $m) ? $m[1] : [],
+        );
+
+        $html = preg_replace_callback('#<table[^>]*>.*?</table>#s', function (array $t) use ($cells): string {
+            preg_match_all('#<tr[^>]*>(.*?)</tr>#s', $t[0], $rows);
+            $head = $cells($rows[1][0] ?? '', 'th');
+            $out = '';
+            foreach ($rows[1] as $row) {
+                $c = $cells($row, 'td');
+                if ($c === []) {
+                    continue;
+                }
+                $rest = array_slice($c, 1);
+                // Two columns read as "key: value"; wider rows label each value with its header.
+                if (count($rest) > 1) {
+                    $rest = array_map(fn (string $v, int $i): string => ($head[$i + 1] ?? '') !== '' ? $head[$i + 1].': '.$v : $v, $rest, array_keys($rest));
+                }
+                $out .= '<p><strong>'.$c[0].'</strong>: '.implode('; ', $rest).'</p>';
+            }
+
+            return $out;
+        }, $html) ?? $html;
+
+        return preg_replace('#<figcaption[^>]*>(.*?)</figcaption>\s*</figure>#s', '</figure><p><em>$1</em></p>', $html) ?? $html;
     }
 
     /**
