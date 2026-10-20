@@ -117,6 +117,12 @@ class NewsletterController extends Controller
     public function campaignPreview(NewsletterIssue $issue, string $campaign): \Illuminate\Http\Response
     {
         $record = NewsletterCampaign::query()->findOrFail($campaign);
+
+        if ($record->html !== null) {
+            return response($record->html)->header('Cache-Control', 'no-store, private');
+        }
+
+        // Campaigns sent before the HTML was stored are rebuilt from their posts and products.
         $postsBySlug = $issue->publishedPosts(now(config('newsletter.schedule.timezone')))->keyBy('slug');
         $posts = collect($record->post_slugs ?? [])->map(fn (string $slug) => $postsBySlug->get($slug))->filter()->values();
 
@@ -199,7 +205,7 @@ class NewsletterController extends Controller
         return new WeeklyNewsletterMail(
             posts: $issue->withLeadExcerpt($posts)->all(),
             subscriber: null,
-            products: collect(config('newsletter.products', []))->take(2)->all(),
+            products: $issue->chooseProducts(),
             tweets: $issue->tweets(),
         );
     }

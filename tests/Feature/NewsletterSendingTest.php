@@ -109,6 +109,29 @@ class NewsletterSendingTest extends TestCase
     }
 
     #[Test]
+    public function the_least_shown_products_are_picked_and_the_sent_email_is_stored(): void
+    {
+        Mail::fake();
+        Subscriber::factory()->create();
+        $products = collect(config('newsletter.products'))->keyBy('key');
+        foreach ([['toolblip', 'cloudploy'], ['crontinel', 'toolblip'], ['cloudploy', 'crontinel']] as $i => $keys) {
+            NewsletterCampaign::query()->create([
+                'key' => '2026-W3'.$i,
+                'post_slugs' => ['older-post'],
+                'subject' => 'Earlier',
+                'products' => $products->only($keys)->values()->all(),
+            ]);
+        }
+
+        $this->artisan('newsletter:send-weekly')->assertSuccessful();
+
+        $campaign = NewsletterCampaign::query()->where('key', '2026-W40')->firstOrFail();
+        $keys = collect($campaign->products)->pluck('key')->sort()->values()->all();
+        $this->assertSame(['amazingplugins', 'appnary'], $keys);
+        $this->assertStringContainsString('Amazing Plugins', $campaign->html);
+    }
+
+    #[Test]
     public function a_pending_campaign_is_not_sent_when_its_post_is_older_than_seven_days(): void
     {
         Carbon::setTestNow('2026-10-13 16:00:00');
@@ -160,11 +183,11 @@ class NewsletterSendingTest extends TestCase
         Subscriber::factory()->create();
         $blog = $this->mock(BlogRepository::class);
         $blog->shouldReceive('indexPosts')->once()->andReturn(collect([
-            ['slug' => 'new-1', 'title' => 'New 1', 'publishedAt' => '2026-09-29T12:00:00Z'],
-            ['slug' => 'new-2', 'title' => 'New 2', 'publishedAt' => '2026-09-28T12:00:00Z'],
-            ['slug' => 'new-3', 'title' => 'New 3', 'publishedAt' => '2026-09-27T12:00:00Z'],
-            ['slug' => 'new-4', 'title' => 'New 4', 'publishedAt' => '2026-09-26T12:00:00Z'],
-            ['slug' => 'old', 'title' => 'Old', 'publishedAt' => '2026-09-20T12:00:00Z'],
+            ['slug' => 'new-1', 'title' => 'New 1', 'publishedAt' => '2026-09-29T12:00:00Z', 'publishedAtHuman' => 'Sep 2026', 'readTimeLabel' => '3 min read', 'newsletterExcerpt' => 'Brief.', 'canonicalUrl' => 'https://harun.dev/blog/new-1'],
+            ['slug' => 'new-2', 'title' => 'New 2', 'publishedAt' => '2026-09-28T12:00:00Z', 'publishedAtHuman' => 'Sep 2026', 'readTimeLabel' => '3 min read', 'newsletterExcerpt' => 'Brief.', 'canonicalUrl' => 'https://harun.dev/blog/new-2'],
+            ['slug' => 'new-3', 'title' => 'New 3', 'publishedAt' => '2026-09-27T12:00:00Z', 'publishedAtHuman' => 'Sep 2026', 'readTimeLabel' => '3 min read', 'newsletterExcerpt' => 'Brief.', 'canonicalUrl' => 'https://harun.dev/blog/new-3'],
+            ['slug' => 'new-4', 'title' => 'New 4', 'publishedAt' => '2026-09-26T12:00:00Z', 'publishedAtHuman' => 'Sep 2026', 'readTimeLabel' => '3 min read', 'newsletterExcerpt' => 'Brief.', 'canonicalUrl' => 'https://harun.dev/blog/new-4'],
+            ['slug' => 'old', 'title' => 'Old', 'publishedAt' => '2026-09-20T12:00:00Z', 'publishedAtHuman' => 'Sep 2026', 'readTimeLabel' => '3 min read', 'newsletterExcerpt' => 'Brief.', 'canonicalUrl' => 'https://harun.dev/blog/old'],
         ])->all());
 
         $this->artisan('newsletter:send-weekly')->assertSuccessful();
