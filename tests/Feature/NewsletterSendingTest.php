@@ -8,6 +8,7 @@ use App\Models\Subscriber;
 use App\Support\BlogRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use PHPUnit\Framework\Attributes\Test;
@@ -238,5 +239,19 @@ class NewsletterSendingTest extends TestCase
         $withoutTweets = (new WeeklyNewsletterMail($mail->posts, $subscriber, $mail->products))->render();
         $this->assertStringContainsString('https://x.com/harundotdev', $withoutTweets);
         $this->assertStringContainsString('shorter engineering notes', $withoutTweets);
+    }
+
+    #[Test]
+    public function a_send_already_in_progress_blocks_a_second_one(): void
+    {
+        Mail::fake();
+        Subscriber::factory()->create();
+        $lock = Cache::lock('newsletter:send-weekly', 60);
+        $lock->get();
+
+        $this->artisan('newsletter:send-weekly')->assertFailed();
+
+        $lock->release();
+        Mail::assertNothingSent();
     }
 }

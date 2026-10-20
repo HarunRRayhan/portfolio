@@ -8,6 +8,7 @@ use App\Models\NewsletterDelivery;
 use App\Models\Subscriber;
 use App\Support\NewsletterIssue;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Throwable;
@@ -20,6 +21,24 @@ class SendWeeklyNewsletter extends Command
     protected $description = 'Generate the weekly blog digest and send it to active subscribers';
 
     public function handle(NewsletterIssue $issue): int
+    {
+        // The admin "Send now" button and the scheduler both run this; the lock keeps them from double-sending.
+        $lock = Cache::lock('newsletter:send-weekly', 3600);
+
+        if (! $lock->get()) {
+            $this->error('Another newsletter send is already running. Try again when it finishes.');
+
+            return self::FAILURE;
+        }
+
+        try {
+            return $this->send($issue);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    private function send(NewsletterIssue $issue): int
     {
         $dryRun = (bool) $this->option('dry-run');
 

@@ -62,7 +62,8 @@ class NewsletterController extends Controller
             'failures' => $campaign->deliveries->map(fn (NewsletterDelivery $delivery) => [
                 'id' => $delivery->id,
                 'masked_email' => $delivery->subscriber?->maskedEmail() ?? 'deleted subscriber',
-                'error' => $delivery->error,
+                // Mailer errors can quote the recipient, so mask anything shaped like an address.
+                'error' => $delivery->error === null ? null : preg_replace_callback('/[^\s<>"\'@]+@[^\s<>"\']+/', fn (array $match) => (new Subscriber(['email' => $match[0]]))->maskedEmail(), $delivery->error),
             ])->all(),
         ]);
 

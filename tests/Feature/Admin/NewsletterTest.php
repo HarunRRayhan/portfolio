@@ -159,7 +159,7 @@ class NewsletterTest extends TestCase
                 'newsletter_campaign_id' => $campaign->id,
                 'subscriber_id' => Subscriber::factory()->create(['email' => "x{$status}".uniqid().'@gmail.com'])->id,
                 'status' => $status,
-                'error' => $status === 'failed' ? 'Mailbox full' : null,
+                'error' => $status === 'failed' ? 'Mailbox full for <harun@gmail.com>' : null,
             ]);
         }
 
@@ -168,7 +168,8 @@ class NewsletterTest extends TestCase
         $response->assertOk()->assertJson(['component' => 'Admin/Newsletter/Campaigns']);
         $this->assertSame(2, $response->json('props.campaigns.data.0.sent_count'));
         $this->assertSame(1, $response->json('props.campaigns.data.0.failed_count'));
-        $this->assertSame('Mailbox full', $response->json('props.campaigns.data.0.failures.0.error'));
+        $this->assertSame('Mailbox full for <ha***@gmail.com>', $response->json('props.campaigns.data.0.failures.0.error'));
+        $this->assertStringNotContainsString('harun@gmail.com', $response->getContent());
         $this->assertStringNotContainsString('xfailed', $response->getContent());
     }
 
