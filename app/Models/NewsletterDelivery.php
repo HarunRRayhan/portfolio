@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class NewsletterDelivery extends Model
 {
@@ -22,12 +23,14 @@ class NewsletterDelivery extends Model
         'status',
         'error',
         'sent_at',
+        'opened_at',
     ];
 
     protected function casts(): array
     {
         return [
             'sent_at' => 'datetime',
+            'opened_at' => 'datetime',
         ];
     }
 
@@ -39,5 +42,10 @@ class NewsletterDelivery extends Model
     public function subscriber(): BelongsTo
     {
         return $this->belongsTo(Subscriber::class);
+    }
+
+    public function clicks(): HasMany
+    {
+        return $this->hasMany(NewsletterClick::class);
     }
 }

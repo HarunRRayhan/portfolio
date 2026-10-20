@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\WeeklyNewsletterMail;
 use App\Models\NewsletterCampaign;
+use App\Models\NewsletterClick;
 use App\Models\NewsletterDelivery;
 use App\Models\Subscriber;
 use App\Support\NewsletterIssue;
@@ -43,10 +44,22 @@ class NewsletterController extends Controller
                 'deliveries as sent_count' => $count(NewsletterDelivery::STATUS_SENT),
                 'deliveries as failed_count' => $count(NewsletterDelivery::STATUS_FAILED),
                 'deliveries as pending_count' => $count(NewsletterDelivery::STATUS_PENDING),
+                'deliveries as opened_count' => fn ($query) => $query->whereNotNull('opened_at'),
+                'deliveries as clicker_count' => fn ($query) => $query->has('clicks'),
+                'clicks as click_count',
             ])
             ->with(['deliveries' => fn ($query) => $query->where('status', NewsletterDelivery::STATUS_FAILED)->with('subscriber')])
             ->latest('id')
             ->paginate(20);
+
+        $linkClicks = NewsletterClick::query()
+            ->join('newsletter_deliveries', 'newsletter_deliveries.id', '=', 'newsletter_clicks.newsletter_delivery_id')
+            ->whereIn('newsletter_deliveries.newsletter_campaign_id', $campaigns->getCollection()->modelKeys())
+            ->groupBy('newsletter_deliveries.newsletter_campaign_id', 'newsletter_clicks.url')
+            ->selectRaw('newsletter_deliveries.newsletter_campaign_id as campaign_id, newsletter_clicks.url, count(*) as clicks, count(distinct newsletter_clicks.newsletter_delivery_id) as people')
+            ->orderByDesc('clicks')
+            ->get()
+            ->groupBy('campaign_id');
 
         $campaigns->getCollection()->transform(fn (NewsletterCampaign $campaign) => [
             'id' => $campaign->id,
@@ -57,6 +70,14 @@ class NewsletterController extends Controller
             'sent_count' => $campaign->sent_count,
             'failed_count' => $campaign->failed_count,
             'pending_count' => $campaign->pending_count,
+            'opened_count' => $campaign->opened_count,
+            'click_count' => $campaign->click_count,
+            'clicker_count' => $campaign->clicker_count,
+            'links' => ($linkClicks[$campaign->id] ?? collect())->map(fn (NewsletterClick $link) => [
+                'url' => $link->url,
+                'clicks' => (int) $link->clicks,
+                'people' => (int) $link->people,
+            ])->values()->all(),
             'created_at' => $campaign->created_at?->toIso8601String(),
             'sent_at' => $campaign->sent_at?->toIso8601String(),
             'failures' => $campaign->deliveries->map(fn (NewsletterDelivery $delivery) => [

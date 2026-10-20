@@ -12,6 +12,10 @@ interface Campaign {
   sent_count: number
   failed_count: number
   pending_count: number
+  opened_count: number
+  click_count: number
+  clicker_count: number
+  links: { url: string; clicks: number; people: number }[]
   created_at: string | null
   sent_at: string | null
   failures: { id: number; masked_email: string; error: string | null }[]
@@ -41,9 +45,14 @@ function successRate(campaign: Campaign) {
   return attempted === 0 ? null : Math.round((campaign.sent_count / attempted) * 1000) / 10
 }
 
+function percent(part: number, whole: number) {
+  return whole === 0 ? null : Math.round((part / whole) * 1000) / 10
+}
+
 function CampaignRow({ campaign }: { campaign: Campaign }) {
   const [open, setOpen] = useState(false)
   const rate = successRate(campaign)
+  const openRate = percent(campaign.opened_count, campaign.sent_count)
   const sentAt = formatDateTime(campaign.sent_at)
 
   return (
@@ -72,10 +81,37 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
           {campaign.pending_count > 0 && <span className="ml-2 text-gray-400">{campaign.pending_count} pending</span>}
         </td>
         <td className="px-4 py-3 font-medium tabular-nums">{rate === null ? '—' : `${rate}%`}</td>
+        <td className="px-4 py-3 tabular-nums">
+          {campaign.opened_count}
+          {openRate !== null && <span className="text-gray-400"> · {openRate}%</span>}
+        </td>
+        <td className="px-4 py-3 tabular-nums">
+          {campaign.click_count > 0 ? (
+            <button type="button" onClick={() => setOpen(!open)} className="text-indigo-700 underline">
+              {campaign.click_count} from {campaign.clicker_count} {campaign.clicker_count === 1 ? 'person' : 'people'}
+            </button>
+          ) : (
+            <span className="text-gray-400">0</span>
+          )}
+        </td>
       </tr>
       {open && (
         <tr>
-          <td colSpan={5} className="bg-red-50/50 px-4 py-3">
+          <td colSpan={7} className="space-y-3 bg-gray-50 px-4 py-3">
+            {campaign.links.length > 0 && (
+              <ul className="space-y-1 text-xs">
+                {campaign.links.map((link) => (
+                  <li key={link.url} className="flex gap-3">
+                    <span className="w-28 shrink-0 tabular-nums text-gray-800">
+                      {link.clicks} {link.clicks === 1 ? 'click' : 'clicks'} · {link.people}
+                    </span>
+                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="truncate text-gray-500 hover:underline">
+                      {link.url}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
             <ul className="space-y-1 text-xs">
               {campaign.failures.map((failure) => (
                 <li key={failure.id}>
@@ -154,6 +190,8 @@ export default function Campaigns({ campaigns, schedule, activeSubscribers, sent
                     <th className="px-4 py-3">Recipients</th>
                     <th className="px-4 py-3">Deliveries</th>
                     <th className="px-4 py-3">Success</th>
+                    <th className="px-4 py-3">Opened</th>
+                    <th className="px-4 py-3">Clicks</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">

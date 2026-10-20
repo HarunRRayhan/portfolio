@@ -149,6 +149,7 @@ class SendWeeklyNewsletter extends Command
                     subscriber: $subscriber,
                     products: $products,
                     tweets: $tweets,
+                    delivery: $delivery,
                 ));
 
                 $delivery->update([
