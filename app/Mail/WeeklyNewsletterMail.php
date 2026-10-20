@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Models\NewsletterDelivery;
 use App\Models\Subscriber;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -23,6 +24,7 @@ class WeeklyNewsletterMail extends Mailable
         public ?Subscriber $subscriber,
         public array $products,
         public array $tweets = [],
+        public ?NewsletterDelivery $delivery = null,
     ) {}
 
     public function build()
@@ -34,6 +36,8 @@ class WeeklyNewsletterMail extends Mailable
                 'tweets' => $this->tweets,
                 'blogUrl' => rtrim(config('app.url'), '/').'/blog',
                 'unsubscribeUrl' => $this->unsubscribeUrl(),
+                'track' => $this->trackUrl(...),
+                'openPixelUrl' => $this->delivery ? URL::signedRoute('newsletter.open', ['delivery' => $this->delivery->getKey()]) : null,
             ])
             ->text('emails.newsletter.weekly-text', [
                 'posts' => $this->posts,
@@ -41,7 +45,16 @@ class WeeklyNewsletterMail extends Mailable
                 'tweets' => $this->tweets,
                 'blogUrl' => rtrim(config('app.url'), '/').'/blog',
                 'unsubscribeUrl' => $this->unsubscribeUrl(),
+                'track' => $this->trackUrl(...),
             ]);
+    }
+
+    /** Wraps a link in the signed click redirect; owner copies and previews keep the plain link. */
+    private function trackUrl(string $url): string
+    {
+        return $this->delivery
+            ? URL::signedRoute('newsletter.click', ['delivery' => $this->delivery->getKey(), 'url' => $url])
+            : $url;
     }
 
     /** Owner copies and previews have no subscriber, so their unsubscribe link points at the blog. */

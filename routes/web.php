@@ -599,6 +599,17 @@ Route::get('/newsletter/unsubscribe/{subscriber}', [NewsletterController::class,
     ->middleware('signed')
     ->name('newsletter.unsubscribe');
 
+// Signed per-delivery links: the open pixel and the click redirect in each newsletter.
+Route::get('/newsletter/o/{delivery}', [NewsletterController::class, 'open'])
+    ->where('delivery', '[0-9]+')
+    ->middleware(['signed', 'throttle:120,1'])
+    ->name('newsletter.open');
+
+Route::get('/newsletter/c/{delivery}', [NewsletterController::class, 'click'])
+    ->where('delivery', '[0-9]+')
+    ->middleware(['signed', 'throttle:120,1'])
+    ->name('newsletter.click');
+
 Route::get('/case-studies', function (Request $request) {
     if ($request->getRequestUri() === '/case-studies/') {
         return redirect('/case-studies', 301);

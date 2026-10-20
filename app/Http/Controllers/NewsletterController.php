@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\SubscribeRequest;
+use App\Models\NewsletterClick;
+use App\Models\NewsletterDelivery;
 use App\Models\Subscriber;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class NewsletterController extends Controller
@@ -44,5 +47,33 @@ class NewsletterController extends Controller
         Cache::forget('newsletter.subscriber_count');
 
         return response()->view('newsletter.unsubscribed');
+    }
+
+    /** 1x1 transparent GIF that marks the delivery as opened. */
+    public function open(string $delivery)
+    {
+        NewsletterDelivery::query()->whereKey($delivery)->whereNull('opened_at')->update(['opened_at' => now()]);
+
+        return response(base64_decode('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'), 200, [
+            'Content-Type' => 'image/gif',
+            'Cache-Control' => 'no-store, private',
+        ]);
+    }
+
+    /** Records the click, then forwards to the signed destination. A click also counts as an open. */
+    public function click(Request $request, string $delivery)
+    {
+        $url = (string) $request->query('url');
+        abort_unless(preg_match('#^https?://#i', $url), 404);
+
+        // Look up by id (not route binding) so a deleted subscriber's old email still forwards.
+        $record = NewsletterDelivery::query()->find($delivery);
+
+        if ($record) {
+            NewsletterClick::create(['newsletter_delivery_id' => $record->id, 'url' => mb_substr($url, 0, 2048)]);
+            $record->opened_at ?? $record->update(['opened_at' => now()]);
+        }
+
+        return redirect()->away($url);
     }
 }
