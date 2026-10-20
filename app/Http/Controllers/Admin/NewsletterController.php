@@ -71,6 +71,10 @@ class NewsletterController extends Controller
             'campaigns' => $campaigns,
             'schedule' => config('newsletter.schedule'),
             'activeSubscribers' => Subscriber::subscribed()->count(),
+            // Same week key the send command uses.
+            'sentThisWeekAt' => NewsletterCampaign::query()
+                ->where('key', now(config('newsletter.schedule.timezone'))->format('o-\\WW'))
+                ->first()?->sent_at?->toIso8601String(),
         ]);
     }
 
