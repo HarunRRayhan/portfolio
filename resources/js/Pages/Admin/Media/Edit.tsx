@@ -4,7 +4,7 @@ import MediaItemForm, { type MediaItemFormData } from './Partials/MediaItemForm'
 
 interface MediaItemRecord {
   id: number
-  type: 'slide' | 'video'
+  type: 'slide' | 'video' | 'image'
   title: string
   slug: string
   summary: string | null

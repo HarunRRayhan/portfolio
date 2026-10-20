@@ -4,7 +4,7 @@ import { SeoHead } from '@/Components/SeoHead';
 import type { PageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
-    BarChart3, Calendar, ChevronDown, FileText, Image, KeyRound, LayoutDashboard,
+    BarChart3, Calendar, ChevronDown, FileText, Image, Images, KeyRound, LayoutDashboard,
     LayoutTemplate, Link2, LogOut, Mail, Menu, PanelLeftClose, PanelLeftOpen, Presentation, Send, Ticket, User, Users, Video,
 } from 'lucide-react';
 import { PropsWithChildren, ReactNode, useEffect, useRef, useState } from 'react';
@@ -81,6 +81,7 @@ function useNavSections(): NavSection[] {
                 { label: 'All media', href: route('admin.media.index'), icon: Image, active: route().current('admin.media.*') && mediaType === null },
                 { label: 'Slides', href: route('admin.media.index', { type: 'slide' }), icon: Presentation, active: route().current('admin.media.index') && mediaType === 'slide' },
                 { label: 'Videos', href: route('admin.media.index', { type: 'video' }), icon: Video, active: route().current('admin.media.index') && mediaType === 'video' },
+                { label: 'Images', href: route('admin.media.index', { type: 'image' }), icon: Images, active: route().current('admin.media.index') && mediaType === 'image' },
             ],
         },
         {

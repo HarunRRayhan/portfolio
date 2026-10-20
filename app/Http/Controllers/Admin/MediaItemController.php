@@ -7,15 +7,19 @@ use App\Models\MediaItem;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class MediaItemController extends Controller
 {
+    /** Images are admin-only for now: no public page lists them, they're for sharing by link. */
+    private const TYPES = ['slide', 'video', 'image'];
+
     public function index(Request $request): Response
     {
         $type = $request->query('type');
-        $type = in_array($type, ['slide', 'video'], true) ? $type : null;
+        $type = in_array($type, self::TYPES, true) ? $type : null;
 
         $items = MediaItem::query()
             ->when($type, fn ($query) => $query->ofType($type))
@@ -38,11 +42,15 @@ class MediaItemController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $data = $this->validateData($request);
+        $data = $this->validateData($request, creating: true);
         unset($data['remove_thumbnail'], $data['thumbnail']); // 'thumbnail' is the raw upload, not a column
 
         if ($request->hasFile('thumbnail')) {
             $data['thumbnail_path'] = $request->file('thumbnail')->store('media-thumbnails', 'public');
+        }
+
+        if ($data['type'] === 'image' && empty($data['url'])) {
+            $data['url'] = Storage::disk('public')->url($data['thumbnail_path']);
         }
 
         MediaItem::create($data);
@@ -63,8 +71,10 @@ class MediaItemController extends Controller
     public function update(Request $request, MediaItem $mediaItem): RedirectResponse
     {
         $data = $this->validateData($request);
-        $removeThumbnail = (bool) ($data['remove_thumbnail'] ?? false);
+        // An image item's file is its content, so it can be replaced but not removed.
+        $removeThumbnail = (bool) ($data['remove_thumbnail'] ?? false) && $data['type'] !== 'image';
         unset($data['remove_thumbnail'], $data['thumbnail']);
+        $oldFileUrl = $mediaItem->thumbnail_url;
 
         // A newly uploaded file always wins over "remove"; both replace the
         // old stored file, so the delete only ever targets what's on disk now.
@@ -74,6 +84,17 @@ class MediaItemController extends Controller
         } elseif ($removeThumbnail) {
             $this->deleteThumbnail($mediaItem);
             $data['thumbnail_path'] = null;
+        }
+
+        // An image with no URL of its own (or one still pointing at the old file) links to its file.
+        if ($data['type'] === 'image' && (empty($data['url']) || $data['url'] === $oldFileUrl)) {
+            $path = array_key_exists('thumbnail_path', $data) ? $data['thumbnail_path'] : $mediaItem->thumbnail_path;
+
+            if (! $path) {
+                throw ValidationException::withMessages(['thumbnail' => 'An image item needs an uploaded image.']);
+            }
+
+            $data['url'] = Storage::disk('public')->url($path);
         }
 
         $mediaItem->update($data);
@@ -133,16 +154,16 @@ class MediaItemController extends Controller
     /**
      * @return array<string, mixed>
      */
-    private function validateData(Request $request): array
+    private function validateData(Request $request, bool $creating = false): array
     {
         return $request->validate([
-            'type' => ['required', 'in:slide,video'],
+            'type' => ['required', 'in:'.implode(',', self::TYPES)],
             'title' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255'],
             'summary' => ['nullable', 'string'],
-            'url' => ['required', 'string', 'max:2048', 'url'],
+            'url' => ['required_unless:type,image', 'nullable', 'string', 'max:2048', 'url'],
             'source_label' => ['nullable', 'string', 'max:255'],
-            'thumbnail' => ['nullable', 'image', 'max:2048'],
+            'thumbnail' => array_filter([$creating ? 'required_if:type,image' : null, 'nullable', 'image', $request->input('type') === 'image' ? 'max:5120' : 'max:2048']),
             'remove_thumbnail' => ['nullable', 'boolean'],
             'published_at' => ['nullable', 'date'],
             'is_active' => ['boolean'],

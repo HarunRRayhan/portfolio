@@ -3,8 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\MediaItem;
+use App\Models\User;
 use App\Support\MediaEmbeds;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class MediaItemTest extends TestCase
@@ -198,5 +201,33 @@ class MediaItemTest extends TestCase
             $page['props']['item']['embedUrl']
         );
         $this->assertStringContainsString('/s/', $page['props']['item']['pageShareUrl']);
+    }
+
+    public function test_an_image_item_without_a_url_links_to_its_uploaded_file(): void
+    {
+        Storage::fake('public');
+        $admin = User::factory()->create(['email_verified_at' => now(), 'role' => 'admin']);
+
+        $this->actingAs($admin)->post('/admin/media', [
+            'type' => 'image',
+            'title' => 'Architecture diagram',
+            'thumbnail' => UploadedFile::fake()->image('diagram.png'),
+            'is_active' => true,
+        ])->assertRedirect('/admin/media');
+
+        $item = MediaItem::query()->where('type', 'image')->firstOrFail();
+        $this->assertSame($item->thumbnail_url, $item->url);
+        Storage::disk('public')->assertExists($item->thumbnail_path);
+
+        $this->get('/slides')->assertDontSee('Architecture diagram');
+        $this->get('/videos')->assertDontSee('Architecture diagram');
+    }
+
+    public function test_an_image_item_requires_an_upload(): void
+    {
+        $admin = User::factory()->create(['email_verified_at' => now(), 'role' => 'admin']);
+
+        $this->actingAs($admin)->post('/admin/media', ['type' => 'image', 'title' => 'No file', 'is_active' => true])
+            ->assertSessionHasErrors('thumbnail');
     }
 }
