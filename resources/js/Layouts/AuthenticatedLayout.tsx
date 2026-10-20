@@ -5,7 +5,7 @@ import type { PageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
     BarChart3, Calendar, ChevronDown, FileText, Image, KeyRound, LayoutDashboard,
-    Link2, LogOut, Mail, Menu, PanelLeftClose, PanelLeftOpen, Ticket, User,
+    LayoutTemplate, Link2, LogOut, Mail, Menu, PanelLeftClose, PanelLeftOpen, Presentation, Send, Ticket, User, Users, Video,
 } from 'lucide-react';
 import { PropsWithChildren, ReactNode, useEffect, useRef, useState } from 'react';
 
@@ -43,6 +43,8 @@ function FlashMessage() {
 }
 
 function useNavSections(): NavSection[] {
+    const mediaType = new URLSearchParams(usePage().url.split('?')[1] ?? '').get('type');
+
     return [
         {
             label: 'Overview', icon: LayoutDashboard,
@@ -74,10 +76,19 @@ function useNavSections(): NavSection[] {
             ],
         },
         {
-            label: 'Content', icon: Image,
+            label: 'Media', icon: Image,
             items: [
-                { label: 'Media', href: route('admin.media.index'), icon: Image, active: route().current('admin.media.*') },
-                { label: 'Newsletter', href: route('admin.newsletter.index'), icon: Mail, active: route().current('admin.newsletter.*') },
+                { label: 'All media', href: route('admin.media.index'), icon: Image, active: route().current('admin.media.*') && mediaType === null },
+                { label: 'Slides', href: route('admin.media.index', { type: 'slide' }), icon: Presentation, active: route().current('admin.media.index') && mediaType === 'slide' },
+                { label: 'Videos', href: route('admin.media.index', { type: 'video' }), icon: Video, active: route().current('admin.media.index') && mediaType === 'video' },
+            ],
+        },
+        {
+            label: 'Newsletter', icon: Mail,
+            items: [
+                { label: 'Subscribers', href: route('admin.newsletter.index'), icon: Users, active: route().current('admin.newsletter.index') },
+                { label: 'Campaigns', href: route('admin.newsletter.campaigns'), icon: Send, active: route().current('admin.newsletter.campaigns') },
+                { label: 'Templates', href: route('admin.newsletter.templates'), icon: LayoutTemplate, active: route().current('admin.newsletter.templates') },
             ],
         },
         {

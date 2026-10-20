@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
-import { Head, Link } from '@inertiajs/react'
+import { Head, Link, router } from '@inertiajs/react'
 import { useEffect, useRef, useState } from 'react'
 import axios from '@/lib/http'
 import { Eye, EyeOff, Mail } from 'lucide-react'
@@ -91,9 +91,9 @@ export default function Index({ subscribers }: { subscribers: Paginated<Subscrib
 
   return (
     <AuthenticatedLayout
-      header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Newsletter</h2>}
+      header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Subscribers</h2>}
     >
-      <Head title="Newsletter" />
+      <Head title="Newsletter subscribers" />
 
       <div className="py-6 sm:py-12">
         <div className="mx-auto max-w-4xl space-y-4 px-4 sm:px-6 lg:px-8">
@@ -140,7 +140,21 @@ export default function Index({ subscribers }: { subscribers: Paginated<Subscrib
                         <EmailCell subscriber={subscriber} />
                       </td>
                       <td className="px-4 py-3 text-gray-500">{subscriber.source ?? 'unknown'}</td>
-                      <td className="px-4 py-3 text-gray-500">{subscriber.status}</td>
+                      <td className="px-4 py-3">
+                        <button
+                          type="button"
+                          onClick={() => router.patch(route('admin.newsletter.status', subscriber.id), {}, { preserveScroll: true })}
+                          title={subscriber.status === 'subscribed' ? 'Unsubscribe' : 'Resubscribe'}
+                          className={
+                            'rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 transition hover:opacity-80 ' +
+                            (subscriber.status === 'subscribed'
+                              ? 'bg-emerald-50 text-emerald-700 ring-emerald-200'
+                              : 'bg-gray-50 text-gray-500 ring-gray-200')
+                          }
+                        >
+                          {subscriber.status}
+                        </button>
+                      </td>
                       <td className="px-4 py-3 text-gray-500">{formatDate(subscriber.created_at)}</td>
                     </tr>
                   ))}

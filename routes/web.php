@@ -232,12 +232,24 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::delete('/{id}', [ApiKeyController::class, 'destroy'])->name('destroy');
     });
 
-// Admin read-only view of newsletter subscribers
+// Admin newsletter: subscribers, campaign history, template preview and sending
 Route::middleware(['auth', 'verified', 'role:admin'])
     ->prefix('admin/newsletter')
     ->name('admin.newsletter.')
     ->group(function () {
         Route::get('/', [AdminNewsletterController::class, 'index'])->name('index');
+        Route::get('/campaigns', [AdminNewsletterController::class, 'campaigns'])->name('campaigns');
+        Route::post('/campaigns/send', [AdminNewsletterController::class, 'sendNow'])
+            ->middleware('throttle:5,1')
+            ->name('send');
+        Route::get('/templates', [AdminNewsletterController::class, 'templates'])->name('templates');
+        Route::get('/templates/preview', [AdminNewsletterController::class, 'preview'])->name('preview');
+        Route::post('/templates/test', [AdminNewsletterController::class, 'sendTest'])
+            ->middleware('throttle:5,1')
+            ->name('test');
+        Route::patch('/{subscriber}/status', [AdminNewsletterController::class, 'toggleStatus'])
+            ->where('subscriber', '[0-9]{1,18}')
+            ->name('status');
         // POST, not GET: reveal() writes an audit-log entry and consumes
         // throttle budget, so it needs CSRF protection -- a GET here could
         // be triggered by an admin's browser just following a link.

@@ -2,10 +2,14 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Mail\WeeklyNewsletterMail;
+use App\Models\NewsletterCampaign;
+use App\Models\NewsletterDelivery;
 use App\Models\Subscriber;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class NewsletterTest extends TestCase
@@ -145,5 +149,62 @@ class NewsletterTest extends TestCase
             'X-Requested-With' => 'XMLHttpRequest',
             'Accept' => 'application/json, text/plain, */*',
         ])->assertUnauthorized();
+    }
+
+    public function test_campaigns_report_delivery_counts_and_failures(): void
+    {
+        $campaign = NewsletterCampaign::create(['key' => '2026-W40', 'post_slugs' => ['a'], 'subject' => 'Hi', 'subscriber_count' => 3]);
+        foreach (['sent', 'sent', 'failed'] as $status) {
+            NewsletterDelivery::create([
+                'newsletter_campaign_id' => $campaign->id,
+                'subscriber_id' => Subscriber::factory()->create(['email' => "x{$status}".uniqid().'@gmail.com'])->id,
+                'status' => $status,
+                'error' => $status === 'failed' ? 'Mailbox full' : null,
+            ]);
+        }
+
+        $response = $this->actingAs($this->admin())->get('/admin/newsletter/campaigns', $this->inertiaHeaders());
+
+        $response->assertOk()->assertJson(['component' => 'Admin/Newsletter/Campaigns']);
+        $this->assertSame(2, $response->json('props.campaigns.data.0.sent_count'));
+        $this->assertSame(1, $response->json('props.campaigns.data.0.failed_count'));
+        $this->assertSame('Mailbox full', $response->json('props.campaigns.data.0.failures.0.error'));
+        $this->assertStringNotContainsString('xfailed', $response->getContent());
+    }
+
+    public function test_a_non_admin_cannot_send_or_preview(): void
+    {
+        $user = User::factory()->create(['email_verified_at' => now()]);
+
+        $this->actingAs($user)->post('/admin/newsletter/campaigns/send')->assertForbidden();
+        $this->actingAs($user)->post('/admin/newsletter/templates/test')->assertForbidden();
+        $this->actingAs($user)->get('/admin/newsletter/templates/preview')->assertForbidden();
+    }
+
+    public function test_the_template_preview_renders_and_the_test_goes_to_the_owner(): void
+    {
+        Mail::fake();
+        $admin = $this->admin();
+
+        $this->actingAs($admin)->get('/admin/newsletter/templates/preview')
+            ->assertOk()
+            ->assertSee('Browse the blog');
+
+        $this->actingAs($admin)->post('/admin/newsletter/templates/test')->assertRedirect();
+
+        Mail::assertSent(WeeklyNewsletterMail::class, fn (WeeklyNewsletterMail $mail) => $mail->hasTo(config('mail.owner.address')));
+        $this->assertDatabaseCount('newsletter_campaigns', 0);
+    }
+
+    public function test_an_admin_can_toggle_a_subscribers_status(): void
+    {
+        $admin = $this->admin();
+        $subscriber = Subscriber::factory()->create();
+
+        $this->actingAs($admin)->patch("/admin/newsletter/{$subscriber->id}/status")->assertRedirect();
+        $this->assertSame('unsubscribed', $subscriber->fresh()->status);
+
+        $this->actingAs($admin)->patch("/admin/newsletter/{$subscriber->id}/status");
+        $this->assertSame('subscribed', $subscriber->fresh()->status);
     }
 }

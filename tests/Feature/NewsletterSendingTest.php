@@ -39,10 +39,10 @@ class NewsletterSendingTest extends TestCase
         $this->artisan('newsletter:send-weekly')
             ->assertSuccessful();
 
-        Mail::assertSent(WeeklyNewsletterMail::class, 1);
+        Mail::assertSent(WeeklyNewsletterMail::class, 2); // subscriber + owner copy
         Mail::assertSent(
             WeeklyNewsletterMail::class,
-            fn (WeeklyNewsletterMail $mail): bool => $mail->subscriber->is($subscriber)
+            fn (WeeklyNewsletterMail $mail): bool => $mail->subscriber?->is($subscriber)
                 && $mail->posts !== []
                 && ! empty($mail->posts[0]['newsletterExcerpt']),
         );
@@ -59,7 +59,7 @@ class NewsletterSendingTest extends TestCase
 
         $this->artisan('newsletter:send-weekly')->assertSuccessful();
 
-        Mail::assertSent(WeeklyNewsletterMail::class, 1);
+        Mail::assertSent(WeeklyNewsletterMail::class, 2);
         $this->assertDatabaseCount('newsletter_campaigns', 1);
     }
 
@@ -72,7 +72,11 @@ class NewsletterSendingTest extends TestCase
         $this->artisan('newsletter:send-weekly')->assertSuccessful();
         $this->artisan('newsletter:send-weekly')->assertSuccessful();
 
-        Mail::assertSent(WeeklyNewsletterMail::class, 1);
+        Mail::assertSent(WeeklyNewsletterMail::class, 2);
+        Mail::assertSent(
+            WeeklyNewsletterMail::class,
+            fn (WeeklyNewsletterMail $mail): bool => $mail->subscriber === null && $mail->hasTo(config('mail.owner.address')),
+        );
         $this->assertDatabaseCount('newsletter_campaigns', 1);
         $this->assertDatabaseCount('newsletter_deliveries', 1);
     }
