@@ -1,7 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, Link, router } from '@inertiajs/react'
 import { useState } from 'react'
-import { Send } from 'lucide-react'
+import { Eye, Send } from 'lucide-react'
 
 interface Campaign {
   id: number
@@ -26,6 +26,7 @@ interface Props {
   }
   schedule: { day: number; time: string; timezone: string }
   activeSubscribers: number
+  sentThisWeekAt: string | null
 }
 
 const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -90,11 +91,14 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
   )
 }
 
-export default function Campaigns({ campaigns, schedule, activeSubscribers }: Props) {
+export default function Campaigns({ campaigns, schedule, activeSubscribers, sentThisWeekAt }: Props) {
   const [sending, setSending] = useState(false)
 
   const sendNow = () => {
-    if (!confirm(`Send this week's newsletter to ${activeSubscribers} active subscribers now? Failed deliveries from this week are retried.`)) return
+    const message = sentThisWeekAt
+      ? `You already sent a newsletter this week (${formatDateTime(sentThisWeekAt)}). Are you sure you want to send it again?`
+      : `Send this week's newsletter to ${activeSubscribers} active subscribers now? Failed deliveries from this week are retried.`
+    if (!confirm(message)) return
     router.post(route('admin.newsletter.send'), {}, {
       preserveScroll: true,
       onStart: () => setSending(true),
@@ -116,15 +120,26 @@ export default function Campaigns({ campaigns, schedule, activeSubscribers }: Pr
               </p>
               <p className="text-gray-400">{activeSubscribers} active subscribers. You get one copy of each campaign.</p>
             </div>
-            <button
-              type="button"
-              onClick={sendNow}
-              disabled={sending}
-              className="inline-flex items-center gap-2 rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
-            >
-              <Send className="h-4 w-4" />
-              {sending ? 'Sending…' : 'Send now'}
-            </button>
+            <div className="flex gap-2">
+              <a
+                href={route('admin.newsletter.preview')}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50"
+              >
+                <Eye className="h-4 w-4" />
+                Preview email
+              </a>
+              <button
+                type="button"
+                onClick={sendNow}
+                disabled={sending}
+                className="inline-flex items-center gap-2 rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+              >
+                <Send className="h-4 w-4" />
+                {sending ? 'Sending…' : 'Send now'}
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">

@@ -173,6 +173,21 @@ class NewsletterTest extends TestCase
         $this->assertStringNotContainsString('xfailed', $response->getContent());
     }
 
+    public function test_campaigns_flag_a_newsletter_already_sent_this_week(): void
+    {
+        $this->actingAs($this->admin())->get('/admin/newsletter/campaigns', $this->inertiaHeaders())
+            ->assertJsonPath('props.sentThisWeekAt', null);
+
+        NewsletterCampaign::create([
+            'key' => now(config('newsletter.schedule.timezone'))->format('o-\\WW'),
+            'post_slugs' => ['a'], 'subject' => 'Hi', 'subscriber_count' => 1, 'sent_at' => now(),
+        ]);
+
+        $sentAt = $this->actingAs($this->admin())->get('/admin/newsletter/campaigns', $this->inertiaHeaders())
+            ->json('props.sentThisWeekAt');
+        $this->assertNotNull($sentAt);
+    }
+
     public function test_a_non_admin_cannot_send_or_preview(): void
     {
         $user = User::factory()->create(['email_verified_at' => now()]);
