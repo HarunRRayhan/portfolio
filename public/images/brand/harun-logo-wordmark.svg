@@ -1,10 +1,20 @@
 <svg width="720" height="180" viewBox="0 0 720 180" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
   <title id="title">Harun.dev wordmark</title>
-  <desc id="desc">A refined slate wordmark for Harun.dev with a matching monogram mark.</desc>
-  <rect x="24" y="26" width="128" height="128" rx="34" fill="#0F172A"/>
-  <rect x="34" y="36" width="108" height="108" rx="26" fill="#111827" stroke="#334155" stroke-width="3"/>
-  <path d="M67 119V61" stroke="#F8FAFC" stroke-width="10" stroke-linecap="round"/>
-  <path d="M67 90C75 79 85 75 95 79C104 83 109 92 109 119" stroke="#F8FAFC" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M109 90C115 80 124 76 134 79" stroke="#CBD5E1" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <desc id="desc">The Harun.dev H mark with the Harun.dev wordmark.</desc>
+  <g transform="translate(14.8571 16.8571) scale(0.285714)">
+  <rect x="32" y="32" width="448" height="448" rx="112" fill="#0F172A" />
+  <rect x="64" y="64" width="384" height="384" rx="88" fill="#111827" stroke="#334155" stroke-width="8" />
+  <path d="M176 150V362" stroke="#F8FAFC" stroke-width="34" stroke-linecap="round" />
+  <path d="M336 150V362" stroke="#F8FAFC" stroke-width="34" stroke-linecap="round" />
+  <path d="M176 256H336" stroke="#22D3EE" stroke-width="30" stroke-linecap="round" />
+  <circle cx="176" cy="150" r="19" fill="#22D3EE" />
+  <circle cx="176" cy="362" r="19" fill="#22D3EE" />
+  <circle cx="336" cy="150" r="19" fill="#22D3EE" />
+  <circle cx="336" cy="362" r="19" fill="#22D3EE" />
+  <circle cx="176" cy="150" r="8" fill="#0F172A" />
+  <circle cx="176" cy="362" r="8" fill="#0F172A" />
+  <circle cx="336" cy="150" r="8" fill="#0F172A" />
+  <circle cx="336" cy="362" r="8" fill="#0F172A" />
+  </g>
   <text x="184" y="111" fill="#0F172A" font-family="Geist Sans, Inter, Segoe UI, Arial, sans-serif" font-size="64" font-weight="500" letter-spacing="0">Harun<tspan fill="#64748B" font-weight="400">.dev</tspan></text>
 </svg>
