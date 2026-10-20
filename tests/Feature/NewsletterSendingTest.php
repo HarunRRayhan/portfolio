@@ -8,6 +8,7 @@ use App\Models\Subscriber;
 use App\Support\BlogRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use PHPUnit\Framework\Attributes\Test;
@@ -39,10 +40,10 @@ class NewsletterSendingTest extends TestCase
         $this->artisan('newsletter:send-weekly')
             ->assertSuccessful();
 
-        Mail::assertSent(WeeklyNewsletterMail::class, 1);
+        Mail::assertSent(WeeklyNewsletterMail::class, 2); // subscriber + owner copy
         Mail::assertSent(
             WeeklyNewsletterMail::class,
-            fn (WeeklyNewsletterMail $mail): bool => $mail->subscriber->is($subscriber)
+            fn (WeeklyNewsletterMail $mail): bool => $mail->subscriber?->is($subscriber)
                 && $mail->posts !== []
                 && ! empty($mail->posts[0]['newsletterExcerpt']),
         );
@@ -59,7 +60,7 @@ class NewsletterSendingTest extends TestCase
 
         $this->artisan('newsletter:send-weekly')->assertSuccessful();
 
-        Mail::assertSent(WeeklyNewsletterMail::class, 1);
+        Mail::assertSent(WeeklyNewsletterMail::class, 2);
         $this->assertDatabaseCount('newsletter_campaigns', 1);
     }
 
@@ -72,7 +73,11 @@ class NewsletterSendingTest extends TestCase
         $this->artisan('newsletter:send-weekly')->assertSuccessful();
         $this->artisan('newsletter:send-weekly')->assertSuccessful();
 
-        Mail::assertSent(WeeklyNewsletterMail::class, 1);
+        Mail::assertSent(WeeklyNewsletterMail::class, 2);
+        Mail::assertSent(
+            WeeklyNewsletterMail::class,
+            fn (WeeklyNewsletterMail $mail): bool => $mail->subscriber === null && $mail->hasTo(config('mail.owner.address')),
+        );
         $this->assertDatabaseCount('newsletter_campaigns', 1);
         $this->assertDatabaseCount('newsletter_deliveries', 1);
     }
@@ -234,5 +239,19 @@ class NewsletterSendingTest extends TestCase
         $withoutTweets = (new WeeklyNewsletterMail($mail->posts, $subscriber, $mail->products))->render();
         $this->assertStringContainsString('https://x.com/harundotdev', $withoutTweets);
         $this->assertStringContainsString('shorter engineering notes', $withoutTweets);
+    }
+
+    #[Test]
+    public function a_send_already_in_progress_blocks_a_second_one(): void
+    {
+        Mail::fake();
+        Subscriber::factory()->create();
+        $lock = Cache::lock('newsletter:send-weekly', 60);
+        $lock->get();
+
+        $this->artisan('newsletter:send-weekly')->assertFailed();
+
+        $lock->release();
+        Mail::assertNothingSent();
     }
 }

@@ -6,9 +6,9 @@ use App\Mail\WeeklyNewsletterMail;
 use App\Models\NewsletterCampaign;
 use App\Models\NewsletterDelivery;
 use App\Models\Subscriber;
-use App\Support\BlogRepository;
+use App\Support\NewsletterIssue;
 use Illuminate\Console\Command;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Throwable;
@@ -20,20 +20,31 @@ class SendWeeklyNewsletter extends Command
 
     protected $description = 'Generate the weekly blog digest and send it to active subscribers';
 
-    public function handle(BlogRepository $blog): int
+    public function handle(NewsletterIssue $issue): int
+    {
+        // The admin "Send now" button and the scheduler both run this; the lock keeps them from double-sending.
+        $lock = Cache::lock('newsletter:send-weekly', 3600);
+
+        if (! $lock->get()) {
+            $this->error('Another newsletter send is already running. Try again when it finishes.');
+
+            return self::FAILURE;
+        }
+
+        try {
+            return $this->send($issue);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    private function send(NewsletterIssue $issue): int
     {
         $dryRun = (bool) $this->option('dry-run');
 
         $now = now(config('newsletter.schedule.timezone'));
-        $windowStart = $now->copy()->subDays(7);
         $weekKey = $now->format('o-\\WW');
-        $availablePosts = collect($blog->indexPosts())
-            ->filter(fn (array $post): bool => ! (bool) ($post['isDraft'] ?? false))
-            ->filter(fn (array $post): bool => Carbon::parse((string) $post['publishedAt'])->lte($now))
-            ->values();
-        $recentPosts = $availablePosts
-            ->filter(fn (array $post): bool => Carbon::parse((string) $post['publishedAt'])->gt($windowStart))
-            ->values();
+        $recentPosts = $issue->recentPosts($now);
 
         if ($recentPosts->isEmpty()) {
             $this->info('No posts were published in the last seven days. Newsletter skipped.');
@@ -67,30 +78,8 @@ class SendWeeklyNewsletter extends Command
             return self::SUCCESS;
         }
 
-        $posts = $posts->map(function (array $post, int $index) use ($blog): array {
-            if ($index !== 0 || ! isset($post['brief'])) {
-                return $post;
-            }
-
-            $source = $blog->find((string) $post['slug']);
-
-            if (! $source) {
-                return $post;
-            }
-
-            $content = $blog->withContent($source);
-            preg_match_all('/<p\b[^>]*>(.*?)<\/p>/si', (string) $content['content']['html'], $paragraphs);
-            $intro = collect(array_slice($paragraphs[1], 0, 2))
-                ->map(fn (string $paragraph): string => trim(html_entity_decode(strip_tags($paragraph), ENT_QUOTES | ENT_HTML5, 'UTF-8')))
-                ->filter()
-                ->implode(' ');
-
-            if ($intro !== '') {
-                $post['newsletterExcerpt'] = Str::limit($intro, 500, '…');
-            }
-
-            return $post;
-        });
+        $posts = $issue->withLeadExcerpt($posts);
+        $tweets = $issue->tweets();
 
         $subject = $this->subjectFor($posts->all());
 
@@ -126,11 +115,11 @@ class SendWeeklyNewsletter extends Command
         $subscriberCount = $subscribers->count();
         $campaign->update(['subscriber_count' => $subscriberCount]);
         $products = $campaign->products;
-        $tweets = collect(config('newsletter.tweets', []))
-            ->filter(fn (array $tweet): bool => ! empty($tweet['text']) && ! empty($tweet['url']))
-            ->take(3)
-            ->values()
-            ->all();
+
+        // One copy to the owner per campaign, on the run that created it, so retries don't repeat it.
+        if ($campaign->wasRecentlyCreated) {
+            $this->sendOwnerCopy($posts->all(), $products, $tweets);
+        }
 
         if ($subscribers->isEmpty()) {
             $this->info("Prepared campaign {$weekKey}, but there are no active subscribers.");
@@ -189,6 +178,23 @@ class SendWeeklyNewsletter extends Command
         $this->info("Sent campaign {$weekKey} to {$sent} subscriber(s).");
 
         return self::SUCCESS;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $posts
+     * @param  array<int, array<string, string>>  $products
+     * @param  array<int, array<string, string>>  $tweets
+     */
+    private function sendOwnerCopy(array $posts, array $products, array $tweets): void
+    {
+        try {
+            Mail::to(config('mail.owner.address'), config('mail.owner.name'))
+                ->send(new WeeklyNewsletterMail(posts: $posts, subscriber: null, products: $products, tweets: $tweets));
+        } catch (Throwable $exception) {
+            // The owner copy is a courtesy; a failure here must not block subscriber delivery.
+            report($exception);
+            $this->error("Owner copy failed: {$exception->getMessage()}");
+        }
     }
 
     /** @return array<int, array<string, string>> */

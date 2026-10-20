@@ -20,7 +20,7 @@ class WeeklyNewsletterMail extends Mailable
      */
     public function __construct(
         public array $posts,
-        public Subscriber $subscriber,
+        public ?Subscriber $subscriber,
         public array $products,
         public array $tweets = [],
     ) {}
@@ -33,19 +33,23 @@ class WeeklyNewsletterMail extends Mailable
                 'products' => $this->products,
                 'tweets' => $this->tweets,
                 'blogUrl' => rtrim(config('app.url'), '/').'/blog',
-                'unsubscribeUrl' => URL::signedRoute('newsletter.unsubscribe', [
-                    'subscriber' => $this->subscriber->getKey(),
-                ]),
+                'unsubscribeUrl' => $this->unsubscribeUrl(),
             ])
             ->text('emails.newsletter.weekly-text', [
                 'posts' => $this->posts,
                 'products' => $this->products,
                 'tweets' => $this->tweets,
                 'blogUrl' => rtrim(config('app.url'), '/').'/blog',
-                'unsubscribeUrl' => URL::signedRoute('newsletter.unsubscribe', [
-                    'subscriber' => $this->subscriber->getKey(),
-                ]),
+                'unsubscribeUrl' => $this->unsubscribeUrl(),
             ]);
+    }
+
+    /** Owner copies and previews have no subscriber, so their unsubscribe link points at the blog. */
+    private function unsubscribeUrl(): string
+    {
+        return $this->subscriber
+            ? URL::signedRoute('newsletter.unsubscribe', ['subscriber' => $this->subscriber->getKey()])
+            : rtrim(config('app.url'), '/').'/blog';
     }
 
     private function subjectLine(): string
