@@ -59,10 +59,24 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
     <>
       <tr className="text-sm text-gray-700">
         <td className="px-4 py-3">
-          <p className="font-medium text-gray-900">{campaign.subject}</p>
-          <p className="text-xs text-gray-400">
-            {campaign.key} · {campaign.post_count} {campaign.post_count === 1 ? 'post' : 'posts'}
-          </p>
+          <div className="flex items-start gap-3">
+            <a
+              href={route('admin.newsletter.campaigns.preview', campaign.id)}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Preview this email"
+              aria-label={`Preview ${campaign.subject}`}
+              className="mt-0.5 shrink-0 rounded-md p-1.5 text-gray-500 ring-1 ring-gray-200 hover:bg-gray-50 hover:text-gray-900"
+            >
+              <Eye className="h-4 w-4" />
+            </a>
+            <div>
+              <p className="font-medium text-gray-900">{campaign.subject}</p>
+              <p className="text-xs text-gray-400">
+                {campaign.key} · {campaign.post_count} {campaign.post_count === 1 ? 'post' : 'posts'}
+              </p>
+            </div>
+          </div>
         </td>
         <td className="px-4 py-3 text-gray-500">
           {sentAt ?? <span className="text-amber-600">Not finished</span>}
@@ -157,15 +171,6 @@ export default function Campaigns({ campaigns, schedule, activeSubscribers, sent
               <p className="text-gray-400">{activeSubscribers} active subscribers. You get one copy of each campaign.</p>
             </div>
             <div className="flex gap-2">
-              <a
-                href={route('admin.newsletter.preview')}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50"
-              >
-                <Eye className="h-4 w-4" />
-                Preview email
-              </a>
               <button
                 type="button"
                 onClick={sendNow}
