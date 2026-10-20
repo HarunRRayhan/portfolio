@@ -113,6 +113,23 @@ class NewsletterController extends Controller
             ->header('Cache-Control', 'no-store, private');
     }
 
+    /** The email as this campaign sent it: its posts and products (tweets are not stored, so they are today's). */
+    public function campaignPreview(NewsletterIssue $issue, string $campaign): \Illuminate\Http\Response
+    {
+        $record = NewsletterCampaign::query()->findOrFail($campaign);
+        $postsBySlug = $issue->publishedPosts(now(config('newsletter.schedule.timezone')))->keyBy('slug');
+        $posts = collect($record->post_slugs ?? [])->map(fn (string $slug) => $postsBySlug->get($slug))->filter()->values();
+
+        $mail = new WeeklyNewsletterMail(
+            posts: $issue->withLeadExcerpt($posts)->all(),
+            subscriber: null,
+            products: $record->products ?? [],
+            tweets: $issue->tweets(),
+        );
+
+        return response($mail->render())->header('Cache-Control', 'no-store, private');
+    }
+
     public function sendTest(NewsletterIssue $issue): RedirectResponse
     {
         try {

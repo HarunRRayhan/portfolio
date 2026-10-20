@@ -239,6 +239,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])
     ->group(function () {
         Route::get('/', [AdminNewsletterController::class, 'index'])->name('index');
         Route::get('/campaigns', [AdminNewsletterController::class, 'campaigns'])->name('campaigns');
+        Route::get('/campaigns/{campaign}/preview', [AdminNewsletterController::class, 'campaignPreview'])
+            ->where('campaign', '[0-9]+')
+            ->name('campaigns.preview');
         Route::post('/campaigns/send', [AdminNewsletterController::class, 'sendNow'])
             ->middleware('throttle:5,1')
             ->name('send');

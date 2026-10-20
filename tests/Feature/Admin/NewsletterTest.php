@@ -195,6 +195,20 @@ class NewsletterTest extends TestCase
         $this->actingAs($user)->post('/admin/newsletter/campaigns/send')->assertForbidden();
         $this->actingAs($user)->post('/admin/newsletter/templates/test')->assertForbidden();
         $this->actingAs($user)->get('/admin/newsletter/templates/preview')->assertForbidden();
+        $this->actingAs($user)->get('/admin/newsletter/campaigns/1/preview')->assertForbidden();
+    }
+
+    public function test_each_campaign_previews_its_own_products(): void
+    {
+        $product = collect(config('newsletter.products'))->last();
+        $campaign = NewsletterCampaign::create(['key' => '2026-W40', 'post_slugs' => ['missing-post'], 'subject' => 'Hi', 'subscriber_count' => 0, 'products' => [$product]]);
+
+        $this->actingAs($this->admin())->get("/admin/newsletter/campaigns/{$campaign->id}/preview")
+            ->assertOk()
+            ->assertSee($product['name'])
+            ->assertHeader('Cache-Control', 'no-store, private');
+
+        $this->actingAs($this->admin())->get('/admin/newsletter/campaigns/999/preview')->assertNotFound();
     }
 
     public function test_the_template_preview_renders_and_the_test_goes_to_the_owner(): void
