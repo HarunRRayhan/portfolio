@@ -16,6 +16,7 @@ class NewsletterCampaign extends Model
         'post_slugs',
         'products',
         'subject',
+        'html',
         'subscriber_count',
         'sent_at',
     ];

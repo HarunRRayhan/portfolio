@@ -104,11 +104,16 @@ class SendWeeklyNewsletter extends Command
             'key' => $weekKey,
             'post_slugs' => $posts->pluck('slug')->values()->all(),
             'subject' => $subject,
-            'products' => $this->chooseProducts($weekKey),
+            'products' => $issue->chooseProducts($weekKey),
         ]);
 
         if ($campaign->products === null) {
-            $campaign->update(['products' => $this->chooseProducts($weekKey)]);
+            $campaign->update(['products' => $issue->chooseProducts($weekKey)]);
+        }
+
+        // Keep the email as sent, so the admin preview shows this campaign, not today's tweets or edited posts.
+        if ($campaign->html === null) {
+            $campaign->update(['html' => (new WeeklyNewsletterMail(posts: $posts->all(), subscriber: null, products: $campaign->products, tweets: $tweets))->render()]);
         }
 
         $subscribers = Subscriber::subscribed()->orderBy('id')->get();
@@ -196,27 +201,6 @@ class SendWeeklyNewsletter extends Command
             report($exception);
             $this->error("Owner copy failed: {$exception->getMessage()}");
         }
-    }
-
-    /** @return array<int, array<string, string>> */
-    private function chooseProducts(string $weekKey): array
-    {
-        $products = collect(config('newsletter.products', []))->unique('key')->values();
-        $previous = NewsletterCampaign::query()
-            ->where('key', '!=', $weekKey)
-            ->whereNotNull('products')
-            ->latest('created_at')
-            ->latest('id')
-            ->first();
-        $previousKeys = collect($previous?->products ?? [])->pluck('key')->all();
-
-        return $products
-            ->reject(fn (array $product): bool => in_array($product['key'], $previousKeys, true))
-            ->shuffle()
-            ->concat($products->filter(fn (array $product): bool => in_array($product['key'], $previousKeys, true))->shuffle())
-            ->take(2)
-            ->values()
-            ->all();
     }
 
     /**

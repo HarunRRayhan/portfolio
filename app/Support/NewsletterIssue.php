@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\NewsletterCampaign;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -70,6 +71,29 @@ class NewsletterIssue
         return collect(config('newsletter.tweets', []))
             ->filter(fn (array $tweet): bool => ! empty($tweet['text']) && ! empty($tweet['url']))
             ->take(3)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Least-shown products first (ties shuffled), so over the weeks every product gets about the same airtime.
+     *
+     * @return array<int, array<string, string>>
+     */
+    public function chooseProducts(?string $exceptKey = null): array
+    {
+        $shown = NewsletterCampaign::query()
+            ->when($exceptKey, fn ($query) => $query->where('key', '!=', $exceptKey))
+            ->whereNotNull('products')
+            ->pluck('products')
+            ->flatten(1)
+            ->countBy('key');
+
+        return collect(config('newsletter.products', []))
+            ->unique('key')
+            ->shuffle()
+            ->sortBy(fn (array $product): int => $shown->get($product['key'], 0))
+            ->take(2)
             ->values()
             ->all();
     }

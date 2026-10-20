@@ -211,6 +211,15 @@ class NewsletterTest extends TestCase
         $this->actingAs($this->admin())->get('/admin/newsletter/campaigns/999/preview')->assertNotFound();
     }
 
+    public function test_a_campaign_preview_shows_the_html_it_was_sent_with(): void
+    {
+        $campaign = NewsletterCampaign::create(['key' => '2026-W41', 'post_slugs' => [], 'subject' => 'Hi', 'subscriber_count' => 0, 'html' => '<p>As sent</p>']);
+
+        $this->actingAs($this->admin())->get("/admin/newsletter/campaigns/{$campaign->id}/preview")
+            ->assertOk()
+            ->assertSee('<p>As sent</p>', false);
+    }
+
     public function test_the_template_preview_renders_and_the_test_goes_to_the_owner(): void
     {
         Mail::fake();
