@@ -6,7 +6,7 @@ import { Link } from '@inertiajs/react'
 import { useEffect, useRef, useState } from 'react'
 
 export interface MediaItemFormData {
-  type: 'slide' | 'video'
+  type: 'slide' | 'video' | 'image'
   title: string
   slug: string
   summary: string
@@ -47,6 +47,7 @@ export default function MediaItemForm({
   // every change/unmount can't clobber anything still in use.
   useEffect(() => () => { if (objectUrl) URL.revokeObjectURL(objectUrl) }, [objectUrl])
 
+  const isImage = data.type === 'image'
   const preview = objectUrl ?? (data.remove_thumbnail ? null : existingThumbnailUrl)
 
   const pickThumbnail = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,8 +70,8 @@ export default function MediaItemForm({
     <form onSubmit={onSubmit} className="space-y-6">
       <div>
         <InputLabel value="Type" />
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          {(['slide', 'video'] as const).map((type) => (
+        <div className="mt-2 grid grid-cols-3 gap-2">
+          {(['slide', 'video', 'image'] as const).map((type) => (
             <button
               type="button"
               key={type}
@@ -132,7 +133,7 @@ export default function MediaItemForm({
       </div>
 
       <div>
-        <InputLabel htmlFor="url" value="URL" />
+        <InputLabel htmlFor="url" value={isImage ? 'URL (optional)' : 'URL'} />
         <TextInput
           id="url"
           type="text"
@@ -140,10 +141,12 @@ export default function MediaItemForm({
           value={data.url}
           onChange={(e) => setData('url', e.target.value)}
           placeholder="https://youtube.com/watch?v=... or https://docs.google.com/presentation/..."
-          required
+          required={!isImage}
         />
         <p className="mt-1 text-xs text-gray-500">
-          Where this lives: a YouTube link, a Google Slides deck, a SpeakerDeck link, whatever it is.
+          {isImage
+            ? 'Leave blank and the link points at the uploaded image itself.'
+            : 'Where this lives: a YouTube link, a Google Slides deck, a SpeakerDeck link, whatever it is.'}
         </p>
         <InputError message={errors.url} className="mt-2" />
       </div>
@@ -162,7 +165,7 @@ export default function MediaItemForm({
       </div>
 
       <div>
-        <InputLabel htmlFor="thumbnail" value="Thumbnail (optional)" />
+        <InputLabel htmlFor="thumbnail" value={isImage ? 'Image' : 'Thumbnail (optional)'} />
         <div className="mt-2 flex items-start gap-4">
           {preview && (
             <img
@@ -180,8 +183,8 @@ export default function MediaItemForm({
               onChange={pickThumbnail}
               className="block w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-indigo-50 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-indigo-700 hover:file:bg-indigo-100"
             />
-            <p className="mt-1 text-xs text-gray-500">PNG or JPG, up to 2MB.</p>
-            {preview && (
+            <p className="mt-1 text-xs text-gray-500">PNG or JPG, up to {isImage ? '5MB' : '2MB'}.</p>
+            {preview && !isImage && (
               <button
                 type="button"
                 onClick={removeThumbnail}

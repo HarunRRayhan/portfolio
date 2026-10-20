@@ -5,7 +5,7 @@ import { ChevronDown, ChevronUp, Copy, ExternalLink, Pencil, Plus, Trash2 } from
 
 interface MediaItemRecord {
   id: number
-  type: 'slide' | 'video'
+  type: 'slide' | 'video' | 'image'
   title: string
   slug: string
   summary: string | null
@@ -31,16 +31,18 @@ export default function Index({
   filterType,
 }: {
   items: MediaItemRecord[]
-  filterType: 'slide' | 'video' | null
+  filterType: 'slide' | 'video' | 'image' | null
 }) {
   const [slides, setSlides] = useState<MediaItemRecord[]>(items.filter((i) => i.type === 'slide'))
   const [videos, setVideos] = useState<MediaItemRecord[]>(items.filter((i) => i.type === 'video'))
+  const [images, setImages] = useState<MediaItemRecord[]>(items.filter((i) => i.type === 'image'))
   const [copiedId, setCopiedId] = useState<number | null>(null)
 
   // Keep local order in sync when the server sends a fresh list (after any mutation).
   useEffect(() => {
     setSlides(items.filter((i) => i.type === 'slide'))
     setVideos(items.filter((i) => i.type === 'video'))
+    setImages(items.filter((i) => i.type === 'image'))
   }, [items])
 
   const persistOrder = (ordered: MediaItemRecord[]) => {
@@ -216,30 +218,31 @@ export default function Index({
     </div>
   )
 
-  const filterTabs: { label: string; href: string; value: 'slide' | 'video' | null }[] = [
+  const filterTabs: { label: string; href: string; value: 'slide' | 'video' | 'image' | null }[] = [
     { label: 'All', href: '/admin/media', value: null },
     { label: 'Slides', href: '/admin/media?type=slide', value: 'slide' },
     { label: 'Videos', href: '/admin/media?type=video', value: 'video' },
+    { label: 'Images', href: '/admin/media?type=image', value: 'image' },
   ]
 
   return (
     <AuthenticatedLayout
-      header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Slides &amp; Videos</h2>}
+      header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Media</h2>}
     >
-      <Head title="Slides & Videos" />
+      <Head title="Media" />
 
       <div className="py-6 sm:py-12">
         <div className="mx-auto max-w-4xl space-y-6 px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-4">
             <p className="text-sm text-gray-500">
-              Use the arrows to reorder. Slides and videos sort independently.
+              Use the arrows to reorder. Each type sorts independently.
             </p>
             <Link
               href="/admin/media/create"
               className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
             >
               <Plus className="h-4 w-4" />
-              New slide or video
+              New media item
             </Link>
           </div>
 
@@ -260,8 +263,9 @@ export default function Index({
             ))}
           </div>
 
-          {filterType !== 'video' && renderGroup('Slides', slides, setSlides)}
-          {filterType !== 'slide' && renderGroup('Videos', videos, setVideos)}
+          {(!filterType || filterType === 'slide') && renderGroup('Slides', slides, setSlides)}
+          {(!filterType || filterType === 'video') && renderGroup('Videos', videos, setVideos)}
+          {(!filterType || filterType === 'image') && renderGroup('Images', images, setImages)}
         </div>
       </div>
     </AuthenticatedLayout>
