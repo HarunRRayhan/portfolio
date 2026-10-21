@@ -1,7 +1,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
+import Modal from '@/Components/Modal'
+import { DialogTitle } from '@headlessui/react'
 import { Head, Link, router } from '@inertiajs/react'
 import { useState } from 'react'
-import { Eye, Send } from 'lucide-react'
+import { Eye, MousePointerClick, Send, User } from 'lucide-react'
 
 interface Campaign {
   id: number
@@ -49,8 +51,21 @@ function percent(part: number, whole: number) {
   return whole === 0 ? null : Math.round((part / whole) * 1000) / 10
 }
 
+function ClickStats({ clicks, people }: { clicks: number; people: number }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 tabular-nums">
+      <MousePointerClick className="h-4 w-4" aria-hidden />
+      <span title="Clicks">{clicks}</span>
+      <span className="text-gray-300" aria-hidden>●</span>
+      <User className="h-4 w-4" aria-hidden />
+      <span title="People">{people}</span>
+    </span>
+  )
+}
+
 function CampaignRow({ campaign }: { campaign: Campaign }) {
   const [open, setOpen] = useState(false)
+  const [linksOpen, setLinksOpen] = useState(false)
   const rate = successRate(campaign)
   const openRate = percent(campaign.opened_count, campaign.sent_count)
   const sentAt = formatDateTime(campaign.sent_at)
@@ -86,13 +101,42 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
           {openRate !== null && <span className="text-gray-400"> · {openRate}%</span>}
         </td>
         <td className="px-4 py-3 tabular-nums">
-          {campaign.click_count > 0 ? (
-            <button type="button" onClick={() => setOpen(!open)} className="text-indigo-700 underline">
-              {campaign.click_count} from {campaign.clicker_count} {campaign.clicker_count === 1 ? 'person' : 'people'}
-            </button>
-          ) : (
-            <span className="text-gray-400">0</span>
-          )}
+          <button
+            type="button"
+            onClick={() => setLinksOpen(true)}
+            aria-label={`${campaign.click_count} clicks from ${campaign.clicker_count} people. Show links`}
+            className={campaign.click_count > 0 ? 'text-indigo-700 hover:text-indigo-900' : 'text-gray-400 hover:text-gray-600'}
+          >
+            <ClickStats clicks={campaign.click_count} people={campaign.clicker_count} />
+          </button>
+          <Modal show={linksOpen} maxWidth="2xl" onClose={() => setLinksOpen(false)}>
+            <div className="p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <DialogTitle as="h2" className="text-lg font-semibold text-gray-900">Link clicks</DialogTitle>
+                  <p className="mt-1 text-sm text-gray-500">{campaign.subject}</p>
+                </div>
+                <span className="text-sm text-gray-700"><ClickStats clicks={campaign.click_count} people={campaign.clicker_count} /></span>
+              </div>
+              <ul className="mt-4 max-h-[60vh] divide-y divide-gray-100 overflow-y-auto text-sm">
+                {campaign.links.map((link) => (
+                  <li key={link.url} className="flex items-center justify-between gap-4 py-2">
+                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="truncate text-gray-700 hover:underline">
+                      {link.url}
+                    </a>
+                    <span className={link.clicks > 0 ? 'shrink-0 text-gray-900' : 'shrink-0 text-gray-400'}>
+                      <ClickStats clicks={link.clicks} people={link.people} />
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-4 flex justify-end">
+                <button type="button" onClick={() => setLinksOpen(false)} className="rounded-md border border-gray-300 px-4 py-2 text-sm">
+                  Close
+                </button>
+              </div>
+            </div>
+          </Modal>
         </td>
         <td className="px-4 py-3 text-right">
           <a
@@ -109,21 +153,7 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
       </tr>
       {open && (
         <tr>
-          <td colSpan={8} className="space-y-3 bg-gray-50 px-4 py-3">
-            {campaign.links.length > 0 && (
-              <ul className="space-y-1 text-xs">
-                {campaign.links.map((link) => (
-                  <li key={link.url} className="flex gap-3">
-                    <span className="w-28 shrink-0 tabular-nums text-gray-800">
-                      {link.clicks} {link.clicks === 1 ? 'click' : 'clicks'} · {link.people}
-                    </span>
-                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="truncate text-gray-500 hover:underline">
-                      {link.url}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            )}
+          <td colSpan={8} className="bg-gray-50 px-4 py-3">
             <ul className="space-y-1 text-xs">
               {campaign.failures.map((failure) => (
                 <li key={failure.id}>

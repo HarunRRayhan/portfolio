@@ -12,6 +12,7 @@ use App\Support\NewsletterIssue;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -35,7 +36,7 @@ class NewsletterController extends Controller
         ]);
     }
 
-    public function campaigns(): Response
+    public function campaigns(NewsletterIssue $issue): Response
     {
         $count = fn (string $status) => fn ($query) => $query->where('status', $status);
 
@@ -73,11 +74,7 @@ class NewsletterController extends Controller
             'opened_count' => $campaign->opened_count,
             'click_count' => $campaign->click_count,
             'clicker_count' => $campaign->clicker_count,
-            'links' => ($linkClicks[$campaign->id] ?? collect())->map(fn (NewsletterClick $link) => [
-                'url' => $link->url,
-                'clicks' => (int) $link->clicks,
-                'people' => (int) $link->people,
-            ])->values()->all(),
+            'links' => $this->campaignLinks($this->campaignHtml($campaign, $issue), $linkClicks[$campaign->id] ?? collect()),
             'created_at' => $campaign->created_at?->toIso8601String(),
             'sent_at' => $campaign->sent_at?->toIso8601String(),
             'failures' => $campaign->deliveries->map(fn (NewsletterDelivery $delivery) => [
@@ -116,22 +113,49 @@ class NewsletterController extends Controller
     {
         $record = NewsletterCampaign::query()->findOrFail($campaign);
 
-        if ($record->html !== null) {
-            return response($record->html)->header('Cache-Control', 'no-store, private');
+        return response($this->campaignHtml($record, $issue))->header('Cache-Control', 'no-store, private');
+    }
+
+    private function campaignHtml(NewsletterCampaign $campaign, NewsletterIssue $issue): string
+    {
+        if ($campaign->html !== null) {
+            return $campaign->html;
         }
 
         // Campaigns sent before the HTML was stored are rebuilt from their posts and products.
         $postsBySlug = $issue->publishedPosts(now(config('newsletter.schedule.timezone')))->keyBy('slug');
-        $posts = collect($record->post_slugs ?? [])->map(fn (string $slug) => $postsBySlug->get($slug))->filter()->values();
+        $posts = collect($campaign->post_slugs ?? [])->map(fn (string $slug) => $postsBySlug->get($slug))->filter()->values();
 
-        $mail = new WeeklyNewsletterMail(
+        return (new WeeklyNewsletterMail(
             posts: $issue->withLeadExcerpt($posts)->all(),
             subscriber: null,
-            products: $record->products ?? [],
+            products: $campaign->products ?? [],
             tweets: $issue->tweets(),
-        );
+        ))->render();
+    }
 
-        return response($mail->render())->header('Cache-Control', 'no-store, private');
+    /**
+     * Every link in the email, most clicked first, including ones nobody clicked yet.
+     *
+     * @param  Collection<int, NewsletterClick>  $clicks
+     * @return array<int, array{url: string, clicks: int, people: int}>
+     */
+    private function campaignLinks(string $html, Collection $clicks): array
+    {
+        preg_match_all('/href="(https?:\/\/[^"]+)"/', $html, $matches);
+        $byUrl = $clicks->keyBy('url');
+
+        return collect(array_map('html_entity_decode', $matches[1]))
+            ->concat($byUrl->keys())
+            ->unique()
+            ->map(fn (string $url) => [
+                'url' => $url,
+                'clicks' => (int) ($byUrl[$url]->clicks ?? 0),
+                'people' => (int) ($byUrl[$url]->people ?? 0),
+            ])
+            ->sortByDesc('clicks')
+            ->values()
+            ->all();
     }
 
     public function sendTest(Request $request, NewsletterIssue $issue): RedirectResponse
