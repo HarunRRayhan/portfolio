@@ -101,9 +101,7 @@ class NewsletterController extends Controller
 
     public function templates(): Response
     {
-        return Inertia::render('Admin/Newsletter/Templates', [
-            'ownerEmail' => config('mail.owner.address'),
-        ]);
+        return Inertia::render('Admin/Newsletter/Templates');
     }
 
     /** Renders the default template with this week's posts (or the latest ones) for the preview iframe. */
@@ -136,17 +134,19 @@ class NewsletterController extends Controller
         return response($mail->render())->header('Cache-Control', 'no-store, private');
     }
 
-    public function sendTest(NewsletterIssue $issue): RedirectResponse
+    public function sendTest(Request $request, NewsletterIssue $issue): RedirectResponse
     {
+        $email = $request->validate(['email' => ['required', 'email:rfc', 'max:255']])['email'];
+
         try {
-            Mail::to(config('mail.owner.address'), config('mail.owner.name'))->send($this->previewMail($issue));
+            Mail::to($email)->send($this->previewMail($issue));
         } catch (Throwable $exception) {
             report($exception);
 
             return back()->with('flash', ['type' => 'error', 'message' => 'Test email failed: '.$exception->getMessage()]);
         }
 
-        return back()->with('flash', ['type' => 'success', 'message' => 'Test email sent to '.config('mail.owner.address').'.']);
+        return back()->with('flash', ['type' => 'success', 'message' => "Test email sent to {$email}."]);
     }
 
     /** Runs the same command the scheduler runs; it is idempotent and retries failed deliveries. */
