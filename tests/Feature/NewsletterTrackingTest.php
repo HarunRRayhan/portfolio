@@ -90,6 +90,7 @@ class NewsletterTrackingTest extends TestCase
     {
         $delivery = $this->delivery();
         $delivery->update(['opened_at' => now()]);
+        $delivery->campaign->update(['html' => '<a href="https://c.test/x?a=1&amp;b=2">c</a><a href="https://a.test">a</a><a href="mailto:x@y.test">m</a>']);
         foreach (['https://a.test', 'https://a.test', 'https://b.test'] as $link) {
             NewsletterClick::create(['newsletter_delivery_id' => $delivery->id, 'url' => $link]);
         }
@@ -100,6 +101,10 @@ class NewsletterTrackingTest extends TestCase
         $response->assertJsonPath('props.campaigns.data.0.opened_count', 1)
             ->assertJsonPath('props.campaigns.data.0.click_count', 3)
             ->assertJsonPath('props.campaigns.data.0.clicker_count', 1)
-            ->assertJsonPath('props.campaigns.data.0.links.0', ['url' => 'https://a.test', 'clicks' => 2, 'people' => 1]);
+            ->assertJsonPath('props.campaigns.data.0.links', [
+                ['url' => 'https://a.test', 'clicks' => 2, 'people' => 1],
+                ['url' => 'https://b.test', 'clicks' => 1, 'people' => 1],
+                ['url' => 'https://c.test/x?a=1&b=2', 'clicks' => 0, 'people' => 0],
+            ]);
     }
 }
