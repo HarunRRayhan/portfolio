@@ -76,23 +76,25 @@ class NewsletterIssue
     }
 
     /**
-     * Least-shown products first (ties shuffled), so over the weeks every product gets about the same airtime.
+     * Least-shown products first, never last week's when avoidable, so every product gets the same airtime.
      *
      * @return array<int, array<string, string>>
      */
     public function chooseProducts(?string $exceptKey = null): array
     {
-        $shown = NewsletterCampaign::query()
+        $history = NewsletterCampaign::query()
             ->when($exceptKey, fn ($query) => $query->where('key', '!=', $exceptKey))
             ->whereNotNull('products')
-            ->pluck('products')
-            ->flatten(1)
-            ->countBy('key');
+            ->latest('id')
+            ->pluck('products');
+        $shown = $history->flatten(1)->countBy('key');
+        $lastWeek = collect($history->first() ?? [])->pluck('key');
 
         return collect(config('newsletter.products', []))
             ->unique('key')
             ->shuffle()
-            ->sortBy(fn (array $product): int => $shown->get($product['key'], 0))
+            // Fewest showings first; among equals, skip last week's so nothing repeats back to back.
+            ->sortBy(fn (array $product): int => $shown->get($product['key'], 0) * 2 + (int) $lastWeek->contains($product['key']))
             ->take(2)
             ->values()
             ->all();

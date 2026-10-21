@@ -6,6 +6,7 @@ use App\Mail\WeeklyNewsletterMail;
 use App\Models\NewsletterCampaign;
 use App\Models\Subscriber;
 use App\Support\BlogRepository;
+use App\Support\NewsletterIssue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -129,6 +130,23 @@ class NewsletterSendingTest extends TestCase
         $keys = collect($campaign->products)->pluck('key')->sort()->values()->all();
         $this->assertSame(['amazingplugins', 'appnary'], $keys);
         $this->assertStringContainsString('Amazing Plugins', $campaign->html);
+    }
+
+    #[Test]
+    public function products_rotate_evenly_without_repeating_last_week(): void
+    {
+        $issue = app(NewsletterIssue::class);
+        $previous = [];
+
+        for ($week = 1; $week <= 10; $week++) {
+            $keys = collect($issue->chooseProducts())->pluck('key')->all();
+            $this->assertEmpty(array_intersect($previous, $keys), "Week {$week} repeated last week's product.");
+            NewsletterCampaign::query()->create(['key' => "2025-W{$week}", 'post_slugs' => [], 'subject' => 'Week', 'products' => collect(config('newsletter.products'))->whereIn('key', $keys)->values()->all()]);
+            $previous = $keys;
+        }
+
+        $counts = NewsletterCampaign::query()->pluck('products')->flatten(1)->countBy('key')->unique()->all();
+        $this->assertSame([4], array_values($counts));
     }
 
     #[Test]
