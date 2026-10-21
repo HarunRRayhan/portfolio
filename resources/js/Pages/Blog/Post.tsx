@@ -454,6 +454,15 @@ export default function BlogPostPage({
                   </div>
                 ) : null}
 
+                {isDraft ? null : (
+                  <div className="mt-8 flex flex-col gap-4 rounded-2xl border border-indigo-200 bg-indigo-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="font-semibold text-slate-950">Do you want to receive these blog updates?</p>
+                      <p className="mt-1 text-sm text-slate-600">One email a week, only when there's a new post.</p>
+                    </div>
+                    <SubscribeButton source="post-top" label="Subscribe to the newsletter" className="shrink-0" />
+                  </div>
+                )}
               </div>
             </article>
           </section>
@@ -475,12 +484,7 @@ export default function BlogPostPage({
 
           <section className="mx-auto max-w-3xl px-4 py-4 sm:px-6">
             <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-              <h2 className="text-2xl font-semibold tracking-tight text-slate-950">Get the next note</h2>
-              <p className="mt-2 text-slate-600">
-                I email when a new post goes up. One send a week, and only if there's something new.
-              </p>
-              <SubscribeButton source="post-end" label="Subscribe" className="mt-5" />
-              <p className="mt-6 text-sm leading-6 text-slate-600">
+              <p className="text-sm leading-6 text-slate-600">
                 {relatedService ? (
                   <>
                     Want this applied on your account? Start with{' '}
