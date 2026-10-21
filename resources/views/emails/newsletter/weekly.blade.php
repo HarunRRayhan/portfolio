@@ -84,6 +84,13 @@
                 <p style="margin:0;color:#34485a;font-size:15px;line-height:1.6;">For shorter engineering notes between newsletters, <a href="{{ $track('https://x.com/harundotdev') }}" style="color:#145583;text-decoration:underline;">check out my X feed</a>.</p>
             </td></tr>
             @endif
+            @php($subscribeUrl = $blogUrl.'?subscribe=1')
+            <tr><td class="inset" style="padding:28px 42px 0;">
+                <div style="padding:18px 20px;background:#f4f7fa;border:1px solid #dce2e8;border-radius:10px;color:#34485a;font-size:15px;line-height:1.6;">
+                    <p style="margin:0 0 8px;"><strong style="color:#17212e;">Know someone who'd like this?</strong> Forward this email to them, or <a href="mailto:?subject={{ rawurlencode('A newsletter you might like') }}&body={{ rawurlencode("I read Harun's weekly engineering newsletter and thought you'd like it too. You can subscribe here: {$subscribeUrl}") }}" style="color:#145583;text-decoration:underline;">send them the signup link</a>.</p>
+                    <p style="margin:0;">Was this forwarded to you? <a href="{{ $track($subscribeUrl) }}" style="color:#145583;font-weight:700;text-decoration:underline;">Subscribe here</a> to get it every week.</p>
+                </div>
+            </td></tr>
             <tr><td class="inset" style="padding:30px 42px 32px;color:#516071;font-size:15px;line-height:1.6;">
                 Thanks for reading,<br><strong style="color:#17212e;">Harun R.</strong>
             </td></tr>
