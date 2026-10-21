@@ -484,25 +484,42 @@ export default function BlogPostPage({
 
           <section className="mx-auto max-w-3xl px-4 py-4 sm:px-6">
             <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-              <p className="text-sm leading-6 text-slate-600">
+              <h2 className="text-2xl font-semibold tracking-tight text-slate-950">Get our services</h2>
+              <p className="mt-2 leading-7 text-slate-600">
+                Want this applied on your product?{' '}
                 {relatedService ? (
                   <>
-                    Want this applied on your account? Start with{' '}
+                    Start with{' '}
                     <Link href={relatedService.url} className="font-semibold text-slate-950 underline underline-offset-4">
                       {relatedService.title}
                     </Link>
-                    .
+                    , or browse{' '}
                   </>
                 ) : (
-                  <>
-                    Need a second pair of eyes on a hot path?{' '}
-                    <Link href="/consultation" className="font-semibold text-slate-950 underline underline-offset-4">
-                      Book a consultation
-                    </Link>
-                    .
-                  </>
+                  'Browse '
                 )}
+                <Link href="/services" className="font-semibold text-slate-950 underline underline-offset-4">
+                  all services
+                </Link>
+                .
               </p>
+              <p className="mt-3 leading-7 text-slate-600">
+                Not sure which one fits? Book a consultation and we'll work out the right next step for your setup together.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Link
+                  href="/consultation"
+                  className="inline-flex items-center rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+                >
+                  Book a consultation
+                </Link>
+                <Link
+                  href="/services"
+                  className="inline-flex items-center rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-50"
+                >
+                  See all services
+                </Link>
+              </div>
             </div>
           </section>
 
