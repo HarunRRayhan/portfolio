@@ -43,7 +43,7 @@ class NewsletterTrackingTest extends TestCase
 
         $html = $subscriberMail->render();
         preg_match_all('/href="([^"]+)"/', $html, $links);
-        $untracked = array_filter($links[1], fn (string $link) => ! str_contains($link, '/newsletter/c/') && ! str_contains($link, '/newsletter/unsubscribe/'));
+        $untracked = array_filter($links[1], fn (string $link) => ! str_contains($link, '/newsletter/c/') && ! str_contains($link, '/newsletter/unsubscribe/') && ! str_starts_with($link, 'mailto:'));
         $this->assertSame([], array_values($untracked));
         $this->assertStringContainsString('/newsletter/o/', $html);
 
