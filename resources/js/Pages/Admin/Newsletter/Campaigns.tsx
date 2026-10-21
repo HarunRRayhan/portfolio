@@ -59,24 +59,10 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
     <>
       <tr className="text-sm text-gray-700">
         <td className="px-4 py-3">
-          <div className="flex items-start gap-3">
-            <a
-              href={route('admin.newsletter.campaigns.preview', campaign.id)}
-              target="_blank"
-              rel="noopener noreferrer"
-              title="Preview this email"
-              aria-label={`Preview ${campaign.subject}`}
-              className="mt-0.5 shrink-0 rounded-md p-1.5 text-gray-500 ring-1 ring-gray-200 hover:bg-gray-50 hover:text-gray-900"
-            >
-              <Eye className="h-4 w-4" />
-            </a>
-            <div>
-              <p className="font-medium text-gray-900">{campaign.subject}</p>
-              <p className="text-xs text-gray-400">
-                {campaign.key} · {campaign.post_count} {campaign.post_count === 1 ? 'post' : 'posts'}
-              </p>
-            </div>
-          </div>
+          <p className="font-medium text-gray-900">{campaign.subject}</p>
+          <p className="text-xs text-gray-400">
+            {campaign.key} · {campaign.post_count} {campaign.post_count === 1 ? 'post' : 'posts'}
+          </p>
         </td>
         <td className="px-4 py-3 text-gray-500">
           {sentAt ?? <span className="text-amber-600">Not finished</span>}
@@ -108,10 +94,22 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
             <span className="text-gray-400">0</span>
           )}
         </td>
+        <td className="px-4 py-3 text-right">
+          <a
+            href={route('admin.newsletter.campaigns.preview', campaign.id)}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Preview this email"
+            aria-label={`Preview ${campaign.subject}`}
+            className="inline-flex rounded-md p-1.5 text-gray-500 ring-1 ring-gray-200 hover:bg-gray-50 hover:text-gray-900"
+          >
+            <Eye className="h-4 w-4" />
+          </a>
+        </td>
       </tr>
       {open && (
         <tr>
-          <td colSpan={7} className="space-y-3 bg-gray-50 px-4 py-3">
+          <td colSpan={8} className="space-y-3 bg-gray-50 px-4 py-3">
             {campaign.links.length > 0 && (
               <ul className="space-y-1 text-xs">
                 {campaign.links.map((link) => (
@@ -197,6 +195,7 @@ export default function Campaigns({ campaigns, schedule, activeSubscribers, sent
                     <th className="px-4 py-3">Success</th>
                     <th className="px-4 py-3">Opened</th>
                     <th className="px-4 py-3">Clicks</th>
+                    <th className="px-4 py-3 text-right">Preview</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">

@@ -35,6 +35,9 @@ For shorter engineering notes between newsletters, check out my X feed:
 {!! $track('https://x.com/harundotdev') !!}
 
 @endif
+Know someone who'd like this? Forward this email to them.
+Was this forwarded to you? Subscribe here: {!! $track($blogUrl.'?subscribe=1') !!}
+
 Thanks for reading,
 Harun R.
 

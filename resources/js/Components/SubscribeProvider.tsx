@@ -91,6 +91,11 @@ export function SubscribeProvider({
     sessionStorage.setItem(DISMISS_KEY, '1')
   }, [])
 
+  // Newsletter emails link forwarded readers to ?subscribe=1.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).has('subscribe')) openPopup('forwarded-email')
+  }, [])
+
   useIdleSubscribe(
     () => openPopup('idle-popup'),
     IDLE_MS,
