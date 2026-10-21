@@ -229,9 +229,11 @@ class NewsletterTest extends TestCase
             ->assertOk()
             ->assertSee('Browse the blog');
 
-        $this->actingAs($admin)->post('/admin/newsletter/templates/test')->assertRedirect();
+        $this->actingAs($admin)->post('/admin/newsletter/templates/test', ['email' => 'not-an-email'])->assertSessionHasErrors('email');
+        $this->actingAs($admin)->post('/admin/newsletter/templates/test', ['email' => 'tester@example.com'])->assertRedirect();
 
-        Mail::assertSent(WeeklyNewsletterMail::class, fn (WeeklyNewsletterMail $mail) => $mail->hasTo(config('mail.owner.address')));
+        Mail::assertSent(WeeklyNewsletterMail::class, 1);
+        Mail::assertSent(WeeklyNewsletterMail::class, fn (WeeklyNewsletterMail $mail) => $mail->hasTo('tester@example.com'));
         $this->assertDatabaseCount('newsletter_campaigns', 0);
     }
 
