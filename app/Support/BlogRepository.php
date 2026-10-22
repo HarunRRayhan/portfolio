@@ -80,6 +80,8 @@ class BlogRepository
     {
         $posts = collect($this->posts())
             ->filter(fn (array $post) => $this->isPublic($post))
+            // Scheduled posts keep a placeholder date in the file, so order by the real one.
+            ->sortByDesc(fn (array $post) => $this->effectivePublishedAt($post)->timestamp)
             ->values();
 
         $viewCounts = $this->viewCountsBySlug(
