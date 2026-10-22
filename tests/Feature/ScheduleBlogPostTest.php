@@ -116,6 +116,23 @@ class ScheduleBlogPostTest extends TestCase
         Http::assertSentCount(1);
     }
 
+    public function test_scheduled_posts_are_listed_by_their_publish_date_not_the_file_placeholder(): void
+    {
+        $older = $this->createDraftBlogPost();
+        $newer = $this->createDraftBlogPost();
+
+        BlogPostSchedule::create(['slug' => $older['slug'], 'publish_at' => Carbon::parse('2030-10-10 06:00:00', 'UTC')]);
+        BlogPostSchedule::create(['slug' => $newer['slug'], 'publish_at' => Carbon::parse('2030-10-19 06:00:00', 'UTC')]);
+        Carbon::setTestNow(Carbon::parse('2030-10-20 00:00:00', 'UTC'));
+
+        $feed = $this->get('/blog/feed.xml')->assertOk()->getContent();
+
+        $this->assertLessThan(
+            strpos($feed, '/blog/'.$older['slug']),
+            strpos($feed, '/blog/'.$newer['slug']),
+        );
+    }
+
     public function test_the_load_balancer_schedule_migration_stays_out_of_the_test_database(): void
     {
         $this->assertNull(
