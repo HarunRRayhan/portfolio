@@ -2,15 +2,14 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\MagicLoginToken;
 use App\Models\User;
-use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Testing\TestResponse;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -20,29 +19,13 @@ class AuthSecurityTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_registration_does_not_grant_admin_for_a_claimed_owner_email(): void
-    {
-        Notification::fake();
-        config()->set('auth.super_admin_emails', ['owner@example.com']);
-
-        $this->post('/register', [
-            'name' => 'Claimant', 'email' => 'owner@example.com',
-            'password' => 'password', 'password_confirmation' => 'password',
-        ])->assertRedirect('/blog');
-
-        $user = User::where('email', 'owner@example.com')->firstOrFail();
-        $this->assertFalse($user->isAdmin());
-        $this->assertFalse($user->hasVerifiedEmail());
-        Notification::assertSentTo($user, VerifyEmail::class);
-    }
-
     public function test_unverified_admin_must_verify_before_accessing_dashboard(): void
     {
         $user = User::factory()->unverified()->create(['role' => 'admin']);
         $this->actingAs($user)->get('/admin/dashboard')->assertRedirect('/verify-email');
     }
 
-    public function test_google_cannot_merge_into_an_existing_password_account(): void
+    public function test_google_cannot_merge_into_an_existing_account(): void
     {
         $user = User::factory()->unverified()->create(['email' => 'owner@example.com']);
         $password = $user->password;
@@ -55,7 +38,6 @@ class AuthSecurityTest extends TestCase
         $user->refresh();
         $this->assertNull($user->provider_id);
         $this->assertSame($password, $user->password);
-        $this->assertTrue(Hash::check('password', $user->password));
         $this->assertFalse($user->hasVerifiedEmail());
         $this->assertFalse($user->isAdmin());
     }
@@ -114,7 +96,8 @@ class AuthSecurityTest extends TestCase
     {
         config()->set('auth.super_admin_emails', ['owner@example.com']);
         $this->fakeGoogle(['sub' => 'owner-id', 'email' => 'owner@example.com', 'email_verified' => true]);
-        $this->googleCallback()->assertRedirect('/admin/dashboard');
+        $this->googleCallback()->assertRedirect(route('passkeys.prompt'));
+        $this->assertSame('/admin/dashboard', session('passkey_prompt.redirect_to'));
         $user = User::where('email', 'owner@example.com')->firstOrFail();
         $this->assertAuthenticatedAs($user);
         $this->assertTrue($user->isAdmin());
@@ -141,16 +124,16 @@ class AuthSecurityTest extends TestCase
         config()->set('app.url', 'http://localhost');
         $this->fakeGoogle(['sub' => 'id', 'email' => 'commenter@example.com', 'email_verified' => true]);
         $this->withSession(['social_login.redirect_to' => $target]);
-        $this->googleCallback()->assertRedirect('/blog');
+        $this->googleCallback()->assertRedirect(route('passkeys.prompt'));
+        $this->assertSame('/blog', session('passkey_prompt.redirect_to'));
     }
 
     #[DataProvider('unsafeRedirectTargets')]
-    public function test_password_login_rejects_unsafe_intended_urls(string $target): void
+    public function test_magic_link_rejects_unsafe_redirect_targets(string $target): void
     {
         config()->set('app.url', 'http://localhost');
         $user = User::factory()->create();
-        $this->withSession(['url.intended' => $target])->post('/login', ['email' => $user->email, 'password' => 'password'])
-            ->assertRedirect('/blog');
+        $this->consumeMagicLink($user->email, $target)->assertRedirect('/blog');
     }
 
     public static function unsafeRedirectTargets(): array
@@ -162,11 +145,10 @@ class AuthSecurityTest extends TestCase
         ]);
     }
 
-    public function test_password_login_preserves_an_internal_intended_url(): void
+    public function test_magic_link_preserves_an_internal_redirect(): void
     {
         $user = User::factory()->create();
-        $this->withSession(['url.intended' => '/blog/example#discussion'])->post('/login', ['email' => $user->email, 'password' => 'password'])
-            ->assertRedirect('/blog/example#discussion');
+        $this->consumeMagicLink($user->email, '/blog/example#discussion')->assertRedirect('/blog/example#discussion');
     }
 
     #[DataProvider('postAuthenticationRoutes')]
@@ -174,13 +156,13 @@ class AuthSecurityTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'admin']);
         $this->actingAs($user)->withSession(['url.intended' => '//evil.example']);
-        $response = $method === 'get' ? $this->get($route) : $this->post($route, ['password' => 'password']);
+        $response = $method === 'get' ? $this->get($route) : $this->post($route);
         $response->assertRedirect('/admin/dashboard');
     }
 
     public static function postAuthenticationRoutes(): array
     {
-        return [['/verify-email', 'get'], ['/email/verification-notification', 'post'], ['/confirm-password', 'post']];
+        return [['/verify-email', 'get'], ['/email/verification-notification', 'post']];
     }
 
     public function test_verification_completion_rejects_an_unsafe_intended_url(): void
@@ -261,11 +243,10 @@ class AuthSecurityTest extends TestCase
         }
     }
 
-    public function test_internal_intended_url_preserves_encoded_query_spaces(): void
+    public function test_magic_link_preserves_encoded_query_spaces(): void
     {
         $user = User::factory()->create();
-        $this->withSession(['url.intended' => '/blog?search=hello%20world'])->post('/login', ['email' => $user->email, 'password' => 'password'])
-            ->assertRedirect('/blog?search=hello%20world');
+        $this->consumeMagicLink($user->email, '/blog?search=hello%20world')->assertRedirect('/blog?search=hello%20world');
     }
 
     #[DataProvider('postAuthenticationRoutes')]
@@ -273,7 +254,7 @@ class AuthSecurityTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'commenter']);
         $this->actingAs($user);
-        $response = $method === 'get' ? $this->get($route) : $this->post($route, ['password' => 'password']);
+        $response = $method === 'get' ? $this->get($route) : $this->post($route);
         $response->assertRedirect('/blog');
     }
 
@@ -284,6 +265,16 @@ class AuthSecurityTest extends TestCase
         $this->actingAs($user)->withSession(['url.intended' => '/blog/example#discussion'])->get($url)
             ->assertRedirect('/blog/example#discussion');
         $this->assertTrue($user->fresh()->hasVerifiedEmail());
+    }
+
+    private function consumeMagicLink(string $email, ?string $redirectTo): TestResponse
+    {
+        MagicLoginToken::create([
+            'email' => $email, 'token_hash' => hash('sha256', 'plain-token'),
+            'redirect_to' => $redirectTo, 'expires_at' => now()->addMinutes(15),
+        ]);
+
+        return $this->post(route('magic-link.consume', 'plain-token'));
     }
 
     private function fakeGoogle(array $profile): void

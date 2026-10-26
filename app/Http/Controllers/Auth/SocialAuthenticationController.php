@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\CompleteLogin;
 use App\Support\LoginRedirectTarget;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -75,7 +75,7 @@ class SocialAuthenticationController extends Controller
         $emailOwner = User::query()->whereRaw('LOWER(email) = ?', [$email])->first();
 
         if ($emailOwner && (! $user || ! $emailOwner->is($user))) {
-            return redirect()->route('login')->with('status', 'An account already uses this email. Sign in with its original provider or password, or use Forgot your password to recover access. Social sign-in cannot link it automatically.');
+            return redirect()->route('login')->with('status', 'An account already uses this email. Sign in with an email link or its original provider. Social sign-in cannot link it automatically.');
         }
 
         if (! $user) {
@@ -101,16 +101,10 @@ class SocialAuthenticationController extends Controller
             $user->save();
         } catch (UniqueConstraintViolationException) {
             // A competing request claimed the email or provider identity first.
-            return redirect()->route('login')->with('status', 'This identity or email was linked while you were signing in. Try signing in again, or use your original password or Forgot your password to recover access.');
+            return redirect()->route('login')->with('status', 'This identity or email was linked while you were signing in. Try signing in again, or use an email link.');
         }
 
-        Auth::login($user, true);
-        $request->session()->regenerate();
-
-        $redirectTo = LoginRedirectTarget::sanitize($request->session()->pull('social_login.redirect_to'))
-            ?? route($user->isAdmin() ? 'dashboard' : 'blog.index', absolute: false);
-
-        return redirect()->to($redirectTo);
+        return CompleteLogin::redirect($request, $user, $user->wasRecentlyCreated, $request->session()->pull('social_login.redirect_to'));
     }
 
     /**

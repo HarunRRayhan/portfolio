@@ -17,29 +17,19 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_users_can_authenticate_using_the_login_screen(): void
+    public function test_password_login_route_is_gone(): void
     {
-        $user = User::factory()->create();
-
-        $response = $this->post('/login', [
-            'email' => $user->email,
-            'password' => 'password',
-        ]);
-
-        $this->assertAuthenticated();
-        $response->assertRedirect(route('blog.index', absolute: false));
+        $this->post('/login', ['email' => 'a@example.com', 'password' => 'password'])->assertStatus(405);
     }
 
-    public function test_users_can_not_authenticate_with_invalid_password(): void
+    public function test_register_redirects_to_login(): void
     {
-        $user = User::factory()->create();
+        $this->get('/register?redirect=%2Fconsultation')->assertStatus(301)->assertRedirect('/login?redirect=%2Fconsultation');
+    }
 
-        $this->post('/login', [
-            'email' => $user->email,
-            'password' => 'wrong-password',
-        ]);
-
-        $this->assertGuest();
+    public function test_password_reset_routes_are_gone(): void
+    {
+        $this->get('/forgot-password')->assertNotFound();
     }
 
     public function test_users_can_logout(): void

@@ -1,10 +1,8 @@
 import { expect, test } from '@playwright/test'
+import { loginAs } from './login'
 
 test('new API keys use explicit permissions and expiry and can be revoked', async ({ page }, testInfo) => {
-  await page.goto('/login')
-  await page.getByRole('textbox', { name: 'Email', exact: true }).fill('browser-admin@example.test')
-  await page.getByLabel('Password', { exact: true }).fill('browser-tests-only')
-  await page.getByRole('button', { name: 'Log in', exact: true }).click()
+  await loginAs(page, 'browser-admin@example.test')
   await expect(page).toHaveURL(/\/admin\/dashboard$/)
   await page.goto('/admin/api-keys')
   await expect(page.getByRole('checkbox', { name: 'Create links', exact: true })).toBeChecked()
