@@ -6,7 +6,7 @@ import TextInput from '@/Components/TextInput';
 import Turnstile from '@/Components/Turnstile';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, useForm, usePage } from '@inertiajs/react';
-import { FormEventHandler } from 'react';
+import { FormEventHandler, useState } from 'react';
 
 export default function Login({
     status,
@@ -20,6 +20,9 @@ export default function Login({
     const siteKey = (usePage().props as { turnstileSiteKey?: string | null }).turnstileSiteKey;
     const enabled = turnstileEnabled && !!siteKey;
 
+    // Turnstile tokens are single-use: remount the widget after every submit for a fresh one.
+    const [widgetKey, setWidgetKey] = useState(0);
+
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         'cf-turnstile-response': '',
@@ -30,6 +33,10 @@ export default function Login({
         e.preventDefault();
         post(route('magic-link.send'), {
             onSuccess: () => reset('email'),
+            onFinish: () => {
+                setData('cf-turnstile-response', '');
+                setWidgetKey((k) => k + 1);
+            },
         });
     };
 
@@ -68,7 +75,7 @@ export default function Login({
                 </div>
 
                 {enabled ? (
-                    <Turnstile siteKey={siteKey!} onToken={(t) => setData('cf-turnstile-response', t)} />
+                    <Turnstile key={widgetKey} siteKey={siteKey!} onToken={(t) => setData('cf-turnstile-response', t)} />
                 ) : (
                     <p className="text-sm text-slate-500">Email sign-in is temporarily unavailable.</p>
                 )}

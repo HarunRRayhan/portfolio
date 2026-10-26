@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type TurnstileApi = {
     render: (el: HTMLElement, opts: Record<string, unknown>) => string;
@@ -37,6 +37,7 @@ export default function Turnstile({
     onToken: (token: string) => void;
 }) {
     const ref = useRef<HTMLDivElement>(null);
+    const [failed, setFailed] = useState(false);
     const onTokenRef = useRef(onToken);
     onTokenRef.current = onToken;
 
@@ -54,13 +55,20 @@ export default function Turnstile({
                     'error-callback': () => onTokenRef.current(''),
                 });
             })
-            .catch(() => onTokenRef.current(''));
+            .catch(() => {
+                setFailed(true);
+                onTokenRef.current('');
+            });
 
         return () => {
             cancelled = true;
             if (id) window.turnstile?.remove(id);
         };
     }, [siteKey]);
+
+    if (failed) {
+        return <p className="text-sm text-red-600">Verification failed to load. Refresh to retry.</p>;
+    }
 
     return <div ref={ref} />;
 }
