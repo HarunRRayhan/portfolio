@@ -1,5 +1,3 @@
-import type { ReactNode, FormEventHandler } from 'react'
-
 type SocialLoginButtonsProps = {
   redirectTo?: string
   compact?: boolean
@@ -24,57 +22,27 @@ function GoogleIcon() {
   )
 }
 
-function DisabledSocialButton({
-  label,
-  icon,
-}: {
-  label: string
-  icon: ReactNode
-}) {
-  return (
-    <div className="group relative">
-      <button
-        disabled
-        className="inline-flex w-full cursor-not-allowed items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-400"
-      >
-        <span className="flex items-center gap-2">
-          {icon}
-          {label}
-        </span>
-      </button>
-      <div className="absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-slate-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
-        Coming soon
-      </div>
-    </div>
-  )
-}
+const buttonClass =
+  'inline-flex w-full items-center justify-center rounded-full border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 active:bg-slate-100'
 
 export default function SocialLoginButtons({ redirectTo, compact = false }: SocialLoginButtonsProps) {
-  const handleGoogleRedirect: FormEventHandler = (e) => {
-    e.preventDefault()
-    const params = redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ''
-    window.location.href = `/auth/google${params}`
-  }
+  const query = redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ''
 
   return (
-    <div className={compact ? 'space-y-3' : 'space-y-4'}>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <DisabledSocialButton
-          label="GitHub"
-          icon={<GitHubIcon />}
-        />
-        <form onSubmit={handleGoogleRedirect}>
-          <button
-            type="submit"
-            className="inline-flex w-full items-center justify-center rounded-full border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 active:bg-slate-100"
-          >
-            <span className="flex items-center gap-2">
-              <GoogleIcon />
-              Google
-            </span>
-          </button>
-        </form>
-      </div>
+    <div className={`grid gap-3 sm:grid-cols-2 ${compact ? '' : 'sm:gap-4'}`}>
+      {/* Plain anchors: the OAuth redirect is a full-page navigation, not an Inertia visit. */}
+      <a href={`/auth/google${query}`} className={buttonClass}>
+        <span className="flex items-center gap-2">
+          <GoogleIcon />
+          Continue with Google
+        </span>
+      </a>
+      <a href={`/auth/github${query}`} className={buttonClass}>
+        <span className="flex items-center gap-2">
+          <GitHubIcon />
+          Continue with GitHub
+        </span>
+      </a>
     </div>
   )
 }

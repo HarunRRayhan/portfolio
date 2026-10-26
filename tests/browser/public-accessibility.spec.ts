@@ -129,3 +129,13 @@ test('consultation pricing text and feature symbols have readable contrast', asy
   await expect(included.first()).toBeVisible()
   expect(await contrast(included.first())).toBeGreaterThanOrEqual(3)
 })
+
+test('continue page offers google, github, email link and passkey', async ({ page }) => {
+  await page.goto('/login')
+  await expect(page.getByRole('link', { name: 'Continue with Google' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Continue with GitHub' })).toBeVisible()
+  await expect(page.getByRole('textbox', { name: 'Email' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Email me a sign-in link' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Sign in with passkey' })).toBeVisible()
+  await expect(page.getByLabel('Password')).toHaveCount(0)
+})

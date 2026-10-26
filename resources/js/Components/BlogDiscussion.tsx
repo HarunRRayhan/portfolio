@@ -114,6 +114,7 @@ export function BlogDiscussion({ slug, title, commentCount, comments }: BlogDisc
   })
 
   const submitUrl = `/blog/${slug}/comments`
+  const loginHref = `/login?redirect=${encodeURIComponent(`/blog/${slug}`)}`
   const isAuthenticated = Boolean(auth?.user)
 
   const commentHeading = useMemo(() => {
@@ -235,14 +236,14 @@ export function BlogDiscussion({ slug, title, commentCount, comments }: BlogDisc
 
               <div className="flex flex-wrap gap-3">
                 <Link
-                  href="/login"
+                  href={loginHref}
                   className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
                 >
                   <LogIn className="h-4 w-4" />
                   Sign in
                 </Link>
                 <Link
-                  href="/register"
+                  href={loginHref}
                   className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900"
                 >
                   Create account
