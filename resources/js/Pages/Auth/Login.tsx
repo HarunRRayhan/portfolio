@@ -87,6 +87,7 @@ export default function Login({
                         disabled={!enabled}
                     />
                     <InputError message={errors.email} className="mt-2" />
+                    <InputError message={errors.redirect} className="mt-2" />
                 </div>
 
                 {enabled ? (

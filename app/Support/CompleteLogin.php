@@ -14,7 +14,9 @@ class CompleteLogin
         Auth::login($user, true);
         $request->session()->regenerate();
 
+        $intended = $request->session()->pull('url.intended');
         $target = LoginRedirectTarget::sanitize($redirectTo)
+            ?? LoginRedirectTarget::sanitize($intended)
             ?? route($user->isAdmin() ? 'dashboard' : 'blog.index', absolute: false);
 
         if ($created) {

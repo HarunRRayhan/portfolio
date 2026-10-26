@@ -13,6 +13,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -27,7 +28,7 @@ class MagicLinkController extends Controller
         $data = $request->validate([
             'email' => ['required', 'email:rfc', 'max:255'],
             'cf-turnstile-response' => ['nullable', 'string'],
-            'redirect' => ['nullable', 'string', 'max:255'],
+            'redirect' => ['nullable', 'string', 'max:2048'],
         ]);
 
         if (! Turnstile::enabled()) {
@@ -49,7 +50,12 @@ class MagicLinkController extends Controller
                 'redirect_to' => LoginRedirectTarget::sanitize($data['redirect'] ?? null),
                 'expires_at' => now()->addMinutes(15),
             ]);
-            Mail::to($email)->send(new MagicLoginLinkMail(route('magic-link.show', $plain)));
+            try {
+                Mail::to($email)->send(new MagicLoginLinkMail(route('magic-link.show', $plain)));
+            } catch (\Throwable $e) {
+                // Generic response either way: a mail error must not reveal or 500.
+                Log::error('Magic link mail failed', ['exception' => $e]);
+            }
         }
 
         return back()->with('status', 'Check your inbox for a sign-in link. It expires in 15 minutes.');
@@ -99,6 +105,11 @@ class MagicLinkController extends Controller
                 // Defuse pre-registration: whoever set the old password never proved the mailbox.
                 $user->password = Str::random(64);
                 $user->setRememberToken(Str::random(60));
+                // ...and the passkeys and sessions they may have attached meanwhile.
+                $user->passkeys()->delete();
+                if (config('session.driver') === 'database') {
+                    DB::table(config('session.table', 'sessions'))->where('user_id', $user->id)->delete();
+                }
             }
 
             $user->email_verified_at ??= now();

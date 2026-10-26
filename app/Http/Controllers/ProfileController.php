@@ -47,7 +47,7 @@ class ProfileController extends Controller
     public function destroy(Request $request): RedirectResponse
     {
         $request->validate([
-            'confirm_email' => ['required', 'string', fn ($attr, $value, $fail) => strcasecmp($value, $request->user()->email) === 0 || $fail('The email does not match your account.')],
+            'confirm_email' => ['bail', 'required', 'string', fn ($attr, $value, $fail) => strcasecmp($value, $request->user()->email) === 0 || $fail('The email does not match your account.')],
         ]);
 
         $user = $request->user();

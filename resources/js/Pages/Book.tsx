@@ -552,9 +552,10 @@ export default function Book({
                     <label className="block text-sm">
                       <span className="mb-1.5 block font-medium text-slate-700">Website</span>
                       <input
-                        type="url"
+                        type="text"
+                        inputMode="url"
                         required
-                        placeholder="https://"
+                        placeholder="acme.com"
                         value={form.data.website}
                         onChange={(e) => form.setData('website', e.target.value)}
                         className={inputClass}

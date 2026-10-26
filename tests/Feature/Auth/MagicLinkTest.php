@@ -8,7 +8,10 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Spatie\LaravelPasskeys\Models\Passkey;
 use Tests\TestCase;
 
 class MagicLinkTest extends TestCase
@@ -207,5 +210,75 @@ class MagicLinkTest extends TestCase
         $fresh = $user->fresh();
         $this->assertFalse(Hash::check('attacker-chosen', $fresh->password));
         $this->assertNotSame($oldRemember, $fresh->remember_token);
+    }
+
+    public function test_magic_link_claim_of_unverified_account_removes_passkeys_and_sessions(): void
+    {
+        config(['session.driver' => 'database']);
+        $victim = User::factory()->unverified()->create(['email' => 'claim@example.com']);
+        $other = User::factory()->create();
+        Passkey::factory()->create(['authenticatable_id' => $victim->id]);
+        foreach (['attacker-sess' => $victim->id, 'other-sess' => $other->id] as $id => $userId) {
+            DB::table('sessions')->insert(['id' => $id, 'user_id' => $userId, 'payload' => '', 'last_activity' => time()]);
+        }
+
+        $this->post(route('magic-link.consume', $this->token('claim@example.com')));
+
+        $this->assertAuthenticatedAs($victim);
+        $this->assertSame(0, $victim->passkeys()->count());
+        $this->assertDatabaseMissing('sessions', ['id' => 'attacker-sess']);
+        $this->assertDatabaseHas('sessions', ['id' => 'other-sess']);
+    }
+
+    public function test_send_accepts_long_same_origin_redirect(): void
+    {
+        $this->turnstile();
+        $redirect = '/consultation?ref='.str_repeat('a', 582);
+        $this->assertSame(600, strlen($redirect));
+
+        $this->send('long@example.com', ['redirect' => $redirect])->assertSessionHasNoErrors();
+
+        $this->assertSame($redirect, MagicLoginToken::sole()->redirect_to);
+    }
+
+    public function test_send_hides_mailer_failure(): void
+    {
+        $this->turnstile();
+        Mail::shouldReceive('to')->andThrow(new \RuntimeException('resend down'));
+        Log::spy();
+
+        $this->send('boom@example.com')
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('status', 'Check your inbox for a sign-in link. It expires in 15 minutes.');
+
+        Log::shouldHaveReceived('error')->once();
+    }
+
+    public function test_auth_throttle_does_not_share_the_default_ip_bucket(): void
+    {
+        $this->turnstile();
+        for ($i = 0; $i < 6; $i++) {
+            $this->getJson(route('passkeys.login-options'))->assertOk();
+        }
+
+        $this->send()->assertSessionHasNoErrors()->assertStatus(302);
+    }
+
+    public function test_magic_link_honours_intended_url_when_no_redirect_given(): void
+    {
+        User::factory()->create(['email' => 'boss@x.com', 'role' => 'admin']);
+
+        $this->withSession(['url.intended' => url('/admin/posts')])
+            ->post(route('magic-link.consume', $this->token('boss@x.com')))
+            ->assertRedirect(url('/admin/posts'));
+    }
+
+    public function test_signed_in_users_visiting_guest_routes_are_sent_home_by_role(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => 'commenter']))
+            ->get(route('login'))->assertRedirect(route('blog.index'));
+
+        $this->actingAs(User::factory()->create(['role' => 'admin']))
+            ->get(route('login'))->assertRedirect(route('dashboard'));
     }
 }

@@ -17,22 +17,22 @@ Route::middleware('guest')->group(function () {
         ->name('login');
 
     Route::post('login/magic-link', [MagicLinkController::class, 'send'])
-        ->middleware('throttle:5,1')
+        ->middleware('throttle:5,1,magic-link')
         ->name('magic-link.send');
 
     Route::get('login/magic/{token}', [MagicLinkController::class, 'show'])
         ->name('magic-link.show');
 
     Route::post('login/magic/{token}', [MagicLinkController::class, 'consume'])
-        ->middleware('throttle:10,1')
+        ->middleware('throttle:10,1,magic-consume')
         ->name('magic-link.consume');
 
     Route::get('passkeys/login-options', [PasskeyController::class, 'loginOptions'])
-        ->middleware('throttle:20,1')
+        ->middleware('throttle:20,1,passkey-options')
         ->name('passkeys.login-options');
 
     Route::post('passkeys/login', [PasskeyController::class, 'login'])
-        ->middleware('throttle:10,1')
+        ->middleware('throttle:10,1,passkey-login')
         ->name('passkeys.login');
 
     Route::get('auth/{provider}', [SocialAuthenticationController::class, 'redirect'])
@@ -59,10 +59,10 @@ Route::middleware('auth')->group(function () {
     Route::get('passkeys/prompt', [PasskeyController::class, 'prompt'])->name('passkeys.prompt');
     Route::post('passkeys/prompt/skip', [PasskeyController::class, 'skip'])->name('passkeys.skip');
     Route::get('passkeys/register-options', [PasskeyController::class, 'registerOptions'])
-        ->middleware('throttle:20,1')
+        ->middleware(['verified', 'throttle:20,1,passkey-register-options'])
         ->name('passkeys.register-options');
     Route::post('passkeys', [PasskeyController::class, 'store'])
-        ->middleware('throttle:10,1')
+        ->middleware(['verified', 'throttle:10,1,passkey-store'])
         ->name('passkeys.store');
     Route::delete('passkeys/{passkey}', [PasskeyController::class, 'destroy'])->name('passkeys.destroy');
 

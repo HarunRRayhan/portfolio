@@ -108,6 +108,11 @@ class BookController extends Controller
 
     public function store(Request $request, BookingWorkflowService $workflow): RedirectResponse
     {
+        $website = $request->input('website');
+        if (is_string($website) && ($website = trim($website)) !== '' && ! preg_match('#^[a-z][a-z0-9+.-]*://#i', $website)) {
+            $request->merge(['website' => 'https://'.$website]);
+        }
+
         $data = $request->validate([
             'tier' => ['required', 'string'],
             'client_name' => ['required', 'string', 'max:120'],

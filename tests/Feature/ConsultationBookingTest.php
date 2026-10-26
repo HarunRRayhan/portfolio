@@ -2260,6 +2260,17 @@ class ConsultationBookingTest extends TestCase
         $this->assertSame('https://acme.test', $booking->toAdminArray()['website']);
     }
 
+    public function test_booking_website_without_scheme_gets_https(): void
+    {
+        Mail::fake();
+
+        $this->actingAs(User::factory()->create())
+            ->post('/book', array_merge($this->validBookingPayload(), ['website' => 'acme.com']))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('https://acme.com', ConsultationBooking::query()->firstOrFail()->website);
+    }
+
     private function validBookingPayload(): array
     {
         return [

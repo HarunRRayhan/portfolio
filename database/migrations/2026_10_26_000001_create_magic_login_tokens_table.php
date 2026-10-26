@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('email');
             $table->string('token_hash', 64)->unique();
-            $table->string('redirect_to')->nullable();
+            $table->text('redirect_to')->nullable();
             $table->timestamp('expires_at');
             $table->timestamp('used_at')->nullable();
             $table->timestamps();

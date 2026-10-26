@@ -125,4 +125,16 @@ class ProfileTest extends TestCase
 
         $this->assertNotNull($user->fresh());
     }
+
+    public function test_array_confirm_email_is_a_validation_error(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->deleteJson('/profile', ['confirm_email' => ['x']])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('confirm_email');
+
+        $this->assertNotNull($user->fresh());
+    }
 }

@@ -47,6 +47,9 @@ return Application::configure(basePath: dirname(__DIR__))
             LimitContentCrawls::class,
         ]);
 
+        // Signed-in users hitting guest routes (/login, magic links): /admin/dashboard is admin-only.
+        $middleware->redirectUsersTo(fn (Request $request) => route($request->user()?->isAdmin() ? 'dashboard' : 'blog.index'));
+
         $middleware->alias([
             'role' => CheckRole::class,
         ]);

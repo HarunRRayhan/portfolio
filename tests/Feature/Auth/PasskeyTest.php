@@ -166,4 +166,12 @@ class PasskeyTest extends TestCase
             ->assertSessionHasErrors('answer');
         $this->assertGuest();
     }
+
+    public function test_passkey_registration_requires_verified_email(): void
+    {
+        $this->actingAs(User::factory()->unverified()->create());
+
+        $this->getJson(route('passkeys.register-options'))->assertForbidden();
+        $this->postJson(route('passkeys.store'), ['name' => 'X', 'passkey' => '{}'])->assertForbidden();
+    }
 }
