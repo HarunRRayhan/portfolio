@@ -6,9 +6,9 @@ use App\Mail\MagicLoginLinkMail;
 use App\Models\MagicLoginToken;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\RateLimiter;
 use Tests\TestCase;
 
 class MagicLinkTest extends TestCase
@@ -19,13 +19,12 @@ class MagicLinkTest extends TestCase
     {
         parent::setUp();
         config(['services.turnstile.secret_key' => 'secret', 'services.turnstile.site_key' => 'site']);
-        RateLimiter::clear('x');
         Mail::fake();
     }
 
     private function turnstile(bool $ok = true): void
     {
-        Http::fake(['challenges.cloudflare.com/*' => Http::response(['success' => $ok])]);
+        Http::fake(['challenges.cloudflare.com/*' => Http::response(['success' => $ok, 'hostname' => parse_url(config('app.url'), PHP_URL_HOST)])]);
     }
 
     private function send(string $email = 'new@example.com', array $extra = [])
@@ -52,7 +51,7 @@ class MagicLinkTest extends TestCase
 
         $this->send()->assertSessionHasErrors('email');
 
-        Mail::assertNothingQueued();
+        Mail::assertNothingSent();
         $this->assertSame(0, MagicLoginToken::count());
     }
 
@@ -61,20 +60,19 @@ class MagicLinkTest extends TestCase
         config(['services.turnstile.secret_key' => '']);
         $this->turnstile();
 
-        $this->send()->assertSessionHasErrors('email');
+        $this->send()->assertSessionHasErrors(['email' => 'Email sign-in is temporarily unavailable.']);
 
-        Mail::assertNothingQueued();
         Mail::assertNothingSent();
     }
 
-    public function test_send_queues_mail_and_stores_hashed_token(): void
+    public function test_send_sends_mail_and_stores_hashed_token(): void
     {
         $this->turnstile();
         $this->travelTo(now()->startOfSecond());
 
         $this->send();
 
-        Mail::assertQueued(MagicLoginLinkMail::class, fn ($m) => $m->hasTo('new@example.com'));
+        Mail::assertSent(MagicLoginLinkMail::class, fn ($m) => $m->hasTo('new@example.com'));
         $row = MagicLoginToken::sole();
         $this->assertSame(64, strlen($row->token_hash));
         $this->assertTrue($row->expires_at->equalTo(now()->addMinutes(15)));
@@ -85,13 +83,13 @@ class MagicLinkTest extends TestCase
         $this->turnstile();
         User::factory()->create(['email' => 'known@example.com']);
 
+        $msg = 'Check your inbox for a sign-in link. It expires in 15 minutes.';
         $a = $this->send('known@example.com');
+        $a->assertSessionHas('status', $msg);
         $b = $this->send('unknown@example.com');
+        $b->assertSessionHas('status', $msg);
 
         $this->assertSame($a->headers->get('Location'), $b->headers->get('Location'));
-        $this->assertSame(session('status'), 'Check your inbox for a sign-in link. It expires in 15 minutes.');
-        $a->assertSessionHas('status');
-        $b->assertSessionHas('status', session('status'));
     }
 
     public function test_send_is_rate_limited_per_email(): void
@@ -99,17 +97,17 @@ class MagicLinkTest extends TestCase
         $this->turnstile();
 
         foreach (range(1, 4) as $i) {
-            $this->send('rate@example.com')->assertSessionHas('status');
+            $this->send('rate@example.com')->assertSessionHas('status', 'Check your inbox for a sign-in link. It expires in 15 minutes.');
         }
 
-        Mail::assertQueued(MagicLoginLinkMail::class, 3);
+        Mail::assertSent(MagicLoginLinkMail::class, 3);
     }
 
     public function test_magic_link_creates_verified_commenter(): void
     {
         $plain = $this->token('Jane.Doe@example.com');
 
-        $this->get(route('magic-link.consume', $plain))->assertRedirect(route('passkeys.prompt'));
+        $this->post(route('magic-link.consume', $plain))->assertRedirect(route('passkeys.prompt'));
 
         $user = User::where('email', 'jane.doe@example.com')->sole();
         $this->assertSame('commenter', $user->role);
@@ -122,7 +120,7 @@ class MagicLinkTest extends TestCase
     {
         $user = User::factory()->unverified()->create(['email' => 'old@example.com']);
 
-        $this->get(route('magic-link.consume', $this->token('old@example.com')))->assertRedirect(route('blog.index', absolute: false));
+        $this->post(route('magic-link.consume', $this->token('old@example.com')))->assertRedirect(route('blog.index', absolute: false));
 
         $this->assertAuthenticatedAs($user);
         $this->assertNotNull($user->fresh()->email_verified_at);
@@ -132,7 +130,7 @@ class MagicLinkTest extends TestCase
     {
         config(['auth.super_admin_emails' => ['boss@x.com']]);
 
-        $this->get(route('magic-link.consume', $this->token('boss@x.com')));
+        $this->post(route('magic-link.consume', $this->token('boss@x.com')));
 
         $this->assertSame('commenter', User::where('email', 'boss@x.com')->sole()->role);
     }
@@ -141,11 +139,11 @@ class MagicLinkTest extends TestCase
     {
         $plain = $this->token();
 
-        $this->get(route('magic-link.consume', $plain));
+        $this->post(route('magic-link.consume', $plain));
         auth()->logout();
         $this->flushSession();
 
-        $this->get(route('magic-link.consume', $plain))
+        $this->post(route('magic-link.consume', $plain))
             ->assertRedirect(route('login'))
             ->assertSessionHas('status');
         $this->assertGuest();
@@ -156,7 +154,7 @@ class MagicLinkTest extends TestCase
         $plain = $this->token();
         $this->travel(16)->minutes();
 
-        $this->get(route('magic-link.consume', $plain))->assertRedirect(route('login'));
+        $this->post(route('magic-link.consume', $plain))->assertRedirect(route('login'));
 
         $this->assertGuest();
         $this->assertSame(0, User::count());
@@ -166,7 +164,7 @@ class MagicLinkTest extends TestCase
     {
         $user = User::factory()->create(['email' => 'foo@x.com']);
 
-        $this->get(route('magic-link.consume', $this->token('Foo@X.com')));
+        $this->post(route('magic-link.consume', $this->token('Foo@X.com')));
 
         $this->assertAuthenticatedAs($user);
         $this->assertSame(1, User::count());
@@ -176,11 +174,38 @@ class MagicLinkTest extends TestCase
     {
         User::factory()->create(['email' => 'r@x.com']);
 
-        $this->get(route('magic-link.consume', $this->token('r@x.com', ['redirect_to' => '/consultation?sa_ref=abc'])))
+        $this->post(route('magic-link.consume', $this->token('r@x.com', ['redirect_to' => '/consultation?sa_ref=abc'])))
             ->assertRedirect('/consultation?sa_ref=abc');
 
         auth()->logout();
-        $this->get(route('magic-link.consume', $this->token('r@x.com', ['redirect_to' => 'https://evil.test'])))
+        $this->post(route('magic-link.consume', $this->token('r@x.com', ['redirect_to' => 'https://evil.test'])))
             ->assertRedirect(route('blog.index', absolute: false));
+    }
+
+    public function test_get_does_not_consume_token(): void
+    {
+        $plain = $this->token('peek@example.com');
+
+        $this->get(route('magic-link.show', $plain))
+            ->assertOk()
+            ->assertInertia(fn ($p) => $p->component('Auth/MagicLinkConfirm')->where('email', 'peek@example.com'));
+
+        $this->assertGuest();
+        $this->assertNull(MagicLoginToken::sole()->used_at);
+        $this->assertSame(0, User::count());
+
+        $this->get(route('magic-link.show', 'bogus'))->assertRedirect(route('login'));
+    }
+
+    public function test_magic_link_rotates_password_of_unverified_existing_account(): void
+    {
+        $user = User::factory()->unverified()->create(['email' => 'victim@example.com', 'password' => 'attacker-chosen']);
+        $oldRemember = $user->remember_token;
+
+        $this->post(route('magic-link.consume', $this->token('victim@example.com')));
+
+        $fresh = $user->fresh();
+        $this->assertFalse(Hash::check('attacker-chosen', $fresh->password));
+        $this->assertNotSame($oldRemember, $fresh->remember_token);
     }
 }

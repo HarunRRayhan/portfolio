@@ -29,7 +29,11 @@ Route::middleware('guest')->group(function () {
         ->middleware('throttle:5,1')
         ->name('magic-link.send');
 
-    Route::get('login/magic/{token}', [MagicLinkController::class, 'consume'])
+    Route::get('login/magic/{token}', [MagicLinkController::class, 'show'])
+        ->name('magic-link.show');
+
+    Route::post('login/magic/{token}', [MagicLinkController::class, 'consume'])
+        ->middleware('throttle:10,1')
         ->name('magic-link.consume');
 
     Route::get('auth/{provider}', [SocialAuthenticationController::class, 'redirect'])

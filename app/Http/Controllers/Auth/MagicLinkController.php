@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\Turnstile;
 use App\Support\CompleteLogin;
 use App\Support\LoginRedirectTarget;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +17,8 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class MagicLinkController extends Controller
 {
@@ -24,8 +27,12 @@ class MagicLinkController extends Controller
         $data = $request->validate([
             'email' => ['required', 'email:rfc', 'max:255'],
             'cf-turnstile-response' => ['nullable', 'string'],
-            'redirect' => ['nullable', 'string'],
+            'redirect' => ['nullable', 'string', 'max:255'],
         ]);
+
+        if (! Turnstile::enabled()) {
+            throw ValidationException::withMessages(['email' => 'Email sign-in is temporarily unavailable.']);
+        }
 
         if (! Turnstile::verify($data['cf-turnstile-response'] ?? null, $request->ip())) {
             throw ValidationException::withMessages(['email' => 'We could not verify you are human. Please try again.']);
@@ -42,10 +49,27 @@ class MagicLinkController extends Controller
                 'redirect_to' => LoginRedirectTarget::sanitize($data['redirect'] ?? null),
                 'expires_at' => now()->addMinutes(15),
             ]);
-            Mail::to($email)->queue(new MagicLoginLinkMail(route('magic-link.consume', $plain)));
+            Mail::to($email)->send(new MagicLoginLinkMail(route('magic-link.show', $plain)));
         }
 
         return back()->with('status', 'Check your inbox for a sign-in link. It expires in 15 minutes.');
+    }
+
+    public function show(string $token): Response|RedirectResponse
+    {
+        $row = MagicLoginToken::where('token_hash', hash('sha256', $token))
+            ->whereNull('used_at')->where('expires_at', '>', now())->first();
+
+        if (! $row) {
+            return $this->invalid();
+        }
+
+        return Inertia::render('Auth/MagicLinkConfirm', ['token' => $token, 'email' => $row->email]);
+    }
+
+    private function invalid(): RedirectResponse
+    {
+        return redirect()->route('login')->with('status', 'That sign-in link has expired or was already used. Request a new one.');
     }
 
     public function consume(Request $request, string $token): RedirectResponse
@@ -71,16 +95,27 @@ class MagicLinkController extends Controller
                 $user->email = $email;
                 $user->password = Str::random(64);
                 $user->role = 'commenter';
+            } elseif ($user->email_verified_at === null) {
+                // Defuse pre-registration: whoever set the old password never proved the mailbox.
+                $user->password = Str::random(64);
+                $user->setRememberToken(Str::random(60));
             }
 
             $user->email_verified_at ??= now();
-            $user->save();
+
+            try {
+                // Savepoint so a unique violation does not poison the outer transaction.
+                DB::transaction(fn () => $user->save());
+            } catch (UniqueConstraintViolationException) {
+                $user = User::whereRaw('LOWER(email) = ?', [$email])->firstOrFail();
+                $created = false;
+            }
 
             return [$user, $created, $row->redirect_to];
         });
 
         if (! $user) {
-            return redirect()->route('login')->with('status', 'That sign-in link has expired or was already used. Request a new one.');
+            return $this->invalid();
         }
 
         return CompleteLogin::redirect($request, $user, $created, $redirectTo);

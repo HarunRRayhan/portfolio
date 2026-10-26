@@ -18,11 +18,14 @@ class Turnstile
         }
 
         try {
-            return Http::asForm()->timeout(5)->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+            $res = Http::asForm()->timeout(5)->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
                 'secret' => config('services.turnstile.secret_key'),
                 'response' => $token,
                 'remoteip' => $ip,
-            ])->json('success') === true;
+            ]);
+
+            return $res->json('success') === true
+                && strcasecmp((string) $res->json('hostname'), (string) parse_url((string) config('app.url'), PHP_URL_HOST)) === 0;
         } catch (\Throwable) {
             return false;
         }
