@@ -77,7 +77,8 @@ class SocialLoginTest extends TestCase
 
         $callbackResponse = $this->get('/auth/github/callback?code=test-code&state='.($redirectQuery['state'] ?? ''));
 
-        $callbackResponse->assertRedirect('http://localhost/blog/example#discussion');
+        $callbackResponse->assertRedirect(route('passkeys.prompt'));
+        $this->assertSame('http://localhost/blog/example#discussion', session('passkey_prompt.redirect_to'));
         $this->assertAuthenticated();
 
         $user = User::query()->where('email', 'harun@example.com')->first();
@@ -86,5 +87,24 @@ class SocialLoginTest extends TestCase
         $this->assertSame('github', $user->provider_name);
         $this->assertSame('12345', (string) $user->provider_id);
         $this->assertSame('https://avatars.githubusercontent.com/u/12345?v=4', $user->avatar_url);
+    }
+
+    public function test_returning_social_user_goes_straight_to_the_redirect_target(): void
+    {
+        config()->set('app.url', 'http://localhost');
+        config()->set('services.github', [
+            'client_id' => 'id', 'client_secret' => 'secret', 'redirect' => 'http://localhost/auth/github/callback',
+        ]);
+        User::factory()->create(['email' => 'harun@example.com', 'provider_name' => 'github', 'provider_id' => '12345']);
+        Http::fake([
+            'https://github.com/login/oauth/access_token' => Http::response(['access_token' => 'tok']),
+            'https://api.github.com/user' => Http::response(['id' => 12345, 'name' => 'Harun']),
+            'https://api.github.com/user/emails' => Http::response([['email' => 'harun@example.com', 'primary' => true, 'verified' => true]]),
+        ]);
+
+        $this->withSession(['social_login.state.github' => 's', 'social_login.redirect_to' => '/blog/example'])
+            ->get('/auth/github/callback?code=c&state=s')
+            ->assertRedirect('/blog/example');
+        $this->assertAuthenticated();
     }
 }

@@ -45,6 +45,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'turnstileSiteKey' => config('services.turnstile.site_key'),
             'caseStudiesByService' => fn () => $request->is('services/*')
                 ? array_intersect_key($caseStudies->groupedByServiceSlug(), [$request->segment(2) => true])
                 : [],

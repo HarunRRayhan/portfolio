@@ -50,6 +50,8 @@ class BookController extends Controller
             'minLeadHours' => (int) config('consultation.min_lead_hours', 48),
             'bufferMinutes' => (int) config('consultation.buffer_minutes', 15),
             'timezones' => \DateTimeZone::listIdentifiers(),
+            'bookingUser' => $request->user() ? ['name' => $request->user()->name, 'email' => $request->user()->email] : null,
+            'loginUrl' => route('login', ['redirect' => $request->getRequestUri()]),
             'launchPromotion' => [
                 'discount_cents' => $discountCents,
                 'limit' => $promotion->limit(),
@@ -106,12 +108,20 @@ class BookController extends Controller
 
     public function store(Request $request, BookingWorkflowService $workflow): RedirectResponse
     {
+        $website = $request->input('website');
+        if (is_string($website) && ($website = trim($website)) !== '' && ! preg_match('#^[a-z][a-z0-9+.-]*://#i', $website)) {
+            $request->merge(['website' => 'https://'.$website]);
+        }
+
         $data = $request->validate([
             'tier' => ['required', 'string'],
             'client_name' => ['required', 'string', 'max:120'],
-            'client_email' => ['required', 'email', 'max:255'],
-            'company_name' => ['nullable', 'string', 'max:255'],
-            'notes' => ['nullable', 'string', 'max:5000'],
+            'company_name' => ['required', 'string', 'max:255'],
+            'website' => ['required', 'url:http,https', 'max:2048'],
+            'notes' => ['required', 'string', 'max:5000'],
+            'role' => ['nullable', 'string', 'max:120'],
+            'team_size' => ['nullable', 'string', 'max:40'],
+            'budget' => ['nullable', 'string', 'max:60'],
             'starts_at' => ['required', 'date'],
             'coupon_code' => ['nullable', 'string', 'max:64'],
             'sa_ref' => config('consultation.skaleagents_handoff_enabled')
@@ -136,12 +146,19 @@ class BookController extends Controller
             $result = $workflow->requestBooking(
                 $tier,
                 $data['client_name'],
-                $data['client_email'],
-                $data['notes'] ?? null,
+                $request->user()->email,
+                $data['notes'],
                 Carbon::parse($data['starts_at'])->utc(),
                 $coupon,
-                $data['company_name'] ?? null,
+                $data['company_name'],
                 $data['sa_ref'] ?? null,
+                [
+                    'user_id' => $request->user()->id,
+                    'website' => $data['website'],
+                    'role' => $data['role'] ?? null,
+                    'team_size' => $data['team_size'] ?? null,
+                    'budget' => $data['budget'] ?? null,
+                ],
             );
         } catch (\InvalidArgumentException $e) {
             return back()->withErrors(['starts_at' => $e->getMessage()])->withInput();

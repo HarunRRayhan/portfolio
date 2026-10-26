@@ -1,4 +1,5 @@
 import { expect, test, type Locator } from '@playwright/test'
+import { loginAs } from './login'
 
 test.beforeEach(async ({ page }, testInfo) => {
   if (!testInfo.title.startsWith('idle newsletter')) {
@@ -71,10 +72,7 @@ test('desktop More toggles and dismisses with Escape or focus leaving', async ({
 })
 
 test('signed-in account disclosure has a name and restores focus on Escape', async ({ page }) => {
-  await page.goto('/login')
-  await page.getByRole('textbox', { name: 'Email', exact: true }).fill('browser-admin@example.test')
-  await page.getByLabel('Password', { exact: true }).fill('browser-tests-only')
-  await page.getByRole('button', { name: 'Log in', exact: true }).click()
+  await loginAs(page, 'browser-admin@example.test')
   await expect(page).toHaveURL(/\/admin\/dashboard$/)
   await page.setViewportSize({ width: 1440, height: 1000 })
   await page.goto('/contact')
@@ -122,7 +120,8 @@ async function contrast(locator: Locator) {
 
 test('consultation pricing text and feature symbols have readable contrast', async ({ page }) => {
   await page.goto('/consultation')
-  expect(await contrast(page.getByRole('button', { name: 'Book Max', exact: true }))).toBeGreaterThanOrEqual(4.5)
+  expect(await contrast(page.getByRole('link', { name: 'Sign up to book Max', exact: true }))).toBeGreaterThanOrEqual(4.5)
+  expect(await contrast(page.getByRole('link', { name: 'Sign up to book', exact: true }))).toBeGreaterThanOrEqual(4.5)
   expect(await contrast(page.getByText('Recommended', { exact: true }))).toBeGreaterThanOrEqual(4.5)
   for (const label of await page.getByText('/ one time', { exact: true }).all()) {
     expect(await contrast(label)).toBeGreaterThanOrEqual(4.5)
@@ -130,4 +129,14 @@ test('consultation pricing text and feature symbols have readable contrast', asy
   const included = page.getByRole('img', { name: 'Included', exact: true })
   await expect(included.first()).toBeVisible()
   expect(await contrast(included.first())).toBeGreaterThanOrEqual(3)
+})
+
+test('continue page offers google, github, email link and passkey', async ({ page }) => {
+  await page.goto('/login')
+  await expect(page.getByRole('link', { name: 'Continue with Google' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Continue with GitHub' })).toBeVisible()
+  await expect(page.getByRole('textbox', { name: 'Email' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Email me a sign-in link' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Sign in with passkey' })).toBeVisible()
+  await expect(page.getByLabel('Password')).toHaveCount(0)
 })

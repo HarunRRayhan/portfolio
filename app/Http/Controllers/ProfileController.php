@@ -21,6 +21,7 @@ class ProfileController extends Controller
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
+            'passkeys' => $request->user()->passkeys()->latest()->get(['id', 'name', 'created_at', 'last_used_at']),
         ]);
     }
 
@@ -46,7 +47,7 @@ class ProfileController extends Controller
     public function destroy(Request $request): RedirectResponse
     {
         $request->validate([
-            'password' => ['required', 'current_password'],
+            'confirm_email' => ['bail', 'required', 'string', fn ($attr, $value, $fail) => strcasecmp($value, $request->user()->email) === 0 || $fail('The email does not match your account.')],
         ]);
 
         $user = $request->user();

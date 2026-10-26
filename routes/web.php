@@ -556,7 +556,7 @@ Route::post('/book/coupon', [BookController::class, 'validateCoupon'])
     ->middleware('throttle:30,1')
     ->name('book.coupon');
 Route::post('/book', [BookController::class, 'store'])
-    ->middleware('throttle:10,1')
+    ->middleware(['throttle:10,1', 'auth', 'verified'])
     ->name('book.store');
 
 Route::get('/book/b/{publicId}', [BookingAccessController::class, 'show'])

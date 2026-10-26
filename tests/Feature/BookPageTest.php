@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\ConsultationCoupon;
 use App\Models\ConsultationSetting;
 use App\Models\ConsultationTier;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -32,6 +33,22 @@ class BookPageTest extends TestCase
             ->where('launchPromotion.discount_cents', 10000)
             ->where('launchPromotion.limit', 1001)
             ->where('launchPromotion.remaining_bookings', 1001));
+    }
+
+    public function test_guest_booking_gate_links_to_login_with_full_redirect(): void
+    {
+        $this->get('/consultation?sa_ref=abc&coupon=X')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('bookingUser', null)
+                ->where('loginUrl', fn (string $url) => str_contains($url, 'redirect=%2Fconsultation%3Fsa_ref%3Dabc%26coupon%3DX')));
+    }
+
+    public function test_signed_in_user_gets_booking_user_name(): void
+    {
+        $this->actingAs(User::factory()->create(['name' => 'Jane Doe']))
+            ->get('/consultation')
+            ->assertInertia(fn ($page) => $page->where('bookingUser.name', 'Jane Doe'));
     }
 
     public function test_legacy_consultation_urls_permanently_redirect_and_keep_query_parameters(): void

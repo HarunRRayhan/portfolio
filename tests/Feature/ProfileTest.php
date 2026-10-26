@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\ConsultationBooking;
+use App\Models\ConsultationTier;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -68,7 +70,7 @@ class ProfileTest extends TestCase
         $response = $this
             ->actingAs($user)
             ->delete('/profile', [
-                'password' => 'password',
+                'confirm_email' => strtoupper($user->email),
             ]);
 
         $response
@@ -79,7 +81,34 @@ class ProfileTest extends TestCase
         $this->assertNull($user->fresh());
     }
 
-    public function test_correct_password_must_be_provided_to_delete_account(): void
+    public function test_deleting_account_keeps_bookings(): void
+    {
+        $user = User::factory()->create();
+        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $booking = ConsultationBooking::create([
+            'user_id' => $user->id,
+            'consultation_tier_id' => $tier->id,
+            'client_name' => 'Client',
+            'client_email' => $user->email,
+            'starts_at' => now()->addWeek(),
+            'ends_at' => now()->addWeek()->addHour(),
+            'status' => ConsultationBooking::STATUS_PENDING_APPROVAL,
+            'list_price_cents' => $tier->price_cents,
+            'amount_due_cents' => $tier->price_cents,
+            'currency' => 'usd',
+            'access_token_hash' => hash('sha256', 'keep-me'),
+        ]);
+
+        $this->actingAs($user)
+            ->delete('/profile', ['confirm_email' => $user->email])
+            ->assertSessionHasNoErrors();
+
+        $this->assertNull($user->fresh());
+        $this->assertNotNull($booking->fresh());
+        $this->assertNull($booking->fresh()->user_id);
+    }
+
+    public function test_matching_email_must_be_provided_to_delete_account(): void
     {
         $user = User::factory()->create();
 
@@ -87,12 +116,24 @@ class ProfileTest extends TestCase
             ->actingAs($user)
             ->from('/profile')
             ->delete('/profile', [
-                'password' => 'wrong-password',
+                'confirm_email' => 'someone-else@example.com',
             ]);
 
         $response
-            ->assertSessionHasErrors('password')
+            ->assertSessionHasErrors('confirm_email')
             ->assertRedirect('/profile');
+
+        $this->assertNotNull($user->fresh());
+    }
+
+    public function test_array_confirm_email_is_a_validation_error(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->deleteJson('/profile', ['confirm_email' => ['x']])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('confirm_email');
 
         $this->assertNotNull($user->fresh());
     }

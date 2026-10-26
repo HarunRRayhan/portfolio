@@ -100,7 +100,7 @@ class AiReadinessTest extends TestCase
             'User-Agent' => 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; GPTBot/1.2; +https://openai.com/gptbot',
         ])->get('/robots.txt')->assertOk();
 
-        $this->withHeaders($bulk)->post('/login', [])->assertRedirect();
+        $this->withHeaders($bulk)->post('/login/magic-link', [])->assertRedirect();
     }
 
     #[Test]

@@ -1,10 +1,8 @@
 import { expect, test } from '@playwright/test'
+import { loginAs } from './login'
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/login')
-  await page.getByRole('textbox', { name: 'Email', exact: true }).fill('browser-admin@example.test')
-  await page.getByLabel('Password', { exact: true }).fill('browser-tests-only')
-  await page.getByRole('button', { name: 'Log in', exact: true }).click()
+  await loginAs(page, 'browser-admin@example.test')
   await expect(page).toHaveURL(/\/admin\/dashboard$/)
 })
 

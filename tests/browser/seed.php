@@ -6,7 +6,7 @@ use App\Models\ConsultationGoogleCredential;
 use App\Models\ConsultationTier;
 use App\Models\User;
 use Illuminate\Contracts\Console\Kernel;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 // This fixture is CLI-only and may only change the browser runner's temporary DB.
 if (PHP_SAPI !== 'cli' || getenv('BROWSER_TEST_RUN') !== '1') {
@@ -27,7 +27,7 @@ ConsultationGoogleCredential::query()->delete();
 $user = User::firstOrNew(['email' => 'browser-admin@example.test']);
 $user->forceFill([
     'name' => 'Browser test admin',
-    'password' => Hash::make('browser-tests-only'),
+    'password' => Str::random(64),
     'role' => 'admin',
     'email_verified_at' => now(),
 ])->save();
