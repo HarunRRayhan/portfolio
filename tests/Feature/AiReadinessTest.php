@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Support\AiCrawlerPolicy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -25,10 +26,20 @@ class AiReadinessTest extends TestCase
         $this->assertStringContainsString('max-age=900', $cacheControl);
         $this->assertStringContainsString('Content-Signal: search=yes, ai-input=yes, ai-train=yes', $body);
         $this->assertStringContainsString($siteUrl.'/llms-full.txt', $body);
-        $this->assertStringContainsString('Disallow: /admin', $body);
-        $this->assertStringContainsString('Disallow: /login', $body);
+        $this->assertStringNotContainsString('Disallow: /admin', $body);
+        $this->assertStringNotContainsString('Disallow: /login', $body);
         $this->assertStringContainsString("User-agent: AhrefsBot\nDisallow: /", $body);
         $this->assertStringNotContainsString('ai-train=no', $body);
+    }
+
+    #[Test]
+    public function private_paths_send_noindex_header_and_content_does_not(): void
+    {
+        $this->get('/login')->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+        $this->get('/up')->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+        $this->get('/about')->assertHeaderMissing('X-Robots-Tag');
+        $this->assertFalse(AiCrawlerPolicy::isPrivatePath('/upwork-developer'));
+        $this->assertTrue(AiCrawlerPolicy::isPrivatePath('/auth/google'));
     }
 
     #[Test]
