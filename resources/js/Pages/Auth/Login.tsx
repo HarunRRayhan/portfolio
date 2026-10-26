@@ -4,6 +4,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import SocialLoginButtons from '@/Components/SocialLoginButtons';
 import TextInput from '@/Components/TextInput';
 import Turnstile from '@/Components/Turnstile';
+import { loginWithPasskey } from '@/lib/passkeys';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { FormEventHandler, useState } from 'react';
@@ -22,6 +23,20 @@ export default function Login({
 
     // Turnstile tokens are single-use: remount the widget after every submit for a fresh one.
     const [widgetKey, setWidgetKey] = useState(0);
+
+    const [passkeyBusy, setPasskeyBusy] = useState(false);
+    const [passkeyError, setPasskeyError] = useState<string | null>(null);
+
+    const passkeyLogin = async () => {
+        setPasskeyBusy(true);
+        setPasskeyError(null);
+        try {
+            await loginWithPasskey(redirect);
+        } catch {
+            setPasskeyError('Passkey sign-in failed. Try another option.');
+            setPasskeyBusy(false);
+        }
+    };
 
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
@@ -88,14 +103,19 @@ export default function Login({
                 </PrimaryButton>
             </form>
 
-            {/* Wired up in the passkey task. */}
             <button
                 type="button"
-                disabled
-                className="mt-4 inline-flex w-full cursor-not-allowed items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-400"
+                onClick={passkeyLogin}
+                disabled={passkeyBusy}
+                className="mt-4 inline-flex w-full items-center justify-center rounded-full border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
                 Sign in with passkey
             </button>
+            {passkeyError && (
+                <p role="alert" className="mt-2 text-sm text-red-600">
+                    {passkeyError}
+                </p>
+            )}
         </GuestLayout>
     );
 }
