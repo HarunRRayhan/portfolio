@@ -71,10 +71,10 @@ final class AiCrawlerPolicy
     ];
 
     /**
-     * Paths that are not published content. Disallowed for every agent that
-     * honors the wildcard group. Per-agent Allow groups are intentionally
-     * absent: a more specific group replaces the wildcard group instead of
-     * merging with it, which would drop these Disallow lines.
+     * Paths that are not published content. They answer with an
+     * X-Robots-Tag noindex header instead of a robots.txt Disallow: Google
+     * still indexes blocked URLs it finds via links ("Indexed, though blocked
+     * by robots.txt") because it can never fetch them to see the noindex.
      *
      * @var list<string>
      */
@@ -107,10 +107,6 @@ final class AiCrawlerPolicy
             'Allow: /',
         ];
 
-        foreach (self::PRIVATE_PREFIXES as $path) {
-            $lines[] = 'Disallow: '.$path;
-        }
-
         $lines[] = '';
         $lines[] = '# These are SEO scrapers, not answer or training crawlers.';
 
@@ -123,6 +119,19 @@ final class AiCrawlerPolicy
         $lines[] = 'Sitemap: '.$siteUrl.'/sitemap.xml';
 
         return implode("\n", $lines)."\n";
+    }
+
+    public static function isPrivatePath(string $path): bool
+    {
+        foreach (self::PRIVATE_PREFIXES as $prefix) {
+            $prefix = rtrim($prefix, '/');
+
+            if ($path === $prefix || str_starts_with($path, $prefix.'/')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static function classify(string $userAgent): string

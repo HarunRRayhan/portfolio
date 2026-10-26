@@ -3,6 +3,7 @@
 use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\LimitContentCrawls;
+use App\Http\Middleware\NoindexPrivatePaths;
 use App\Http\Middleware\RedirectTrailingSlash;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -34,6 +35,9 @@ return Application::configure(basePath: dirname(__DIR__))
                 | Request::HEADER_X_FORWARDED_PROTO
                 | Request::HEADER_X_FORWARDED_AWS_ELB,
         );
+
+        // Global so the framework /up health route gets the header too.
+        $middleware->append(NoindexPrivatePaths::class);
 
         // Runs before session/CSRF so trailing-slash URLs are normalized to
         // their canonical (slash-free) form with a 301 before any real work.
