@@ -10,12 +10,6 @@ use Spatie\LaravelPasskeys\Models\Passkey;
 
 return [
     /*
-     * After a successful authentication attempt using a passkey
-     * we'll redirect to this URL.
-     */
-    'redirect_to_after_login' => '/dashboard',
-
-    /*
      * These class are responsible for performing core tasks regarding passkeys.
      * You can customize them by creating a class that extends the default, and
      * by specifying your custom class name here.

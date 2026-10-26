@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\CompleteLogin;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,7 +17,9 @@ use Spatie\LaravelPasskeys\Actions\FindPasskeyToAuthenticateAction;
 use Spatie\LaravelPasskeys\Actions\GeneratePasskeyAuthenticationOptionsAction;
 use Spatie\LaravelPasskeys\Actions\GeneratePasskeyRegisterOptionsAction;
 use Spatie\LaravelPasskeys\Actions\StorePasskeyAction;
+use Spatie\LaravelPasskeys\Models\Passkey;
 use Spatie\LaravelPasskeys\Support\Config;
+use Spatie\LaravelPasskeys\Support\Serializer;
 use Throwable;
 
 class PasskeyController extends Controller
@@ -42,7 +45,14 @@ class PasskeyController extends Controller
     public function registerOptions(Request $request): JsonResponse
     {
         $options = Config::getAction('generate_passkey_register_options', GeneratePasskeyRegisterOptionsAction::class)
-            ->execute($request->user());
+            ->execute($request->user(), asJson: false);
+
+        // Tell the authenticator which credentials this user already has, so it won't create a duplicate.
+        $options->excludeCredentials = $request->user()->passkeys
+            ->map(fn (Passkey $passkey) => $passkey->data->getPublicKeyCredentialDescriptor())
+            ->all();
+
+        $options = Serializer::make()->toJson($options);
 
         $request->session()->put(self::REGISTER_OPTIONS, $options);
 
@@ -66,6 +76,9 @@ class PasskeyController extends Controller
                 Config::getRelyingPartyId(),
                 ['name' => $request->input('name')],
             );
+        } catch (UniqueConstraintViolationException) {
+            // credential_id is unique across all users; a credential can only belong to one account.
+            throw ValidationException::withMessages(['passkey' => 'This passkey is already registered.']);
         } catch (Throwable) {
             throw ValidationException::withMessages(['passkey' => 'That passkey could not be saved. Try again.']);
         }

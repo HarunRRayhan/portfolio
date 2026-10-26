@@ -4,8 +4,10 @@ namespace Tests\Feature\Auth;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\LaravelPasskeys\Actions\StorePasskeyAction;
 use Spatie\LaravelPasskeys\Models\Passkey;
 use Tests\TestCase;
+use Webauthn\PublicKeyCredentialSource;
 
 class PasskeyTest extends TestCase
 {
@@ -62,6 +64,40 @@ class PasskeyTest extends TestCase
         $this->assertSame(0, $user->passkeys()->count());
     }
 
+    public function test_register_options_exclude_existing_credentials(): void
+    {
+        $user = User::factory()->create();
+        Passkey::factory()->create(['authenticatable_id' => $user->id]);
+
+        $response = $this->actingAs($user)->getJson(route('passkeys.register-options'))->assertOk();
+
+        $this->assertCount(1, $response->json('excludeCredentials'));
+        $this->assertSame('public-key', $response->json('excludeCredentials.0.type'));
+    }
+
+    public function test_cannot_register_existing_credential_id(): void
+    {
+        // Skip attestation (covered by the package); return the factory's credential so the ids collide.
+        config(['passkeys.actions.store_passkey' => get_class(new class extends StorePasskeyAction
+        {
+            protected function determinePublicKeyCredentialSource(string $passkeyJson, string $passkeyOptionsJson, string $hostName): PublicKeyCredentialSource
+            {
+                return Passkey::factory()->make()->data;
+            }
+        })]);
+
+        $victim = Passkey::factory()->create();
+        $attacker = User::factory()->create();
+
+        $this->actingAs($attacker)->getJson(route('passkeys.register-options'));
+        $this->post(route('passkeys.store'), ['name' => 'Copy', 'passkey' => '{"id":"x"}'])
+            ->assertSessionHasErrors(['passkey' => 'This passkey is already registered.']);
+
+        $this->assertSame(0, $attacker->passkeys()->count());
+        $this->assertSame(1, Passkey::count());
+        $this->assertModelExists($victim);
+    }
+
     public function test_user_cannot_delete_another_users_passkey(): void
     {
         $passkey = Passkey::factory()->create();
@@ -89,7 +125,11 @@ class PasskeyTest extends TestCase
     {
         $user = User::factory()->create();
         Passkey::factory()->create(['authenticatable_id' => $user->id, 'name' => 'MacBook']);
-        Passkey::factory()->create();
+        // The package factory reuses one credential id; give the second row its own (credential_id is unique).
+        $other = Passkey::factory()->make();
+        // setRawAttributes drops the cached `data` cast, which would otherwise rewrite credential_id on save.
+        $other->setRawAttributes(['credential_id' => 'someone-elses-credential'] + $other->getAttributes());
+        $other->save();
 
         $this->actingAs($user)->get(route('profile.edit'))
             ->assertInertia(fn ($page) => $page->has('passkeys', 1)

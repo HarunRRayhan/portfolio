@@ -17,7 +17,11 @@ export async function loginWithPasskey(redirect?: string): Promise<void> {
         router.post(
             route('passkeys.login'),
             { answer: JSON.stringify(answer), redirect: redirect ?? '' },
-            { onSuccess: () => resolve(), onError: () => reject(new Error('Passkey sign-in failed')) },
+            {
+                onSuccess: () => resolve(),
+                // onFinish also covers 419/429 and network failures; it is a no-op after resolve.
+                onFinish: () => reject(new Error('Passkey sign-in failed')),
+            },
         );
     });
 }

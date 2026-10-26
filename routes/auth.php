@@ -58,7 +58,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('passkeys/prompt', [PasskeyController::class, 'prompt'])->name('passkeys.prompt');
     Route::post('passkeys/prompt/skip', [PasskeyController::class, 'skip'])->name('passkeys.skip');
-    Route::get('passkeys/register-options', [PasskeyController::class, 'registerOptions'])->name('passkeys.register-options');
+    Route::get('passkeys/register-options', [PasskeyController::class, 'registerOptions'])
+        ->middleware('throttle:20,1')
+        ->name('passkeys.register-options');
     Route::post('passkeys', [PasskeyController::class, 'store'])
         ->middleware('throttle:10,1')
         ->name('passkeys.store');

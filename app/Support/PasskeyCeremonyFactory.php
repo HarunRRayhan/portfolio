@@ -10,9 +10,15 @@ class PasskeyCeremonyFactory extends ConfigureCeremonyStepManagerFactoryAction
     public function execute(): CeremonyStepManagerFactory
     {
         $factory = parent::execute();
+        $appUrl = rtrim((string) config('app.url'), '/');
 
-        // Browsers treat http://localhost as a secure context; without this, local dev passkeys fail "HTTPS required".
-        $factory->setSecuredRelyingPartyId(['localhost']);
+        if (parse_url($appUrl, PHP_URL_HOST) === 'localhost') {
+            // Local dev: browsers treat http://localhost (any port) as secure; without this, ceremonies fail "HTTPS required".
+            $factory->setSecuredRelyingPartyId(['localhost']);
+        } else {
+            // Only the exact app origin may run ceremonies; subdomains are rejected.
+            $factory->setAllowedOrigins([$appUrl]);
+        }
 
         return $factory;
     }
