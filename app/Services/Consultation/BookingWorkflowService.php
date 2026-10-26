@@ -36,14 +36,16 @@ class BookingWorkflowService
         ?ConsultationCoupon $coupon = null,
         ?string $companyName = null,
         ?string $saRef = null,
+        array $details = [],
     ): array {
+        $details = array_intersect_key($details, array_flip(['user_id', 'website', 'role', 'team_size', 'budget']));
         $companyName = $companyName !== null ? trim($companyName) : null;
         $companyName = $companyName === '' ? null : $companyName;
         $startsAt = $startsAt->copy()->utc();
         $plainToken = Str::random(48);
         $googleConnected = $this->google->isConnected();
 
-        $result = DB::transaction(function () use ($tier, $name, $email, $companyName, $notes, $startsAt, $coupon, $plainToken, $googleConnected, $saRef) {
+        $result = DB::transaction(function () use ($tier, $name, $email, $companyName, $notes, $startsAt, $coupon, $plainToken, $googleConnected, $saRef, $details) {
             $this->lockReservation();
 
             $tier = ConsultationTier::query()->lockForUpdate()->findOrFail($tier->id);
@@ -68,7 +70,7 @@ class BookingWorkflowService
             $discount = $coupon ? (int) $coupon->percent_off : 0;
             $amountDue = $coupon ? $coupon->discountedAmountCents($discountedPrice) : $discountedPrice;
 
-            $booking = ConsultationBooking::create([
+            $booking = ConsultationBooking::create($details + [
                 'consultation_tier_id' => $tier->id,
                 'consultation_coupon_id' => $coupon?->id,
                 'client_name' => $name,
@@ -103,7 +105,7 @@ class BookingWorkflowService
                         'summary' => 'Hold: '.$tier->name.' — '.$name,
                         'starts_at' => $startsAt->toIso8601String(),
                         'ends_at' => $endsAt->toIso8601String(),
-                        'description' => trim("Pending consultation request from {$name} <{$email}>".($companyName ? "\nCompany: {$companyName}" : '')),
+                        'description' => trim("Pending consultation request from {$name} <{$email}>".($companyName ? "\nCompany: {$companyName}" : '').(! empty($details['website']) ? "\nWebsite: {$details['website']}" : '')),
                         'google_generation' => 0,
                         'idempotency_key' => 'consultation-booking-'.$booking->id.'-hold',
                     ],

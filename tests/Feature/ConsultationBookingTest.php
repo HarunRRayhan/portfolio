@@ -13,6 +13,7 @@ use App\Models\ConsultationGoogleOperation;
 use App\Models\ConsultationSetting;
 use App\Models\ConsultationStripeCheckoutAttempt;
 use App\Models\ConsultationTier;
+use App\Models\User;
 use App\Services\Consultation\BookingWorkflowService;
 use App\Services\Consultation\ConsultationGoogleOperationService;
 use App\Services\Consultation\ConsultationNotificationService;
@@ -66,10 +67,12 @@ class ConsultationBookingTest extends TestCase
         $reference = rtrim(strtr(base64_encode(random_bytes(24)), '+/', '-_'), '=');
         $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
 
-        $this->post('/book', [
+        $this->actingAs(User::factory()->create(['email' => 'linked@example.com']))->post('/book', [
             'tier' => $tier->slug,
             'client_name' => 'Linked customer',
-            'client_email' => 'linked@example.com',
+            'company_name' => 'Acme',
+            'website' => 'https://acme.test',
+            'notes' => 'Kubernetes help',
             'starts_at' => $this->nextWeekdayAt(10)->toIso8601String(),
             'sa_ref' => $reference,
         ])->assertRedirect();
@@ -86,10 +89,12 @@ class ConsultationBookingTest extends TestCase
         config()->set('consultation.skaleagents_handoff_enabled', false);
         $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
 
-        $this->post('/book', [
+        $this->actingAs(User::factory()->create(['email' => 'direct@example.com']))->post('/book', [
             'tier' => $tier->slug,
             'client_name' => 'Direct customer',
-            'client_email' => 'direct@example.com',
+            'company_name' => 'Acme',
+            'website' => 'https://acme.test',
+            'notes' => 'Kubernetes help',
             'starts_at' => $this->nextWeekdayAt(10)->toIso8601String(),
             'sa_ref' => str_repeat('A', 32),
         ])->assertRedirect();
@@ -102,10 +107,12 @@ class ConsultationBookingTest extends TestCase
         config()->set('consultation.skaleagents_handoff_enabled', true);
         $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
 
-        $this->post('/book', [
+        $this->actingAs(User::factory()->create(['email' => 'invalid@example.com']))->post('/book', [
             'tier' => $tier->slug,
             'client_name' => 'Invalid reference',
-            'client_email' => 'invalid@example.com',
+            'company_name' => 'Acme',
+            'website' => 'https://acme.test',
+            'notes' => 'Kubernetes help',
             'starts_at' => $this->nextWeekdayAt(10)->toIso8601String(),
             'sa_ref' => 'not-a-valid-reference',
         ])->assertSessionHasErrors('sa_ref');
@@ -2191,6 +2198,78 @@ class ConsultationBookingTest extends TestCase
             ConsultationGoogleOperation::STATUS_NEEDS_ATTENTION,
             $operation->fresh()->status,
         );
+    }
+
+    public function test_guest_cannot_book(): void
+    {
+        $this->post('/book', $this->validBookingPayload())->assertRedirect('/login');
+
+        $this->assertDatabaseCount('consultation_bookings', 0);
+    }
+
+    public function test_unverified_user_cannot_book(): void
+    {
+        $this->actingAs(User::factory()->unverified()->create())
+            ->post('/book', $this->validBookingPayload())
+            ->assertRedirect(route('verification.notice'));
+
+        $this->assertDatabaseCount('consultation_bookings', 0);
+    }
+
+    public function test_booking_requires_company_website_and_needs(): void
+    {
+        $this->actingAs(User::factory()->create())
+            ->post('/book', array_merge($this->validBookingPayload(), [
+                'company_name' => '',
+                'website' => '',
+                'notes' => '',
+            ]))
+            ->assertSessionHasErrors(['company_name', 'website', 'notes']);
+
+        $this->actingAs(User::factory()->create())
+            ->post('/book', array_merge($this->validBookingPayload(), ['website' => 'not a url']))
+            ->assertSessionHasErrors('website');
+
+        $this->assertDatabaseCount('consultation_bookings', 0);
+    }
+
+    public function test_booking_uses_account_email_and_stores_details(): void
+    {
+        Mail::fake();
+        $user = User::factory()->create(['email' => 'client@example.com']);
+
+        $this->actingAs($user)
+            ->post('/book', array_merge($this->validBookingPayload(), [
+                'client_email' => 'x@evil.test',
+                'role' => 'CTO',
+                'team_size' => '11-50',
+                'budget' => '$5k-$20k',
+            ]))
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $booking = ConsultationBooking::query()->firstOrFail();
+        $this->assertSame('client@example.com', $booking->client_email);
+        $this->assertSame($user->id, $booking->user_id);
+        $this->assertSame('Acme', $booking->company_name);
+        $this->assertSame('https://acme.test', $booking->website);
+        $this->assertSame('Kubernetes help', $booking->notes);
+        $this->assertSame('CTO', $booking->role);
+        $this->assertSame('11-50', $booking->team_size);
+        $this->assertSame('$5k-$20k', $booking->budget);
+        $this->assertSame('https://acme.test', $booking->toAdminArray()['website']);
+    }
+
+    private function validBookingPayload(): array
+    {
+        return [
+            'tier' => 'light',
+            'client_name' => 'Client Person',
+            'company_name' => 'Acme',
+            'website' => 'https://acme.test',
+            'notes' => 'Kubernetes help',
+            'starts_at' => $this->nextWeekdayAt(10)->toIso8601String(),
+        ];
     }
 
     private function nextWeekdayAt(int $hour): Carbon

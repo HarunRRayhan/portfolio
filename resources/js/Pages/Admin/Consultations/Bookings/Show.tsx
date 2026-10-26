@@ -13,6 +13,10 @@ type Booking = {
   client_name: string
   client_email: string
   company_name: string | null
+  website: string | null
+  role: string | null
+  team_size: string | null
+  budget: string | null
   notes: string | null
   starts_at: string
   ends_at: string
@@ -170,6 +174,32 @@ export default function Show({
                 <p>
                   <span className="text-gray-400">Company · </span>
                   {booking.company_name}
+                </p>
+              )}
+              {booking.website && (
+                <p>
+                  <span className="text-gray-400">Website · </span>
+                  <a className="text-indigo-600" href={booking.website} target="_blank" rel="noopener noreferrer nofollow">
+                    {booking.website}
+                  </a>
+                </p>
+              )}
+              {booking.role && (
+                <p>
+                  <span className="text-gray-400">Role · </span>
+                  {booking.role}
+                </p>
+              )}
+              {booking.team_size && (
+                <p>
+                  <span className="text-gray-400">Team size · </span>
+                  {booking.team_size}
+                </p>
+              )}
+              {booking.budget && (
+                <p>
+                  <span className="text-gray-400">Budget · </span>
+                  {booking.budget}
                 </p>
               )}
               <p>

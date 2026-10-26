@@ -33,11 +33,16 @@ class ConsultationBooking extends Model
 
     protected $fillable = [
         'public_id',
+        'user_id',
         'consultation_tier_id',
         'consultation_coupon_id',
         'client_name',
         'client_email',
         'company_name',
+        'website',
+        'role',
+        'team_size',
+        'budget',
         'notes',
         'starts_at',
         'ends_at',
@@ -120,6 +125,11 @@ class ConsultationBooking extends Model
         });
     }
 
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function tier(): BelongsTo
     {
         return $this->belongsTo(ConsultationTier::class, 'consultation_tier_id');
@@ -196,6 +206,10 @@ class ConsultationBooking extends Model
             'client_name' => $this->client_name,
             'client_email' => $this->client_email,
             'company_name' => $this->company_name,
+            'website' => $this->website,
+            'role' => $this->role,
+            'team_size' => $this->team_size,
+            'budget' => $this->budget,
             'notes' => $this->notes,
             'starts_at' => $this->starts_at?->utc()->toIso8601String(),
             'ends_at' => $this->ends_at?->utc()->toIso8601String(),

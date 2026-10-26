@@ -20,6 +20,16 @@ type Tier = {
 
 type Slot = { start: string; end: string }
 
+type BookingUser = { name: string; email: string }
+
+const inputClass = 'w-full border border-slate-200 bg-white px-3 py-2 text-slate-900 outline-none ring-slate-400 focus:ring-2'
+
+// Magic-link accounts get the email local part as their name; don't prefill that.
+function prefillName(user: BookingUser | null | undefined): string {
+  if (!user) return ''
+  return user.name.includes(' ') || user.name !== user.email.split('@')[0] ? user.name : ''
+}
+
 type LaunchPromotion = {
   discount_cents: number
   limit: number
@@ -133,7 +143,11 @@ export default function Book({
   minLeadHours = 48,
   timezones = [],
   launchPromotion,
+  bookingUser,
+  loginUrl,
 }: {
+  bookingUser?: BookingUser | null
+  loginUrl?: string
   tiers: Tier[]
   canonicalUrl?: string
   stripeConfigured?: boolean
@@ -194,10 +208,13 @@ export default function Book({
 
   const form = useForm({
     tier: '',
-    client_name: '',
-    client_email: '',
+    client_name: prefillName(bookingUser),
     company_name: '',
+    website: '',
     notes: '',
+    role: '',
+    team_size: '',
+    budget: '',
     starts_at: '',
     coupon_code: couponCodeFromUrl(),
     sa_ref: referralFromUrl(),
@@ -385,8 +402,22 @@ export default function Book({
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
-                className="mx-auto grid max-w-5xl gap-6 md:grid-cols-3"
+                className="mx-auto max-w-5xl"
               >
+                {!bookingUser && loginUrl && (
+                  <div className="mb-8 flex flex-col items-start justify-between gap-4 border border-slate-200 bg-white p-6 sm:flex-row sm:items-center">
+                    <p className="text-sm text-slate-700">
+                      Sign up to book. It takes a few seconds with Google, GitHub or an email link.
+                    </p>
+                    <a
+                      href={loginUrl}
+                      className="shrink-0 bg-slate-900 px-5 py-3 font-mono text-xs font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-slate-800"
+                    >
+                      Sign up to book
+                    </a>
+                  </div>
+                )}
+                <div className="grid gap-6 md:grid-cols-3">
                 {tiers.map((tier) => {
                   const accent = accentBySlug[tier.slug] ?? accentBySlug.light
                   const isRecommended = tier.slug === 'max'
@@ -441,17 +472,27 @@ export default function Book({
                         ))}
                       </ul>
                       <div className="p-6">
-                        <button
-                          type="button"
-                          onClick={() => startBooking(tier)}
-                          className={`w-full py-3 text-center font-mono text-xs font-semibold uppercase tracking-[0.16em] text-white transition ${accent.button}`}
-                        >
-                          Book {tier.name.replace('Consultation ', '')}
-                        </button>
+                        {bookingUser || !loginUrl ? (
+                          <button
+                            type="button"
+                            onClick={() => startBooking(tier)}
+                            className={`w-full py-3 text-center font-mono text-xs font-semibold uppercase tracking-[0.16em] text-white transition ${accent.button}`}
+                          >
+                            Book {tier.name.replace('Consultation ', '')}
+                          </button>
+                        ) : (
+                          <a
+                            href={loginUrl}
+                            className={`block w-full py-3 text-center font-mono text-xs font-semibold uppercase tracking-[0.16em] text-white transition ${accent.button}`}
+                          >
+                            Sign up to book {tier.name.replace('Consultation ', '')}
+                          </a>
+                        )}
                       </div>
                     </div>
                   )
                 })}
+                </div>
               </motion.div>
             ) : (
               <motion.div
@@ -494,41 +535,86 @@ export default function Book({
                         required
                         value={form.data.client_name}
                         onChange={(e) => form.setData('client_name', e.target.value)}
-                        className="w-full border border-slate-200 px-3 py-2 text-slate-900 outline-none ring-slate-400 focus:ring-2"
+                        className={inputClass}
                       />
                       {errors.client_name && <p className="mt-1 text-xs text-rose-600">{errors.client_name}</p>}
                     </label>
                     <label className="block text-sm">
-                      <span className="mb-1.5 block font-medium text-slate-700">Email</span>
+                      <span className="mb-1.5 block font-medium text-slate-700">Company name</span>
                       <input
-                        type="email"
                         required
-                        value={form.data.client_email}
-                        onChange={(e) => form.setData('client_email', e.target.value)}
-                        className="w-full border border-slate-200 px-3 py-2 text-slate-900 outline-none ring-slate-400 focus:ring-2"
-                      />
-                      {errors.client_email && <p className="mt-1 text-xs text-rose-600">{errors.client_email}</p>}
-                    </label>
-                    <label className="block text-sm sm:col-span-2">
-                      <span className="mb-1.5 block font-medium text-slate-700">Company (optional)</span>
-                      <input
                         value={form.data.company_name}
                         onChange={(e) => form.setData('company_name', e.target.value)}
-                        className="w-full border border-slate-200 px-3 py-2 text-slate-900 outline-none ring-slate-400 focus:ring-2"
+                        className={inputClass}
                       />
                       {errors.company_name && <p className="mt-1 text-xs text-rose-600">{errors.company_name}</p>}
+                    </label>
+                    <label className="block text-sm">
+                      <span className="mb-1.5 block font-medium text-slate-700">Website</span>
+                      <input
+                        type="url"
+                        required
+                        placeholder="https://"
+                        value={form.data.website}
+                        onChange={(e) => form.setData('website', e.target.value)}
+                        className={inputClass}
+                      />
+                      {errors.website && <p className="mt-1 text-xs text-rose-600">{errors.website}</p>}
+                    </label>
+                    <label className="block text-sm">
+                      <span className="mb-1.5 block font-medium text-slate-700">Role (optional)</span>
+                      <input
+                        value={form.data.role}
+                        onChange={(e) => form.setData('role', e.target.value)}
+                        className={inputClass}
+                      />
+                      {errors.role && <p className="mt-1 text-xs text-rose-600">{errors.role}</p>}
+                    </label>
+                    <label className="block text-sm">
+                      <span className="mb-1.5 block font-medium text-slate-700">Team size (optional)</span>
+                      <select
+                        value={form.data.team_size}
+                        onChange={(e) => form.setData('team_size', e.target.value)}
+                        className={inputClass}
+                      >
+                        <option value="">Choose…</option>
+                        {['Just me', '2-10', '11-50', '51-200', '200+'].map((size) => (
+                          <option key={size} value={size}>{size}</option>
+                        ))}
+                      </select>
+                      {errors.team_size && <p className="mt-1 text-xs text-rose-600">{errors.team_size}</p>}
+                    </label>
+                    <label className="block text-sm">
+                      <span className="mb-1.5 block font-medium text-slate-700">Budget (optional)</span>
+                      <select
+                        value={form.data.budget}
+                        onChange={(e) => form.setData('budget', e.target.value)}
+                        className={inputClass}
+                      >
+                        <option value="">Choose…</option>
+                        {['Under $1k', '$1k-$5k', '$5k-$20k', '$20k+', 'Not sure yet'].map((budget) => (
+                          <option key={budget} value={budget}>{budget}</option>
+                        ))}
+                      </select>
+                      {errors.budget && <p className="mt-1 text-xs text-rose-600">{errors.budget}</p>}
                     </label>
                   </div>
 
                   <label className="block text-sm">
-                    <span className="mb-1.5 block font-medium text-slate-700">What should we cover?</span>
+                    <span className="mb-1.5 block font-medium text-slate-700">What do you need help with?</span>
                     <textarea
                       rows={4}
+                      required
                       value={form.data.notes}
                       onChange={(e) => form.setData('notes', e.target.value)}
-                      className="w-full border border-slate-200 px-3 py-2 text-slate-900 outline-none ring-slate-400 focus:ring-2"
+                      className={inputClass}
                     />
+                    {errors.notes && <p className="mt-1 text-xs text-rose-600">{errors.notes}</p>}
                   </label>
+
+                  {bookingUser && (
+                    <p className="text-xs text-slate-500">Updates go to {bookingUser.email}.</p>
+                  )}
 
                    <div>
                      <div className="mb-4">
