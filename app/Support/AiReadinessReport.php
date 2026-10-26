@@ -40,17 +40,17 @@ final class AiReadinessReport
             'robots.txt points at the sitemap and /llms.txt.',
         );
 
-        $missingPrivate = array_values(array_filter(
+        $blockedPrivate = array_values(array_filter(
             AiCrawlerPolicy::PRIVATE_PREFIXES,
-            fn (string $path): bool => ! str_contains($robots, 'Disallow: '.$path),
+            fn (string $path): bool => str_contains($robots, 'Disallow: '.$path),
         ));
 
         $checks[] = self::check(
-            $missingPrivate === [],
+            $blockedPrivate === [],
             true,
-            $missingPrivate === []
-                ? 'Private paths are disallowed in robots.txt.'
-                : 'Missing Disallow for: '.implode(', ', $missingPrivate),
+            $blockedPrivate === []
+                ? 'Private paths are crawlable so Google sees their noindex header.'
+                : 'robots.txt blocks noindex paths: '.implode(', ', $blockedPrivate),
         );
 
         $checks[] = self::check(
