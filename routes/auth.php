@@ -4,12 +4,14 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
+use App\Http\Controllers\Auth\MagicLinkController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\SocialAuthenticationController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -22,6 +24,13 @@ Route::middleware('guest')->group(function () {
         ->name('login');
 
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
+
+    Route::post('login/magic-link', [MagicLinkController::class, 'send'])
+        ->middleware('throttle:5,1')
+        ->name('magic-link.send');
+
+    Route::get('login/magic/{token}', [MagicLinkController::class, 'consume'])
+        ->name('magic-link.consume');
 
     Route::get('auth/{provider}', [SocialAuthenticationController::class, 'redirect'])
         ->whereIn('provider', ['github', 'google'])
@@ -62,6 +71,11 @@ Route::middleware('auth')->group(function () {
     Route::post('confirm-password', [ConfirmablePasswordController::class, 'store']);
 
     Route::put('password', [PasswordController::class, 'update'])->name('password.update');
+
+    // Temporary until the passkey prompt page lands.
+    Route::get('passkeys/prompt', fn (Request $request) => redirect()->to(
+        $request->session()->pull('passkey_prompt.redirect_to') ?? route('blog.index', absolute: false)
+    ))->name('passkeys.prompt');
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
