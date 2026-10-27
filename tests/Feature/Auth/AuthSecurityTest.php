@@ -34,7 +34,7 @@ class AuthSecurityTest extends TestCase
         config()->set('auth.super_admin_emails', ['owner@example.com']);
         $this->fakeGoogle(['sub' => 'new-provider-id', 'email' => $user->email, 'email_verified' => true]);
 
-        $this->googleCallback()->assertRedirect('/login')->assertSessionHas('status');
+        $this->googleCallback()->assertRedirect('/login')->assertSessionHasErrors('login');
 
         $this->assertGuest();
         $user->refresh();
@@ -79,7 +79,7 @@ class AuthSecurityTest extends TestCase
     {
         config()->set('auth.super_admin_emails', ['owner@example.com']);
         $this->fakeGoogle($profile);
-        $this->googleCallback()->assertRedirect('/login')->assertSessionHas('status');
+        $this->googleCallback()->assertRedirect('/login')->assertSessionHasErrors('login');
         $this->assertGuest();
         $this->assertSame(0, User::count());
     }
@@ -195,7 +195,7 @@ class AuthSecurityTest extends TestCase
         });
 
         try {
-            $this->googleCallback()->assertRedirect('/login')->assertSessionHas('status');
+            $this->googleCallback()->assertRedirect('/login')->assertSessionHasErrors('login');
             $this->assertGuest();
             $this->assertSame(1, User::count());
             $this->assertTrue(Hash::check('existing-password', User::firstOrFail()->password));

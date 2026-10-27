@@ -21,6 +21,8 @@ export default function Login({
 }) {
     const siteKey = (usePage().props as { turnstileSiteKey?: string | null }).turnstileSiteKey;
     const enabled = turnstileEnabled && !!siteKey;
+    // Sign-in failures from redirects (social callback, expired link) arrive as a `login` error.
+    const loginError = (usePage().props as { errors?: Record<string, string> }).errors?.login;
 
     // Turnstile tokens are single-use: remount the widget after every submit for a fresh one.
     const [widgetKey, setWidgetKey] = useState(0);
@@ -64,6 +66,11 @@ export default function Login({
             <p className="mb-6 mt-1 text-sm text-slate-500">New here? Any option creates your account.</p>
 
             {status && <div className="mb-4 text-sm font-medium text-green-600">{status}</div>}
+            {loginError && (
+                <p role="alert" className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+                    {loginError}
+                </p>
+            )}
 
             <button
                 type="button"

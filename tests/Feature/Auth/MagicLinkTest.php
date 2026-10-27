@@ -155,7 +155,7 @@ class MagicLinkTest extends TestCase
 
         $this->post(route('magic-link.consume', $plain))
             ->assertRedirect(route('login'))
-            ->assertSessionHas('status');
+            ->assertSessionHasErrors('login');
         $this->assertGuest();
     }
 

@@ -25,7 +25,7 @@ class SocialAuthenticationController extends Controller
         $config = $this->providerConfig($provider);
 
         if ($config === null) {
-            return redirect()->route('login')->with('status', ucfirst($provider).' sign-in is not configured yet.');
+            return redirect()->route('login')->withErrors(['login' => ucfirst($provider).' sign-in is not configured yet.']);
         }
 
         $redirectTo = LoginRedirectTarget::sanitize($request->string('redirect')->toString());
@@ -67,7 +67,7 @@ class SocialAuthenticationController extends Controller
         if (! is_string($email) || ! filter_var($email, FILTER_VALIDATE_EMAIL)
             || ($profile['email_verified'] ?? false) !== true
             || (! is_string($providerId) && ! is_int($providerId)) || (string) $providerId === '') {
-            return redirect()->route('login')->with('status', 'Sign-in requires a verified email address and a valid provider identity. Verify your email with the provider, then try again.');
+            return redirect()->route('login')->withErrors(['login' => 'Sign-in requires a verified email address and a valid provider identity. Verify your email with the provider, then try again.']);
         }
 
         $email = strtolower($email);
@@ -90,7 +90,7 @@ class SocialAuthenticationController extends Controller
                 || DB::table('social_identities')->where('user_id', $emailOwner->id)->where('provider', $provider)->exists();
 
             if ($user || $emailOwner->email_verified_at === null || $holdsOtherIdentity) {
-                return redirect()->route('login')->with('status', 'An account already uses this email. Sign in with an email link or its original provider.');
+                return redirect()->route('login')->withErrors(['login' => 'An account already uses this email. Sign in with an email link or its original provider.']);
             }
 
             $user = $emailOwner;
@@ -125,7 +125,7 @@ class SocialAuthenticationController extends Controller
             $user->save();
         } catch (UniqueConstraintViolationException) {
             // A competing request claimed the email or provider identity first.
-            return redirect()->route('login')->with('status', 'This identity or email was linked while you were signing in. Try signing in again, or use an email link.');
+            return redirect()->route('login')->withErrors(['login' => 'This identity or email was linked while you were signing in. Try signing in again, or use an email link.']);
         }
 
         if (! $linksHere) {
