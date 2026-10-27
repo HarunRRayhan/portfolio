@@ -30,11 +30,11 @@ export default function Edit({
                         />
                     </div>
 
-                    <div className="bg-white p-4 shadow sm:rounded-lg sm:p-8">
+                    <div id="passkeys" className="scroll-mt-20 bg-white p-4 shadow sm:rounded-lg sm:p-8">
                         <PasskeysSection passkeys={passkeys} className="max-w-xl" />
                     </div>
 
-                    <div className="bg-white p-4 shadow sm:rounded-lg sm:p-8">
+                    <div id="delete-account" className="scroll-mt-20 bg-white p-4 shadow sm:rounded-lg sm:p-8">
                         <DeleteUserForm className="max-w-xl" />
                     </div>
                 </div>
