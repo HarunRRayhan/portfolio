@@ -65,6 +65,7 @@ Route::middleware('auth')->group(function () {
     Route::post('passkeys', [PasskeyController::class, 'store'])
         ->middleware(['verified', 'throttle:10,1,passkey-store'])
         ->name('passkeys.store');
+    Route::patch('passkeys/{passkey}', [PasskeyController::class, 'update'])->name('passkeys.update');
     Route::delete('passkeys/{passkey}', [PasskeyController::class, 'destroy'])->name('passkeys.destroy');
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
