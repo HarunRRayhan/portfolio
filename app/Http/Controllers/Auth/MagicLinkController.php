@@ -75,7 +75,7 @@ class MagicLinkController extends Controller
 
     private function invalid(): RedirectResponse
     {
-        return redirect()->route('login')->with('status', 'That sign-in link has expired or was already used. Request a new one.');
+        return redirect()->route('login')->withErrors(['login' => 'That sign-in link has expired or was already used. Request a new one.']);
     }
 
     public function consume(Request $request, string $token): RedirectResponse
