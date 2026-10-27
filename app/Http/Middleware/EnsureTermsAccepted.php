@@ -19,6 +19,7 @@ class EnsureTermsAccepted
         'agreement.accept',
         'passkeys.register-options',
         'passkeys.store',
+        'passkeys.update',
         'logout',
     ];
 

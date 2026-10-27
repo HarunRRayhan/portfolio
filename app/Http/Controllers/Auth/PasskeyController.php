@@ -43,7 +43,7 @@ class PasskeyController extends Controller
         return JsonResponse::fromJsonString($options);
     }
 
-    public function store(Request $request): HttpResponse
+    public function store(Request $request): JsonResponse
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -53,7 +53,7 @@ class PasskeyController extends Controller
         $options = $request->session()->pull(self::REGISTER_OPTIONS);
 
         try {
-            Config::getAction('store_passkey', StorePasskeyAction::class)->execute(
+            $passkey = Config::getAction('store_passkey', StorePasskeyAction::class)->execute(
                 $request->user(),
                 $request->input('passkey'),
                 (string) $options,
@@ -66,6 +66,16 @@ class PasskeyController extends Controller
         } catch (Throwable) {
             throw ValidationException::withMessages(['passkey' => 'That passkey could not be saved. Try again.']);
         }
+
+        // The id lets the page offer a rename right after the device dialog closes.
+        return response()->json($passkey->only('id', 'name'), 201);
+    }
+
+    public function update(Request $request, string $passkey): HttpResponse
+    {
+        $validated = $request->validate(['name' => ['required', 'string', 'max:255']]);
+
+        $request->user()->passkeys()->findOrFail($passkey)->update($validated);
 
         return response()->noContent();
     }
