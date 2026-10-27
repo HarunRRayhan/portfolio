@@ -80,13 +80,13 @@ class MagicLinkController extends Controller
 
     public function consume(Request $request, string $token): RedirectResponse
     {
-        [$user, $created, $redirectTo] = DB::transaction(function () use ($token) {
+        [$user, $redirectTo] = DB::transaction(function () use ($token) {
             $row = MagicLoginToken::where('token_hash', hash('sha256', $token))
                 ->whereNull('used_at')->where('expires_at', '>', now())
                 ->lockForUpdate()->first();
 
             if (! $row) {
-                return [null, false, null];
+                return [null, null];
             }
 
             $row->update(['used_at' => now()]);
@@ -119,16 +119,15 @@ class MagicLinkController extends Controller
                 DB::transaction(fn () => $user->save());
             } catch (UniqueConstraintViolationException) {
                 $user = User::whereRaw('LOWER(email) = ?', [$email])->firstOrFail();
-                $created = false;
             }
 
-            return [$user, $created, $row->redirect_to];
+            return [$user, $row->redirect_to];
         });
 
         if (! $user) {
             return $this->invalid();
         }
 
-        return CompleteLogin::redirect($request, $user, $created, $redirectTo);
+        return CompleteLogin::redirect($request, $user, $redirectTo);
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\AgreementController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
@@ -56,8 +57,8 @@ Route::middleware('auth')->group(function () {
         ->middleware('throttle:6,1')
         ->name('verification.send');
 
-    Route::get('passkeys/prompt', [PasskeyController::class, 'prompt'])->name('passkeys.prompt');
-    Route::post('passkeys/prompt/skip', [PasskeyController::class, 'skip'])->name('passkeys.skip');
+    Route::get('welcome', [AgreementController::class, 'show'])->name('agreement.show');
+    Route::post('welcome', [AgreementController::class, 'accept'])->name('agreement.accept');
     Route::get('passkeys/register-options', [PasskeyController::class, 'registerOptions'])
         ->middleware(['verified', 'throttle:20,1,passkey-register-options'])
         ->name('passkeys.register-options');

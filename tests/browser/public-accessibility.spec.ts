@@ -1,4 +1,5 @@
 import { expect, test, type Locator } from '@playwright/test'
+import { execFileSync } from 'node:child_process'
 import { loginAs } from './login'
 
 test.beforeEach(async ({ page }, testInfo) => {
@@ -139,4 +140,21 @@ test('continue page offers google, github, email link and passkey', async ({ pag
   await expect(page.getByRole('button', { name: 'Email me a sign-in link' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Sign in with passkey' })).toBeVisible()
   await expect(page.getByLabel('Password')).toHaveCount(0)
+})
+
+test('a new account must agree to the terms once before using account pages', async ({ page }) => {
+  const email = `new-${Date.now()}@example.test`
+  const url = execFileSync('php', ['tests/browser/login-link.php', email], { env: process.env, encoding: 'utf8' }).trim()
+  await page.goto(url)
+  await page.getByRole('button', { name: 'Continue' }).click()
+  await expect(page).toHaveURL(/\/welcome$/)
+
+  const skip = page.getByRole('button', { name: 'Skip passkey' })
+  await expect(skip).toBeDisabled()
+  await page.getByRole('checkbox').check()
+  await skip.click()
+  await expect(page).toHaveURL(/\/blog$/)
+
+  await page.goto('/profile')
+  await expect(page).toHaveURL(/\/profile$/)
 })

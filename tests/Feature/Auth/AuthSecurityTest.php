@@ -96,8 +96,8 @@ class AuthSecurityTest extends TestCase
     {
         config()->set('auth.super_admin_emails', ['owner@example.com']);
         $this->fakeGoogle(['sub' => 'owner-id', 'email' => 'owner@example.com', 'email_verified' => true]);
-        $this->googleCallback()->assertRedirect(route('passkeys.prompt'));
-        $this->assertSame('/admin/dashboard', session('passkey_prompt.redirect_to'));
+        $this->googleCallback()->assertRedirect(route('agreement.show'));
+        $this->assertSame('/admin/dashboard', session('agreement.redirect_to'));
         $user = User::where('email', 'owner@example.com')->firstOrFail();
         $this->assertAuthenticatedAs($user);
         $this->assertTrue($user->isAdmin());
@@ -124,8 +124,8 @@ class AuthSecurityTest extends TestCase
         config()->set('app.url', 'http://localhost');
         $this->fakeGoogle(['sub' => 'id', 'email' => 'commenter@example.com', 'email_verified' => true]);
         $this->withSession(['social_login.redirect_to' => $target]);
-        $this->googleCallback()->assertRedirect(route('passkeys.prompt'));
-        $this->assertSame('/blog', session('passkey_prompt.redirect_to'));
+        $this->googleCallback()->assertRedirect(route('agreement.show'));
+        $this->assertSame('/blog', session('agreement.redirect_to'));
     }
 
     #[DataProvider('unsafeRedirectTargets')]

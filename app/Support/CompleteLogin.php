@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Http\Controllers\Auth\AgreementController;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -9,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 
 class CompleteLogin
 {
-    public static function redirect(Request $request, User $user, bool $created, ?string $redirectTo): RedirectResponse
+    public static function redirect(Request $request, User $user, ?string $redirectTo): RedirectResponse
     {
         Auth::login($user, true);
         $request->session()->regenerate();
@@ -19,10 +20,11 @@ class CompleteLogin
             ?? LoginRedirectTarget::sanitize($intended)
             ?? route($user->isAdmin() ? 'dashboard' : 'blog.index', absolute: false);
 
-        if ($created) {
-            $request->session()->put('passkey_prompt.redirect_to', $target);
+        // New accounts, and existing ones from before the agreement, see the Terms + passkey screen once.
+        if (! $user->terms_accepted_at) {
+            $request->session()->put(AgreementController::REDIRECT_KEY, $target);
 
-            return redirect()->route('passkeys.prompt');
+            return redirect()->route('agreement.show');
         }
 
         return redirect()->to($target);

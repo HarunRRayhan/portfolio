@@ -6,9 +6,9 @@ use App\Mail\MagicLoginLinkMail;
 use App\Models\MagicLoginToken;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Spatie\LaravelPasskeys\Models\Passkey;
@@ -110,7 +110,7 @@ class MagicLinkTest extends TestCase
     {
         $plain = $this->token('Jane.Doe@example.com');
 
-        $this->post(route('magic-link.consume', $plain))->assertRedirect(route('passkeys.prompt'));
+        $this->post(route('magic-link.consume', $plain))->assertRedirect(route('agreement.show'));
 
         $user = User::where('email', 'jane.doe@example.com')->sole();
         $this->assertSame('commenter', $user->role);
@@ -127,6 +127,13 @@ class MagicLinkTest extends TestCase
 
         $this->assertAuthenticatedAs($user);
         $this->assertNotNull($user->fresh()->email_verified_at);
+    }
+
+    public function test_existing_user_who_never_agreed_sees_the_agreement_once(): void
+    {
+        User::factory()->termsNotAccepted()->create(['email' => 'old@example.com']);
+
+        $this->post(route('magic-link.consume', $this->token('old@example.com')))->assertRedirect(route('agreement.show'));
     }
 
     public function test_magic_link_never_promotes_admin(): void

@@ -6,4 +6,11 @@ export async function loginAs(page: Page, email: string): Promise<void> {
   await page.goto(url)
   await page.getByRole('button', { name: 'Continue' }).click()
   await page.waitForURL((u) => !u.pathname.startsWith('/login/magic'))
+
+  // Accounts that haven't agreed to the Terms yet land on the one-time welcome screen.
+  if (new URL(page.url()).pathname === '/welcome') {
+    await page.getByRole('checkbox').check()
+    await page.getByRole('button', { name: 'Skip passkey' }).click()
+    await page.waitForURL((u) => u.pathname !== '/welcome')
+  }
 }

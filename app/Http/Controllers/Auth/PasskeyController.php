@@ -11,8 +11,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Validation\ValidationException;
-use Inertia\Inertia;
-use Inertia\Response;
 use Spatie\LaravelPasskeys\Actions\FindPasskeyToAuthenticateAction;
 use Spatie\LaravelPasskeys\Actions\GeneratePasskeyAuthenticationOptionsAction;
 use Spatie\LaravelPasskeys\Actions\GeneratePasskeyRegisterOptionsAction;
@@ -27,20 +25,6 @@ class PasskeyController extends Controller
     private const REGISTER_OPTIONS = 'passkey-registration-options';
 
     private const LOGIN_OPTIONS = 'passkey-authentication-options';
-
-    public function prompt(Request $request): Response
-    {
-        return Inertia::render('Auth/PasskeyPrompt', [
-            'next' => $request->session()->get('passkey_prompt.redirect_to') ?? route('blog.index', absolute: false),
-        ]);
-    }
-
-    public function skip(Request $request): RedirectResponse
-    {
-        return redirect()->to(
-            $request->session()->pull('passkey_prompt.redirect_to') ?? route('blog.index', absolute: false)
-        );
-    }
 
     public function registerOptions(Request $request): JsonResponse
     {
@@ -124,6 +108,6 @@ class PasskeyController extends Controller
             throw ValidationException::withMessages(['answer' => 'Passkey sign-in failed. Try another option.']);
         }
 
-        return CompleteLogin::redirect($request, $user, false, $request->input('redirect'));
+        return CompleteLogin::redirect($request, $user, $request->input('redirect'));
     }
 }

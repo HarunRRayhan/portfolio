@@ -104,7 +104,7 @@ class SocialAuthenticationController extends Controller
             return redirect()->route('login')->with('status', 'This identity or email was linked while you were signing in. Try signing in again, or use an email link.');
         }
 
-        return CompleteLogin::redirect($request, $user, $user->wasRecentlyCreated, $request->session()->pull('social_login.redirect_to'));
+        return CompleteLogin::redirect($request, $user, $request->session()->pull('social_login.redirect_to'));
     }
 
     /**

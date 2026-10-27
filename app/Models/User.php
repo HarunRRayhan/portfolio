@@ -50,6 +50,7 @@ class User extends Authenticatable implements HasPasskeys, MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'terms_accepted_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
