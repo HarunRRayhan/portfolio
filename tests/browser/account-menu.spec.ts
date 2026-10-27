@@ -21,6 +21,8 @@ test('the sidebar account menu reaches every profile setting and logs out', asyn
 
   await openMenu()
   await page.getByRole('link', { name: 'Profile details' }).click()
+  // Wait for the visit to finish; the layout remounts and would detach a menu opened mid-navigation.
+  await expect(page).toHaveURL(/\/profile$/)
   await expect(page.getByLabel('Name', { exact: true })).toBeVisible()
 
   await openMenu()
