@@ -29,18 +29,18 @@ export default function SocialLoginButtons({ redirectTo, compact = false }: Soci
   const query = redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ''
 
   return (
-    <div className={`grid gap-3 sm:grid-cols-2 ${compact ? '' : 'sm:gap-4'}`}>
+    <div className={`grid gap-3 ${compact ? '' : 'sm:gap-4'}`}>
       {/* Plain anchors: the OAuth redirect is a full-page navigation, not an Inertia visit. */}
-      <a href={`/auth/google${query}`} className={buttonClass}>
-        <span className="flex items-center gap-2">
-          <GoogleIcon />
-          Continue with Google
-        </span>
-      </a>
       <a href={`/auth/github${query}`} className={buttonClass}>
         <span className="flex items-center gap-2">
           <GitHubIcon />
           Continue with GitHub
+        </span>
+      </a>
+      <a href={`/auth/google${query}`} className={buttonClass}>
+        <span className="flex items-center gap-2">
+          <GoogleIcon />
+          Continue with Google
         </span>
       </a>
     </div>

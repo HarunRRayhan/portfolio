@@ -64,7 +64,23 @@ export default function Login({
 
             {status && <div className="mb-4 text-sm font-medium text-green-600">{status}</div>}
 
-            <SocialLoginButtons redirectTo={redirect} />
+            <button
+                type="button"
+                onClick={passkeyLogin}
+                disabled={passkeyBusy}
+                className="inline-flex w-full items-center justify-center rounded-full border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+                Sign in with passkey
+            </button>
+            {passkeyError && (
+                <p role="alert" className="mt-2 text-sm text-red-600">
+                    {passkeyError}
+                </p>
+            )}
+
+            <div className="mt-3">
+                <SocialLoginButtons redirectTo={redirect} />
+            </div>
 
             <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-wide text-slate-400">
                 <span className="h-px flex-1 bg-slate-200" />
@@ -103,20 +119,6 @@ export default function Login({
                     Email me a sign-in link
                 </PrimaryButton>
             </form>
-
-            <button
-                type="button"
-                onClick={passkeyLogin}
-                disabled={passkeyBusy}
-                className="mt-4 inline-flex w-full items-center justify-center rounded-full border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-                Sign in with passkey
-            </button>
-            {passkeyError && (
-                <p role="alert" className="mt-2 text-sm text-red-600">
-                    {passkeyError}
-                </p>
-            )}
         </GuestLayout>
     );
 }
