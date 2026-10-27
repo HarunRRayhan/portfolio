@@ -7,6 +7,7 @@ import Turnstile from '@/Components/Turnstile';
 import { loginWithPasskey } from '@/lib/passkeys';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, useForm, usePage } from '@inertiajs/react';
+import { KeyRound } from 'lucide-react';
 import { FormEventHandler, useState } from 'react';
 
 export default function Login({
@@ -68,8 +69,9 @@ export default function Login({
                 type="button"
                 onClick={passkeyLogin}
                 disabled={passkeyBusy}
-                className="inline-flex w-full items-center justify-center rounded-full border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex w-full items-center justify-center gap-3 rounded-full border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
+                <KeyRound className="h-5 w-5" aria-hidden="true" />
                 Sign in with passkey
             </button>
             {passkeyError && (
