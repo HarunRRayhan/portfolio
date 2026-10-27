@@ -23,7 +23,7 @@ class CompleteLogin
 
         if ($user->deletion_scheduled_at) {
             $request->session()->put(AgreementController::REDIRECT_KEY, $target);
-            $request->session()->put(RestoreAccountController::FRESH_LOGIN_KEY, true);
+            $request->session()->put(RestoreAccountController::FRESH_LOGIN_KEY, $user->deletion_scheduled_at->toIso8601String());
 
             return redirect()->route('account.restore');
         }

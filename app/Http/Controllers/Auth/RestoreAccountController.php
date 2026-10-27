@@ -11,7 +11,10 @@ use Inertia\Response;
 
 class RestoreAccountController extends Controller
 {
-    /** Set by CompleteLogin. Sessions from before the deletion (other devices) must sign in again to restore. */
+    /**
+     * Set by CompleteLogin to the deletion it saw. Sessions from before the deletion (other devices),
+     * or from an earlier deletion, must sign in again to restore.
+     */
     public const FRESH_LOGIN_KEY = 'account.restore_fresh_login';
 
     public function show(Request $request): Response|RedirectResponse
@@ -20,7 +23,7 @@ class RestoreAccountController extends Controller
             return redirect()->route('agreement.show');
         }
 
-        if (! $request->session()->get(self::FRESH_LOGIN_KEY)) {
+        if (! $this->signedInAfterDeletion($request, $request->session()->get(self::FRESH_LOGIN_KEY))) {
             return $this->signInAgain($request);
         }
 
@@ -29,7 +32,7 @@ class RestoreAccountController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        if (! $request->session()->pull(self::FRESH_LOGIN_KEY)) {
+        if (! $this->signedInAfterDeletion($request, $request->session()->pull(self::FRESH_LOGIN_KEY))) {
             return $this->signInAgain($request);
         }
 
@@ -37,6 +40,11 @@ class RestoreAccountController extends Controller
 
         // The agreement screen continues straight to the saved target once the Terms are agreed.
         return redirect()->route('agreement.show');
+    }
+
+    private function signedInAfterDeletion(Request $request, mixed $seen): bool
+    {
+        return is_string($seen) && $seen === $request->user()->deletion_scheduled_at?->toIso8601String();
     }
 
     private function signInAgain(Request $request): RedirectResponse

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Http\Controllers\Auth\RestoreAccountController;
 use App\Models\User;
 use App\Support\CompleteLogin;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -54,6 +55,16 @@ class RestoreAccountTest extends TestCase
         $this->assertGuest();
 
         $this->actingAs($user)->post(route('account.restore.store'))->assertRedirect(route('login'));
+        $this->assertNotNull($user->fresh()->deletion_scheduled_at);
+    }
+
+    public function test_a_sign_in_during_an_earlier_deletion_cannot_restore_a_later_one(): void
+    {
+        $user = $this->scheduled();
+        $this->actingAs($user)->withSession([RestoreAccountController::FRESH_LOGIN_KEY => $user->deletion_scheduled_at->toIso8601String()]);
+        $user->forceFill(['deletion_scheduled_at' => now()->addMinute()])->save();
+
+        $this->post(route('account.restore.store'))->assertRedirect(route('login'));
         $this->assertNotNull($user->fresh()->deletion_scheduled_at);
     }
 
