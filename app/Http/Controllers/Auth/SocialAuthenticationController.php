@@ -9,6 +9,7 @@ use App\Support\LoginRedirectTarget;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -70,12 +71,23 @@ class SocialAuthenticationController extends Controller
         $name = $profile['name'] ?? $profile['login'] ?? $profile['given_name'] ?? $email;
         $avatarUrl = $profile['avatar_url'] ?? $profile['picture'] ?? null;
 
-        // Provider identity owns the link. A matching email alone never links accounts.
-        $user = User::query()->where('provider_name', $provider)->where('provider_id', $providerId)->first();
+        // Provider identity owns the link: the account's first provider, or one linked later.
+        $user = User::query()->where('provider_name', $provider)->where('provider_id', $providerId)->first()
+            ?? User::query()->find(DB::table('social_identities')->where('provider', $provider)->where('provider_id', $providerId)->value('user_id'));
         $emailOwner = User::query()->whereRaw('LOWER(email) = ?', [$email])->first();
 
         if ($emailOwner && (! $user || ! $emailOwner->is($user))) {
-            return redirect()->route('login')->with('status', 'An account already uses this email. Sign in with an email link or its original provider. Social sign-in cannot link it automatically.');
+            // The provider verified this mailbox, as a magic link would. Link it, unless the
+            // account is unverified, the identity already belongs elsewhere, or the account
+            // holds a different identity at this provider.
+            $holdsOtherIdentity = $emailOwner->provider_name === $provider
+                || DB::table('social_identities')->where('user_id', $emailOwner->id)->where('provider', $provider)->exists();
+
+            if ($user || $emailOwner->email_verified_at === null || $holdsOtherIdentity) {
+                return redirect()->route('login')->with('status', 'An account already uses this email. Sign in with an email link or its original provider.');
+            }
+
+            $user = $emailOwner;
         }
 
         if (! $user) {
@@ -84,11 +96,16 @@ class SocialAuthenticationController extends Controller
             $user->role = 'commenter';
         }
 
-        $user->name = is_string($name) && trim($name) !== '' ? $name : $email;
         $user->email = $email;
-        $user->provider_name = $provider;
-        $user->provider_id = $providerId;
-        $user->avatar_url = is_string($avatarUrl) && trim($avatarUrl) !== '' ? $avatarUrl : null;
+        $linksHere = $user->provider_name === null || $user->provider_name === $provider;
+
+        // Profile details follow the account's first provider only.
+        if ($linksHere) {
+            $user->name = is_string($name) && trim($name) !== '' ? $name : $email;
+            $user->provider_name = $provider;
+            $user->provider_id = $providerId;
+            $user->avatar_url = is_string($avatarUrl) && trim($avatarUrl) !== '' ? $avatarUrl : null;
+        }
 
         // Promotion is limited to an email verified by the authenticated provider.
         $adminEmails = array_map('strtolower', (array) config('auth.super_admin_emails', []));
@@ -102,6 +119,13 @@ class SocialAuthenticationController extends Controller
         } catch (UniqueConstraintViolationException) {
             // A competing request claimed the email or provider identity first.
             return redirect()->route('login')->with('status', 'This identity or email was linked while you were signing in. Try signing in again, or use an email link.');
+        }
+
+        if (! $linksHere) {
+            DB::table('social_identities')->insertOrIgnore([
+                'user_id' => $user->id, 'provider' => $provider, 'provider_id' => $providerId,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
         }
 
         return CompleteLogin::redirect($request, $user, $request->session()->pull('social_login.redirect_to'));
