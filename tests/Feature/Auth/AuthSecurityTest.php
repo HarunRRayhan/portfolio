@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Mail\SocialProviderLinkedMail;
 use App\Models\MagicLoginToken;
 use App\Models\User;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Testing\TestResponse;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -204,6 +206,7 @@ class AuthSecurityTest extends TestCase
 
     public function test_verified_email_links_a_second_provider_to_the_existing_account(): void
     {
+        Mail::fake();
         $user = User::factory()->create(['email' => 'Owner@Example.com', 'name' => 'Owner', 'provider_name' => 'github', 'provider_id' => 'gh-1']);
         $this->fakeGoogle(['sub' => 'google-1', 'email' => 'owner@example.com', 'email_verified' => true]);
 
@@ -219,6 +222,7 @@ class AuthSecurityTest extends TestCase
         $this->assertAuthenticatedAs($user);
         $this->assertSame(1, User::count());
         $this->assertDatabaseCount('social_identities', 1);
+        Mail::assertSent(SocialProviderLinkedMail::class, 1);
     }
 
     public function test_verified_email_links_a_provider_to_an_email_link_account(): void

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\SocialProviderLinkedMail;
 use App\Models\User;
 use App\Support\CompleteLogin;
 use App\Support\LoginRedirectTarget;
@@ -11,8 +12,11 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Throwable;
 
 class SocialAuthenticationController extends Controller
 {
@@ -71,6 +75,8 @@ class SocialAuthenticationController extends Controller
         $name = $profile['name'] ?? $profile['login'] ?? $profile['given_name'] ?? $email;
         $avatarUrl = $profile['avatar_url'] ?? $profile['picture'] ?? null;
 
+        $linkedExisting = false;
+
         // Provider identity owns the link: the account's first provider, or one linked later.
         $user = User::query()->where('provider_name', $provider)->where('provider_id', $providerId)->first()
             ?? User::query()->find(DB::table('social_identities')->where('provider', $provider)->where('provider_id', $providerId)->value('user_id'));
@@ -88,6 +94,7 @@ class SocialAuthenticationController extends Controller
             }
 
             $user = $emailOwner;
+            $linkedExisting = true;
         }
 
         if (! $user) {
@@ -126,6 +133,15 @@ class SocialAuthenticationController extends Controller
                 'user_id' => $user->id, 'provider' => $provider, 'provider_id' => $providerId,
                 'created_at' => now(), 'updated_at' => now(),
             ]);
+        }
+
+        if ($linkedExisting) {
+            try {
+                // A provider-verified email can be stale, so the mailbox owner hears about every new link.
+                Mail::to($user->email)->send(new SocialProviderLinkedMail($provider));
+            } catch (Throwable $e) {
+                Log::error('Provider link mail failed', ['exception' => $e]);
+            }
         }
 
         return CompleteLogin::redirect($request, $user, $request->session()->pull('social_login.redirect_to'));
