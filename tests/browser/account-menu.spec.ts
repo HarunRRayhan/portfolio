@@ -29,3 +29,19 @@ test('the sidebar account menu reaches every profile setting and logs out', asyn
   await page.goto('/profile')
   await expect(page).toHaveURL(/\/login/)
 })
+
+test('a customer only sees their own account, not admin pages', async ({ page }) => {
+  await loginAs(page, `customer-${Date.now()}@example.test`)
+
+  await page.goto('/profile')
+  const sidebar = page.locator('aside')
+  await expect(sidebar.getByRole('button', { name: 'Overview' })).toHaveCount(0)
+  await sidebar.getByRole('button', { name: 'Account menu' }).click()
+  await expect(page.getByRole('link', { name: 'Profile details' })).toBeVisible()
+  await page.keyboard.press('Escape')
+
+  await page.goto('/blog')
+  await page.locator('header').getByRole('button', { name: 'Account', exact: true }).click()
+  await page.locator('header').getByRole('link', { name: 'Account' }).click()
+  await expect(page).toHaveURL(/\/profile$/)
+})

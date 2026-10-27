@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Mail\AccountDeletionScheduledMail;
 use App\Models\ConsultationBooking;
 use App\Models\ConsultationTier;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
@@ -65,6 +67,7 @@ class ProfileTest extends TestCase
 
     public function test_user_can_delete_their_account(): void
     {
+        Mail::fake();
         $user = User::factory()->create();
         $user->createToken('integration');
 
@@ -81,6 +84,29 @@ class ProfileTest extends TestCase
         $this->assertGuest();
         $this->assertNotNull($user->fresh()->deletion_scheduled_at);
         $this->assertSame(0, $user->tokens()->count());
+        Mail::assertSent(AccountDeletionScheduledMail::class, fn ($mail) => $mail->hasTo($user->email)
+            && $mail->purgesOn === now()->addDays(User::RESTORE_DAYS)->toDateString()
+            && str_contains($mail->render(), 'Restore my account'));
+    }
+
+    public function test_account_is_still_deleted_when_the_notice_cannot_be_sent(): void
+    {
+        Mail::shouldReceive('to->send')->andThrow(new \RuntimeException('SMTP down'));
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->delete('/profile', ['confirm_email' => $user->email])
+            ->assertRedirect('/');
+
+        $this->assertNotNull($user->fresh()->deletion_scheduled_at);
+    }
+
+    public function test_only_admins_are_flagged_as_admin_to_the_frontend(): void
+    {
+        $this->actingAs(User::factory()->create())->get('/profile')
+            ->assertInertia(fn ($page) => $page->where('auth.isAdmin', false));
+        $this->actingAs(User::factory()->create(['role' => 'admin']))->get('/profile')
+            ->assertInertia(fn ($page) => $page->where('auth.isAdmin', true));
     }
 
     public function test_deleting_account_keeps_bookings(): void

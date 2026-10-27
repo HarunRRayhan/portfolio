@@ -44,6 +44,7 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
+                'isAdmin' => (bool) $request->user()?->isAdmin(),
             ],
             'turnstileSiteKey' => config('services.turnstile.site_key'),
             'caseStudiesByService' => fn () => $request->is('services/*')
