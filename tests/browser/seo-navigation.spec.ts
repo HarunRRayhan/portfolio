@@ -76,7 +76,7 @@ test('service schemas are removed when leaving for sponsor and bio metadata work
 test('SPA entry to sign in clears public page metadata and schema', async ({ page, baseURL }) => {
   await page.goto('/blog')
   await expectMetadata(page, `${baseURL}/blog`)
-  await page.getByRole('link', { name: 'Sign in', exact: true }).click()
+  await page.locator('header').getByRole('link', { name: 'Sign in', exact: true }).click()
   await expect(page).toHaveURL(`${baseURL}/login`)
   await expect(page.locator('head link[rel="canonical"]')).toHaveCount(0)
   await expect(page.locator('head meta[name="description"]')).toHaveCount(0)
