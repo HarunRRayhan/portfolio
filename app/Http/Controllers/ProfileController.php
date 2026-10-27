@@ -3,13 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Mail\AccountDeletionScheduledMail;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class ProfileController extends Controller
 {
@@ -57,6 +61,13 @@ class ProfileController extends Controller
         // Kept for User::RESTORE_DAYS so signing in again can undo it; `model:prune` removes it after that.
         $user->forceFill(['deletion_scheduled_at' => now()])->save();
         $user->tokens()->delete();
+
+        try {
+            Mail::to($user->email)->send(new AccountDeletionScheduledMail($user->purgesOn()));
+        } catch (Throwable $e) {
+            // The deletion stands either way; the restore page still shows the date on next sign-in.
+            Log::error('Account deletion mail failed', ['exception' => $e]);
+        }
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

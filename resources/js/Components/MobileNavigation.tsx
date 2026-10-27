@@ -12,10 +12,11 @@ export type MobileNavigationProps = {
   moreItems: { name: string; href: string; icon: LucideIcon; featured?: boolean }[]
   isActive: (href: string) => boolean
   user: { name?: string; email?: string } | null | undefined
+  isAdmin: boolean
   onLogout: () => void
 }
 
-export default function MobileNavigation({ open, onOpenChange, onCloseAutoFocus, mainItems, moreItems, isActive, user, onLogout }: MobileNavigationProps) {
+export default function MobileNavigation({ open, onOpenChange, onCloseAutoFocus, mainItems, moreItems, isActive, user, isAdmin, onLogout }: MobileNavigationProps) {
   const [moreOpen, setMoreOpen] = useState(false)
 
   return (
@@ -64,8 +65,8 @@ export default function MobileNavigation({ open, onOpenChange, onCloseAutoFocus,
                 <p className="text-xs text-slate-500">{user.email}</p>
               </div>
               <SheetClose asChild>
-                <Link href={route('dashboard')} className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
-                  <User className="h-4 w-4" />Dashboard
+                <Link href={route(isAdmin ? 'dashboard' : 'profile.edit')} className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                  <User className="h-4 w-4" />{isAdmin ? 'Dashboard' : 'Account'}
                 </Link>
               </SheetClose>
               <SheetClose asChild>

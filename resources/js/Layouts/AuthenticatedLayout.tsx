@@ -44,7 +44,11 @@ function FlashMessage() {
 }
 
 function useNavSections(): NavSection[] {
-    const mediaType = new URLSearchParams(usePage().url.split('?')[1] ?? '').get('type');
+    const { url, props } = usePage();
+    const mediaType = new URLSearchParams(url.split('?')[1] ?? '').get('type');
+
+    // Customers only have their account, which the sidebar's account menu already covers.
+    if (!props.auth.isAdmin) return [];
 
     return [
         {
