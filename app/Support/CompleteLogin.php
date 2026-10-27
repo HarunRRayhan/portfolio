@@ -20,6 +20,12 @@ class CompleteLogin
             ?? LoginRedirectTarget::sanitize($intended)
             ?? route($user->isAdmin() ? 'dashboard' : 'blog.index', absolute: false);
 
+        if ($user->deletion_scheduled_at) {
+            $request->session()->put(AgreementController::REDIRECT_KEY, $target);
+
+            return redirect()->route('account.restore');
+        }
+
         // New accounts, and existing ones from before the agreement, see the Terms + passkey screen once.
         if (! $user->terms_accepted_at) {
             $request->session()->put(AgreementController::REDIRECT_KEY, $target);

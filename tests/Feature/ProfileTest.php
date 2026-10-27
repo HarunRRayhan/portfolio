@@ -78,7 +78,7 @@ class ProfileTest extends TestCase
             ->assertRedirect('/');
 
         $this->assertGuest();
-        $this->assertNull($user->fresh());
+        $this->assertNotNull($user->fresh()->deletion_scheduled_at);
     }
 
     public function test_deleting_account_keeps_bookings(): void
@@ -102,6 +102,8 @@ class ProfileTest extends TestCase
         $this->actingAs($user)
             ->delete('/profile', ['confirm_email' => $user->email])
             ->assertSessionHasNoErrors();
+        $this->travel(User::RESTORE_DAYS + 1)->days();
+        $this->artisan('model:prune', ['--model' => [User::class]])->assertSuccessful();
 
         $this->assertNull($user->fresh());
         $this->assertNotNull($booking->fresh());

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Consultation\StripeWebhookController;
 use App\Models\ConsultationBooking;
 use App\Models\ConsultationStripeWebhookEvent;
+use App\Models\User;
 use App\Services\Consultation\BookingWorkflowService;
 use App\Services\Consultation\ConsultationGoogleOperationService;
 use App\Services\Consultation\ConsultationNotificationService;
@@ -149,6 +150,10 @@ Schedule::command('consultations:retry-stripe-webhooks')
     ->everyFiveMinutes()
     ->withoutOverlapping()
     ->onOneServer();
+
+Schedule::command('model:prune', ['--model' => [User::class]])
+    ->daily()
+    ->withoutOverlapping();
 
 Schedule::command('blog:publish-scheduled')
     ->everyMinute()
