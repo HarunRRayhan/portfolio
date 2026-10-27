@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Mail\SocialProviderLinkedMail;
 use App\Models\MagicLoginToken;
 use App\Models\User;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Testing\TestResponse;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -202,13 +204,34 @@ class AuthSecurityTest extends TestCase
         }
     }
 
-    public function test_same_email_with_different_casing_cannot_merge_accounts(): void
+    public function test_verified_email_links_a_second_provider_to_the_existing_account(): void
     {
-        $user = User::factory()->create(['email' => 'Owner@Example.com']);
-        $this->fakeGoogle(['sub' => 'new-id', 'email' => 'owner@example.com', 'email_verified' => true]);
-        $this->googleCallback()->assertRedirect('/login');
-        $this->assertGuest();
-        $this->assertNull($user->fresh()->provider_id);
+        Mail::fake();
+        $user = User::factory()->create(['email' => 'Owner@Example.com', 'name' => 'Owner', 'provider_name' => 'github', 'provider_id' => 'gh-1']);
+        $this->fakeGoogle(['sub' => 'google-1', 'email' => 'owner@example.com', 'email_verified' => true]);
+
+        $this->googleCallback()->assertRedirect();
+        $this->assertAuthenticatedAs($user);
+        $this->assertSame(['github', 'gh-1', 'Owner'], [$user->fresh()->provider_name, $user->fresh()->provider_id, $user->fresh()->name]);
+        $this->assertDatabaseHas('social_identities', ['user_id' => $user->id, 'provider' => 'google', 'provider_id' => 'google-1']);
+
+        // The linked identity keeps working after its email changes.
+        auth()->logout();
+        $this->fakeGoogle(['sub' => 'google-1', 'email' => 'renamed@example.com', 'email_verified' => true]);
+        $this->googleCallback()->assertRedirect();
+        $this->assertAuthenticatedAs($user);
+        $this->assertSame(1, User::count());
+        $this->assertDatabaseCount('social_identities', 1);
+        Mail::assertSent(SocialProviderLinkedMail::class, 1);
+    }
+
+    public function test_verified_email_links_a_provider_to_an_email_link_account(): void
+    {
+        $user = User::factory()->create(['email' => 'owner@example.com']);
+        $this->fakeGoogle(['sub' => 'google-1', 'email' => 'owner@example.com', 'email_verified' => true]);
+        $this->googleCallback()->assertRedirect();
+        $this->assertAuthenticatedAs($user);
+        $this->assertSame('google-1', $user->fresh()->provider_id);
     }
 
     public function test_unique_social_identity_allows_other_providers_and_password_accounts(): void
