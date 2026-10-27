@@ -18,6 +18,7 @@ files=(
   hashnode.env
   bluesky.env
   mastodon.env
+  github.env
 )
 
 for f in "${files[@]}"; do
