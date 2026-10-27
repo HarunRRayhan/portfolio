@@ -98,6 +98,66 @@ class PasskeyTest extends TestCase
         $this->assertModelMissing($passkey);
     }
 
+    public function test_store_returns_the_new_passkey_for_renaming(): void
+    {
+        config(['passkeys.actions.store_passkey' => get_class(new class extends StorePasskeyAction
+        {
+            protected function determinePublicKeyCredentialSource(string $passkeyJson, string $passkeyOptionsJson, string $hostName): PublicKeyCredentialSource
+            {
+                return Passkey::factory()->make()->data;
+            }
+        })]);
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->getJson(route('passkeys.register-options'));
+        $this->postJson(route('passkeys.store'), ['name' => 'Chrome on Mac', 'passkey' => '{"id":"x"}'])
+            ->assertCreated()
+            ->assertExactJson(['id' => $user->passkeys()->sole()->id, 'name' => 'Chrome on Mac']);
+    }
+
+    public function test_user_can_rename_own_passkey(): void
+    {
+        $user = User::factory()->create();
+        $passkey = Passkey::factory()->create(['authenticatable_id' => $user->id, 'name' => 'Chrome on Mac']);
+
+        $this->actingAs($user)
+            ->patchJson(route('passkeys.update', $passkey), ['name' => 'Work laptop'])
+            ->assertNoContent();
+
+        $this->assertSame('Work laptop', $passkey->fresh()->name);
+    }
+
+    public function test_rename_needs_a_name(): void
+    {
+        $user = User::factory()->create();
+        $passkey = Passkey::factory()->create(['authenticatable_id' => $user->id]);
+
+        $this->actingAs($user)
+            ->patchJson(route('passkeys.update', $passkey), ['name' => ''])
+            ->assertJsonValidationErrors('name');
+    }
+
+    public function test_user_cannot_rename_another_users_passkey(): void
+    {
+        $passkey = Passkey::factory()->create(['name' => 'Theirs']);
+
+        $this->actingAs(User::factory()->create())
+            ->patchJson(route('passkeys.update', $passkey), ['name' => 'Mine'])
+            ->assertNotFound();
+
+        $this->assertSame('Theirs', $passkey->fresh()->name);
+    }
+
+    public function test_user_who_has_not_agreed_can_still_rename_from_the_welcome_page(): void
+    {
+        $user = User::factory()->termsNotAccepted()->create();
+        $passkey = Passkey::factory()->create(['authenticatable_id' => $user->id]);
+
+        $this->actingAs($user)
+            ->patchJson(route('passkeys.update', $passkey), ['name' => 'Phone'])
+            ->assertNoContent();
+    }
+
     public function test_profile_lists_passkeys(): void
     {
         $user = User::factory()->create();
