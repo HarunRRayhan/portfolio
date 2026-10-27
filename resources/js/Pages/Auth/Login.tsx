@@ -1,14 +1,14 @@
-import InputError from "@/Components/InputError";
-import InputLabel from "@/Components/InputLabel";
-import PrimaryButton from "@/Components/PrimaryButton";
-import SocialLoginButtons from "@/Components/SocialLoginButtons";
-import TextInput from "@/Components/TextInput";
-import Turnstile from "@/Components/Turnstile";
-import { loginWithPasskey } from "@/lib/passkeys";
-import GuestLayout from "@/Layouts/GuestLayout";
-import { Head, useForm, usePage } from "@inertiajs/react";
-import { KeyRound } from "lucide-react";
-import { FormEventHandler, useState } from "react";
+import InputError from '@/Components/InputError';
+import InputLabel from '@/Components/InputLabel';
+import PrimaryButton from '@/Components/PrimaryButton';
+import SocialLoginButtons from '@/Components/SocialLoginButtons';
+import TextInput from '@/Components/TextInput';
+import Turnstile from '@/Components/Turnstile';
+import { loginWithPasskey } from '@/lib/passkeys';
+import GuestLayout from '@/Layouts/GuestLayout';
+import { Head, useForm, usePage } from '@inertiajs/react';
+import { KeyRound } from 'lucide-react';
+import { FormEventHandler, useState } from 'react';
 
 export default function Login({
     status,
@@ -19,12 +19,10 @@ export default function Login({
     redirect?: string;
     turnstileEnabled: boolean;
 }) {
-    const siteKey = (usePage().props as { turnstileSiteKey?: string | null })
-        .turnstileSiteKey;
+    const siteKey = (usePage().props as { turnstileSiteKey?: string | null }).turnstileSiteKey;
     const enabled = turnstileEnabled && !!siteKey;
     // Sign-in failures from redirects (social callback, expired link) arrive as a `login` error.
-    const loginError = (usePage().props as { errors?: Record<string, string> })
-        .errors?.login;
+    const loginError = (usePage().props as { errors?: Record<string, string> }).errors?.login;
 
     // Turnstile tokens are single-use: remount the widget after every submit for a fresh one.
     const [widgetKey, setWidgetKey] = useState(0);
@@ -38,23 +36,23 @@ export default function Login({
         try {
             await loginWithPasskey(redirect);
         } catch {
-            setPasskeyError("Passkey sign-in failed. Try another option.");
+            setPasskeyError('Passkey sign-in failed. Try another option.');
             setPasskeyBusy(false);
         }
     };
 
     const { data, setData, post, processing, errors, reset } = useForm({
-        email: "",
-        "cf-turnstile-response": "",
-        redirect: redirect ?? "",
+        email: '',
+        'cf-turnstile-response': '',
+        redirect: redirect ?? '',
     });
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post(route("magic-link.send"), {
-            onSuccess: () => reset("email"),
+        post(route('magic-link.send'), {
+            onSuccess: () => reset('email'),
             onFinish: () => {
-                setData("cf-turnstile-response", "");
+                setData('cf-turnstile-response', '');
                 setWidgetKey((k) => k + 1);
             },
         });
@@ -64,23 +62,12 @@ export default function Login({
         <GuestLayout>
             <Head title="Continue" />
 
-            <h1 className="text-xl font-semibold text-slate-900">
-                Continue to harun.dev
-            </h1>
-            <p className="mb-6 mt-1 text-sm text-slate-500">
-                New here? Any option creates your account.
-            </p>
+            <h1 className="text-xl font-semibold text-slate-900">Continue to harun.dev</h1>
+            <p className="mb-6 mt-1 text-sm text-slate-500">New here? Any option creates your account.</p>
 
-            {status && (
-                <div className="mb-4 text-sm font-medium text-green-600">
-                    {status}
-                </div>
-            )}
+            {status && <div className="mb-4 text-sm font-medium text-green-600">{status}</div>}
             {loginError && (
-                <p
-                    role="alert"
-                    className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
-                >
+                <p role="alert" className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
                     {loginError}
                 </p>
             )}
@@ -120,7 +107,7 @@ export default function Login({
                         value={data.email}
                         className="mt-1 block w-full"
                         autoComplete="username webauthn"
-                        onChange={(e) => setData("email", e.target.value)}
+                        onChange={(e) => setData('email', e.target.value)}
                         required
                         disabled={!enabled}
                     />
@@ -129,22 +116,14 @@ export default function Login({
                 </div>
 
                 {enabled ? (
-                    <Turnstile
-                        key={widgetKey}
-                        siteKey={siteKey!}
-                        onToken={(t) => setData("cf-turnstile-response", t)}
-                    />
+                    <Turnstile key={widgetKey} siteKey={siteKey!} onToken={(t) => setData('cf-turnstile-response', t)} />
                 ) : (
-                    <p className="text-sm text-slate-500">
-                        Email sign-in is temporarily unavailable.
-                    </p>
+                    <p className="text-sm text-slate-500">Email sign-in is temporarily unavailable.</p>
                 )}
 
                 <PrimaryButton
                     className="w-full justify-center"
-                    disabled={
-                        !enabled || processing || !data["cf-turnstile-response"]
-                    }
+                    disabled={!enabled || processing || !data['cf-turnstile-response']}
                 >
                     Email me a sign-in link
                 </PrimaryButton>
