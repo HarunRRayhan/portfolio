@@ -66,6 +66,7 @@ class ProfileTest extends TestCase
     public function test_user_can_delete_their_account(): void
     {
         $user = User::factory()->create();
+        $user->createToken('integration');
 
         $response = $this
             ->actingAs($user)
@@ -79,6 +80,7 @@ class ProfileTest extends TestCase
 
         $this->assertGuest();
         $this->assertNotNull($user->fresh()->deletion_scheduled_at);
+        $this->assertSame(0, $user->tokens()->count());
     }
 
     public function test_deleting_account_keeps_bookings(): void

@@ -45,6 +45,18 @@ class RestoreAccountTest extends TestCase
         $this->get(route('blog.index'))->assertOk();
     }
 
+    public function test_a_session_from_before_the_deletion_must_sign_in_again(): void
+    {
+        $user = $this->scheduled();
+
+        $this->actingAs($user)->get(route('profile.edit'))->assertRedirect(route('account.restore'));
+        $this->get(route('account.restore'))->assertRedirect(route('login'));
+        $this->assertGuest();
+
+        $this->actingAs($user)->post(route('account.restore.store'))->assertRedirect(route('login'));
+        $this->assertNotNull($user->fresh()->deletion_scheduled_at);
+    }
+
     public function test_restore_page_skips_accounts_that_are_not_deleted(): void
     {
         $this->actingAs(User::factory()->create())

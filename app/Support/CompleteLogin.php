@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Http\Controllers\Auth\AgreementController;
+use App\Http\Controllers\Auth\RestoreAccountController;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,6 +23,7 @@ class CompleteLogin
 
         if ($user->deletion_scheduled_at) {
             $request->session()->put(AgreementController::REDIRECT_KEY, $target);
+            $request->session()->put(RestoreAccountController::FRESH_LOGIN_KEY, true);
 
             return redirect()->route('account.restore');
         }
