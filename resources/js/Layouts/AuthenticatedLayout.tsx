@@ -1,11 +1,12 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/Components/ui/sheet';
 import { SeoHead } from '@/Components/SeoHead';
+import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import type { PageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
     BarChart3, Calendar, ChevronDown, FileText, Image, Images, KeyRound, LayoutDashboard,
-    LayoutTemplate, Link2, LogOut, Mail, Menu, PanelLeftClose, PanelLeftOpen, Presentation, Send, Ticket, User, Users, Video,
+    ChevronsUpDown, LayoutTemplate, Link2, LogOut, Mail, Menu, PanelLeftClose, PanelLeftOpen, Presentation, Send, Ticket, Trash2, User, UserCog, Users, Video,
 } from 'lucide-react';
 import { PropsWithChildren, ReactNode, useEffect, useRef, useState } from 'react';
 
@@ -245,20 +246,36 @@ function NavList({ compact = false, onNavigate }: { compact?: boolean; onNavigat
     );
 }
 
+// Account menu: every profile setting lives on one page; these jump straight to its sections.
 function SidebarUser({ compact = false }: { compact?: boolean }) {
     const user = usePage().props.auth.user;
+    const item = 'flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground';
     return (
         <div className={'border-t ' + (compact ? 'p-2' : 'p-3')}>
-            {!compact && <div className="px-3 py-2">
-                <p className="truncate text-sm font-medium text-foreground">{user.name}</p>
-                <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-            </div>}
-            <Link href={route('logout')} method="post" as="button"
-                aria-label={compact ? 'Log out' : undefined} title={compact ? 'Log out' : undefined}
-                className={'flex w-full items-center rounded-md py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground ' +
-                    (compact ? 'justify-center' : 'gap-3 px-3')}>
-                <LogOut className="h-4 w-4 shrink-0" />{!compact && 'Log out'}
-            </Link>
+            <Popover>
+                <PopoverTrigger aria-label="Account menu" title={compact ? 'Account' : undefined}
+                    className={'flex w-full items-center rounded-md py-2 text-left hover:bg-muted ' + (compact ? 'justify-center' : 'gap-3 px-3')}>
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
+                        {user.name.charAt(0).toUpperCase()}
+                    </span>
+                    {!compact && <>
+                        <span className="min-w-0 flex-1">
+                            <span className="block truncate text-sm font-medium text-foreground">{user.name}</span>
+                            <span className="block truncate text-xs text-muted-foreground">{user.email}</span>
+                        </span>
+                        <ChevronsUpDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </>}
+                </PopoverTrigger>
+                <PopoverContent side="top" align="start" className="w-60 p-1">
+                    <Link href={route('profile.edit')} className={item}><UserCog className="h-4 w-4" />Profile details</Link>
+                    <Link href={route('profile.edit') + '#passkeys'} className={item}><KeyRound className="h-4 w-4" />Passkeys</Link>
+                    <Link href={route('profile.edit') + '#delete-account'} className={item + ' text-red-600 hover:text-red-700'}>
+                        <Trash2 className="h-4 w-4" />Delete account
+                    </Link>
+                    <div className="my-1 border-t" />
+                    <Link href={route('logout')} method="post" as="button" className={item}><LogOut className="h-4 w-4" />Log out</Link>
+                </PopoverContent>
+            </Popover>
         </div>
     );
 }
