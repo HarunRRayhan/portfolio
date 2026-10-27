@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\CheckRole;
+use App\Http\Middleware\EnsureTermsAccepted;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\LimitContentCrawls;
 use App\Http\Middleware\NoindexPrivatePaths;
@@ -49,6 +50,7 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
             LimitContentCrawls::class,
+            EnsureTermsAccepted::class,
         ]);
 
         // Signed-in users hitting guest routes (/login, magic links): /admin/dashboard is admin-only.

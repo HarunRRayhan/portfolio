@@ -77,8 +77,8 @@ class SocialLoginTest extends TestCase
 
         $callbackResponse = $this->get('/auth/github/callback?code=test-code&state='.($redirectQuery['state'] ?? ''));
 
-        $callbackResponse->assertRedirect(route('passkeys.prompt'));
-        $this->assertSame('http://localhost/blog/example#discussion', session('passkey_prompt.redirect_to'));
+        $callbackResponse->assertRedirect(route('agreement.show'));
+        $this->assertSame('http://localhost/blog/example#discussion', session('agreement.redirect_to'));
         $this->assertAuthenticated();
 
         $user = User::query()->where('email', 'harun@example.com')->first();

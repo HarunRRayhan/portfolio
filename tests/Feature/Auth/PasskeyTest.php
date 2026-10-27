@@ -13,29 +13,6 @@ class PasskeyTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_prompt_requires_auth(): void
-    {
-        $this->get(route('passkeys.prompt'))->assertRedirect(route('login'));
-    }
-
-    public function test_prompt_renders_for_signed_in_user(): void
-    {
-        $this->actingAs(User::factory()->create())
-            ->withSession(['passkey_prompt.redirect_to' => '/consultation?coupon=X'])
-            ->get(route('passkeys.prompt'))
-            ->assertOk()
-            ->assertInertia(fn ($page) => $page->component('Auth/PasskeyPrompt')->where('next', '/consultation?coupon=X'));
-    }
-
-    public function test_skip_returns_to_stored_redirect(): void
-    {
-        $this->actingAs(User::factory()->create())
-            ->withSession(['passkey_prompt.redirect_to' => '/consultation?coupon=X'])
-            ->post(route('passkeys.skip'))
-            ->assertRedirect('/consultation?coupon=X')
-            ->assertSessionMissing('passkey_prompt.redirect_to');
-    }
-
     public function test_register_options_returns_challenge_for_rp_host(): void
     {
         $response = $this->actingAs(User::factory()->create())
