@@ -9,12 +9,15 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Sends signed-in users who haven't agreed to the Terms to the agreement screen,
- * but only on routes that need an account. Public pages stay open.
+ * Gates routes that need an account. A signed-in user whose account is scheduled for deletion
+ * goes to the restore screen; one who hasn't agreed to the Terms goes to the agreement screen.
+ * Public pages stay open.
  */
 class EnsureTermsAccepted
 {
-    private const ALLOWED_ROUTES = [
+    private const RESTORE_ROUTES = ['account.restore', 'account.restore.store', 'logout'];
+
+    private const AGREEMENT_ROUTES = [
         'agreement.show',
         'agreement.accept',
         'passkeys.register-options',
@@ -27,19 +30,26 @@ class EnsureTermsAccepted
     {
         $user = $request->user();
 
-        if (! $user || $user->terms_accepted_at || $request->routeIs(...self::ALLOWED_ROUTES) || ! $this->needsAccount($request)) {
+        [$gate, $allowed, $message] = match (true) {
+            ! $user => [null, [], null],
+            (bool) $user->deletion_scheduled_at => ['account.restore', self::RESTORE_ROUTES, 'This account is scheduled for deletion.'],
+            ! $user->terms_accepted_at => ['agreement.show', self::AGREEMENT_ROUTES, 'Please agree to the Terms and Privacy Policy first.'],
+            default => [null, [], null],
+        };
+
+        if (! $gate || $request->routeIs(...$allowed) || ! $this->needsAccount($request)) {
             return $next($request);
         }
 
         if ($request->expectsJson() && ! $request->header('X-Inertia')) {
-            abort(403, 'Please agree to the Terms and Privacy Policy first.');
+            abort(403, $message);
         }
 
         if ($request->isMethod('GET') && ($target = LoginRedirectTarget::sanitize($request->getRequestUri()))) {
             $request->session()->put(AgreementController::REDIRECT_KEY, $target);
         }
 
-        return redirect()->route('agreement.show');
+        return redirect()->route($gate);
     }
 
     private function needsAccount(Request $request): bool

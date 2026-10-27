@@ -1,14 +1,14 @@
-import DangerButton from '@/Components/DangerButton';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import Modal from '@/Components/Modal';
-import SecondaryButton from '@/Components/SecondaryButton';
-import TextInput from '@/Components/TextInput';
-import { useForm } from '@inertiajs/react';
-import { FormEventHandler, useRef, useState } from 'react';
+import DangerButton from "@/Components/DangerButton";
+import InputError from "@/Components/InputError";
+import InputLabel from "@/Components/InputLabel";
+import Modal from "@/Components/Modal";
+import SecondaryButton from "@/Components/SecondaryButton";
+import TextInput from "@/Components/TextInput";
+import { useForm } from "@inertiajs/react";
+import { FormEventHandler, useRef, useState } from "react";
 
 export default function DeleteUserForm({
-    className = '',
+    className = "",
 }: {
     className?: string;
 }) {
@@ -24,7 +24,7 @@ export default function DeleteUserForm({
         errors,
         clearErrors,
     } = useForm({
-        confirm_email: '',
+        confirm_email: "",
     });
 
     const confirmUserDeletion = () => {
@@ -34,7 +34,7 @@ export default function DeleteUserForm({
     const deleteUser: FormEventHandler = (e) => {
         e.preventDefault();
 
-        destroy(route('profile.destroy'), {
+        destroy(route("profile.destroy"), {
             preserveScroll: true,
             onSuccess: () => closeModal(),
             onError: () => emailInput.current?.focus(),
@@ -57,10 +57,8 @@ export default function DeleteUserForm({
                 </h2>
 
                 <p className="mt-1 text-sm text-gray-600">
-                    Once your account is deleted, all of its resources and data
-                    will be permanently deleted. Before deleting your account,
-                    please download any data or information that you wish to
-                    retain.
+                    Your account is deleted permanently 30 days after you delete
+                    it. Until then you can restore it by signing in again.
                 </p>
             </header>
 
@@ -75,10 +73,10 @@ export default function DeleteUserForm({
                     </h2>
 
                     <p className="mt-1 text-sm text-gray-600">
-                        Once your account is deleted, all of its resources and
-                        data will be permanently deleted. Please enter your
-                        email address to confirm you would like to permanently delete
-                        your account.
+                        You will be logged out and the account will be marked as
+                        deleted. After 30 days it is deleted permanently. Sign
+                        in again before then to restore it. Enter your email
+                        address to confirm.
                     </p>
 
                     <div className="mt-6">
@@ -95,7 +93,7 @@ export default function DeleteUserForm({
                             ref={emailInput}
                             value={data.confirm_email}
                             onChange={(e) =>
-                                setData('confirm_email', e.target.value)
+                                setData("confirm_email", e.target.value)
                             }
                             className="mt-1 block w-3/4"
                             isFocused

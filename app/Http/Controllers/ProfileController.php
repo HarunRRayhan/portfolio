@@ -54,7 +54,9 @@ class ProfileController extends Controller
 
         Auth::logout();
 
-        $user->delete();
+        // Kept for User::RESTORE_DAYS so signing in again can undo it; `model:prune` removes it after that.
+        $user->forceFill(['deletion_scheduled_at' => now()])->save();
+        $user->tokens()->delete();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\MagicLinkController;
 use App\Http\Controllers\Auth\PasskeyController;
+use App\Http\Controllers\Auth\RestoreAccountController;
 use App\Http\Controllers\Auth\SocialAuthenticationController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Http\Request;
@@ -57,6 +58,8 @@ Route::middleware('auth')->group(function () {
         ->middleware('throttle:6,1')
         ->name('verification.send');
 
+    Route::get('account/restore', [RestoreAccountController::class, 'show'])->name('account.restore');
+    Route::post('account/restore', [RestoreAccountController::class, 'store'])->name('account.restore.store');
     Route::get('welcome', [AgreementController::class, 'show'])->name('agreement.show');
     Route::post('welcome', [AgreementController::class, 'accept'])->name('agreement.accept');
     Route::get('passkeys/register-options', [PasskeyController::class, 'registerOptions'])
