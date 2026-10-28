@@ -11,7 +11,7 @@
 
 <small>Referrer: {{ $referrer }}</small>
 
-@component('mail::button', ['url' => url('/admin/contacts')])
+@component('mail::button', ['url' => rtrim(config('app.url'), '/').'/admin/contacts'])
 Open in admin
 @endcomponent
 
