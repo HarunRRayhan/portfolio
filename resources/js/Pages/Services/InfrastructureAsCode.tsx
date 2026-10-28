@@ -30,12 +30,12 @@ export default function InfrastructureAsCodePage({ canonicalUrl }: { canonicalUr
           backgroundImage="/service-assets/infrastructure-as-code/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
-          <Link href="/services" className="inline-flex items-center text-amber-600 hover:text-amber-700 font-medium">
+          <Link href="/services" className="inline-flex items-center text-amber-600 hover:text-amber-700 dark:hover:text-amber-300 font-medium">
             <ArrowRight className="w-4 h-4 mr-2 rotate-180" />
             Back to Services
           </Link>
         </div>
-        <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
+        <motion.section className="py-24 bg-white dark:bg-slate-900" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
               Where I can help with Terraform
@@ -75,7 +75,7 @@ export default function InfrastructureAsCodePage({ canonicalUrl }: { canonicalUr
           </div>
         </motion.section>
 
-        <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
+        <motion.section className="py-24 bg-gray-50 dark:bg-slate-950" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
               What the work includes
@@ -115,7 +115,7 @@ export default function InfrastructureAsCodePage({ canonicalUrl }: { canonicalUr
           </div>
         </motion.section>
 
-        <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
+        <motion.section className="py-24 bg-white dark:bg-slate-900" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
               How an engagement starts
@@ -160,19 +160,19 @@ export default function InfrastructureAsCodePage({ canonicalUrl }: { canonicalUr
           </div>
         </motion.section>
 
-        <section className="py-20 bg-[#F8F9FA]">
+        <section className="py-20 bg-[#F8F9FA] dark:bg-slate-950">
           <div className="container mx-auto px-4 max-w-3xl">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">See the workflow before we talk</h2>
-            <p className="text-lg text-gray-700 mb-6">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">See the workflow before we talk</h2>
+            <p className="text-lg text-gray-700 dark:text-slate-200 mb-6">
               I wrote up how I use Claude Code with Terraform on AWS, including the context file, validation hooks, plan review, and the places where I still check everything myself.
             </p>
-            <Link href="/blog/claude-code-for-aws-infrastructure-agentic-devops-workflow-with-terraform" className="inline-flex items-center font-semibold text-amber-700 hover:text-amber-800">
+            <Link href="/blog/claude-code-for-aws-infrastructure-agentic-devops-workflow-with-terraform" className="inline-flex items-center font-semibold text-amber-700 dark:text-amber-300 hover:text-amber-800 dark:hover:text-amber-300">
               Read my AWS and Terraform workflow <ArrowRight className="w-4 h-4 ml-2" />
             </Link>
           </div>
         </section>
 
-        <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
+        <motion.section className="py-24 bg-white dark:bg-slate-900" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
               Situations I get called in for
@@ -253,7 +253,7 @@ export default function InfrastructureAsCodePage({ canonicalUrl }: { canonicalUr
           </div>
         </motion.section>
 
-        <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
+        <motion.section className="py-24 bg-white dark:bg-slate-900" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
               Need a second set of eyes on a Terraform change?
@@ -269,7 +269,7 @@ export default function InfrastructureAsCodePage({ canonicalUrl }: { canonicalUr
           </div>
         </motion.section>
 
-        <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
+        <motion.section className="py-24 bg-gray-50 dark:bg-slate-950" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
               Questions people ask

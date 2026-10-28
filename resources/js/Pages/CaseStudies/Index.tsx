@@ -33,21 +33,21 @@ export default function CaseStudiesIndex({ studies, canonicalUrl }: Props) {
       <div className="pt-24">
         <section className="mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
-            <h1 className="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+            <h1 className="text-4xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-5xl">
               Work from real engagements
             </h1>
-            <p className="mt-4 text-lg leading-8 text-slate-600">The client name stays off the page.</p>
+            <p className="mt-4 text-lg leading-8 text-slate-600 dark:text-slate-300">The client name stays off the page.</p>
           </div>
 
           {studies.length === 0 ? (
-            <div className="mt-16 rounded-[2rem] border border-dashed border-slate-300 bg-white p-12 text-center">
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Coming soon</p>
-              <p className="mx-auto mt-4 max-w-lg text-slate-600">
+            <div className="mt-16 rounded-[2rem] border border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-12 text-center">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Coming soon</p>
+              <p className="mx-auto mt-4 max-w-lg text-slate-600 dark:text-slate-300">
                 Stories from real engagements, with the client name left out. The next one shows up here when it's ready.
               </p>
               <Link
                 href="/services"
-                className="mt-8 inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+                className="mt-8 inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
               >
                 Explore services
                 <ArrowRight className="h-4 w-4" />
@@ -58,10 +58,10 @@ export default function CaseStudiesIndex({ studies, canonicalUrl }: Props) {
               {studies.map((study) => (
                 <article
                   key={study.slug}
-                  className="group overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                  className="group overflow-hidden rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
                 >
                   <Link href={study.url} className="block h-full">
-                    <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
+                    <div className="relative aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-slate-800">
                       {study.coverImageUrl ? (
                         <img
                           src={study.coverImageUrl}
@@ -79,7 +79,7 @@ export default function CaseStudiesIndex({ studies, canonicalUrl }: Props) {
                       )}
                     </div>
                     <div className="p-6">
-                      <div className="flex flex-wrap gap-2 text-xs font-medium text-slate-500">
+                      <div className="flex flex-wrap gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
                         <span className="inline-flex items-center gap-1.5">
                           <CalendarDays className="h-3.5 w-3.5" />
                           {study.publishedAtHuman}
@@ -89,28 +89,28 @@ export default function CaseStudiesIndex({ studies, canonicalUrl }: Props) {
                           {study.readTimeLabel}
                         </span>
                       </div>
-                      <p className="mt-3 text-xs font-semibold uppercase tracking-[0.2em] text-amber-800">
+                      <p className="mt-3 text-xs font-semibold uppercase tracking-[0.2em] text-amber-800 dark:text-amber-300">
                         {study.industry}
                       </p>
-                      <h2 className="mt-2 text-2xl font-semibold text-slate-950">{caseStudyReaderTitle(study)}</h2>
-                      <p className="mt-2 text-sm text-slate-600">{study.client}</p>
-                      <p className="mt-4 text-sm font-semibold text-slate-900">{study.headlineOutcome}</p>
+                      <h2 className="mt-2 text-2xl font-semibold text-slate-950 dark:text-white">{caseStudyReaderTitle(study)}</h2>
+                      <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{study.client}</p>
+                      <p className="mt-4 text-sm font-semibold text-slate-900 dark:text-white">{study.headlineOutcome}</p>
                       <div className="mt-4 flex flex-wrap gap-2">
                         {study.techStack.slice(0, 4).map((tech) => (
                           <span
                             key={tech}
-                            className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600"
+                            className="rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-600 dark:text-slate-300"
                           >
                             {tech}
                           </span>
                         ))}
                         {study.techStack.length > 4 ? (
-                          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-500">
+                          <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-500 dark:text-slate-400">
                             +{study.techStack.length - 4}
                           </span>
                         ) : null}
                       </div>
-                      <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
+                      <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
                         Read case study
                         <ArrowRight className="h-4 w-4" />
                       </span>

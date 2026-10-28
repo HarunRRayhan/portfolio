@@ -15,7 +15,7 @@ interface InfiniteScrollTechProps {
 
 export function InfiniteScrollTech({ technologies, backgroundColor = "#F8F9FA" }: InfiniteScrollTechProps) {
   return (
-    <section className={`py-24 overflow-hidden`} style={{ backgroundColor }}>
+    <section className="py-24 overflow-hidden dark:bg-slate-950!" style={{ backgroundColor }}>
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -23,15 +23,15 @@ export function InfiniteScrollTech({ technologies, backgroundColor = "#F8F9FA" }
         viewport={{ once: true }}
         className="container mx-auto text-center mb-12"
       >
-        <h2 className="text-4xl font-bold text-gray-900 mb-4">Tools I use</h2>
-        <p className="text-xl text-gray-600">
+        <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Tools I use</h2>
+        <p className="text-xl text-gray-600 dark:text-slate-300">
           These show up when they fit the job.
         </p>
       </motion.div>
 
       <div className="relative w-full">
-        <div className={`absolute left-0 top-0 w-24 h-full bg-gradient-to-r from-[${backgroundColor}] to-transparent z-10`} />
-        <div className={`absolute right-0 top-0 w-24 h-full bg-gradient-to-l from-[${backgroundColor}] to-transparent z-10`} />
+        <div className={`absolute left-0 top-0 w-24 h-full bg-gradient-to-r from-[${backgroundColor}] dark:from-slate-950 to-transparent z-10`} />
+        <div className={`absolute right-0 top-0 w-24 h-full bg-gradient-to-l from-[${backgroundColor}] dark:from-slate-950 to-transparent z-10`} />
 
         <div className="flex overflow-hidden">
           <motion.div
@@ -59,7 +59,7 @@ export function InfiniteScrollTech({ technologies, backgroundColor = "#F8F9FA" }
                     decoding="async"
                     className="w-16 h-16 object-contain"
                   />
-                  <span className="text-sm font-medium text-gray-600">{tech.name}</span>
+                  <span className="text-sm font-medium text-gray-600 dark:text-slate-300">{tech.name}</span>
                 </div>
               </div>
             ))}

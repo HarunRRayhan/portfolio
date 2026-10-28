@@ -75,12 +75,12 @@ export default function CloudArchitecturePage() {
           backgroundImage="/service-assets/cloud-architecture/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
-          <Link href="/services" className="inline-flex items-center text-amber-600 hover:text-amber-700 font-medium">
+          <Link href="/services" className="inline-flex items-center text-amber-600 hover:text-amber-700 dark:hover:text-amber-300 font-medium">
             <ArrowRight className="w-4 h-4 mr-2 rotate-180" />
             Back to Services
           </Link>
         </div>
-        <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
+        <motion.section className="py-24 bg-white dark:bg-slate-900" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
               What I do
@@ -119,7 +119,7 @@ export default function CloudArchitecturePage() {
           </div>
         </motion.section>
 
-        <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
+        <motion.section className="py-24 bg-gray-50 dark:bg-slate-950" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
               What you get
@@ -159,7 +159,7 @@ export default function CloudArchitecturePage() {
           </div>
         </motion.section>
 
-        <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
+        <motion.section className="py-24 bg-white dark:bg-slate-900" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
               How the work goes
@@ -201,20 +201,20 @@ export default function CloudArchitecturePage() {
           </div>
         </motion.section>
 
-        <section ref={sectionRef} className="py-24 bg-[#F8F9FA] overflow-hidden">
+        <section ref={sectionRef} className="py-24 bg-[#F8F9FA] dark:bg-slate-950 overflow-hidden">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="container mx-auto px-4 text-center mb-12"
           >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Technologies I Use</h2>
-            <p className="text-xl text-gray-600">These are the tools I use when they fit the job.</p>
+            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Technologies I Use</h2>
+            <p className="text-xl text-gray-600 dark:text-slate-300">These are the tools I use when they fit the job.</p>
           </motion.div>
 
           <div className="relative w-full">
-            <div className="absolute left-0 top-0 w-24 h-full bg-gradient-to-r from-[#F8F9FA] to-transparent z-10" />
-            <div className="absolute right-0 top-0 w-24 h-full bg-gradient-to-l from-[#F8F9FA] to-transparent z-10" />
+            <div className="absolute left-0 top-0 w-24 h-full bg-gradient-to-r from-[#F8F9FA] dark:from-slate-950 to-transparent z-10" />
+            <div className="absolute right-0 top-0 w-24 h-full bg-gradient-to-l from-[#F8F9FA] dark:from-slate-950 to-transparent z-10" />
 
             <motion.div
               initial={{ x: 0 }}
@@ -238,7 +238,7 @@ export default function CloudArchitecturePage() {
                       alt={`${tech.name} logo`}
                       className="w-16 h-16 object-contain"
                     />
-                    <span className="text-sm font-medium text-gray-600">{tech.name}</span>
+                    <span className="text-sm font-medium text-gray-600 dark:text-slate-300">{tech.name}</span>
                   </div>
                 </div>
               ))}
@@ -246,7 +246,7 @@ export default function CloudArchitecturePage() {
           </div>
         </section>
 
-        <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
+        <motion.section className="py-24 bg-white dark:bg-slate-900" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
               Situations I get called in for
@@ -327,7 +327,7 @@ export default function CloudArchitecturePage() {
           </div>
         </motion.section>
 
-        <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
+        <motion.section className="py-24 bg-white dark:bg-slate-900" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
               If the layout is expensive or fragile, start there.
@@ -343,7 +343,7 @@ export default function CloudArchitecturePage() {
           </div>
         </motion.section>
 
-        <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
+        <motion.section className="py-24 bg-gray-50 dark:bg-slate-950" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
               Questions people ask

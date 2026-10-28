@@ -9,7 +9,7 @@ export function Card({ className, ...props }: CardProps) {
   return (
     <div
       className={cn(
-        "rounded-xl border bg-card text-card-foreground shadow",
+        "rounded-xl border bg-card text-card-foreground shadow dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100",
         className
       )}
       {...props}
@@ -44,7 +44,7 @@ interface CardDescriptionProps extends React.HTMLAttributes<HTMLParagraphElement
 export function CardDescription({ className, ...props }: CardDescriptionProps) {
   return (
     <p
-      className={cn("text-sm text-muted-foreground", className)}
+      className={cn("text-sm text-muted-foreground dark:text-slate-400", className)}
       {...props}
     />
   )

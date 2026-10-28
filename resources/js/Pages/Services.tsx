@@ -113,12 +113,12 @@ export default function ServicesPage() {
                     backgroundImage="/service-assets/services/hero.jpg"
                 />
 
-                <section className="py-24 bg-white">
+                <section className="py-24 bg-white dark:bg-slate-900">
                     <div className="container mx-auto px-4">
                         {serviceGroups.map((group) => (
                             <div key={group.id} className="mt-16 first:mt-0">
-                                <h2 className="text-2xl font-semibold tracking-tight text-slate-950 md:text-3xl">{group.title}</h2>
-                                <p className="mt-2 max-w-2xl text-slate-600">{group.lede}</p>
+                                <h2 className="text-2xl font-semibold tracking-tight text-slate-950 dark:text-white md:text-3xl">{group.title}</h2>
+                                <p className="mt-2 max-w-2xl text-slate-600 dark:text-slate-300">{group.lede}</p>
                                 <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                     {serviceIndex.filter((service) => service.group === group.id).map((service) => {
                                         const Icon = serviceIcons[service.path as keyof typeof serviceIcons] ?? Cloud
@@ -127,8 +127,8 @@ export default function ServicesPage() {
                                         <Card key={service.path} className="flex flex-col">
                                             <CardHeader>
                                                 <div
-                                                    className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center mb-4">
-                                                    <Icon className="w-6 h-6 text-slate-700"/>
+                                                    className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
+                                                    <Icon className="w-6 h-6 text-slate-700 dark:text-slate-200"/>
                                                 </div>
                                                 <CardTitle>{service.title}</CardTitle>
                                                 <CardDescription>{service.description}</CardDescription>
@@ -152,7 +152,7 @@ export default function ServicesPage() {
                                 <Button
                                     variant="outline"
                                     size="lg"
-                                    className="h-auto w-full max-w-xl whitespace-normal bg-white py-3 text-center text-slate-700 transition-all duration-300 hover:bg-slate-900 hover:text-white border-slate-300"
+                                    className="h-auto w-full max-w-xl whitespace-normal bg-white dark:bg-slate-900 py-3 text-center text-slate-700 dark:text-slate-200 transition-all duration-300 hover:bg-slate-900 hover:text-white border-slate-300 dark:border-slate-700"
                                 >
                                     <MessageSquare className="w-5 h-5 mr-2 shrink-0"/>
                                     Don't see it? Send me a note.
@@ -162,9 +162,9 @@ export default function ServicesPage() {
                     </div>
                 </section>
 
-                <section className="py-24 bg-gray-50">
+                <section className="py-24 bg-gray-50 dark:bg-slate-950">
                     <div className="container mx-auto px-4">
-                        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-12 text-center">Questions people ask</h2>
+                        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-12 text-center">Questions people ask</h2>
                         <Accordion type="single" collapsible className="max-w-3xl mx-auto">
                             {faqs.map((faq, index) => (
                                 <AccordionItem key={index} value={`item-${index}`}>
