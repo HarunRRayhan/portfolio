@@ -151,7 +151,7 @@ final class SeoCatalog
 
         $pages['/raystack'] = new SeoMeta(
             title: 'RayStack: infrastructure reviews for coding agents | Harun R. Rayhan',
-            description: 'Open-source, read-only review skills for Claude Code, Codex, Cursor, and other agents. Each review ends in a ranked findings report with estimated $/mo.',
+            description: 'Open-source skills for Claude Code, Codex, Cursor, and other agents: read-only infrastructure reviews with ranked findings, working principles, and blog writing in your own voice.',
             canonicalUrl: $siteUrl.'/raystack',
             ogImage: self::defaultOgImage(),
             jsonLd: [[
@@ -159,10 +159,10 @@ final class SeoCatalog
                 '@type' => 'SoftwareApplication',
                 'name' => 'RayStack',
                 'url' => $siteUrl.'/raystack',
-                'description' => 'Read-only infrastructure review skills for coding agents: AWS billing, AWS security, AWS bottlenecks, infrastructure, scaling, and database reviews.',
+                'description' => 'Skills for coding agents: read-only AWS billing, AWS security, AWS bottleneck, infrastructure, scaling, and database reviews, working principles, and blog writing in your own voice.',
                 'applicationCategory' => 'DeveloperApplication',
                 'operatingSystem' => 'macOS, Linux',
-                'softwareVersion' => '0.1',
+                'softwareVersion' => '0.3',
                 'license' => 'https://opensource.org/licenses/MIT',
                 'codeRepository' => 'https://github.com/HarunRRayhan/raystack',
                 'offers' => ['@type' => 'Offer', 'price' => '0', 'priceCurrency' => 'USD'],
