@@ -191,14 +191,14 @@ function LogoBadge({
 }) {
   if (!src) {
     return (
-      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-slate-900 shadow-sm">
+      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm">
         {fallback}
       </span>
     )
   }
 
   return (
-    <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-white shadow-sm">
+    <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-white dark:bg-slate-900 shadow-sm">
       <img src={src} alt={alt} className="h-5 w-5 object-contain" loading="lazy" decoding="async" />
     </span>
   )
@@ -223,7 +223,7 @@ function IconButton({
       disabled={disabled}
       data-activity-control="reset"
       onClick={onClick}
-      className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 disabled:cursor-not-allowed disabled:opacity-30"
+      className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white disabled:cursor-not-allowed disabled:opacity-30"
     >
       {children}
     </button>
@@ -440,7 +440,7 @@ export default function PresignedUrlActivity() {
         renderStage={() => (
           <div>
             <div className="mx-auto flex w-full max-w-xl flex-col items-center">
-              <div className={`flex items-center gap-2 rounded-full border px-3 py-1.5 ${flight?.phase === 'you' ? 'border-sky-500 bg-sky-50' : 'border-slate-200 bg-white'}`}>
+              <div className={`flex items-center gap-2 rounded-full border px-3 py-1.5 ${flight?.phase === 'you' ? 'border-sky-500 bg-sky-50 dark:bg-sky-950/40' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900'}`}>
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-950 text-white">
                   <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true">
                     <circle cx="9" cy="6" r="2.4" stroke="currentColor" strokeWidth="1.6" />
@@ -448,8 +448,8 @@ export default function PresignedUrlActivity() {
                   </svg>
                 </span>
                 <div>
-                  <p className="!my-0 text-sm font-semibold text-slate-950">You</p>
-                  <p className="!my-0 text-[0.65rem] leading-4 text-slate-500">video.mp4 · {FILE_SIZE}</p>
+                  <p className="!my-0 text-sm font-semibold text-slate-950 dark:text-white">You</p>
+                  <p className="!my-0 text-[0.65rem] leading-4 text-slate-500 dark:text-slate-400">video.mp4 · {FILE_SIZE}</p>
                 </div>
               </div>
 
@@ -512,7 +512,7 @@ export default function PresignedUrlActivity() {
               </div>
             </div>
 
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-3">
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 dark:border-slate-800 pt-3">
               <div className="flex flex-wrap items-center gap-2">
                 <div className="flex items-center gap-1" role="group" aria-label="Browser uploads or API signs">
                   <button
@@ -524,8 +524,8 @@ export default function PresignedUrlActivity() {
                       browserSelected
                         ? 'bg-slate-950 text-white'
                         : choice === 'cycle' && activeActor === 'browser'
-                          ? 'border border-sky-500 bg-sky-50 text-sky-950'
-                          : 'border border-slate-200 text-slate-700'
+                          ? 'border border-sky-500 bg-sky-50 dark:bg-sky-950/40 text-sky-950 dark:text-sky-300'
+                          : 'border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200'
                     }`}
                   >
                     <img src={LOGOS.browser} alt="" className="h-3.5 w-3.5 object-contain" />
@@ -540,8 +540,8 @@ export default function PresignedUrlActivity() {
                       apiSelected
                         ? 'bg-slate-950 text-white'
                         : choice === 'cycle' && activeActor === 'api'
-                          ? 'border border-sky-500 bg-sky-50 text-sky-950'
-                          : 'border border-slate-200 text-slate-700'
+                          ? 'border border-sky-500 bg-sky-50 dark:bg-sky-950/40 text-sky-950 dark:text-sky-300'
+                          : 'border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200'
                     }`}
                   >
                     <img src={LOGOS.api} alt="" className="h-3.5 w-3.5 rounded-sm object-contain" />
@@ -557,7 +557,7 @@ export default function PresignedUrlActivity() {
                       aria-pressed={speed === value}
                       onClick={() => setSpeed(value)}
                       className={`rounded-full px-2.5 py-1.5 text-xs font-semibold ${
-                        speed === value ? 'bg-slate-950 text-white' : 'border border-slate-200 text-slate-700'
+                        speed === value ? 'bg-slate-950 text-white' : 'border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200'
                       }`}
                     >
                       {value}x
@@ -580,7 +580,7 @@ export default function PresignedUrlActivity() {
                 </svg>
               </IconButton>
             </div>
-            <p className="!my-0 mt-2 text-xs text-slate-500">
+            <p className="!my-0 mt-2 text-xs text-slate-500 dark:text-slate-400">
               {choice === 'api'
                 ? 'API stays selected. It starts multipart or completes the 2 GB object once every part is up.'
                 : choice === 'browser'

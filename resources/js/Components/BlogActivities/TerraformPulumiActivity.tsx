@@ -93,7 +93,7 @@ function IconButton({
       disabled={disabled}
       data-activity-control="reset"
       onClick={onClick}
-      className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 disabled:cursor-not-allowed disabled:opacity-30"
+      className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white disabled:cursor-not-allowed disabled:opacity-30"
     >
       {children}
     </button>
@@ -116,7 +116,7 @@ function Terminal({
   return (
     <div className={`overflow-hidden rounded-2xl border ${active ? 'border-sky-400 shadow-[0_0_0_1px_rgba(56,189,248,0.35)]' : 'border-slate-800'}`}>
       <div className="flex items-center gap-2 border-b border-slate-800 bg-slate-900 px-3 py-2">
-        <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-white">
+        <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-white dark:bg-slate-900">
           <img src={logoSrc} alt="" className="h-4 w-4 object-contain" />
         </span>
         <div className="min-w-0">
@@ -131,7 +131,7 @@ function Terminal({
       </div>
       <div className="min-h-52 bg-slate-950 px-3 py-3 font-mono text-[0.7rem] leading-5 md:min-h-56 md:text-xs">
         {lines.length === 0 ? (
-          <p className="!my-0 text-slate-600">Waiting for deploy…</p>
+          <p className="!my-0 text-slate-600 dark:text-slate-300">Waiting for deploy…</p>
         ) : (
           <div className="space-y-1">
             {lines.map((line, index) => (
@@ -226,11 +226,11 @@ export default function TerraformPulumiActivity() {
   }, [reducedMotion])
 
   return (
-    <div ref={rootRef} className="not-prose rounded-3xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
+    <div ref={rootRef} className="not-prose rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm md:p-5">
       <div className="mb-4">
-        <p className="!my-0 text-sm font-semibold text-slate-950">Same deploy, two terminals</p>
-        <p className="!my-0 mt-1 text-sm text-slate-600">
-          Both tabs create <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[0.85em]">hrr-uploads-example</code>. Preview first, then apply, then lock state.
+        <p className="!my-0 text-sm font-semibold text-slate-950 dark:text-white">Same deploy, two terminals</p>
+        <p className="!my-0 mt-1 text-sm text-slate-600 dark:text-slate-300">
+          Both tabs create <code className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 font-mono text-[0.85em]">hrr-uploads-example</code>. Preview first, then apply, then lock state.
         </p>
       </div>
 
@@ -251,7 +251,7 @@ export default function TerraformPulumiActivity() {
         />
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-3">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 dark:border-slate-800 pt-3">
         <div className="flex items-center gap-1" role="group" aria-label="How fast the terminals type">
           {SPEEDS.map((value) => (
             <button
@@ -261,7 +261,7 @@ export default function TerraformPulumiActivity() {
               aria-pressed={speed === value}
               onClick={() => setSpeed(value)}
               className={`rounded-full px-2.5 py-1.5 text-xs font-semibold ${
-                speed === value ? 'bg-slate-950 text-white' : 'border border-slate-200 text-slate-700'
+                speed === value ? 'bg-slate-950 text-white' : 'border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200'
               }`}
             >
               {value}x
@@ -283,7 +283,7 @@ export default function TerraformPulumiActivity() {
           </svg>
         </IconButton>
       </div>
-      <p className="!my-0 mt-2 text-xs text-slate-500">
+      <p className="!my-0 mt-2 text-xs text-slate-500 dark:text-slate-400">
         {done
           ? 'Both finished. Same bucket. Different language. Reset to watch again.'
           : 'The terminals type when this block is on screen. Same resource, same outcome.'}

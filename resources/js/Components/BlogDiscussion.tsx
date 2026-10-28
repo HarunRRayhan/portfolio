@@ -66,28 +66,28 @@ function CommentItem({
   const authorName = comment.user?.name ?? 'Anonymous'
 
   return (
-    <article className={cn('rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm', depth > 0 && 'ml-4 border-l-4 border-l-slate-200')}>
+    <article className={cn('rounded-[1.5rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm', depth > 0 && 'ml-4 border-l-4 border-l-slate-200')}>
       <div className="flex items-start gap-3">
         <CommentAvatar name={authorName} />
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-slate-900">{authorName}</p>
-              <p className="text-xs text-slate-500">{comment.createdAtHuman}</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">{authorName}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{comment.createdAtHuman}</p>
             </div>
 
             <button
               type="button"
               onClick={() => onReply(comment)}
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900"
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 transition-colors hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-900 dark:hover:text-white"
             >
               <Reply className="h-3.5 w-3.5" />
               Reply
             </button>
           </div>
 
-          <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-7 text-slate-700">{comment.content}</p>
+          <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-7 text-slate-700 dark:text-slate-200">{comment.content}</p>
         </div>
       </div>
 
@@ -143,19 +143,19 @@ export function BlogDiscussion({ slug, title, commentCount, comments }: BlogDisc
   }
 
   return (
-    <section id="discussion" className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-200 bg-[linear-gradient(180deg,rgba(248,250,252,0.92),rgba(255,255,255,1))] px-6 py-6 md:px-8 md:py-7">
+    <section id="discussion" className="overflow-hidden rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+      <div className="border-b border-slate-200 dark:border-slate-800 bg-[linear-gradient(180deg,rgba(248,250,252,0.92),rgba(255,255,255,1))] px-6 py-6 md:px-8 md:py-7">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">On this post</p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Comments</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-600">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">On this post</p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 dark:text-white">Comments</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300">
               A reply stays under the note it answers.
             </p>
           </div>
 
-          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm">
-            <MessageSquare className="h-4 w-4 text-slate-500" />
+          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 shadow-sm">
+            <MessageSquare className="h-4 w-4 text-slate-500 dark:text-slate-400" />
             {commentHeading}
           </div>
         </div>
@@ -166,29 +166,29 @@ export function BlogDiscussion({ slug, title, commentCount, comments }: BlogDisc
           {comments.length > 0 ? (
             comments.map((comment) => <CommentItem key={comment.id} comment={comment} onReply={handleReply} />)
           ) : (
-            <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 p-6 text-sm leading-7 text-slate-600">
-              <p className="font-semibold text-slate-900">No comments yet.</p>
+            <div className="rounded-[1.5rem] border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 p-6 text-sm leading-7 text-slate-600 dark:text-slate-300">
+              <p className="font-semibold text-slate-900 dark:text-white">No comments yet.</p>
               <p className="mt-2">If you have a note on {title}, sign in and leave it.</p>
             </div>
           )}
         </div>
 
-        <aside className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5 shadow-sm lg:sticky lg:top-24 lg:self-start">
+        <aside className="rounded-[1.5rem] border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-5 shadow-sm lg:sticky lg:top-24 lg:self-start">
           {isAuthenticated ? (
             <form onSubmit={submitComment} className="space-y-4">
               <div>
-                <p className="text-sm font-semibold text-slate-900">Write a comment</p>
-                <p className="mt-1 text-sm leading-6 text-slate-600">
-                  Signed in as <span className="font-medium text-slate-900">{auth?.user?.name}</span>.
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">Write a comment</p>
+                <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                  Signed in as <span className="font-medium text-slate-900 dark:text-white">{auth?.user?.name}</span>.
                 </p>
               </div>
 
               {replyTarget ? (
-                <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-900">
+                <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 text-sm text-slate-900 dark:text-white">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="font-semibold">Replying to {replyTarget.user?.name ?? 'a comment'}</p>
-                      <p className="mt-1 text-xs text-slate-500">Clear this to comment on the post instead.</p>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Clear this to comment on the post instead.</p>
                     </div>
                     <button
                       type="button"
@@ -196,7 +196,7 @@ export function BlogDiscussion({ slug, title, commentCount, comments }: BlogDisc
                         setReplyTarget(null)
                         setData('parent_id', null)
                       }}
-                      className="text-xs font-medium text-slate-700 underline decoration-slate-300 underline-offset-2"
+                      className="text-xs font-medium text-slate-700 dark:text-slate-200 underline decoration-slate-300 underline-offset-2"
                     >
                       Clear
                     </button>
@@ -209,17 +209,17 @@ export function BlogDiscussion({ slug, title, commentCount, comments }: BlogDisc
                   value={data.content}
                   onChange={(event) => setData('content', event.target.value)}
                   placeholder="Write the note."
-                  className="min-h-[200px] resize-y bg-white"
+                  className="min-h-[200px] resize-y bg-white dark:bg-slate-900"
                 />
                 {errors.content ? <p className="mt-2 text-sm text-red-600">{errors.content}</p> : null}
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-xs leading-6 text-slate-500">
+                <p className="text-xs leading-6 text-slate-500 dark:text-slate-400">
                   Comments stay on the account you signed in with. Keep it on the post.
                 </p>
 
-                <Button type="submit" disabled={processing || data.content.trim().length === 0} className="gap-2 rounded-full px-5 bg-slate-900 text-white hover:bg-slate-800">
+                <Button type="submit" disabled={processing || data.content.trim().length === 0} className="gap-2 rounded-full px-5 bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200">
                   <Send className="h-4 w-4" />
                   Post comment
                 </Button>
@@ -228,8 +228,8 @@ export function BlogDiscussion({ slug, title, commentCount, comments }: BlogDisc
           ) : (
             <div className="space-y-4">
               <div>
-                <p className="text-sm font-semibold text-slate-900">Sign in to comment</p>
-                <p className="mt-2 text-sm leading-7 text-slate-600">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">Sign in to comment</p>
+                <p className="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-300">
                   Comments stay on the account you sign in with.
                 </p>
               </div>
@@ -237,20 +237,20 @@ export function BlogDiscussion({ slug, title, commentCount, comments }: BlogDisc
               <div className="flex flex-wrap gap-3">
                 <Link
                   href={loginHref}
-                  className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+                  className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
                 >
                   <LogIn className="h-4 w-4" />
                   Sign in
                 </Link>
                 <Link
                   href={loginHref}
-                  className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-400 hover:text-slate-900"
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-300 dark:border-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors hover:border-slate-400 hover:text-slate-900 dark:hover:text-white"
                 >
                   Create account
                 </Link>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 text-xs leading-6 text-slate-500">
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 text-xs leading-6 text-slate-500 dark:text-slate-400">
                 Sign in, then come back to this post.
               </div>
             </div>

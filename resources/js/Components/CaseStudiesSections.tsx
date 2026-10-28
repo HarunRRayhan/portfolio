@@ -41,7 +41,7 @@ export function ServiceRelatedCaseStudies({ studies }: Props) {
           </div>
           <Link
             href="/case-studies"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white hover:text-amber-800"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white hover:text-amber-800 dark:hover:text-amber-300"
           >
             All the work
             <ArrowRight className="h-4 w-4" />
@@ -55,7 +55,7 @@ export function ServiceRelatedCaseStudies({ studies }: Props) {
               className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
             >
               <Link href={study.url} className="block h-full p-6">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-amber-800">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-amber-800 dark:text-amber-300">
                   <Sparkles className="h-3.5 w-3.5" />
                   {study.industry}
                 </div>
@@ -155,7 +155,7 @@ export function CaseStudiesHomeSection({ studies }: HomeProps) {
                   )}
                 </div>
                 <div className="p-6">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-800">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-800 dark:text-amber-300">
                     {study.industry}
                   </p>
                   <h3 className="mt-2 text-xl font-semibold text-slate-950 dark:text-white">{caseStudyReaderTitle(study)}</h3>

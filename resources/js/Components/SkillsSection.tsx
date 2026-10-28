@@ -90,7 +90,7 @@ export function SkillsSection() {
                                         All 12 AWS certifications
                                     </h3>
                                 </div>
-                                <div className="rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
+                                <div className="rounded-md border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-1 text-[11px] font-semibold text-amber-700 dark:text-amber-300">
                                     AWS + IaC
                                 </div>
                             </div>

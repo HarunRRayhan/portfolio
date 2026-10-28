@@ -27,7 +27,7 @@ class ActivityBoundary extends Component<{ children: ReactNode }, { failed: bool
 
   render(): ReactNode {
     if (this.state.failed) {
-      return <p className="text-sm text-slate-500">This figure could not load.</p>
+      return <p className="text-sm text-slate-500 dark:text-slate-400">This figure could not load.</p>
     }
 
     return this.props.children
@@ -52,7 +52,7 @@ export function mountBlogActivities(root: HTMLElement): () => void {
 
     reactRoot.render(
       <ActivityBoundary>
-        {render ? render(node) : <p className="text-sm text-slate-500">This figure is unavailable.</p>}
+        {render ? render(node) : <p className="text-sm text-slate-500 dark:text-slate-400">This figure is unavailable.</p>}
       </ActivityBoundary>,
     )
     roots.push(reactRoot)
