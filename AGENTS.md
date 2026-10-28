@@ -37,7 +37,7 @@
 
 ## Products catalog
 
-- Keep product order: CloudPloy, SkaleAgents, Toolblip, Crontinel, Appnary, Amazing Plugins.
+- Keep product order: CloudPloy, SkaleAgents, Toolblip, Crontinel, Appnary, Amazing Plugins, RayStack. RayStack's primary site is the internal `/raystack` page, so its card opens in the same tab.
 - Each product card links only to its primary product website. Do not add GitHub, Laravel package, or WordPress.org links to the cards; this does not change the shared footer's social links.
 - Keep the illustrated covers, category filters, search, and empty-result reset. Account for the fixed navigation when checking the page's top spacing on mobile and desktop.
 - Railway and R2 can publish different valid bundle hashes. Compare live HTML against the origin manifest, and verify the CDN manifest/bundle against the asset-sync workflow separately.

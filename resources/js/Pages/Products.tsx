@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Link } from "@inertiajs/react"
-import { ArrowUpRight, Check, Code2, Search, Terminal, X } from "lucide-react"
+import { ArrowRight, ArrowUpRight, Check, Code2, Search, Terminal, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const categories = [
@@ -87,6 +87,17 @@ const products: Product[] = [
             "Free WooCommerce plugins, each built to solve one specific problem. Fix accessibility issues or clean up stale orders without an upgrade pitch.",
         logo: "/images/products/amazingplugins.jpg",
         backdrop: "bg-[#f5f0df]"
+    },
+    {
+        id: "raystack",
+        name: "RayStack",
+        url: "/raystack",
+        category: "Developer tools",
+        tagline: "Infrastructure reviews your coding agent can run.",
+        description:
+            "Open-source, read-only review skills for cost, security, bottlenecks, scaling, and databases. Each review ends in a ranked findings report.",
+        logo: "/images/products/raystack.svg",
+        backdrop: "bg-[#e7eff1]"
     }
 ]
 
@@ -281,7 +292,79 @@ function ProductIllustration({ product }: { product: Product }) {
                     )}
                 </div>
             )}
+            {product.id === "raystack" && (
+                <div className="w-full max-w-[340px] rotate-2 rounded-lg border border-slate-300/60 bg-white p-4 shadow-[0_12px_35px_-15px_#64748b55]">
+                    <div className="mb-3 flex items-center justify-between font-mono text-[10px] text-slate-500">
+                        <span>reviews/aws-billing-review.md</span>
+                        <span>Read-only</span>
+                    </div>
+                    {[
+                        ["Critical", "bg-[#e5bba6]"],
+                        ["High", "bg-[#e8d6a4]"],
+                        ["Medium", "bg-[#bbcfb0]"]
+                    ].map(([label, color], row) => (
+                        <div
+                            key={label}
+                            className="flex items-center gap-3 border-t border-slate-100 py-2.5 text-[11px] text-slate-600"
+                        >
+                            <span className={cn("h-2 w-2 rounded-full", color)} />
+                            <span className="w-14 shrink-0">{label}</span>
+                            <span
+                                className="h-1.5 rounded-full bg-slate-200"
+                                style={{ width: `${70 - row * 18}%` }}
+                            />
+                            <span className="ml-auto font-mono text-[10px] text-slate-400">
+                                $/mo
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
+    )
+}
+
+const productLinkClass = cn(
+    "flex min-h-12 items-center justify-between gap-3 border-t border-[#e8e9e1] pt-4 text-sm hover:text-amber-800",
+    focusRing
+)
+
+// Internal product pages (url starting with "/") stay in the same tab via Inertia.
+function ProductLink({ product }: { product: Product }) {
+    const internal = product.url.startsWith("/")
+    const Icon = internal ? ArrowRight : ArrowUpRight
+    const content = (
+        <>
+            <span className="text-xs text-[#686b65]">
+                {internal
+                    ? `harun.dev${product.url}`
+                    : product.url.replace("https://", "")}
+            </span>
+            <span className="inline-flex items-center gap-2 font-medium">
+                Explore
+                <Icon aria-hidden="true" className="h-4 w-4" />
+            </span>
+        </>
+    )
+
+    return internal ? (
+        <Link
+            href={product.url}
+            aria-label={`Explore ${product.name}`}
+            className={productLinkClass}
+        >
+            {content}
+        </Link>
+    ) : (
+        <a
+            href={product.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Explore ${product.name} (opens in a new tab)`}
+            className={productLinkClass}
+        >
+            {content}
+        </a>
     )
 }
 
@@ -450,30 +533,7 @@ export default function Products() {
                                             {product.description}
                                         </p>
                                         <div className="mt-auto">
-                                            <a
-                                                href={product.url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                aria-label={`Explore ${product.name} (opens in a new tab)`}
-                                                className={cn(
-                                                    "flex min-h-12 items-center justify-between gap-3 border-t border-[#e8e9e1] pt-4 text-sm hover:text-amber-800",
-                                                    focusRing
-                                                )}
-                                            >
-                                                <span className="text-xs text-[#686b65]">
-                                                    {product.url.replace(
-                                                        "https://",
-                                                        ""
-                                                    )}
-                                                </span>
-                                                <span className="inline-flex items-center gap-2 font-medium">
-                                                    Explore
-                                                    <ArrowUpRight
-                                                        aria-hidden="true"
-                                                        className="h-4 w-4"
-                                                    />
-                                                </span>
-                                            </a>
+                                            <ProductLink product={product} />
                                         </div>
                                     </div>
                                 </article>
