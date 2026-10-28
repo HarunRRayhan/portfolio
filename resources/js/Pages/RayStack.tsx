@@ -33,18 +33,42 @@ const installs = [
     {
         agent: "Any other agent",
         code: "./install.sh --agent custom --dir /path/to/skills",
-        note: "--dry-run shows what it would do. --uninstall removes the seven skills."
+        note: "--dry-run shows what it would do. --uninstall removes all sixteen skills."
     }
 ]
 
-const skills = [
-    ["raystack", "The entry point. Picks the reviews that fit this repo and runs them."],
-    ["aws-billing-review", "AWS spend, with savings ranked in $/mo."],
-    ["aws-security-review", "IAM, public exposure, logging, and secrets on AWS."],
-    ["aws-bottleneck-review", "Throttling, limits, quotas, and single points on the request path."],
-    ["infra-review", "Deploys, rollback, backups, monitoring, and exposure on any platform."],
-    ["scaling-review", "What breaks first at 10x and 100x load."],
-    ["database-review", "Queries, indexes, migrations, backups, connections, and bloat."]
+const skillGroups: { title: string; skills: [string, string][] }[] = [
+    {
+        title: "Reviews",
+        skills: [
+            ["raystack", "The entry point. Picks the reviews that fit this repo and runs them."],
+            ["aws-billing-review", "AWS spend, with savings ranked in $/mo."],
+            ["aws-security-review", "IAM, public exposure, logging, and secrets on AWS."],
+            ["aws-bottleneck-review", "Throttling, limits, quotas, and single points on the request path."],
+            ["infra-review", "Deploys, rollback, backups, monitoring, and exposure on any platform."],
+            ["scaling-review", "What breaks first at 10x and 100x load."],
+            ["database-review", "Queries, indexes, migrations, backups, connections, and bloat."]
+        ]
+    },
+    {
+        title: "Principles",
+        skills: [
+            ["principle-ship", "Done means merged, deployed, and checked live. Asks before merging unless you turn that off."],
+            ["principle-smallest-change", "The smallest change that fully solves the task."],
+            ["principle-ask-with-question-tool", "Questions go through your agent's question prompt, not plain chat."],
+            ["principle-secrets-layout", "One flat secrets folder, examples committed, real values never."]
+        ]
+    },
+    {
+        title: "Blog writing",
+        skills: [
+            ["blog", "The entry point. Learns your voice from your posts, then runs the steps below."],
+            ["blog-topics", "Ten scored post ideas from your repo, your stack's news, and your ideas file."],
+            ["blog-draft", "A draft in your voice and your blog's format. It never publishes."],
+            ["humanize", "Strips the AI tells from any text."],
+            ["blog-cover", "A cover that matches your existing ones, rendered locally."]
+        ]
+    }
 ]
 
 function CodeBlock({ code, label }: { code: string; label: string }) {
@@ -115,7 +139,7 @@ export default function RayStack() {
                             className="h-10 w-10"
                         />
                         <p className="text-sm font-medium text-[#686b65]">
-                            RayStack v0.1 · Open source, MIT
+                            RayStack v0.3 · Open source, MIT
                         </p>
                     </div>
                     <h1 className="max-w-4xl text-[2.75rem] font-semibold leading-[1.08] tracking-[-0.045em] sm:text-6xl">
@@ -160,6 +184,7 @@ export default function RayStack() {
                     <p className="mt-4 max-w-2xl text-sm leading-6 text-[#686b65]">
                         You need <code className="font-mono">bash</code> and <code className="font-mono">jq</code>.
                         The PDF export also needs Chrome or Chromium and <code className="font-mono">npx</code>.
+                        Blog covers need Chrome or Chromium and <code className="font-mono">node</code>.
                     </p>
                     <div className="mt-8 grid gap-8">
                         {installs.map((install) => (
@@ -173,19 +198,26 @@ export default function RayStack() {
                 </section>
 
                 <section aria-labelledby="skills" className="border-b border-[#dedfd8] py-14 sm:py-16">
-                    <SectionHeading id="skills" eyebrow="Skills" title="Seven skills, one router" />
+                    <SectionHeading id="skills" eyebrow="Skills" title="Sixteen skills, three groups" />
                     <p className="mt-4 max-w-2xl text-sm leading-6 text-[#686b65]">
                         <code className="font-mono">/raystack</code> looks at the repo, recommends reviews,
-                        and asks once which ones to run. You can also name a review directly.
+                        and asks once which ones to run. You can also name a review directly. Principles load on
+                        their own when a task matches. <code className="font-mono">/blog</code> writes drafts in
+                        your own voice and stops there.
                     </p>
-                    <dl className="mt-8 divide-y divide-[#e8e9e1] rounded-xl border border-[#dedfd8] bg-[#fffefa]">
-                        {skills.map(([name, line]) => (
-                            <div key={name} className="grid gap-1 px-5 py-4 sm:grid-cols-[14rem_1fr] sm:gap-6">
-                                <dt className="font-mono text-sm font-medium">{name}</dt>
-                                <dd className="text-sm leading-6 text-[#686b65]">{line}</dd>
-                            </div>
-                        ))}
-                    </dl>
+                    {skillGroups.map((group) => (
+                        <div key={group.title} className="mt-8">
+                            <h3 className="mb-3 text-base font-semibold">{group.title}</h3>
+                            <dl className="divide-y divide-[#e8e9e1] rounded-xl border border-[#dedfd8] bg-[#fffefa]">
+                                {group.skills.map(([name, line]) => (
+                                    <div key={name} className="grid gap-1 px-5 py-4 sm:grid-cols-[17rem_1fr] sm:gap-6">
+                                        <dt className="break-words font-mono text-sm font-medium">{name}</dt>
+                                        <dd className="text-sm leading-6 text-[#686b65]">{line}</dd>
+                                    </div>
+                                ))}
+                            </dl>
+                        </div>
+                    ))}
                 </section>
 
                 <section aria-labelledby="read-only" className="border-b border-[#dedfd8] py-14 sm:py-16">
