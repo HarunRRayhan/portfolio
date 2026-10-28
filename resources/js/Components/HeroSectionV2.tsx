@@ -140,7 +140,7 @@ export function HeroSectionV2({ study = null }: { study?: HeroCaseStudy | null }
                                     />
                                 ) : null}
                                 <div className="p-4">
-                                    <p className="text-xs font-medium text-amber-800">{study.industry || study.codename}</p>
+                                    <p className="text-xs font-medium text-amber-800 dark:text-amber-300">{study.industry || study.codename}</p>
                                     <p className="mt-2 text-base font-semibold leading-snug text-slate-950 dark:text-white">{proofTitle}</p>
                                     <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{study.headlineOutcome}</p>
                                     <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-slate-900 dark:text-white">

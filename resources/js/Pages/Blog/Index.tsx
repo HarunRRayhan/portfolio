@@ -101,20 +101,20 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
 
       <div className="pt-24">
           <section className="mx-auto max-w-7xl px-4 pb-6 sm:px-6 lg:px-8">
-            <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between sm:pb-8">
+            <div className="flex flex-col gap-4 border-b border-slate-200 dark:border-slate-800 pb-5 sm:flex-row sm:items-end sm:justify-between sm:pb-8">
               <div>
-                <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-5xl">Engineering notes</h1>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+                <h1 className="text-3xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-5xl">Engineering notes</h1>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300 sm:text-base">
                   Practical posts on AWS, DevOps, Laravel, and running software in production.
                 </p>
-                <p className="mt-3 text-xs text-slate-500 sm:text-sm">
+                <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
                   {posts.length} articles <span aria-hidden="true" className="mx-2 text-slate-300">/</span>
                   {topics.length} topics <span aria-hidden="true" className="mx-2 text-slate-300">/</span>
                   {totalComments} comments
                 </p>
               </div>
               <a href="/blog/feed.xml"
-                className="inline-flex w-fit shrink-0 items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-600">
+                className="inline-flex w-fit shrink-0 items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-600">
                 <Rss className="h-4 w-4" /> RSS feed
               </a>
             </div>
@@ -125,22 +125,22 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
             <form onSubmit={submitSearch} role="search" aria-label="Find articles"
               className="mb-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(12rem,18rem)]">
               <div>
-                <label htmlFor="blog-search" className="mb-1.5 block text-sm font-medium text-slate-700">Search articles</label>
+                <label htmlFor="blog-search" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Search articles</label>
                 <div className="flex">
                   <input id="blog-search" type="search" name="q" value={search}
                     onChange={(event) => setSearch(event.target.value)}
                     placeholder="Title, description, or topic"
-                    className="min-w-0 flex-1 rounded-l-lg border border-r-0 border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-950 placeholder:text-slate-400 focus:z-10 focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600" />
-                  <button type="submit" className="inline-flex items-center gap-2 rounded-r-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-700 focus-visible:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600">
+                    className="min-w-0 flex-1 rounded-l-lg border border-r-0 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-950 dark:text-white placeholder:text-slate-400 focus:z-10 focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600" />
+                  <button type="submit" className="inline-flex items-center gap-2 rounded-r-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-700 focus-visible:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200">
                     <Search className="h-4 w-4" aria-hidden="true" /> Search
                   </button>
                 </div>
               </div>
               <div>
-                <label htmlFor="blog-topic" className="mb-1.5 block text-sm font-medium text-slate-700">Topic</label>
+                <label htmlFor="blog-topic" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Topic</label>
                 <select id="blog-topic" name="topic" value={topic}
                   onChange={(event) => updateFilters(search, event.target.value)}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-950 focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600">
+                  className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-950 dark:text-white focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600">
                   <option value="">All topics</option>
                   {topic && !topics.some((entry) => entry.slug === topic) && <option value={topic}>Unknown topic</option>}
                   {topics.map((entry) => <option key={entry.slug} value={entry.slug}>{entry.name} ({entry.count})</option>)}
@@ -148,19 +148,19 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
               </div>
             </form>
             <div className="mb-5 flex items-center justify-between gap-3 text-sm">
-              <p role="status" aria-live="polite" className="text-slate-500">
+              <p role="status" aria-live="polite" className="text-slate-500 dark:text-slate-400">
                 {matchingPosts.length === posts.length ? `${posts.length} articles` : `${matchingPosts.length} of ${posts.length} articles`}
               </p>
               {(query || topic || search) && <button type="button" onClick={() => { setSearch(''); updateFilters('', '') }}
-                className="font-medium text-slate-700 underline underline-offset-4 hover:text-slate-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-600">
+                className="font-medium text-slate-700 dark:text-slate-200 underline underline-offset-4 hover:text-slate-950 dark:hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-600">
                 Clear filters
               </button>}
             </div>
-            {matchingPosts.length === 0 && <div className="border-y border-slate-200 py-12 text-center">
-              <h2 className="text-xl font-semibold text-slate-950">No articles found</h2>
-              <p className="mt-2 text-sm text-slate-600">Try another search or choose a different topic.</p>
+            {matchingPosts.length === 0 && <div className="border-y border-slate-200 dark:border-slate-800 py-12 text-center">
+              <h2 className="text-xl font-semibold text-slate-950 dark:text-white">No articles found</h2>
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Try another search or choose a different topic.</p>
               <button type="button" onClick={() => { setSearch(''); updateFilters('', '') }}
-                className="mt-5 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600">
+                className="mt-5 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200">
                 Show all articles
               </button>
             </div>}
@@ -168,11 +168,11 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
               {matchingPosts.map((post, index) => (
                 <article
                   key={post.slug}
-                  className="group relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_-34px_rgba(15,23,42,0.45)]"
+                  className="group relative overflow-hidden rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_-34px_rgba(15,23,42,0.45)]"
                 >
                   <Link href={post.url} className="absolute inset-0 z-10" aria-label={post.title} />
 
-                  <div className="pointer-events-none relative aspect-[16/10] overflow-hidden bg-slate-100">
+                  <div className="pointer-events-none relative aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-slate-800">
                     {post.coverImageUrl ? (
                       <img
                         src={post.coverImageUrl}
@@ -202,11 +202,11 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
                   </div>
 
                   <div className="pointer-events-none p-6">
-                    <h3 className="text-2xl font-semibold tracking-tight text-slate-950 transition-colors group-hover:text-slate-700">
+                    <h3 className="text-2xl font-semibold tracking-tight text-slate-950 dark:text-white transition-colors group-hover:text-slate-700 dark:group-hover:text-slate-200">
                       {post.title}
                     </h3>
-                    <p className="mt-3 line-clamp-4 text-sm leading-7 text-slate-600">{post.brief}</p>
-                    <div className="mt-4 flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500">
+                    <p className="mt-3 line-clamp-4 text-sm leading-7 text-slate-600 dark:text-slate-300">{post.brief}</p>
+                    <div className="mt-4 flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500 dark:text-slate-400">
                       <span className="inline-flex items-center gap-1.5">
                         <CalendarDays className="h-3.5 w-3.5" />
                         {post.publishedAtHuman}
@@ -225,7 +225,7 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
                       {post.tags.slice(0, 4).map((tag) => (
                         <span
                           key={tag.slug}
-                          className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600"
+                          className="inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-1 text-xs font-medium text-slate-600 dark:text-slate-300"
                         >
                           <Tag className="h-3 w-3" />
                           {tag.name}
@@ -233,7 +233,7 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
                       ))}
                     </div>
 
-                    <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
+                    <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
                       Read article
                       <ArrowRight className="h-4 w-4" />
                     </div>
@@ -246,7 +246,7 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
                     label={`Share "${post.title}"`}
                     theme="slate"
                     wrapperClassName="absolute right-4 top-4 z-20"
-                    triggerClassName="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-600 shadow-sm backdrop-blur transition hover:border-slate-300 hover:text-slate-950"
+                    triggerClassName="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 text-slate-600 dark:text-slate-300 shadow-sm backdrop-blur transition hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-950 dark:hover:text-white"
                   />
                 </article>
               ))}
@@ -254,19 +254,19 @@ export default function BlogIndex({ posts, canonicalUrl }: BlogIndexProps) {
           </section>
 
           <section className="mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
-            <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
+            <div className="rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 shadow-sm">
               <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Latest updates</p>
-                  <h2 className="mt-2 text-2xl font-semibold text-slate-950">Get new articles in your feed.</h2>
-                  <p className="mt-3 max-w-3xl text-slate-600">
+                  <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Latest updates</p>
+                  <h2 className="mt-2 text-2xl font-semibold text-slate-950 dark:text-white">Get new articles in your feed.</h2>
+                  <p className="mt-3 max-w-3xl text-slate-600 dark:text-slate-300">
                     Follow the RSS feed to read new posts in your favorite reader.
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-3">
                   <a
                     href="/blog/feed.xml"
-                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:text-slate-950"
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-slate-800 px-5 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-950 dark:hover:text-white"
                   >
                     RSS feed
                     <Rss className="h-4 w-4" />

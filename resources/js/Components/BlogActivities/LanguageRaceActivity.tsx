@@ -146,7 +146,7 @@ function LaneRow({
   return (
     <div className="grid grid-cols-[7.75rem_minmax(0,1fr)] items-center gap-x-3 sm:grid-cols-[9rem_minmax(0,1fr)]">
       <div className="flex min-w-0 items-center gap-2">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white shadow-sm ring-1 ring-slate-200">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white dark:bg-slate-900 shadow-sm ring-1 ring-slate-200 dark:ring-slate-800">
           <img
             src={lane.logo}
             alt=""
@@ -156,15 +156,15 @@ function LaneRow({
           />
         </span>
         <div className="min-w-0">
-          <p className="!my-0 truncate text-sm font-semibold text-slate-950">{lane.name}</p>
-          <p className="!my-0 text-[0.7rem] leading-4 tabular-nums text-slate-500">
+          <p className="!my-0 truncate text-sm font-semibold text-slate-950 dark:text-white">{lane.name}</p>
+          <p className="!my-0 text-[0.7rem] leading-4 tabular-nums text-slate-500 dark:text-slate-400">
             {formatRelative(lane.relative)}
           </p>
         </div>
       </div>
-      <div data-race-track={lane.id} className="relative h-12 overflow-hidden rounded-full bg-slate-100">
+      <div data-race-track={lane.id} className="relative h-12 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
         <div
-          className="pointer-events-none absolute inset-y-[1.15rem] left-4 right-4 rounded-full bg-slate-200/80"
+          className="pointer-events-none absolute inset-y-[1.15rem] left-4 right-4 rounded-full bg-slate-200/80 dark:bg-slate-700/80"
           aria-hidden="true"
         />
         <div
@@ -302,10 +302,10 @@ export default function LanguageRaceActivity() {
   }, [reducedMotion, running])
 
   return (
-    <div ref={rootRef} className="not-prose rounded-3xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
+    <div ref={rootRef} className="not-prose rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm md:p-5">
       <div className="mb-4">
-        <p className="!my-0 text-sm font-semibold text-slate-950">Same work, five balls</p>
-        <p className="!my-0 mt-1 text-sm text-slate-600">{caption}</p>
+        <p className="!my-0 text-sm font-semibold text-slate-950 dark:text-white">Same work, five balls</p>
+        <p className="!my-0 mt-1 text-sm text-slate-600 dark:text-slate-300">{caption}</p>
       </div>
 
       <div className="space-y-3.5">
@@ -319,12 +319,12 @@ export default function LanguageRaceActivity() {
         ))}
       </div>
 
-      <div className="mt-4 border-t border-slate-200 pt-3">
+      <div className="mt-4 border-t border-slate-200 dark:border-slate-800 pt-3">
         <div className="flex items-center justify-between gap-3">
-          <label htmlFor="language-race-playback" className="!my-0 text-xs font-semibold text-slate-700">
+          <label htmlFor="language-race-playback" className="!my-0 text-xs font-semibold text-slate-700 dark:text-slate-200">
             Speed up the animation
           </label>
-          <p className="!my-0 text-sm font-semibold tabular-nums text-slate-950" data-activity-playback="">
+          <p className="!my-0 text-sm font-semibold tabular-nums text-slate-950 dark:text-white" data-activity-playback="">
             {formatPlayback(playback)}
           </p>
         </div>
@@ -341,15 +341,15 @@ export default function LanguageRaceActivity() {
           aria-valuetext={formatPlayback(playback)}
           data-activity-speed-slider=""
           onChange={(event) => setPlayback(sliderToPlayback(Number(event.target.value)))}
-          className="mt-2 h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-200 accent-slate-950"
+          className="mt-2 h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-200 dark:bg-slate-700 accent-slate-950"
         />
-        <div className="mt-1 flex justify-between text-[0.65rem] text-slate-500">
+        <div className="mt-1 flex justify-between text-[0.65rem] text-slate-500 dark:text-slate-400">
           <span>0.5×</span>
           <span>1×</span>
           <span>100×</span>
         </div>
       </div>
-      <p className="!my-0 mt-2 text-xs text-slate-500">
+      <p className="!my-0 mt-2 text-xs text-slate-500 dark:text-slate-400">
         Ratios vs Python: 1× / 3× / 13× / 53× / 115×. Each ball reverses at the end. The slider only changes playback speed.
       </p>
     </div>

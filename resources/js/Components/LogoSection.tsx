@@ -46,7 +46,7 @@ export function LogoSection() {
                         {items.map((company, index) => (
                             <div
                                 key={`${company.name}-${index}`}
-                                className="flex h-14 w-[180px] items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white px-5 shadow-sm"
+                                className="flex h-14 w-[180px] items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-5 shadow-sm"
                             >
                                 <img
                                     src={company.logo}

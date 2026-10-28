@@ -393,8 +393,8 @@ function IconButton({
       disabled={disabled}
       data-activity-control={testId}
       onClick={onClick}
-      className={`inline-flex h-10 w-10 items-center justify-center rounded-full border text-slate-900 disabled:cursor-not-allowed disabled:opacity-30 ${
-        pressed ? 'border-slate-950 bg-slate-950 text-white' : 'border-slate-200 bg-white'
+      className={`inline-flex h-10 w-10 items-center justify-center rounded-full border text-slate-900 dark:text-white disabled:cursor-not-allowed disabled:opacity-30 ${
+        pressed ? 'border-slate-950 bg-slate-950 text-white' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900'
       }`}
     >
       {children}
@@ -440,14 +440,14 @@ function Stage({
   return (
     <div>
       <div className="mx-auto flex w-full max-w-xl flex-col items-center">
-        <div className={`flex items-center gap-2 rounded-full border px-3 py-1.5 ${flight?.phase === 'user' ? 'border-sky-500 bg-sky-50' : 'border-slate-200 bg-white'}`}>
+        <div className={`flex items-center gap-2 rounded-full border px-3 py-1.5 ${flight?.phase === 'user' ? 'border-sky-500 bg-sky-50 dark:bg-sky-950/40' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900'}`}>
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-950 text-white">
             <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden="true">
               <circle cx="9" cy="6" r="2.4" stroke="currentColor" strokeWidth="1.6" />
               <path d="M4.2 15.2c.7-2.4 2.5-3.6 4.8-3.6s4.1 1.2 4.8 3.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
             </svg>
           </span>
-          <p className="!my-0 text-sm font-semibold text-slate-950">You</p>
+          <p className="!my-0 text-sm font-semibold text-slate-950 dark:text-white">You</p>
         </div>
 
         <div className="relative h-10 w-px bg-slate-300">
@@ -508,14 +508,14 @@ function Stage({
           })}
         </div>
       </div>
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-3">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 dark:border-slate-800 pt-3">
         {controls}
       </div>
       {algorithm.legend === 'clients' ? (
-        <p className="!my-0 mt-2 text-xs text-slate-500">Sky is client A. Amber is client B.</p>
+        <p className="!my-0 mt-2 text-xs text-slate-500 dark:text-slate-400">Sky is client A. Amber is client B.</p>
       ) : null}
       {algorithm.legend === 'keys' ? (
-        <p className="!my-0 mt-2 text-xs text-slate-500">Sky is key A, amber is key B, green is key C.</p>
+        <p className="!my-0 mt-2 text-xs text-slate-500 dark:text-slate-400">Sky is key A, amber is key B, green is key C.</p>
       ) : null}
     </div>
   )
@@ -627,7 +627,7 @@ export default function LoadBalancerActivity({ algorithmId }: { algorithmId: str
   }, [flight, hopSeconds])
 
   if (!algorithm) {
-    return <p className="!my-0 text-sm text-slate-500">This figure is unavailable.</p>
+    return <p className="!my-0 text-sm text-slate-500 dark:text-slate-400">This figure is unavailable.</p>
   }
 
   const step = explanation(algorithm, count)
@@ -656,7 +656,7 @@ export default function LoadBalancerActivity({ algorithmId }: { algorithmId: str
                       aria-pressed={speed === value}
                       onClick={() => setSpeed(value)}
                       className={`rounded-full px-2.5 py-1.5 text-xs font-semibold ${
-                        speed === value ? 'bg-slate-950 text-white' : 'border border-slate-200 text-slate-700'
+                        speed === value ? 'bg-slate-950 text-white' : 'border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200'
                       }`}
                     >
                       {value}x
