@@ -79,12 +79,12 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
           backgroundImage="/service-assets/database-optimization/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
-          <Link href="/services" className="inline-flex items-center text-amber-600 hover:text-amber-700 font-medium">
+          <Link href="/services" className="inline-flex items-center text-amber-600 hover:text-amber-700 dark:hover:text-amber-300 font-medium">
             <ArrowRight className="w-4 h-4 mr-2 rotate-180" />
             Back to Services
           </Link>
         </div>
-        <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
+        <motion.section className="py-24 bg-white dark:bg-slate-900" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
               What I do
@@ -124,7 +124,7 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
           </div>
         </motion.section>
 
-        <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
+        <motion.section className="py-24 bg-gray-50 dark:bg-slate-950" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
               What you get
@@ -164,7 +164,7 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
           </div>
         </motion.section>
 
-        <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
+        <motion.section className="py-24 bg-white dark:bg-slate-900" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
               How the work goes
@@ -211,7 +211,7 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
 
         <InfiniteScrollTech technologies={technologies} backgroundColor="#F8F9FA" />
 
-        <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
+        <motion.section className="py-24 bg-white dark:bg-slate-900" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
               Situations I get called in for
@@ -292,7 +292,7 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
           </div>
         </motion.section>
 
-        <motion.section className="py-24 bg-white" initial="initial" animate="animate" variants={staggerChildren}>
+        <motion.section className="py-24 bg-white dark:bg-slate-900" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4 text-center">
             <motion.h2 className="text-3xl font-bold mb-8" variants={fadeInUp}>
               If the database is the slow part, start there.
@@ -308,7 +308,7 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
           </div>
         </motion.section>
 
-        <motion.section className="py-24 bg-gray-50" initial="initial" animate="animate" variants={staggerChildren}>
+        <motion.section className="py-24 bg-gray-50 dark:bg-slate-950" initial="initial" animate="animate" variants={staggerChildren}>
           <div className="container mx-auto px-4">
             <motion.h2 className="text-3xl font-bold text-center mb-12" variants={fadeInUp}>
               Questions people ask

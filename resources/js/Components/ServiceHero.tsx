@@ -41,7 +41,7 @@ export function ServiceHero({ icon: Icon, title, description, backgroundImage }:
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="w-16 h-16 rounded-lg bg-white/10 flex items-center justify-center mx-auto mb-6"
+          className="w-16 h-16 rounded-lg bg-white/10 dark:bg-slate-900/10 flex items-center justify-center mx-auto mb-6"
         >
           <Icon className="w-8 h-8 text-white" />
         </motion.div>
