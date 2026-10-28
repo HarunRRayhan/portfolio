@@ -4,7 +4,7 @@ import {Button} from "@/Components/ui/button"
 import {Input} from "@/Components/ui/input"
 import {Textarea} from "@/Components/ui/textarea"
 import {Label} from "@/Components/ui/label"
-import {Send} from "lucide-react"
+import {ArrowRight, Lock, Send} from "lucide-react"
 import {cn} from "@/lib/utils"
 import type React from "react"
 import {Link, router, usePage} from '@inertiajs/react'
@@ -155,27 +155,47 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
 
     return (
         <>
-            <section className="bg-slate-950">
-                <div className="container mx-auto px-4 pb-12 pt-28 sm:pb-16 sm:pt-32">
+            <section className="relative overflow-hidden bg-slate-950 pb-16 pt-28 sm:pt-32 lg:pb-24">
+                <div aria-hidden className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-amber-500/10 blur-3xl" />
+                <div className="container relative mx-auto grid gap-12 px-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
                     <motion.div
                         initial={{opacity: 0, y: 20}}
                         animate={{opacity: 1, y: 0}}
                         transition={{duration: 0.6}}
-                        className="max-w-2xl"
+                        className="lg:pt-6"
                     >
                         <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-amber-400">Contact</p>
-                        <h1 className="mb-4 text-4xl font-bold text-white md:text-5xl">Send a note</h1>
-                        <p className="text-lg text-white/75">
-                            I read these and reply myself. If you want a time on the calendar,{' '}
-                            <Link href="/consultation" className="text-white underline underline-offset-4 hover:text-amber-300">book a consult</Link>.
+                        <h1 className="mb-5 text-4xl font-bold tracking-tight text-white md:text-5xl">Send a note</h1>
+                        <p className="text-lg leading-relaxed text-slate-300">
+                            I read every message and reply myself. Tell me what you are building and where it hurts.
                         </p>
-                    </motion.div>
-                </div>
-            </section>
 
-            <section className="bg-slate-50 py-10 sm:py-14">
-                <div className="container mx-auto px-4">
-                    <div className="mx-auto max-w-3xl">
+                        <ol className="mt-10 space-y-6">
+                            {[
+                                ['Write it out', 'A few lines on the problem, your stack, and any deadline.'],
+                                ['I reply by email', 'From me, not a sales team. Hit reply to keep the thread going.'],
+                                ['We pick a next step', 'A quick answer, a pointer, or a call if it needs one.'],
+                            ].map(([title, body], i) => (
+                                <li key={title} className="flex gap-4">
+                                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-amber-400/40 text-sm font-semibold text-amber-300">{i + 1}</span>
+                                    <div>
+                                        <p className="font-semibold text-white">{title}</p>
+                                        <p className="text-sm text-slate-400">{body}</p>
+                                    </div>
+                                </li>
+                            ))}
+                        </ol>
+
+                        <div className="mt-10 rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+                            <p className="font-semibold text-white">Want a time on the calendar?</p>
+                            <p className="mt-1 text-sm text-slate-400">Skip the back and forth and pick a slot.</p>
+                            <Link href="/consultation" className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-amber-300 hover:text-amber-200">
+                                Book a consult <ArrowRight className="h-4 w-4" />
+                            </Link>
+                        </div>
+                    </motion.div>
+
+                    <div>
                         <AnimatePresence mode="wait">
                             {showForm && (
                                 <motion.form
@@ -184,8 +204,8 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -20 }}
-                                    transition={{ duration: 0.3 }}
-                                    className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-10"
+                                    transition={{ duration: 0.4, delay: 0.1 }}
+                                    className="space-y-6 rounded-2xl bg-white p-6 shadow-2xl shadow-black/30 ring-1 ring-slate-900/5 sm:p-8 lg:p-10"
                                 >
                                     <input type="hidden" name="referrer" value={referrer} />
                                     <div className="grid gap-6 sm:grid-cols-2">
@@ -246,8 +266,9 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
                                     )}
 
                                     <div className="flex flex-col-reverse gap-4 border-t border-slate-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
-                                        <p className="text-sm text-slate-500">
-                                            Rather email? <a href="mailto:me@harun.dev" className="font-medium text-slate-700 underline underline-offset-4">me@harun.dev</a>
+                                        <p className="flex items-center gap-2 text-sm text-slate-500">
+                                            <Lock className="h-4 w-4 shrink-0" />
+                                            <span>Only I see this. <Link href="/privacy" className="underline underline-offset-4 hover:text-slate-700">Privacy</Link></span>
                                         </p>
                                         <Button
                                             type="submit"
@@ -264,7 +285,7 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
                             {showEnvelope && (
                                 <motion.div
                                     key="confirmation"
-                                    className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-10"
+                                    className="rounded-2xl bg-white p-6 shadow-2xl shadow-black/30 sm:p-10"
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -20 }}

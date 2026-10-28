@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { Link } from '@inertiajs/react'
 import { Container } from '@/Components/ui/container'
 import { Shield } from 'lucide-react'
 import { getImageUrl } from "@/lib/imageUtils"
@@ -93,10 +94,7 @@ export default function Privacy({ canonicalUrl }: { canonicalUrl?: string }) {
 
               <h2>6. Contact Me</h2>
               <p>
-                If you have any questions about this privacy policy or my privacy practices, please contact me at:
-              </p>
-              <p>
-                Email: <a href="mailto:me@harun.dev" className="text-primary hover:underline">me@harun.dev</a>
+                If you have any questions about this privacy policy or my privacy practices, send a note through the <Link href="/contact" className="text-primary hover:underline">contact form</Link>.
               </p>
             </div>
           </Container>
