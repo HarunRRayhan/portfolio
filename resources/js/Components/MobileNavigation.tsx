@@ -21,31 +21,31 @@ export default function MobileNavigation({ open, onOpenChange, onCloseAutoFocus,
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[min(18rem,calc(100vw-2.5rem))] overflow-y-auto border-slate-200 p-6 pt-12" onCloseAutoFocus={onCloseAutoFocus}>
+      <SheetContent side="right" className="w-[min(18rem,calc(100vw-2.5rem))] overflow-y-auto border-slate-200 p-6 pt-12 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100" onCloseAutoFocus={onCloseAutoFocus}>
         <SheetTitle className="sr-only">Navigation menu</SheetTitle>
         <SheetDescription className="sr-only">Jump to a page or open the consultation page.</SheetDescription>
         <nav className="flex flex-col gap-1">
           {[...mainItems, { name: 'Contact', href: '/contact' }].map(item => (
             <SheetClose key={item.name} asChild>
-              <Link href={item.href} className={cn('rounded-lg px-3 py-3 text-sm font-medium transition', isActive(item.href) ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900')}>
+              <Link href={item.href} className={cn('rounded-lg px-3 py-3 text-sm font-medium transition', isActive(item.href) ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white')}>
                 {item.name}
               </Link>
             </SheetClose>
           ))}
         </nav>
 
-        <div className="mt-4 border-t border-slate-200 pt-4">
-          <button onClick={() => setMoreOpen(!moreOpen)} aria-expanded={moreOpen} className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
+        <div className="mt-4 border-t border-slate-200 dark:border-slate-800 pt-4">
+          <button onClick={() => setMoreOpen(!moreOpen)} aria-expanded={moreOpen} className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">
             More
             <ChevronDown className={cn('h-4 w-4 transition-transform duration-200', moreOpen && 'rotate-180')} />
           </button>
           {moreOpen && (
-            <div className="ml-2 mt-1 flex flex-col gap-1 border-l-2 border-slate-100 pl-2">
+            <div className="ml-2 mt-1 flex flex-col gap-1 border-l-2 border-slate-100 pl-2 dark:border-slate-800">
               {moreItems.map(item => {
                 const Icon = item.icon
                 return (
                   <SheetClose key={item.name} asChild>
-                    <Link href={item.href} className={cn('flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition', item.featured ? 'border border-amber-200 bg-amber-50 text-amber-950 shadow-sm' : isActive(item.href) ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-100')}>
+                    <Link href={item.href} className={cn('flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition', item.featured ? 'border border-amber-200 bg-amber-50 text-amber-950 shadow-sm' : isActive(item.href) ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white')}>
                       <Icon className={cn('h-4 w-4', item.featured ? 'text-amber-600' : 'text-slate-400')} />
                       {item.name}
                       {item.featured && <span className="ml-auto font-mono text-[9px] font-semibold uppercase tracking-wider text-amber-700">Support</span>}
@@ -57,15 +57,15 @@ export default function MobileNavigation({ open, onOpenChange, onCloseAutoFocus,
           )}
         </div>
 
-        <div className="mt-6 border-t border-slate-200 pt-6">
+        <div className="mt-6 border-t border-slate-200 dark:border-slate-800 pt-6">
           {user ? (
             <div className="flex flex-col gap-2">
               <div className="px-1 pb-1">
-                <p className="text-sm font-medium text-slate-900">{user.name ?? 'Account'}</p>
+                <p className="text-sm font-medium text-slate-900 dark:text-white">{user.name ?? 'Account'}</p>
                 <p className="text-xs text-slate-500">{user.email}</p>
               </div>
               <SheetClose asChild>
-                <Link href={route(isAdmin ? 'dashboard' : 'profile.edit')} className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                <Link href={route(isAdmin ? 'dashboard' : 'profile.edit')} className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
                   <User className="h-4 w-4" />{isAdmin ? 'Dashboard' : 'Account'}
                 </Link>
               </SheetClose>
@@ -77,7 +77,7 @@ export default function MobileNavigation({ open, onOpenChange, onCloseAutoFocus,
             </div>
           ) : (
             <SheetClose asChild>
-              <Link href="/login" className="block px-3 py-2 text-center text-sm text-slate-500 underline-offset-4 hover:text-slate-900 hover:underline">
+              <Link href="/login" className="block px-3 py-2 text-center text-sm text-slate-500 underline-offset-4 hover:text-slate-900 hover:underline dark:text-slate-400 dark:hover:text-white">
                 Sign in
               </Link>
             </SheetClose>

@@ -56,6 +56,17 @@
             >
         </noscript>
 
+        <!-- Theme: set before paint so there is no flash. No stored value = follow the OS. -->
+        <script>
+            (function () {
+                var root = document.documentElement, media = matchMedia('(prefers-color-scheme: dark)');
+                var stored = function () { try { return localStorage.getItem('theme'); } catch (e) { return null; } };
+                var apply = function () { var t = stored(); root.classList.toggle('dark', t === 'dark' || (t !== 'light' && media.matches)); };
+                apply();
+                media.addEventListener('change', function () { apply(); dispatchEvent(new Event('themechange')); });
+            })();
+        </script>
+
         <!-- Scripts -->
         @routes
         @viteReactRefresh

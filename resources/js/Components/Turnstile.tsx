@@ -32,9 +32,12 @@ function load(): Promise<void> {
 export default function Turnstile({
     siteKey,
     onToken,
+    theme = 'light',
 }: {
     siteKey: string;
     onToken: (token: string) => void;
+    // Match the page, not the OS: Turnstile's own 'auto' follows the OS even on light pages.
+    theme?: 'light' | 'dark';
 }) {
     const ref = useRef<HTMLDivElement>(null);
     const [failed, setFailed] = useState(false);
@@ -50,6 +53,7 @@ export default function Turnstile({
                 if (cancelled || !ref.current || !window.turnstile) return;
                 id = window.turnstile.render(ref.current, {
                     sitekey: siteKey,
+                    theme,
                     callback: (t: string) => onTokenRef.current(t),
                     'expired-callback': () => onTokenRef.current(''),
                     'error-callback': () => onTokenRef.current(''),
@@ -64,7 +68,7 @@ export default function Turnstile({
             cancelled = true;
             if (id) window.turnstile?.remove(id);
         };
-    }, [siteKey]);
+    }, [siteKey, theme]);
 
     if (failed) {
         return <p className="text-sm text-red-600">Verification failed to load. Refresh to retry.</p>;

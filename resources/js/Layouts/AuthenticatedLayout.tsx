@@ -311,7 +311,7 @@ export default function Authenticated({ header, children }: PropsWithChildren<{ 
     };
 
     return (
-        <div className="flex min-h-screen bg-muted/30">
+        <div className="no-dark flex min-h-screen bg-muted/30">
             <SeoHead />
             <aside className={'sticky top-0 z-40 hidden h-screen shrink-0 flex-col border-r bg-background lg:flex ' + (desktopSidebarOpen ? 'w-64' : 'w-16')}>
                 <SidebarBrand compact={!desktopSidebarOpen} />
