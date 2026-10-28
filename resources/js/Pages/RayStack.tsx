@@ -10,8 +10,8 @@ const focusRing =
     "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-700"
 
 const globalInstall = {
-    code: "npx skills add HarunRRayhan/raystack -g",
-    note: "Finds the agents you have (Claude Code, Codex, Cursor, and others) and installs all sixteen skills globally. Add -a claude-code to pick one."
+    code: "npx skills add HarunRRayhan/raystack -g -a claude-code",
+    note: "Installs all sixteen skills globally. Swap claude-code for codex or cursor, list several, or drop -a to pick from a list."
 }
 
 const installs = [
