@@ -9,6 +9,7 @@ import {cn} from "@/lib/utils"
 import type React from "react"
 import {Link, router, usePage} from '@inertiajs/react'
 import Turnstile from "@/Components/Turnstile"
+import { useIsDark } from "@/lib/theme"
 import {toast} from "@/lib/toast"
 import { PageProps as InertiaPageProps } from '@inertiajs/core'
 import confetti from 'canvas-confetti';
@@ -38,6 +39,7 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
     const [turnstileToken, setTurnstileToken] = useState("")
     // Turnstile tokens are single-use: remount the widget after every submit for a fresh one.
     const [widgetKey, setWidgetKey] = useState(0)
+    const dark = useIsDark()
     const siteKey = (usePage().props as { turnstileSiteKey?: string | null }).turnstileSiteKey
 
     useEffect(() => {
@@ -149,7 +151,7 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
     }
 
     const fieldClass = (field: string) => cn(
-        "h-12 bg-white border-slate-200 text-base px-4 focus-visible:ring-amber-400",
+        "h-12 bg-white border-slate-200 text-base px-4 focus-visible:ring-amber-400 dark:bg-slate-950 dark:border-slate-700 dark:text-white dark:placeholder:text-slate-500",
         errors[field] && "border-red-500 focus-visible:ring-red-400"
     )
 
@@ -205,35 +207,35 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -20 }}
                                     transition={{ duration: 0.4, delay: 0.1 }}
-                                    className="space-y-6 rounded-2xl bg-white p-6 shadow-2xl shadow-black/30 ring-1 ring-slate-900/5 sm:p-8 lg:p-10"
+                                    className="space-y-6 rounded-2xl bg-white p-6 shadow-2xl shadow-black/30 ring-1 ring-slate-900/5 dark:bg-slate-900 dark:ring-white/10 sm:p-8 lg:p-10"
                                 >
                                     <input type="hidden" name="referrer" value={referrer} />
                                     <div className="grid gap-6 sm:grid-cols-2">
                                         <div className="space-y-2">
-                                            <Label htmlFor="name" className="text-sm font-medium text-slate-700">Name <span className="text-red-500">*</span></Label>
+                                            <Label htmlFor="name" className="text-sm font-medium text-slate-700 dark:text-slate-200">Name <span className="text-red-500">*</span></Label>
                                             <Input id="name" value={name} onChange={handleInputChange} autoComplete="name" className={fieldClass('name')} required />
                                             {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="email" className="text-sm font-medium text-slate-700">Email <span className="text-red-500">*</span></Label>
+                                            <Label htmlFor="email" className="text-sm font-medium text-slate-700 dark:text-slate-200">Email <span className="text-red-500">*</span></Label>
                                             <Input id="email" type="email" value={email} onChange={handleInputChange} autoComplete="email" className={fieldClass('email')} required />
                                             {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="subject" className="text-sm font-medium text-slate-700">Subject <span className="text-red-500">*</span></Label>
+                                        <Label htmlFor="subject" className="text-sm font-medium text-slate-700 dark:text-slate-200">Subject <span className="text-red-500">*</span></Label>
                                         <Input id="subject" value={subject} onChange={handleInputChange} placeholder="What is it about?" className={fieldClass('subject')} required />
                                         {errors.subject && <p className="text-sm text-red-600">{errors.subject}</p>}
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="message" className="text-sm font-medium text-slate-700">Message <span className="text-red-500">*</span></Label>
+                                        <Label htmlFor="message" className="text-sm font-medium text-slate-700 dark:text-slate-200">Message <span className="text-red-500">*</span></Label>
                                         <Textarea
                                             id="message"
                                             value={message}
                                             onChange={handleInputChange}
                                             placeholder="A few lines on what you need, your stack, and any deadline."
                                             className={cn(
-                                                "min-h-[180px] resize-none overflow-hidden bg-white border-slate-200 text-base p-4 focus-visible:ring-amber-400",
+                                                "min-h-[180px] resize-none overflow-hidden bg-white border-slate-200 text-base p-4 focus-visible:ring-amber-400 dark:bg-slate-950 dark:border-slate-700 dark:text-white dark:placeholder:text-slate-500",
                                                 errors.message && "border-red-500 focus-visible:ring-red-400"
                                             )}
                                             required
@@ -241,22 +243,22 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
                                         {errors.message && <p className="text-sm text-red-600">{errors.message}</p>}
                                     </div>
 
-                                    <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                                    <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-300">
                                         <input
                                             type="checkbox"
                                             checked={subscribe}
                                             onChange={(e) => setSubscribe(e.target.checked)}
-                                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-amber-400"
+                                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-amber-400 dark:border-slate-600 dark:bg-slate-900 dark:text-amber-500"
                                         />
                                         <span>
-                                            <span className="font-medium text-slate-900">Subscribe to the newsletter.</span>{' '}
+                                            <span className="font-medium text-slate-900 dark:text-white">Subscribe to the newsletter.</span>{' '}
                                             New posts and tools, about once a week. Unsubscribe any time.
                                         </span>
                                     </label>
 
                                     {siteKey && (
                                         <div>
-                                            <Turnstile key={widgetKey} siteKey={siteKey} onToken={setTurnstileToken} />
+                                            <Turnstile key={widgetKey} siteKey={siteKey} onToken={setTurnstileToken} theme={dark ? 'dark' : 'light'} />
                                             {errors['cf-turnstile-response'] && <p className="mt-2 text-sm text-red-600">{errors['cf-turnstile-response']}</p>}
                                         </div>
                                     )}
@@ -265,15 +267,15 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
                                         <p role="alert" className="text-sm text-red-600">{submissionError}</p>
                                     )}
 
-                                    <div className="flex flex-col-reverse gap-4 border-t border-slate-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
-                                        <p className="flex items-center gap-2 text-sm text-slate-500">
+                                    <div className="flex flex-col-reverse gap-4 border-t border-slate-100 pt-6 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
+                                        <p className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                                             <Lock className="h-4 w-4 shrink-0" />
-                                            <span>Only I see this. <Link href="/privacy" className="underline underline-offset-4 hover:text-slate-700">Privacy</Link></span>
+                                            <span>Only I see this. <Link href="/privacy" className="underline underline-offset-4 hover:text-slate-700 dark:hover:text-slate-200">Privacy</Link></span>
                                         </p>
                                         <Button
                                             type="submit"
                                             disabled={isSubmitting || (!!siteKey && !turnstileToken)}
-                                            className="h-12 gap-2 rounded-lg bg-slate-900 px-6 text-base font-semibold text-white hover:bg-slate-800 focus-visible:ring-4 focus-visible:ring-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
+                                            className="h-12 gap-2 rounded-lg bg-slate-900 px-6 text-base font-semibold text-white hover:bg-slate-800 dark:bg-amber-500 dark:text-slate-950 dark:hover:bg-amber-400 focus-visible:ring-4 focus-visible:ring-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
                                         >
                                             <Send className="h-5 w-5" />
                                             {isSubmitting ? 'Sending...' : 'Send message'}
@@ -285,7 +287,7 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
                             {showEnvelope && (
                                 <motion.div
                                     key="confirmation"
-                                    className="rounded-2xl bg-white p-6 shadow-2xl shadow-black/30 sm:p-10"
+                                    className="rounded-2xl bg-white p-6 shadow-2xl shadow-black/30 sm:p-10 dark:bg-slate-900"
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -20 }}

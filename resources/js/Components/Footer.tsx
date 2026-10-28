@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { ThemeSwitcher } from '@/Components/ThemeSwitcher'
 import { Link, usePage } from '@inertiajs/react'
 import { ArrowRight, Terminal } from 'lucide-react'
 import { Github, Linkedin, Mail, Twitter } from '@/lib/icons'
@@ -184,7 +185,9 @@ export function Footer() {
                         )}
                     </p>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <ThemeSwitcher />
+                        <span aria-hidden="true" className="mx-1 h-6 w-px bg-slate-700" />
                         {socials.map(({ href, label, icon: Icon }) => (
                             <a
                                 key={label}
