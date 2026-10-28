@@ -6,7 +6,7 @@ import { getImageUrl } from "../lib/imageUtils"
 
 export function VolunteeringSection() {
   return (
-    <section className="py-12 bg-white">
+    <section className="py-12 bg-white dark:bg-slate-900">
       <div className="container mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -15,8 +15,8 @@ export function VolunteeringSection() {
           transition={{ duration: 0.8 }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">AWS Community Builder</h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-6">AWS Community Builder</h2>
+          <p className="text-xl text-gray-600 dark:text-slate-300 max-w-3xl mx-auto">
             I write about AWS, and I&apos;m in the Community Builder program.
           </p>
         </motion.div>
@@ -38,10 +38,10 @@ export function VolunteeringSection() {
                   />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-3xl font-bold text-gray-900 mb-3">AWS Community Builder</h3>
+                  <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">AWS Community Builder</h3>
                   <p className="text-amber-600 font-medium text-lg mb-2">Amazon Web Services (AWS)</p>
-                  <p className="text-gray-600 text-lg mb-4">Mar 2022 - Present</p>
-                  <p className="text-gray-600 text-lg leading-relaxed mb-8">
+                  <p className="text-gray-600 dark:text-slate-300 text-lg mb-4">Mar 2022 - Present</p>
+                  <p className="text-gray-600 dark:text-slate-300 text-lg leading-relaxed mb-8">
                     AWS Community Builders are enthusiasts and emerging thought leaders who are passionate about AWS
                     technology, and cloud computing. Our work as content creators and evangelists supports and
                     encourages others in the broader technical community along their cloud journeys. By sharing our
@@ -49,10 +49,10 @@ export function VolunteeringSection() {
                     Builders through specialized webinars, panels, and resources.
                   </p>
                   <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center flex-shrink-0">
                       <Award className="w-5 h-5 text-amber-600" />
                     </div>
-                    <p className="text-gray-800 font-medium text-lg pt-1">
+                    <p className="text-gray-800 dark:text-slate-100 font-medium text-lg pt-1">
                       Recognized as a Top Content Contributor for Q2 2022 in the APJ Region
                     </p>
                   </div>

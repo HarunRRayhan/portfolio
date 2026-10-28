@@ -90,7 +90,7 @@ function CodeBlock({ code, label }: { code: string; label: string }) {
     }
 
     return (
-        <div className="relative rounded-lg bg-[#242821] text-[#f4f4ef]">
+        <div className="relative rounded-lg bg-[#242821] text-[#f4f4ef] dark:ring-1 dark:ring-slate-700">
             <pre className="overflow-x-auto p-4 pr-14 font-mono text-[13px] leading-6">
                 <code>{code}</code>
             </pre>
@@ -99,7 +99,7 @@ function CodeBlock({ code, label }: { code: string; label: string }) {
                 onClick={copy}
                 aria-label={`Copy ${label} install command`}
                 className={cn(
-                    "absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-md text-[#c9cbc2] hover:bg-white/10 hover:text-white",
+                    "absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-md text-[#c9cbc2] hover:bg-white/10 dark:hover:bg-slate-900/10 hover:text-white",
                     focusRing
                 )}
             >
@@ -119,7 +119,7 @@ function CodeBlock({ code, label }: { code: string; label: string }) {
 function SectionHeading({ id, eyebrow, title }: { id: string; eyebrow: string; title: string }) {
     return (
         <>
-            <p className="mb-3 flex items-center gap-2.5 text-sm font-medium text-[#686b65]">
+            <p className="mb-3 flex items-center gap-2.5 text-sm font-medium text-[#686b65] dark:text-slate-400">
                 <span className="h-2 w-2 bg-amber-600" aria-hidden="true" />
                 {eyebrow}
             </p>
@@ -132,9 +132,9 @@ function SectionHeading({ id, eyebrow, title }: { id: string; eyebrow: string; t
 
 export default function RayStack() {
     return (
-        <div className="min-h-screen bg-[#fafaf8] text-[#242821]">
+        <div className="min-h-screen bg-[#fafaf8] dark:bg-slate-950 text-[#242821] dark:text-slate-100">
             <div className="mx-auto max-w-5xl px-5 pb-20 pt-28 sm:px-8 sm:pt-36 lg:px-12">
-                <header className="border-b border-[#dedfd8] pb-12 sm:pb-16">
+                <header className="border-b border-[#dedfd8] dark:border-slate-800 pb-12 sm:pb-16">
                     <div className="mb-6 flex items-center gap-3">
                         <img
                             src="/images/products/raystack.svg"
@@ -143,15 +143,15 @@ export default function RayStack() {
                             height="40"
                             className="h-10 w-10"
                         />
-                        <p className="text-sm font-medium text-[#686b65]">
+                        <p className="text-sm font-medium text-[#686b65] dark:text-slate-400">
                             RayStack v0.3 · Open source, MIT
                         </p>
                     </div>
                     <h1 className="max-w-4xl text-[2.75rem] font-semibold leading-[1.08] tracking-[-0.045em] sm:text-6xl">
                         Infrastructure reviews your coding agent can run.
                     </h1>
-                    <p className="mt-6 max-w-2xl text-base leading-7 text-[#686b65] sm:text-lg sm:leading-8">
-                        Point your agent at a repo and type <code className="font-mono text-[#242821]">/raystack</code>.
+                    <p className="mt-6 max-w-2xl text-base leading-7 text-[#686b65] dark:text-slate-400 sm:text-lg sm:leading-8">
+                        Point your agent at a repo and type <code className="font-mono text-[#242821] dark:text-slate-100">/raystack</code>.
                         You get a ranked findings report on cost, security, bottlenecks, deploys,
                         scaling, or the database. Every finding has evidence and a fix you apply
                         yourself. It's what I check when I audit someone's stack, written down as
@@ -163,7 +163,7 @@ export default function RayStack() {
                             target="_blank"
                             rel="noopener noreferrer"
                             className={cn(
-                                "inline-flex min-h-12 items-center gap-3 rounded-md bg-[#242821] px-6 py-3 text-sm font-medium text-white hover:bg-[#42483c]",
+                                "inline-flex min-h-12 items-center gap-3 rounded-md bg-[#242821] px-6 py-3 text-sm font-medium text-white hover:bg-[#42483c] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200",
                                 focusRing
                             )}
                         >
@@ -174,7 +174,7 @@ export default function RayStack() {
                         <a
                             href="#install"
                             className={cn(
-                                "inline-flex min-h-12 items-center gap-3 rounded-md border border-[#cccec3] px-6 py-3 text-sm font-medium hover:bg-[#eeeee8]",
+                                "inline-flex min-h-12 items-center gap-3 rounded-md border border-[#cccec3] dark:border-slate-700 px-6 py-3 text-sm font-medium hover:bg-[#eeeee8] dark:hover:bg-slate-800",
                                 focusRing
                             )}
                         >
@@ -184,9 +184,9 @@ export default function RayStack() {
                     </div>
                 </header>
 
-                <section aria-labelledby="install" className="scroll-mt-28 border-b border-[#dedfd8] py-14 sm:py-16">
+                <section aria-labelledby="install" className="scroll-mt-28 border-b border-[#dedfd8] dark:border-slate-800 py-14 sm:py-16">
                     <SectionHeading id="install" eyebrow="Install" title="Pick your agent" />
-                    <p className="mt-4 max-w-2xl text-sm leading-6 text-[#686b65]">
+                    <p className="mt-4 max-w-2xl text-sm leading-6 text-[#686b65] dark:text-slate-400">
                         You need <code className="font-mono">bash</code> and <code className="font-mono">jq</code>, plus Node.js for the one-command install.
                         The PDF export also needs Chrome or Chromium and <code className="font-mono">npx</code>.
                         Blog covers need Chrome or Chromium and <code className="font-mono">node</code>.
@@ -194,12 +194,12 @@ export default function RayStack() {
                     <div className="mt-8">
                         <h3 className="mb-3 text-base font-semibold">Any agent, one command</h3>
                         <CodeBlock code={globalInstall.code} label="global" />
-                        <p className="mt-2 text-xs leading-5 text-[#686b65]">{globalInstall.note}</p>
+                        <p className="mt-2 text-xs leading-5 text-[#686b65] dark:text-slate-400">{globalInstall.note}</p>
                     </div>
-                    <details className="group mt-8 rounded-xl border border-[#dedfd8] bg-[#fffefa]">
+                    <details className="group mt-8 rounded-xl border border-[#dedfd8] dark:border-slate-800 bg-[#fffefa] dark:bg-slate-900">
                         <summary
                             className={cn(
-                                "flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-5 py-3 text-sm font-medium hover:bg-[#f4f4ef] [&::-webkit-details-marker]:hidden",
+                                "flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-5 py-3 text-sm font-medium hover:bg-[#f4f4ef] dark:hover:bg-slate-800 [&::-webkit-details-marker]:hidden",
                                 focusRing
                             )}
                         >
@@ -209,21 +209,21 @@ export default function RayStack() {
                                 className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180"
                             />
                         </summary>
-                        <div className="grid gap-8 border-t border-[#dedfd8] px-5 py-6">
+                        <div className="grid gap-8 border-t border-[#dedfd8] dark:border-slate-800 px-5 py-6">
                             {installs.map((install) => (
                                 <div key={install.agent}>
                                     <h3 className="mb-3 text-base font-semibold">{install.agent}</h3>
                                     <CodeBlock code={install.code} label={install.agent} />
-                                    <p className="mt-2 text-xs leading-5 text-[#686b65]">{install.note}</p>
+                                    <p className="mt-2 text-xs leading-5 text-[#686b65] dark:text-slate-400">{install.note}</p>
                                 </div>
                             ))}
                         </div>
                     </details>
                 </section>
 
-                <section aria-labelledby="skills" className="border-b border-[#dedfd8] py-14 sm:py-16">
+                <section aria-labelledby="skills" className="border-b border-[#dedfd8] dark:border-slate-800 py-14 sm:py-16">
                     <SectionHeading id="skills" eyebrow="Skills" title="Sixteen skills, three groups" />
-                    <p className="mt-4 max-w-2xl text-sm leading-6 text-[#686b65]">
+                    <p className="mt-4 max-w-2xl text-sm leading-6 text-[#686b65] dark:text-slate-400">
                         <code className="font-mono">/raystack</code> looks at the repo, recommends reviews,
                         and asks once which ones to run. You can also name a review directly. Principles load on
                         their own when a task matches. <code className="font-mono">/blog</code> writes drafts in
@@ -232,11 +232,11 @@ export default function RayStack() {
                     {skillGroups.map((group) => (
                         <div key={group.title} className="mt-8">
                             <h3 className="mb-3 text-base font-semibold">{group.title}</h3>
-                            <dl className="divide-y divide-[#e8e9e1] rounded-xl border border-[#dedfd8] bg-[#fffefa]">
+                            <dl className="divide-y divide-[#e8e9e1] dark:divide-slate-800 rounded-xl border border-[#dedfd8] dark:border-slate-800 bg-[#fffefa] dark:bg-slate-900">
                                 {group.skills.map(([name, line]) => (
                                     <div key={name} className="grid gap-1 px-5 py-4 sm:grid-cols-[17rem_1fr] sm:gap-6">
                                         <dt className="break-words font-mono text-sm font-medium">{name}</dt>
-                                        <dd className="text-sm leading-6 text-[#686b65]">{line}</dd>
+                                        <dd className="text-sm leading-6 text-[#686b65] dark:text-slate-400">{line}</dd>
                                     </div>
                                 ))}
                             </dl>
@@ -244,9 +244,9 @@ export default function RayStack() {
                     ))}
                 </section>
 
-                <section aria-labelledby="read-only" className="border-b border-[#dedfd8] py-14 sm:py-16">
+                <section aria-labelledby="read-only" className="border-b border-[#dedfd8] dark:border-slate-800 py-14 sm:py-16">
                     <SectionHeading id="read-only" eyebrow="Safety" title="Read-only by design" />
-                    <div className="mt-6 max-w-2xl space-y-4 text-sm leading-6 text-[#686b65] sm:text-base sm:leading-7">
+                    <div className="mt-6 max-w-2xl space-y-4 text-sm leading-6 text-[#686b65] dark:text-slate-400 sm:text-base sm:leading-7">
                         <p>
                             No review changes anything live. Fixes come back as diffs or as commands
                             for you to run.
@@ -257,7 +257,7 @@ export default function RayStack() {
                             The guard is a seatbelt, not a sandbox. Cursor, Codex, and Grok follow the
                             same rules, but nothing enforces them there.
                         </p>
-                        <p className="text-[#242821]">
+                        <p className="text-[#242821] dark:text-slate-100">
                             So run reviews with read-only credentials: AWS <code className="font-mono">ReadOnlyAccess</code> or{" "}
                             <code className="font-mono">ViewOnlyAccess</code>, and a read-only database role.
                             That's the real boundary.
@@ -265,25 +265,25 @@ export default function RayStack() {
                     </div>
                 </section>
 
-                <section aria-labelledby="report" className="border-b border-[#dedfd8] py-14 sm:py-16">
+                <section aria-labelledby="report" className="border-b border-[#dedfd8] dark:border-slate-800 py-14 sm:py-16">
                     <SectionHeading id="report" eyebrow="Output" title="What you get back" />
                     <div className="mt-6 grid gap-8 md:grid-cols-2">
-                        <p className="text-sm leading-6 text-[#686b65] sm:text-base sm:leading-7">
-                            Each review writes <code className="font-mono text-[#242821]">reviews/YYYY-MM-DD-&lt;skill&gt;.md</code>{" "}
+                        <p className="text-sm leading-6 text-[#686b65] dark:text-slate-400 sm:text-base sm:leading-7">
+                            Each review writes <code className="font-mono text-[#242821] dark:text-slate-100">reviews/YYYY-MM-DD-&lt;skill&gt;.md</code>{" "}
                             in your repo. It has a short summary, the inputs it used and the ones it
                             lacked, and findings ranked Critical to Low. Each finding has evidence, a fix,
                             and an estimated $/mo where one can be worked out. Want a PDF for a client or
                             your boss? The review offers one at the end.
                         </p>
-                        <div aria-hidden="true" className="rounded-lg border border-[#dedfd8] bg-white p-5 font-mono text-[12px] leading-6 text-slate-600">
-                            <p className="text-[#242821]">## Findings</p>
-                            <p><span className="text-red-700">Critical</span> · Public S3 bucket with logs</p>
-                            <p><span className="text-amber-700">High</span> · Idle NAT gateway · est. $/mo</p>
-                            <p><span className="text-emerald-800">Medium</span> · No restore test on RDS</p>
-                            <p className="mt-2 text-[#242821]">## Commands for you to run</p>
+                        <div aria-hidden="true" className="rounded-lg border border-[#dedfd8] dark:border-slate-800 bg-white dark:bg-slate-900 p-5 font-mono text-[12px] leading-6 text-slate-600 dark:text-slate-300">
+                            <p className="text-[#242821] dark:text-slate-100">## Findings</p>
+                            <p><span className="text-red-700 dark:text-red-300">Critical</span> · Public S3 bucket with logs</p>
+                            <p><span className="text-amber-700 dark:text-amber-300">High</span> · Idle NAT gateway · est. $/mo</p>
+                            <p><span className="text-emerald-800 dark:text-emerald-300">Medium</span> · No restore test on RDS</p>
+                            <p className="mt-2 text-[#242821] dark:text-slate-100">## Commands for you to run</p>
                         </div>
                     </div>
-                    <p className="mt-6 text-sm text-[#686b65]">
+                    <p className="mt-6 text-sm text-[#686b65] dark:text-slate-400">
                         No live access? A review still works from your IaC and code, marks those findings
                         unconfirmed, and lists what it needs from you.
                     </p>
@@ -297,7 +297,7 @@ export default function RayStack() {
                         <h2 id="raystack-audit" className="text-2xl font-semibold tracking-tight sm:text-3xl">
                             Want me to look at it myself?
                         </h2>
-                        <p className="mt-3 max-w-lg text-sm leading-6 text-[#686b65]">
+                        <p className="mt-3 max-w-lg text-sm leading-6 text-[#686b65] dark:text-slate-400">
                             RayStack covers the checks I run first. For a hands-on audit of your
                             stack, book a consultation.
                         </p>
@@ -305,7 +305,7 @@ export default function RayStack() {
                     <Link
                         href="/consultation"
                         className={cn(
-                            "inline-flex min-h-12 shrink-0 items-center gap-5 rounded-md bg-[#242821] px-6 py-3 text-sm font-medium text-white hover:bg-[#42483c]",
+                            "inline-flex min-h-12 shrink-0 items-center gap-5 rounded-md bg-[#242821] px-6 py-3 text-sm font-medium text-white hover:bg-[#42483c] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200",
                             focusRing
                         )}
                     >

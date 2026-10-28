@@ -24,18 +24,18 @@ const THEME = {
   },
   slate: {
     backdrop: 'bg-slate-950/70',
-    panel: 'bg-white border-slate-200',
+    panel: 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800',
     glow: 'bg-[radial-gradient(120%_90%_at_50%_-10%,rgba(100,116,139,0.12),transparent_60%)]',
-    iconTile: 'bg-gradient-to-br from-slate-50 to-slate-100 text-slate-700 ring-1 ring-inset ring-slate-200',
+    iconTile: 'bg-gradient-to-br from-slate-50 dark:from-slate-950 to-slate-100 dark:to-slate-900 text-slate-700 dark:text-slate-200 ring-1 ring-inset ring-slate-200 dark:ring-slate-800',
     iconGlow: 'from-slate-300 to-slate-500',
-    title: 'font-semibold tracking-tight text-slate-950',
-    lead: 'text-slate-500',
+    title: 'font-semibold tracking-tight text-slate-950 dark:text-white',
+    lead: 'text-slate-500 dark:text-slate-400',
     fine: 'text-slate-400',
     fineIcon: 'text-slate-400',
-    proof: 'text-slate-500',
+    proof: 'text-slate-500 dark:text-slate-400',
     proofAvatarBorder: 'border-white',
     close:
-      'border-slate-200 text-slate-400 hover:bg-slate-100 hover:text-slate-950 focus-visible:ring-slate-400',
+      'border-slate-200 dark:border-slate-800 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-950 dark:hover:text-white focus-visible:ring-slate-400',
   },
 } as const
 

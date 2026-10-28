@@ -113,7 +113,7 @@ function SponsorCheckoutForm({
             step="0.01"
             value={form.data.amount}
             onChange={(event) => form.setData('amount', event.target.value)}
-            className="w-full rounded-xl border border-white/15 bg-white px-4 py-3 pl-10 text-2xl font-semibold text-slate-900 outline-none transition placeholder:text-slate-300 focus:border-amber-400 focus:ring-4 focus:ring-amber-400/20"
+            className="w-full rounded-xl border border-white/15 bg-white dark:bg-slate-900 px-4 py-3 pl-10 text-2xl font-semibold text-slate-900 dark:text-white outline-none transition placeholder:text-slate-300 focus:border-amber-400 focus:ring-4 focus:ring-amber-400/20"
             aria-describedby="sponsor-amount-help"
             required
           />
@@ -147,7 +147,7 @@ function SponsorCheckoutForm({
                 setCadence(nextCadence)
                 form.setData('cadence', nextCadence)
               }}
-              className="mt-0.5 h-5 w-5 shrink-0 rounded border-white/30 bg-white/10 text-amber-400 accent-amber-400 focus:ring-2 focus:ring-amber-400/40 focus:ring-offset-0"
+              className="mt-0.5 h-5 w-5 shrink-0 rounded border-white/30 bg-white/10 dark:bg-slate-900/10 text-amber-400 accent-amber-400 focus:ring-2 focus:ring-amber-400/40 focus:ring-offset-0"
             />
             <span>
               <span className="block text-sm font-semibold text-white">Make this a monthly contribution</span>
@@ -302,24 +302,24 @@ export default function Sponsor({
         </div>
       </section>
 
-      <section id="support-options" className="bg-white py-20 sm:py-24">
+      <section id="support-options" className="bg-white dark:bg-slate-900 py-20 sm:py-24">
         <div className="container mx-auto">
           <div className="mx-auto max-w-2xl text-center">
-            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Support the work</p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Choose what works for you.</h2>
-            <p className="mt-4 text-base leading-7 text-slate-500">
+            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Support the work</p>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">Choose what works for you.</h2>
+            <p className="mt-4 text-base leading-7 text-slate-500 dark:text-slate-400">
               Pick an amount, keep monthly support selected, or uncheck it for a one-time contribution.
             </p>
           </div>
 
           {checkoutStatus === 'success' && (
-            <div className="mx-auto mt-8 max-w-2xl rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-sm text-emerald-800" role="status">
+            <div className="mx-auto mt-8 max-w-2xl rounded-xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-3 text-center text-sm text-emerald-800 dark:text-emerald-300" role="status">
               If you just finished checkout, thank you. It helps keep the work here public.
             </div>
           )}
 
           {checkoutStatus === 'cancelled' && (
-            <div className="mx-auto mt-8 max-w-2xl rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-center text-sm text-slate-600" role="status">
+            <div className="mx-auto mt-8 max-w-2xl rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-3 text-center text-sm text-slate-600 dark:text-slate-300" role="status">
               No problem. You can choose an amount and try again whenever you like.
             </div>
           )}
@@ -342,26 +342,26 @@ export default function Sponsor({
                 description: 'Your payment details stay on Stripe, not on this site.',
               },
             ].map(({ icon: Icon, title, description }) => (
-              <div key={title} className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                <Icon className="h-5 w-5 text-slate-900" />
-                <h3 className="mt-5 text-sm font-semibold text-slate-900">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>
+              <div key={title} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-5">
+                <Icon className="h-5 w-5 text-slate-900 dark:text-white" />
+                <h3 className="mt-5 text-sm font-semibold text-slate-900 dark:text-white">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="border-t border-slate-200 bg-slate-50 py-20 sm:py-24">
+      <section className="border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 py-20 sm:py-24">
         <div className="container mx-auto">
           <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-start lg:gap-20">
             <div>
-              <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Why sponsor me?</p>
-              <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Because useful work takes time.</h2>
-              <p className="mt-5 text-base leading-7 text-slate-500">
+              <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Why sponsor me?</p>
+              <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">Because useful work takes time.</h2>
+              <p className="mt-5 text-base leading-7 text-slate-500 dark:text-slate-400">
                 Most of what I publish is free to read. I share the lessons I wish I had earlier, build tools for problems I keep seeing, and leave the rough edges visible. Your support helps me keep that work public instead of putting it behind a paywall.
               </p>
-              <a href="/about" className="group mt-7 inline-flex items-center gap-2 text-sm font-semibold text-slate-900 transition hover:text-amber-700">
+              <a href="/about" className="group mt-7 inline-flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white transition hover:text-amber-700 dark:hover:text-amber-300">
                 See what I work on
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </a>
@@ -369,26 +369,26 @@ export default function Sponsor({
 
             <div className="grid gap-4 sm:grid-cols-3">
               {supportPoints.map(({ icon: Icon, title, description }) => (
-                <div key={title} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <Icon className="h-5 w-5 text-slate-900" />
-                  <h3 className="mt-5 text-sm font-semibold text-slate-900">{title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>
+                <div key={title} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+                  <Icon className="h-5 w-5 text-slate-900 dark:text-white" />
+                  <h3 className="mt-5 text-sm font-semibold text-slate-900 dark:text-white">{title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{description}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="mt-16 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+          <div className="mt-16 flex flex-col gap-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
             <div className="flex items-start gap-4">
-              <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-50 text-rose-500">
+              <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-500">
                 <Heart className="h-5 w-5 fill-current" />
               </span>
               <div>
-                <p className="font-semibold text-slate-900">Thanks for being here.</p>
-                <p className="mt-1 text-sm leading-6 text-slate-500">Reading, sharing, and sending a note count too.</p>
+                <p className="font-semibold text-slate-900 dark:text-white">Thanks for being here.</p>
+                <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">Reading, sharing, and sending a note count too.</p>
               </div>
             </div>
-            <a href="#sponsor-checkout" className="group inline-flex items-center gap-2 text-sm font-semibold text-slate-900 transition hover:text-amber-700">
+            <a href="#sponsor-checkout" className="group inline-flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white transition hover:text-amber-700 dark:hover:text-amber-300">
               Sponsor this work
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </a>

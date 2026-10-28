@@ -114,12 +114,12 @@ function ProductIllustration({ product }: { product: Product }) {
                 product.backdrop
             )}
         >
-            <span className="absolute left-6 top-5 text-xs font-medium text-slate-600">
+            <span className="absolute left-6 top-5 text-xs font-medium text-slate-600 dark:text-slate-300">
                 {product.category}
             </span>
             {product.id === "cloudploy" && (
-                <div className="w-full max-w-[350px] -rotate-3 overflow-hidden rounded-lg border border-slate-300/60 bg-white shadow-[0_12px_35px_-15px_#64748b55]">
-                    <div className="flex items-center gap-1.5 border-b border-slate-100 px-4 py-3">
+                <div className="w-full max-w-[350px] -rotate-3 overflow-hidden rounded-lg border border-slate-300/60 dark:border-slate-700/60 bg-white dark:bg-slate-900 shadow-[0_12px_35px_-15px_#64748b55]">
+                    <div className="flex items-center gap-1.5 border-b border-slate-100 dark:border-slate-800 px-4 py-3">
                         <span className="h-1.5 w-1.5 rounded-full bg-[#e5bba6]" />
                         <span className="h-1.5 w-1.5 rounded-full bg-[#e8d6a4]" />
                         <span className="h-1.5 w-1.5 rounded-full bg-[#bbcfb0]" />
@@ -128,16 +128,16 @@ function ProductIllustration({ product }: { product: Product }) {
                         </span>
                         <Terminal className="ml-2 h-3 w-3 text-slate-400" />
                     </div>
-                    <div className="space-y-3 p-4 font-mono text-[11px] text-slate-500">
+                    <div className="space-y-3 p-4 font-mono text-[11px] text-slate-500 dark:text-slate-400">
                         <p>
                             <span className="text-indigo-500">❯</span> deploy
                             with cloudploy
                         </p>
                         <p className="flex items-center gap-2">
-                            <Check className="h-3 w-3 text-emerald-700" />{" "}
+                            <Check className="h-3 w-3 text-emerald-700 dark:text-emerald-300" />{" "}
                             Connected to your cloud
                         </p>
-                        <div className="flex items-center justify-between rounded bg-[#edf4ef] px-3 py-2 text-emerald-800">
+                        <div className="flex items-center justify-between rounded bg-[#edf4ef] px-3 py-2 text-emerald-800 dark:text-emerald-300">
                             <span>Ready to deploy</span>
                             <ArrowUpRight className="h-3 w-3" />
                         </div>
@@ -146,7 +146,7 @@ function ProductIllustration({ product }: { product: Product }) {
             )}
             {product.id === "skaleagents" && (
                 <div className="relative flex w-full max-w-[350px] items-center gap-4">
-                    <div className="flex h-20 w-20 shrink-0 -rotate-6 items-center justify-center rounded-2xl border border-purple-200/60 bg-white shadow-sm">
+                    <div className="flex h-20 w-20 shrink-0 -rotate-6 items-center justify-center rounded-2xl border border-purple-200/60 dark:border-purple-900/60 bg-white dark:bg-slate-900 shadow-sm">
                         <img
                             src={product.logo}
                             alt=""
@@ -154,7 +154,7 @@ function ProductIllustration({ product }: { product: Product }) {
                         />
                     </div>
                     <div className="h-px w-5 shrink-0 bg-purple-300" />
-                    <div className="flex-1 space-y-3 text-[11px] text-slate-600">
+                    <div className="flex-1 space-y-3 text-[11px] text-slate-600 dark:text-slate-300">
                         {[
                             "Code review",
                             "Infrastructure audit",
@@ -163,11 +163,11 @@ function ProductIllustration({ product }: { product: Product }) {
                             <div
                                 key={label}
                                 className={cn(
-                                    "flex items-center gap-2 rounded-md border border-purple-200/60 bg-white/90 p-3 shadow-sm",
+                                    "flex items-center gap-2 rounded-md border border-purple-200/60 dark:border-purple-900/60 bg-white/90 dark:bg-slate-900/90 p-3 shadow-sm",
                                     index === 1 && "translate-x-2"
                                 )}
                             >
-                                <Check className="h-3 w-3 shrink-0 text-emerald-700" />
+                                <Check className="h-3 w-3 shrink-0 text-emerald-700 dark:text-emerald-300" />
                                 {label}
                             </div>
                         ))}
@@ -183,9 +183,9 @@ function ProductIllustration({ product }: { product: Product }) {
                                 className={cn(
                                     "flex h-16 w-16 items-center justify-center rounded-xl border border-black/10 font-mono text-xl shadow-[0_6px_12px_-8px_#64748b55] sm:h-[72px] sm:w-[72px]",
                                     [
-                                        "bg-white text-emerald-800",
-                                        "bg-[#fcf7e9] text-amber-800",
-                                        "bg-[#f0eafa] text-purple-800"
+                                        "bg-white dark:bg-slate-900 text-emerald-800 dark:text-emerald-300",
+                                        "bg-[#fcf7e9] text-amber-800 dark:text-amber-300",
+                                        "bg-[#f0eafa] text-purple-800 dark:text-purple-300"
                                     ][index % 3]
                                 )}
                             >
@@ -197,7 +197,7 @@ function ProductIllustration({ product }: { product: Product }) {
             )}
             {product.id === "crontinel" && (
                 <div className="w-full max-w-[360px] -rotate-3 rounded-lg border border-[#dfd6cd] bg-[#fffdfa] p-4 shadow-[0_12px_35px_-15px_#64748b55]">
-                    <div className="mb-3 flex items-center justify-between text-[10px] text-stone-500">
+                    <div className="mb-3 flex items-center justify-between text-[10px] text-stone-500 dark:text-slate-400">
                         <span>Inside your application</span>
                         <span>Illustration</span>
                     </div>
@@ -205,9 +205,9 @@ function ProductIllustration({ product }: { product: Product }) {
                         (label, row) => (
                             <div
                                 key={label}
-                                className="flex items-center gap-3 border-t border-stone-200/60 py-3"
+                                className="flex items-center gap-3 border-t border-stone-200/60 dark:border-slate-800/60 py-3"
                             >
-                                <span className="w-[82px] shrink-0 text-[10px] text-stone-600">
+                                <span className="w-[82px] shrink-0 text-[10px] text-stone-600 dark:text-slate-300">
                                     {label}
                                 </span>
                                 <div className="flex h-5 flex-1 items-center gap-1">
@@ -226,26 +226,26 @@ function ProductIllustration({ product }: { product: Product }) {
                                         />
                                     ))}
                                 </div>
-                                <Check className="h-3 w-3 shrink-0 text-stone-500" />
+                                <Check className="h-3 w-3 shrink-0 text-stone-500 dark:text-slate-400" />
                             </div>
                         )
                     )}
                 </div>
             )}
             {product.id === "appnary" && (
-                <div className="w-[270px] rotate-3 overflow-hidden rounded-xl border border-indigo-200/70 bg-white shadow-[0_12px_35px_-15px_#64748b55]">
-                    <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3">
+                <div className="w-[270px] rotate-3 overflow-hidden rounded-xl border border-indigo-200/70 dark:border-indigo-900/70 bg-white dark:bg-slate-900 shadow-[0_12px_35px_-15px_#64748b55]">
+                    <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 px-4 py-3">
                         <img
                             src={product.logo}
                             alt=""
                             className="h-8 w-8 object-contain"
                         />
-                        <span className="text-xs font-medium text-slate-700">
+                        <span className="text-xs font-medium text-slate-700 dark:text-slate-200">
                             Made for Shopify
                         </span>
                     </div>
                     <div className="p-4">
-                        <p className="text-[11px] text-slate-500">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">
                             Your next customer starts here.
                         </p>
                         <div className="mt-4 flex h-14 items-end gap-2">
@@ -259,21 +259,21 @@ function ProductIllustration({ product }: { product: Product }) {
                                 )
                             )}
                         </div>
-                        <p className="mt-3 text-[10px] text-indigo-700">
+                        <p className="mt-3 text-[10px] text-indigo-700 dark:text-indigo-300">
                             Pixel Tracker · Ad performance
                         </p>
                     </div>
                 </div>
             )}
             {product.id === "amazingplugins" && (
-                <div className="w-[290px] -rotate-3 rounded-xl border border-amber-200/70 bg-white p-4 shadow-[0_12px_35px_-15px_#64748b55]">
+                <div className="w-[290px] -rotate-3 rounded-xl border border-amber-200/70 dark:border-amber-900/70 bg-white dark:bg-slate-900 p-4 shadow-[0_12px_35px_-15px_#64748b55]">
                     <div className="mb-3 flex items-center gap-3">
                         <img
                             src={product.logo}
                             alt=""
                             className="h-9 w-9 rounded-lg object-contain"
                         />
-                        <span className="text-xs font-medium text-slate-700">
+                        <span className="text-xs font-medium text-slate-700 dark:text-slate-200">
                             A little help for your store
                         </span>
                     </div>
@@ -281,11 +281,11 @@ function ProductIllustration({ product }: { product: Product }) {
                         (label) => (
                             <div
                                 key={label}
-                                className="flex items-center justify-between border-t border-stone-100 py-3 text-[11px] text-stone-600"
+                                className="flex items-center justify-between border-t border-stone-100 dark:border-slate-800 py-3 text-[11px] text-stone-600 dark:text-slate-300"
                             >
                                 <span>{label}</span>
                                 <span className="flex h-4 w-7 items-center justify-end rounded-full bg-[#b4c6a0] p-0.5">
-                                    <span className="h-3 w-3 rounded-full bg-white" />
+                                    <span className="h-3 w-3 rounded-full bg-white dark:bg-slate-900" />
                                 </span>
                             </div>
                         )
@@ -293,8 +293,8 @@ function ProductIllustration({ product }: { product: Product }) {
                 </div>
             )}
             {product.id === "raystack" && (
-                <div className="w-full max-w-[340px] rotate-2 rounded-lg border border-slate-300/60 bg-white p-4 shadow-[0_12px_35px_-15px_#64748b55]">
-                    <div className="mb-3 flex items-center justify-between font-mono text-[10px] text-slate-500">
+                <div className="w-full max-w-[340px] rotate-2 rounded-lg border border-slate-300/60 dark:border-slate-700/60 bg-white dark:bg-slate-900 p-4 shadow-[0_12px_35px_-15px_#64748b55]">
+                    <div className="mb-3 flex items-center justify-between font-mono text-[10px] text-slate-500 dark:text-slate-400">
                         <span>reviews/aws-billing-review.md</span>
                         <span>Read-only</span>
                     </div>
@@ -305,12 +305,12 @@ function ProductIllustration({ product }: { product: Product }) {
                     ].map(([label, color], row) => (
                         <div
                             key={label}
-                            className="flex items-center gap-3 border-t border-slate-100 py-2.5 text-[11px] text-slate-600"
+                            className="flex items-center gap-3 border-t border-slate-100 dark:border-slate-800 py-2.5 text-[11px] text-slate-600 dark:text-slate-300"
                         >
                             <span className={cn("h-2 w-2 rounded-full", color)} />
                             <span className="w-14 shrink-0">{label}</span>
                             <span
-                                className="h-1.5 rounded-full bg-slate-200"
+                                className="h-1.5 rounded-full bg-slate-200 dark:bg-slate-700"
                                 style={{ width: `${70 - row * 18}%` }}
                             />
                             <span className="ml-auto font-mono text-[10px] text-slate-400">
@@ -325,7 +325,7 @@ function ProductIllustration({ product }: { product: Product }) {
 }
 
 const productLinkClass = cn(
-    "flex min-h-12 items-center justify-between gap-3 border-t border-[#e8e9e1] pt-4 text-sm hover:text-amber-800",
+    "flex min-h-12 items-center justify-between gap-3 border-t border-[#e8e9e1] dark:border-slate-800 pt-4 text-sm hover:text-amber-800 dark:hover:text-amber-300",
     focusRing
 )
 
@@ -335,7 +335,7 @@ function ProductLink({ product }: { product: Product }) {
     const Icon = internal ? ArrowRight : ArrowUpRight
     const content = (
         <>
-            <span className="text-xs text-[#686b65]">
+            <span className="text-xs text-[#686b65] dark:text-slate-400">
                 {internal
                     ? `harun.dev${product.url}`
                     : product.url.replace("https://", "")}
@@ -387,10 +387,10 @@ export default function Products() {
 
     return (
         <>
-            <div className="min-h-screen bg-[#fafaf8] text-[#242821]">
+            <div className="min-h-screen bg-[#fafaf8] dark:bg-slate-950 text-[#242821] dark:text-slate-100">
                 <div className="mx-auto max-w-7xl px-5 pb-20 pt-28 sm:px-8 sm:pt-36 lg:px-12">
-                    <header className="border-b border-[#dedfd8] pb-12 sm:pb-16">
-                        <p className="mb-5 flex items-center gap-2.5 text-sm font-medium text-[#686b65]">
+                    <header className="border-b border-[#dedfd8] dark:border-slate-800 pb-12 sm:pb-16">
+                        <p className="mb-5 flex items-center gap-2.5 text-sm font-medium text-[#686b65] dark:text-slate-400">
                             <span
                                 className="h-2 w-2 bg-amber-600"
                                 aria-hidden="true"
@@ -402,7 +402,7 @@ export default function Products() {
                             <br />
                             Problems I care about.
                         </h1>
-                        <p className="mt-6 max-w-xl text-base leading-7 text-[#686b65] sm:text-lg sm:leading-8">
+                        <p className="mt-6 max-w-xl text-base leading-7 text-[#686b65] dark:text-slate-400 sm:text-lg sm:leading-8">
                             Cloud infrastructure, everyday developer tools, and
                             a little help running your store. These are the
                             products I build and maintain.
@@ -429,8 +429,8 @@ export default function Products() {
                                             "min-h-11 rounded-md px-3.5 py-2.5 text-sm transition-colors",
                                             focusRing,
                                             category === item
-                                                ? "bg-[#242821] text-white"
-                                                : "text-[#686b65] hover:bg-[#eeeee8] hover:text-[#242821]"
+                                                ? "bg-[#242821] text-white dark:bg-white dark:text-slate-900"
+                                                : "text-[#686b65] dark:text-slate-400 hover:bg-[#eeeee8] hover:text-[#242821]"
                                         )}
                                     >
                                         {item}
@@ -451,7 +451,7 @@ export default function Products() {
                                 </label>
                                 <Search
                                     aria-hidden="true"
-                                    className="pointer-events-none absolute left-3.5 top-3.5 h-4 w-4 text-[#686b65]"
+                                    className="pointer-events-none absolute left-3.5 top-3.5 h-4 w-4 text-[#686b65] dark:text-slate-400"
                                 />
                                 <input
                                     id="product-search"
@@ -462,7 +462,7 @@ export default function Products() {
                                     }
                                     placeholder="Find your next tool…"
                                     className={cn(
-                                        "h-11 w-full appearance-none rounded-md border border-[#dedfd8] bg-transparent pl-10 pr-10 text-sm placeholder:text-[#686b65] [&::-webkit-search-cancel-button]:appearance-none",
+                                        "h-11 w-full appearance-none rounded-md border border-[#dedfd8] dark:border-slate-800 bg-transparent pl-10 pr-10 text-sm placeholder:text-[#686b65] [&::-webkit-search-cancel-button]:appearance-none",
                                         focusRing
                                     )}
                                 />
@@ -472,7 +472,7 @@ export default function Products() {
                                         aria-label="Clear search"
                                         onClick={() => setQuery("")}
                                         className={cn(
-                                            "absolute right-0 top-0 flex h-11 w-10 items-center justify-center rounded text-[#686b65] hover:text-[#242821]",
+                                            "absolute right-0 top-0 flex h-11 w-10 items-center justify-center rounded text-[#686b65] dark:text-slate-400 hover:text-[#242821]",
                                             focusRing
                                         )}
                                     >
@@ -485,7 +485,7 @@ export default function Products() {
                             role="status"
                             aria-live="polite"
                             aria-atomic="true"
-                            className="mb-5 mt-5 text-xs text-[#686b65]"
+                            className="mb-5 mt-5 text-xs text-[#686b65] dark:text-slate-400"
                         >
                             {visibleProducts.length}{" "}
                             {visibleProducts.length === 1
@@ -499,7 +499,7 @@ export default function Products() {
                                 <article
                                     key={product.id}
                                     aria-labelledby={`product-${product.id}`}
-                                    className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-[#dedfd8] bg-[#fffefa]"
+                                    className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-[#dedfd8] dark:border-slate-800 bg-[#fffefa] dark:bg-slate-900"
                                 >
                                     <ProductIllustration product={product} />
                                     <div className="flex flex-1 flex-col p-6 sm:p-7">
@@ -529,7 +529,7 @@ export default function Products() {
                                         <p className="mt-5 text-sm font-medium leading-6">
                                             {product.tagline}
                                         </p>
-                                        <p className="mb-6 mt-2 text-sm leading-6 text-[#686b65]">
+                                        <p className="mb-6 mt-2 text-sm leading-6 text-[#686b65] dark:text-slate-400">
                                             {product.description}
                                         </p>
                                         <div className="mt-auto">
@@ -540,22 +540,22 @@ export default function Products() {
                             ))}
                         </div>
                         {visibleProducts.length === 0 && (
-                            <div className="rounded-xl border border-dashed border-[#cccec3] px-6 py-16 text-center">
+                            <div className="rounded-xl border border-dashed border-[#cccec3] dark:border-slate-700 px-6 py-16 text-center">
                                 <Search
                                     aria-hidden="true"
-                                    className="mx-auto mb-4 h-6 w-6 text-[#686b65]"
+                                    className="mx-auto mb-4 h-6 w-6 text-[#686b65] dark:text-slate-400"
                                 />
                                 <h2 className="text-xl font-semibold">
                                     No products found
                                 </h2>
-                                <p className="mt-2 text-sm text-[#686b65]">
+                                <p className="mt-2 text-sm text-[#686b65] dark:text-slate-400">
                                     Try another search or category.
                                 </p>
                                 <button
                                     type="button"
                                     onClick={resetFilters}
                                     className={cn(
-                                        "mt-6 min-h-11 rounded-md bg-[#242821] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#42483c]",
+                                        "mt-6 min-h-11 rounded-md bg-[#242821] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#42483c] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200",
                                         focusRing
                                     )}
                                 >
@@ -565,13 +565,13 @@ export default function Products() {
                         )}
                     </section>
 
-                    <div className="mt-10 flex items-center gap-3 text-xs text-[#686b65]">
+                    <div className="mt-10 flex items-center gap-3 text-xs text-[#686b65] dark:text-slate-400">
                         <Code2 aria-hidden="true" className="h-4 w-4" />
                         <p>Built by me. Always a work in progress.</p>
                     </div>
                     <section
                         aria-labelledby="products-contact"
-                        className="mt-16 flex flex-col items-start justify-between gap-6 border-t border-[#dedfd8] pt-10 sm:mt-20 sm:flex-row sm:items-center sm:pt-12"
+                        className="mt-16 flex flex-col items-start justify-between gap-6 border-t border-[#dedfd8] dark:border-slate-800 pt-10 sm:mt-20 sm:flex-row sm:items-center sm:pt-12"
                     >
                         <div>
                             <h2
@@ -580,7 +580,7 @@ export default function Products() {
                             >
                                 Have something in mind?
                             </h2>
-                            <p className="mt-3 max-w-lg text-sm leading-6 text-[#686b65]">
+                            <p className="mt-3 max-w-lg text-sm leading-6 text-[#686b65] dark:text-slate-400">
                                 A question about a product, some feedback, or an
                                 idea for something useful. I’d like to hear it.
                             </p>
@@ -588,7 +588,7 @@ export default function Products() {
                         <Link
                             href="/contact"
                             className={cn(
-                                "inline-flex min-h-12 shrink-0 items-center gap-5 rounded-md bg-[#242821] px-6 py-3 text-sm font-medium text-white hover:bg-[#42483c]",
+                                "inline-flex min-h-12 shrink-0 items-center gap-5 rounded-md bg-[#242821] px-6 py-3 text-sm font-medium text-white hover:bg-[#42483c] dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200",
                                 focusRing
                             )}
                         >

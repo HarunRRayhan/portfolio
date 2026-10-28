@@ -87,15 +87,15 @@ export default function Status({
     <>
       <Head title={`Booking · ${booking.tier?.name ?? 'Consultation'}`} />
 
-      <section className="border-b border-slate-200 bg-slate-50 py-14">
+      <section className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 py-14">
         <div className="container mx-auto max-w-xl">
-          <p className="font-mono text-xs font-semibold uppercase tracking-wider text-slate-500">Your booking</p>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+          <p className="font-mono text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Your booking</p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
             {booking.tier?.name ?? 'Consultation'}
           </h1>
-          <p className="mt-2 text-slate-500">
+          <p className="mt-2 text-slate-500 dark:text-slate-400">
             Status:{' '}
-            <span className="font-medium text-slate-800">
+            <span className="font-medium text-slate-800 dark:text-slate-100">
               {booking.status === 'awaiting_payment' && booking.payment_received
                 ? 'Payment received, confirming'
                 : statusLabel[booking.status] ?? booking.status}
@@ -104,17 +104,17 @@ export default function Status({
         </div>
       </section>
 
-      <section className="bg-white py-10">
+      <section className="bg-white dark:bg-slate-900 py-10">
         <div className="container mx-auto max-w-xl space-y-6">
           {(flash?.message || flashPaid || flashCancelledCheckout) && (
-            <div className="border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+            <div className="border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-3 text-sm text-slate-700 dark:text-slate-200">
               {flashPaid && 'Payment received — confirmation may take a moment.'}
               {flashCancelledCheckout && 'Checkout cancelled. You can try again when ready.'}
               {flash?.message}
             </div>
           )}
 
-          <div className="border border-slate-200 p-6 space-y-3 text-sm text-slate-700">
+          <div className="border border-slate-200 dark:border-slate-800 p-6 space-y-3 text-sm text-slate-700 dark:text-slate-200">
             <p>
               <span className="text-slate-400">When · </span>
               {formatLocal(booking.starts_at)}
@@ -173,13 +173,13 @@ export default function Status({
 
           {booking.status === 'reschedule_proposed' && booking.proposed_slots && (
             <div className="space-y-2">
-              <p className="text-sm font-medium text-slate-800">Proposed times</p>
+              <p className="text-sm font-medium text-slate-800 dark:text-slate-100">Proposed times</p>
               {booking.proposed_slots.map((s) => (
                 <button
                   key={s.start}
                   type="button"
                   onClick={() => pick(s.start)}
-                  className="block w-full border border-slate-200 px-4 py-3 text-left text-sm hover:border-slate-400"
+                  className="block w-full border border-slate-200 dark:border-slate-800 px-4 py-3 text-left text-sm hover:border-slate-400"
                 >
                   {formatLocal(s.start)}
                 </button>
@@ -188,15 +188,15 @@ export default function Status({
           )}
 
           {booking.status === 'confirmed' && (
-            <div className="space-y-4 border border-slate-200 p-6">
-              <p className="text-sm text-slate-600">
+            <div className="space-y-4 border border-slate-200 dark:border-slate-800 p-6">
+              <p className="text-sm text-slate-600 dark:text-slate-300">
                 Need to change plans? Cancel and reschedule requests need approval. New times must still be at least 48
                 hours out.
               </p>
               <button
                 type="button"
                 onClick={cancel}
-                className="w-full border border-slate-300 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                className="w-full border border-slate-300 dark:border-slate-700 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-950"
               >
                 Request cancellation
               </button>
@@ -206,11 +206,11 @@ export default function Status({
                   onChange={(e) => setNote(e.target.value)}
                   rows={3}
                   placeholder="Why do you need to reschedule?"
-                  className="w-full border border-slate-200 px-3 py-2 text-sm"
+                  className="w-full border border-slate-200 dark:border-slate-800 px-3 py-2 text-sm"
                 />
                 <button
                   type="submit"
-                  className="w-full border border-slate-300 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  className="w-full border border-slate-300 dark:border-slate-700 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-950"
                 >
                   Request reschedule
                 </button>
@@ -218,7 +218,7 @@ export default function Status({
             </div>
           )}
 
-          <a href="/consultation" className="inline-block text-sm text-slate-500 underline hover:text-slate-800">
+          <a href="/consultation" className="inline-block text-sm text-slate-500 dark:text-slate-400 underline hover:text-slate-800 dark:hover:text-slate-100">
             Back to plans
           </a>
         </div>

@@ -211,7 +211,7 @@ function LinkIcon({ link }: { link: BioLink }) {
   const logo = PRODUCT_LOGOS[link.url]
 
   return (
-    <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#e4d7c4] bg-white sm:h-12 sm:w-12">
+    <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#e4d7c4] bg-white dark:bg-slate-900 sm:h-12 sm:w-12">
       {logo ? (
         <img src={logo} alt="" className="h-7 w-7 object-contain sm:h-8 sm:w-8" />
       ) : (

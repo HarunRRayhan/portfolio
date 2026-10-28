@@ -45,10 +45,10 @@ const timelineEvents = [
 
 export function JourneyTimeline() {
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-white dark:bg-slate-900">
       <div className="container mx-auto">
         <motion.h2
-          className="text-3xl lg:text-4xl font-bold text-center mb-16 text-gray-900"
+          className="text-3xl lg:text-4xl font-bold text-center mb-16 text-gray-900 dark:text-white"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -72,10 +72,10 @@ export function JourneyTimeline() {
               </div>
               <div className="min-w-0 flex-1">
                 <span className="text-sm font-bold text-amber-600">{event.year}</span>
-                <h3 className="mb-1 text-lg font-semibold text-gray-900">{event.title}</h3>
+                <h3 className="mb-1 text-lg font-semibold text-gray-900 dark:text-white">{event.title}</h3>
                 <p className="mb-1 font-medium text-amber-600">{event.company}</p>
-                <p className="mb-2 text-sm text-gray-500">{event.location}</p>
-                <p className="text-sm text-gray-600">{event.description}</p>
+                <p className="mb-2 text-sm text-gray-500 dark:text-slate-400">{event.location}</p>
+                <p className="text-sm text-gray-600 dark:text-slate-300">{event.description}</p>
               </div>
             </motion.div>
           ))}
@@ -96,10 +96,10 @@ export function JourneyTimeline() {
               transition={{ duration: 0.8, delay: index * 0.2 }}
             >
               <div className={`w-1/2 ${index % 2 === 0 ? "text-right pr-8" : "pl-8"}`}>
-                <h3 className="text-xl font-semibold text-gray-900 mb-1">{event.title}</h3>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">{event.title}</h3>
                 <p className="text-amber-600 font-medium mb-2">{event.company}</p>
-                <p className="text-sm text-gray-500 mb-2">{event.location}</p>
-                <p className="text-gray-600">{event.description}</p>
+                <p className="text-sm text-gray-500 dark:text-slate-400 mb-2">{event.location}</p>
+                <p className="text-gray-600 dark:text-slate-300">{event.description}</p>
               </div>
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center z-10">
                 <event.icon className="w-6 h-6 text-white" />

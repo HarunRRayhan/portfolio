@@ -14,7 +14,7 @@ export default function Privacy({ canonicalUrl }: { canonicalUrl?: string }) {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="w-16 h-16 rounded-lg bg-white/10 flex items-center justify-center mx-auto mb-6"
+              className="w-16 h-16 rounded-lg bg-white/10 dark:bg-slate-900/10 flex items-center justify-center mx-auto mb-6"
             >
               <Shield className="w-8 h-8 text-white" />
             </motion.div>
@@ -37,7 +37,7 @@ export default function Privacy({ canonicalUrl }: { canonicalUrl?: string }) {
           </div>
         </section>
 
-        <section className="py-24 bg-white">
+        <section className="py-24 bg-white dark:bg-slate-900">
           <Container>
             <div className="max-w-3xl mx-auto prose prose-lg">
               <p className="text-muted-foreground">Last updated: {new Date().toLocaleDateString()}</p>
