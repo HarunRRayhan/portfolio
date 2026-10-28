@@ -83,6 +83,7 @@ class SiteSeoTest extends TestCase
             $siteUrl.'/bio',
             $siteUrl.'/hrr',
             $siteUrl.'/products',
+            $siteUrl.'/raystack',
             $siteUrl.'/consultation',
         ];
 
@@ -103,9 +104,28 @@ class SiteSeoTest extends TestCase
         $response->assertOk();
 
         $this->assertStringContainsString(
-            'name="description" content="Products built by Harun R. Rayhan - CloudPloy, SkaleAgents, Toolblip, Crontinel, Appnary, and Amazing Plugins."',
+            'name="description" content="Products built by Harun R. Rayhan - CloudPloy, SkaleAgents, Toolblip, Crontinel, Appnary, Amazing Plugins, and RayStack."',
             $response->getContent(),
         );
+    }
+
+    #[Test]
+    public function it_ships_raystack_metadata_and_software_schema_in_the_first_html(): void
+    {
+        $siteUrl = rtrim(config('app.url', url('/')), '/');
+        $html = $this->get('/raystack')->assertOk()->getContent();
+
+        $this->assertStringContainsString('<title data-inertia="">RayStack: infrastructure reviews for coding agents | Harun R. Rayhan</title>', $html);
+        $this->assertStringContainsString('rel="canonical" href="'.$siteUrl.'/raystack"', $html);
+
+        preg_match_all('#<script type="application/ld\+json"[^>]*>(.*?)</script>#s', $html, $matches);
+        $app = collect($matches[1])->map(fn (string $json) => json_decode($json, true))
+            ->firstWhere('@type', 'SoftwareApplication');
+        $this->assertSame('RayStack', $app['name'] ?? null);
+        $this->assertSame('https://github.com/HarunRRayhan/raystack', $app['codeRepository'] ?? null);
+        $this->assertSame('0', $app['offers']['price'] ?? null);
+
+        $this->get('/llms.txt')->assertOk()->assertSee($siteUrl.'/raystack', false);
     }
 
     #[Test]

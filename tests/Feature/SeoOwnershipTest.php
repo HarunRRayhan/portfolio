@@ -16,7 +16,7 @@ class SeoOwnershipTest extends TestCase
     {
         return array_map(fn ($path) => [$path], [
             '/', '/contact', '/blog', '/services/devops', '/bio', '/hrr',
-            '/sponsor-me', '/consultation', '/products',
+            '/sponsor-me', '/consultation', '/products', '/raystack',
             '/blog/production-ai-code-review-for-terraform-and-lambda-prs',
         ]);
     }

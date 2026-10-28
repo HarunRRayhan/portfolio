@@ -52,6 +52,7 @@ final class SiteCatalog
             ['Bio (Bangla)', '/hrr', 'Bangla bio and links.'],
             ['Consultation', '/consultation', 'Book a paid DevOps consultation.'],
             ['Products', '/products', 'Tools and products I build, including Crontinel.'],
+            ['RayStack', '/raystack', 'Open-source, read-only infrastructure review skills for coding agents.'],
             ['Case Studies', '/case-studies', 'Work from real engagements. The client name stays off the page.'],
             ['Services', '/services', 'An AI-built app that has to survive production, an AWS setup that\'s expensive or fragile, or a release process you don\'t trust.'],
             ['Blog', '/blog', 'Index of all writing on cloud, DevOps, and AWS.'],
@@ -106,6 +107,7 @@ final class SiteCatalog
             '/bio',
             '/hrr',
             '/products',
+            '/raystack',
             '/privacy',
             '/terms',
         ];

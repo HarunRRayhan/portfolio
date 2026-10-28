@@ -145,8 +145,29 @@ final class SeoCatalog
 
         $pages['/products'] = new SeoMeta(
             title: 'Products | Harun R. Rayhan',
-            description: 'Products built by Harun R. Rayhan - CloudPloy, SkaleAgents, Toolblip, Crontinel, Appnary, and Amazing Plugins.',
+            description: 'Products built by Harun R. Rayhan - CloudPloy, SkaleAgents, Toolblip, Crontinel, Appnary, Amazing Plugins, and RayStack.',
             canonicalUrl: $siteUrl.'/products',
+        );
+
+        $pages['/raystack'] = new SeoMeta(
+            title: 'RayStack: infrastructure reviews for coding agents | Harun R. Rayhan',
+            description: 'Open-source, read-only review skills for Claude Code, Codex, Cursor, and other agents. Each review ends in a ranked findings report with estimated $/mo.',
+            canonicalUrl: $siteUrl.'/raystack',
+            ogImage: self::defaultOgImage(),
+            jsonLd: [[
+                '@context' => 'https://schema.org',
+                '@type' => 'SoftwareApplication',
+                'name' => 'RayStack',
+                'url' => $siteUrl.'/raystack',
+                'description' => 'Read-only infrastructure review skills for coding agents: AWS billing, AWS security, AWS bottlenecks, infrastructure, scaling, and database reviews.',
+                'applicationCategory' => 'DeveloperApplication',
+                'operatingSystem' => 'macOS, Linux',
+                'softwareVersion' => '0.1',
+                'license' => 'https://opensource.org/licenses/MIT',
+                'codeRepository' => 'https://github.com/HarunRRayhan/raystack',
+                'offers' => ['@type' => 'Offer', 'price' => '0', 'priceCurrency' => 'USD'],
+                'author' => ['@id' => $siteUrl.'/#person'],
+            ]],
         );
 
         $pages['/bio'] = new SeoMeta(
