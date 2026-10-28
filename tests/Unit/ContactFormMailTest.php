@@ -43,7 +43,9 @@ class ContactFormMailTest extends TestCase
         ];
 
         $mailable = new ContactFormMail($data);
-        $this->assertEquals('New Contact Form Submission', $mailable->build()->subject);
+        $built = $mailable->build();
+        $this->assertEquals('Contact: Test Subject', $built->subject);
+        $this->assertTrue($built->hasReplyTo('john@example.com', 'John Doe'));
     }
 
     #[Test]

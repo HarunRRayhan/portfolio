@@ -1,28 +1,19 @@
 @component('mail::message')
-# New Contact Form Submission
+# {{ $messageSubject }}
 
-You have received a new message from your website's contact form.
+**From:** {{ $name }} &lt;{{ $email }}&gt;
 
-**Name:** {{ $name }}  
-**Email:** {{ $email }}  
-**Subject:** {{ $messageSubject }}
-
-**Message:**  
 {{ $messageContent }}
 
 @if(count($services) > 0)
-**Selected Services:**
-@foreach($services as $service)
-- {{ $service }}
-@endforeach
+**Services:** {{ implode(', ', $services) }}
 @endif
 
-**Referrer:** {{ $referrer }}
+<small>Referrer: {{ $referrer }}</small>
 
-@component('mail::button', ['url' => config('app.url')])
-View Website
+@component('mail::button', ['url' => rtrim(config('app.url'), '/').'/admin/contacts'])
+Open in admin
 @endcomponent
 
-Thanks,<br>
-{{ config('app.name') }}
-@endcomponent 
+Reply to this email to answer {{ $name }} directly.
+@endcomponent

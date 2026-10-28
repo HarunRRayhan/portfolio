@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ApiKeyController;
 use App\Http\Controllers\Admin\BioLinkController;
+use App\Http\Controllers\Admin\ContactSubmissionController as AdminContactSubmissionController;
 use App\Http\Controllers\Admin\Consultation\AvailabilityController as ConsultationAvailabilityController;
 use App\Http\Controllers\Admin\Consultation\BookingController as ConsultationBookingController;
 use App\Http\Controllers\Admin\Consultation\CouponController as ConsultationCouponController;
@@ -260,6 +261,16 @@ Route::middleware(['auth', 'verified', 'role:admin'])
             ->where('subscriber', '[0-9]{1,18}')
             ->middleware('throttle:30,1')
             ->name('reveal');
+    });
+
+// Admin inbox for contact form messages
+Route::middleware(['auth', 'verified', 'role:admin'])
+    ->prefix('admin/contacts')
+    ->name('admin.contacts.')
+    ->group(function () {
+        Route::get('/', [AdminContactSubmissionController::class, 'index'])->name('index');
+        Route::patch('/{submission}', [AdminContactSubmissionController::class, 'update'])->where('submission', '[0-9]{1,18}')->name('update');
+        Route::delete('/{submission}', [AdminContactSubmissionController::class, 'destroy'])->where('submission', '[0-9]{1,18}')->name('destroy');
     });
 
 // Paid consultation admin

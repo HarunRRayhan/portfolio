@@ -29,6 +29,8 @@ class ContactFormRequest extends FormRequest
             'services' => ['nullable', 'array'],
             'services.*' => ['string'],
             'referrer' => ['nullable', 'string', 'max:255'],
+            'subscribe' => ['sometimes', 'boolean'],
+            'cf-turnstile-response' => ['nullable', 'string'],
         ];
     }
 

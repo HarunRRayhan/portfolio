@@ -543,4 +543,69 @@ class ContactSubmissionTest extends TestCase
         $submission = ContactSubmission::first();
         $this->assertEquals("First line\nSecond line\n\nThird line with    spaces", $submission->message);
     }
+
+    #[Test]
+    public function it_subscribes_to_the_newsletter_when_the_box_is_ticked(): void
+    {
+        $this->post('/contact', [
+            'name' => 'Jane', 'email' => 'jane@example.com', 'subject' => 'Hi', 'message' => 'Hello', 'subscribe' => true,
+        ])->assertSessionHas('flash.type', 'success');
+
+        $this->assertDatabaseHas('subscribers', ['email' => 'jane@example.com', 'source' => 'contact_form', 'status' => 'subscribed']);
+    }
+
+    #[Test]
+    public function it_skips_the_newsletter_when_unticked_and_never_resubscribes(): void
+    {
+        $this->post('/contact', ['name' => 'A', 'email' => 'a@example.com', 'subject' => 'Hi', 'message' => 'Hello', 'subscribe' => false]);
+        $this->assertDatabaseMissing('subscribers', ['email' => 'a@example.com']);
+
+        \App\Models\Subscriber::create(['email' => 'b@example.com', 'status' => 'unsubscribed']);
+        $this->post('/contact', ['name' => 'B', 'email' => 'b@example.com', 'subject' => 'Hi', 'message' => 'Hello', 'subscribe' => true]);
+        $this->assertDatabaseHas('subscribers', ['email' => 'b@example.com', 'status' => 'unsubscribed']);
+    }
+
+    #[Test]
+    public function it_rejects_a_failed_turnstile_check_when_enabled(): void
+    {
+        config(['services.turnstile.secret_key' => 'secret']);
+        \Illuminate\Support\Facades\Http::fake(['challenges.cloudflare.com/*' => \Illuminate\Support\Facades\Http::response(['success' => false])]);
+
+        $this->post('/contact', [
+            'name' => 'Bot', 'email' => 'bot@example.com', 'subject' => 'Spam', 'message' => 'Spam', 'cf-turnstile-response' => 'bad',
+        ])->assertSessionHasErrors('cf-turnstile-response');
+
+        $this->assertDatabaseCount('contact_submissions', 0);
+        Mail::assertNothingSent();
+    }
+
+    #[Test]
+    public function admins_can_list_update_and_delete_contact_messages(): void
+    {
+        $admin = \App\Models\User::factory()->create(['role' => 'admin', 'terms_accepted_at' => now()]);
+        $submission = ContactSubmission::create([
+            'name' => 'Jane', 'email' => 'jane@example.com', 'subject' => 'Hi', 'message' => 'Hello', 'status' => 'sent',
+        ]);
+
+        $this->actingAs($admin)->get('/admin/contacts')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->component('Admin/Contacts/Index')
+            ->where('submissions.data.0.email', 'jane@example.com'));
+
+        $this->actingAs($admin)->patch("/admin/contacts/{$submission->id}", ['status' => 'replied'])->assertRedirect();
+        $this->assertSame('replied', $submission->fresh()->status);
+
+        $this->actingAs($admin)->patch("/admin/contacts/{$submission->id}", ['status' => 'bogus'])->assertSessionHasErrors('status');
+
+        $this->actingAs($admin)->delete("/admin/contacts/{$submission->id}")->assertRedirect();
+        $this->assertDatabaseCount('contact_submissions', 0);
+    }
+
+    #[Test]
+    public function non_admins_cannot_see_contact_messages(): void
+    {
+        $user = \App\Models\User::factory()->create(['terms_accepted_at' => now()]);
+
+        $this->get('/admin/contacts')->assertRedirect('/login');
+        $this->actingAs($user)->get('/admin/contacts')->assertForbidden();
+    }
 }
