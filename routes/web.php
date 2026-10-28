@@ -467,6 +467,10 @@ Route::get('/products', function () {
     return Inertia::render('Products');
 })->name('products');
 
+Route::get('/raystack', function () {
+    return Inertia::render('RayStack');
+})->name('raystack');
+
 Route::get('/services', function () {
     return Inertia::render('Services', [
         'serviceIndex' => SiteCatalog::serviceIndex(),

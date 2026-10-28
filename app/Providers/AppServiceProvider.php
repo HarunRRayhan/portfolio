@@ -37,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
             'blog.index',
             'blog.post',
             'products',
+            'raystack',
             'services',
             'services.*',
             'about',
