@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { Link } from '@inertiajs/react'
 import { Container } from '@/Components/ui/container'
 import { ScrollText } from 'lucide-react'
 import { getImageUrl } from "@/lib/imageUtils"
@@ -81,9 +82,7 @@ export default function Terms({ canonicalUrl }: { canonicalUrl?: string }) {
 
               <h2>6. Contact</h2>
               <p>
-                If you have any questions about these Terms, please contact us at:
-                <br />
-                Email: <a href="mailto:me@harun.dev" className="text-primary hover:underline">me@harun.dev</a>
+                If you have any questions about these Terms, send a note through the <Link href="/contact" className="text-primary hover:underline">contact form</Link>.
               </p>
             </div>
           </Container>

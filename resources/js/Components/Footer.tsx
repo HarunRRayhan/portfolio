@@ -51,7 +51,7 @@ const socials = [
     { href: 'https://github.com/HarunRRayhan', label: 'GitHub', icon: Github },
     { href: 'https://x.com/harundotdev', label: 'Twitter', icon: Twitter },
     { href: 'https://www.linkedin.com/in/harunrrayhan/', label: 'LinkedIn', icon: Linkedin },
-    { href: 'mailto:me@harun.dev?subject=Hello%20Harun', label: 'Email', icon: Mail },
+    { href: '/contact', label: 'Contact', icon: Mail },
 ]
 
 export function Footer() {
@@ -189,8 +189,8 @@ export function Footer() {
                             <a
                                 key={label}
                                 href={href}
-                                target={href.startsWith('mailto:') ? undefined : '_blank'}
-                                rel={href.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
+                                target={href.startsWith('/') ? undefined : '_blank'}
+                                rel={href.startsWith('/') ? undefined : 'noopener noreferrer'}
                                 aria-label={label}
                                 className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-700 bg-slate-800/60 text-slate-400 transition hover:border-slate-600 hover:text-white motion-safe:hover:-translate-y-0.5 motion-safe:active:scale-95"
                             >
