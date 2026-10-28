@@ -24,7 +24,7 @@ export function TechStackSection() {
     const { ref } = useVisibleAnimation<HTMLElement>('css')
 
     return (
-        <section ref={ref} className="relative overflow-hidden border-y border-slate-200 bg-slate-900 py-16 sm:py-20">
+        <section ref={ref} className="relative overflow-hidden border-y border-slate-200 dark:border-slate-800 bg-slate-900 py-16 sm:py-20">
             {/* Grid overlay */}
             <div
                 className="pointer-events-none absolute inset-0 opacity-[0.08]"
