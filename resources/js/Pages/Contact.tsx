@@ -7,7 +7,8 @@ import {Label} from "@/Components/ui/label"
 import {Send} from "lucide-react"
 import {cn} from "@/lib/utils"
 import type React from "react"
-import {Link, router} from '@inertiajs/react'
+import {Link, router, usePage} from '@inertiajs/react'
+import Turnstile from "@/Components/Turnstile"
 import {toast} from "@/lib/toast"
 import { PageProps as InertiaPageProps } from '@inertiajs/core'
 import confetti from 'canvas-confetti';
@@ -33,6 +34,11 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
     const [submissionError, setSubmissionError] = useState<string | null>(null)
     const [showEnvelope, setShowEnvelope] = useState(false)
     const [showForm, setShowForm] = useState(true)
+    const [subscribe, setSubscribe] = useState(true)
+    const [turnstileToken, setTurnstileToken] = useState("")
+    // Turnstile tokens are single-use: remount the widget after every submit for a fresh one.
+    const [widgetKey, setWidgetKey] = useState(0)
+    const siteKey = (usePage().props as { turnstileSiteKey?: string | null }).turnstileSiteKey
 
     useEffect(() => {
         setReferrer(document.referrer || 'direct')
@@ -69,7 +75,9 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
             subject,
             message,
             services: [],
-            referrer
+            referrer,
+            subscribe,
+            'cf-turnstile-response': turnstileToken,
         }, {
             preserveScroll: true,
             onSuccess: (page) => {
@@ -96,7 +104,11 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
                     position: 'top-right'
                 })
             },
-            onFinish: () => setIsSubmitting(false),
+            onFinish: () => {
+                setIsSubmitting(false)
+                setTurnstileToken("")
+                setWidgetKey((k) => k + 1)
+            },
         })
     }
 
@@ -136,147 +148,134 @@ export default function Contact({ canonicalUrl }: { canonicalUrl?: string }) {
         }
     }
 
+    const fieldClass = (field: string) => cn(
+        "h-12 bg-white border-slate-200 text-base px-4 focus-visible:ring-amber-400",
+        errors[field] && "border-red-500 focus-visible:ring-red-400"
+    )
+
     return (
         <>
-            {/* Hero Section */}
-                    <section className="bg-slate-950">
-                        <div className="container mx-auto px-4 pb-8 pt-28 sm:pb-10 sm:pt-32">
-                            <motion.div
-                                initial={{opacity: 0, y: 20}}
-                                animate={{opacity: 1, y: 0}}
-                                transition={{duration: 0.8}}
-                                className="text-center max-w-3xl mx-auto"
-                            >
-                                <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Send a note</h1>
-                                <p className="text-xl text-white/80">
-                                    I read these and reply myself. If you want a time on the calendar,{' '}
-                                    <Link href="/consultation" className="underline underline-offset-4 hover:text-white">book a consult</Link>.
-                                </p>
-                            </motion.div>
-                        </div>
-                    </section>
+            <section className="bg-slate-950">
+                <div className="container mx-auto px-4 pb-12 pt-28 sm:pb-16 sm:pt-32">
+                    <motion.div
+                        initial={{opacity: 0, y: 20}}
+                        animate={{opacity: 1, y: 0}}
+                        transition={{duration: 0.6}}
+                        className="max-w-2xl"
+                    >
+                        <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-amber-400">Contact</p>
+                        <h1 className="mb-4 text-4xl font-bold text-white md:text-5xl">Send a note</h1>
+                        <p className="text-lg text-white/75">
+                            I read these and reply myself. If you want a time on the calendar,{' '}
+                            <Link href="/consultation" className="text-white underline underline-offset-4 hover:text-amber-300">book a consult</Link>.
+                        </p>
+                    </motion.div>
+                </div>
+            </section>
 
-                    {/* Contact Form Section */}
-                    <section className="bg-gray-50 py-8 sm:py-12">
-                        <div className="container mx-auto px-4">
-                            <motion.div
-                                initial={{opacity: 0, y: 20}}
-                                animate={{opacity: 1, y: 0}}
-                                transition={{duration: 0.6}}
-                                className="max-w-3xl mx-auto"
-                            >
-                                <AnimatePresence mode="wait">
-                                    {showForm && (
-                                        <motion.div
-                                            key="form"
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: -20 }}
-                                            transition={{ duration: 0.3 }}
-                                        >
-                                            <form onSubmit={handleSubmit}
-                                                  className="space-y-8 bg-white p-6 sm:p-10 lg:p-12 rounded-xl shadow-lg border border-gray-100">
-                                                <input type="hidden" name="referrer" value={referrer} />
-                                                <div className="space-y-3">
-                                                    <Label htmlFor="name" className="text-lg font-medium">Name <span className="text-red-500">*</span></Label>
-                                                    <Input 
-                                                        id="name" 
-                                                        value={name} 
-                                                        onChange={handleInputChange}
-                                                        className={cn(
-                                                            "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg h-14 px-4",
-                                                            errors.name && "border-red-500 focus:border-red-500"
-                                                        )}
-                                                        required
-                                                    />
-                                                    {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-                                                </div>
-                                                <div className="space-y-3">
-                                                    <Label htmlFor="email" className="text-lg font-medium">Email <span className="text-red-500">*</span></Label>
-                                                    <Input 
-                                                        id="email" 
-                                                        type="email" 
-                                                        value={email} 
-                                                        onChange={handleInputChange}
-                                                        className={cn(
-                                                            "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg h-14 px-4",
-                                                            errors.email && "border-red-500 focus:border-red-500"
-                                                        )}
-                                                        required
-                                                    />
-                                                    {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-                                                </div>
-                                                <div className="space-y-3">
-                                                    <Label htmlFor="subject" className="text-lg font-medium">Subject <span className="text-red-500">*</span></Label>
-                                                    <Input 
-                                                        id="subject" 
-                                                        value={subject} 
-                                                        onChange={handleInputChange}
-                                                        placeholder="What is your message about?"
-                                                        className={cn(
-                                                            "bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg h-14 px-4",
-                                                            errors.subject && "border-red-500 focus:border-red-500"
-                                                        )}
-                                                        required
-                                                    />
-                                                    {errors.subject && <p className="text-red-500 text-sm mt-1">{errors.subject}</p>}
-                                                </div>
-                                                <div className="space-y-3">
-                                                    <Label htmlFor="message" className="text-lg font-medium">Message <span className="text-red-500">*</span></Label>
-                                                    <Textarea
-                                                        id="message"
-                                                        value={message}
-                                                        onChange={handleInputChange}
-                                                        className={cn(
-                                                            "min-h-[150px] resize-none overflow-hidden bg-gray-50/50 border-gray-200 focus:bg-white transition-colors text-lg p-4",
-                                                            errors.message && "border-red-500 focus:border-red-500"
-                                                        )}
-                                                        required
-                                                    />
-                                                    {errors.message && <p className="text-red-500 text-sm mt-1">{errors.message}</p>}
-                                                </div>
-                                                {submissionError && (
-                                                    <p role="alert" className="text-red-500 text-sm">{submissionError}</p>
-                                                )}
-                                                <Button
-                                                    type="submit"
-                                                    disabled={isSubmitting}
-                                                    className="h-12 bg-slate-900 hover:bg-slate-800 text-white text-base font-semibold px-6 rounded-md transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-amber-400 focus:ring-opacity-75 focus:bg-slate-800 flex items-center gap-2 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                                                >
-                                                    {isSubmitting ? (
-                                                        <>
-                                                            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                            </svg>
-                                                            <span className="ml-2">Sending...</span>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Send className="w-5 h-5" />
-                                                            Send Message
-                                                        </>
-                                                    )}
-                                                </Button>
-                                            </form>
-                                        </motion.div>
+            <section className="bg-slate-50 py-10 sm:py-14">
+                <div className="container mx-auto px-4">
+                    <div className="mx-auto max-w-3xl">
+                        <AnimatePresence mode="wait">
+                            {showForm && (
+                                <motion.form
+                                    key="form"
+                                    onSubmit={handleSubmit}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-10"
+                                >
+                                    <input type="hidden" name="referrer" value={referrer} />
+                                    <div className="grid gap-6 sm:grid-cols-2">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="name" className="text-sm font-medium text-slate-700">Name <span className="text-red-500">*</span></Label>
+                                            <Input id="name" value={name} onChange={handleInputChange} autoComplete="name" className={fieldClass('name')} required />
+                                            {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="email" className="text-sm font-medium text-slate-700">Email <span className="text-red-500">*</span></Label>
+                                            <Input id="email" type="email" value={email} onChange={handleInputChange} autoComplete="email" className={fieldClass('email')} required />
+                                            {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="subject" className="text-sm font-medium text-slate-700">Subject <span className="text-red-500">*</span></Label>
+                                        <Input id="subject" value={subject} onChange={handleInputChange} placeholder="What is it about?" className={fieldClass('subject')} required />
+                                        {errors.subject && <p className="text-sm text-red-600">{errors.subject}</p>}
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="message" className="text-sm font-medium text-slate-700">Message <span className="text-red-500">*</span></Label>
+                                        <Textarea
+                                            id="message"
+                                            value={message}
+                                            onChange={handleInputChange}
+                                            placeholder="A few lines on what you need, your stack, and any deadline."
+                                            className={cn(
+                                                "min-h-[180px] resize-none overflow-hidden bg-white border-slate-200 text-base p-4 focus-visible:ring-amber-400",
+                                                errors.message && "border-red-500 focus-visible:ring-red-400"
+                                            )}
+                                            required
+                                        />
+                                        {errors.message && <p className="text-sm text-red-600">{errors.message}</p>}
+                                    </div>
+
+                                    <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                                        <input
+                                            type="checkbox"
+                                            checked={subscribe}
+                                            onChange={(e) => setSubscribe(e.target.checked)}
+                                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-amber-400"
+                                        />
+                                        <span>
+                                            <span className="font-medium text-slate-900">Subscribe to the newsletter.</span>{' '}
+                                            New posts and tools, about once a week. Unsubscribe any time.
+                                        </span>
+                                    </label>
+
+                                    {siteKey && (
+                                        <div>
+                                            <Turnstile key={widgetKey} siteKey={siteKey} onToken={setTurnstileToken} />
+                                            {errors['cf-turnstile-response'] && <p className="mt-2 text-sm text-red-600">{errors['cf-turnstile-response']}</p>}
+                                        </div>
                                     )}
 
-                                    {showEnvelope && (
-                                        <motion.div
-                                            key="confirmation"
-                                            className="bg-white p-6 sm:p-10 lg:p-12 rounded-xl shadow-lg border border-gray-100"
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: -20 }}
-                                        >
-                                            <Envelope onComplete={handleNewRequest} />
-                                        </motion.div>
+                                    {submissionError && (
+                                        <p role="alert" className="text-sm text-red-600">{submissionError}</p>
                                     )}
-                                </AnimatePresence>
-                            </motion.div>
-                        </div>
-                    </section>
+
+                                    <div className="flex flex-col-reverse gap-4 border-t border-slate-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
+                                        <p className="text-sm text-slate-500">
+                                            Rather email? <a href="mailto:me@harun.dev" className="font-medium text-slate-700 underline underline-offset-4">me@harun.dev</a>
+                                        </p>
+                                        <Button
+                                            type="submit"
+                                            disabled={isSubmitting || (!!siteKey && !turnstileToken)}
+                                            className="h-12 gap-2 rounded-lg bg-slate-900 px-6 text-base font-semibold text-white hover:bg-slate-800 focus-visible:ring-4 focus-visible:ring-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            <Send className="h-5 w-5" />
+                                            {isSubmitting ? 'Sending...' : 'Send message'}
+                                        </Button>
+                                    </div>
+                                </motion.form>
+                            )}
+
+                            {showEnvelope && (
+                                <motion.div
+                                    key="confirmation"
+                                    className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-10"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                >
+                                    <Envelope onComplete={handleNewRequest} />
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                </div>
+            </section>
         </>
     )
 }
