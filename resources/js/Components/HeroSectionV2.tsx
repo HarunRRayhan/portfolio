@@ -28,7 +28,7 @@ export function HeroSectionV2({ study = null }: { study?: HeroCaseStudy | null }
     const proofTitle = study ? caseStudyReaderTitle(study) : null
 
     return (
-        <section className="relative overflow-hidden border-b border-slate-200 bg-slate-50">
+        <section className="relative overflow-hidden border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950">
             <div
                 className="pointer-events-none absolute inset-0 opacity-[0.25]"
                 style={{
@@ -41,9 +41,9 @@ export function HeroSectionV2({ study = null }: { study?: HeroCaseStudy | null }
             <div className="container relative mx-auto py-16 sm:py-24 lg:py-28">
                 <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
                     <div className="max-w-2xl">
-                        <p className="mb-4 text-sm font-medium text-slate-600">DevOps consultant</p>
+                        <p className="mb-4 text-sm font-medium text-slate-600 dark:text-slate-300">DevOps consultant</p>
 
-                        <h1 className="homepage-hero-copy max-w-2xl text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-[3.75rem] lg:leading-[1.1]">
+                        <h1 className="homepage-hero-copy max-w-2xl text-4xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-5xl lg:text-[3.75rem] lg:leading-[1.1]">
                             I design, ship, and run{' '}
                             <span className="text-amber-600 underline decoration-amber-200 decoration-2 underline-offset-4">
                                 AWS infrastructure
@@ -51,7 +51,7 @@ export function HeroSectionV2({ study = null }: { study?: HeroCaseStudy | null }
                             .
                         </h1>
 
-                        <p className="homepage-hero-copy mt-5 max-w-xl text-lg leading-8 text-slate-600">
+                        <p className="homepage-hero-copy mt-5 max-w-xl text-lg leading-8 text-slate-600 dark:text-slate-300">
                             The account, the pipeline, and what happens after it ships.
                         </p>
 
@@ -59,7 +59,7 @@ export function HeroSectionV2({ study = null }: { study?: HeroCaseStudy | null }
                             <Link href="/consultation">
                                 <Button
                                     size="lg"
-                                    className="group w-full rounded-lg bg-slate-900 px-6 text-white shadow-sm transition hover:bg-slate-800 active:scale-[0.98] sm:w-auto"
+                                    className="group w-full rounded-lg bg-slate-900 px-6 text-white shadow-sm transition hover:bg-slate-800 active:scale-[0.98] sm:w-auto dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
                                 >
                                     Book a consult
                                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -67,22 +67,22 @@ export function HeroSectionV2({ study = null }: { study?: HeroCaseStudy | null }
                             </Link>
                             <Link
                                 href="/blog"
-                                className="inline-flex items-center justify-center px-2 py-2 text-sm font-medium text-slate-700 underline-offset-4 hover:text-slate-950 hover:underline sm:justify-start"
+                                className="inline-flex items-center justify-center px-2 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 underline-offset-4 hover:text-slate-950 dark:hover:text-white hover:underline sm:justify-start"
                             >
                                 Read the notes
                             </Link>
                         </div>
 
-                        <div className="mt-8 grid grid-cols-3 border-y border-slate-200 py-4">
+                        <div className="mt-8 grid grid-cols-3 border-y border-slate-200 dark:border-slate-800 py-4">
                             {highlights.map((item, i) => (
                                 <div
                                     key={item.label}
-                                    className={i > 0 ? 'border-l border-slate-200 pl-3 sm:pl-6' : ''}
+                                    className={i > 0 ? 'border-l border-slate-200 dark:border-slate-800 pl-3 sm:pl-6' : ''}
                                 >
-                                    <div className="font-mono text-lg font-semibold tabular-nums text-slate-900 sm:text-2xl">
+                                    <div className="font-mono text-lg font-semibold tabular-nums text-slate-900 dark:text-white sm:text-2xl">
                                         {item.value}
                                     </div>
-                                    <div className="mt-0.5 text-[11px] font-medium uppercase tracking-[0.12em] text-slate-600 sm:text-xs">
+                                    <div className="mt-0.5 text-[11px] font-medium uppercase tracking-[0.12em] text-slate-600 dark:text-slate-300 sm:text-xs">
                                         {item.label}
                                     </div>
                                 </div>
@@ -90,7 +90,7 @@ export function HeroSectionV2({ study = null }: { study?: HeroCaseStudy | null }
                         </div>
 
                         <div className="mt-8 hidden items-center gap-4 sm:flex">
-                            <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600">
+                            <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600 dark:text-slate-300">
                                 Connect
                             </span>
                             <div className="flex items-center gap-1.5">
@@ -106,7 +106,7 @@ export function HeroSectionV2({ study = null }: { study?: HeroCaseStudy | null }
                                         target={href.startsWith('/') ? undefined : '_blank'}
                                         rel={href.startsWith('/') ? undefined : 'noopener noreferrer'}
                                         aria-label={label}
-                                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-900 motion-safe:hover:-translate-y-0.5 motion-safe:active:scale-95"
+                                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 transition hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-900 dark:hover:text-white motion-safe:hover:-translate-y-0.5 motion-safe:active:scale-95"
                                     >
                                         <Icon className="h-4 w-4" />
                                     </a>
@@ -115,7 +115,7 @@ export function HeroSectionV2({ study = null }: { study?: HeroCaseStudy | null }
                         </div>
                     </div>
 
-                    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm sm:p-6">
                         <div className="flex items-center gap-4">
                             <img
                                 src={getImageUrl('/images/profile/harun-bio.jpg')}
@@ -125,13 +125,13 @@ export function HeroSectionV2({ study = null }: { study?: HeroCaseStudy | null }
                                 className="h-16 w-16 rounded-full object-cover sm:h-[4.5rem] sm:w-[4.5rem]"
                             />
                             <div>
-                                <p className="text-sm font-semibold text-slate-950">Harun R. Rayhan</p>
-                                <p className="mt-1 text-sm text-slate-600">Available for remote consulting.</p>
+                                <p className="text-sm font-semibold text-slate-950 dark:text-white">Harun R. Rayhan</p>
+                                <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Available for remote consulting.</p>
                             </div>
                         </div>
 
                         {study && proofTitle ? (
-                            <Link href={study.url} className="mt-5 block overflow-hidden rounded-xl border border-slate-200 bg-slate-50 transition hover:border-slate-300">
+                            <Link href={study.url} className="mt-5 block overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 transition hover:border-slate-300 dark:hover:border-slate-700">
                                 {study.coverImageUrl ? (
                                     <img
                                         src={study.coverImageUrl}
@@ -141,16 +141,16 @@ export function HeroSectionV2({ study = null }: { study?: HeroCaseStudy | null }
                                 ) : null}
                                 <div className="p-4">
                                     <p className="text-xs font-medium text-amber-800">{study.industry || study.codename}</p>
-                                    <p className="mt-2 text-base font-semibold leading-snug text-slate-950">{proofTitle}</p>
-                                    <p className="mt-2 text-sm leading-6 text-slate-600">{study.headlineOutcome}</p>
-                                    <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-slate-900">
+                                    <p className="mt-2 text-base font-semibold leading-snug text-slate-950 dark:text-white">{proofTitle}</p>
+                                    <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{study.headlineOutcome}</p>
+                                    <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-slate-900 dark:text-white">
                                         Read the case study
                                         <ArrowRight className="h-4 w-4" />
                                     </span>
                                 </div>
                             </Link>
                         ) : (
-                            <Link href="/case-studies" className="mt-5 block rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 transition hover:border-slate-300">
+                            <Link href="/case-studies" className="mt-5 block rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-4 text-sm text-slate-700 dark:text-slate-200 transition hover:border-slate-300 dark:hover:border-slate-700">
                                 Work from real engagements. The client name stays off the page.
                             </Link>
                         )}

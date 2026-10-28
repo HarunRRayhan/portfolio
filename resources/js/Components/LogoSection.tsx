@@ -21,23 +21,23 @@ export function LogoSection() {
     const { ref } = useVisibleAnimation<HTMLElement>('css')
 
     return (
-        <section ref={ref} className="border-b border-slate-200 bg-slate-50/80 py-14">
+        <section ref={ref} className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/80 py-14">
             <div className="container mx-auto">
                 <div className="mx-auto max-w-2xl text-center">
-                    <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600">
+                    <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600 dark:text-slate-300">
                         Companies
                     </p>
-                    <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                    <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
                         Places the work has shipped.
                     </h2>
-                    <p className="mt-3 text-base leading-7 text-slate-600">
+                    <p className="mt-3 text-base leading-7 text-slate-600 dark:text-slate-300">
                         Product teams and larger companies. The client name stays off the case studies.
                     </p>
                 </div>
 
                 <div className="relative mt-8 overflow-hidden">
-                    <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-slate-50/80 to-transparent" />
-                    <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-slate-50/80 to-transparent" />
+                    <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-slate-50/80 dark:from-slate-950/80 to-transparent" />
+                    <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-slate-50/80 dark:from-slate-950/80 to-transparent" />
 
                     <div
                         data-running="false"
@@ -46,7 +46,7 @@ export function LogoSection() {
                         {items.map((company, index) => (
                             <div
                                 key={`${company.name}-${index}`}
-                                className="flex h-14 w-[180px] items-center justify-center rounded-lg border border-slate-200 bg-white px-5 shadow-sm"
+                                className="flex h-14 w-[180px] items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white px-5 shadow-sm"
                             >
                                 <img
                                     src={company.logo}

@@ -19,7 +19,7 @@ export default function PublicLayout({
   hideFooter = false,
 }: PropsWithChildren<PublicLayoutProps>) {
   return (
-    <div className={`min-h-screen ${background} font-sans text-slate-900`}>
+    <div className={`min-h-screen ${background} font-sans text-slate-900 dark:bg-slate-950 dark:text-slate-100`}>
       <SeoHead />
       <ErrorBoundary>
         <Menubar />
