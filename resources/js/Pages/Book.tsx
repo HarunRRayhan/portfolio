@@ -22,7 +22,7 @@ type Slot = { start: string; end: string }
 
 type BookingUser = { name: string; email: string }
 
-const inputClass = 'w-full border border-slate-200 bg-white px-3 py-2 text-slate-900 outline-none ring-slate-400 focus:ring-2'
+const inputClass = 'w-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-slate-900 dark:text-white outline-none ring-slate-400 focus:ring-2'
 
 // Magic-link accounts get the email local part as their name; don't prefill that.
 function prefillName(user: BookingUser | null | undefined): string {
@@ -333,29 +333,29 @@ export default function Book({
     <>
       <Head><meta head-key="referrer" name="referrer" content="no-referrer" /></Head>
 
-      <section className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-b from-slate-50 via-white to-slate-50">
+      <section className="relative overflow-hidden border-b border-slate-200 dark:border-slate-800 bg-gradient-to-b from-slate-50 dark:from-slate-950 via-white dark:via-slate-950 to-slate-50 dark:to-slate-950">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(245,158,11,0.08),_transparent_55%)]" />
         <div className="container relative mx-auto py-16 sm:py-20 lg:py-24">
           <div className="mx-auto max-w-2xl text-center">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white/80 px-3 py-1.5 shadow-sm">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-md border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 px-3 py-1.5 shadow-sm">
               <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-              <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+              <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Pricing plans
               </span>
             </div>
             <motion.h1
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl"
+              className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl lg:text-5xl"
             >
               Pick a plan, then a time.
             </motion.h1>
-            <p className="mt-4 text-lg leading-7 text-slate-500">
+            <p className="mt-4 text-lg leading-7 text-slate-500 dark:text-slate-400">
               Request a slot at least {minLeadHours} hours ahead. I approve it, then you pay.
               Nothing is confirmed on the calendar until both happen.
             </p>
             {launchAvailable && (
-              <p className="mt-4 text-sm font-medium text-amber-700">
+              <p className="mt-4 text-sm font-medium text-amber-700 dark:text-amber-300">
                 Launch offer: the first{' '}
                 <span
                   tabIndex={0}
@@ -366,7 +366,7 @@ export default function Book({
                   <span
                     id="launch-offer-limit-tooltip"
                     role="tooltip"
-                    className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 w-max max-w-56 -translate-x-1/2 rounded-md bg-slate-900 px-2.5 py-1.5 text-xs font-normal text-white opacity-0 shadow-md transition-opacity duration-150 [@media(hover:hover)]:group-hover:opacity-100 group-focus-visible:opacity-100"
+                    className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 w-max max-w-56 -translate-x-1/2 rounded-md bg-slate-900 px-2.5 py-1.5 text-xs font-normal text-white opacity-0 shadow-md transition-opacity duration-150 [@media(hover:hover)]:group-hover:opacity-100 group-focus-visible:opacity-100 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
                   >
                     Because 1,000 was too obvious.
                   </span>
@@ -376,13 +376,13 @@ export default function Book({
                   tabIndex={0}
                   aria-label="More about the launch offer"
                   aria-describedby="launch-offer-coupon-tooltip"
-                  className="group relative inline-flex cursor-help align-text-bottom text-amber-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                  className="group relative inline-flex cursor-help align-text-bottom text-amber-700 dark:text-amber-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                 >
                   <Info className="h-4 w-4" />
                   <span
                     id="launch-offer-coupon-tooltip"
                     role="tooltip"
-                    className="pointer-events-none absolute bottom-full right-0 z-10 mb-2 w-max max-w-56 rounded-md bg-slate-900 px-2.5 py-1.5 text-left text-xs font-normal text-white opacity-0 shadow-md transition-opacity duration-150 [@media(hover:hover)]:group-hover:opacity-100 group-focus-visible:opacity-100"
+                    className="pointer-events-none absolute bottom-full right-0 z-10 mb-2 w-max max-w-56 rounded-md bg-slate-900 px-2.5 py-1.5 text-left text-xs font-normal text-white opacity-0 shadow-md transition-opacity duration-150 [@media(hover:hover)]:group-hover:opacity-100 group-focus-visible:opacity-100 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
                   >
                     Valid percentage coupons stack after this discount.
                   </span>
@@ -393,7 +393,7 @@ export default function Book({
         </div>
       </section>
 
-      <section className="bg-white py-14 sm:py-16">
+      <section className="bg-white dark:bg-slate-900 py-14 sm:py-16">
         <div className="container mx-auto">
           <AnimatePresence mode="wait">
             {step === 'plans' ? (
@@ -405,13 +405,13 @@ export default function Book({
                 className="mx-auto max-w-5xl"
               >
                 {!bookingUser && loginUrl && (
-                  <div className="mb-8 flex flex-col items-start justify-between gap-4 border border-slate-200 bg-white p-6 sm:flex-row sm:items-center">
-                    <p className="text-sm text-slate-700">
+                  <div className="mb-8 flex flex-col items-start justify-between gap-4 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:flex-row sm:items-center">
+                    <p className="text-sm text-slate-700 dark:text-slate-200">
                       Sign up to book. It takes a few seconds with Google, GitHub or an email link.
                     </p>
                     <a
                       href={loginUrl}
-                      className="shrink-0 bg-slate-900 px-5 py-3 font-mono text-xs font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-slate-800"
+                      className="shrink-0 bg-slate-900 px-5 py-3 font-mono text-xs font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
                     >
                       Sign up to book
                     </a>
@@ -424,7 +424,7 @@ export default function Book({
                   return (
                     <div
                       key={tier.slug}
-                      className={`relative flex flex-col border border-slate-200 bg-white ${accent.border} border-t-[3px] border-b-[3px] ${isRecommended ? `ring-2 ${accent.ring} ring-offset-2` : ''}`}
+                      className={`relative flex flex-col border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 ${accent.border} border-t-[3px] border-b-[3px] ${isRecommended ? `ring-2 ${accent.ring} ring-offset-2` : ''}`}
                     >
                       {isRecommended && (
                         <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-amber-700 px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-white shadow-sm">
@@ -432,13 +432,13 @@ export default function Book({
                         </span>
                       )}
                       <div className="px-6 pb-4 pt-8 text-center">
-                        <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                        <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                           {tier.name}
                         </p>
-                        <p className="mt-3 text-4xl font-bold tracking-tight text-slate-900">
+                        <p className="mt-3 text-4xl font-bold tracking-tight text-slate-900 dark:text-white">
                           {launchAvailable ? (
                             <>
-                              <span className="text-slate-600 line-through">{tier.price_display}</span>
+                              <span className="text-slate-600 dark:text-slate-300 line-through">{tier.price_display}</span>
                               {' '}
                               <span className="ml-2">
                                 {formatCents(Math.max(0, tier.price_cents - (launchPromotion?.discount_cents ?? 0)))}
@@ -447,16 +447,16 @@ export default function Book({
                           ) : (
                             tier.price_display
                           )}
-                          <span className="ml-1 text-base font-medium text-slate-600">/ one time</span>
+                          <span className="ml-1 text-base font-medium text-slate-600 dark:text-slate-300">/ one time</span>
                         </p>
-                        {launchAvailable && <p className="mt-1 text-xs font-medium text-amber-700">{launchDiscountDisplay} off launch pricing</p>}
-                        <p className="mt-1 text-sm text-slate-500">{tier.duration_minutes} minutes</p>
+                        {launchAvailable && <p className="mt-1 text-xs font-medium text-amber-700 dark:text-amber-300">{launchDiscountDisplay} off launch pricing</p>}
+                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{tier.duration_minutes} minutes</p>
                       </div>
-                      <ul className="flex-1 border-t border-slate-100 px-6">
+                      <ul className="flex-1 border-t border-slate-100 dark:border-slate-800 px-6">
                         {tier.features.map((f) => (
                           <li
                             key={f.label}
-                            className="flex items-start gap-3 border-b border-slate-100 py-3.5 text-sm text-slate-700 last:border-b-0"
+                            className="flex items-start gap-3 border-b border-slate-100 dark:border-slate-800 py-3.5 text-sm text-slate-700 dark:text-slate-200 last:border-b-0"
                           >
                             <span
                               role="img"
@@ -467,7 +467,7 @@ export default function Book({
                             >
                               {f.included ? <Check className="h-3 w-3" aria-hidden="true" /> : <X className="h-3 w-3" aria-hidden="true" />}
                             </span>
-                            <span className={f.included ? '' : 'text-slate-600'}>{f.label}</span>
+                            <span className={f.included ? '' : 'text-slate-600 dark:text-slate-300'}>{f.label}</span>
                           </li>
                         ))}
                       </ul>
@@ -505,18 +505,18 @@ export default function Book({
                 <button
                   type="button"
                   onClick={() => setStep('plans')}
-                  className="mb-6 inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-800"
+                  className="mb-6 inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100"
                 >
                   <ChevronLeft className="h-4 w-4" />
                   All plans
                 </button>
 
-                <form onSubmit={submit} className="space-y-6 border border-slate-200 bg-white p-6 sm:p-8">
+                <form onSubmit={submit} className="space-y-6 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8">
                   <div>
-                    <p className="font-mono text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    <p className="font-mono text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                       {selected?.name}
                     </p>
-                    <p className="mt-1 text-2xl font-bold text-slate-900">
+                    <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
                       {discountedCents !== null
                         ? formatCents(discountedCents)
                         : selectedAmountCents !== null
@@ -530,7 +530,7 @@ export default function Book({
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="block text-sm">
-                      <span className="mb-1.5 block font-medium text-slate-700">Name</span>
+                      <span className="mb-1.5 block font-medium text-slate-700 dark:text-slate-200">Name</span>
                       <input
                         required
                         value={form.data.client_name}
@@ -540,7 +540,7 @@ export default function Book({
                       {errors.client_name && <p className="mt-1 text-xs text-rose-600">{errors.client_name}</p>}
                     </label>
                     <label className="block text-sm">
-                      <span className="mb-1.5 block font-medium text-slate-700">Company name</span>
+                      <span className="mb-1.5 block font-medium text-slate-700 dark:text-slate-200">Company name</span>
                       <input
                         required
                         value={form.data.company_name}
@@ -550,7 +550,7 @@ export default function Book({
                       {errors.company_name && <p className="mt-1 text-xs text-rose-600">{errors.company_name}</p>}
                     </label>
                     <label className="block text-sm">
-                      <span className="mb-1.5 block font-medium text-slate-700">Website</span>
+                      <span className="mb-1.5 block font-medium text-slate-700 dark:text-slate-200">Website</span>
                       <input
                         type="text"
                         inputMode="url"
@@ -563,7 +563,7 @@ export default function Book({
                       {errors.website && <p className="mt-1 text-xs text-rose-600">{errors.website}</p>}
                     </label>
                     <label className="block text-sm">
-                      <span className="mb-1.5 block font-medium text-slate-700">Role (optional)</span>
+                      <span className="mb-1.5 block font-medium text-slate-700 dark:text-slate-200">Role (optional)</span>
                       <input
                         value={form.data.role}
                         onChange={(e) => form.setData('role', e.target.value)}
@@ -572,7 +572,7 @@ export default function Book({
                       {errors.role && <p className="mt-1 text-xs text-rose-600">{errors.role}</p>}
                     </label>
                     <label className="block text-sm">
-                      <span className="mb-1.5 block font-medium text-slate-700">Team size (optional)</span>
+                      <span className="mb-1.5 block font-medium text-slate-700 dark:text-slate-200">Team size (optional)</span>
                       <select
                         value={form.data.team_size}
                         onChange={(e) => form.setData('team_size', e.target.value)}
@@ -586,7 +586,7 @@ export default function Book({
                       {errors.team_size && <p className="mt-1 text-xs text-rose-600">{errors.team_size}</p>}
                     </label>
                     <label className="block text-sm">
-                      <span className="mb-1.5 block font-medium text-slate-700">Budget (optional)</span>
+                      <span className="mb-1.5 block font-medium text-slate-700 dark:text-slate-200">Budget (optional)</span>
                       <select
                         value={form.data.budget}
                         onChange={(e) => form.setData('budget', e.target.value)}
@@ -602,7 +602,7 @@ export default function Book({
                   </div>
 
                   <label className="block text-sm">
-                    <span className="mb-1.5 block font-medium text-slate-700">What do you need help with?</span>
+                    <span className="mb-1.5 block font-medium text-slate-700 dark:text-slate-200">What do you need help with?</span>
                     <textarea
                       rows={4}
                       required
@@ -614,12 +614,12 @@ export default function Book({
                   </label>
 
                   {bookingUser && (
-                    <p className="text-xs text-slate-500">Updates go to {bookingUser.email}.</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Updates go to {bookingUser.email}.</p>
                   )}
 
                    <div>
                      <div className="mb-4">
-                       <label htmlFor="booking-timezone" className="mb-1.5 block text-sm font-medium text-slate-700">
+                       <label htmlFor="booking-timezone" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
                          Timezone
                        </label>
                        <select
@@ -629,7 +629,7 @@ export default function Book({
                            setTimezone(e.target.value)
                            form.setData('starts_at', '')
                          }}
-                         className="w-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-slate-400 focus:ring-2"
+                         className="w-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-white outline-none ring-slate-400 focus:ring-2"
                        >
                          {timezones.map((zone) => (
                            <option key={zone} value={zone}>
@@ -638,19 +638,19 @@ export default function Book({
                          ))}
                        </select>
                      </div>
-                     <span className="mb-1.5 block text-sm font-medium text-slate-700">Pick a time</span>
+                     <span className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">Pick a time</span>
                     {slotsLoading ? (
-                      <div role="status" className="flex items-center gap-2 py-8 text-sm text-slate-500">
+                      <div role="status" className="flex items-center gap-2 py-8 text-sm text-slate-500 dark:text-slate-400">
                         <Loader2 className="h-4 w-4 animate-spin" /> Loading open slots…
                       </div>
                     ) : slotsError ? (
-                      <div role="alert" className="border border-rose-200 bg-rose-50 px-4 py-5 text-sm text-rose-800">
+                      <div role="alert" className="border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/40 px-4 py-5 text-sm text-rose-800 dark:text-rose-300">
                         <p>{slotsError}</p>
                         <div className="mt-3 flex items-center gap-4">
                           <button
                             type="button"
                             onClick={retryAvailability}
-                            className="border border-rose-300 bg-white px-4 py-2 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-700"
+                            className="border border-rose-300 bg-white dark:bg-slate-900 px-4 py-2 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-700"
                           >
                             Retry
                           </button>
@@ -658,9 +658,9 @@ export default function Book({
                         </div>
                       </div>
                     ) : slots.length === 0 ? (
-                      <p className="border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
+                      <p className="border border-dashed border-slate-200 dark:border-slate-800 px-4 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
                         No open slots right now. Please check back later or{' '}
-                        <a href="/contact" className="font-medium text-slate-700 underline underline-offset-4">send a note</a>{' '}
+                        <a href="/contact" className="font-medium text-slate-700 dark:text-slate-200 underline underline-offset-4">send a note</a>{' '}
                         to arrange a time.
                       </p>
                     ) : (
@@ -684,7 +684,7 @@ export default function Book({
                                 className={`min-w-36 shrink-0 border px-3 py-2 text-left transition ${
                                   active
                                     ? 'border-slate-900 bg-slate-900 text-white'
-                                    : 'border-slate-200 text-slate-700 hover:border-slate-400'
+                                    : 'border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-slate-400'
                                 }`}
                               >
                                 <span className="block text-sm font-medium">{day.label}</span>
@@ -707,7 +707,7 @@ export default function Book({
                               className={`border px-3 py-2 text-left text-sm transition ${
                                 active
                                   ? 'border-slate-900 bg-slate-900 text-white'
-                                  : 'border-slate-200 text-slate-700 hover:border-slate-400'
+                                  : 'border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-slate-400'
                               }`}
                             >
                               {formatLocal(slot.start, timezone)}

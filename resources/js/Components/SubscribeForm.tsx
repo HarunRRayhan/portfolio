@@ -11,13 +11,13 @@ export type SubscribeTheme = 'warm' | 'slate'
 const THEME = {
   warm: {
     input:
-      'bg-white border-[#e4d7c4] focus-visible:ring-[#b8541f]/30 focus-visible:border-[#c98a4b] text-[#2b2320] placeholder:text-[#a08a6f]',
+      'bg-white dark:bg-slate-900 border-[#e4d7c4] focus-visible:ring-[#b8541f]/30 focus-visible:border-[#c98a4b] text-[#2b2320] placeholder:text-[#a08a6f]',
     button: 'bg-[#b8541f] hover:bg-[#9c4419] text-white shadow-sm shadow-[#b8541f]/25',
     error: 'text-[#b8541f]',
   },
   slate: {
     input:
-      'bg-white border-slate-200 focus-visible:ring-slate-400/30 focus-visible:border-slate-300 text-slate-950 placeholder:text-slate-400',
+      'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 focus-visible:ring-slate-400/30 focus-visible:border-slate-300 dark:focus-visible:border-slate-700 text-slate-950 dark:text-white placeholder:text-slate-400',
     button: 'bg-slate-900 hover:bg-slate-800 text-white shadow-sm',
     error: 'text-red-600',
   },

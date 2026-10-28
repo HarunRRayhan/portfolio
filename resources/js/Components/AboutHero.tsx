@@ -30,7 +30,7 @@ export function AboutHero() {
               <Button
                 variant="default"
                 size="lg"
-                className="bg-white text-amber-600 hover:bg-white/90 transition-all duration-300 group"
+                className="bg-white text-amber-600 hover:bg-white/90 dark:bg-white dark:text-amber-600 dark:hover:bg-white/90 transition-all duration-300 group"
                 onClick={() => window.open("/cv-harun-r-rayhan.pdf", "_blank")}
               >
                 <FileDown className="mr-2 h-5 w-5 group-hover:translate-y-0.5 transition-transform duration-300" />
@@ -62,7 +62,7 @@ export function AboutHero() {
           </motion.div>
         </div>
       </div>
-      <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent"></div>
+      <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white dark:from-slate-950 to-transparent"></div>
     </section>
   )
 }

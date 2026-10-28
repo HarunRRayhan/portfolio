@@ -28,10 +28,10 @@ const values = [
 
 export function PersonalValues() {
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-white dark:bg-slate-900">
       <div className="container mx-auto">
         <motion.h2
-          className="text-3xl lg:text-4xl font-bold text-center mb-16 text-gray-900"
+          className="text-3xl lg:text-4xl font-bold text-center mb-16 text-gray-900 dark:text-white"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -43,7 +43,7 @@ export function PersonalValues() {
           {values.map((value, index) => (
             <motion.div
               key={value.title}
-              className="bg-gray-50 rounded-lg p-6 shadow-md"
+              className="bg-gray-50 dark:bg-slate-950 rounded-lg p-6 shadow-md"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -52,8 +52,8 @@ export function PersonalValues() {
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center mb-4">
                 <value.icon className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{value.title}</h3>
-              <p className="text-gray-600">{value.description}</p>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{value.title}</h3>
+              <p className="text-gray-600 dark:text-slate-300">{value.description}</p>
             </motion.div>
           ))}
         </div>

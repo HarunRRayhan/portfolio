@@ -61,7 +61,7 @@ const faqs = [
 
 export function FAQSection() {
   return (
-    <section className="py-20 pb-32 bg-gray-50">
+    <section className="py-20 pb-32 bg-gray-50 dark:bg-slate-950">
       <div className="container mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -70,8 +70,8 @@ export function FAQSection() {
           transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">Questions people ask</h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-6">Questions people ask</h2>
+          <p className="text-xl text-gray-600 dark:text-slate-300 max-w-3xl mx-auto">
             AWS, releases, and the bill. If yours isn't here, send a note.
           </p>
         </motion.div>
@@ -88,13 +88,13 @@ export function FAQSection() {
                 <AccordionItem
                   key={index}
                   value={`item-${index}`}
-                  className="bg-white rounded-lg shadow-sm border border-gray-200"
+                  className="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-gray-200 dark:border-slate-800"
                 >
                   <AccordionTrigger className="px-6 text-left hover:no-underline">
-                    <h3 className="text-lg font-semibold text-gray-900">{faq.question}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{faq.question}</h3>
                   </AccordionTrigger>
                   <AccordionContent className="px-6 pb-6">
-                    <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
+                    <p className="text-gray-600 dark:text-slate-300 leading-relaxed">{faq.answer}</p>
                   </AccordionContent>
                 </AccordionItem>
               ))}

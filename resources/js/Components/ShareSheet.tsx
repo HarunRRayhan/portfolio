@@ -27,13 +27,13 @@ const THEME = {
   },
   slate: {
     font: '',
-    border: 'border-slate-200',
-    panelBg: 'bg-white',
+    border: 'border-slate-200 dark:border-slate-800',
+    panelBg: 'bg-white dark:bg-slate-900',
     panelShadow: 'shadow-slate-950/10',
-    label: 'text-slate-600',
-    muted: 'text-slate-500',
-    mutedHoverBg: 'hover:bg-slate-100',
-    mutedHoverText: 'hover:text-slate-950',
+    label: 'text-slate-600 dark:text-slate-300',
+    muted: 'text-slate-500 dark:text-slate-400',
+    mutedHoverBg: 'hover:bg-slate-100 dark:hover:bg-slate-800',
+    mutedHoverText: 'hover:text-slate-950 dark:hover:text-white',
     qrHoverBorder: 'hover:border-slate-400',
     modalBackdrop: 'bg-slate-950/80',
     qrFg: '#0f172a',
@@ -138,7 +138,7 @@ export function ShareSheet({
             onClick={share}
             className={`flex ${s.wrap} shrink-0 flex-col items-center gap-1.5 rounded-xl py-1 ${t.focusRing}`}
           >
-            <span className={`flex ${s.circle} items-center justify-center rounded-full bg-slate-100 text-slate-700`}>
+            <span className={`flex ${s.circle} items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200`}>
               <Share className={s.iconSm} />
             </span>
             <span className={`${t.font} ${s.label} font-medium ${t.muted}`}>More</span>
@@ -179,7 +179,7 @@ export function ShareSheet({
         type="button"
         onClick={() => setExpanded(true)}
         aria-label="Enlarge QR code"
-        className={`mt-3 flex w-full justify-center rounded-xl border ${t.border} bg-white p-3 transition ${t.qrHoverBorder} ${t.focusRing}`}
+        className={`mt-3 flex w-full justify-center rounded-xl border ${t.border} bg-white dark:bg-slate-900 p-3 transition ${t.qrHoverBorder} ${t.focusRing}`}
       >
         <QRCodeSVG value={url} size={144} bgColor="#ffffff" fgColor={t.qrFg} level="M" />
       </button>
@@ -207,7 +207,7 @@ export function ShareSheet({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.96 }}
                 transition={{ duration: 0.18, ease: 'easeOut' }}
-                className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+                className="relative w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center justify-between gap-2">
@@ -235,7 +235,7 @@ export function ShareSheet({
                   </div>
                 </div>
 
-                <div className={`mt-4 flex justify-center rounded-xl border ${t.border} bg-white p-3`}>
+                <div className={`mt-4 flex justify-center rounded-xl border ${t.border} bg-white dark:bg-slate-900 p-3`}>
                   <QRCodeSVG
                     value={url}
                     size={512}
