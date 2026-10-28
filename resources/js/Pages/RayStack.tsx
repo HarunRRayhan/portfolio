@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Link } from "@inertiajs/react"
-import { ArrowRight, ArrowUpRight, Check, Copy } from "lucide-react"
+import { ArrowRight, ArrowUpRight, Check, ChevronDown, Copy } from "lucide-react"
 import { Github } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
@@ -8,6 +8,11 @@ const repoUrl = "https://github.com/HarunRRayhan/raystack"
 
 const focusRing =
     "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-700"
+
+const globalInstall = {
+    code: "npx skills add HarunRRayhan/raystack -g",
+    note: "Finds the agents you have (Claude Code, Codex, Cursor, and others) and installs all sixteen skills globally. Add -a claude-code to pick one."
+}
 
 const installs = [
     {
@@ -182,19 +187,38 @@ export default function RayStack() {
                 <section aria-labelledby="install" className="scroll-mt-28 border-b border-[#dedfd8] py-14 sm:py-16">
                     <SectionHeading id="install" eyebrow="Install" title="Pick your agent" />
                     <p className="mt-4 max-w-2xl text-sm leading-6 text-[#686b65]">
-                        You need <code className="font-mono">bash</code> and <code className="font-mono">jq</code>.
+                        You need <code className="font-mono">bash</code> and <code className="font-mono">jq</code>, plus Node.js for the one-command install.
                         The PDF export also needs Chrome or Chromium and <code className="font-mono">npx</code>.
                         Blog covers need Chrome or Chromium and <code className="font-mono">node</code>.
                     </p>
-                    <div className="mt-8 grid gap-8">
-                        {installs.map((install) => (
-                            <div key={install.agent}>
-                                <h3 className="mb-3 text-base font-semibold">{install.agent}</h3>
-                                <CodeBlock code={install.code} label={install.agent} />
-                                <p className="mt-2 text-xs leading-5 text-[#686b65]">{install.note}</p>
-                            </div>
-                        ))}
+                    <div className="mt-8">
+                        <h3 className="mb-3 text-base font-semibold">Any agent, one command</h3>
+                        <CodeBlock code={globalInstall.code} label="global" />
+                        <p className="mt-2 text-xs leading-5 text-[#686b65]">{globalInstall.note}</p>
                     </div>
+                    <details className="group mt-8 rounded-xl border border-[#dedfd8] bg-[#fffefa]">
+                        <summary
+                            className={cn(
+                                "flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-5 py-3 text-sm font-medium hover:bg-[#f4f4ef] [&::-webkit-details-marker]:hidden",
+                                focusRing
+                            )}
+                        >
+                            Install for a specific agent: Claude Code, Codex, Cursor, Grok, or any other
+                            <ChevronDown
+                                aria-hidden="true"
+                                className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180"
+                            />
+                        </summary>
+                        <div className="grid gap-8 border-t border-[#dedfd8] px-5 py-6">
+                            {installs.map((install) => (
+                                <div key={install.agent}>
+                                    <h3 className="mb-3 text-base font-semibold">{install.agent}</h3>
+                                    <CodeBlock code={install.code} label={install.agent} />
+                                    <p className="mt-2 text-xs leading-5 text-[#686b65]">{install.note}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </details>
                 </section>
 
                 <section aria-labelledby="skills" className="border-b border-[#dedfd8] py-14 sm:py-16">
