@@ -34,7 +34,7 @@ const skills = [
 
 export function SkillsSection() {
     return (
-        <section className="relative overflow-hidden bg-white py-20 sm:py-24">
+        <section className="relative overflow-hidden bg-white dark:bg-slate-900 py-20 sm:py-24">
             {/* Subtle grid */}
             <div
                 className="pointer-events-none absolute inset-0 opacity-[0.15]"
@@ -46,15 +46,15 @@ export function SkillsSection() {
             />
             <div className="container relative mx-auto">
                 <div className="mx-auto max-w-3xl text-center">
-                    <div className="mb-4 inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50/80 px-3 py-1.5">
-                        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-600">
+                    <div className="mb-4 inline-flex items-center gap-2 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/80 px-3 py-1.5">
+                        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-600 dark:text-slate-300">
                             Capabilities
                         </span>
                     </div>
-                    <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
+                    <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl lg:text-5xl">
                         What the work usually is
                     </h2>
-                    <p className="mt-4 text-base leading-7 text-slate-600 sm:text-lg">
+                    <p className="mt-4 text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg">
                         The app, the AWS account, and the release after I leave.
                     </p>
                 </div>
@@ -65,13 +65,13 @@ export function SkillsSection() {
                         {skills.map((skill) => (
                             <div
                                 key={skill.title}
-                                className="group rounded-xl border border-slate-200 bg-white p-6 transition hover:border-slate-300 hover:shadow-sm"
+                                className="group rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 transition hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-sm"
                             >
-                                <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-600 transition group-hover:border-slate-300">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 transition group-hover:border-slate-300 dark:group-hover:border-slate-700">
                                     <skill.icon className="h-5 w-5" />
                                 </div>
-                                <h3 className="mt-5 text-lg font-semibold text-slate-900">{skill.title}</h3>
-                                <p className="mt-2 text-sm leading-7 text-slate-600">{skill.description}</p>
+                                <h3 className="mt-5 text-lg font-semibold text-slate-900 dark:text-white">{skill.title}</h3>
+                                <p className="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-300">{skill.description}</p>
                             </div>
                         ))}
 
@@ -80,22 +80,22 @@ export function SkillsSection() {
                     {/* Right column: Certifications + style card */}
                     <div className="relative">
                         <div className="absolute -inset-6 rounded-[2rem] bg-gradient-to-br from-amber-500/8 via-transparent to-amber-500/8 blur-3xl" />
-                        <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                        <div className="relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm sm:p-6">
                             <div className="flex items-center justify-between gap-4">
                                 <div>
-                                    <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-600">
+                                    <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-600 dark:text-slate-300">
                                         Credentials
                                     </p>
-                                    <h3 className="mt-2 text-xl font-bold text-slate-900">
+                                    <h3 className="mt-2 text-xl font-bold text-slate-900 dark:text-white">
                                         All 12 AWS certifications
                                     </h3>
                                 </div>
-                                <div className="rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
+                                <div className="rounded-md border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-1 text-[11px] font-semibold text-amber-700 dark:text-amber-300">
                                     AWS + IaC
                                 </div>
                             </div>
 
-                            <div className="mt-4 rounded-lg border border-slate-100 bg-slate-50 p-3">
+                            <div className="mt-4 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-3">
                                 <Image
                                     src={getImageUrl('/images/aws-certifications.webp')}
                                     alt="AWS certifications"
@@ -105,7 +105,7 @@ export function SkillsSection() {
                                 />
                             </div>
 
-                            <p className="mt-4 text-sm leading-6 text-slate-600">
+                            <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">
                                 I write the change, review the plan, and leave notes the next person can run.
                             </p>
                         </div>

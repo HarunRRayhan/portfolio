@@ -83,7 +83,7 @@ export function ReviewSlideSection() {
         <section
             ref={ref}
             id="testimonials"
-            className="relative overflow-hidden bg-white py-20 sm:py-24"
+            className="relative overflow-hidden bg-white dark:bg-slate-900 py-20 sm:py-24"
             onMouseEnter={() => setPaused(true)}
             onMouseLeave={() => setPaused(false)}
             onFocusCapture={() => setPaused(true)}
@@ -101,36 +101,36 @@ export function ReviewSlideSection() {
 
             <div className="container relative mx-auto">
                 <div className="mx-auto max-w-3xl text-center">
-                    <div className="mb-4 inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50/80 px-3 py-1.5">
-                        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-600">
+                    <div className="mb-4 inline-flex items-center gap-2 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/80 px-3 py-1.5">
+                        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-600 dark:text-slate-300">
                             Testimonials
                         </span>
                     </div>
-                    <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
+                    <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl lg:text-5xl">
                         Notes from people I've worked with
                     </h2>
-                    <p className="mt-4 text-base leading-7 text-slate-600 sm:text-lg">
+                    <p className="mt-4 text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg">
                         From the companies on the timeline.
                     </p>
                 </div>
 
                 <div className="relative mt-12">
-                    <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-white to-transparent" />
-                    <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-white to-transparent" />
+                    <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-white dark:from-slate-950 to-transparent" />
+                    <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-white dark:from-slate-950 to-transparent" />
 
                     <div className="overflow-hidden" ref={emblaRef}>
                         <div className={loadError ? 'flex flex-wrap gap-y-6' : 'flex'}>
                             {reviews.map((review) => (
                                 <div key={review.id} className="min-w-0 flex-[0_0_100%] px-3 md:flex-[0_0_50%]">
                                     <div>
-                                        <Card className="relative h-full rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow duration-300 hover:shadow-md">
+                                        <Card className="relative h-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm transition-shadow duration-300 hover:shadow-md">
                                             <div className="flex gap-1 text-amber-400">
                                                 {[...Array(review.rating)].map((_, i) => (
                                                     <Star key={i} className="h-4 w-4 fill-current" />
                                                 ))}
                                             </div>
 
-                                            <blockquote className="mt-5 text-base leading-7 text-slate-600 sm:text-lg">
+                                            <blockquote className="mt-5 text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg">
                                                 &ldquo;{review.content}&rdquo;
                                             </blockquote>
 
@@ -142,13 +142,13 @@ export function ReviewSlideSection() {
                                                     height={44}
                                                     loading="lazy"
                                                     decoding="async"
-                                                    className="h-11 w-11 rounded-full border border-slate-200 object-cover"
+                                                    className="h-11 w-11 rounded-full border border-slate-200 dark:border-slate-800 object-cover"
                                                 />
                                                 <div>
-                                                    <cite className="block not-italic text-sm font-semibold text-slate-900">
+                                                    <cite className="block not-italic text-sm font-semibold text-slate-900 dark:text-white">
                                                         {review.author}
                                                     </cite>
-                                                    <span className="text-sm text-slate-600">{review.position}</span>
+                                                    <span className="text-sm text-slate-600 dark:text-slate-300">{review.position}</span>
                                                 </div>
                                             </div>
                                         </Card>
@@ -160,13 +160,13 @@ export function ReviewSlideSection() {
                 </div>
 
                 {loadError ? (
-                    <p role="status" className="mt-8 text-center text-sm text-slate-600">
+                    <p role="status" className="mt-8 text-center text-sm text-slate-600 dark:text-slate-300">
                         Carousel controls couldn't load. All testimonials are shown above.
                     </p>
                 ) : <div className="mt-8 flex justify-center gap-3">
                     <button
                         onClick={() => scrollTo(selectedIndex - 1)}
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 shadow-sm transition hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-900 dark:hover:text-white"
                         aria-label="Previous testimonial"
                     >
                         <ChevronLeft className="h-4 w-4" />
@@ -189,7 +189,7 @@ export function ReviewSlideSection() {
                     </div>
                     <button
                         onClick={() => scrollTo(selectedIndex + 1)}
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 shadow-sm transition hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-900 dark:hover:text-white"
                         aria-label="Next testimonial"
                     >
                         <ChevronRight className="h-4 w-4" />

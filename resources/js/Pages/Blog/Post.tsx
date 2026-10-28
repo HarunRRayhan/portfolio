@@ -78,13 +78,13 @@ function MediumAdminPanel({ postUrl, publishedUrl, saveUrl }: MediumAdmin) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-5 right-5 z-40 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-lg"
+        className="fixed bottom-5 right-5 z-40 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-lg dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
       >
         {publishedUrl ? 'Medium: published' : 'Publish to Medium'}
       </button>
       <Modal show={open} onClose={() => setOpen(false)} maxWidth="lg">
-        <div className="space-y-4 p-6 text-sm text-slate-700">
-          <p className="text-base font-semibold text-slate-950">Medium (admin only)</p>
+        <div className="space-y-4 p-6 text-sm text-slate-700 dark:text-slate-200">
+          <p className="text-base font-semibold text-slate-950 dark:text-white">Medium (admin only)</p>
           {publishedUrl ? (
             <p>
               Published on Medium:{' '}
@@ -95,7 +95,7 @@ function MediumAdminPanel({ postUrl, publishedUrl, saveUrl }: MediumAdmin) {
           ) : (
             <>
               <p>1. Copies this post's URL and opens Medium's importer. Paste it, import, review, publish.</p>
-              <button type="button" onClick={openImporter} className="rounded-full bg-slate-900 px-4 py-2 font-medium text-white">
+              <button type="button" onClick={openImporter} className="rounded-full bg-slate-900 px-4 py-2 font-medium text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200">
                 Copy URL and open Medium import
               </button>
               <form
@@ -112,16 +112,16 @@ function MediumAdminPanel({ postUrl, publishedUrl, saveUrl }: MediumAdmin) {
                   value={form.data.url}
                   onChange={(event) => form.setData('url', event.target.value)}
                   placeholder="https://medium.com/@you/your-story-123"
-                  className="min-w-0 flex-1 rounded-full border border-slate-300 px-4 py-2"
+                  className="min-w-0 flex-1 rounded-full border border-slate-300 dark:border-slate-700 px-4 py-2"
                 />
                 <button type="submit" disabled={form.processing} className="rounded-full border border-slate-900 px-4 py-2 font-medium">
                   Mark published on Medium
                 </button>
               </form>
-              {form.errors.url ? <p className="text-red-700">{form.errors.url}</p> : null}
+              {form.errors.url ? <p className="text-red-700 dark:text-red-300">{form.errors.url}</p> : null}
             </>
           )}
-          <button type="button" onClick={() => setOpen(false)} className="text-slate-500 underline underline-offset-4">
+          <button type="button" onClick={() => setOpen(false)} className="text-slate-500 dark:text-slate-400 underline underline-offset-4">
             Close
           </button>
         </div>
@@ -222,13 +222,13 @@ async function enhanceCodeBlocks(root: HTMLElement) {
 
     const languageBadge = document.createElement('span')
     languageBadge.className =
-      'inline-flex items-center rounded-full bg-white/5 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-slate-200'
+      'inline-flex items-center rounded-full bg-white/5 dark:bg-slate-900/5 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-slate-200'
     languageBadge.textContent = getCodeLanguage(code)
 
     const copyButton = document.createElement('button')
     copyButton.type = 'button'
     copyButton.className =
-      'inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-white/15'
+      'inline-flex items-center gap-2 rounded-full bg-white/10 dark:bg-slate-900/10 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-white/15 dark:hover:bg-slate-900/15'
     copyButton.textContent = 'Copy code'
 
     const resetLabel = copyButton.textContent ?? 'Copy code'
@@ -284,24 +284,24 @@ function enhanceTables(root: HTMLElement) {
     table.dataset.enhanced = 'true'
     table.style.margin = '0'
     table.className =
-      'w-full min-w-[36rem] border-collapse text-[0.95rem] leading-6 text-slate-700'
+      'w-full min-w-[36rem] border-collapse text-[0.95rem] leading-6 text-slate-700 dark:text-slate-200'
 
     table.querySelectorAll('th').forEach((th) => {
       th.className =
-        'border border-slate-200 bg-slate-50 px-3.5 py-3 text-left align-top font-semibold text-slate-950'
+        'border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3.5 py-3 text-left align-top font-semibold text-slate-950 dark:text-white'
     })
 
     table.querySelectorAll('td').forEach((td) => {
-      td.className = 'border border-slate-200 px-3.5 py-3 align-top text-slate-700'
+      td.className = 'border border-slate-200 dark:border-slate-800 px-3.5 py-3 align-top text-slate-700 dark:text-slate-200'
     })
 
     table.querySelectorAll('tbody tr:nth-child(even)').forEach((tr) => {
-      tr.classList.add('bg-slate-50/70')
+      tr.classList.add('bg-slate-50/70', 'dark:bg-slate-950/70')
     })
 
     const shell = document.createElement('div')
     shell.className =
-      'my-8 overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm'
+      'my-8 overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm'
 
     if (table.parentNode) {
       table.parentNode.insertBefore(shell, table)
@@ -359,15 +359,15 @@ export default function BlogPostPage({
 
       <div className="pt-24">
           <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <article className="rounded-[2rem] border border-slate-200 bg-white shadow-[0_30px_90px_-55px_rgba(15,23,42,0.45)]">
+            <article className="rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-[0_30px_90px_-55px_rgba(15,23,42,0.45)]">
               {coverImageUrl ? (
-                <div className="overflow-hidden rounded-t-[2rem] border-b border-slate-200 bg-slate-100">
+                <div className="overflow-hidden rounded-t-[2rem] border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800">
                   <img src={coverImageUrl} alt={post.coverImageAlt} className="h-[clamp(16rem,42vw,30rem)] w-full object-cover object-top" />
                 </div>
               ) : (
-                <div className="rounded-t-[2rem] border-b border-slate-200 bg-[linear-gradient(180deg,#0f172a_0%,#111827_100%)] px-6 py-14 text-white sm:px-10 sm:py-16 lg:px-14 lg:py-20">
+                <div className="rounded-t-[2rem] border-b border-slate-200 dark:border-slate-800 bg-[linear-gradient(180deg,#0f172a_0%,#111827_100%)] px-6 py-14 text-white sm:px-10 sm:py-16 lg:px-14 lg:py-20">
                   <div className="max-w-3xl space-y-5">
-                    <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-white/90">
+                    <p className="inline-flex items-center gap-2 rounded-full bg-white/10 dark:bg-slate-900/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-white/90">
                       <BookOpen className="h-3.5 w-3.5" />
                       Reading mode
                     </p>
@@ -378,41 +378,41 @@ export default function BlogPostPage({
               )}
 
               <div className="px-6 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12">
-                <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                  <span className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-3 py-1.5 text-[0.72rem] tracking-[0.22em] text-white">
+                <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-3 py-1.5 text-[0.72rem] tracking-[0.22em] text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200">
                     <Sparkles className="h-3.5 w-3.5" />
                     Blog article
                   </span>
                   <span className="text-slate-400">/</span>
-                  <Link href="/blog" className="transition-colors hover:text-slate-950">
+                  <Link href="/blog" className="transition-colors hover:text-slate-950 dark:hover:text-white">
                     Blog archive
                   </Link>
                 </div>
 
-                <h1 className="mt-6 max-w-5xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
+                <h1 className="mt-6 max-w-5xl text-4xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-5xl lg:text-6xl">
                   {post.title}
                 </h1>
 
-                <p className="mt-5 max-w-4xl text-lg leading-8 text-slate-600 sm:text-xl sm:leading-9">{post.brief}</p>
+                <p className="mt-5 max-w-4xl text-lg leading-8 text-slate-600 dark:text-slate-300 sm:text-xl sm:leading-9">{post.brief}</p>
 
-                <div className="mt-8 flex flex-wrap items-center gap-3 text-sm text-slate-600">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 font-medium text-slate-700">
+                <div className="mt-8 flex flex-wrap items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-2 font-medium text-slate-700 dark:text-slate-200">
                     <CalendarDays className="h-4 w-4" />
                     {post.publishedAtHuman}
                   </span>
-                  <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 font-medium text-slate-700">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-2 font-medium text-slate-700 dark:text-slate-200">
                     <Clock3 className="h-4 w-4" />
                     {post.readTimeLabel}
                   </span>
                   <a
                     href="#comments"
-                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 font-medium text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-100 hover:text-slate-950"
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-2 font-medium text-slate-700 dark:text-slate-200 transition-colors hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-950 dark:hover:text-white"
                     aria-label={`Jump to comments section (${commentCount} comments)`}
                   >
                     <MessageCircle className="h-4 w-4" />
                     {commentCount} comments
                   </a>
-                  <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 font-medium text-slate-700">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-2 font-medium text-slate-700 dark:text-slate-200">
                     <Eye className="h-4 w-4" />
                     {viewCountLabel(post.viewCount ?? 0)}
                   </span>
@@ -422,7 +422,7 @@ export default function BlogPostPage({
                     shareTitle={post.title}
                     label={`Share "${post.title}"`}
                     theme="slate"
-                    triggerClassName="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 font-medium text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-100 hover:text-slate-950"
+                    triggerClassName="inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-2 font-medium text-slate-700 dark:text-slate-200 transition-colors hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-950 dark:hover:text-white"
                   >
                     <Share2 className="h-4 w-4" />
                     Share
@@ -433,7 +433,7 @@ export default function BlogPostPage({
                   {post.tags.map((tag) => (
                     <span
                       key={tag.slug}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200"
                     >
                       <Tag className="h-3 w-3" />
                       {tag.name}
@@ -442,7 +442,7 @@ export default function BlogPostPage({
                 </div>
 
                 {isDraft ? (
-                  <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-7 text-amber-900">
+                  <div className="mt-6 rounded-2xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/40 px-4 py-3 text-sm leading-7 text-amber-900 dark:text-amber-300">
                     <strong className="font-semibold">Draft preview.</strong> This post is only available through the
                     private draft link and stays out of the index, sitemap, and comments until it is published.
                     {post.draftPreviewUrl ? (
@@ -455,10 +455,10 @@ export default function BlogPostPage({
                 ) : null}
 
                 {isDraft ? null : (
-                  <div className="mt-8 flex flex-col gap-4 rounded-2xl border border-indigo-200 bg-indigo-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="mt-8 flex flex-col gap-4 rounded-2xl border border-indigo-200 dark:border-indigo-900 bg-indigo-50 dark:bg-indigo-950/40 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <p className="font-semibold text-slate-950">Do you want to receive these blog updates?</p>
-                      <p className="mt-1 text-sm text-slate-600">One email a week, only when there's a new post.</p>
+                      <p className="font-semibold text-slate-950 dark:text-white">Do you want to receive these blog updates?</p>
+                      <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">One email a week, only when there's a new post.</p>
                     </div>
                     <SubscribeButton source="post-top" label="Subscribe to the newsletter" className="shrink-0" />
                   </div>
@@ -468,11 +468,11 @@ export default function BlogPostPage({
           </section>
 
           <section id="article" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-            <article className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+            <article className="overflow-hidden rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
               <div className="px-6 py-8 md:px-8 lg:px-10">
                 <div ref={contentRef} className="mx-auto max-w-[78ch]">
                   <div
-                    className="blog-content text-[1.05rem] leading-8 text-slate-700 [&_a]:font-medium [&_a]:text-slate-900 [&_a]:underline [&_a]:underline-offset-4 [&_blockquote]:my-8 [&_blockquote]:rounded-r-2xl [&_blockquote]:border-l-4 [&_blockquote]:border-slate-300 [&_blockquote]:bg-slate-50 [&_blockquote]:px-5 [&_blockquote]:py-4 [&_blockquote]:not-italic [&_blockquote]:text-slate-700 [&_code]:rounded [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.95em] [&_figcaption]:mt-3 [&_figcaption]:text-center [&_figcaption]:text-sm [&_figcaption]:leading-6 [&_figcaption]:text-slate-500 [&_figure]:my-10 [&_h2]:mt-14 [&_h2]:mb-4 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-slate-950 [&_h3]:mt-10 [&_h3]:mb-3 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:tracking-tight [&_h3]:text-slate-950 [&_img]:my-0 [&_img]:w-full [&_img]:rounded-2xl [&_img]:border [&_img]:border-slate-200 [&_img]:shadow-sm [&_li]:my-2 [&_ol]:my-6 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-6 [&_p]:my-5 [&_pre]:my-0 [&_pre]:overflow-x-auto [&_pre]:bg-transparent [&_pre]:p-4 [&_pre]:text-slate-100 [&_pre]:font-mono [&_pre]:text-[0.95rem] [&_pre]:leading-7 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-inherit [&_pre_code]:whitespace-pre-wrap [&_pre_code]:break-words [&_table]:my-8 [&_table]:w-full [&_table]:min-w-[36rem] [&_table]:border-collapse [&_table]:text-[0.95rem] [&_table]:leading-6 [&_td]:border [&_td]:border-slate-200 [&_td]:px-3.5 [&_td]:py-3 [&_td]:align-top [&_td]:text-slate-700 [&_th]:border [&_th]:border-slate-200 [&_th]:bg-slate-50 [&_th]:px-3.5 [&_th]:py-3 [&_th]:text-left [&_th]:align-top [&_th]:font-semibold [&_th]:text-slate-950 [&_ul]:my-6 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6"
+                    className="blog-content text-[1.05rem] leading-8 text-slate-700 dark:text-slate-200 [&_a]:font-medium [&_a]:text-slate-900 dark:[&_a]:text-white [&_a]:underline [&_a]:underline-offset-4 [&_blockquote]:my-8 [&_blockquote]:rounded-r-2xl [&_blockquote]:border-l-4 [&_blockquote]:border-slate-300 dark:[&_blockquote]:border-slate-700 [&_blockquote]:bg-slate-50 dark:[&_blockquote]:bg-slate-950 [&_blockquote]:px-5 [&_blockquote]:py-4 [&_blockquote]:not-italic [&_blockquote]:text-slate-700 dark:[&_blockquote]:text-slate-200 [&_code]:rounded [&_code]:bg-slate-100 dark:[&_code]:bg-slate-800 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.95em] [&_figcaption]:mt-3 [&_figcaption]:text-center [&_figcaption]:text-sm [&_figcaption]:leading-6 [&_figcaption]:text-slate-500 dark:[&_figcaption]:text-slate-400 [&_figure]:my-10 [&_h2]:mt-14 [&_h2]:mb-4 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-slate-950 dark:[&_h2]:text-white [&_h3]:mt-10 [&_h3]:mb-3 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:tracking-tight [&_h3]:text-slate-950 dark:[&_h3]:text-white [&_img]:my-0 [&_img]:w-full [&_img]:rounded-2xl [&_img]:border [&_img]:border-slate-200 dark:[&_img]:border-slate-800 [&_img]:shadow-sm [&_li]:my-2 [&_ol]:my-6 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-6 [&_p]:my-5 [&_pre]:my-0 [&_pre]:overflow-x-auto [&_pre]:bg-transparent [&_pre]:p-4 [&_pre]:text-slate-100 [&_pre]:font-mono [&_pre]:text-[0.95rem] [&_pre]:leading-7 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-inherit [&_pre_code]:whitespace-pre-wrap [&_pre_code]:break-words [&_table]:my-8 [&_table]:w-full [&_table]:min-w-[36rem] [&_table]:border-collapse [&_table]:text-[0.95rem] [&_table]:leading-6 [&_td]:border [&_td]:border-slate-200 dark:[&_td]:border-slate-800 [&_td]:px-3.5 [&_td]:py-3 [&_td]:align-top [&_td]:text-slate-700 dark:[&_td]:text-slate-200 [&_th]:border [&_th]:border-slate-200 dark:[&_th]:border-slate-800 [&_th]:bg-slate-50 dark:[&_th]:bg-slate-950 [&_th]:px-3.5 [&_th]:py-3 [&_th]:text-left [&_th]:align-top [&_th]:font-semibold [&_th]:text-slate-950 dark:[&_th]:text-white [&_ul]:my-6 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6"
                     dangerouslySetInnerHTML={{ __html: post.contentHtml }}
                   />
                 </div>
@@ -483,14 +483,14 @@ export default function BlogPostPage({
           {mediumAdmin ? <MediumAdminPanel {...mediumAdmin} /> : null}
 
           <section className="mx-auto max-w-3xl px-4 py-4 sm:px-6">
-            <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-              <h2 className="text-2xl font-semibold tracking-tight text-slate-950">Get our services</h2>
-              <p className="mt-2 leading-7 text-slate-600">
+            <div className="rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm sm:p-8">
+              <h2 className="text-2xl font-semibold tracking-tight text-slate-950 dark:text-white">Get our services</h2>
+              <p className="mt-2 leading-7 text-slate-600 dark:text-slate-300">
                 Want this applied on your product?{' '}
                 {relatedService ? (
                   <>
                     Start with{' '}
-                    <Link href={relatedService.url} className="font-semibold text-slate-950 underline underline-offset-4">
+                    <Link href={relatedService.url} className="font-semibold text-slate-950 dark:text-white underline underline-offset-4">
                       {relatedService.title}
                     </Link>
                     , or browse{' '}
@@ -498,12 +498,12 @@ export default function BlogPostPage({
                 ) : (
                   'Browse '
                 )}
-                <Link href="/services" className="font-semibold text-slate-950 underline underline-offset-4">
+                <Link href="/services" className="font-semibold text-slate-950 dark:text-white underline underline-offset-4">
                   all services
                 </Link>
                 .
               </p>
-              <p className="mt-3 leading-7 text-slate-600">
+              <p className="mt-3 leading-7 text-slate-600 dark:text-slate-300">
                 Not sure which one fits? Book a consultation and we'll work out the right next step for your setup together.
               </p>
               <div className="mt-5 flex flex-wrap gap-3">
@@ -515,7 +515,7 @@ export default function BlogPostPage({
                 </Link>
                 <Link
                   href="/services"
-                  className="inline-flex items-center rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-50"
+                  className="inline-flex items-center rounded-full border border-slate-300 dark:border-slate-700 px-5 py-2.5 text-sm font-semibold text-slate-900 dark:text-white transition-colors hover:bg-slate-50 dark:hover:bg-slate-950"
                 >
                   See all services
                 </Link>
@@ -525,28 +525,28 @@ export default function BlogPostPage({
 
           {relatedPosts.length > 0 ? (
             <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-              <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8 lg:p-10">
+              <div className="rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm sm:p-8 lg:p-10">
                 <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                   <div>
-                    <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Related reading</p>
-                    <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+                    <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Related reading</p>
+                    <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 dark:text-white">
                       More posts, sliding underneath the article
                     </h2>
                   </div>
-                  <p className="max-w-2xl text-sm leading-7 text-slate-500">
+                  <p className="max-w-2xl text-sm leading-7 text-slate-500 dark:text-slate-400">
                     Kept below the post instead of in a sidebar, with a slow continuous motion for a cleaner editorial feel.
                   </p>
                 </div>
 
-                <div className="mt-6 overflow-hidden rounded-[1.75rem] border border-slate-200 bg-slate-50/60 p-4">
+                <div className="mt-6 overflow-hidden rounded-[1.75rem] border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/60 p-4">
                   <div className="related-marquee-track flex w-max gap-4 pr-4">
                     {relatedRailPosts.map((related, index) => (
                       <article
                         key={`${related.slug}-${index}`}
-                        className="group w-[min(80vw,21rem)] shrink-0 overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_-34px_rgba(15,23,42,0.35)]"
+                        className="group w-[min(80vw,21rem)] shrink-0 overflow-hidden rounded-[1.5rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_-34px_rgba(15,23,42,0.35)]"
                       >
                         <Link href={related.url} className="block h-full">
-                          <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
+                          <div className="relative aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-slate-800">
                             {related.coverImageUrl ? (
                               <img
                                 src={related.coverImageUrl}
@@ -565,21 +565,21 @@ export default function BlogPostPage({
                           </div>
 
                           <div className="p-5">
-                            <p className="text-xs font-medium text-slate-500">{related.publishedAtHuman}</p>
-                            <h3 className="mt-2 text-lg font-semibold tracking-tight text-slate-950 transition-colors group-hover:text-slate-700">
+                            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{related.publishedAtHuman}</p>
+                            <h3 className="mt-2 text-lg font-semibold tracking-tight text-slate-950 dark:text-white transition-colors group-hover:text-slate-700 dark:group-hover:text-slate-200">
                               {related.title}
                             </h3>
-                            <p className="mt-3 line-clamp-3 text-sm leading-7 text-slate-600">{related.brief}</p>
+                            <p className="mt-3 line-clamp-3 text-sm leading-7 text-slate-600 dark:text-slate-300">{related.brief}</p>
 
                             <div className="mt-4 flex flex-wrap gap-2">
                               {related.tags.slice(0, 3).map((tag) => (
-                                <span key={tag.slug} className="rounded-full bg-slate-100 px-2.5 py-1 text-[0.72rem] font-medium text-slate-600">
+                                <span key={tag.slug} className="rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-[0.72rem] font-medium text-slate-600 dark:text-slate-300">
                                   {tag.name}
                                 </span>
                               ))}
                             </div>
 
-                            <div className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
+                            <div className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
                               Read more
                               <ArrowRight className="h-4 w-4" />
                             </div>

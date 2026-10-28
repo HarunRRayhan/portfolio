@@ -13,7 +13,7 @@
 **Notes:** {{ $booking->notes }}
 @endif
 
-@component('mail::button', ['url' => url('/admin/consultations/bookings/'.$booking->id)])
+@component('mail::button', ['url' => rtrim(config('app.url'), '/').'/admin/consultations/bookings/'.$booking->id])
 Review in admin
 @endcomponent
 

@@ -113,14 +113,14 @@ export default function BlogActivityFrame({
           retreat()
         }
       }}
-      className="my-8 rounded-2xl border border-slate-200 bg-white shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+      className="my-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
     >
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
-        <p id={titleId} className="!my-0 text-base font-semibold tracking-tight text-slate-950">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 px-4 py-3">
+        <p id={titleId} className="!my-0 text-base font-semibold tracking-tight text-slate-950 dark:text-white">
           {title}
         </p>
         {playback ? (
-          <p className="!my-0 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+          <p className="!my-0 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
             {safeIndex + 1} / {steps.length}
           </p>
         ) : null}
@@ -128,17 +128,17 @@ export default function BlogActivityFrame({
 
       <div className="min-h-[280px] px-4 py-5">{step ? renderStage(safeIndex, speed) : null}</div>
 
-      <div className="space-y-2 border-t border-slate-200 px-4 py-4">
-        <p className="!my-0 text-sm font-semibold text-slate-950" data-activity-step-title="">
+      <div className="space-y-2 border-t border-slate-200 dark:border-slate-800 px-4 py-4">
+        <p className="!my-0 text-sm font-semibold text-slate-950 dark:text-white" data-activity-step-title="">
           {step?.title}
         </p>
-        <p className="!my-0 text-sm leading-6 text-slate-600" data-activity-caption="">
+        <p className="!my-0 text-sm leading-6 text-slate-600 dark:text-slate-300" data-activity-caption="">
           {step?.caption}
         </p>
-        {detail ? <p className="!my-0 text-sm leading-6 text-slate-800">{detail}</p> : null}
+        {detail ? <p className="!my-0 text-sm leading-6 text-slate-800 dark:text-slate-100">{detail}</p> : null}
       </div>
 
-      {playback ? <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 px-4 py-3">
+      {playback ? <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 dark:border-slate-800 px-4 py-3">
         <button
           type="button"
           data-activity-play=""
@@ -152,7 +152,7 @@ export default function BlogActivityFrame({
           type="button"
           data-activity-previous=""
           onClick={retreat}
-          className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-800"
+          className="rounded-full border border-slate-200 dark:border-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100"
         >
           Previous
         </button>
@@ -160,7 +160,7 @@ export default function BlogActivityFrame({
           type="button"
           data-activity-next=""
           onClick={() => advance('button')}
-          className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-800"
+          className="rounded-full border border-slate-200 dark:border-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-100"
         >
           Next
         </button>
@@ -173,7 +173,7 @@ export default function BlogActivityFrame({
               aria-pressed={speed === value}
               onClick={() => setSpeed(value)}
               className={`rounded-full px-2.5 py-1.5 text-xs font-semibold ${
-                speed === value ? 'bg-slate-950 text-white' : 'border border-slate-200 text-slate-700'
+                speed === value ? 'bg-slate-950 text-white' : 'border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200'
               }`}
             >
               {value}x
@@ -183,7 +183,7 @@ export default function BlogActivityFrame({
       </div> : null}
 
       {footer ? (
-        <div className="flex flex-wrap gap-2 border-t border-slate-200 px-4 py-3">
+        <div className="flex flex-wrap gap-2 border-t border-slate-200 dark:border-slate-800 px-4 py-3">
           {footer({ stepIndex: safeIndex, setStepIndex: jumpTo })}
         </div>
       ) : null}

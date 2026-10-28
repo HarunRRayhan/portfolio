@@ -25,16 +25,16 @@ export class ErrorBoundary extends React.Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex min-h-screen items-center justify-center bg-slate-50 px-6">
-          <div className="w-full max-w-md rounded-[2rem] border border-slate-200 bg-white p-8 text-center shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Section failed</p>
-            <h1 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">This section didn't load.</h1>
-            <p className="mt-3 text-sm leading-7 text-slate-600">
+        <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 px-6">
+          <div className="w-full max-w-md rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Section failed</p>
+            <h1 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950 dark:text-white">This section didn't load.</h1>
+            <p className="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
               Please refresh the page or try again in a moment.
             </p>
             <button
               onClick={() => this.setState({ hasError: false })}
-              className="mt-6 inline-flex items-center justify-center rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+              className="mt-6 inline-flex items-center justify-center rounded-full bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
             >
               Try again
             </button>
