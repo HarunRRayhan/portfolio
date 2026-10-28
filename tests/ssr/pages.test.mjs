@@ -14,7 +14,7 @@ const props = {
 }
 
 // Crawlers that skip JavaScript need the heading, copy, and links in the first response.
-for (const [component, url] of [['About', '/about'], ['Contact', '/contact'], ['Privacy', '/privacy'], ['Terms', '/terms']]) {
+for (const [component, url] of [['About', '/about'], ['Contact', '/contact'], ['Privacy', '/privacy'], ['Terms', '/terms'], ['RayStack', '/raystack']]) {
   const { body } = await renderPage({ version: 'test', component, url, props })
   assert.equal(body.match(/<h1/g)?.length, 1, `${component} renders one h1`)
   assert.match(body, /href="\/blog"/, `${component} renders site links`)

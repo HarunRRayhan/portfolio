@@ -50,6 +50,8 @@ assert.match(page.body, /href="\/services\/monitoring-observability"/)
 
 const products = await renderPage({ ...base, component: 'Products', url: '/products' })
 assert.match(products.body, /CloudPloy/)
+assert.match(products.body, /RayStack/)
+assert.match(products.body, /href="\/raystack"/)
 assert.match(products.body, /href="\/services"/)
 
 console.log('SSR services: hub links, performance page, products, and footer pass')
