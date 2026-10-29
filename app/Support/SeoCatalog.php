@@ -150,8 +150,8 @@ final class SeoCatalog
         );
 
         $pages['/raystack'] = new SeoMeta(
-            title: 'RayStack: infrastructure reviews for coding agents | Harun R. Rayhan',
-            description: 'Open-source skills for Claude Code, Codex, Cursor, and other agents: read-only infrastructure reviews with ranked findings, working principles, and blog writing in your own voice.',
+            title: 'RayStack: build and review software with coding agents | Harun R. Rayhan',
+            description: 'Open-source skills for Claude Code, Codex, Cursor, and other agents: a full development flow, read-only infrastructure reviews with ranked findings, and working principles.',
             canonicalUrl: $siteUrl.'/raystack',
             ogImage: self::defaultOgImage(),
             jsonLd: [[
@@ -159,10 +159,10 @@ final class SeoCatalog
                 '@type' => 'SoftwareApplication',
                 'name' => 'RayStack',
                 'url' => $siteUrl.'/raystack',
-                'description' => 'Skills for coding agents: a full development flow (research, PRD, specs, plans, reviewed builds, ship), read-only AWS billing, AWS security, AWS bottleneck, infrastructure, scaling, database, and app security reviews, local browser verification, working principles, and blog writing in your own voice.',
+                'description' => 'Skills for coding agents: a full development flow (research, PRD, specs, plans, reviewed builds, ship), read-only AWS billing, AWS security, AWS bottleneck, infrastructure, scaling, database, and app security reviews, local browser verification, and working principles.',
                 'applicationCategory' => 'DeveloperApplication',
                 'operatingSystem' => 'macOS, Linux',
-                'softwareVersion' => '0.5',
+                'softwareVersion' => '0.6',
                 'license' => 'https://opensource.org/licenses/MIT',
                 'codeRepository' => 'https://github.com/HarunRRayhan/RayStack',
                 'offers' => ['@type' => 'Offer', 'price' => '0', 'priceCurrency' => 'USD'],

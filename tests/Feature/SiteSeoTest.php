@@ -115,7 +115,7 @@ class SiteSeoTest extends TestCase
         $siteUrl = rtrim(config('app.url', url('/')), '/');
         $html = $this->get('/raystack')->assertOk()->getContent();
 
-        $this->assertStringContainsString('<title data-inertia="">RayStack: infrastructure reviews for coding agents | Harun R. Rayhan</title>', $html);
+        $this->assertStringContainsString('<title data-inertia="">RayStack: build and review software with coding agents | Harun R. Rayhan</title>', $html);
         $this->assertStringContainsString('rel="canonical" href="'.$siteUrl.'/raystack"', $html);
 
         preg_match_all('#<script type="application/ld\+json"[^>]*>(.*?)</script>#s', $html, $matches);
@@ -124,7 +124,7 @@ class SiteSeoTest extends TestCase
         $this->assertSame('RayStack', $app['name'] ?? null);
         $this->assertSame('https://github.com/HarunRRayhan/RayStack', $app['codeRepository'] ?? null);
         $this->assertSame('0', $app['offers']['price'] ?? null);
-        $this->assertSame('0.5', $app['softwareVersion'] ?? null);
+        $this->assertSame('0.6', $app['softwareVersion'] ?? null);
 
         $this->get('/llms.txt')->assertOk()->assertSee($siteUrl.'/raystack', false);
     }

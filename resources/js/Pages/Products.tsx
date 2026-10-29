@@ -93,7 +93,7 @@ const products: Product[] = [
         name: "RayStack",
         url: "/raystack",
         category: "Developer tools",
-        tagline: "Infrastructure reviews your coding agent can run.",
+        tagline: "Build and review software with your coding agent.",
         description:
             "Open-source agent skills: a full development flow from idea to shipped code, plus read-only reviews for cost, security, bottlenecks, scaling, and databases.",
         logo: "/images/products/raystack.svg",
