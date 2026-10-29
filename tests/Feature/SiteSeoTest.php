@@ -124,7 +124,7 @@ class SiteSeoTest extends TestCase
         $this->assertSame('RayStack', $app['name'] ?? null);
         $this->assertSame('https://github.com/HarunRRayhan/RayStack', $app['codeRepository'] ?? null);
         $this->assertSame('0', $app['offers']['price'] ?? null);
-        $this->assertSame('0.4', $app['softwareVersion'] ?? null);
+        $this->assertSame('0.5', $app['softwareVersion'] ?? null);
 
         $this->get('/llms.txt')->assertOk()->assertSee($siteUrl.'/raystack', false);
     }
