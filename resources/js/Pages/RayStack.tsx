@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Link } from "@inertiajs/react"
-import { ArrowRight, ArrowUpRight, Check, ChevronDown, Copy } from "lucide-react"
+import { ArrowRight, ArrowUpRight, Check, ChevronDown, Copy, Star } from "lucide-react"
 import { Github } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
@@ -132,7 +132,7 @@ function SectionHeading({ id, eyebrow, title }: { id: string; eyebrow: string; t
     )
 }
 
-export default function RayStack() {
+export default function RayStack({ stars }: { stars?: number | null }) {
     return (
         <div className="min-h-screen bg-[#fafaf8] dark:bg-slate-950 text-[#242821] dark:text-slate-100">
             <div className="mx-auto max-w-5xl px-5 pb-20 pt-28 sm:px-8 sm:pt-36 lg:px-12">
@@ -171,6 +171,13 @@ export default function RayStack() {
                         >
                             <Github aria-hidden="true" className="h-4 w-4" />
                             View on GitHub
+                            {typeof stars === "number" && (
+                                <span className="inline-flex items-center gap-1 rounded bg-white/15 px-2 py-0.5 text-xs tabular-nums dark:bg-slate-900/10">
+                                    <Star aria-hidden="true" className="h-3.5 w-3.5 fill-current" />
+                                    {stars.toLocaleString("en-US")}
+                                    <span className="sr-only">{stars === 1 ? "star" : "stars"}</span>
+                                </span>
+                            )}
                             <span className="sr-only">(opens in a new tab)</span>
                         </a>
                         <a

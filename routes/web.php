@@ -43,6 +43,7 @@ use App\Support\SiteCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -479,7 +480,21 @@ Route::get('/products', function () {
 })->name('products');
 
 Route::get('/raystack', function () {
-    return Inertia::render('RayStack');
+    // Cached so the page never waits on GitHub; a failed fetch is cached briefly as false.
+    $stars = Cache::get('raystack.github.stars');
+    if ($stars === null) {
+        try {
+            $response = Http::timeout(2)->acceptJson()->withUserAgent('harun.dev')
+                ->get('https://api.github.com/repos/HarunRRayhan/RayStack');
+            $stars = $response->successful() && is_int($response->json('stargazers_count'))
+                ? $response->json('stargazers_count') : false;
+        } catch (\Throwable) {
+            $stars = false;
+        }
+        Cache::put('raystack.github.stars', $stars, $stars === false ? 300 : 3600);
+    }
+
+    return Inertia::render('RayStack', ['stars' => $stars === false ? null : $stars]);
 })->name('raystack');
 
 Route::get('/services', function () {
