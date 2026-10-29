@@ -4,25 +4,25 @@ import { ArrowRight, ArrowUpRight, Check, ChevronDown, Copy } from "lucide-react
 import { Github } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
-const repoUrl = "https://github.com/HarunRRayhan/raystack"
+const repoUrl = "https://github.com/HarunRRayhan/RayStack"
 
 const focusRing =
     "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-700"
 
 const globalInstall = {
-    code: "npx skills add HarunRRayhan/raystack -g -a claude-code",
-    note: "Installs all sixteen skills globally. Swap claude-code for codex or cursor, list several, or drop -a to pick from a list."
+    code: "npx skills add HarunRRayhan/RayStack -g -a claude-code",
+    note: "Installs all eighteen skills globally. Swap claude-code for codex or cursor, list several, or drop -a to pick from a list."
 }
 
 const installs = [
     {
         agent: "Claude Code",
-        code: "/plugin marketplace add HarunRRayhan/raystack\n/plugin install raystack@raystack",
+        code: "/plugin marketplace add HarunRRayhan/RayStack\n/plugin install raystack@raystack",
         note: "Then type /raystack in the repo you want reviewed."
     },
     {
         agent: "Codex",
-        code: "codex plugin marketplace add HarunRRayhan/raystack\ncodex plugin add raystack@raystack",
+        code: "codex plugin marketplace add HarunRRayhan/RayStack\ncodex plugin add raystack@raystack",
         note: "Or run ./install.sh --agent codex from a clone."
     },
     {
@@ -32,13 +32,13 @@ const installs = [
     },
     {
         agent: "Grok",
-        code: "grok plugin marketplace add HarunRRayhan/raystack\ngrok plugin install raystack --trust",
+        code: "grok plugin marketplace add HarunRRayhan/RayStack\ngrok plugin install raystack --trust",
         note: "Not tested end to end yet. ./install.sh --agent grok works too."
     },
     {
         agent: "Any other agent",
         code: "./install.sh --agent custom --dir /path/to/skills",
-        note: "--dry-run shows what it would do. --uninstall removes all sixteen skills."
+        note: "--dry-run shows what it would do. --uninstall removes all eighteen skills."
     }
 ]
 
@@ -52,16 +52,18 @@ const skillGroups: { title: string; skills: [string, string][] }[] = [
             ["aws-bottleneck-review", "Throttling, limits, quotas, and single points on the request path."],
             ["infra-review", "Deploys, rollback, backups, monitoring, and exposure on any platform."],
             ["scaling-review", "What breaks first at 10x and 100x load."],
-            ["database-review", "Queries, indexes, migrations, backups, connections, and bloat."]
+            ["database-review", "Queries, indexes, migrations, backups, connections, and bloat."],
+            ["app-security-review", "Your app's code: IDOR, injection, secrets, CSRF, and vulnerable dependencies. Every finding needs a working exploit."]
         ]
     },
     {
-        title: "Principles",
+        title: "Principles and workflow",
         skills: [
             ["principle-ship", "Done means merged, deployed, and checked live. Asks before merging unless you turn that off."],
             ["principle-smallest-change", "The smallest change that fully solves the task."],
             ["principle-ask-with-question-tool", "Questions go through your agent's question prompt, not plain chat."],
-            ["principle-secrets-layout", "One flat secrets folder, examples committed, real values never."]
+            ["principle-secrets-layout", "One flat secrets folder, examples committed, real values never."],
+            ["local-verify", "Checks a change in a real local browser against a throwaway database before it ships."]
         ]
     },
     {
@@ -144,7 +146,7 @@ export default function RayStack() {
                             className="h-10 w-10"
                         />
                         <p className="text-sm font-medium text-[#686b65] dark:text-slate-400">
-                            RayStack v0.3 · Open source, MIT
+                            RayStack v0.4 · Open source, MIT
                         </p>
                     </div>
                     <h1 className="max-w-4xl text-[2.75rem] font-semibold leading-[1.08] tracking-[-0.045em] sm:text-6xl">
@@ -222,7 +224,7 @@ export default function RayStack() {
                 </section>
 
                 <section aria-labelledby="skills" className="border-b border-[#dedfd8] dark:border-slate-800 py-14 sm:py-16">
-                    <SectionHeading id="skills" eyebrow="Skills" title="Sixteen skills, three groups" />
+                    <SectionHeading id="skills" eyebrow="Skills" title="Eighteen skills, three groups" />
                     <p className="mt-4 max-w-2xl text-sm leading-6 text-[#686b65] dark:text-slate-400">
                         <code className="font-mono">/raystack</code> looks at the repo, recommends reviews,
                         and asks once which ones to run. You can also name a review directly. Principles load on
