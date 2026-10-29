@@ -10,11 +10,16 @@ const focusRing =
     "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-700"
 
 const globalInstall = {
-    code: "npx skills add HarunRRayhan/RayStack -g -a claude-code",
-    note: "Installs all twenty-one skills globally. Swap claude-code for codex or cursor, list several, or drop -a to pick from a list."
+    code: "git clone --depth 1 https://github.com/HarunRRayhan/RayStack.git ~/.raystack && ~/.raystack/install.sh",
+    note: "Installs all twenty-one skills globally for Claude Code. Add --agent codex, cursor, or grok for another agent. To update, run git -C ~/.raystack pull && ~/.raystack/install.sh."
 }
 
 const installs = [
+    {
+        agent: "skills CLI",
+        code: "npx skills add HarunRRayhan/RayStack -g -a claude-code",
+        note: "Swap claude-code for codex or cursor, list several, or drop -a to pick from a list."
+    },
     {
         agent: "Claude Code",
         code: "/plugin marketplace add HarunRRayhan/RayStack\n/plugin install raystack@raystack",
@@ -23,21 +28,21 @@ const installs = [
     {
         agent: "Codex",
         code: "codex plugin marketplace add HarunRRayhan/RayStack\ncodex plugin add raystack@raystack",
-        note: "Or run ./install.sh --agent codex from a clone."
+        note: "Or run ~/.raystack/install.sh --agent codex."
     },
     {
         agent: "Cursor",
-        code: "./install.sh --agent cursor",
-        note: "Run it from a clone. It copies the skills to ~/.cursor/skills/."
+        code: "~/.raystack/install.sh --agent cursor",
+        note: "After the clone above. It copies the skills to ~/.cursor/skills/."
     },
     {
         agent: "Grok",
         code: "grok plugin marketplace add HarunRRayhan/RayStack\ngrok plugin install raystack --trust",
-        note: "Not tested end to end yet. ./install.sh --agent grok works too."
+        note: "Not tested end to end yet. ~/.raystack/install.sh --agent grok works too."
     },
     {
         agent: "Any other agent",
-        code: "./install.sh --agent custom --dir /path/to/skills",
+        code: "~/.raystack/install.sh --agent custom --dir /path/to/skills",
         note: "--dry-run shows what it would do. --uninstall removes all twenty-one skills."
     }
 ]
@@ -201,7 +206,7 @@ export default function RayStack({ stars }: { stars?: number | null }) {
                 <section aria-labelledby="install" className="scroll-mt-28 border-b border-[#dedfd8] dark:border-slate-800 py-14 sm:py-16">
                     <SectionHeading id="install" eyebrow="Install" title="Pick your agent" />
                     <p className="mt-4 max-w-2xl text-sm leading-6 text-[#686b65] dark:text-slate-400">
-                        You need <code className="font-mono">bash</code> and <code className="font-mono">jq</code>, plus Node.js for the one-command install.
+                        You need <code className="font-mono">git</code>, <code className="font-mono">bash</code> and <code className="font-mono">jq</code>.
                         The PDF export also needs Chrome or Chromium and <code className="font-mono">npx</code>.
                     </p>
                     <div className="mt-8">
