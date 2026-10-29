@@ -95,7 +95,7 @@ const products: Product[] = [
         category: "Developer tools",
         tagline: "Infrastructure reviews your coding agent can run.",
         description:
-            "Open-source, read-only review skills for cost, security, bottlenecks, scaling, and databases. Each review ends in a ranked findings report.",
+            "Open-source agent skills: a full development flow from idea to shipped code, plus read-only reviews for cost, security, bottlenecks, scaling, and databases.",
         logo: "/images/products/raystack.svg",
         backdrop: "bg-[#e7eff1]"
     }

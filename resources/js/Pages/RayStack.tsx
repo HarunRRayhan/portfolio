@@ -11,7 +11,7 @@ const focusRing =
 
 const globalInstall = {
     code: "npx skills add HarunRRayhan/RayStack -g -a claude-code",
-    note: "Installs all nineteen skills globally. Swap claude-code for codex or cursor, list several, or drop -a to pick from a list."
+    note: "Installs all twenty-six skills globally. Swap claude-code for codex or cursor, list several, or drop -a to pick from a list."
 }
 
 const installs = [
@@ -38,11 +38,23 @@ const installs = [
     {
         agent: "Any other agent",
         code: "./install.sh --agent custom --dir /path/to/skills",
-        note: "--dry-run shows what it would do. --uninstall removes all eighteen skills."
+        note: "--dry-run shows what it would do. --uninstall removes all twenty-six skills."
     }
 ]
 
 const skillGroups: { title: string; skills: [string, string][] }[] = [
+    {
+        title: "Development",
+        skills: [
+            ["dev", "The entry point. Sees where the project is, picks Quick, Standard, or Full, and runs the next step."],
+            ["dev-hub", "Sets up AGENTS.md, a decisions log, and the docs folders. Can grow into a planning hub for several repos."],
+            ["dev-research", "Dated research notes with a source beside every fact."],
+            ["dev-prd", "Asks until it can write the PRD, with each behaviour written as a numbered, testable line."],
+            ["dev-spec", "Architecture and per-area specs, checked against the shipped engineering principles."],
+            ["dev-plan", "One plan per slice. Every behaviour maps to a task before any code is written."],
+            ["dev-build", "A fresh agent builds each task and another reviews it. A ledger lets a stopped build resume, then a final review and ship."]
+        ]
+    },
     {
         title: "Reviews",
         skills: [
@@ -147,7 +159,7 @@ export default function RayStack({ stars }: { stars?: number | null }) {
                             className="h-10 w-10"
                         />
                         <p className="text-sm font-medium text-[#686b65] dark:text-slate-400">
-                            RayStack v0.4.1 · Open source, MIT
+                            RayStack v0.5.0 · Open source, MIT
                         </p>
                     </div>
                     <h1 className="max-w-4xl text-[2.75rem] font-semibold leading-[1.08] tracking-[-0.045em] sm:text-6xl">
@@ -158,7 +170,9 @@ export default function RayStack({ stars }: { stars?: number | null }) {
                         You get a ranked findings report on cost, security, bottlenecks, deploys,
                         scaling, or the database. Every finding has evidence and a fix you apply
                         yourself. It's what I check when I audit someone's stack, written down as
-                        agent skills.
+                        agent skills. Type <code className="font-mono text-[#242821] dark:text-slate-100">/dev</code> and
+                        it takes a product from idea to shipped code the way I build: decisions logged once,
+                        a plan per slice, and every task built and reviewed by separate agents.
                     </p>
                     <div className="mt-8 flex flex-wrap gap-3">
                         <a
@@ -232,12 +246,13 @@ export default function RayStack({ stars }: { stars?: number | null }) {
                 </section>
 
                 <section aria-labelledby="skills" className="border-b border-[#dedfd8] dark:border-slate-800 py-14 sm:py-16">
-                    <SectionHeading id="skills" eyebrow="Skills" title="Nineteen skills, three groups" />
+                    <SectionHeading id="skills" eyebrow="Skills" title="Twenty-six skills, four groups" />
                     <p className="mt-4 max-w-2xl text-sm leading-6 text-[#686b65] dark:text-slate-400">
                         <code className="font-mono">/raystack</code> looks at the repo, recommends reviews,
                         and asks once which ones to run. You can also name a review directly. Principles load on
-                        their own when a task matches. <code className="font-mono">/blog</code> writes drafts in
-                        your own voice and stops there.
+                        their own when a task matches. <code className="font-mono">/dev</code> picks the smallest
+                        track that fits, from a quick bug fix to a full product.{" "}
+                        <code className="font-mono">/blog</code> writes drafts in your own voice and stops there.
                     </p>
                     {skillGroups.map((group) => (
                         <div key={group.title} className="mt-8">
