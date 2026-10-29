@@ -3,9 +3,18 @@
 namespace Tests;
 
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Support\Facades\Cache;
 
 abstract class TestCase extends BaseTestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // /raystack fetches its GitHub star count; tests never call GitHub.
+        Cache::put('raystack.github.stars', false);
+    }
+
     /**
      * Headers for an Inertia "subsequent navigation" request -- returns
      * page-data JSON instead of the full HTML shell. The version must match
