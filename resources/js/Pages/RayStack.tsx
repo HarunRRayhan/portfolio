@@ -11,7 +11,7 @@ const focusRing =
 
 const globalInstall = {
     code: "npx skills add HarunRRayhan/RayStack -g -a claude-code",
-    note: "Installs all eighteen skills globally. Swap claude-code for codex or cursor, list several, or drop -a to pick from a list."
+    note: "Installs all nineteen skills globally. Swap claude-code for codex or cursor, list several, or drop -a to pick from a list."
 }
 
 const installs = [
@@ -53,7 +53,8 @@ const skillGroups: { title: string; skills: [string, string][] }[] = [
             ["infra-review", "Deploys, rollback, backups, monitoring, and exposure on any platform."],
             ["scaling-review", "What breaks first at 10x and 100x load."],
             ["database-review", "Queries, indexes, migrations, backups, connections, and bloat."],
-            ["app-security-review", "Your app's code: IDOR, injection, secrets, CSRF, and vulnerable dependencies. Every finding needs a working exploit."]
+            ["app-security-review", "Your app's code: IDOR, injection, secrets, CSRF, and vulnerable dependencies. Every finding needs a working exploit."],
+            ["aws-readonly-setup", "No read-only AWS access yet? Signs you in and creates a role that can read config but not data or anything it could change."]
         ]
     },
     {
@@ -146,7 +147,7 @@ export default function RayStack({ stars }: { stars?: number | null }) {
                             className="h-10 w-10"
                         />
                         <p className="text-sm font-medium text-[#686b65] dark:text-slate-400">
-                            RayStack v0.4 · Open source, MIT
+                            RayStack v0.4.1 · Open source, MIT
                         </p>
                     </div>
                     <h1 className="max-w-4xl text-[2.75rem] font-semibold leading-[1.08] tracking-[-0.045em] sm:text-6xl">
@@ -231,7 +232,7 @@ export default function RayStack({ stars }: { stars?: number | null }) {
                 </section>
 
                 <section aria-labelledby="skills" className="border-b border-[#dedfd8] dark:border-slate-800 py-14 sm:py-16">
-                    <SectionHeading id="skills" eyebrow="Skills" title="Eighteen skills, three groups" />
+                    <SectionHeading id="skills" eyebrow="Skills" title="Nineteen skills, three groups" />
                     <p className="mt-4 max-w-2xl text-sm leading-6 text-[#686b65] dark:text-slate-400">
                         <code className="font-mono">/raystack</code> looks at the repo, recommends reviews,
                         and asks once which ones to run. You can also name a review directly. Principles load on
@@ -270,6 +271,11 @@ export default function RayStack({ stars }: { stars?: number | null }) {
                             So run reviews with read-only credentials: AWS <code className="font-mono">ReadOnlyAccess</code> or{" "}
                             <code className="font-mono">ViewOnlyAccess</code>, and a read-only database role.
                             That's the real boundary.
+                        </p>
+                        <p>
+                            No read-only AWS access yet? <code className="font-mono">aws-readonly-setup</code> does it for
+                            you: one browser sign-in, then a role that reads config and billing but not your data, with
+                            no access keys created.
                         </p>
                     </div>
                 </section>
