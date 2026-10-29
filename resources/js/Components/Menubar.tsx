@@ -4,7 +4,7 @@ import * as React from 'react'
 import { Link, router, usePage } from '@inertiajs/react'
 import { cn } from '@/lib/utils'
 import { Logo } from './Logo'
-import { ArrowRight, Briefcase, Calendar, ChevronDown, Heart, Layers, Link2, LogOut, Mail, Menu, Presentation, User, Video } from 'lucide-react'
+import { ArrowRight, Briefcase, Calendar, ChevronDown, Heart, Layers, Link2, LogOut, Mail, Menu, Presentation, SquareTerminal, User, Video } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 const MobileNavigation = React.lazy(() => import('@/Components/MobileNavigation'))
 
@@ -34,6 +34,7 @@ const moreGroups: MoreGroup[] = [
     items: [
       { name: 'Case Studies', href: '/case-studies', icon: Briefcase, description: 'Real engagements, with the client name left out.' },
       { name: 'Services', href: '/services', icon: Layers, description: 'The problems I take on.' },
+      { name: 'RayStack', href: '/raystack', icon: SquareTerminal, description: 'Open-source skills for your coding agent.' },
       { name: 'Sponsor my work', href: '/sponsor-me', icon: Heart, description: 'Help keep the writing and tools free.', featured: true },
     ],
   },
