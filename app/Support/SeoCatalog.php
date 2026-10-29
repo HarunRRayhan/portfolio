@@ -164,7 +164,7 @@ final class SeoCatalog
                 'operatingSystem' => 'macOS, Linux',
                 'softwareVersion' => '0.4',
                 'license' => 'https://opensource.org/licenses/MIT',
-                'codeRepository' => 'https://github.com/HarunRRayhan/raystack',
+                'codeRepository' => 'https://github.com/HarunRRayhan/RayStack',
                 'offers' => ['@type' => 'Offer', 'price' => '0', 'priceCurrency' => 'USD'],
                 'author' => ['@id' => $siteUrl.'/#person'],
             ]],

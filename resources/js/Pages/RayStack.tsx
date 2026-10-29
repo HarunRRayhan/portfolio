@@ -4,25 +4,25 @@ import { ArrowRight, ArrowUpRight, Check, ChevronDown, Copy } from "lucide-react
 import { Github } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
-const repoUrl = "https://github.com/HarunRRayhan/raystack"
+const repoUrl = "https://github.com/HarunRRayhan/RayStack"
 
 const focusRing =
     "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-700"
 
 const globalInstall = {
-    code: "npx skills add HarunRRayhan/raystack -g -a claude-code",
+    code: "npx skills add HarunRRayhan/RayStack -g -a claude-code",
     note: "Installs all eighteen skills globally. Swap claude-code for codex or cursor, list several, or drop -a to pick from a list."
 }
 
 const installs = [
     {
         agent: "Claude Code",
-        code: "/plugin marketplace add HarunRRayhan/raystack\n/plugin install raystack@raystack",
+        code: "/plugin marketplace add HarunRRayhan/RayStack\n/plugin install raystack@raystack",
         note: "Then type /raystack in the repo you want reviewed."
     },
     {
         agent: "Codex",
-        code: "codex plugin marketplace add HarunRRayhan/raystack\ncodex plugin add raystack@raystack",
+        code: "codex plugin marketplace add HarunRRayhan/RayStack\ncodex plugin add raystack@raystack",
         note: "Or run ./install.sh --agent codex from a clone."
     },
     {
@@ -32,7 +32,7 @@ const installs = [
     },
     {
         agent: "Grok",
-        code: "grok plugin marketplace add HarunRRayhan/raystack\ngrok plugin install raystack --trust",
+        code: "grok plugin marketplace add HarunRRayhan/RayStack\ngrok plugin install raystack --trust",
         note: "Not tested end to end yet. ./install.sh --agent grok works too."
     },
     {

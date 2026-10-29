@@ -122,7 +122,7 @@ class SiteSeoTest extends TestCase
         $app = collect($matches[1])->map(fn (string $json) => json_decode($json, true))
             ->firstWhere('@type', 'SoftwareApplication');
         $this->assertSame('RayStack', $app['name'] ?? null);
-        $this->assertSame('https://github.com/HarunRRayhan/raystack', $app['codeRepository'] ?? null);
+        $this->assertSame('https://github.com/HarunRRayhan/RayStack', $app['codeRepository'] ?? null);
         $this->assertSame('0', $app['offers']['price'] ?? null);
         $this->assertSame('0.4', $app['softwareVersion'] ?? null);
 
