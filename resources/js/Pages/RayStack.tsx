@@ -140,7 +140,7 @@ function SectionHeading({ id, eyebrow, title }: { id: string; eyebrow: string; t
     )
 }
 
-export default function RayStack({ stars }: { stars?: number | null }) {
+export default function RayStack({ stars, version }: { stars?: number | null; version?: string | null }) {
     return (
         <div className="min-h-screen bg-[#fafaf8] dark:bg-slate-950 text-[#242821] dark:text-slate-100">
             <div className="mx-auto max-w-5xl px-5 pb-20 pt-28 sm:px-8 sm:pt-36 lg:px-12">
@@ -154,7 +154,7 @@ export default function RayStack({ stars }: { stars?: number | null }) {
                             className="h-10 w-10"
                         />
                         <p className="text-sm font-medium text-[#686b65] dark:text-slate-400">
-                            RayStack v0.6.5 · Open source, MIT
+                            RayStack {version ?? "v0.6.5"} · Open source, MIT
                         </p>
                     </div>
                     <h1 className="max-w-4xl text-[2.75rem] font-semibold leading-[1.08] tracking-[-0.045em] sm:text-6xl">
