@@ -154,7 +154,7 @@ export default function RayStack({ stars }: { stars?: number | null }) {
                             className="h-10 w-10"
                         />
                         <p className="text-sm font-medium text-[#686b65] dark:text-slate-400">
-                            RayStack v0.6.4 · Open source, MIT
+                            RayStack v0.6.5 · Open source, MIT
                         </p>
                     </div>
                     <h1 className="max-w-4xl text-[2.75rem] font-semibold leading-[1.08] tracking-[-0.045em] sm:text-6xl">
