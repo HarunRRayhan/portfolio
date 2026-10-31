@@ -11,8 +11,9 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        // /raystack fetches its GitHub star count; tests never call GitHub.
+        // /raystack fetches its GitHub star count and latest release; tests never call GitHub.
         Cache::put('raystack.github.stars', false);
+        Cache::put('raystack.github.version', false);
     }
 
     /**

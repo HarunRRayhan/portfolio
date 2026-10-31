@@ -481,20 +481,26 @@ Route::get('/products', function () {
 
 Route::get('/raystack', function () {
     // Cached so the page never waits on GitHub; a failed fetch is cached briefly as false.
-    $stars = Cache::get('raystack.github.stars');
-    if ($stars === null) {
-        try {
-            $response = Http::timeout(2)->acceptJson()->withUserAgent('harun.dev')
-                ->get('https://api.github.com/repos/HarunRRayhan/RayStack');
-            $stars = $response->successful() && is_int($response->json('stargazers_count'))
-                ? $response->json('stargazers_count') : false;
-        } catch (\Throwable) {
-            $stars = false;
+    $github = function (string $key, string $path, callable $pick) {
+        $value = Cache::get($key);
+        if ($value === null) {
+            try {
+                $response = Http::timeout(2)->acceptJson()->withUserAgent('harun.dev')
+                    ->get('https://api.github.com/repos/HarunRRayhan/RayStack'.$path);
+                $value = $response->successful() ? ($pick($response->json()) ?? false) : false;
+            } catch (\Throwable) {
+                $value = false;
+            }
+            Cache::put($key, $value, $value === false ? 300 : 3600);
         }
-        Cache::put('raystack.github.stars', $stars, $stars === false ? 300 : 3600);
-    }
 
-    return Inertia::render('RayStack', ['stars' => $stars === false ? null : $stars]);
+        return $value === false ? null : $value;
+    };
+
+    return Inertia::render('RayStack', [
+        'stars' => $github('raystack.github.stars', '', fn ($json) => is_int($json['stargazers_count'] ?? null) ? $json['stargazers_count'] : null),
+        'version' => $github('raystack.github.version', '/releases/latest', fn ($json) => is_string($json['tag_name'] ?? null) && preg_match('/^v\d+\.\d+\.\d+$/', $json['tag_name']) ? $json['tag_name'] : null),
+    ]);
 })->name('raystack');
 
 Route::get('/services', function () {
