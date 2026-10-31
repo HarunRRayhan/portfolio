@@ -11,7 +11,7 @@ const focusRing =
 
 const globalInstall = {
     code: "git clone --depth 1 https://github.com/HarunRRayhan/RayStack.git ~/.raystack && ~/.raystack/install.sh",
-    note: "Installs all twenty-one skills globally for Claude Code. Add --agent codex, cursor, or grok for another agent. To update, run git -C ~/.raystack pull && ~/.raystack/install.sh."
+    note: "Installs all twenty-three skills globally for Claude Code. Add --agent codex, cursor, or grok for another agent. To update, run git -C ~/.raystack pull && ~/.raystack/install.sh."
 }
 
 const installs = [
@@ -43,7 +43,7 @@ const installs = [
     {
         agent: "Any other agent",
         code: "~/.raystack/install.sh --agent custom --dir /path/to/skills",
-        note: "--dry-run shows what it would do. --uninstall removes all twenty-one skills."
+        note: "--dry-run shows what it would do. --uninstall removes all twenty-three skills."
     }
 ]
 
@@ -63,14 +63,16 @@ const skillGroups: { title: string; skills: [string, string][] }[] = [
     {
         title: "Reviews",
         skills: [
-            ["raystack", "The entry point. Picks the reviews that fit this repo and runs them."],
+            ["raystack", "The entry point. Picks the reviews that fit this repo and runs them, or runs a whole scan: security, performance, scalability, infra, aws, database, or all."],
             ["aws-billing-review", "AWS spend, with savings ranked in $/mo."],
             ["aws-security-review", "IAM, public exposure, logging, and secrets on AWS."],
             ["aws-bottleneck-review", "Throttling, limits, quotas, and single points on the request path."],
             ["infra-review", "Deploys, rollback, backups, monitoring, and exposure on any platform."],
             ["scaling-review", "What breaks first at 10x and 100x load."],
             ["database-review", "Queries, indexes, migrations, backups, connections, and bloat."],
-            ["app-security-review", "Your app's code: IDOR, injection, secrets, CSRF, and vulnerable dependencies. Every finding needs a working exploit."],
+            ["app-security-review", "Your app's code: IDOR, injection, secrets, CSRF, security logging, and vulnerable dependencies. Every finding needs a working exploit."],
+            ["performance-review", "Per-request cost today: N+1 queries, unbounded queries, slow work in the request path, caching, and bundle size."],
+            ["pipeline-security-review", "CI/CD and supply chain: GitHub Actions pwn requests and injection, unpinned actions, Dockerfiles, IaC, and lockfiles."],
             ["aws-readonly-setup", "No read-only AWS access yet? Signs you in and creates a role that can read config but not data or anything it could change."]
         ]
     },
@@ -240,12 +242,13 @@ export default function RayStack({ stars, version }: { stars?: number | null; ve
                 </section>
 
                 <section aria-labelledby="skills" className="border-b border-[#dedfd8] dark:border-slate-800 py-14 sm:py-16">
-                    <SectionHeading id="skills" eyebrow="Skills" title="Twenty-one skills, three groups" />
+                    <SectionHeading id="skills" eyebrow="Skills" title="Twenty-three skills, three groups" />
                     <p className="mt-4 max-w-2xl text-sm leading-6 text-[#686b65] dark:text-slate-400">
                         <code className="font-mono">/raystack</code> is the one entry point. For build work it
                         hands off to <code className="font-mono">dev</code>, which picks the smallest track that
                         fits, from a quick bug fix to a full product. For reviews it looks at the repo, recommends
-                        reviews, and asks once which ones to run. You can also call any skill directly. Principles
+                        reviews, and asks once which ones to run. <code className="font-mono">/raystack scan all</code>{" "}
+                        runs every review that fits and writes one ranked summary. You can also call any skill directly. Principles
                         load on their own when a task matches.
                     </p>
                     {skillGroups.map((group) => (
