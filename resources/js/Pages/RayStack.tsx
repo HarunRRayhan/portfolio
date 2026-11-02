@@ -209,6 +209,18 @@ export default function RayStack({ stars, version }: { stars?: number | null; ve
                             Install
                             <ArrowRight aria-hidden="true" className="h-4 w-4 rotate-90" />
                         </a>
+                        <a
+                            href={`${repoUrl}/blob/main/docs/guide.md`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={cn(
+                                "inline-flex min-h-12 items-center gap-3 rounded-md border border-[#cccec3] dark:border-slate-700 px-6 py-3 text-sm font-medium hover:bg-[#eeeee8] dark:hover:bg-slate-800",
+                                focusRing
+                            )}
+                        >
+                            Read the guide
+                            <span className="sr-only">(opens in a new tab)</span>
+                        </a>
                     </div>
                 </header>
 
