@@ -11,7 +11,7 @@ const focusRing =
 
 const globalInstall = {
     code: "git clone --depth 1 https://github.com/HarunRRayhan/RayStack.git ~/.raystack && ~/.raystack/install.sh",
-    note: "Installs all twenty-three skills globally for Claude Code. Add --agent codex, cursor, or grok for another agent. To update, run git -C ~/.raystack pull && ~/.raystack/install.sh."
+    note: "Installs all twenty-six skills globally for Claude Code. Add --agent codex, cursor, or grok for another agent. To update, run git -C ~/.raystack pull && ~/.raystack/install.sh."
 }
 
 const installs = [
@@ -43,7 +43,7 @@ const installs = [
     {
         agent: "Any other agent",
         code: "~/.raystack/install.sh --agent custom --dir /path/to/skills",
-        note: "--dry-run shows what it would do. --uninstall removes all twenty-three skills."
+        note: "--dry-run shows what it would do. --uninstall removes all twenty-six skills."
     }
 ]
 
@@ -57,7 +57,10 @@ const skillGroups: { title: string; skills: [string, string][] }[] = [
             ["dev-prd", "Asks until it can write the PRD, with each behaviour written as a numbered, testable line."],
             ["dev-spec", "Architecture and per-area specs, checked against the shipped engineering principles."],
             ["dev-plan", "One plan per slice. Every behaviour maps to a task before any code is written."],
-            ["dev-build", "A fresh agent builds each task and another reviews it. A ledger lets a stopped build resume, then a final review and ship."]
+            ["dev-build", "A fresh agent builds each task and another reviews it. A ledger lets a stopped build resume, then a final review and ship."],
+            ["dev-gaps", "For an existing project: finds the missing research, PRD, architecture, specs and plan, then writes them from the code and your answers."],
+            ["dev-review", "Mid-build and read-only: checks the architecture, specs and plan against the code for drift, unserved behaviours and over-design."],
+            ["dev-migrate", "Moves part of a project to another stack, say a service to Rust, step by step with parity tests."]
         ]
     },
     {
@@ -242,11 +245,15 @@ export default function RayStack({ stars, version }: { stars?: number | null; ve
                 </section>
 
                 <section aria-labelledby="skills" className="border-b border-[#dedfd8] dark:border-slate-800 py-14 sm:py-16">
-                    <SectionHeading id="skills" eyebrow="Skills" title="Twenty-three skills, three groups" />
+                    <SectionHeading id="skills" eyebrow="Skills" title="Twenty-six skills, three groups" />
                     <p className="mt-4 max-w-2xl text-sm leading-6 text-[#686b65] dark:text-slate-400">
                         <code className="font-mono">/raystack</code> is the one entry point. For build work it
                         hands off to <code className="font-mono">dev</code>, which picks the smallest track that
-                        fits, from a quick bug fix to a full product. For reviews it looks at the repo, recommends
+                        fits, from a quick bug fix to a full product. <code className="font-mono">/raystack project new</code>{" "}
+                        starts a product with a short questionnaire, one question at a time, then research, PRD,
+                        architecture, specs and a plan. <code className="font-mono">project update</code>,{" "}
+                        <code className="font-mono">project review</code> and <code className="font-mono">project migrate</code>{" "}
+                        work on an existing codebase. For reviews it looks at the repo, recommends
                         reviews, and asks once which ones to run. <code className="font-mono">/raystack scan all</code>{" "}
                         runs every review that fits and writes one ranked summary. You can also call any skill directly. Principles
                         load on their own when a task matches.
