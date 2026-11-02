@@ -11,10 +11,25 @@ const focusRing =
 
 const globalInstall = {
     code: "git clone --depth 1 https://github.com/HarunRRayhan/RayStack.git ~/.raystack && ~/.raystack/install.sh",
-    note: "Installs all thirty skills globally for Claude Code. Add --agent codex, cursor, or grok for another agent. To update, run git -C ~/.raystack pull && ~/.raystack/install.sh."
+    note: "Installs all thirty skills globally for Claude Code. Add --agent codex, cursor, grok, or opencode for another agent. Or paste the prompt below into your agent and it installs for you."
 }
 
 const installs = [
+    {
+        agent: "Ask your agent",
+        code: "Install RayStack for claude. Run these two commands, then tell me the version it printed:\ngit clone --depth 1 https://github.com/HarunRRayhan/RayStack.git ~/.raystack 2>/dev/null || git -C ~/.raystack pull --ff-only\n~/.raystack/install.sh --agent claude",
+        note: "Paste into Claude Code, Codex, Cursor, or Grok. Change claude to your agent's name. Add --project . to install into the current repo instead."
+    },
+    {
+        agent: "One project",
+        code: "cd your-project && ~/.raystack/install.sh --project",
+        note: "Copies the skills into ./.claude/skills (or .agents/skills with --agent codex, .cursor/skills with --agent cursor). Commit it so the team gets RayStack."
+    },
+    {
+        agent: "Update",
+        code: "~/.raystack/install.sh --update",
+        note: "Pulls the latest release and refreshes every global and project install. Or type /raystack update in your agent."
+    },
     {
         agent: "skills CLI",
         code: "npx skills add HarunRRayhan/RayStack -g -a claude-code",
