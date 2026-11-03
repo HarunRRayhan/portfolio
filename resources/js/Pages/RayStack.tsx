@@ -52,8 +52,8 @@ const installs = [
     },
     {
         agent: "Grok",
-        code: "grok plugin marketplace add HarunRRayhan/RayStack\ngrok plugin install raystack --trust",
-        note: "Not tested end to end yet. ~/.raystack/install.sh --agent grok works too."
+        code: "grok plugin install HarunRRayhan/RayStack --trust",
+        note: "Update with grok plugin update raystack. ~/.raystack/install.sh --agent grok works too."
     },
     {
         agent: "Any other agent",
