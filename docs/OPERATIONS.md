@@ -58,3 +58,8 @@ timeout tests. No production credentials or databases are used.
 The final check is named `Required PR checks` and fails unless both jobs pass.
 The workflow creates that check; branch protection must require it before GitHub
 will block a merge on failure. Repository branch settings are managed separately.
+
+## Open questions
+
+- The production origin must stay Cloudflare-only. The generated `*.up.railway.app` domain on the `web` service must stay removed. The code trusts `CF-Connecting-IP` for the client IP and `Cf-Ipcountry` for the visitor country, so both can be forged if the origin is reachable directly. Not verifiable from the repo. Check: Railway dashboard, `web` service, Settings, Networking lists only `harun.dev`. Status: open.
+- Production PostgreSQL backup and restore are unverified. No backup schedule, off-provider copy, restore drill, RPO or RTO is written in the repo. Needs someone with Railway access to confirm the backup schedule, add an off-provider `pg_dump` copy, and run and date one restore drill into a throwaway database (never the live service). Status: open.

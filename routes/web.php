@@ -611,6 +611,11 @@ Route::post('/subscribe', [NewsletterController::class, 'subscribe'])
     ->middleware('throttle:5,1')
     ->name('subscribe');
 
+Route::get('/newsletter/confirm/{subscriber}', [NewsletterController::class, 'confirm'])
+    ->where('subscriber', '[0-9]+')
+    ->middleware(['signed', 'throttle:30,1'])
+    ->name('newsletter.confirm');
+
 Route::get('/newsletter/unsubscribe/{subscriber}', [NewsletterController::class, 'unsubscribe'])
     ->where('subscriber', '[0-9]+')
     ->middleware('signed')

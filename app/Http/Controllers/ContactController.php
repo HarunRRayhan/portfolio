@@ -7,7 +7,6 @@ use App\Mail\ContactFormMail;
 use App\Models\ContactSubmission;
 use App\Models\Subscriber;
 use App\Services\Turnstile;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
@@ -38,14 +37,13 @@ class ContactController extends Controller
             // Update status
             $submission->update(['status' => 'sent']);
 
-            // Opt-in box is pre-ticked. Never resubscribe someone who already unsubscribed.
+            // Opt-in box is pre-ticked; the helper only mails a confirm link, so an unsubscribed reader stays out.
             if ($request->boolean('subscribe')) {
-                $subscriber = Subscriber::firstOrCreate(
-                    ['email' => $request->email],
-                    ['source' => 'contact_form', 'referrer' => $request->referrer, 'status' => 'subscribed'],
-                );
-                if ($subscriber->wasRecentlyCreated) {
-                    Cache::forget('newsletter.subscriber_count');
+                // The message is already sent; a confirm-mail failure must not show the visitor an error.
+                try {
+                    Subscriber::requestConfirmation($request->email, 'contact_form', $request->referrer);
+                } catch (\Exception $e) {
+                    report($e);
                 }
             }
 

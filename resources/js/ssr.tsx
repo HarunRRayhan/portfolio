@@ -40,6 +40,7 @@ export const renderPage = (page: Page) => createInertiaApp({
         <SubscribeProvider
             initialUrl={props.initialPage.url}
             subscriberCount={(props.initialPage.props as { newsletter?: { subscriberCount?: number } }).newsletter?.subscriberCount ?? 0}
+            turnstileSiteKey={(props.initialPage.props as { turnstileSiteKey?: string | null }).turnstileSiteKey}
         >
             <App {...props} />
         </SubscribeProvider>

@@ -4,6 +4,7 @@ import { toast } from '@/lib/toast'
 import { ArrowRight } from 'lucide-react'
 import { Input } from '@/Components/ui/input'
 import { Button } from '@/Components/ui/button'
+import Turnstile from '@/Components/Turnstile'
 import { cn } from '@/lib/utils'
 
 export type SubscribeTheme = 'warm' | 'slate'
@@ -28,16 +29,21 @@ export function SubscribeForm({
   theme = 'slate',
   onSuccess,
   className,
+  siteKey,
 }: {
   source: string
   theme?: SubscribeTheme
   onSuccess?: () => void
   className?: string
+  siteKey?: string | null
 }) {
   const t = THEME[theme]
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState('')
+  // Turnstile tokens are single-use: remount the widget after every submit for a fresh one.
+  const [widgetKey, setWidgetKey] = useState(0)
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -46,19 +52,24 @@ export function SubscribeForm({
 
     router.post(
       '/subscribe',
-      { email, source, referrer: document.referrer || null },
+      { email, source, referrer: document.referrer || null, 'cf-turnstile-response': turnstileToken },
       {
         preserveScroll: true,
+        onFinish: () => {
+          setTurnstileToken('')
+          setWidgetKey((k) => k + 1)
+        },
         onSuccess: () => {
           setIsSubmitting(false)
           setEmail('')
-          toast.success("You're subscribed. New tools and posts will land in your inbox.")
+          toast.success('Check your inbox to confirm.')
           onSuccess?.()
         },
         onError: (errors: Record<string, string>) => {
           setIsSubmitting(false)
-          setError(errors.email ?? 'Something went wrong. Please try again.')
-          toast.error(errors.email ?? 'Something went wrong. Please try again.')
+          const message = errors.email ?? errors['cf-turnstile-response'] ?? 'Something went wrong. Please try again.'
+          setError(message)
+          toast.error(message)
         },
       },
     )
@@ -75,9 +86,10 @@ export function SubscribeForm({
         aria-label="Email address"
         className={cn('h-12 rounded-full px-5 text-sm', t.input)}
       />
+      {siteKey && <Turnstile key={widgetKey} siteKey={siteKey} onToken={setTurnstileToken} />}
       <Button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isSubmitting || (!!siteKey && !turnstileToken)}
         className={cn('group h-12 w-full gap-2 rounded-full text-sm font-semibold', t.button)}
       >
         {isSubmitting ? (
