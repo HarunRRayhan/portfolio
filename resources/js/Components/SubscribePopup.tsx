@@ -62,6 +62,7 @@ export function SubscribePopup({
   theme = 'slate',
   subscriberCount = 0,
   returnFocusTo = null,
+  turnstileSiteKey = null,
 }: {
   open: boolean
   onClose: () => void
@@ -69,6 +70,7 @@ export function SubscribePopup({
   theme?: SubscribeTheme
   subscriberCount?: number
   returnFocusTo?: HTMLElement | null
+  turnstileSiteKey?: string | null
 }) {
   const t = THEME[theme]
   const subscriberLabel = subscriberCount === 1 ? 'reader' : 'readers'
@@ -160,7 +162,7 @@ export function SubscribePopup({
 
                 <div className="mt-6 w-full md:mt-0 md:max-w-xs md:justify-self-center">
                   <motion.div variants={itemVariants}>
-                    <SubscribeForm source={source} theme={theme} onSuccess={onClose} />
+                    <SubscribeForm source={source} theme={theme} onSuccess={onClose} siteKey={turnstileSiteKey} />
                   </motion.div>
 
                   <motion.div

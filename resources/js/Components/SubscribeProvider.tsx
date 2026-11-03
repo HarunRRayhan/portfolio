@@ -51,10 +51,13 @@ export function SubscribeProvider({
   children,
   subscriberCount = 0,
   initialUrl = '/',
+  turnstileSiteKey = null,
 }: {
   children: ReactNode
   subscriberCount?: number
   initialUrl?: string
+  // Passed in because the popup renders beside <App>, outside Inertia's usePage() context.
+  turnstileSiteKey?: string | null
 }) {
   const isAdminArea = useIsAdminArea(initialUrl)
   const [pathname, setPathname] = useState(() => new URL(initialUrl, 'http://localhost').pathname)
@@ -115,6 +118,7 @@ export function SubscribeProvider({
             theme={theme}
             subscriberCount={currentSubscriberCount}
             returnFocusTo={returnFocusRef.current}
+            turnstileSiteKey={turnstileSiteKey}
           />
         </Suspense>
       )}

@@ -1,5 +1,5 @@
 import { useState, FormEvent } from 'react'
-import { router, usePage } from '@inertiajs/react'
+import { router } from '@inertiajs/react'
 import { toast } from '@/lib/toast'
 import { ArrowRight } from 'lucide-react'
 import { Input } from '@/Components/ui/input'
@@ -29,11 +29,13 @@ export function SubscribeForm({
   theme = 'slate',
   onSuccess,
   className,
+  siteKey,
 }: {
   source: string
   theme?: SubscribeTheme
   onSuccess?: () => void
   className?: string
+  siteKey?: string | null
 }) {
   const t = THEME[theme]
   const [email, setEmail] = useState('')
@@ -42,7 +44,6 @@ export function SubscribeForm({
   const [turnstileToken, setTurnstileToken] = useState('')
   // Turnstile tokens are single-use: remount the widget after every submit for a fresh one.
   const [widgetKey, setWidgetKey] = useState(0)
-  const siteKey = (usePage().props as { turnstileSiteKey?: string | null }).turnstileSiteKey
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()

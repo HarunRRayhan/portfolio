@@ -40,11 +40,11 @@ createInertiaApp({
         return page;
     },
     setup({ el, App, props }) {
-        const subscriberCount = (props.initialPage.props as { newsletter?: { subscriberCount?: number } }).newsletter
-            ?.subscriberCount ?? 0;
+        const initialProps = props.initialPage.props as { newsletter?: { subscriberCount?: number }; turnstileSiteKey?: string | null };
+        const subscriberCount = initialProps.newsletter?.subscriberCount ?? 0;
 
         const tree = (
-            <SubscribeProvider subscriberCount={subscriberCount} initialUrl={props.initialPage.url}>
+            <SubscribeProvider subscriberCount={subscriberCount} initialUrl={props.initialPage.url} turnstileSiteKey={initialProps.turnstileSiteKey}>
                 <App {...props} />
             </SubscribeProvider>
         );
