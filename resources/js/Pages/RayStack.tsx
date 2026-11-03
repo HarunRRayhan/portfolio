@@ -9,56 +9,58 @@ const repoUrl = "https://github.com/HarunRRayhan/RayStack"
 const focusRing =
     "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-700"
 
+const getSh = "curl -fsSL https://raw.githubusercontent.com/HarunRRayhan/RayStack/main/get.sh | bash"
+
 const globalInstall = {
-    code: "git clone --depth 1 https://github.com/HarunRRayhan/RayStack.git ~/.raystack 2>/dev/null || git -C ~/.raystack pull --ff-only && ~/.raystack/install.sh",
-    note: "Installs all thirty skills globally for Claude Code. Add --agent codex, cursor, grok, or opencode for another agent. Then start a new agent session and type /raystack. Or paste the prompt below into your agent and it installs for you."
+    code: getSh,
+    note: "Installs all thirty skills for every coding agent it finds on your machine: Claude Code, Codex, Cursor, Grok, and OpenCode (Claude Code if it finds none). It keeps a checkout in ~/.raystack. Then start a new agent session and type /raystack."
 }
 
 const installs = [
     {
         agent: "Ask your agent",
-        code: "Install RayStack for claude. Run these two commands, then tell me the version it printed:\ngit clone --depth 1 https://github.com/HarunRRayhan/RayStack.git ~/.raystack 2>/dev/null || git -C ~/.raystack pull --ff-only\n~/.raystack/install.sh --agent claude",
-        note: "Paste into Claude Code, Codex, Cursor, or Grok. Change claude to your agent's name. Add --project . to install into the current repo instead."
+        code: "Install RayStack: run `" + getSh + "`, then tell me which agents it installed for.",
+        note: "Paste into any coding agent."
     },
     {
         agent: "One project",
-        code: "cd your-project && ~/.raystack/install.sh --project",
-        note: "Copies the skills into ./.claude/skills (or .agents/skills with --agent codex, .cursor/skills with --agent cursor). Commit it so the team gets RayStack."
-    },
-    {
-        agent: "Update",
-        code: "~/.raystack/install.sh --update",
-        note: "Pulls the latest release and refreshes every global and project install. Or type /raystack update in your agent."
-    },
-    {
-        agent: "skills CLI",
-        code: "npx skills add HarunRRayhan/RayStack -g -a claude-code",
-        note: "Swap claude-code for codex or cursor, list several, or drop -a to pick from a list."
+        code: getSh + " -s -- --project .",
+        note: "Run it in the repo. The skills go into the repo (./.claude/skills, ./.agents/skills, ./.cursor/skills for each agent found). Commit them so the whole team gets RayStack."
     },
     {
         agent: "Claude Code",
-        code: "/plugin marketplace add HarunRRayhan/RayStack\n/plugin install raystack@raystack",
-        note: "Then type /raystack in the repo you want reviewed."
+        code: getSh + " -s -- --agent claude\n# or as a plugin:\nclaude plugin marketplace add HarunRRayhan/RayStack\nclaude plugin install raystack@raystack",
+        note: "The script installs to ~/.claude/skills. Use the script or the plugin, not both. Only Claude Code enforces the read-only review guard."
     },
     {
         agent: "Codex",
-        code: "codex plugin marketplace add HarunRRayhan/RayStack\ncodex plugin add raystack@raystack",
-        note: "Or run ~/.raystack/install.sh --agent codex."
+        code: getSh + " -s -- --agent codex\n# or as a plugin:\ncodex plugin marketplace add HarunRRayhan/RayStack\ncodex plugin add raystack@raystack",
+        note: "The script installs to ~/.agents/skills. Update the plugin with codex plugin marketplace upgrade raystack, then the add line again."
     },
     {
         agent: "Cursor",
-        code: "~/.raystack/install.sh --agent cursor",
-        note: "After the clone above. It copies the skills to ~/.cursor/skills/."
+        code: getSh + " -s -- --agent cursor",
+        note: "Installs to ~/.cursor/skills."
     },
     {
-        agent: "Grok",
+        agent: "Grok Build",
         code: "grok plugin install HarunRRayhan/RayStack --trust",
-        note: "Update with grok plugin update raystack. ~/.raystack/install.sh --agent grok works too."
+        note: "Grok also reads ~/.claude/skills and ~/.cursor/skills, so a Claude Code or Cursor install already covers it. Update the plugin with grok plugin update raystack."
+    },
+    {
+        agent: "OpenCode",
+        code: getSh + " -s -- --agent opencode",
+        note: "Installs to ~/.config/opencode/skills."
     },
     {
         agent: "Any other agent",
-        code: "~/.raystack/install.sh --agent custom --dir /path/to/skills",
-        note: "--dry-run shows what it would do. --uninstall removes all thirty skills."
+        code: "~/.raystack/install.sh --agent custom --dir /path/to/skills\n# or the skills CLI:\nnpx skills add HarunRRayhan/RayStack -g -a claude-code",
+        note: "Run the one-line install first so ~/.raystack exists. --dry-run shows what it would do."
+    },
+    {
+        agent: "Update and uninstall",
+        code: "~/.raystack/install.sh --update\n~/.raystack/install.sh --uninstall --agent all",
+        note: "Update pulls the latest release and refreshes every global and project install; or type /raystack update in your agent. Uninstall removes exactly the thirty skills."
     }
 ]
 
@@ -240,13 +242,13 @@ export default function RayStack({ stars, version }: { stars?: number | null; ve
                 </header>
 
                 <section aria-labelledby="install" className="scroll-mt-28 border-b border-[#dedfd8] dark:border-slate-800 py-14 sm:py-16">
-                    <SectionHeading id="install" eyebrow="Install" title="Pick your agent" />
+                    <SectionHeading id="install" eyebrow="Install" title="One command, every agent" />
                     <p className="mt-4 max-w-2xl text-sm leading-6 text-[#686b65] dark:text-slate-400">
                         You need <code className="font-mono">git</code>, <code className="font-mono">bash</code> and <code className="font-mono">jq</code>.
                         The PDF export also needs Chrome or Chromium and <code className="font-mono">npx</code>.
                     </p>
                     <div className="mt-8">
-                        <h3 className="mb-3 text-base font-semibold">Any agent, one command</h3>
+                        <h3 className="mb-3 text-base font-semibold">Every agent on your machine</h3>
                         <CodeBlock code={globalInstall.code} label="global" />
                         <p className="mt-2 text-xs leading-5 text-[#686b65] dark:text-slate-400">{globalInstall.note}</p>
                     </div>
@@ -257,7 +259,7 @@ export default function RayStack({ stars, version }: { stars?: number | null; ve
                                 focusRing
                             )}
                         >
-                            Install for a specific agent: Claude Code, Codex, Cursor, Grok, or any other
+                            One project, one agent, plugins, update and uninstall
                             <ChevronDown
                                 aria-hidden="true"
                                 className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180"
