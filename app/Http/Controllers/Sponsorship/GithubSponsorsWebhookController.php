@@ -87,7 +87,9 @@ class GithubSponsorsWebhookController extends Controller
 
         if ($action === 'cancelled') {
             $s = $nodeId ? GithubSponsorship::where('github_sponsorship_node_id', $nodeId)->first() : null;
-            if ($s) {
+            // A replayed cancel from an earlier sponsorship period must not end the current one.
+            $stale = $s && isset($sp['created_at']) && Carbon::parse($sp['created_at'])->lt($s->started_at);
+            if ($s && ! $stale) {
                 $cancel($s, GithubSponsorship::STATUS_CANCELLED);
             }
 

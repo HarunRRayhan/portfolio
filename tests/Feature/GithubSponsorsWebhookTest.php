@@ -280,4 +280,21 @@ class GithubSponsorsWebhookTest extends TestCase
 
         $this->assertSame('cancelled', GithubSponsorship::firstOrFail()->status);
     }
+
+    public function test_replayed_old_cancelled_does_not_cancel_responsored_sponsorship(): void
+    {
+        $t1 = ['sponsorship' => ['created_at' => now()->subDays(10)->toIso8601String()]];
+        $this->send($this->payload('created', 'T_pro', $t1))->assertOk();
+        $oldCancel = $this->payload('cancelled', 'T_pro', $t1);
+        $this->send($oldCancel, 'd-2')->assertOk();
+        $this->travel(1)->minutes();
+        $t3 = ['sponsorship' => ['created_at' => now()->toIso8601String()]];
+        $this->send($this->payload('created', 'T_light', $t3), 'd-3')->assertOk();
+
+        $this->send($oldCancel, 'd-4')->assertOk();
+
+        $s = GithubSponsorship::firstOrFail();
+        $this->assertSame('active', $s->status);
+        $this->assertSame(1, $s->credits()->whereNull('revoked_at')->count());
+    }
 }
