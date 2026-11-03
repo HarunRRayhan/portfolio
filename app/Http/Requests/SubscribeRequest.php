@@ -25,7 +25,6 @@ class SubscribeRequest extends FormRequest
             'email' => ['required', 'email', 'max:255'],
             'source' => ['nullable', 'string', 'max:255'],
             'referrer' => ['nullable', 'string', 'max:255'],
-            'cf-turnstile-response' => ['nullable', 'string'],
         ];
     }
 

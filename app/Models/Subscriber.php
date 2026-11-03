@@ -19,6 +19,12 @@ class Subscriber extends Model
         return $query->where($this->qualifyColumn('status'), 'subscribed');
     }
 
+    /** Everyone we hold an address for who has not opted out; the public "join N readers" count uses this. */
+    public function scopeReachable(Builder $query): Builder
+    {
+        return $query->whereIn($this->qualifyColumn('status'), ['pending', 'subscribed']);
+    }
+
     /**
      * Double opt-in: mails a signed confirm link and never sets `subscribed` itself.
      * New addresses start `pending`; an `unsubscribed` row is left as is until the link is used.

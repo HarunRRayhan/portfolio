@@ -6,20 +6,13 @@ use App\Http\Requests\SubscribeRequest;
 use App\Models\NewsletterClick;
 use App\Models\NewsletterDelivery;
 use App\Models\Subscriber;
-use App\Services\Turnstile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Validation\ValidationException;
 
 class NewsletterController extends Controller
 {
     public function subscribe(SubscribeRequest $request)
     {
-        // shortcut: skipped when no Turnstile secret is configured (local/tests); production has one.
-        if (Turnstile::enabled() && ! Turnstile::verify($request->input('cf-turnstile-response'), $request->ip())) {
-            throw ValidationException::withMessages(['cf-turnstile-response' => 'We could not verify you are human. Please try again.']);
-        }
-
         try {
             // Same reply whether or not a mail went out, so the form can't be used to probe addresses.
             Subscriber::requestConfirmation($request->email, $request->source, $request->referrer);
