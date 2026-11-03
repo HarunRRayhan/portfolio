@@ -21,7 +21,6 @@ type Booking = {
   amount_due_cents: number
   discount_percent: number
   campaign_discount_cents: number
-  payment_due_at: string | null
   payment_received?: boolean
   meet_link: string | null
   proposed_slots: { start: string; end: string }[] | null
@@ -65,10 +64,6 @@ export default function Status({
   const page = usePage()
   const flash = (page.props.flash ?? null) as { type?: string; message?: string } | null
 
-  const pay = () => {
-    router.post(`/book/b/${booking.public_id}/pay`)
-  }
-
   const cancel = () => {
     if (!confirm('Request cancellation? Harun will review it.')) return
     router.post(`/book/b/${booking.public_id}/cancel`)
@@ -108,7 +103,7 @@ export default function Status({
         <div className="container mx-auto max-w-xl space-y-6">
           {(flash?.message || flashPaid || flashCancelledCheckout) && (
             <div className="border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-3 text-sm text-slate-700 dark:text-slate-200">
-              {flashPaid && 'Payment received — confirmation may take a moment.'}
+              {flashPaid && 'Payment received. Confirmation may take a moment.'}
               {flashCancelledCheckout && 'Checkout cancelled. You can try again when ready.'}
               {flash?.message}
             </div>
@@ -131,10 +126,12 @@ export default function Status({
                 ${(booking.list_price_cents / 100).toFixed(2)}
               </p>
             )}
-            <p>
-              <span className="text-slate-400">Amount · </span>
-              ${(booking.amount_due_cents / 100).toFixed(2)}
-            </p>
+            {booking.amount_due_cents > 0 && (
+              <p>
+                <span className="text-slate-400">Amount · </span>
+                ${(booking.amount_due_cents / 100).toFixed(2)}
+              </p>
+            )}
             {booking.campaign_discount_cents > 0 && (
               <p>
                 <span className="text-slate-400">Launch discount · </span>-${(booking.campaign_discount_cents / 100).toFixed(2)}
@@ -143,12 +140,6 @@ export default function Status({
             {booking.discount_percent > 0 && (
               <p>
                 <span className="text-slate-400">Coupon · </span>{booking.discount_percent}% off
-              </p>
-            )}
-            {booking.payment_due_at && booking.status === 'awaiting_payment' && (
-              <p>
-                <span className="text-slate-400">Pay by · </span>
-                {formatLocal(booking.payment_due_at)}
               </p>
             )}
             {booking.meet_link && (
@@ -161,14 +152,18 @@ export default function Status({
             )}
           </div>
 
+          {booking.status === 'pending_approval' && (
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+              Waiting for my approval. I’ll check my calendar and confirm within 48 hours. If I can’t make it, your credit
+              comes back.
+            </p>
+          )}
+
           {booking.status === 'awaiting_payment' && !booking.payment_received && (
-            <button
-              type="button"
-              onClick={pay}
-              className="w-full bg-sky-500 py-3 font-mono text-xs font-semibold uppercase tracking-wider text-white hover:bg-sky-600"
-            >
-              Pay with Stripe
-            </button>
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+              Online payment is closed for this booking. <a href="/contact" className="underline">Send me a note</a> and
+              I’ll sort it out.
+            </p>
           )}
 
           {booking.status === 'reschedule_proposed' && booking.proposed_slots && (

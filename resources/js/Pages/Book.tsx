@@ -1,6 +1,6 @@
-import { Head, useForm, usePage } from '@inertiajs/react'
+import { Head, router, useForm, usePage } from '@inertiajs/react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Check, ChevronLeft, Info, Loader2, Sparkles, X } from 'lucide-react'
+import { Check, ChevronLeft, Loader2, Sparkles, X } from 'lucide-react'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { trackLeadConversion } from '@/lib/analytics'
 
@@ -30,10 +30,19 @@ function prefillName(user: BookingUser | null | undefined): string {
   return user.name.includes(' ') || user.name !== user.email.split('@')[0] ? user.name : ''
 }
 
-type LaunchPromotion = {
-  discount_cents: number
-  limit: number
-  remaining_bookings: number
+type Credit = { id: number; tier_slug: string | null; tier_name: string | null; kind: 'call' | 'scan'; expires_at: string }
+
+type SponsorTier = { slug: string; url: string | null; kind: string }
+
+function ManualPaymentNote({ contactUrl }: { contactUrl: string }) {
+  return (
+    <p className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
+      GitHub doesn’t support your payment method? Use the{' '}
+      <a href={contactUrl} className="font-medium text-slate-700 underline underline-offset-4 dark:text-slate-200">contact page</a>{' '}
+      or <a href="mailto:me@harun.dev" className="font-medium text-slate-700 underline underline-offset-4 dark:text-slate-200">email me</a>{' '}
+      and I’ll set it up by hand.
+    </p>
+  )
 }
 
 const accentBySlug: Record<string, { border: string; button: string; ring: string }> = {
@@ -115,16 +124,8 @@ function timezoneLabel(timezone: string): string {
   }
 }
 
-function formatCents(cents: number): string {
-  return `$${(cents / 100).toFixed(cents % 100 ? 2 : 0)}`
-}
-
-function couponCodeFromUrl(): string {
-  if (typeof window === 'undefined') return ''
-
-  const params = new URLSearchParams(window.location.search)
-
-  return (params.get('coupon') ?? params.get('coupon_code') ?? '').trim()
+function formatDate(iso: string): string {
+  return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(iso))
 }
 
 function referralFromUrl(): string {
@@ -133,48 +134,45 @@ function referralFromUrl(): string {
   return new URLSearchParams(window.location.search).get('sa_ref') ?? ''
 }
 
-function csrfToken(): string {
-  return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? ''
-}
-
 export default function Book({
   tiers,
   canonicalUrl,
   minLeadHours = 48,
   timezones = [],
-  launchPromotion,
   bookingUser,
-  loginUrl,
+  credits = [],
+  sponsorTiers = [],
+  sponsorsUrl,
+  contactUrl,
+  hasGithubIdentity = false,
+  githubLinkUrl,
 }: {
   bookingUser?: BookingUser | null
-  loginUrl?: string
   tiers: Tier[]
   canonicalUrl?: string
-  stripeConfigured?: boolean
   minLeadHours?: number
-  bufferMinutes?: number
   timezones?: string[]
-  launchPromotion?: LaunchPromotion
+  credits?: Credit[]
+  sponsorTiers?: SponsorTier[]
+  sponsorsUrl: string
+  contactUrl: string
+  hasGithubIdentity?: boolean
+  githubLinkUrl: string
 }) {
   const [step, setStep] = useState<'plans' | 'details'>('plans')
-  const [selectedSlug, setSelectedSlug] = useState<string | null>(null)
+  const [selectedCredit, setSelectedCredit] = useState<Credit | null>(null)
   const [slots, setSlots] = useState<Slot[]>([])
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
   const [timezone, setTimezone] = useState(() => browserTimezone(timezones))
   const [slotsLoading, setSlotsLoading] = useState(false)
   const [slotsError, setSlotsError] = useState<string | null>(null)
   const [availabilityAttempt, setAvailabilityAttempt] = useState(0)
-  const [discountedCents, setDiscountedCents] = useState<number | null>(null)
-  const [campaignDiscountCents, setCampaignDiscountCents] = useState(0)
 
-  const launchAvailable =
-    (launchPromotion?.remaining_bookings ?? 0) > 0 && (launchPromotion?.discount_cents ?? 0) > 0
-  const launchDiscountDisplay = formatCents(launchPromotion?.discount_cents ?? 0)
-
-  const selected = useMemo(
-    () => tiers.find((t) => t.slug === selectedSlug) ?? null,
-    [tiers, selectedSlug],
-  )
+  const callCredits = credits.filter((c) => c.kind === 'call')
+  const hasScanCredit = credits.some((c) => c.kind === 'scan')
+  const sponsorUrlFor = (slug: string) => sponsorTiers.find((t) => t.slug === slug)?.url || sponsorsUrl
+  const selectedSlug = selectedCredit?.tier_slug ?? null
+  const selected = tiers.find((t) => t.slug === selectedSlug) ?? null
 
   const days = useMemo(() => {
     const grouped = new Map<string, { key: string; label: string; slots: Slot[] }>()
@@ -207,7 +205,7 @@ export default function Book({
   const selectedDaySlots = days.find((day) => day.key === selectedDay)?.slots ?? []
 
   const form = useForm({
-    tier: '',
+    credit_id: '',
     client_name: prefillName(bookingUser),
     company_name: '',
     website: '',
@@ -216,7 +214,6 @@ export default function Book({
     team_size: '',
     budget: '',
     starts_at: '',
-    coupon_code: couponCodeFromUrl(),
     sa_ref: referralFromUrl(),
   })
 
@@ -224,14 +221,14 @@ export default function Book({
   const errors = (page.props.errors ?? {}) as Record<string, string>
 
   useEffect(() => {
-    if (step !== 'details' || !selectedSlug) return
+    if (step !== 'details' || !selectedCredit?.tier_slug) return
 
     const controller = new AbortController()
     let active = true
     const timeout = window.setTimeout(() => controller.abort(), 15_000)
     setSlotsLoading(true)
     setSlotsError(null)
-    const params = new URLSearchParams({ tier: selectedSlug })
+    const params = new URLSearchParams({ tier: selectedCredit.tier_slug, credit: String(selectedCredit.id) })
     fetch(`/book/availability?${params}`, {
       headers: { Accept: 'application/json' },
       signal: controller.signal,
@@ -261,7 +258,7 @@ export default function Book({
       window.clearTimeout(timeout)
       controller.abort()
     }
-  }, [selectedSlug, step, availabilityAttempt])
+  }, [selectedCredit, step, availabilityAttempt])
 
   const retryAvailability = () => {
     setSlotsLoading(true)
@@ -272,51 +269,15 @@ export default function Book({
     setAvailabilityAttempt((attempt) => attempt + 1)
   }
 
-  const startBooking = (tier: Tier) => {
-    setSelectedSlug(tier.slug)
+  const startBooking = (credit: Credit) => {
+    setSelectedCredit(credit)
     setSlots([])
     setSlotsLoading(true)
     setSlotsError(null)
     setSelectedDay(null)
-    form.setData('tier', tier.slug)
-    form.setData('starts_at', '')
-    setDiscountedCents(null)
-    setCampaignDiscountCents(
-      launchAvailable ? Math.min(tier.price_cents, launchPromotion?.discount_cents ?? 0) : 0,
-    )
+    form.setData((data) => ({ ...data, credit_id: String(credit.id), starts_at: '' }))
     setStep('details')
   }
-
-  const applyCoupon = async () => {
-    if (!selectedSlug || !form.data.coupon_code.trim()) return
-
-    try {
-      const res = await fetch('/book/coupon', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          'X-CSRF-TOKEN': csrfToken(),
-        },
-        body: JSON.stringify({ code: form.data.coupon_code, tier: selectedSlug }),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        setDiscountedCents(null)
-        return
-      }
-      setDiscountedCents(data.amount_due_cents)
-      setCampaignDiscountCents(data.campaign_discount_cents ?? 0)
-    } catch {
-      setDiscountedCents(null)
-    }
-  }
-
-  useEffect(() => {
-    if (selectedSlug && form.data.coupon_code.trim()) {
-      void applyCoupon()
-    }
-  }, [selectedSlug])
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
@@ -324,10 +285,6 @@ export default function Book({
       onSuccess: () => trackLeadConversion('consultation_booking'),
     })
   }
-
-  const selectedAmountCents = selected
-    ? Math.max(0, selected.price_cents - campaignDiscountCents)
-    : null
 
   return (
     <>
@@ -348,47 +305,12 @@ export default function Book({
               animate={{ opacity: 1, y: 0 }}
               className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl lg:text-5xl"
             >
-              Pick a plan, then a time.
+              {callCredits.length > 0 ? 'Pick a time for your call.' : 'Sponsor on GitHub, then book a time.'}
             </motion.h1>
             <p className="mt-4 text-lg leading-7 text-slate-500 dark:text-slate-400">
-              Request a slot at least {minLeadHours} hours ahead. I approve it, then you pay.
-              Nothing is confirmed on the calendar until both happen.
+              Each one-time sponsorship covers one call, booked within 60 days. Pick a slot at least{' '}
+              {minLeadHours} hours ahead and I’ll confirm it.
             </p>
-            {launchAvailable && (
-              <p className="mt-4 text-sm font-medium text-amber-700 dark:text-amber-300">
-                Launch offer: the first{' '}
-                <span
-                  tabIndex={0}
-                  aria-describedby="launch-offer-limit-tooltip"
-                  className="group relative inline-block cursor-help border-b border-dotted border-amber-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                >
-                  {launchPromotion?.limit.toLocaleString() ?? 1001}
-                  <span
-                    id="launch-offer-limit-tooltip"
-                    role="tooltip"
-                    className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 w-max max-w-56 -translate-x-1/2 rounded-md bg-slate-900 px-2.5 py-1.5 text-xs font-normal text-white opacity-0 shadow-md transition-opacity duration-150 [@media(hover:hover)]:group-hover:opacity-100 group-focus-visible:opacity-100 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
-                  >
-                    Because 1,000 was too obvious.
-                  </span>
-                </span>{' '}
-                booking requests get {launchDiscountDisplay} off.{' '}
-                <span
-                  tabIndex={0}
-                  aria-label="More about the launch offer"
-                  aria-describedby="launch-offer-coupon-tooltip"
-                  className="group relative inline-flex cursor-help align-text-bottom text-amber-700 dark:text-amber-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                >
-                  <Info className="h-4 w-4" />
-                  <span
-                    id="launch-offer-coupon-tooltip"
-                    role="tooltip"
-                    className="pointer-events-none absolute bottom-full right-0 z-10 mb-2 w-max max-w-56 rounded-md bg-slate-900 px-2.5 py-1.5 text-left text-xs font-normal text-white opacity-0 shadow-md transition-opacity duration-150 [@media(hover:hover)]:group-hover:opacity-100 group-focus-visible:opacity-100 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
-                  >
-                    Valid percentage coupons stack after this discount.
-                  </span>
-                </span>
-              </p>
-            )}
           </div>
         </div>
       </section>
@@ -404,95 +326,158 @@ export default function Book({
                 exit={{ opacity: 0, y: -8 }}
                 className="mx-auto max-w-5xl"
               >
-                {!bookingUser && loginUrl && (
+                {hasScanCredit && (
                   <div className="mb-8 flex flex-col items-start justify-between gap-4 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:flex-row sm:items-center">
                     <p className="text-sm text-slate-700 dark:text-slate-200">
-                      Sign up to book. It takes a few seconds with Google, GitHub or an email link.
+                      You have an open-source scan credit. Tell me which repo to scan.
                     </p>
                     <a
-                      href={loginUrl}
+                      href="/consultation/scan"
                       className="shrink-0 bg-slate-900 px-5 py-3 font-mono text-xs font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
                     >
-                      Sign up to book
+                      Request a scan
                     </a>
                   </div>
                 )}
-                <div className="grid gap-6 md:grid-cols-3">
-                {tiers.map((tier) => {
-                  const accent = accentBySlug[tier.slug] ?? accentBySlug.light
-                  const isRecommended = tier.slug === 'max'
-                  return (
-                    <div
-                      key={tier.slug}
-                      className={`relative flex flex-col border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 ${accent.border} border-t-[3px] border-b-[3px] ${isRecommended ? `ring-2 ${accent.ring} ring-offset-2` : ''}`}
-                    >
-                      {isRecommended && (
-                        <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-amber-700 px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-white shadow-sm">
-                          Recommended
-                        </span>
-                      )}
-                      <div className="px-6 pb-4 pt-8 text-center">
-                        <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-                          {tier.name}
-                        </p>
-                        <p className="mt-3 text-4xl font-bold tracking-tight text-slate-900 dark:text-white">
-                          {launchAvailable ? (
-                            <>
-                              <span className="text-slate-600 dark:text-slate-300 line-through">{tier.price_display}</span>
-                              {' '}
-                              <span className="ml-2">
-                                {formatCents(Math.max(0, tier.price_cents - (launchPromotion?.discount_cents ?? 0)))}
-                              </span>
-                            </>
-                          ) : (
-                            tier.price_display
-                          )}
-                          <span className="ml-1 text-base font-medium text-slate-600 dark:text-slate-300">/ one time</span>
-                        </p>
-                        {launchAvailable && <p className="mt-1 text-xs font-medium text-amber-700 dark:text-amber-300">{launchDiscountDisplay} off launch pricing</p>}
-                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{tier.duration_minutes} minutes</p>
-                      </div>
-                      <ul className="flex-1 border-t border-slate-100 dark:border-slate-800 px-6">
-                        {tier.features.map((f) => (
-                          <li
-                            key={f.label}
-                            className="flex items-start gap-3 border-b border-slate-100 dark:border-slate-800 py-3.5 text-sm text-slate-700 dark:text-slate-200 last:border-b-0"
-                          >
-                            <span
-                              role="img"
-                              aria-label={f.included ? 'Included' : 'Not included'}
-                              className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
-                                f.included ? 'bg-amber-500 text-amber-950' : 'bg-rose-600 text-white'
-                              }`}
+                {callCredits.length > 0 ? (
+                  <div className="grid gap-6 md:grid-cols-3">
+                    {callCredits.map((credit) => {
+                      const tier = tiers.find((t) => t.slug === credit.tier_slug)
+                      const accent = accentBySlug[credit.tier_slug ?? ''] ?? accentBySlug.light
+                      return (
+                        <div
+                          key={credit.id}
+                          className={`flex flex-col border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 ${accent.border} border-t-[3px] border-b-[3px]`}
+                        >
+                          <div className="flex-1 px-6 pb-4 pt-8 text-center">
+                            <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+                              {credit.tier_name ?? tier?.name}
+                            </p>
+                            <p className="mt-3 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                              {tier?.duration_minutes ?? 60}-min call
+                            </p>
+                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Book by {formatDate(credit.expires_at)}</p>
+                          </div>
+                          <div className="p-6">
+                            <button
+                              type="button"
+                              disabled={!tier}
+                              onClick={() => startBooking(credit)}
+                              className={`w-full py-3 text-center font-mono text-xs font-semibold uppercase tracking-[0.16em] text-white transition ${accent.button} disabled:opacity-50`}
                             >
-                              {f.included ? <Check className="h-3 w-3" aria-hidden="true" /> : <X className="h-3 w-3" aria-hidden="true" />}
+                              Book this call
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid gap-6 md:grid-cols-3">
+                    {tiers.map((tier) => {
+                      const accent = accentBySlug[tier.slug] ?? accentBySlug.light
+                      const isRecommended = tier.slug === 'max'
+                      return (
+                        <div
+                          key={tier.slug}
+                          className={`relative flex flex-col border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 ${accent.border} border-t-[3px] border-b-[3px] ${isRecommended ? `ring-2 ${accent.ring} ring-offset-2` : ''}`}
+                        >
+                          {isRecommended && (
+                            <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-amber-700 px-3 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-white shadow-sm">
+                              Recommended
                             </span>
-                            <span className={f.included ? '' : 'text-slate-600 dark:text-slate-300'}>{f.label}</span>
-                          </li>
-                        ))}
-                      </ul>
-                      <div className="p-6">
-                        {bookingUser || !loginUrl ? (
-                          <button
-                            type="button"
-                            onClick={() => startBooking(tier)}
-                            className={`w-full py-3 text-center font-mono text-xs font-semibold uppercase tracking-[0.16em] text-white transition ${accent.button}`}
-                          >
-                            Book {tier.name.replace('Consultation ', '')}
-                          </button>
-                        ) : (
-                          <a
-                            href={loginUrl}
-                            className={`block w-full py-3 text-center font-mono text-xs font-semibold uppercase tracking-[0.16em] text-white transition ${accent.button}`}
-                          >
-                            Sign up to book {tier.name.replace('Consultation ', '')}
-                          </a>
-                        )}
-                      </div>
+                          )}
+                          <div className="px-6 pb-4 pt-8 text-center">
+                            <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+                              {tier.name}
+                            </p>
+                            <p className="mt-3 text-4xl font-bold tracking-tight text-slate-900 dark:text-white">
+                              {tier.price_display}
+                              <span className="ml-1 text-base font-medium text-slate-600 dark:text-slate-300">/ one time</span>
+                            </p>
+                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{tier.duration_minutes} minutes</p>
+                          </div>
+                          <ul className="flex-1 border-t border-slate-100 dark:border-slate-800 px-6">
+                            {tier.features.map((f) => (
+                              <li
+                                key={f.label}
+                                className="flex items-start gap-3 border-b border-slate-100 dark:border-slate-800 py-3.5 text-sm text-slate-700 dark:text-slate-200 last:border-b-0"
+                              >
+                                <span
+                                  role="img"
+                                  aria-label={f.included ? 'Included' : 'Not included'}
+                                  className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
+                                    f.included ? 'bg-amber-500 text-amber-950' : 'bg-rose-600 text-white'
+                                  }`}
+                                >
+                                  {f.included ? <Check className="h-3 w-3" aria-hidden="true" /> : <X className="h-3 w-3" aria-hidden="true" />}
+                                </span>
+                                <span className={f.included ? '' : 'text-slate-600 dark:text-slate-300'}>{f.label}</span>
+                              </li>
+                            ))}
+                          </ul>
+                          <div className="p-6">
+                            <a
+                              href={sponsorUrlFor(tier.slug)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`block w-full py-3 text-center font-mono text-xs font-semibold uppercase tracking-[0.16em] text-white transition ${accent.button}`}
+                            >
+                              Sponsor on GitHub
+                            </a>
+                          </div>
+                        </div>
+                      )
+                    })}
                     </div>
-                  )
-                })}
-                </div>
+                    <div className="mt-6 flex flex-col items-start justify-between gap-4 border border-slate-200 dark:border-slate-800 border-t-[3px] border-t-amber-600 bg-white dark:bg-slate-900 p-6 sm:flex-row sm:items-center">
+                      <div>
+                        <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Monthly</p>
+                        <p className="mt-2 text-lg font-bold text-slate-900 dark:text-white">
+                          $499/mo · 2 × 60-min calls + 1 open-source scan each month
+                        </p>
+                      </div>
+                      <a
+                        href={sponsorUrlFor('monthly')}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`shrink-0 px-5 py-3 text-center font-mono text-xs font-semibold uppercase tracking-[0.16em] text-white transition ${accentBySlug.max.button}`}
+                      >
+                        Sponsor on GitHub
+                      </a>
+                    </div>
+                  </>
+                )}
+                {!hasGithubIdentity && callCredits.length === 0 && (
+                  <div className="mt-8 flex flex-col items-start justify-between gap-4 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:flex-row sm:items-center">
+                    {bookingUser ? (
+                      <>
+                        <p className="text-sm text-slate-700 dark:text-slate-200">
+                          Sponsored on GitHub? Sign out, then sign in with GitHub using the same email, and your credits appear here.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => router.post('/logout')}
+                          className="shrink-0 border border-slate-300 dark:border-slate-700 px-5 py-3 font-mono text-xs font-semibold uppercase tracking-[0.16em] text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-950"
+                        >
+                          Sign out
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm text-slate-700 dark:text-slate-200">Already sponsored? Sign in with GitHub to book.</p>
+                        <a
+                          href={githubLinkUrl}
+                          className="shrink-0 bg-slate-900 px-5 py-3 font-mono text-xs font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+                        >
+                          Sign in with GitHub
+                        </a>
+                      </>
+                    )}
+                  </div>
+                )}
+                <ManualPaymentNote contactUrl={contactUrl} />
               </motion.div>
             ) : (
               <motion.div
@@ -508,7 +493,7 @@ export default function Book({
                   className="mb-6 inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100"
                 >
                   <ChevronLeft className="h-4 w-4" />
-                  All plans
+                  Back
                 </button>
 
                 <form onSubmit={submit} className="space-y-6 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8">
@@ -517,15 +502,13 @@ export default function Book({
                       {selected?.name}
                     </p>
                     <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
-                      {discountedCents !== null
-                        ? formatCents(discountedCents)
-                        : selectedAmountCents !== null
-                          ? formatCents(selectedAmountCents)
-                          : selected?.price_display}{' '}
-                      <span className="text-base font-medium text-slate-400">
-                        · {selected?.duration_minutes} min
-                      </span>
+                      {selected?.duration_minutes}-min call
                     </p>
+                    {selectedCredit && (
+                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                        Paid with your sponsor credit. Book by {formatDate(selectedCredit.expires_at)}.
+                      </p>
+                    )}
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -718,6 +701,7 @@ export default function Book({
                       </>
                     )}
                     {errors.starts_at && <p className="mt-1 text-xs text-rose-600">{errors.starts_at}</p>}
+                    {errors.credit_id && <p className="mt-1 text-xs text-rose-600">{errors.credit_id}</p>}
                   </div>
 
                   <button
@@ -729,7 +713,7 @@ export default function Book({
                     Request this slot
                   </button>
                   <p className="text-center text-xs text-slate-400">
-                    Requesting does not charge you. The launch discount is checked when you submit. After approval you’ll get a Stripe link (unless the coupon is 100% off).
+                    I’ll check my calendar and confirm within 48 hours. Your credit is held until then. If I can’t make it, you get it back.
                   </p>
                 </form>
               </motion.div>

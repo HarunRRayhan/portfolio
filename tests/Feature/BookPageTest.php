@@ -29,7 +29,12 @@ class BookPageTest extends TestCase
             ->where('tiers.1.price_cents', 34900)
             ->where('tiers.2.price_cents', 44900)
             ->where('credits', [])
-            ->where('hasGithubIdentity', false));
+            ->where('hasGithubIdentity', false)
+            ->where('sponsorsUrl', config('sponsors.url'))
+            ->has('sponsorTiers', 4)
+            ->where('sponsorTiers.3.slug', 'monthly')
+            ->missing('stripeConfigured')
+            ->missing('launchPromotion'));
     }
 
     public function test_guest_booking_gate_links_to_login_with_full_redirect(): void
