@@ -25,6 +25,9 @@ class SkaleAgentsBookingDelivery
             'currency' => strtoupper($booking->currency),
             'startsAt' => $booking->starts_at->copy()->utc()->toIso8601String(),
             'endsAt' => $booking->ends_at->copy()->utc()->toIso8601String(),
+            // Kept for the SkaleAgents payload contract; always null since payments moved to GitHub Sponsors.
+            'paidAt' => null,
+            'refundedAt' => null,
         ];
 
         DB::table('skaleagents_booking_deliveries')->insertOrIgnore([

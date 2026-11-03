@@ -46,9 +46,11 @@ class SkaleAgentsBookingDeliveryTest extends TestCase
         $this->assertSame('portfolio-booking-'.$booking->public_id.'-event-'.$event->id, $payload['eventId']);
         $this->assertSame($booking->skaleagents_referral_hash, $payload['referralHash']);
         $this->assertSame('pending_approval', $payload['bookingStatus']);
+        $this->assertNull($payload['paidAt']);
         $this->assertSame([
             'eventId', 'sequence', 'referralHash', 'bookingPublicId', 'event', 'bookingStatus',
             'occurredAt', 'packageSlug', 'amountDueCents', 'currency', 'startsAt', 'endsAt',
+            'paidAt', 'refundedAt',
         ], array_keys($payload));
         foreach (['Private Client', 'private@example.com', 'Sensitive audit context', 'private-token'] as $secret) {
             $this->assertStringNotContainsString($secret, $delivery->payload);
