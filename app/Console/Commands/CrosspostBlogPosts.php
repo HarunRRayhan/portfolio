@@ -151,6 +151,15 @@ class CrosspostBlogPosts extends Command
     /** @return array{remote_id: string, remote_url: string} */
     private function devto(array $post, string $markdown): array
     {
+        // A lost response leaves no ledger row; reuse the article already posted for this canonical URL.
+        $mine = Http::withHeaders(['api-key' => config('services.devto.api_key')])->get('https://dev.to/api/articles/me/all', ['per_page' => 1000]);
+        $this->ensureOk($mine);
+        $existing = collect($mine->json())->first(fn ($a) => is_array($a) && ($a['canonical_url'] ?? null) === $this->canonical($post));
+
+        if ($existing) {
+            return ['remote_id' => (string) $existing['id'], 'remote_url' => (string) $existing['url']];
+        }
+
         $response = Http::withHeaders(['api-key' => config('services.devto.api_key')])
             ->post('https://dev.to/api/articles', ['article' => array_filter([
                 'title' => $post['title'],

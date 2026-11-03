@@ -2,11 +2,11 @@
 
 use App\Http\Controllers\Admin\ApiKeyController;
 use App\Http\Controllers\Admin\BioLinkController;
-use App\Http\Controllers\Admin\ContactSubmissionController as AdminContactSubmissionController;
 use App\Http\Controllers\Admin\Consultation\AvailabilityController as ConsultationAvailabilityController;
 use App\Http\Controllers\Admin\Consultation\BookingController as ConsultationBookingController;
 use App\Http\Controllers\Admin\Consultation\CouponController as ConsultationCouponController;
 use App\Http\Controllers\Admin\Consultation\GoogleOAuthController as ConsultationGoogleOAuthController;
+use App\Http\Controllers\Admin\ContactSubmissionController as AdminContactSubmissionController;
 use App\Http\Controllers\Admin\MediaItemController;
 use App\Http\Controllers\Admin\MediumCrosspostController;
 use App\Http\Controllers\Admin\NewsletterController as AdminNewsletterController;
@@ -43,8 +43,8 @@ use App\Support\SiteCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -354,16 +354,11 @@ Route::get('/bio', function (Request $request, CountryResolver $countries) {
         ])
         ->all();
 
-    $pageShareUrl = ShortLink::getOrCreateForUrl(url('/bio'), 'Bio page')?->short_url ?? url('/bio');
-
-    $tabShareUrls = collect($links)
-        ->pluck('tab_slug')
-        ->unique()
-        ->mapWithKeys(function (string $slug) {
-            $tabUrl = url('/bio').'?tab='.$slug;
-
-            return [$slug => ShortLink::getOrCreateForUrl($tabUrl, "Bio: {$slug}")?->short_url ?? $tabUrl];
-        });
+    $slugs = collect($links)->pluck('tab_slug')->unique();
+    $share = ShortLink::shareUrls([url('/bio') => 'Bio page']
+        + $slugs->mapWithKeys(fn (string $slug) => [url('/bio').'?tab='.$slug => "Bio: {$slug}"])->all());
+    $pageShareUrl = $share[url('/bio')];
+    $tabShareUrls = $slugs->mapWithKeys(fn (string $slug) => [$slug => $share[url('/bio').'?tab='.$slug]]);
 
     return Inertia::render('Bio', [
         'links' => $links,
@@ -408,16 +403,11 @@ Route::get('/hrr', function (Request $request, CountryResolver $countries) {
         ])
         ->all();
 
-    $pageShareUrl = ShortLink::getOrCreateForUrl(url('/hrr'), 'Bio (Bangla) page')?->short_url ?? url('/hrr');
-
-    $tabShareUrls = collect($links)
-        ->pluck('tab_slug')
-        ->unique()
-        ->mapWithKeys(function (string $slug) {
-            $tabUrl = url('/hrr').'?tab='.$slug;
-
-            return [$slug => ShortLink::getOrCreateForUrl($tabUrl, "Bio (Bangla): {$slug}")?->short_url ?? $tabUrl];
-        });
+    $slugs = collect($links)->pluck('tab_slug')->unique();
+    $share = ShortLink::shareUrls([url('/hrr') => 'Bio (Bangla) page']
+        + $slugs->mapWithKeys(fn (string $slug) => [url('/hrr').'?tab='.$slug => "Bio (Bangla): {$slug}"])->all());
+    $pageShareUrl = $share[url('/hrr')];
+    $tabShareUrls = $slugs->mapWithKeys(fn (string $slug) => [$slug => $share[url('/hrr').'?tab='.$slug]]);
 
     return Inertia::render('Bio', [
         'links' => $links,
@@ -488,7 +478,7 @@ Route::get('/raystack', function () {
                 $response = Http::timeout(2)->acceptJson()->withUserAgent('harun.dev')
                     ->get('https://api.github.com/repos/HarunRRayhan/RayStack'.$path);
                 $value = $response->successful() ? ($pick($response->json()) ?? false) : false;
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 $value = false;
             }
             Cache::put($key, $value, $value === false ? 300 : 3600);

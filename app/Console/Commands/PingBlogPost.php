@@ -7,6 +7,7 @@ use App\Support\BlogRepository;
 use App\Support\IndexNow;
 use Illuminate\Console\Command;
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
@@ -120,9 +121,22 @@ class PingBlogPost extends Command
             $card['thumb'] = $upload->json('blob');
         }
 
+        // A fixed record key per post: if a lost response makes us retry, the post already exists.
+        $rkey = self::tid($post);
+        $existing = Http::withHeaders($auth)->get(self::BSKY.'com.atproto.repo.getRecord', ['repo' => $session['did'], 'collection' => 'app.bsky.feed.post', 'rkey' => $rkey]);
+
+        if ($existing->successful() && is_string($existing->json('uri'))) {
+            return ['remote_id' => $existing->json('uri'), 'remote_url' => "https://bsky.app/profile/{$handle}/post/{$rkey}"];
+        }
+
+        if ($existing->serverError()) {
+            $this->ensureOk($existing);
+        }
+
         $response = Http::withHeaders($auth)->post(self::BSKY.'com.atproto.repo.createRecord', [
             'repo' => $session['did'],
             'collection' => 'app.bsky.feed.post',
+            'rkey' => $rkey,
             'record' => array_filter([
                 '$type' => 'app.bsky.feed.post',
                 'text' => mb_strimwidth($post['title'], 0, 290, '…'),
@@ -154,6 +168,21 @@ class PingBlogPost extends Command
         $this->ensureOk($response);
 
         return ['remote_id' => (string) $response['id'], 'remote_url' => (string) $response['url']];
+    }
+
+    /** An atproto TID (13 base32-sortable chars) built from the post's publish time and slug, so it never changes. */
+    public static function tid(array $post): string
+    {
+        $micros = (int) (Carbon::parse((string) $post['publishedAt'])->getPreciseTimestamp(6));
+        $n = ($micros << 10) | (crc32((string) $post['slug']) & 1023);
+        $alphabet = '234567abcdefghijklmnopqrstuvwxyz';
+        $tid = '';
+
+        for ($shift = 60; $shift >= 0; $shift -= 5) {
+            $tid .= $alphabet[($n >> $shift) & 31];
+        }
+
+        return $tid;
     }
 
     private function cover(array $post): ?string
