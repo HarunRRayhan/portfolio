@@ -16,6 +16,7 @@ use App\Http\Controllers\BlogCommentController;
 use App\Http\Controllers\Consultation\BookController;
 use App\Http\Controllers\Consultation\BookingAccessController;
 use App\Http\Controllers\Consultation\StripeWebhookController;
+use App\Http\Controllers\Sponsorship\GithubSponsorsWebhookController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\OperationalHealthController;
@@ -610,6 +611,7 @@ Route::post('/book/b/{publicId}/pick-proposed', [BookingAccessController::class,
     ->name('book.pick-proposed');
 
 Route::post('/stripe/webhook', StripeWebhookController::class)->name('stripe.webhook');
+Route::post('/github/sponsors/webhook', GithubSponsorsWebhookController::class)->name('github.sponsors.webhook');
 
 Route::get('/contact', function () {
     return Inertia::render('Contact');
