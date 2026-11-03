@@ -14,6 +14,11 @@ class NewsletterController extends Controller
     public function subscribe(SubscribeRequest $request)
     {
         try {
+            // Honeypot: people never see the `website` field, bots fill it. Same reply, nothing stored or mailed.
+            if (filled($request->input('website'))) {
+                return redirect()->back()->with('flash', ['type' => 'success', 'message' => 'Check your inbox to confirm your subscription.']);
+            }
+
             // Same reply whether or not a mail went out, so the form can't be used to probe addresses.
             Subscriber::requestConfirmation($request->email, $request->source, $request->referrer);
 

@@ -55,6 +55,16 @@ class SubscriberTest extends TestCase
     }
 
     #[Test]
+    public function a_filled_honeypot_gets_the_same_reply_but_stores_and_mails_nothing()
+    {
+        $this->post('/subscribe', ['email' => 'bot@example.com', 'website' => 'http://spam.test'])
+            ->assertSessionHas('flash.message', self::FLASH);
+
+        $this->assertDatabaseCount('subscribers', 0);
+        Mail::assertNothingSent();
+    }
+
+    #[Test]
     public function the_signed_confirm_link_subscribes_the_reader()
     {
         $subscriber = Subscriber::create(['email' => 'jane@example.com', 'status' => 'pending']);
