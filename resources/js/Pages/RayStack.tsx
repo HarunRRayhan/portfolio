@@ -11,6 +11,8 @@ const focusRing =
 
 const getSh = "curl -fsSL https://raw.githubusercontent.com/HarunRRayhan/RayStack/main/get.sh | bash"
 
+const projectCommand = getSh + " -s -- --project ."
+// An agent can't answer the per-agent questions, so its prompts add --yes.
 const globalPrompt = "Install RayStack globally: run `" + getSh + " -s -- --yes`, then tell me which agents it installed for."
 const projectPrompt = "Install RayStack into this project: run `" + getSh + " -s -- --yes --project .`, then show me the new skills folders."
 
@@ -43,16 +45,22 @@ const agentInstalls: AgentInstall[] = [
     { name: "Continue", flag: "continue", global: "~/.continue/skills", project: ".continue/skills" },
 ]
 
-const agentPrompts = (a: AgentInstall) => [
-    {
-        label: "Global",
-        code: "Install RayStack globally for " + a.name + ": run `" + getSh + " -s -- --agent " + a.flag + "`, then tell me what it printed."
-    },
-    {
-        label: "This project",
-        code: "Install RayStack into this project for " + a.name + ": run `" + getSh + " -s -- --agent " + a.flag + " --project .`, then show me the new " + a.project + " folder."
-    }
-]
+const agentPrompts = (a: AgentInstall) => {
+    const globalCmd = getSh + " -s -- --agent " + a.flag
+    const projectCmd = globalCmd + " --project ."
+    return [
+        {
+            label: "Global",
+            code: globalCmd,
+            prompt: "Install RayStack globally for " + a.name + ": run `" + globalCmd + "`, then tell me what it printed."
+        },
+        {
+            label: "This project",
+            code: projectCmd,
+            prompt: "Install RayStack into this project for " + a.name + ": run `" + projectCmd + "`, then show me the new " + a.project + " folder."
+        }
+    ]
+}
 
 const maintenance = [
     { label: "Update", code: "~/.raystack/install.sh --update" },
@@ -108,42 +116,56 @@ const skillGroups: { title: string; skills: [string, string][] }[] = [
     }
 ]
 
-function CodeBlock({ code, label }: { code: string; label: string }) {
-    const [copied, setCopied] = useState(false)
+function CodeBlock({ code, label, prompt }: { code: string; label: string; prompt?: string }) {
+    const [copied, setCopied] = useState<"" | "command" | "prompt">("")
 
-    async function copy() {
+    async function copy(text: string, which: "command" | "prompt") {
         try {
-            await navigator.clipboard.writeText(code)
-            setCopied(true)
-            setTimeout(() => setCopied(false), 2000)
+            await navigator.clipboard.writeText(text)
+            setCopied(which)
+            setTimeout(() => setCopied(""), 2000)
         } catch {
             // Clipboard can be blocked; the command stays selectable.
         }
     }
 
+    const pill = cn(
+        "inline-flex min-h-9 items-center gap-1.5 rounded-md px-3 text-xs font-medium text-[#c9cbc2] ring-1 ring-white/15 hover:bg-white/10 hover:text-white",
+        focusRing
+    )
+
     return (
         <div className="relative min-w-0 max-w-full rounded-lg bg-[#242821] text-[#f4f4ef] dark:ring-1 dark:ring-slate-700">
             {/* Long commands wrap inside the block; copy still takes the exact text. */}
-            <pre className="whitespace-pre-wrap p-4 pr-14 font-mono text-[13px] leading-6 [overflow-wrap:anywhere]">
+            <pre className={cn("whitespace-pre-wrap p-4 font-mono text-[13px] leading-6 [overflow-wrap:anywhere]", !prompt && "pr-14")}>
                 <code>{code}</code>
             </pre>
-            <button
-                type="button"
-                onClick={copy}
-                aria-label={`Copy ${label} install command`}
-                className={cn(
-                    "absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-md text-[#c9cbc2] hover:bg-white/10 dark:hover:bg-slate-900/10 hover:text-white",
-                    focusRing
-                )}
-            >
-                {copied ? (
-                    <Check aria-hidden="true" className="h-4 w-4" />
-                ) : (
-                    <Copy aria-hidden="true" className="h-4 w-4" />
-                )}
-            </button>
+            {prompt ? (
+                <div className="flex flex-wrap gap-2 border-t border-white/10 px-4 py-3">
+                    <button type="button" onClick={() => copy(code, "command")} aria-label={`Copy the ${label} command`} className={pill}>
+                        {copied === "command" ? <Check aria-hidden="true" className="h-3.5 w-3.5" /> : <Copy aria-hidden="true" className="h-3.5 w-3.5" />}
+                        Copy command
+                    </button>
+                    <button type="button" onClick={() => copy(prompt, "prompt")} aria-label={`Copy the ${label} prompt for an AI agent`} className={pill}>
+                        {copied === "prompt" ? <Check aria-hidden="true" className="h-3.5 w-3.5" /> : <Copy aria-hidden="true" className="h-3.5 w-3.5" />}
+                        Copy for AI agent
+                    </button>
+                </div>
+            ) : (
+                <button
+                    type="button"
+                    onClick={() => copy(code, "command")}
+                    aria-label={`Copy ${label} command`}
+                    className={cn(
+                        "absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-md text-[#c9cbc2] hover:bg-white/10 dark:hover:bg-slate-900/10 hover:text-white",
+                        focusRing
+                    )}
+                >
+                    {copied ? <Check aria-hidden="true" className="h-4 w-4" /> : <Copy aria-hidden="true" className="h-4 w-4" />}
+                </button>
+            )}
             <span role="status" aria-live="polite" className="sr-only">
-                {copied ? "Copied" : ""}
+                {copied === "prompt" ? "Prompt copied" : copied ? "Copied" : ""}
             </span>
         </div>
     )
@@ -247,33 +269,27 @@ export default function RayStack({ stars, version }: { stars?: number | null; ve
                     <div className="mt-8 grid gap-8">
                         <div className="min-w-0">
                             <h3 className="mb-3 text-base font-semibold">Every agent on your machine</h3>
-                            <CodeBlock code={getSh} label="global" />
+                            <CodeBlock code={getSh} label="global install" prompt={globalPrompt} />
                             <p className="mt-2 text-xs leading-5 text-[#686b65] dark:text-slate-400">
-                                Finds the coding agents on your machine and asks, for each one, whether to install
-                                there. It keeps a checkout in ~/.raystack. Then start a new agent session and type
-                                /raystack.
-                            </p>
-                        </div>
-                        <div className="min-w-0">
-                            <h3 className="mb-3 text-base font-semibold">Or ask your agent</h3>
-                            <CodeBlock code={globalPrompt} label="global prompt" />
-                            <p className="mt-2 text-xs leading-5 text-[#686b65] dark:text-slate-400">
-                                Paste into any coding agent. --yes installs for every agent found without asking,
-                                since an agent can&apos;t answer the questions.
+                                Run the command in a terminal: it finds the coding agents on your machine and asks, for
+                                each one, whether to install there. Or copy it for your AI agent and paste it in; that
+                                version installs for every agent found without asking. Then start a new agent session
+                                and type /raystack.
                             </p>
                         </div>
                         <div className="min-w-0">
                             <h3 className="mb-3 text-base font-semibold">Into one project</h3>
-                            <CodeBlock code={projectPrompt} label="project prompt" />
+                            <CodeBlock code={projectCommand} label="project install" prompt={projectPrompt} />
                             <p className="mt-2 text-xs leading-5 text-[#686b65] dark:text-slate-400">
-                                The skills go into the repo. Commit them so everyone who clones it gets RayStack.
+                                Run it in the repo. The skills go into the repo; commit them so everyone who clones it
+                                gets RayStack.
                             </p>
                         </div>
                     </div>
 
                     <h3 className="mt-12 text-base font-semibold">One agent</h3>
                     <p className="mt-2 max-w-2xl text-sm leading-6 text-[#686b65] dark:text-slate-400">
-                        Pick your agent for its own prompts. In a terminal, run the command inside the backticks.
+                        Open your agent for its own commands. Copy the command for a terminal, or copy it for your AI agent.
                     </p>
                     <div className="mt-4 divide-y divide-[#dedfd8] overflow-hidden rounded-xl border border-[#dedfd8] bg-[#fffefa] dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
                         {agentInstalls.map((a) => (
@@ -291,7 +307,7 @@ export default function RayStack({ stars, version }: { stars?: number | null; ve
                                     {agentPrompts(a).map((p) => (
                                         <div key={p.label} className="min-w-0">
                                             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#686b65] dark:text-slate-400">{p.label}</p>
-                                            <CodeBlock code={p.code} label={`${a.name} ${p.label}`} />
+                                            <CodeBlock code={p.code} label={`${a.name} ${p.label}`} prompt={p.prompt} />
                                         </div>
                                     ))}
                                     <p className="text-xs leading-5 text-[#686b65] dark:text-slate-400">
