@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 
 class TrustCloudflareClientIp
 {
-    // Safe only while the origin is reachable through Cloudflare alone (D-001/D-005).
+    // Safe only while the origin is reachable through Cloudflare alone (see CLAUDE.md, Infra).
     public function handle(Request $request, Closure $next)
     {
         $ip = $request->header('CF-Connecting-IP');

@@ -25,7 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // proxy for scheme/port only. X-Forwarded-For is client-forgeable and
         // is NOT trusted: the client IP comes from CF-Connecting-IP via
         // TrustCloudflareClientIp, which is safe only while the origin stays
-        // Cloudflare-only (D-001/D-005). HOST and PREFIX stay untrusted so a
+        // Cloudflare-only (CLAUDE.md, Infra). HOST and PREFIX stay untrusted so a
         // spoofed X-Forwarded-Host cannot control generated links.
         $middleware->trustProxies(
             at: '*',
