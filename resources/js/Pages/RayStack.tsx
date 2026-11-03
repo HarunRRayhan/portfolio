@@ -11,77 +11,53 @@ const focusRing =
 
 const getSh = "curl -fsSL https://raw.githubusercontent.com/HarunRRayhan/RayStack/main/get.sh | bash"
 
-const globalInstall = {
-    code: getSh,
-    note: "Finds the coding agents on your machine (Claude Code, Codex, Cursor, Grok, Antigravity, Gemini CLI, Copilot, Windsurf, and 15 more) and asks for each one whether to install there. It keeps a checkout in ~/.raystack. Then start a new agent session and type /raystack."
-}
+const globalPrompt = "Install RayStack globally: run `" + getSh + " -s -- --yes`, then tell me which agents it installed for."
+const projectPrompt = "Install RayStack into this project: run `" + getSh + " -s -- --yes --project .`, then show me the new skills folders."
 
-const installs = [
+type AgentInstall = { name: string; flag: string; global: string; project: string; extra?: string }
+
+// Folders match install.sh's agent table in the RayStack repo.
+const agentInstalls: AgentInstall[] = [
+    { name: "Claude Code", flag: "claude", global: "~/.claude/skills", project: ".claude/skills", extra: "Plugin instead: claude plugin marketplace add HarunRRayhan/RayStack, then claude plugin install raystack@raystack. Use the script or the plugin, not both. Only Claude Code enforces the read-only review guard." },
+    { name: "Codex", flag: "codex", global: "~/.agents/skills", project: ".agents/skills", extra: "Plugin instead: codex plugin marketplace add HarunRRayhan/RayStack, then codex plugin add raystack@raystack." },
+    { name: "Cursor", flag: "cursor", global: "~/.cursor/skills", project: ".cursor/skills" },
+    { name: "Grok Build", flag: "grok", global: "~/.grok/skills", project: ".claude/skills", extra: "Grok also reads ~/.claude/skills and ~/.cursor/skills, so a Claude Code or Cursor install already covers it. Plugin instead: grok plugin install HarunRRayhan/RayStack --trust." },
+    { name: "Antigravity", flag: "antigravity", global: "~/.gemini/antigravity/skills", project: ".agents/skills" },
+    { name: "Gemini CLI", flag: "gemini", global: "~/.gemini/skills", project: ".agents/skills" },
+    { name: "GitHub Copilot", flag: "copilot", global: "~/.copilot/skills", project: ".agents/skills" },
+    { name: "Windsurf", flag: "windsurf", global: "~/.codeium/windsurf/skills", project: ".windsurf/skills" },
+    { name: "Cline", flag: "cline", global: "~/.agents/skills", project: ".agents/skills" },
+    { name: "Kiro", flag: "kiro", global: "~/.kiro/skills", project: ".kiro/skills" },
+    { name: "Roo Code", flag: "roo", global: "~/.roo/skills", project: ".roo/skills" },
+    { name: "Kilo Code", flag: "kilo", global: "~/.kilo/skills", project: ".agents/skills" },
+    { name: "Amp", flag: "amp", global: "~/.config/agents/skills", project: ".agents/skills" },
+    { name: "Goose", flag: "goose", global: "~/.config/goose/skills", project: ".goose/skills" },
+    { name: "OpenCode", flag: "opencode", global: "~/.config/opencode/skills", project: ".opencode/skills" },
+    { name: "Qwen Code", flag: "qwen", global: "~/.qwen/skills", project: ".qwen/skills" },
+    { name: "Trae", flag: "trae", global: "~/.trae/skills", project: ".trae/skills" },
+    { name: "Junie", flag: "junie", global: "~/.junie/skills", project: ".junie/skills" },
+    { name: "Augment", flag: "augment", global: "~/.augment/skills", project: ".augment/skills" },
+    { name: "Warp", flag: "warp", global: "~/.agents/skills", project: ".agents/skills" },
+    { name: "Zed", flag: "zed", global: "~/.agents/skills", project: ".agents/skills" },
+    { name: "OpenHands", flag: "openhands", global: "~/.openhands/skills", project: ".openhands/skills" },
+    { name: "Continue", flag: "continue", global: "~/.continue/skills", project: ".continue/skills" },
+]
+
+const agentPrompts = (a: AgentInstall) => [
     {
-        agent: "Ask your agent",
-        code: "Install RayStack globally: run `" + getSh + " -s -- --yes`, then tell me which agents it installed for.",
-        note: "Paste into any coding agent. --yes installs for every agent found without asking, since an agent can't answer the questions."
+        label: "Global",
+        code: "Install RayStack globally for " + a.name + ": run `" + getSh + " -s -- --agent " + a.flag + "`, then tell me what it printed."
     },
     {
-        agent: "One project",
-        code: getSh + " -s -- --yes --project .",
-        note: "Run it in the repo. The skills go into the repo (./.claude/skills, ./.agents/skills, ./.cursor/skills for each agent found). Commit them so the whole team gets RayStack."
-    },
-    {
-        agent: "Claude Code",
-        code: getSh + " -s -- --agent claude\n# or as a plugin:\nclaude plugin marketplace add HarunRRayhan/RayStack\nclaude plugin install raystack@raystack",
-        note: "The script installs to ~/.claude/skills. Use the script or the plugin, not both. Only Claude Code enforces the read-only review guard."
-    },
-    {
-        agent: "Codex",
-        code: getSh + " -s -- --agent codex\n# or as a plugin:\ncodex plugin marketplace add HarunRRayhan/RayStack\ncodex plugin add raystack@raystack",
-        note: "The script installs to ~/.agents/skills. Update the plugin with codex plugin marketplace upgrade raystack, then the add line again."
-    },
-    {
-        agent: "Cursor",
-        code: getSh + " -s -- --agent cursor",
-        note: "Installs to ~/.cursor/skills."
-    },
-    {
-        agent: "Grok Build",
-        code: "grok plugin install HarunRRayhan/RayStack --trust",
-        note: "Grok also reads ~/.claude/skills and ~/.cursor/skills, so a Claude Code or Cursor install already covers it. Update the plugin with grok plugin update raystack."
-    },
-    {
-        agent: "OpenCode",
-        code: getSh + " -s -- --agent opencode",
-        note: "Installs to ~/.config/opencode/skills."
-    },
-    {
-        agent: "Antigravity",
-        code: getSh + " -s -- --agent antigravity",
-        note: "Installs to ~/.gemini/antigravity/skills. Add --project . to install into the current repo."
-    },
-    {
-        agent: "Gemini CLI",
-        code: getSh + " -s -- --agent gemini",
-        note: "Installs to ~/.gemini/skills. Add --project . to install into the current repo."
-    },
-    {
-        agent: "GitHub Copilot",
-        code: getSh + " -s -- --agent copilot",
-        note: "Installs to ~/.copilot/skills. Add --project . to install into the current repo."
-    },
-    {
-        agent: "Windsurf",
-        code: getSh + " -s -- --agent windsurf",
-        note: "Installs to ~/.codeium/windsurf/skills. Add --project . to install into the current repo."
-    },
-    {
-        agent: "Any other agent",
-        code: getSh + " -s -- --agent cline\n# also: kiro, roo, kilo, amp, goose, qwen, trae, junie, augment, warp, zed, openhands, continue\n# not listed:\n~/.raystack/install.sh --agent custom --dir /path/to/skills",
-        note: "Every agent and its folders are in the README. The custom line needs ~/.raystack, so run the one-line install first."
-    },
-    {
-        agent: "Update and uninstall",
-        code: "~/.raystack/install.sh --update\n~/.raystack/install.sh --uninstall --agent all",
-        note: "Update pulls the latest release and refreshes every global and project install; or type /raystack update in your agent. Uninstall removes exactly the thirty skills."
+        label: "This project",
+        code: "Install RayStack into this project for " + a.name + ": run `" + getSh + " -s -- --agent " + a.flag + " --project .`, then show me the new " + a.project + " folder."
     }
+]
+
+const maintenance = [
+    { label: "Update", code: "~/.raystack/install.sh --update" },
+    { label: "Uninstall", code: "~/.raystack/install.sh --uninstall --agent all" },
+    { label: "Any other agent", code: "~/.raystack/install.sh --agent custom --dir /path/to/its/skills" }
 ]
 
 const skillGroups: { title: string; skills: [string, string][] }[] = [
@@ -268,34 +244,87 @@ export default function RayStack({ stars, version }: { stars?: number | null; ve
                         You need <code className="font-mono">git</code>, <code className="font-mono">bash</code> and <code className="font-mono">jq</code>.
                         The PDF export also needs Chrome or Chromium and <code className="font-mono">npx</code>.
                     </p>
-                    <div className="mt-8">
-                        <h3 className="mb-3 text-base font-semibold">Every agent on your machine</h3>
-                        <CodeBlock code={globalInstall.code} label="global" />
-                        <p className="mt-2 text-xs leading-5 text-[#686b65] dark:text-slate-400">{globalInstall.note}</p>
-                    </div>
-                    <details className="group mt-8 rounded-xl border border-[#dedfd8] dark:border-slate-800 bg-[#fffefa] dark:bg-slate-900">
-                        <summary
-                            className={cn(
-                                "flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-5 py-3 text-sm font-medium hover:bg-[#f4f4ef] dark:hover:bg-slate-800 [&::-webkit-details-marker]:hidden",
-                                focusRing
-                            )}
-                        >
-                            One project, one agent, plugins, update and uninstall
-                            <ChevronDown
-                                aria-hidden="true"
-                                className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180"
-                            />
-                        </summary>
-                        <div className="grid gap-8 border-t border-[#dedfd8] dark:border-slate-800 px-5 py-6">
-                            {installs.map((install) => (
-                                <div key={install.agent} className="min-w-0">
-                                    <h3 className="mb-3 text-base font-semibold">{install.agent}</h3>
-                                    <CodeBlock code={install.code} label={install.agent} />
-                                    <p className="mt-2 text-xs leading-5 text-[#686b65] dark:text-slate-400">{install.note}</p>
-                                </div>
-                            ))}
+                    <div className="mt-8 grid gap-8">
+                        <div className="min-w-0">
+                            <h3 className="mb-3 text-base font-semibold">Every agent on your machine</h3>
+                            <CodeBlock code={getSh} label="global" />
+                            <p className="mt-2 text-xs leading-5 text-[#686b65] dark:text-slate-400">
+                                Finds the coding agents on your machine and asks, for each one, whether to install
+                                there. It keeps a checkout in ~/.raystack. Then start a new agent session and type
+                                /raystack.
+                            </p>
                         </div>
-                    </details>
+                        <div className="min-w-0">
+                            <h3 className="mb-3 text-base font-semibold">Or ask your agent</h3>
+                            <CodeBlock code={globalPrompt} label="global prompt" />
+                            <p className="mt-2 text-xs leading-5 text-[#686b65] dark:text-slate-400">
+                                Paste into any coding agent. --yes installs for every agent found without asking,
+                                since an agent can&apos;t answer the questions.
+                            </p>
+                        </div>
+                        <div className="min-w-0">
+                            <h3 className="mb-3 text-base font-semibold">Into one project</h3>
+                            <CodeBlock code={projectPrompt} label="project prompt" />
+                            <p className="mt-2 text-xs leading-5 text-[#686b65] dark:text-slate-400">
+                                The skills go into the repo. Commit them so everyone who clones it gets RayStack.
+                            </p>
+                        </div>
+                    </div>
+
+                    <h3 className="mt-12 text-base font-semibold">One agent</h3>
+                    <p className="mt-2 max-w-2xl text-sm leading-6 text-[#686b65] dark:text-slate-400">
+                        Pick your agent for its own prompts. In a terminal, run the command inside the backticks.
+                    </p>
+                    <div className="mt-4 divide-y divide-[#dedfd8] overflow-hidden rounded-xl border border-[#dedfd8] bg-[#fffefa] dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
+                        {agentInstalls.map((a) => (
+                            <details key={a.flag} className="group">
+                                <summary
+                                    className={cn(
+                                        "flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-5 py-3 text-sm font-medium hover:bg-[#f4f4ef] dark:hover:bg-slate-800 [&::-webkit-details-marker]:hidden",
+                                        focusRing
+                                    )}
+                                >
+                                    {a.name}
+                                    <ChevronDown aria-hidden="true" className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180" />
+                                </summary>
+                                <div className="grid gap-5 px-5 pb-6 pt-2">
+                                    {agentPrompts(a).map((p) => (
+                                        <div key={p.label} className="min-w-0">
+                                            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#686b65] dark:text-slate-400">{p.label}</p>
+                                            <CodeBlock code={p.code} label={`${a.name} ${p.label}`} />
+                                        </div>
+                                    ))}
+                                    <p className="text-xs leading-5 text-[#686b65] dark:text-slate-400">
+                                        Global folder <code className="font-mono">{a.global}</code>, project folder{" "}
+                                        <code className="font-mono">{a.project}</code>.{a.extra ? ` ${a.extra}` : ""}
+                                    </p>
+                                </div>
+                            </details>
+                        ))}
+                        <details className="group">
+                            <summary
+                                className={cn(
+                                    "flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-5 py-3 text-sm font-medium hover:bg-[#f4f4ef] dark:hover:bg-slate-800 [&::-webkit-details-marker]:hidden",
+                                    focusRing
+                                )}
+                            >
+                                Update, uninstall and other agents
+                                <ChevronDown aria-hidden="true" className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180" />
+                            </summary>
+                            <div className="grid gap-5 px-5 pb-6 pt-2">
+                                {maintenance.map((m) => (
+                                    <div key={m.label} className="min-w-0">
+                                        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#686b65] dark:text-slate-400">{m.label}</p>
+                                        <CodeBlock code={m.code} label={m.label} />
+                                    </div>
+                                ))}
+                                <p className="text-xs leading-5 text-[#686b65] dark:text-slate-400">
+                                    Or type /raystack update in your agent. Update refreshes every global and project
+                                    install; uninstall removes exactly the thirty skills.
+                                </p>
+                            </div>
+                        </details>
+                    </div>
                 </section>
 
                 <section aria-labelledby="skills" className="border-b border-[#dedfd8] dark:border-slate-800 py-14 sm:py-16">
