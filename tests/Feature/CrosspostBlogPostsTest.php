@@ -18,12 +18,12 @@ class CrosspostBlogPostsTest extends TestCase
     public function test_devto_gets_canonical_and_ledger_row_and_hashnode_is_skipped_for_drafts(): void
     {
         config(['services.devto.api_key' => 'k', 'services.hashnode.token' => 't', 'services.hashnode.publication_id' => 'p']);
-        Http::fake(['dev.to/*' => Http::response(['id' => 7, 'url' => 'https://dev.to/x/y'])]);
+        Http::fake(['dev.to/api/articles/me/*' => Http::response([]), 'dev.to/*' => Http::response(['id' => 7, 'url' => 'https://dev.to/x/y'])]);
 
         $this->artisan('blog:crosspost', ['slug' => self::SLUG, '--draft' => true])->assertSuccessful();
 
-        Http::assertSentCount(1);
-        Http::assertSent(fn ($r) => $r->hasHeader('api-key', 'k')
+        Http::assertSentCount(2); // existing-article lookup + create
+        Http::assertSent(fn ($r) => $r->method() === 'POST' && $r->hasHeader('api-key', 'k')
             && $r['article']['canonical_url'] === 'https://harun.dev/blog/'.self::SLUG
             && $r['article']['published'] === false
             && count($r['article']['tags']) <= 4);
@@ -33,14 +33,28 @@ class CrosspostBlogPostsTest extends TestCase
     public function test_rerun_for_same_slug_does_not_duplicate_unless_forced(): void
     {
         config(['services.devto.api_key' => 'k']);
-        Http::fake(['dev.to/*' => Http::response(['id' => 7, 'url' => 'https://dev.to/x/y'])]);
+        Http::fake(['dev.to/api/articles/me/*' => Http::response([]), 'dev.to/*' => Http::response(['id' => 7, 'url' => 'https://dev.to/x/y'])]);
 
         $this->artisan('blog:crosspost', ['slug' => self::SLUG, '--to' => 'devto', '--draft' => true])->assertSuccessful();
         $this->artisan('blog:crosspost', ['slug' => self::SLUG, '--to' => 'devto', '--draft' => true])->assertSuccessful();
-        Http::assertSentCount(1);
+        Http::assertSentCount(2);
 
         $this->artisan('blog:crosspost', ['slug' => self::SLUG, '--to' => 'devto', '--draft' => true, '--force' => true])->assertSuccessful();
-        Http::assertSentCount(2);
+        Http::assertSentCount(4);
+    }
+
+    public function test_devto_reuses_an_article_already_posted_when_the_ledger_row_is_missing(): void
+    {
+        config(['services.devto.api_key' => 'k']);
+        Http::fake(['dev.to/api/articles/me/*' => Http::response([
+            ['id' => 5, 'url' => 'https://dev.to/x/other', 'canonical_url' => 'https://harun.dev/blog/other'],
+            ['id' => 7, 'url' => 'https://dev.to/x/y', 'canonical_url' => 'https://harun.dev/blog/'.self::SLUG],
+        ])]);
+
+        $this->artisan('blog:crosspost', ['slug' => self::SLUG, '--to' => 'devto'])->assertSuccessful();
+
+        Http::assertNotSent(fn ($r) => $r->method() === 'POST');
+        $this->assertDatabaseHas('blog_crossposts', ['slug' => self::SLUG, 'platform' => 'devto', 'remote_id' => '7', 'remote_url' => 'https://dev.to/x/y']);
     }
 
     public function test_hashnode_looks_up_the_only_publication_when_id_is_unset(): void
@@ -88,7 +102,7 @@ class CrosspostBlogPostsTest extends TestCase
     public function test_auto_mode_waits_for_delay_then_sends_and_respects_gap(): void
     {
         config(['services.devto.api_key' => 'k']);
-        Http::fake(['dev.to/*' => Http::response(['id' => 7, 'url' => 'https://dev.to/x/y'])]);
+        Http::fake(['dev.to/api/articles/me/*' => Http::response([]), 'dev.to/*' => Http::response(['id' => 7, 'url' => 'https://dev.to/x/y'])]);
 
         $this->travelTo('2026-06-04 12:00:00'); // post is 1 day old: too fresh
         $this->artisan('blog:crosspost', ['--to' => 'devto'])->assertSuccessful();

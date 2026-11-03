@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\BioLink;
 use App\Models\ShortLink;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class BioLinkShortLinkTest extends TestCase
@@ -183,5 +184,17 @@ class BioLinkShortLinkTest extends TestCase
         $this->assertStringContainsString('/s/', $props['tab_share_urls']['default']);
         $this->assertStringContainsString('/s/', $props['tab_share_urls']['products']);
         $this->assertNotSame($props['tab_share_urls']['default'], $props['tab_share_urls']['products']);
+    }
+
+    public function test_the_bio_page_share_urls_are_cached_after_the_first_view(): void
+    {
+        BioLink::create(['label' => 'Blog', 'url' => 'https://example.com/blog', 'icon' => 'link', 'tab' => 'default']);
+        $first = $this->get('/bio')->assertOk()->viewData('page')['props'];
+
+        DB::enableQueryLog();
+        $second = $this->get('/bio')->assertOk()->viewData('page')['props'];
+
+        $this->assertSame($first['tab_share_urls'], $second['tab_share_urls']);
+        $this->assertSame([], array_filter(DB::getQueryLog(), fn (array $q) => str_contains($q['query'], 'destination_url')));
     }
 }

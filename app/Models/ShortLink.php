@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -107,6 +108,21 @@ class ShortLink extends Model
     }
 
     /**
+     * Short share URLs for a page's own links, keyed by destination URL, in one cache read.
+     * shortcut: an admin deleting one of these short links leaves the old URL for up to an hour; add
+     * event-based invalidation if that ever matters.
+     *
+     * @param  array<string, string>  $titlesByUrl
+     * @return array<string, string>
+     */
+    public static function shareUrls(array $titlesByUrl): array
+    {
+        return Cache::remember('short.share.'.sha1(json_encode($titlesByUrl)), 3600, fn () => collect($titlesByUrl)
+            ->mapWithKeys(fn (string $title, string $url) => [$url => static::getOrCreateForUrl($url, $title)?->short_url ?? $url])
+            ->all());
+    }
+
+    /**
      * The single place both the bio-link saving hook and the admin "create
      * short link" form go through, so a URL never gets shortened twice.
      * Reuses whatever findForUrl() turns up; only creates when nothing does.
@@ -172,7 +188,7 @@ class ShortLink extends Model
         return $query->where('is_active', true)
             ->where(function ($q) {
                 $q->whereNull('expires_at')
-                  ->orWhere('expires_at', '>', now());
+                    ->orWhere('expires_at', '>', now());
             });
     }
 
