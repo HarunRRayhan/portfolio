@@ -10,8 +10,8 @@ const focusRing =
     "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-700"
 
 const globalInstall = {
-    code: "git clone --depth 1 https://github.com/HarunRRayhan/RayStack.git ~/.raystack && ~/.raystack/install.sh",
-    note: "Installs all thirty skills globally for Claude Code. Add --agent codex, cursor, grok, or opencode for another agent. Or paste the prompt below into your agent and it installs for you."
+    code: "git clone --depth 1 https://github.com/HarunRRayhan/RayStack.git ~/.raystack 2>/dev/null || git -C ~/.raystack pull --ff-only && ~/.raystack/install.sh",
+    note: "Installs all thirty skills globally for Claude Code. Add --agent codex, cursor, grok, or opencode for another agent. Then start a new agent session and type /raystack. Or paste the prompt below into your agent and it installs for you."
 }
 
 const installs = [
@@ -327,6 +327,14 @@ export default function RayStack({ stars, version }: { stars?: number | null; ve
                             No read-only AWS access yet? <code className="font-mono">aws-readonly-setup</code> does it for
                             you: one browser sign-in, then a role that reads config and billing but not your data, with
                             no access keys created.
+                        </p>
+                        <p>
+                            The guard stays on for the rest of the session, so start a new session after a
+                            review before you build or run tests. What it checks, read-only credentials for
+                            each database and platform, and privacy are in{" "}
+                            <a href={`${repoUrl}/blob/main/docs/safety.md`} className={cn("underline underline-offset-4", focusRing)}>
+                                the safety doc
+                            </a>.
                         </p>
                     </div>
                 </section>
