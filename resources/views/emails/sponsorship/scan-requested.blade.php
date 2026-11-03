@@ -1,14 +1,15 @@
 @component('mail::message')
 # Open-source scan requested
 
-{{ $userName }} ({{ $userEmail }}) used a scan credit.
+{{-- Raw output is safe here: CommonMark escapes everything inside code. --}}
+{{ \App\Support\MailText::plain($userName) }} ({!! \App\Support\MailText::code($userEmail) !!}) used a scan credit.
 
-Repo: {{ $repoUrl }}
+Repo: {!! \App\Support\MailText::code($repoUrl) !!}
 
 @if ($notes)
 Notes:
 
-{{ $notes }}
+{!! \App\Support\MailText::code($notes, true) !!}
 @endif
 
 {{ config('app.name') }}

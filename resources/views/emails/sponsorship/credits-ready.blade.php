@@ -1,5 +1,5 @@
 @component('mail::message')
-# Thanks for sponsoring, {{ $name }}
+# Thanks for sponsoring, {{ \App\Support\MailText::plain($name) }}
 
 Your consultation credits are ready.@if ($expiresAt) Use them by {{ $expiresAt->format('M j, Y') }}.@endif
 
