@@ -9,6 +9,7 @@ use App\Models\GithubSponsorship;
 use App\Models\GithubWebhookEvent;
 use App\Services\Sponsorship\CancelSponsorBookings;
 use App\Services\Sponsorship\SponsorCreditService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -99,8 +100,15 @@ class GithubSponsorsWebhookController extends Controller
 
         // The HMAC doesn't cover the delivery id, so a replayed body must not change stored state.
         $existing = $nodeId ? GithubSponsorship::where('github_sponsorship_node_id', $nodeId)->first() : null;
-        if ($existing && ($action === 'created' || $existing->status !== GithubSponsorship::STATUS_ACTIVE)) {
+        // A cancelled sponsor who sponsors again is genuine only with a strictly newer created_at.
+        $responsor = $existing && $action === 'created'
+            && $existing->status === GithubSponsorship::STATUS_CANCELLED
+            && isset($sp['created_at']) && Carbon::parse($sp['created_at'])->gt($existing->started_at);
+        if ($existing && ! $responsor && ($action === 'created' || $existing->status !== GithubSponsorship::STATUS_ACTIVE)) {
             return null;
+        }
+        if ($responsor) {
+            $existing->update(['ended_at' => null]);
         }
 
         $tierNode = $tier['node_id'] ?? null;
@@ -111,7 +119,7 @@ class GithubSponsorsWebhookController extends Controller
 
         $who = ($payload['sponsor']['type'] ?? '') === 'User' ? $payload['sponsor'] : ($payload['sender'] ?? []);
 
-        if ($existing) {
+        if ($existing && ! $responsor) {
             $who = ['id' => $existing->github_sponsor_id, 'login' => $existing->github_login];
         }
 
@@ -143,7 +151,7 @@ class GithubSponsorsWebhookController extends Controller
         }
 
         if (filled($email)) {
-            $expires = $s->kind === GithubSponsorship::KIND_MONTHLY ? null : $s->credits->min('expires_at');
+            $expires = $s->kind === GithubSponsorship::KIND_MONTHLY ? null : $s->credits->whereNull('revoked_at')->min('expires_at');
             Mail::to($email)->send(new SponsorCreditsReadyMail($s->user?->name ?: $login, $expires));
         }
     }

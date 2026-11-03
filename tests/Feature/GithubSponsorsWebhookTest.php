@@ -204,9 +204,10 @@ class GithubSponsorsWebhookTest extends TestCase
 
     public function test_replayed_created_after_cancel_does_not_reactivate(): void
     {
-        $this->send($this->payload())->assertOk();
+        $created = $this->payload();
+        $this->send($created)->assertOk();
         $this->send($this->payload('cancelled'), 'd-2')->assertOk();
-        $this->send($this->payload(), 'd-3')->assertOk();
+        $this->send($created, 'd-3')->assertOk();
 
         $s = GithubSponsorship::firstOrFail();
         $this->assertSame('cancelled', $s->status);
@@ -218,8 +219,9 @@ class GithubSponsorsWebhookTest extends TestCase
     public function test_replayed_created_for_active_sponsorship_grants_nothing_and_sends_no_mail(): void
     {
         User::factory()->create(['provider_name' => 'github', 'provider_id' => '1001']);
-        $this->send($this->payload())->assertOk();
-        $this->send($this->payload(), 'd-2')->assertOk();
+        $created = $this->payload();
+        $this->send($created)->assertOk();
+        $this->send($created, 'd-2')->assertOk();
 
         $this->assertSame(1, GithubSponsorship::firstOrFail()->credits()->count());
         Mail::assertSent(SponsorCreditsReadyMail::class, 1);
@@ -233,5 +235,27 @@ class GithubSponsorsWebhookTest extends TestCase
         $this->send($this->payload('tier_changed', 'T_light'), 'd-3')->assertOk();
 
         $this->assertSame('cancelled', GithubSponsorship::firstOrFail()->status);
+    }
+
+    public function test_responsor_after_cancel_with_newer_created_at_reactivates_and_grants(): void
+    {
+        User::factory()->create(['provider_name' => 'github', 'provider_id' => '1001']);
+        $old = ['sponsorship' => ['created_at' => now()->subDays(10)->toIso8601String()]];
+        $new = ['sponsorship' => ['created_at' => now()->toIso8601String()]];
+        $this->send($this->payload('created', 'T_pro', $old))->assertOk();
+        $this->send($this->payload('cancelled'), 'd-2')->assertOk();
+        $this->send($this->payload('created', 'T_light', $new), 'd-3')->assertOk();
+
+        $s = GithubSponsorship::firstOrFail();
+        $this->assertSame('active', $s->status);
+        $this->assertNull($s->ended_at);
+        $this->assertSame('light', $s->tier_slug);
+        $this->assertSame(1, $s->credits()->whereNull('revoked_at')->count());
+        $this->assertSame(2, $s->credits()->count());
+        Mail::assertSent(SponsorCreditsReadyMail::class, 2);
+
+        $this->send($this->payload('created', 'T_light', $new), 'd-4')->assertOk();
+        $this->assertSame(2, $s->credits()->count());
+        Mail::assertSent(SponsorCreditsReadyMail::class, 2);
     }
 }

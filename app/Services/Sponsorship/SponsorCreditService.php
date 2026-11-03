@@ -44,7 +44,7 @@ class SponsorCreditService
         if ($tier && $s->status === GithubSponsorship::STATUS_ACTIVE) {
             if ($s->kind === GithubSponsorship::KIND_MONTHLY) {
                 $this->ensurePeriodCredits($s);
-            } elseif (! $s->credits()->exists()) {
+            } elseif (! $s->credits()->where('period_start', $startedAt->toDateString())->exists()) {
                 $expires = $attrs['expires_at'] ?? $startedAt->copy()->addDays((int) config('sponsors.one_time_days'));
                 $this->grant($s, $tier, $startedAt->toDateString(), Carbon::parse($expires));
             }
