@@ -5,9 +5,11 @@ namespace App\Services\Consultation;
 use App\Exceptions\ConsultationGoogleException;
 use App\Models\ConsultationBooking;
 use App\Models\ConsultationCoupon;
+use App\Models\ConsultationCredit;
 use App\Models\ConsultationSetting;
 use App\Models\ConsultationStripeCheckoutAttempt;
 use App\Models\ConsultationTier;
+use App\Services\Sponsorship\SponsorCreditService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -22,6 +24,7 @@ class BookingWorkflowService
         protected ConsultationNotificationService $notifications,
         protected ConsultationGoogleOperationService $googleOperations,
         protected ConsultationLaunchPromotionService $launchPromotion,
+        protected SponsorCreditService $credits,
     ) {}
 
     /**
@@ -37,6 +40,7 @@ class BookingWorkflowService
         ?string $companyName = null,
         ?string $saRef = null,
         array $details = [],
+        ?ConsultationCredit $credit = null,
     ): array {
         $details = array_intersect_key($details, array_flip(['user_id', 'website', 'role', 'team_size', 'budget']));
         $companyName = $companyName !== null ? trim($companyName) : null;
@@ -45,7 +49,7 @@ class BookingWorkflowService
         $plainToken = Str::random(48);
         $googleConnected = $this->google->isConnected();
 
-        $result = DB::transaction(function () use ($tier, $name, $email, $companyName, $notes, $startsAt, $coupon, $plainToken, $googleConnected, $saRef, $details) {
+        $result = DB::transaction(function () use ($tier, $name, $email, $companyName, $notes, $startsAt, $coupon, $plainToken, $googleConnected, $saRef, $details, $credit) {
             $this->lockReservation();
 
             $tier = ConsultationTier::query()->lockForUpdate()->findOrFail($tier->id);
@@ -65,10 +69,26 @@ class BookingWorkflowService
             }
 
             $listPrice = (int) $tier->price_cents;
-            $campaignDiscount = $this->launchPromotion->claim($listPrice);
+
+            if ($credit) {
+                // The row lock makes a double submit or a second tab fail here, not double-book.
+                $credit = ConsultationCredit::query()->usable()->lockForUpdate()->find($credit->id);
+                if (
+                    ! $credit
+                    || ! isset($details['user_id'])
+                    || (int) $credit->user_id !== (int) $details['user_id']
+                    || (int) $credit->consultation_tier_id !== (int) $tier->id
+                    || $startsAt->gt($credit->expires_at)
+                ) {
+                    throw new \InvalidArgumentException('That credit has expired or was already used.');
+                }
+                $coupon = null;
+            }
+
+            $campaignDiscount = $credit ? 0 : $this->launchPromotion->claim($listPrice);
             $discountedPrice = max(0, $listPrice - $campaignDiscount);
             $discount = $coupon ? (int) $coupon->percent_off : 0;
-            $amountDue = $coupon ? $coupon->discountedAmountCents($discountedPrice) : $discountedPrice;
+            $amountDue = $credit ? 0 : ($coupon ? $coupon->discountedAmountCents($discountedPrice) : $discountedPrice);
 
             $booking = ConsultationBooking::create($details + [
                 'consultation_tier_id' => $tier->id,
@@ -93,6 +113,8 @@ class BookingWorkflowService
                     ? hash('sha256', $saRef)
                     : null,
             ]);
+
+            $credit?->update(['used_by_booking_id' => $booking->id, 'used_at' => now()]);
 
             $requestEvent = $booking->recordEvent('requested', 'client');
 
@@ -438,6 +460,10 @@ class BookingWorkflowService
             ], $e);
 
             throw $e;
+        }
+
+        if (! $result['reschedule']) {
+            $this->credits->releaseForBooking($result['booking']);
         }
 
         $this->notifications->deliverDueForBooking($result['booking']->id);
@@ -1233,6 +1259,34 @@ class BookingWorkflowService
         return $booking;
     }
 
+    /** System cancel when a sponsorship ends: no owner mail, then the normal approve path. */
+    public function cancelForSponsorEnd(ConsultationBooking $booking): ConsultationBooking
+    {
+        $booking = DB::transaction(function () use ($booking) {
+            $booking = ConsultationBooking::query()->lockForUpdate()->findOrFail($booking->id);
+
+            if (in_array($booking->status, [
+                ConsultationBooking::STATUS_CANCELLED,
+                ConsultationBooking::STATUS_DECLINED,
+                ConsultationBooking::STATUS_EXPIRED,
+            ], true)) {
+                return $booking;
+            }
+
+            if ($booking->status !== ConsultationBooking::STATUS_CANCEL_REQUESTED) {
+                $booking->status = ConsultationBooking::STATUS_CANCEL_REQUESTED;
+                $booking->save();
+                $booking->recordEvent('sponsor_ended', 'system');
+            }
+
+            return $booking->fresh(['tier']);
+        });
+
+        return $booking->status === ConsultationBooking::STATUS_CANCEL_REQUESTED
+            ? $this->approveCancel($booking)
+            : $booking;
+    }
+
     public function approveCancel(ConsultationBooking $booking): ConsultationBooking
     {
         try {
@@ -1327,6 +1381,7 @@ class BookingWorkflowService
                 return $booking->fresh(['tier']);
             });
 
+            $this->credits->releaseForBooking($booking);
             $this->notifications->deliverDueForBooking($booking->id);
 
             return $booking;
@@ -1573,12 +1628,31 @@ class BookingWorkflowService
         return $count;
     }
 
-    protected function expireBooking(ConsultationBooking $booking): bool
+    /** One-off: expire a legacy unpaid Stripe booking now. No expired notification; the caller sends its own note. */
+    public function retireUnpaid(ConsultationBooking $booking): bool
     {
-        $result = DB::transaction(function () use ($booking) {
+        return $this->expireBooking($booking, true);
+    }
+
+    protected function expireBooking(ConsultationBooking $booking, bool $retire = false): bool
+    {
+        $result = DB::transaction(function () use ($booking, $retire) {
             $booking = ConsultationBooking::query()
                 ->lockForUpdate()
                 ->findOrFail($booking->id);
+
+            // The retire list was built before the lock: re-check the booking is still unpaid.
+            if ($retire && (
+                ! in_array($booking->status, [
+                    ConsultationBooking::STATUS_PENDING_APPROVAL,
+                    ConsultationBooking::STATUS_AWAITING_PAYMENT,
+                    ConsultationBooking::STATUS_RESCHEDULE_PROPOSED,
+                ], true)
+                || $booking->stripe_paid_at || $booking->confirmed_at || $booking->amount_due_cents <= 0
+                || ConsultationCredit::query()->where('used_by_booking_id', $booking->id)->exists()
+            )) {
+                return null;
+            }
 
             $expiresAt = in_array($booking->status, [
                 ConsultationBooking::STATUS_PENDING_APPROVAL,
@@ -1588,7 +1662,7 @@ class BookingWorkflowService
                 ? $booking->hold_expires_at
                 : ($booking->status === ConsultationBooking::STATUS_AWAITING_PAYMENT ? $booking->payment_due_at : null);
 
-            if (! $expiresAt || ! $expiresAt->isPast()) {
+            if (! $retire && (! $expiresAt || ! $expiresAt->isPast())) {
                 return null;
             }
 
@@ -1599,7 +1673,7 @@ class BookingWorkflowService
                 return null;
             }
 
-            $isPaidReschedule = $booking->confirmed_at !== null && in_array($booking->status, [
+            $isPaidReschedule = ! $retire && $booking->confirmed_at !== null && in_array($booking->status, [
                 ConsultationBooking::STATUS_RESCHEDULE_PROPOSED,
                 ConsultationBooking::STATUS_PAID_RESCHEDULE_PENDING_APPROVAL,
             ], true);
@@ -1649,14 +1723,16 @@ class BookingWorkflowService
             $booking->google_event_id = null;
             $booking->hold_expires_at = null;
             $booking->save();
-            $expiryEvent = $booking->recordEvent('expired', 'system');
-            $this->notifications->enqueue(
-                $booking,
-                $booking->client_email,
-                ConsultationNotificationService::TYPE_EXPIRED,
-                [],
-                'consultation-booking-'.$booking->id.'-event-'.$expiryEvent->id.'-expired',
-            );
+            $expiryEvent = $booking->recordEvent($retire ? 'retired' : 'expired', 'system');
+            if (! $retire) {
+                $this->notifications->enqueue(
+                    $booking,
+                    $booking->client_email,
+                    ConsultationNotificationService::TYPE_EXPIRED,
+                    [],
+                    'consultation-booking-'.$booking->id.'-event-'.$expiryEvent->id.'-expired',
+                );
+            }
 
             return [
                 'booking' => $booking->fresh(['tier']),
@@ -1668,6 +1744,9 @@ class BookingWorkflowService
             return false;
         }
 
+        if (! $result['reschedule']) {
+            $this->credits->releaseForBooking($result['booking']);
+        }
         $this->notifications->deliverDueForBooking($result['booking']->id);
 
         return true;

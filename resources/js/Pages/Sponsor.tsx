@@ -1,4 +1,3 @@
-import { useForm } from '@inertiajs/react'
 import { motion } from 'framer-motion'
 import {
   ArrowRight,
@@ -11,19 +10,13 @@ import {
   ShieldCheck,
   Sparkles,
 } from 'lucide-react'
-import type { FormEvent } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import { useState } from 'react'
-
-type Cadence = 'once' | 'monthly'
 
 type SponsorProps = {
   canonicalUrl?: string
-  stripeConfigured?: boolean
-  checkoutStatus?: 'success' | 'cancelled' | null
-  minAmountCents?: number
-  maxAmountCents?: number
-  suggestedAmountCents?: number[]
+  sponsorsUrl: string
+  contactUrl: string
+  contactEmail: string
 }
 
 type SupportPoint = {
@@ -50,39 +43,7 @@ const supportPoints: SupportPoint[] = [
   },
 ]
 
-const formatCents = (cents: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100)
-
-const amountValue = (cents: number) => (cents / 100).toFixed(2)
-
-type SponsorCheckoutFormProps = {
-  stripeConfigured: boolean
-  minAmountCents: number
-  maxAmountCents: number
-  suggestedAmountCents: number[]
-}
-
-function SponsorCheckoutForm({
-  stripeConfigured,
-  minAmountCents,
-  maxAmountCents,
-  suggestedAmountCents,
-}: SponsorCheckoutFormProps) {
-  const [cadence, setCadence] = useState<Cadence>('monthly')
-  const form = useForm({
-    amount: amountValue(1_000),
-    cadence: 'monthly' as Cadence,
-  })
-  const formErrors = form.errors as Record<string, string | undefined>
-  const suggestedAmounts = suggestedAmountCents.filter(
-    (amount) => amount >= minAmountCents && amount <= maxAmountCents,
-  )
-
-  const submit = (event: FormEvent) => {
-    event.preventDefault()
-    form.post('/sponsor-me/checkout', { preserveScroll: true })
-  }
-
+function SponsorCard({ sponsorsUrl, contactUrl, contactEmail }: SponsorProps) {
   return (
     <div id="sponsor-checkout" className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.07] p-6 shadow-2xl backdrop-blur sm:p-7">
       <div className="flex items-center justify-between border-b border-white/10 pb-5">
@@ -97,102 +58,30 @@ function SponsorCheckoutForm({
         <Heart className="h-5 w-5 fill-amber-400 text-amber-400" />
       </div>
 
-      <form onSubmit={submit} className="mt-6">
-        <label htmlFor="sponsor-amount" className="block text-sm font-semibold text-white">
-          Your amount
-        </label>
-        <div className="relative mt-2">
-          <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-xl font-semibold text-slate-400">$</span>
-          <input
-            id="sponsor-amount"
-            name="amount"
-            type="number"
-            inputMode="decimal"
-            min={amountValue(minAmountCents)}
-            max={amountValue(maxAmountCents)}
-            step="0.01"
-            value={form.data.amount}
-            onChange={(event) => form.setData('amount', event.target.value)}
-            className="w-full rounded-xl border border-white/15 bg-white dark:bg-slate-900 px-4 py-3 pl-10 text-2xl font-semibold text-slate-900 dark:text-white outline-none transition placeholder:text-slate-300 focus:border-amber-400 focus:ring-4 focus:ring-amber-400/20"
-            aria-describedby="sponsor-amount-help"
-            required
-          />
-        </div>
-        <p id="sponsor-amount-help" className="mt-2 text-xs text-slate-400">
-          Minimum {formatCents(minAmountCents)}. Any amount up to {formatCents(maxAmountCents)}.
-        </p>
+      <p className="mt-6 text-sm leading-6 text-slate-300">
+        Sponsorships run through GitHub Sponsors. Give once or monthly, any amount you like.
+      </p>
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          {suggestedAmounts.map((amount) => (
-            <button
-              key={amount}
-              type="button"
-              onClick={() => form.setData('amount', amountValue(amount))}
-              className="rounded-full border border-white/15 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:border-amber-300 hover:text-white"
-            >
-              {formatCents(amount)}
-            </button>
-          ))}
-        </div>
+      <a
+        href={sponsorsUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-amber-400 px-5 py-3.5 text-sm font-semibold text-slate-950 transition hover:bg-amber-300 focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-400/40"
+      >
+        Sponsor on GitHub
+        <ArrowRight className="h-4 w-4" />
+      </a>
 
-        <div className="mt-6 border-t border-white/10 pt-5">
-          <label htmlFor="sponsor-monthly" className="flex cursor-pointer items-start gap-3">
-            <input
-              id="sponsor-monthly"
-              name="monthly"
-              type="checkbox"
-              checked={cadence === 'monthly'}
-              onChange={(event) => {
-                const nextCadence: Cadence = event.target.checked ? 'monthly' : 'once'
-                setCadence(nextCadence)
-                form.setData('cadence', nextCadence)
-              }}
-              className="mt-0.5 h-5 w-5 shrink-0 rounded border-white/30 bg-white/10 dark:bg-slate-900/10 text-amber-400 accent-amber-400 focus:ring-2 focus:ring-amber-400/40 focus:ring-offset-0"
-            />
-            <span>
-              <span className="block text-sm font-semibold text-white">Make this a monthly contribution</span>
-              <span className="mt-1 block text-xs leading-5 text-slate-400">You can uncheck this for a one-time contribution.</span>
-            </span>
-          </label>
-        </div>
-
-        {(formErrors.amount || formErrors.cadence || formErrors.checkout) && (
-          <div className="mt-4 rounded-lg border border-rose-300/30 bg-rose-400/10 px-3 py-2 text-sm text-rose-200" role="alert">
-            {formErrors.amount || formErrors.cadence || formErrors.checkout}
-          </div>
-        )}
-
-        <button
-          type="submit"
-          disabled={form.processing || !stripeConfigured}
-          className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-amber-400 px-5 py-3.5 text-sm font-semibold text-slate-950 transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:bg-slate-500 disabled:text-slate-300"
-        >
-          {form.processing ? 'Opening Stripe...' : stripeConfigured ? 'Continue to checkout' : 'Checkout is unavailable'}
-          {!form.processing && <ArrowRight className="h-4 w-4" />}
-        </button>
-
-        <p className="mt-4 flex items-center justify-center text-center text-xs text-slate-400">
-          <img
-            src="/images/stripe/powered-by-stripe.svg"
-            alt="Powered by Stripe"
-            width="150"
-            height="34"
-            className="h-6 w-auto"
-          />
-        </p>
-      </form>
+      <p className="mt-4 text-center text-xs leading-5 text-slate-400">
+        GitHub doesn’t support your payment method? Use the{' '}
+        <a href={contactUrl} className="underline underline-offset-4 hover:text-white">contact page</a> or{' '}
+        <a href={`mailto:${contactEmail}`} className="underline underline-offset-4 hover:text-white">email me</a> and I’ll set it up by hand.
+      </p>
     </div>
   )
 }
 
-export default function Sponsor({
-  canonicalUrl = '/sponsor-me',
-  stripeConfigured = false,
-  checkoutStatus = null,
-  minAmountCents = 100,
-  maxAmountCents = 100_000_000,
-  suggestedAmountCents = [500, 1_000, 2_500, 5_000],
-}: SponsorProps) {
+export default function Sponsor({ sponsorsUrl, contactUrl, contactEmail }: SponsorProps) {
   return (
     <>
 
@@ -291,12 +180,7 @@ export default function Sponsor({
               className="relative mx-auto w-full max-w-md"
             >
               <div aria-hidden="true" className="absolute -inset-1 rounded-3xl bg-gradient-to-br from-amber-400/50 via-violet-400/20 to-transparent blur-lg" />
-              <SponsorCheckoutForm
-                stripeConfigured={stripeConfigured}
-                minAmountCents={minAmountCents}
-                maxAmountCents={maxAmountCents}
-                suggestedAmountCents={suggestedAmountCents}
-              />
+              <SponsorCard sponsorsUrl={sponsorsUrl} contactUrl={contactUrl} contactEmail={contactEmail} />
             </motion.div>
           </div>
         </div>
@@ -308,38 +192,26 @@ export default function Sponsor({
             <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Support the work</p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">Choose what works for you.</h2>
             <p className="mt-4 text-base leading-7 text-slate-500 dark:text-slate-400">
-              Pick an amount, keep monthly support selected, or uncheck it for a one-time contribution.
+              Give once or every month. GitHub handles the payment.
             </p>
           </div>
-
-          {checkoutStatus === 'success' && (
-            <div className="mx-auto mt-8 max-w-2xl rounded-xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-3 text-center text-sm text-emerald-800 dark:text-emerald-300" role="status">
-              If you just finished checkout, thank you. It helps keep the work here public.
-            </div>
-          )}
-
-          {checkoutStatus === 'cancelled' && (
-            <div className="mx-auto mt-8 max-w-2xl rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-3 text-center text-sm text-slate-600 dark:text-slate-300" role="status">
-              No problem. You can choose an amount and try again whenever you like.
-            </div>
-          )}
 
           <div className="mx-auto mt-12 grid max-w-4xl gap-4 md:grid-cols-3">
             {[
               {
                 icon: Coffee,
-                title: 'Choose an amount',
-                description: 'Use one of the suggestions or enter exactly what feels right.',
+                title: 'Pick a tier',
+                description: 'Choose a sponsor tier on GitHub, or set a custom amount.',
               },
               {
                 icon: Repeat2,
-                title: 'Monthly by default',
-                description: 'Monthly support is selected for you. Uncheck it whenever you want to give once.',
+                title: 'Once or monthly',
+                description: 'Give once, or keep it going every month. Cancel any time on GitHub.',
               },
               {
                 icon: ShieldCheck,
-                title: 'Finish on Stripe',
-                description: 'Your payment details stay on Stripe, not on this site.',
+                title: 'Pay on GitHub',
+                description: 'Your payment details stay with GitHub, not on this site.',
               },
             ].map(({ icon: Icon, title, description }) => (
               <div key={title} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-5">

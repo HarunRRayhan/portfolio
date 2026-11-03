@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Consultation;
 use App\Http\Controllers\Controller;
 use App\Models\ConsultationBooking;
 use App\Services\Consultation\BookingWorkflowService;
-use App\Services\Consultation\StripeCheckoutService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -64,31 +63,6 @@ class BookingAccessController extends Controller
             'paid' => $returnType === 'paid' ? 1 : null,
             'cancelled_checkout' => $returnType === 'cancelled_checkout' ? 1 : null,
         ], fn ($value): bool => $value !== null));
-    }
-
-    public function pay(Request $request, string $publicId, BookingWorkflowService $workflow, StripeCheckoutService $stripe): RedirectResponse
-    {
-        $booking = ConsultationBooking::query()->where('public_id', $publicId)->firstOrFail();
-        $token = (string) $request->input('token', $request->query('token', ''));
-        $this->authorizeBookingAccess($request, $booking, $publicId, $token, $workflow);
-
-        if ($booking->status !== ConsultationBooking::STATUS_AWAITING_PAYMENT) {
-            return back()->with('flash', ['type' => 'error', 'message' => 'This booking is not awaiting payment.']);
-        }
-
-        try {
-            $url = $stripe->createCheckoutUrl($booking, $token);
-        } catch (\InvalidArgumentException $e) {
-            return back()->with('flash', ['type' => 'error', 'message' => $e->getMessage()]);
-        } catch (\Throwable) {
-            return back()->with('flash', ['type' => 'error', 'message' => 'Payment is temporarily unavailable. Please try again.']);
-        }
-
-        if (! $url) {
-            return back()->with('flash', ['type' => 'error', 'message' => 'Payment is not configured yet.']);
-        }
-
-        return redirect()->away($url);
     }
 
     public function requestCancel(Request $request, string $publicId, BookingWorkflowService $workflow): RedirectResponse

@@ -8,13 +8,13 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => sessionStorage.setItem('subscribe-popup-dismissed', '1'))
 })
 
-test('a guest is asked to sign up before choosing a plan and keeps the query', async ({ page }) => {
+test('a guest sees Sponsor on GitHub and a sign-in that keeps the query', async ({ page }) => {
   await page.goto('/consultation?sa_ref=abc&coupon=X')
-  await expect(page.getByText('Sign up to book. It takes a few seconds with Google, GitHub or an email link.')).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Book Light', exact: true })).toHaveCount(0)
-  await page.getByRole('link', { name: 'Sign up to book Light' }).click()
-  await page.waitForURL(u => u.pathname === '/login')
-  expect(new URL(page.url()).searchParams.get('redirect')).toBe('/consultation?sa_ref=abc&coupon=X')
+  await expect(page.getByRole('link', { name: 'Sponsor on GitHub' }).first()).toHaveAttribute('target', '_blank')
+  await expect(page.getByRole('button', { name: 'Book this call' })).toHaveCount(0)
+  const href = await page.getByRole('link', { name: 'Sign in with GitHub' }).getAttribute('href')
+  expect(href).toContain('github')
+  expect(new URL(href!, page.url()).searchParams.get('redirect')).toBe('/consultation?sa_ref=abc&coupon=X')
 })
 
 test.describe('signed in', () => {
@@ -25,8 +25,8 @@ test.describe('signed in', () => {
   test('the booking form asks for business details instead of an email', async ({ page }) => {
     await page.route('**/book/availability?*', route => route.fulfill({ json: { slots: [lightSlot] } }))
     await page.goto('/consultation')
-    await page.getByRole('button', { name: 'Book Light', exact: true }).click()
-    await expect(page.getByLabel('Name', { exact: true })).toHaveValue('')
+    await page.getByRole('button', { name: 'Book this call' }).first().click()
+    await expect(page.getByLabel('Name', { exact: true })).toHaveValue('Browser test client')
     const bookingForm = page.locator('form', { has: page.getByRole('button', { name: 'Request this slot' }) })
     await expect(bookingForm.locator('input[type="email"]')).toHaveCount(0)
     await expect(page.getByLabel('Company name')).toBeVisible()
@@ -35,14 +35,14 @@ test.describe('signed in', () => {
     await expect(page.getByText('Updates go to browser-client@example.test.')).toBeVisible()
   })
 
-  test('reopening the same plan restores slots and preserves entered details', async ({ page }) => {
+  test('reopening the same credit restores slots and preserves entered details', async ({ page }) => {
     await page.route('**/book/availability?*', route => route.fulfill({ json: { slots: [lightSlot] } }))
     await page.goto('/consultation')
-    await page.getByRole('button', { name: 'Book Light', exact: true }).click()
+    await page.getByRole('button', { name: 'Book this call' }).first().click()
     await expect(page.getByRole('tab')).toHaveCount(1)
     await page.getByLabel('Name', { exact: true }).fill('Returning visitor')
-    await page.getByRole('button', { name: 'All plans' }).click()
-    await page.getByRole('button', { name: 'Book Light', exact: true }).click()
+    await page.getByRole('button', { name: 'Back' }).click()
+    await page.getByRole('button', { name: 'Book this call' }).first().click()
     await expect(page.getByRole('tab')).toHaveCount(1)
     await expect(page.getByLabel('Name', { exact: true })).toHaveValue('Returning visitor')
     await expect(page.getByText('No open slots', { exact: false })).toHaveCount(0)
@@ -59,7 +59,7 @@ test.describe('signed in', () => {
         return route.fulfill({ status: 503, json: { message: 'Unavailable' } })
       })
       await page.goto('/consultation')
-      await page.getByRole('button', { name: 'Book Light', exact: true }).click()
+      await page.getByRole('button', { name: 'Book this call' }).first().click()
       await page.getByLabel('Name', { exact: true }).fill('Retry visitor')
       await expect(page.getByRole('alert')).toContainText('load')
       await expect(page.getByText('No open slots', { exact: false })).toHaveCount(0)
@@ -78,13 +78,13 @@ test.describe('signed in', () => {
   test('an empty successful response offers contact rather than a failure', async ({ page }) => {
     await page.route('**/book/availability?*', route => route.fulfill({ json: { slots: [] } }))
     await page.goto('/consultation')
-    await page.getByRole('button', { name: 'Book Light', exact: true }).click()
+    await page.getByRole('button', { name: 'Book this call' }).first().click()
     await expect(page.getByText('No open slots', { exact: false })).toBeVisible()
     await expect(page.locator('main').getByRole('link', { name: /send a note/i })).toHaveAttribute('href', '/contact')
     await expect(page.getByRole('button', { name: 'Retry' })).toHaveCount(0)
   })
 
-  test('a slower previous plan cannot overwrite the current plan availability', async ({ page }) => {
+  test('a slower previous credit cannot overwrite the current credit availability', async ({ page }) => {
     let releaseLight!: () => void
     const holdLight = new Promise<void>(resolve => { releaseLight = resolve })
     let lightStarted!: () => void
@@ -99,14 +99,14 @@ test.describe('signed in', () => {
       }
     })
     await page.goto('/consultation')
-    await page.getByRole('button', { name: 'Book Light', exact: true }).click()
+    await page.getByRole('button', { name: 'Book this call' }).first().click()
     await started
     const cancelled = page.waitForEvent('requestfailed', {
       predicate: request => request.url().includes('/book/availability?tier=light'),
     })
-    await page.getByRole('button', { name: 'All plans' }).click()
+    await page.getByRole('button', { name: 'Back' }).click()
     await cancelled
-    await page.getByRole('button', { name: 'Book Pro', exact: true }).click()
+    await page.getByRole('button', { name: 'Book this call' }).nth(1).click()
     await expect(page.getByRole('tab')).toContainText('Oct 8')
     releaseLight()
     await expect(page.getByRole('tab')).toContainText('Oct 8')

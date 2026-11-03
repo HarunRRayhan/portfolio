@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\Consultation\BookingController as ConsultationBoo
 use App\Http\Controllers\Admin\Consultation\CouponController as ConsultationCouponController;
 use App\Http\Controllers\Admin\Consultation\GoogleOAuthController as ConsultationGoogleOAuthController;
 use App\Http\Controllers\Admin\ContactSubmissionController as AdminContactSubmissionController;
+use App\Http\Controllers\Admin\SponsorshipController as AdminSponsorshipController;
 use App\Http\Controllers\Admin\MediaItemController;
 use App\Http\Controllers\Admin\MediumCrosspostController;
 use App\Http\Controllers\Admin\NewsletterController as AdminNewsletterController;
@@ -16,11 +17,12 @@ use App\Http\Controllers\BlogCommentController;
 use App\Http\Controllers\Consultation\BookController;
 use App\Http\Controllers\Consultation\BookingAccessController;
 use App\Http\Controllers\Consultation\StripeWebhookController;
+use App\Http\Controllers\Sponsorship\GithubSponsorsWebhookController;
+use App\Http\Controllers\Sponsorship\ScanRequestController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\OperationalHealthController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\SponsorCheckoutController;
 use App\Models\BioLink;
 use App\Models\BioLinkClick;
 use App\Models\BlogCommentThread;
@@ -29,7 +31,6 @@ use App\Models\MediaItem;
 use App\Models\ShortLink;
 use App\Models\ShortLinkClick;
 use App\Services\CountryResolver;
-use App\Services\Sponsorship\SponsorCheckoutService;
 use App\Support\AiCrawlerPolicy;
 use App\Support\BlogRepository;
 use App\Support\CaseStudyRepository;
@@ -274,6 +275,16 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::delete('/{submission}', [AdminContactSubmissionController::class, 'destroy'])->where('submission', '[0-9]{1,18}')->name('destroy');
     });
 
+// GitHub Sponsors: list, manual grants, revoke
+Route::middleware(['auth', 'verified', 'role:admin'])
+    ->prefix('admin/sponsorships')
+    ->name('admin.sponsorships.')
+    ->group(function () {
+        Route::get('/', [AdminSponsorshipController::class, 'index'])->name('index');
+        Route::post('/', [AdminSponsorshipController::class, 'store'])->name('store');
+        Route::post('/{sponsorship}/revoke', [AdminSponsorshipController::class, 'revoke'])->where('sponsorship', '[0-9]{1,18}')->name('revoke');
+    });
+
 // Paid consultation admin
 Route::middleware(['auth', 'verified', 'role:admin'])
     ->prefix('admin/consultations')
@@ -445,23 +456,12 @@ Route::get('/about', function () {
 
 Route::redirect('/sponsor', '/sponsor-me', 301)->name('sponsor.legacy');
 
-Route::post('/sponsor-me/checkout', [SponsorCheckoutController::class, 'store'])->name('sponsor.checkout');
-
-Route::get('/sponsor-me', function (Request $request, SponsorCheckoutService $checkout) {
-    $siteUrl = rtrim(config('app.url', url('/')), '/');
-    $checkoutStatus = $request->query('checkout');
-
-    if (! in_array($checkoutStatus, ['success', 'cancelled'], true)) {
-        $checkoutStatus = null;
-    }
-
+Route::get('/sponsor-me', function () {
     return Inertia::render('Sponsor', [
-        'canonicalUrl' => $siteUrl.'/sponsor-me',
-        'stripeConfigured' => $checkout->configured(),
-        'checkoutStatus' => $checkoutStatus,
-        'minAmountCents' => (int) config('sponsor.min_amount_cents', 100),
-        'maxAmountCents' => (int) config('sponsor.max_amount_cents', 100_000_000),
-        'suggestedAmountCents' => config('sponsor.suggested_amount_cents', []),
+        'canonicalUrl' => rtrim(config('app.url', url('/')), '/').'/sponsor-me',
+        'sponsorsUrl' => config('sponsors.url'),
+        'contactUrl' => route('contact'),
+        'contactEmail' => config('mail.owner.address'),
     ]);
 })->name('sponsor');
 
@@ -578,9 +578,6 @@ foreach (['/book', '/booking', '/consultations'] as $legacyConsultationPath) {
 Route::get('/book/availability', [BookController::class, 'availability'])
     ->middleware('throttle:60,1')
     ->name('book.availability');
-Route::post('/book/coupon', [BookController::class, 'validateCoupon'])
-    ->middleware('throttle:30,1')
-    ->name('book.coupon');
 Route::post('/book', [BookController::class, 'store'])
     ->middleware(['throttle:10,1', 'auth', 'verified'])
     ->name('book.store');
@@ -592,10 +589,6 @@ Route::get('/book/b/{publicId}/stripe-return', [BookingAccessController::class, 
     ->where('publicId', '[0-9a-z]{20,32}')
     ->middleware('signed')
     ->name('book.stripe-return');
-Route::post('/book/b/{publicId}/pay', [BookingAccessController::class, 'pay'])
-    ->where('publicId', '[0-9a-z]{20,32}')
-    ->middleware('throttle:20,1')
-    ->name('book.pay');
 Route::post('/book/b/{publicId}/cancel', [BookingAccessController::class, 'requestCancel'])
     ->where('publicId', '[0-9a-z]{20,32}')
     ->middleware('throttle:10,1')
@@ -610,6 +603,7 @@ Route::post('/book/b/{publicId}/pick-proposed', [BookingAccessController::class,
     ->name('book.pick-proposed');
 
 Route::post('/stripe/webhook', StripeWebhookController::class)->name('stripe.webhook');
+Route::post('/github/sponsors/webhook', GithubSponsorsWebhookController::class)->name('github.sponsors.webhook');
 
 Route::get('/contact', function () {
     return Inertia::render('Contact');
@@ -1139,6 +1133,8 @@ Route::get('/{indexNowKey}.txt', function (string $indexNowKey) {
 })->where('indexNowKey', '[A-Fa-f0-9]{8,128}')->name('indexnow.key');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/consultation/scan', [ScanRequestController::class, 'create'])->name('consultation.scan');
+    Route::post('/consultation/scan', [ScanRequestController::class, 'store'])->middleware('throttle:10,1');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
