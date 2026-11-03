@@ -551,7 +551,8 @@ class ContactSubmissionTest extends TestCase
             'name' => 'Jane', 'email' => 'jane@example.com', 'subject' => 'Hi', 'message' => 'Hello', 'subscribe' => true,
         ])->assertSessionHas('flash.type', 'success');
 
-        $this->assertDatabaseHas('subscribers', ['email' => 'jane@example.com', 'source' => 'contact_form', 'status' => 'subscribed']);
+        $this->assertDatabaseHas('subscribers', ['email' => 'jane@example.com', 'source' => 'contact_form', 'status' => 'pending']);
+        Mail::assertSent(\App\Mail\SubscribeConfirmationMail::class, fn ($mail) => $mail->hasTo('jane@example.com') && str_contains($mail->url, 'signature='));
     }
 
     #[Test]

@@ -5,6 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Mail\SubscribeConfirmationMail;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 
 class Subscriber extends Model
 {
@@ -13,6 +17,33 @@ class Subscriber extends Model
     public function scopeSubscribed(Builder $query): Builder
     {
         return $query->where($this->qualifyColumn('status'), 'subscribed');
+    }
+
+    /**
+     * Double opt-in: mails a signed confirm link and never sets `subscribed` itself.
+     * New addresses start `pending`; an `unsubscribed` row is left as is until the link is used.
+     * Returns true when a mail was sent (false when already subscribed or rate-limited).
+     */
+    public static function requestConfirmation(string $email, ?string $source, ?string $referrer): bool
+    {
+        if (! RateLimiter::attempt('subscribe:'.sha1(strtolower($email)), 3, fn () => true, 600)) {
+            return false;
+        }
+
+        $subscriber = static::firstOrCreate(
+            ['email' => $email],
+            ['source' => $source, 'referrer' => $referrer, 'status' => 'pending'],
+        );
+
+        if ($subscriber->status === 'subscribed') {
+            return false;
+        }
+
+        Mail::to($subscriber->email)->send(new SubscribeConfirmationMail(
+            URL::signedRoute('newsletter.confirm', ['subscriber' => $subscriber->getKey()]),
+        ));
+
+        return true;
     }
 
     protected $fillable = [
