@@ -6,6 +6,7 @@ use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\LimitContentCrawls;
 use App\Http\Middleware\NoindexPrivatePaths;
 use App\Http\Middleware\RedirectTrailingSlash;
+use App\Http\Middleware\TrustCloudflareClientIp;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -20,22 +21,20 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Railway/Cloudflare terminate TLS in front of the app, so the
-        // request that reaches PHP is plain HTTP from that proxy's point of
-        // view. Trust it so getScheme()/URL::forceScheme() and the client
-        // IP resolve correctly instead of generating http:// asset URLs.
-        // Headers are scoped to FOR/PORT/PROTO (+AWS_ELB, which is just
-        // those three) rather than the framework default, which also trusts
-        // HOST and PREFIX — that would let a spoofed X-Forwarded-Host
-        // control the host Laravel thinks it's on, including the links the
-        // password-reset email builds from the request host.
+        // Railway sits behind Cloudflare, which terminates TLS, so trust the
+        // proxy for scheme/port only. X-Forwarded-For is client-forgeable and
+        // is NOT trusted: the client IP comes from CF-Connecting-IP via
+        // TrustCloudflareClientIp, which is safe only while the origin stays
+        // Cloudflare-only (D-001/D-005). HOST and PREFIX stay untrusted so a
+        // spoofed X-Forwarded-Host cannot control generated links.
         $middleware->trustProxies(
             at: '*',
-            headers: Request::HEADER_X_FORWARDED_FOR
-                | Request::HEADER_X_FORWARDED_PORT
-                | Request::HEADER_X_FORWARDED_PROTO
-                | Request::HEADER_X_FORWARDED_AWS_ELB,
+            headers: Request::HEADER_X_FORWARDED_PORT
+                | Request::HEADER_X_FORWARDED_PROTO,
         );
+
+        // Prepended so the real IP is set before throttle middleware reads it.
+        $middleware->prepend(TrustCloudflareClientIp::class);
 
         // Global so the framework /up health route gets the header too.
         $middleware->append(NoindexPrivatePaths::class);
