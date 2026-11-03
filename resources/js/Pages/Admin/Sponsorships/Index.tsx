@@ -43,10 +43,10 @@ function formatDate(value: string | null) {
   return value ? new Date(value).toLocaleDateString(undefined, { dateStyle: 'medium' }) : 'none'
 }
 
-function GrantForm({ tiers, form, onDone }: { tiers: string[]; form: ReturnType<typeof useGrantForm>; onDone: () => void }) {
+function GrantForm({ tiers, form }: { tiers: string[]; form: ReturnType<typeof useGrantForm> }) {
   const submit = (e: FormEvent) => {
     e.preventDefault()
-    form.post(route('admin.sponsorships.store'), { preserveScroll: true, onSuccess: () => { form.reset(); onDone() } })
+    form.post(route('admin.sponsorships.store'), { preserveScroll: true, onSuccess: () => form.reset() })
   }
   return (
     <form onSubmit={submit} className="space-y-3 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
@@ -81,7 +81,7 @@ function GrantForm({ tiers, form, onDone }: { tiers: string[]; form: ReturnType<
       <div className="flex gap-2">
         <button type="submit" disabled={form.processing} className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50">Grant</button>
         {form.data.sponsorship_id && (
-          <button type="button" onClick={() => { form.reset(); onDone() }} className="rounded-md px-3 py-1.5 text-sm text-gray-600 ring-1 ring-gray-200">Cancel</button>
+          <button type="button" onClick={() => form.reset()} className="rounded-md px-3 py-1.5 text-sm text-gray-600 ring-1 ring-gray-200">Cancel</button>
         )}
       </div>
     </form>
@@ -156,7 +156,7 @@ export default function Index({ sponsorships, tiers }: { sponsorships: Paginated
             </div>
           </div>
 
-          <GrantForm tiers={tiers} form={form} onDone={() => undefined} />
+          <GrantForm tiers={tiers} form={form} />
 
           <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
             {sponsorships.data.length === 0 ? (

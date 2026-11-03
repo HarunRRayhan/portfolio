@@ -131,7 +131,38 @@ class SponsorshipAdminTest extends TestCase
 
         $this->get('/admin/sponsorships')->assertRedirect('/login');
         $this->actingAs($user)->get('/admin/sponsorships')->assertForbidden();
+        $commenter = User::factory()->create(['role' => 'commenter', 'terms_accepted_at' => now()]);
+        $this->actingAs($commenter)->get('/admin/sponsorships')->assertForbidden();
+        $this->actingAs($commenter)->post("/admin/sponsorships/{$s->id}/revoke")->assertForbidden();
         $this->actingAs($user)->post('/admin/sponsorships', ['identifier' => 'a@b.co', 'tier_slug' => 'pro'])->assertForbidden();
         $this->actingAs($user)->post("/admin/sponsorships/{$s->id}/revoke")->assertForbidden();
+    }
+
+    public function test_cannot_upgrade_cancelled_or_revoked_donation(): void
+    {
+        foreach (['cancelled', 'revoked'] as $status) {
+            $d = $this->donation();
+            $d->update(['status' => $status, 'github_sponsorship_node_id' => "S_$status"]);
+
+            $this->actingAs($this->admin())->post('/admin/sponsorships', [
+                'identifier' => 'donor', 'tier_slug' => 'pro', 'sponsorship_id' => $d->id,
+            ])->assertNotFound();
+
+            $d->refresh();
+            $this->assertSame($status, $d->status);
+            $this->assertNull($d->tier_slug);
+            $this->assertCount(0, $d->credits);
+        }
+    }
+
+    public function test_revoke_is_a_no_op_when_not_active(): void
+    {
+        $d = $this->donation();
+        $d->update(['status' => 'cancelled']);
+
+        $this->actingAs($this->admin())->post("/admin/sponsorships/{$d->id}/revoke")->assertRedirect();
+
+        $this->assertSame('cancelled', $d->fresh()->status);
+        $this->assertNull($d->fresh()->ended_at);
     }
 }

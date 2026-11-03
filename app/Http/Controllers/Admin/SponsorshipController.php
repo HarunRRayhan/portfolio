@@ -62,7 +62,7 @@ class SponsorshipController extends Controller
 
         $identifier = trim($data['identifier']);
         $existing = isset($data['sponsorship_id'])
-            ? GithubSponsorship::query()->whereNull('tier_slug')->whereNotNull('github_sponsorship_node_id')->findOrFail($data['sponsorship_id'])
+            ? GithubSponsorship::query()->where('status', GithubSponsorship::STATUS_ACTIVE)->whereNull('tier_slug')->whereNotNull('github_sponsorship_node_id')->findOrFail($data['sponsorship_id'])
             : null;
 
         if ($existing) {
@@ -108,7 +108,11 @@ class SponsorshipController extends Controller
     // Manual lookup, not route binding: binding would run before role:admin (see NewsletterController::reveal).
     public function revoke(string $sponsorship, CancelSponsorBookings $cancel): RedirectResponse
     {
-        $count = $cancel(GithubSponsorship::findOrFail($sponsorship), GithubSponsorship::STATUS_REVOKED);
+        $s = GithubSponsorship::findOrFail($sponsorship);
+        if ($s->status !== GithubSponsorship::STATUS_ACTIVE) {
+            return back()->with('flash', ['type' => 'error', 'message' => 'Only active sponsorships can be revoked.']);
+        }
+        $count = $cancel($s, GithubSponsorship::STATUS_REVOKED);
 
         return back()->with('flash', ['type' => 'success', 'message' => "Sponsorship revoked. {$count} future booking(s) cancelled."]);
     }
