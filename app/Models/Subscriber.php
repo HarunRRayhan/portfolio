@@ -26,7 +26,9 @@ class Subscriber extends Model
      */
     public static function requestConfirmation(string $email, ?string $source, ?string $referrer): bool
     {
-        if (! RateLimiter::attempt('subscribe:'.sha1(strtolower($email)), 3, fn () => true, 600)) {
+        $email = strtolower(trim($email));
+
+        if (! RateLimiter::attempt('subscribe:'.sha1($email), 3, fn () => true, 600)) {
             return false;
         }
 
@@ -40,7 +42,7 @@ class Subscriber extends Model
         }
 
         Mail::to($subscriber->email)->send(new SubscribeConfirmationMail(
-            URL::signedRoute('newsletter.confirm', ['subscriber' => $subscriber->getKey()]),
+            URL::temporarySignedRoute('newsletter.confirm', now()->addDays(7), ['subscriber' => $subscriber->getKey()]),
         ));
 
         return true;

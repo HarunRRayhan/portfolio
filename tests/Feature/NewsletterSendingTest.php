@@ -37,6 +37,7 @@ class NewsletterSendingTest extends TestCase
         Mail::fake();
         $subscriber = Subscriber::factory()->create();
         Subscriber::factory()->create(['status' => 'unsubscribed']);
+        Subscriber::factory()->create(['status' => 'pending']);
 
         $this->artisan('newsletter:send-weekly')
             ->assertSuccessful();

@@ -39,7 +39,12 @@ class ContactController extends Controller
 
             // Opt-in box is pre-ticked; the helper only mails a confirm link, so an unsubscribed reader stays out.
             if ($request->boolean('subscribe')) {
-                Subscriber::requestConfirmation($request->email, 'contact_form', $request->referrer);
+                // The message is already sent; a confirm-mail failure must not show the visitor an error.
+                try {
+                    Subscriber::requestConfirmation($request->email, 'contact_form', $request->referrer);
+                } catch (\Exception $e) {
+                    report($e);
+                }
             }
 
             return redirect()->back()->with('flash', [

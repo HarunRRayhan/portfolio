@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\ContactSubmission;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 use App\Mail\ContactFormMail;
@@ -553,6 +554,24 @@ class ContactSubmissionTest extends TestCase
 
         $this->assertDatabaseHas('subscribers', ['email' => 'jane@example.com', 'source' => 'contact_form', 'status' => 'pending']);
         Mail::assertSent(\App\Mail\SubscribeConfirmationMail::class, fn ($mail) => $mail->hasTo('jane@example.com') && str_contains($mail->url, 'signature='));
+    }
+
+    #[Test]
+    public function a_failed_newsletter_confirmation_mail_still_reports_the_contact_as_sent(): void
+    {
+        Exceptions::fake();
+        $pending = \Mockery::mock();
+        Mail::shouldReceive('to')->twice()->andReturn($pending);
+        $pending->shouldReceive('send')->once()->with(\Mockery::type(ContactFormMail::class));
+        $pending->shouldReceive('send')->once()->with(\Mockery::type(\App\Mail\SubscribeConfirmationMail::class))
+            ->andThrow(new \RuntimeException('SMTP down'));
+
+        $this->post('/contact', [
+            'name' => 'Jane', 'email' => 'jane@example.com', 'subject' => 'Hi', 'message' => 'Hello', 'subscribe' => true,
+        ])->assertSessionHas('flash.type', 'success');
+
+        $this->assertSame('sent', ContactSubmission::firstOrFail()->status);
+        Exceptions::assertReported(fn (\RuntimeException $e) => $e->getMessage() === 'SMTP down');
     }
 
     #[Test]

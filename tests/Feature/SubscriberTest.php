@@ -83,6 +83,34 @@ class SubscriberTest extends TestCase
     }
 
     #[Test]
+    public function a_confirm_link_older_than_seven_days_is_rejected()
+    {
+        $this->post('/subscribe', ['email' => 'jane@example.com']);
+        $subscriber = Subscriber::where('email', 'jane@example.com')->firstOrFail();
+        $url = null;
+        Mail::assertSent(SubscribeConfirmationMail::class, function (SubscribeConfirmationMail $mail) use (&$url) {
+            $url = $mail->url;
+
+            return true;
+        });
+
+        $this->travel(8)->days();
+
+        $this->get($url)->assertForbidden();
+        $this->assertSame('pending', $subscriber->fresh()->status);
+    }
+
+    #[Test]
+    public function the_same_address_in_another_case_reuses_one_row()
+    {
+        $this->post('/subscribe', ['email' => 'JANE@example.com']);
+        $this->post('/subscribe', ['email' => 'jane@example.com']);
+
+        $this->assertDatabaseCount('subscribers', 1);
+        $this->assertDatabaseHas('subscribers', ['email' => 'jane@example.com']);
+    }
+
+    #[Test]
     public function the_fourth_request_in_ten_minutes_sends_no_mail_but_the_same_flash()
     {
         foreach (range(1, 4) as $i) {
