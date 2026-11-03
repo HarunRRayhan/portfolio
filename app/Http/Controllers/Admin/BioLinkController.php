@@ -168,7 +168,7 @@ class BioLinkController extends Controller
             'label' => ['required', 'string', 'max:255'],
             'locale' => ['nullable', 'string', 'in:en,bn'],
             'description' => ['nullable', 'string', 'max:255'],
-            'url' => ['required', 'string', 'max:2048'],
+            'url' => ['required', 'string', 'max:2048', 'regex:#^(https?://|/|mailto:)#i'],
             'icon' => ['required', 'string', 'max:60'],
             'thumbnail' => ['nullable', 'image', 'max:2048'],
             'remove_thumbnail' => ['nullable', 'boolean'],
