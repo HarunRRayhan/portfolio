@@ -13,18 +13,18 @@ const getSh = "curl -fsSL https://raw.githubusercontent.com/HarunRRayhan/RayStac
 
 const globalInstall = {
     code: getSh,
-    note: "Installs all thirty skills for every coding agent it finds on your machine: Claude Code, Codex, Cursor, Grok, and OpenCode (Claude Code if it finds none). It keeps a checkout in ~/.raystack. Then start a new agent session and type /raystack."
+    note: "Finds the coding agents on your machine (Claude Code, Codex, Cursor, Grok, Antigravity, Gemini CLI, Copilot, Windsurf, and 15 more) and asks for each one whether to install there. It keeps a checkout in ~/.raystack. Then start a new agent session and type /raystack."
 }
 
 const installs = [
     {
         agent: "Ask your agent",
-        code: "Install RayStack: run `" + getSh + "`, then tell me which agents it installed for.",
-        note: "Paste into any coding agent."
+        code: "Install RayStack globally: run `" + getSh + " -s -- --yes`, then tell me which agents it installed for.",
+        note: "Paste into any coding agent. --yes installs for every agent found without asking, since an agent can't answer the questions."
     },
     {
         agent: "One project",
-        code: getSh + " -s -- --project .",
+        code: getSh + " -s -- --yes --project .",
         note: "Run it in the repo. The skills go into the repo (./.claude/skills, ./.agents/skills, ./.cursor/skills for each agent found). Commit them so the whole team gets RayStack."
     },
     {
@@ -53,9 +53,29 @@ const installs = [
         note: "Installs to ~/.config/opencode/skills."
     },
     {
+        agent: "Antigravity",
+        code: getSh + " -s -- --agent antigravity",
+        note: "Installs to ~/.gemini/antigravity/skills. Add --project . to install into the current repo."
+    },
+    {
+        agent: "Gemini CLI",
+        code: getSh + " -s -- --agent gemini",
+        note: "Installs to ~/.gemini/skills. Add --project . to install into the current repo."
+    },
+    {
+        agent: "GitHub Copilot",
+        code: getSh + " -s -- --agent copilot",
+        note: "Installs to ~/.copilot/skills. Add --project . to install into the current repo."
+    },
+    {
+        agent: "Windsurf",
+        code: getSh + " -s -- --agent windsurf",
+        note: "Installs to ~/.codeium/windsurf/skills. Add --project . to install into the current repo."
+    },
+    {
         agent: "Any other agent",
-        code: "~/.raystack/install.sh --agent custom --dir /path/to/skills\n# or the skills CLI:\nnpx skills add HarunRRayhan/RayStack -g -a claude-code",
-        note: "Run the one-line install first so ~/.raystack exists. --dry-run shows what it would do."
+        code: getSh + " -s -- --agent cline\n# also: kiro, roo, kilo, amp, goose, qwen, trae, junie, augment, warp, zed, openhands, continue\n# not listed:\n~/.raystack/install.sh --agent custom --dir /path/to/skills",
+        note: "Every agent and its folders are in the README. The custom line needs ~/.raystack, so run the one-line install first."
     },
     {
         agent: "Update and uninstall",
