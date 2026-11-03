@@ -15,6 +15,7 @@ class SponsorPageTest extends TestCase
                 ->where('canonicalUrl', rtrim((string) config('app.url'), '/').'/sponsor-me')
                 ->where('sponsorsUrl', config('sponsors.url'))
                 ->where('contactUrl', route('contact'))
+                ->where('contactEmail', config('mail.owner.address'))
                 ->missing('stripeConfigured'));
     }
 

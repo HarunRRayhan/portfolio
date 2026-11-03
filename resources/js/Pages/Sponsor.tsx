@@ -16,6 +16,7 @@ type SponsorProps = {
   canonicalUrl?: string
   sponsorsUrl: string
   contactUrl: string
+  contactEmail: string
 }
 
 type SupportPoint = {
@@ -42,7 +43,7 @@ const supportPoints: SupportPoint[] = [
   },
 ]
 
-function SponsorCard({ sponsorsUrl, contactUrl }: { sponsorsUrl: string; contactUrl: string }) {
+function SponsorCard({ sponsorsUrl, contactUrl, contactEmail }: SponsorProps) {
   return (
     <div id="sponsor-checkout" className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.07] p-6 shadow-2xl backdrop-blur sm:p-7">
       <div className="flex items-center justify-between border-b border-white/10 pb-5">
@@ -74,13 +75,13 @@ function SponsorCard({ sponsorsUrl, contactUrl }: { sponsorsUrl: string; contact
       <p className="mt-4 text-center text-xs leading-5 text-slate-400">
         GitHub doesn’t support your payment method? Use the{' '}
         <a href={contactUrl} className="underline underline-offset-4 hover:text-white">contact page</a> or{' '}
-        <a href="mailto:me@harun.dev" className="underline underline-offset-4 hover:text-white">email me</a> and I’ll set it up by hand.
+        <a href={`mailto:${contactEmail}`} className="underline underline-offset-4 hover:text-white">email me</a> and I’ll set it up by hand.
       </p>
     </div>
   )
 }
 
-export default function Sponsor({ sponsorsUrl, contactUrl }: SponsorProps) {
+export default function Sponsor({ sponsorsUrl, contactUrl, contactEmail }: SponsorProps) {
   return (
     <>
 
@@ -179,7 +180,7 @@ export default function Sponsor({ sponsorsUrl, contactUrl }: SponsorProps) {
               className="relative mx-auto w-full max-w-md"
             >
               <div aria-hidden="true" className="absolute -inset-1 rounded-3xl bg-gradient-to-br from-amber-400/50 via-violet-400/20 to-transparent blur-lg" />
-              <SponsorCard sponsorsUrl={sponsorsUrl} contactUrl={contactUrl} />
+              <SponsorCard sponsorsUrl={sponsorsUrl} contactUrl={contactUrl} contactEmail={contactEmail} />
             </motion.div>
           </div>
         </div>

@@ -31,6 +31,7 @@ class BookPageTest extends TestCase
             ->where('credits', [])
             ->where('hasGithubIdentity', false)
             ->where('sponsorsUrl', config('sponsors.url'))
+            ->where('contactEmail', config('mail.owner.address'))
             ->has('sponsorTiers', 4)
             ->where('sponsorTiers.3.slug', 'monthly')
             ->missing('stripeConfigured')
@@ -43,7 +44,8 @@ class BookPageTest extends TestCase
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->where('bookingUser', null)
-                ->where('loginUrl', fn (string $url) => str_contains($url, 'redirect=%2Fconsultation%3Fsa_ref%3Dabc%26coupon%3DX')));
+                ->missing('loginUrl')
+                ->where('githubLinkUrl', fn (string $url) => str_contains($url, 'redirect=%2Fconsultation%3Fsa_ref%3Dabc%26coupon%3DX')));
     }
 
     public function test_signed_in_user_gets_booking_user_name(): void

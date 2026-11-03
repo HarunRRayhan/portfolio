@@ -449,6 +449,7 @@ Route::get('/sponsor-me', function () {
         'canonicalUrl' => rtrim(config('app.url', url('/')), '/').'/sponsor-me',
         'sponsorsUrl' => config('sponsors.url'),
         'contactUrl' => route('contact'),
+        'contactEmail' => config('mail.owner.address'),
     ]);
 })->name('sponsor');
 

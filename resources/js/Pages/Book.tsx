@@ -34,12 +34,12 @@ type Credit = { id: number; tier_slug: string | null; tier_name: string | null; 
 
 type SponsorTier = { slug: string; url: string | null; kind: string }
 
-function ManualPaymentNote({ contactUrl }: { contactUrl: string }) {
+function ManualPaymentNote({ contactUrl, contactEmail }: { contactUrl: string; contactEmail: string }) {
   return (
     <p className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
       GitHub doesn’t support your payment method? Use the{' '}
       <a href={contactUrl} className="font-medium text-slate-700 underline underline-offset-4 dark:text-slate-200">contact page</a>{' '}
-      or <a href="mailto:me@harun.dev" className="font-medium text-slate-700 underline underline-offset-4 dark:text-slate-200">email me</a>{' '}
+      or <a href={`mailto:${contactEmail}`} className="font-medium text-slate-700 underline underline-offset-4 dark:text-slate-200">email me</a>{' '}
       and I’ll set it up by hand.
     </p>
   )
@@ -144,6 +144,7 @@ export default function Book({
   sponsorTiers = [],
   sponsorsUrl,
   contactUrl,
+  contactEmail,
   hasGithubIdentity = false,
   githubLinkUrl,
 }: {
@@ -156,6 +157,7 @@ export default function Book({
   sponsorTiers?: SponsorTier[]
   sponsorsUrl: string
   contactUrl: string
+  contactEmail: string
   hasGithubIdentity?: boolean
   githubLinkUrl: string
 }) {
@@ -308,8 +310,8 @@ export default function Book({
               {callCredits.length > 0 ? 'Pick a time for your call.' : 'Sponsor on GitHub, then book a time.'}
             </motion.h1>
             <p className="mt-4 text-lg leading-7 text-slate-500 dark:text-slate-400">
-              Each one-time sponsorship covers one call, booked within 60 days. Pick a slot at least{' '}
-              {minLeadHours} hours ahead and I’ll confirm it.
+              Sponsor me on GitHub, then pick a time at least {minLeadHours} hours ahead. I check my calendar and
+              approve each request by email. Your credit is held until then and comes back if I decline.
             </p>
           </div>
         </div>
@@ -396,7 +398,7 @@ export default function Book({
                               {tier.price_display}
                               <span className="ml-1 text-base font-medium text-slate-600 dark:text-slate-300">/ one time</span>
                             </p>
-                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{tier.duration_minutes} minutes</p>
+                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{tier.duration_minutes} minutes · book within 60 days</p>
                           </div>
                           <ul className="flex-1 border-t border-slate-100 dark:border-slate-800 px-6">
                             {tier.features.map((f) => (
@@ -477,7 +479,7 @@ export default function Book({
                     )}
                   </div>
                 )}
-                <ManualPaymentNote contactUrl={contactUrl} />
+                <ManualPaymentNote contactUrl={contactUrl} contactEmail={contactEmail} />
               </motion.div>
             ) : (
               <motion.div

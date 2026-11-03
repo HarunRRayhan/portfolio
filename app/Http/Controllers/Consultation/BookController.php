@@ -60,17 +60,17 @@ class BookController extends Controller
             'bufferMinutes' => (int) config('consultation.buffer_minutes', 15),
             'timezones' => \DateTimeZone::listIdentifiers(),
             'bookingUser' => $user ? ['name' => $user->name, 'email' => $user->email] : null,
-            'loginUrl' => route('login', ['redirect' => $request->getRequestUri()]),
             'credits' => $credits,
             'sponsorTiers' => collect(config('sponsors.tiers'))
                 ->map(fn (array $t, string $slug) => ['slug' => $slug, 'url' => $t['url'] ?? null, 'kind' => $t['kind']])
                 ->values(),
             'sponsorsUrl' => config('sponsors.url'),
             'contactUrl' => route('contact'),
+            'contactEmail' => config('mail.owner.address'),
             'hasGithubIdentity' => $user !== null && ($user->provider_name === 'github'
                 || DB::table('social_identities')->where('user_id', $user->id)->where('provider', 'github')->exists()),
             // shortcut: social.redirect is guest-only, so a signed-in user must sign out and use GitHub (same email) to link.
-            'githubLinkUrl' => route('social.redirect', 'github'),
+            'githubLinkUrl' => route('social.redirect', ['provider' => 'github', 'redirect' => $request->getRequestUri()]),
         ])->toResponse($request);
         $response->headers->set('Referrer-Policy', 'no-referrer');
 

@@ -213,7 +213,7 @@ class SponsorBookingTest extends TestCase
             ->has('credits.0.tier_name')
             ->has('credits.0.expires_at')
             ->where('hasGithubIdentity', false)
-            ->where('githubLinkUrl', route('social.redirect', 'github'))
+            ->where('githubLinkUrl', route('social.redirect', ['provider' => 'github', 'redirect' => '/consultation']))
             ->where('contactUrl', route('contact'))
             ->where('sponsorsUrl', config('sponsors.url'))
             ->has('sponsorTiers', 4)
