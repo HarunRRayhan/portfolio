@@ -28,8 +28,10 @@ only listens for "this person sponsored at tier X" and turns that into booking c
    revokes credits.
 4. The sponsor is matched to a harun.dev account through their GitHub identity. If no account
    exists, they are asked to sign in with GitHub, and the credits attach on first sign-in.
-5. A booking paid with a credit **confirms right away**, with no approval step (Harun's
-   decision). Harun can still decline or reschedule. A decline gives the credit back.
+5. A booking paid with a credit **waits for Harun's approval** (changed by Harun on 2026-11-03,
+   replacing auto-confirm). The sponsor picks a free calendar slot, and the credit is held.
+   Harun gets the existing pending-booking email and approves or declines. Approval confirms
+   with no payment step. A decline, or no answer within the 48h hold, gives the credit back.
 6. A cancelled sponsorship, or a revoke by admin (used for refunds), cancels the
    **future** bookings made with that sponsorship's credits and removes the calendar events.
 7. Both pages say: "If GitHub doesn't support your payment method, use the contact page or email
