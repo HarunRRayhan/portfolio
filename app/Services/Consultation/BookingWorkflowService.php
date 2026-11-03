@@ -1628,9 +1628,15 @@ class BookingWorkflowService
         return $count;
     }
 
-    protected function expireBooking(ConsultationBooking $booking): bool
+    /** One-off: expire a legacy unpaid Stripe booking now. No expired notification; the caller sends its own note. */
+    public function retireUnpaid(ConsultationBooking $booking): bool
     {
-        $result = DB::transaction(function () use ($booking) {
+        return $this->expireBooking($booking, true);
+    }
+
+    protected function expireBooking(ConsultationBooking $booking, bool $retire = false): bool
+    {
+        $result = DB::transaction(function () use ($booking, $retire) {
             $booking = ConsultationBooking::query()
                 ->lockForUpdate()
                 ->findOrFail($booking->id);
@@ -1643,7 +1649,7 @@ class BookingWorkflowService
                 ? $booking->hold_expires_at
                 : ($booking->status === ConsultationBooking::STATUS_AWAITING_PAYMENT ? $booking->payment_due_at : null);
 
-            if (! $expiresAt || ! $expiresAt->isPast()) {
+            if (! $retire && (! $expiresAt || ! $expiresAt->isPast())) {
                 return null;
             }
 
@@ -1654,7 +1660,7 @@ class BookingWorkflowService
                 return null;
             }
 
-            $isPaidReschedule = $booking->confirmed_at !== null && in_array($booking->status, [
+            $isPaidReschedule = ! $retire && $booking->confirmed_at !== null && in_array($booking->status, [
                 ConsultationBooking::STATUS_RESCHEDULE_PROPOSED,
                 ConsultationBooking::STATUS_PAID_RESCHEDULE_PENDING_APPROVAL,
             ], true);
@@ -1704,14 +1710,16 @@ class BookingWorkflowService
             $booking->google_event_id = null;
             $booking->hold_expires_at = null;
             $booking->save();
-            $expiryEvent = $booking->recordEvent('expired', 'system');
-            $this->notifications->enqueue(
-                $booking,
-                $booking->client_email,
-                ConsultationNotificationService::TYPE_EXPIRED,
-                [],
-                'consultation-booking-'.$booking->id.'-event-'.$expiryEvent->id.'-expired',
-            );
+            $expiryEvent = $booking->recordEvent($retire ? 'retired' : 'expired', 'system');
+            if (! $retire) {
+                $this->notifications->enqueue(
+                    $booking,
+                    $booking->client_email,
+                    ConsultationNotificationService::TYPE_EXPIRED,
+                    [],
+                    'consultation-booking-'.$booking->id.'-event-'.$expiryEvent->id.'-expired',
+                );
+            }
 
             return [
                 'booking' => $booking->fresh(['tier']),

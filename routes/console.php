@@ -1,8 +1,12 @@
 <?php
 
 use App\Http\Controllers\Consultation\StripeWebhookController;
+use App\Mail\Sponsorship\BookingRetiredMail;
+use App\Mail\Sponsorship\CreditExpiringMail;
 use App\Models\ConsultationBooking;
+use App\Models\ConsultationCredit;
 use App\Models\ConsultationStripeWebhookEvent;
+use App\Models\GithubSponsorship;
 use App\Models\User;
 use App\Services\Consultation\BookingWorkflowService;
 use App\Services\Consultation\ConsultationGoogleOperationService;
@@ -12,6 +16,8 @@ use App\Services\Consultation\SkaleAgentsBookingDelivery;
 use App\Services\Consultation\StripeCheckoutService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
@@ -122,6 +128,74 @@ Artisan::command('consultations:replay-stripe-webhook {eventId}', function (Stri
     $this->info("Replayed Stripe webhook {$event->event_id}.");
 })->purpose('Force replay of one Stripe consultation webhook event');
 
+Artisan::command('sponsors:remind-expiring', function () {
+    $sent = 0;
+    // Monthly credits are skipped: their periods are short.
+    $credits = ConsultationCredit::query()->usable()
+        ->where('kind', ConsultationCredit::KIND_CALL)
+        ->whereNotNull('user_id')
+        ->whereNull('reminded_at')
+        ->where('expires_at', '<=', now()->addDays(7))
+        ->whereHas('sponsorship', fn ($q) => $q->where('kind', GithubSponsorship::KIND_ONE_TIME))
+        ->with('user')
+        ->get();
+
+    foreach ($credits as $credit) {
+        if (! $credit->user?->email) {
+            continue;
+        }
+        try {
+            Mail::to($credit->user->email)->send(new CreditExpiringMail($credit->user->name, $credit->expires_at));
+            $credit->update(['reminded_at' => now()]);
+            $sent++;
+        } catch (Throwable $e) {
+            Log::error('Sponsor credit reminder failed', ['credit' => $credit->id, 'error' => $e->getMessage()]);
+        }
+    }
+
+    $this->info("Sent {$sent} credit expiry reminders.");
+})->purpose('Remind sponsors whose one-time call credit expires within 7 days');
+
+Artisan::command('consultations:retire-unpaid {--dry-run}', function (BookingWorkflowService $workflow) {
+    // Legacy Stripe bookings only: credit-backed bookings have amount 0 or a credit link.
+    $bookings = ConsultationBooking::query()
+        ->whereIn('status', [
+            ConsultationBooking::STATUS_PENDING_APPROVAL,
+            ConsultationBooking::STATUS_AWAITING_PAYMENT,
+            ConsultationBooking::STATUS_RESCHEDULE_PROPOSED,
+        ])
+        ->whereNull('stripe_paid_at')
+        ->where('amount_due_cents', '>', 0)
+        ->whereNotIn('id', ConsultationCredit::query()->whereNotNull('used_by_booking_id')->select('used_by_booking_id'))
+        ->get();
+
+    $retired = 0;
+    foreach ($bookings as $booking) {
+        if ($this->option('dry-run')) {
+            $this->line("{$booking->public_id}  {$booking->status}  {$booking->client_email}  {$booking->starts_at?->toIso8601String()}");
+
+            continue;
+        }
+        try {
+            if (! $workflow->retireUnpaid($booking)) {
+                continue;
+            }
+            $retired++;
+        } catch (Throwable $e) {
+            Log::error('Retiring unpaid booking failed', ['booking' => $booking->public_id, 'error' => $e->getMessage()]);
+
+            continue;
+        }
+        try {
+            Mail::to($booking->client_email)->send(new BookingRetiredMail($booking->client_name));
+        } catch (Throwable $e) {
+            Log::error('Retired booking mail failed', ['booking' => $booking->public_id, 'error' => $e->getMessage()]);
+        }
+    }
+
+    $this->info($this->option('dry-run') ? "{$bookings->count()} bookings would be retired." : "Retired {$retired} bookings.");
+})->purpose('One-off: expire unpaid legacy Stripe bookings and tell the clients');
+
 Schedule::command('consultations:expire')
     ->everyFiveMinutes()
     ->withoutOverlapping()
@@ -179,5 +253,10 @@ Schedule::command('blog:crosspost')
 Schedule::command('newsletter:send-weekly')
     ->weeklyOn(config('newsletter.schedule.day'), config('newsletter.schedule.time'))
     ->timezone(config('newsletter.schedule.timezone'))
+    ->withoutOverlapping()
+    ->onOneServer();
+
+Schedule::command('sponsors:remind-expiring')
+    ->dailyAt('09:00')
     ->withoutOverlapping()
     ->onOneServer();

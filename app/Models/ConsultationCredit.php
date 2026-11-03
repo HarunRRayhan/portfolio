@@ -43,6 +43,11 @@ class ConsultationCredit extends Model
         return $this->belongsTo(GithubSponsorship::class, 'github_sponsorship_id');
     }
 
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function tier(): BelongsTo
     {
         return $this->belongsTo(ConsultationTier::class, 'consultation_tier_id');
