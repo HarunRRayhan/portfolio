@@ -121,8 +121,10 @@ async function contrast(locator: Locator) {
 
 test('consultation pricing text and feature symbols have readable contrast', async ({ page }) => {
   await page.goto('/consultation')
-  expect(await contrast(page.getByRole('link', { name: 'Sign up to book Max', exact: true }))).toBeGreaterThanOrEqual(4.5)
-  expect(await contrast(page.getByRole('link', { name: 'Sign up to book', exact: true }))).toBeGreaterThanOrEqual(4.5)
+  for (const link of await page.getByRole('link', { name: 'Sponsor on GitHub', exact: true }).all()) {
+    expect(await contrast(link)).toBeGreaterThanOrEqual(4.5)
+  }
+  expect(await contrast(page.getByRole('link', { name: 'Sign in with GitHub', exact: true }))).toBeGreaterThanOrEqual(4.5)
   expect(await contrast(page.getByText('Recommended', { exact: true }))).toBeGreaterThanOrEqual(4.5)
   for (const label of await page.getByText('/ one time', { exact: true }).all()) {
     expect(await contrast(label)).toBeGreaterThanOrEqual(4.5)

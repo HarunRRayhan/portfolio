@@ -5,6 +5,7 @@ use App\Models\ConsultationBooking;
 use App\Models\ConsultationGoogleCredential;
 use App\Models\ConsultationTier;
 use App\Models\User;
+use App\Services\Sponsorship\SponsorCreditService;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Str;
 
@@ -31,6 +32,23 @@ $user->forceFill([
     'role' => 'admin',
     'email_verified_at' => now(),
 ])->save();
+
+// Signed-in consultation tests: a user holding one Light and one Pro call credit.
+$client = User::firstOrNew(['email' => 'browser-client@example.test']);
+$client->forceFill([
+    'name' => 'Browser test client',
+    'password' => Str::random(64),
+    'provider_name' => 'github',
+    'provider_id' => '9000001',
+    'email_verified_at' => now(),
+])->save();
+foreach (['light', 'pro'] as $slug) {
+    app(SponsorCreditService::class)->recordSponsorship([
+        'github_sponsor_id' => '9000001', 'github_login' => 'browser-client',
+        'github_sponsorship_node_id' => 'browser-'.$slug, 'tier_slug' => $slug,
+        'started_at' => now()->toIso8601String(),
+    ]);
+}
 
 ConsultationAvailabilityWindow::query()->delete();
 ConsultationAvailabilityWindow::create([
