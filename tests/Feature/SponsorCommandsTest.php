@@ -126,4 +126,27 @@ class SponsorCommandsTest extends TestCase
         $this->assertSame('pending_approval', $linked->fresh()->status);
         Mail::assertNothingSent();
     }
+
+    public function test_retire_rechecks_booking_under_lock(): void
+    {
+        Mail::fake();
+        $this->google();
+        $workflow = app(\App\Services\Consultation\BookingWorkflowService::class);
+        // Stale copies from the retire list; the rows changed before the lock.
+        $paid = $this->booking('awaiting_payment');
+        $confirmed = $this->booking('pending_approval');
+        $credited = $this->booking('pending_approval');
+        ConsultationBooking::whereKey($paid->id)->update(['stripe_paid_at' => now()]);
+        ConsultationBooking::whereKey($confirmed->id)->update(['status' => 'confirmed', 'confirmed_at' => now()]);
+        $this->sponsorCredit($this->user())->update(['used_by_booking_id' => $credited->id, 'used_at' => now()]);
+
+        foreach ([$paid, $confirmed, $credited] as $b) {
+            $this->assertFalse($workflow->retireUnpaid($b));
+        }
+
+        $this->assertSame('awaiting_payment', $paid->fresh()->status);
+        $this->assertSame('confirmed', $confirmed->fresh()->status);
+        $this->assertSame('pending_approval', $credited->fresh()->status);
+        $this->assertSame('evt-1', $credited->fresh()->google_event_id);
+    }
 }

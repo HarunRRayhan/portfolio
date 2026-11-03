@@ -1641,6 +1641,19 @@ class BookingWorkflowService
                 ->lockForUpdate()
                 ->findOrFail($booking->id);
 
+            // The retire list was built before the lock: re-check the booking is still unpaid.
+            if ($retire && (
+                ! in_array($booking->status, [
+                    ConsultationBooking::STATUS_PENDING_APPROVAL,
+                    ConsultationBooking::STATUS_AWAITING_PAYMENT,
+                    ConsultationBooking::STATUS_RESCHEDULE_PROPOSED,
+                ], true)
+                || $booking->stripe_paid_at || $booking->confirmed_at || $booking->amount_due_cents <= 0
+                || ConsultationCredit::query()->where('used_by_booking_id', $booking->id)->exists()
+            )) {
+                return null;
+            }
+
             $expiresAt = in_array($booking->status, [
                 ConsultationBooking::STATUS_PENDING_APPROVAL,
                 ConsultationBooking::STATUS_RESCHEDULE_PROPOSED,
