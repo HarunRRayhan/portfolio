@@ -301,7 +301,7 @@ export default function Book({
             <div className="mb-4 inline-flex items-center gap-2 rounded-md border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 px-3 py-1.5 shadow-sm">
               <Sparkles className="h-3.5 w-3.5 text-amber-500" />
               <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                Pricing plans
+                {callCredits.length > 0 ? 'Your credits' : 'Pricing plans'}
               </span>
             </div>
             <motion.h1
@@ -312,7 +312,7 @@ export default function Book({
               {callCredits.length > 0 ? 'Pick a time for your call.' : 'Sponsor on GitHub, then book a time.'}
             </motion.h1>
             <p className="mt-4 text-lg leading-7 text-slate-500 dark:text-slate-400">
-              Sponsor me on GitHub, then pick a time at least {minLeadHours} hours ahead. I check my calendar and
+              {callCredits.length > 0 ? 'Pick' : 'Sponsor me on GitHub, then pick'} a time at least {minLeadHours} hours ahead. I check my calendar and
               approve each request by email. Your credit is held until then and comes back if I decline.
             </p>
           </div>
