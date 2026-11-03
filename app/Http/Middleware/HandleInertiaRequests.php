@@ -63,7 +63,7 @@ class HandleInertiaRequests extends Middleware
                         return (int) Cache::remember(
                             'newsletter.subscriber_count',
                             now()->addMinutes(5),
-                            fn () => Subscriber::subscribed()->count(),
+                            fn () => Subscriber::reachable()->count(),
                         );
                     } catch (Throwable) {
                         // Keep public pages renderable during a first boot

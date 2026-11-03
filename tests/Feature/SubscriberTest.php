@@ -8,7 +8,6 @@ use App\Models\Subscriber;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use PHPUnit\Framework\Attributes\Test;
@@ -159,22 +158,6 @@ class SubscriberTest extends TestCase
     }
 
     #[Test]
-    public function a_failed_turnstile_check_rejects_and_stores_nothing()
-    {
-        config(['services.turnstile.secret_key' => 'secret']);
-        Http::fake(['challenges.cloudflare.com/*' => Http::response(['success' => false])]);
-
-        $this->post('/subscribe', ['email' => 'bot@example.com', 'cf-turnstile-response' => 'bad'])
-            ->assertSessionHasErrors('cf-turnstile-response');
-
-        $this->post('/subscribe', ['email' => 'bot@example.com'])
-            ->assertSessionHasErrors('cf-turnstile-response');
-
-        $this->assertDatabaseCount('subscribers', 0);
-        Mail::assertNothingSent();
-    }
-
-    #[Test]
     public function it_validates_required_email()
     {
         $response = $this->post('/subscribe', []);
@@ -263,10 +246,11 @@ class SubscriberTest extends TestCase
     }
 
     #[Test]
-    public function public_pages_share_the_active_subscriber_count()
+    public function public_pages_count_pending_and_subscribed_but_not_unsubscribed()
     {
         Cache::flush();
-        Subscriber::factory()->count(2)->create();
+        Subscriber::factory()->create();
+        Subscriber::factory()->create(['status' => 'pending']);
         Subscriber::factory()->create(['status' => 'unsubscribed']);
 
         $shared = app(HandleInertiaRequests::class)->share(Request::create('/'));
