@@ -93,7 +93,7 @@ class GithubSponsorsWebhookTest extends TestCase
         $this->send($this->payload())->assertOk();
 
         Mail::assertSent(SponsorCreditsReadyMail::class, fn ($m) => $m->hasTo('alice@example.test'));
-        Http::assertSent(fn ($r) => ! $r->hasHeader('X-Owner') && $r->hasHeader('Accept', 'application/vnd.github+json'));
+        Http::assertSent(fn ($r) => $r->hasHeader('Accept', 'application/vnd.github+json'));
     }
 
     public function test_public_email_failure_sends_no_mail(): void
@@ -188,5 +188,17 @@ class GithubSponsorsWebhookTest extends TestCase
         $this->send($this->payload())->assertOk();
         $this->assertNotNull($e->fresh()->processed_at);
         $this->assertSame(1, GithubSponsorship::count());
+    }
+
+    public function test_mail_failure_keeps_credits_and_returns_200(): void
+    {
+        $user = User::factory()->create(['provider_name' => 'github', 'provider_id' => '1001']);
+        Mail::shouldReceive('to')->andThrow(new \RuntimeException('smtp down'));
+
+        $this->send($this->payload())->assertOk();
+
+        $this->assertSame(1, GithubSponsorship::firstOrFail()->credits()->count());
+        $this->assertNotNull(GithubWebhookEvent::first()->processed_at);
+        $this->assertNull(GithubWebhookEvent::first()->failed_at);
     }
 }

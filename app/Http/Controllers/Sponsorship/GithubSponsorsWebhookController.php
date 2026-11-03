@@ -39,17 +39,18 @@ class GithubSponsorsWebhookController extends Controller
             'payload' => $payload,
         ]);
 
+        $notify = null;
         try {
             // The row lock makes two concurrent identical deliveries run one after the other.
-            DB::transaction(function () use ($event, $payload, $credits, $cancel) {
+            $notify = DB::transaction(function () use ($event, $payload, $credits, $cancel) {
                 $locked = GithubWebhookEvent::whereKey($event->id)->lockForUpdate()->first();
                 if ($locked->processed_at) {
-                    return;
+                    return null;
                 }
-                if ($locked->event === 'sponsorship') {
-                    $this->handle($payload, $credits, $cancel);
-                }
+                $notify = $locked->event === 'sponsorship' ? $this->handle($payload, $credits, $cancel) : null;
                 $locked->update(['processed_at' => now(), 'failed_at' => null, 'error' => null]);
+
+                return $notify;
             });
         } catch (\Throwable $e) {
             Log::error('GitHub Sponsors webhook failed', ['delivery' => $delivery, 'error' => $e->getMessage()]);
@@ -63,10 +64,20 @@ class GithubSponsorsWebhookController extends Controller
             return response('Failed', 500);
         }
 
+        // After commit: a mail or lookup failure must not undo a paid grant, and GitHub won't redeliver.
+        if ($notify) {
+            try {
+                $this->notify(...$notify);
+            } catch (\Throwable $e) {
+                Log::error('Sponsor credits mail failed', ['delivery' => $delivery, 'error' => $e->getMessage()]);
+            }
+        }
+
         return response('OK');
     }
 
-    private function handle(array $payload, SponsorCreditService $credits, CancelSponsorBookings $cancel): void
+    /** @return array{0: GithubSponsorship, 1: string, 2: string}|null mail to send after commit */
+    private function handle(array $payload, SponsorCreditService $credits, CancelSponsorBookings $cancel): ?array
     {
         $action = $payload['action'] ?? '';
         $sp = $payload['sponsorship'] ?? [];
@@ -79,11 +90,11 @@ class GithubSponsorsWebhookController extends Controller
                 $cancel($s, GithubSponsorship::STATUS_CANCELLED);
             }
 
-            return;
+            return null;
         }
 
         if (! in_array($action, ['created', 'tier_changed'], true)) {
-            return;
+            return null;
         }
 
         $tierNode = $tier['node_id'] ?? null;
@@ -110,9 +121,7 @@ class GithubSponsorsWebhookController extends Controller
             'github_sponsorship_node_id' => $nodeId,
         ]);
 
-        if ($action === 'created' && $slug) {
-            $this->notify($s, $who['login'], (string) $who['id']);
-        }
+        return $action === 'created' && $slug ? [$s, $who['login'], (string) $who['id']] : null;
     }
 
     private function notify(GithubSponsorship $s, string $login, string $githubId): void
