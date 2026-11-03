@@ -100,10 +100,10 @@ class GithubSponsorsWebhookController extends Controller
 
         // The HMAC doesn't cover the delivery id, so a replayed body must not change stored state.
         $existing = $nodeId ? GithubSponsorship::where('github_sponsorship_node_id', $nodeId)->first() : null;
-        // A cancelled sponsor who sponsors again is genuine only with a strictly newer created_at.
+        // A cancelled sponsor who sponsors again is genuine only if created after the cancellation (ended_at only moves forward).
         $responsor = $existing && $action === 'created'
             && $existing->status === GithubSponsorship::STATUS_CANCELLED
-            && isset($sp['created_at']) && Carbon::parse($sp['created_at'])->gt($existing->started_at);
+            && $existing->ended_at && isset($sp['created_at']) && Carbon::parse($sp['created_at'])->gt($existing->ended_at);
         if ($existing && ! $responsor && ($action === 'created' || $existing->status !== GithubSponsorship::STATUS_ACTIVE)) {
             return null;
         }
@@ -131,7 +131,8 @@ class GithubSponsorsWebhookController extends Controller
             'kind' => $kind,
             'status' => GithubSponsorship::STATUS_ACTIVE,
             'source' => GithubSponsorship::SOURCE_WEBHOOK,
-            'started_at' => $sp['created_at'] ?? now(),
+            // tier_changed never rewrites the start: a replayed old body must not lower it.
+            'started_at' => $existing && ! $responsor ? $existing->started_at : ($sp['created_at'] ?? now()),
             'github_sponsorship_node_id' => $nodeId,
         ]);
 

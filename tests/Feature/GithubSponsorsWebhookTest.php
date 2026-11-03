@@ -244,6 +244,8 @@ class GithubSponsorsWebhookTest extends TestCase
         $new = ['sponsorship' => ['created_at' => now()->toIso8601String()]];
         $this->send($this->payload('created', 'T_pro', $old))->assertOk();
         $this->send($this->payload('cancelled'), 'd-2')->assertOk();
+        $this->travel(1)->minutes();
+        $new = ['sponsorship' => ['created_at' => now()->toIso8601String()]];
         $this->send($this->payload('created', 'T_light', $new), 'd-3')->assertOk();
 
         $s = GithubSponsorship::firstOrFail();
@@ -257,5 +259,25 @@ class GithubSponsorsWebhookTest extends TestCase
         $this->send($this->payload('created', 'T_light', $new), 'd-4')->assertOk();
         $this->assertSame(2, $s->credits()->count());
         Mail::assertSent(SponsorCreditsReadyMail::class, 2);
+    }
+
+    public function test_replayed_tier_changed_cannot_lower_start_and_enable_reactivation(): void
+    {
+        $t1 = ['sponsorship' => ['created_at' => now()->subDays(10)->toIso8601String()]];
+        $this->send($this->payload('created', 'T_pro', $t1))->assertOk();
+        $this->send($this->payload('cancelled'), 'd-2')->assertOk();
+        $this->travel(1)->minutes();
+        $t3 = ['sponsorship' => ['created_at' => now()->toIso8601String()]];
+        $this->send($this->payload('created', 'T_light', $t3), 'd-3')->assertOk();
+        $startedAt = GithubSponsorship::firstOrFail()->started_at;
+
+        $this->send($this->payload('tier_changed', 'T_pro', $t1), 'd-4')->assertOk();
+        $this->assertEquals($startedAt, GithubSponsorship::firstOrFail()->started_at);
+
+        $this->travel(1)->minutes();
+        $this->send($this->payload('cancelled'), 'd-5')->assertOk();
+        $this->send($this->payload('created', 'T_light', $t3), 'd-6')->assertOk();
+
+        $this->assertSame('cancelled', GithubSponsorship::firstOrFail()->status);
     }
 }
