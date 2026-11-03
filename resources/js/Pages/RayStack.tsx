@@ -146,8 +146,9 @@ function CodeBlock({ code, label }: { code: string; label: string }) {
     }
 
     return (
-        <div className="relative rounded-lg bg-[#242821] text-[#f4f4ef] dark:ring-1 dark:ring-slate-700">
-            <pre className="overflow-x-auto p-4 pr-14 font-mono text-[13px] leading-6">
+        <div className="relative min-w-0 max-w-full rounded-lg bg-[#242821] text-[#f4f4ef] dark:ring-1 dark:ring-slate-700">
+            {/* Long commands wrap inside the block; copy still takes the exact text. */}
+            <pre className="whitespace-pre-wrap p-4 pr-14 font-mono text-[13px] leading-6 [overflow-wrap:anywhere]">
                 <code>{code}</code>
             </pre>
             <button
@@ -287,7 +288,7 @@ export default function RayStack({ stars, version }: { stars?: number | null; ve
                         </summary>
                         <div className="grid gap-8 border-t border-[#dedfd8] dark:border-slate-800 px-5 py-6">
                             {installs.map((install) => (
-                                <div key={install.agent}>
+                                <div key={install.agent} className="min-w-0">
                                     <h3 className="mb-3 text-base font-semibold">{install.agent}</h3>
                                     <CodeBlock code={install.code} label={install.agent} />
                                     <p className="mt-2 text-xs leading-5 text-[#686b65] dark:text-slate-400">{install.note}</p>
