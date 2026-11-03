@@ -38,6 +38,7 @@ export function SubscribeForm({
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [website, setWebsite] = useState('') // honeypot, see NewsletterController::subscribe
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -46,7 +47,7 @@ export function SubscribeForm({
 
     router.post(
       '/subscribe',
-      { email, source, referrer: document.referrer || null },
+      { email, source, referrer: document.referrer || null, website },
       {
         preserveScroll: true,
         onSuccess: () => {
@@ -75,6 +76,16 @@ export function SubscribeForm({
         required
         aria-label="Email address"
         className={cn('h-12 rounded-full px-5 text-sm', t.input)}
+      />
+      <input
+        type="text"
+        name="website"
+        value={website}
+        onChange={(e) => setWebsite(e.target.value)}
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        className="absolute -left-[9999px] h-0 w-0 opacity-0"
       />
       <Button
         type="submit"
