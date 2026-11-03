@@ -207,4 +207,23 @@ class SponsorCreditServiceTest extends TestCase
         $this->svc()->releaseForBooking($future);
         $this->assertNotNull($credits[0]->fresh()->used_by_booking_id);
     }
+
+    public function test_end_rolls_back_status_when_revoke_fails(): void
+    {
+        $s = $this->svc()->recordSponsorship($this->attrs());
+        DB::listen(function ($q) {
+            if (str_starts_with(strtolower($q->sql), 'update "consultation_credits"')) {
+                throw new \RuntimeException('revoke failed');
+            }
+        });
+
+        try {
+            $this->svc()->endSponsorship($s, 'cancelled');
+            $this->fail('expected the revoke to throw');
+        } catch (\RuntimeException $e) {
+            $this->assertSame('revoke failed', $e->getMessage());
+        }
+
+        $this->assertSame('active', GithubSponsorship::findOrFail($s->id)->status);
+    }
 }

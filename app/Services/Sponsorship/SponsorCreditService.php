@@ -124,9 +124,11 @@ class SponsorCreditService
     /** @return Collection<int, ConsultationBooking> future bookings the caller must cancel */
     public function endSponsorship(GithubSponsorship $s, string $status): Collection
     {
-        $s->update(['status' => $status, 'ended_at' => now()]);
-        // Used credits are revoked too, so cancelling their bookings never frees a credit back.
-        $s->credits()->whereNull('revoked_at')->update(['revoked_at' => now()]);
+        DB::transaction(function () use ($s, $status) {
+            $s->update(['status' => $status, 'ended_at' => now()]);
+            // Used credits are revoked too, so cancelling their bookings never frees a credit back.
+            $s->credits()->whereNull('revoked_at')->update(['revoked_at' => now()]);
+        });
 
         return ConsultationBooking::query()
             ->whereIn('id', $s->credits()->whereNotNull('used_by_booking_id')->select('used_by_booking_id'))

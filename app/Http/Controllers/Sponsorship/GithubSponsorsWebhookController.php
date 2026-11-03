@@ -40,18 +40,17 @@ class GithubSponsorsWebhookController extends Controller
             'payload' => $payload,
         ]);
 
-        $notify = null;
         try {
             // The row lock makes two concurrent identical deliveries run one after the other.
-            $notify = DB::transaction(function () use ($event, $payload, $credits, $cancel) {
+            $after = DB::transaction(function () use ($event, $payload, $credits, $cancel) {
                 $locked = GithubWebhookEvent::whereKey($event->id)->lockForUpdate()->first();
                 if ($locked->processed_at) {
                     return null;
                 }
-                $notify = $locked->event === 'sponsorship' ? $this->handle($payload, $credits, $cancel) : null;
+                $after = $locked->event === 'sponsorship' ? $this->handle($payload, $credits, $cancel) : null;
                 $locked->update(['processed_at' => now(), 'failed_at' => null, 'error' => null]);
 
-                return $notify;
+                return $after;
             });
         } catch (\Throwable $e) {
             Log::error('GitHub Sponsors webhook failed', ['delivery' => $delivery, 'error' => $e->getMessage()]);
@@ -65,20 +64,20 @@ class GithubSponsorsWebhookController extends Controller
             return response('Failed', 500);
         }
 
-        // After commit: a mail or lookup failure must not undo a paid grant, and GitHub won't redeliver.
-        if ($notify) {
+        // After commit: mails, lookups and calendar deletes can't be rolled back, and GitHub won't redeliver.
+        if ($after) {
             try {
-                $this->notify(...$notify);
+                $after();
             } catch (\Throwable $e) {
-                Log::error('Sponsor credits mail failed', ['delivery' => $delivery, 'error' => $e->getMessage()]);
+                Log::error('Sponsor webhook follow-up failed', ['delivery' => $delivery, 'error' => $e->getMessage()]);
             }
         }
 
         return response('OK');
     }
 
-    /** @return array{0: GithubSponsorship, 1: string, 2: string}|null mail to send after commit */
-    private function handle(array $payload, SponsorCreditService $credits, CancelSponsorBookings $cancel): ?array
+    /** @return (callable(): mixed)|null work to run after commit */
+    private function handle(array $payload, SponsorCreditService $credits, CancelSponsorBookings $cancel): ?callable
     {
         $action = $payload['action'] ?? '';
         $sp = $payload['sponsorship'] ?? [];
@@ -89,11 +88,13 @@ class GithubSponsorsWebhookController extends Controller
             $s = $nodeId ? GithubSponsorship::where('github_sponsorship_node_id', $nodeId)->first() : null;
             // A replayed cancel from an earlier sponsorship period must not end the current one.
             $stale = $s && isset($sp['created_at']) && Carbon::parse($sp['created_at'])->lt($s->started_at);
-            if ($s && ! $stale) {
-                $cancel($s, GithubSponsorship::STATUS_CANCELLED);
+            // One-time credits run their full 60 days; refunds go through admin revoke.
+            if (! $s || $stale || $s->kind === GithubSponsorship::KIND_ONE_TIME) {
+                return null;
             }
+            $bookings = $credits->endSponsorship($s, GithubSponsorship::STATUS_CANCELLED);
 
-            return null;
+            return fn () => $cancel->cancelBookings($bookings);
         }
 
         if (! in_array($action, ['created', 'tier_changed'], true)) {
@@ -102,10 +103,14 @@ class GithubSponsorsWebhookController extends Controller
 
         // The HMAC doesn't cover the delivery id, so a replayed body must not change stored state.
         $existing = $nodeId ? GithubSponsorship::where('github_sponsorship_node_id', $nodeId)->first() : null;
-        // A cancelled sponsor who sponsors again is genuine only if created after the cancellation (ended_at only moves forward).
-        $responsor = $existing && $action === 'created'
-            && $existing->status === GithubSponsorship::STATUS_CANCELLED
-            && $existing->ended_at && isset($sp['created_at']) && Carbon::parse($sp['created_at'])->gt($existing->ended_at);
+        // A repeat `created` is genuine only if newer than the cancellation (ended_at only moves forward)
+        // or, for a one-time sponsorship that never gets cancelled, newer than its start.
+        $createdAt = isset($sp['created_at']) ? Carbon::parse($sp['created_at']) : null;
+        $responsor = $existing && $action === 'created' && $createdAt && (
+            ($existing->status === GithubSponsorship::STATUS_CANCELLED && $existing->ended_at && $createdAt->gt($existing->ended_at))
+            || ($existing->status === GithubSponsorship::STATUS_ACTIVE && $existing->kind === GithubSponsorship::KIND_ONE_TIME
+                && $createdAt->gt($existing->started_at))
+        );
         if ($existing && ! $responsor && ($action === 'created' || $existing->status !== GithubSponsorship::STATUS_ACTIVE)) {
             return null;
         }
@@ -119,7 +124,7 @@ class GithubSponsorsWebhookController extends Controller
         $kind = $slug ? config("sponsors.tiers.$slug.kind")
             : (($tier['is_one_time'] ?? true) ? GithubSponsorship::KIND_ONE_TIME : GithubSponsorship::KIND_MONTHLY);
 
-        $who = ($payload['sponsor']['type'] ?? '') === 'User' ? $payload['sponsor'] : ($payload['sender'] ?? []);
+        $who = ($sp['sponsor']['type'] ?? '') === 'User' ? $sp['sponsor'] : ($payload['sender'] ?? []);
 
         if ($existing && ! $responsor) {
             $who = ['id' => $existing->github_sponsor_id, 'login' => $existing->github_login];
@@ -138,7 +143,7 @@ class GithubSponsorsWebhookController extends Controller
             'github_sponsorship_node_id' => $nodeId,
         ]);
 
-        return $action === 'created' && $slug ? [$s, $who['login'], (string) $who['id']] : null;
+        return $action === 'created' && $slug ? fn () => $this->notify($s, $who['login'], (string) $who['id']) : null;
     }
 
     private function notify(GithubSponsorship $s, string $login, string $githubId): void

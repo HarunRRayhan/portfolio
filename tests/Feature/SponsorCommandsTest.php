@@ -7,6 +7,7 @@ use App\Mail\Sponsorship\CreditExpiringMail;
 use App\Models\ConsultationBooking;
 use App\Models\ConsultationTier;
 use App\Models\User;
+use App\Services\Consultation\BookingWorkflowService;
 use App\Services\Consultation\GoogleCalendarService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -131,7 +132,7 @@ class SponsorCommandsTest extends TestCase
     {
         Mail::fake();
         $this->google();
-        $workflow = app(\App\Services\Consultation\BookingWorkflowService::class);
+        $workflow = app(BookingWorkflowService::class);
         // Stale copies from the retire list; the rows changed before the lock.
         $paid = $this->booking('awaiting_payment');
         $confirmed = $this->booking('pending_approval');
