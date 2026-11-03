@@ -97,6 +97,12 @@ class GithubSponsorsWebhookController extends Controller
             return null;
         }
 
+        // The HMAC doesn't cover the delivery id, so a replayed body must not change stored state.
+        $existing = $nodeId ? GithubSponsorship::where('github_sponsorship_node_id', $nodeId)->first() : null;
+        if ($existing && ($action === 'created' || $existing->status !== GithubSponsorship::STATUS_ACTIVE)) {
+            return null;
+        }
+
         $tierNode = $tier['node_id'] ?? null;
         $slug = collect(config('sponsors.tiers'))->filter(fn ($t) => filled($t['node_id']))
             ->search(fn ($t) => $t['node_id'] === $tierNode) ?: null;
@@ -105,7 +111,7 @@ class GithubSponsorsWebhookController extends Controller
 
         $who = ($payload['sponsor']['type'] ?? '') === 'User' ? $payload['sponsor'] : ($payload['sender'] ?? []);
 
-        if ($action === 'tier_changed' && $nodeId && ($existing = GithubSponsorship::where('github_sponsorship_node_id', $nodeId)->first())) {
+        if ($existing) {
             $who = ['id' => $existing->github_sponsor_id, 'login' => $existing->github_login];
         }
 

@@ -201,4 +201,37 @@ class GithubSponsorsWebhookTest extends TestCase
         $this->assertNotNull(GithubWebhookEvent::first()->processed_at);
         $this->assertNull(GithubWebhookEvent::first()->failed_at);
     }
+
+    public function test_replayed_created_after_cancel_does_not_reactivate(): void
+    {
+        $this->send($this->payload())->assertOk();
+        $this->send($this->payload('cancelled'), 'd-2')->assertOk();
+        $this->send($this->payload(), 'd-3')->assertOk();
+
+        $s = GithubSponsorship::firstOrFail();
+        $this->assertSame('cancelled', $s->status);
+        $this->assertSame(1, GithubSponsorship::count());
+        $this->assertSame(1, $s->credits()->count());
+        $this->assertNotNull($s->credits()->first()->revoked_at);
+    }
+
+    public function test_replayed_created_for_active_sponsorship_grants_nothing_and_sends_no_mail(): void
+    {
+        User::factory()->create(['provider_name' => 'github', 'provider_id' => '1001']);
+        $this->send($this->payload())->assertOk();
+        $this->send($this->payload(), 'd-2')->assertOk();
+
+        $this->assertSame(1, GithubSponsorship::firstOrFail()->credits()->count());
+        Mail::assertSent(SponsorCreditsReadyMail::class, 1);
+        $this->assertSame(2, GithubWebhookEvent::whereNotNull('processed_at')->count());
+    }
+
+    public function test_tier_changed_cannot_reactivate_cancelled(): void
+    {
+        $this->send($this->payload())->assertOk();
+        $this->send($this->payload('cancelled'), 'd-2')->assertOk();
+        $this->send($this->payload('tier_changed', 'T_light'), 'd-3')->assertOk();
+
+        $this->assertSame('cancelled', GithubSponsorship::firstOrFail()->status);
+    }
 }
