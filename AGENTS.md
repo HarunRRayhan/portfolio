@@ -53,3 +53,21 @@
 - `blog_post_views` stores cumulative counts per slug, not daily events. Label post analytics as all-time and do not derive a daily trend from `updated_at`.
 - Keep draft test fixtures temporary and outside the shipped post catalog. When removing or changing catalog entries, invalidate the repository metadata cache so production does not retain stale drafts or titles.
 - A shipped draft needs `publishedAt` later than now. `blog:publish-scheduled` publishes due drafts, and CI runs it against `resources/blog/posts`. After a catalog deploy, the database cache key `blog.repository.payload.meta4.*` can keep the previous draft or title for about 15 minutes.
+
+## RayStack dev flow
+
+### Read in this order
+
+1. `DECISIONS.md`
+2. `docs/prd/`
+3. `docs/architecture/`
+4. `docs/tech-spec/`
+5. `docs/principles.md`
+6. `docs/plans/` plans with their ledgers
+7. `docs/research/`
+
+### Workflow
+
+- New feature or change: research if needed, write or update the spec, write a plan in `docs/plans/`, build task by task with a fresh implementer and reviewer per task.
+- Decisions go in `DECISIONS.md`, one question per call.
+- New session: read this file, then the newest ledger in `docs/plans/` with no `Shipped:` or `Committed:` line, then continue from its first unfinished row.
