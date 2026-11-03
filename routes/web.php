@@ -579,9 +579,6 @@ foreach (['/book', '/booking', '/consultations'] as $legacyConsultationPath) {
 Route::get('/book/availability', [BookController::class, 'availability'])
     ->middleware('throttle:60,1')
     ->name('book.availability');
-Route::post('/book/coupon', [BookController::class, 'validateCoupon'])
-    ->middleware('throttle:30,1')
-    ->name('book.coupon');
 Route::post('/book', [BookController::class, 'store'])
     ->middleware(['throttle:10,1', 'auth', 'verified'])
     ->name('book.store');
@@ -593,10 +590,6 @@ Route::get('/book/b/{publicId}/stripe-return', [BookingAccessController::class, 
     ->where('publicId', '[0-9a-z]{20,32}')
     ->middleware('signed')
     ->name('book.stripe-return');
-Route::post('/book/b/{publicId}/pay', [BookingAccessController::class, 'pay'])
-    ->where('publicId', '[0-9a-z]{20,32}')
-    ->middleware('throttle:20,1')
-    ->name('book.pay');
 Route::post('/book/b/{publicId}/cancel', [BookingAccessController::class, 'requestCancel'])
     ->where('publicId', '[0-9a-z]{20,32}')
     ->middleware('throttle:10,1')

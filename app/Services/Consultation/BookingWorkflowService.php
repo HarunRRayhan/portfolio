@@ -5,6 +5,7 @@ namespace App\Services\Consultation;
 use App\Exceptions\ConsultationGoogleException;
 use App\Models\ConsultationBooking;
 use App\Models\ConsultationCoupon;
+use App\Models\ConsultationCredit;
 use App\Models\ConsultationSetting;
 use App\Models\ConsultationStripeCheckoutAttempt;
 use App\Models\ConsultationTier;
@@ -39,6 +40,7 @@ class BookingWorkflowService
         ?string $companyName = null,
         ?string $saRef = null,
         array $details = [],
+        ?ConsultationCredit $credit = null,
     ): array {
         $details = array_intersect_key($details, array_flip(['user_id', 'website', 'role', 'team_size', 'budget']));
         $companyName = $companyName !== null ? trim($companyName) : null;
@@ -47,7 +49,7 @@ class BookingWorkflowService
         $plainToken = Str::random(48);
         $googleConnected = $this->google->isConnected();
 
-        $result = DB::transaction(function () use ($tier, $name, $email, $companyName, $notes, $startsAt, $coupon, $plainToken, $googleConnected, $saRef, $details) {
+        $result = DB::transaction(function () use ($tier, $name, $email, $companyName, $notes, $startsAt, $coupon, $plainToken, $googleConnected, $saRef, $details, $credit) {
             $this->lockReservation();
 
             $tier = ConsultationTier::query()->lockForUpdate()->findOrFail($tier->id);
@@ -67,10 +69,26 @@ class BookingWorkflowService
             }
 
             $listPrice = (int) $tier->price_cents;
-            $campaignDiscount = $this->launchPromotion->claim($listPrice);
+
+            if ($credit) {
+                // The row lock makes a double submit or a second tab fail here, not double-book.
+                $credit = ConsultationCredit::query()->usable()->lockForUpdate()->find($credit->id);
+                if (
+                    ! $credit
+                    || ! isset($details['user_id'])
+                    || (int) $credit->user_id !== (int) $details['user_id']
+                    || (int) $credit->consultation_tier_id !== (int) $tier->id
+                    || $startsAt->gt($credit->expires_at)
+                ) {
+                    throw new \InvalidArgumentException('That credit has expired or was already used.');
+                }
+                $coupon = null;
+            }
+
+            $campaignDiscount = $credit ? 0 : $this->launchPromotion->claim($listPrice);
             $discountedPrice = max(0, $listPrice - $campaignDiscount);
             $discount = $coupon ? (int) $coupon->percent_off : 0;
-            $amountDue = $coupon ? $coupon->discountedAmountCents($discountedPrice) : $discountedPrice;
+            $amountDue = $credit ? 0 : ($coupon ? $coupon->discountedAmountCents($discountedPrice) : $discountedPrice);
 
             $booking = ConsultationBooking::create($details + [
                 'consultation_tier_id' => $tier->id,
@@ -95,6 +113,8 @@ class BookingWorkflowService
                     ? hash('sha256', $saRef)
                     : null,
             ]);
+
+            $credit?->update(['used_by_booking_id' => $booking->id, 'used_at' => now()]);
 
             $requestEvent = $booking->recordEvent('requested', 'client');
 
@@ -1703,6 +1723,9 @@ class BookingWorkflowService
             return false;
         }
 
+        if (! $result['reschedule']) {
+            $this->credits->releaseForBooking($result['booking']);
+        }
         $this->notifications->deliverDueForBooking($result['booking']->id);
 
         return true;

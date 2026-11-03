@@ -3,33 +3,43 @@
 namespace App\Http\Controllers\Consultation;
 
 use App\Http\Controllers\Controller;
-use App\Models\ConsultationCoupon;
+use App\Models\ConsultationCredit;
 use App\Models\ConsultationTier;
 use App\Services\Consultation\AvailabilityService;
 use App\Services\Consultation\BookingWorkflowService;
-use App\Services\Consultation\ConsultationLaunchPromotionService;
-use App\Services\Consultation\StripeCheckoutService;
+use App\Services\Sponsorship\SponsorCreditService;
 use App\Support\SeoCatalog;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class BookController extends Controller
 {
-    public function show(Request $request, StripeCheckoutService $stripe, ConsultationLaunchPromotionService $promotion): SymfonyResponse
+    public function show(Request $request, SponsorCreditService $sponsorCredits): SymfonyResponse
     {
+        $user = $request->user();
         $tiers = ConsultationTier::query()->active()->get()->map->toPublicArray()->values();
-        $discountCents = $promotion->discountCents();
-        $remaining = $promotion->remaining();
+        if ($user) {
+            $sponsorCredits->claimFor($user);
+        }
+        $credits = $user ? $sponsorCredits->usableCredits($user)->load('tier')->map(fn (ConsultationCredit $c) => [
+            'id' => $c->id,
+            'tier_slug' => $c->tier?->slug,
+            'tier_name' => $c->tier?->name,
+            'kind' => $c->kind,
+            'expires_at' => $c->expires_at->toIso8601String(),
+        ])->values() : [];
         $seo = SeoCatalog::forPath('/consultation')->toArray();
         $seo['jsonLd'] = [[
             '@context' => 'https://schema.org',
             '@type' => 'Service',
             'name' => 'Book a consult',
-            'description' => 'Pick a plan, then a time. I approve it, then you pay.',
+            'description' => 'Sponsor on GitHub, then book a time.',
             'provider' => [
                 '@type' => 'Person',
                 'name' => 'Harun R. Rayhan',
@@ -38,7 +48,7 @@ class BookController extends Controller
             'offers' => $tiers->map(fn (array $tier) => [
                 '@type' => 'Offer',
                 'name' => $tier['name'],
-                'price' => number_format(max(0, $tier['price_cents'] - ($remaining > 0 ? $discountCents : 0)) / 100, 2, '.', ''),
+                'price' => number_format($tier['price_cents'] / 100, 2, '.', ''),
                 'priceCurrency' => 'USD',
             ])->all(),
         ]];
@@ -46,17 +56,21 @@ class BookController extends Controller
         $response = Inertia::render('Book', [
             'tiers' => $tiers,
             'seo' => $seo,
-            'stripeConfigured' => $stripe->configured(),
             'minLeadHours' => (int) config('consultation.min_lead_hours', 48),
             'bufferMinutes' => (int) config('consultation.buffer_minutes', 15),
             'timezones' => \DateTimeZone::listIdentifiers(),
-            'bookingUser' => $request->user() ? ['name' => $request->user()->name, 'email' => $request->user()->email] : null,
+            'bookingUser' => $user ? ['name' => $user->name, 'email' => $user->email] : null,
             'loginUrl' => route('login', ['redirect' => $request->getRequestUri()]),
-            'launchPromotion' => [
-                'discount_cents' => $discountCents,
-                'limit' => $promotion->limit(),
-                'remaining_bookings' => $remaining,
-            ],
+            'credits' => $credits,
+            'sponsorTiers' => collect(config('sponsors.tiers'))
+                ->map(fn (array $t, string $slug) => ['slug' => $slug, 'url' => $t['url'] ?? null, 'kind' => $t['kind']])
+                ->values(),
+            'sponsorsUrl' => config('sponsors.url'),
+            'contactUrl' => route('contact'),
+            'hasGithubIdentity' => $user !== null && ($user->provider_name === 'github'
+                || DB::table('social_identities')->where('user_id', $user->id)->where('provider', 'github')->exists()),
+            // shortcut: social.redirect is guest-only, so a signed-in user must sign out and use GitHub (same email) to link.
+            'githubLinkUrl' => route('social.redirect', 'github'),
         ])->toResponse($request);
         $response->headers->set('Referrer-Policy', 'no-referrer');
 
@@ -69,40 +83,24 @@ class BookController extends Controller
             'tier' => ['required', 'string'],
             'from' => ['nullable', 'date'],
             'to' => ['nullable', 'date'],
+            'credit' => ['nullable', 'integer'],
         ]);
 
         $tier = ConsultationTier::query()->active()->where('slug', $data['tier'])->firstOrFail();
         $from = isset($data['from']) ? Carbon::parse($data['from'])->utc() : null;
         $to = isset($data['to']) ? Carbon::parse($data['to'])->utc() : null;
 
-        return response()->json([
-            'slots' => $availability->availableSlots($tier, $from, $to),
-        ]);
-    }
-
-    public function validateCoupon(Request $request, ConsultationLaunchPromotionService $promotion): JsonResponse
-    {
-        $data = $request->validate([
-            'code' => ['required', 'string'],
-            'tier' => ['required', 'string'],
-        ]);
-
-        $tier = ConsultationTier::query()->active()->where('slug', $data['tier'])->firstOrFail();
-        $coupon = ConsultationCoupon::query()
-            ->whereRaw('lower(code) = ?', [strtolower(trim($data['code']))])
-            ->first();
-
-        if (! $coupon || ! $coupon->isValidForTier($tier->slug)) {
-            return response()->json(['valid' => false, 'message' => 'Invalid coupon for this plan.'], 422);
+        if (isset($data['credit']) && $request->user()) {
+            $expiresAt = ConsultationCredit::query()->where('user_id', $request->user()->id)
+                ->whereKey($data['credit'])->value('expires_at');
+            if ($expiresAt) {
+                $expiresAt = Carbon::parse($expiresAt)->utc();
+                $to = $to ? $to->min($expiresAt) : $expiresAt;
+            }
         }
 
-        $pricing = $promotion->preview((int) $tier->price_cents, $coupon);
-
         return response()->json([
-            'valid' => true,
-            'percent_off' => $coupon->percent_off,
-            'campaign_discount_cents' => $pricing['campaign_discount_cents'],
-            'amount_due_cents' => $pricing['amount_due_cents'],
+            'slots' => $availability->availableSlots($tier, $from, $to),
         ]);
     }
 
@@ -114,7 +112,8 @@ class BookController extends Controller
         }
 
         $data = $request->validate([
-            'tier' => ['required', 'string'],
+            'credit_id' => ['required', 'integer', Rule::exists('consultation_credits', 'id')
+                ->where('user_id', $request->user()->id)->where('kind', ConsultationCredit::KIND_CALL)],
             'client_name' => ['required', 'string', 'max:120'],
             'company_name' => ['required', 'string', 'max:255'],
             'website' => ['required', 'url:http,https', 'max:2048'],
@@ -123,23 +122,15 @@ class BookController extends Controller
             'team_size' => ['nullable', 'string', 'max:40'],
             'budget' => ['nullable', 'string', 'max:60'],
             'starts_at' => ['required', 'date'],
-            'coupon_code' => ['nullable', 'string', 'max:64'],
             'sa_ref' => config('consultation.skaleagents_handoff_enabled')
                 ? ['nullable', 'regex:/^[A-Za-z0-9_-]{32}$/']
                 : ['exclude'],
         ]);
 
-        $tier = ConsultationTier::query()->active()->where('slug', $data['tier'])->firstOrFail();
-        $coupon = null;
-
-        if (! empty($data['coupon_code'])) {
-            $coupon = ConsultationCoupon::query()
-                ->whereRaw('lower(code) = ?', [strtolower(trim($data['coupon_code']))])
-                ->first();
-
-            if (! $coupon || ! $coupon->isValidForTier($tier->slug)) {
-                return back()->withErrors(['coupon_code' => 'Invalid coupon for this plan.'])->withInput();
-            }
+        $credit = ConsultationCredit::query()->findOrFail($data['credit_id']);
+        $tier = ConsultationTier::query()->active()->find($credit->consultation_tier_id);
+        if (! $tier) {
+            return back()->withErrors(['starts_at' => 'That plan is no longer offered. Please contact me.'])->withInput();
         }
 
         try {
@@ -149,7 +140,7 @@ class BookController extends Controller
                 $request->user()->email,
                 $data['notes'],
                 Carbon::parse($data['starts_at'])->utc(),
-                $coupon,
+                null,
                 $data['company_name'],
                 $data['sa_ref'] ?? null,
                 [
@@ -159,6 +150,7 @@ class BookController extends Controller
                     'team_size' => $data['team_size'] ?? null,
                     'budget' => $data['budget'] ?? null,
                 ],
+                $credit,
             );
         } catch (\InvalidArgumentException $e) {
             return back()->withErrors(['starts_at' => $e->getMessage()])->withInput();

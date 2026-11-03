@@ -23,10 +23,12 @@ use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Mail\Transport\ArrayTransport;
 use Illuminate\Support\Facades\Mail;
+use Tests\Support\CreatesSponsorCredits;
 use Tests\TestCase;
 
 class ConsultationBookingTest extends TestCase
 {
+    use CreatesSponsorCredits;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -67,8 +69,9 @@ class ConsultationBookingTest extends TestCase
         $reference = rtrim(strtr(base64_encode(random_bytes(24)), '+/', '-_'), '=');
         $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
 
-        $this->actingAs(User::factory()->create(['email' => 'linked@example.com']))->post('/book', [
-            'tier' => $tier->slug,
+        $user = User::factory()->create(['email' => 'linked@example.com']);
+        $this->actingAs($user)->post('/book', [
+            'credit_id' => $this->sponsorCredit($user, $tier->slug)->id,
             'client_name' => 'Linked customer',
             'company_name' => 'Acme',
             'website' => 'https://acme.test',
@@ -89,8 +92,9 @@ class ConsultationBookingTest extends TestCase
         config()->set('consultation.skaleagents_handoff_enabled', false);
         $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
 
-        $this->actingAs(User::factory()->create(['email' => 'direct@example.com']))->post('/book', [
-            'tier' => $tier->slug,
+        $user = User::factory()->create(['email' => 'direct@example.com']);
+        $this->actingAs($user)->post('/book', [
+            'credit_id' => $this->sponsorCredit($user, $tier->slug)->id,
             'client_name' => 'Direct customer',
             'company_name' => 'Acme',
             'website' => 'https://acme.test',
@@ -107,8 +111,9 @@ class ConsultationBookingTest extends TestCase
         config()->set('consultation.skaleagents_handoff_enabled', true);
         $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
 
-        $this->actingAs(User::factory()->create(['email' => 'invalid@example.com']))->post('/book', [
-            'tier' => $tier->slug,
+        $user = User::factory()->create(['email' => 'invalid@example.com']);
+        $this->actingAs($user)->post('/book', [
+            'credit_id' => $this->sponsorCredit($user, $tier->slug)->id,
             'client_name' => 'Invalid reference',
             'company_name' => 'Acme',
             'website' => 'https://acme.test',
@@ -2239,7 +2244,7 @@ class ConsultationBookingTest extends TestCase
         $user = User::factory()->create(['email' => 'client@example.com']);
 
         $this->actingAs($user)
-            ->post('/book', array_merge($this->validBookingPayload(), [
+            ->post('/book', array_merge($this->validBookingPayload($user), [
                 'client_email' => 'x@evil.test',
                 'role' => 'CTO',
                 'team_size' => '11-50',
@@ -2263,18 +2268,19 @@ class ConsultationBookingTest extends TestCase
     public function test_booking_website_without_scheme_gets_https(): void
     {
         Mail::fake();
+        $user = User::factory()->create();
 
-        $this->actingAs(User::factory()->create())
-            ->post('/book', array_merge($this->validBookingPayload(), ['website' => 'acme.com']))
+        $this->actingAs($user)
+            ->post('/book', array_merge($this->validBookingPayload($user), ['website' => 'acme.com']))
             ->assertSessionHasNoErrors();
 
         $this->assertSame('https://acme.com', ConsultationBooking::query()->firstOrFail()->website);
     }
 
-    private function validBookingPayload(): array
+    private function validBookingPayload(?User $user = null): array
     {
         return [
-            'tier' => 'light',
+            'credit_id' => $user ? $this->sponsorCredit($user)->id : 1,
             'client_name' => 'Client Person',
             'company_name' => 'Acme',
             'website' => 'https://acme.test',

@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\ConsultationSetting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -87,13 +86,10 @@ class SeoOwnershipTest extends TestCase
         $this->assertSame($name, json_decode($scripts->item(0)->textContent, true)['name']);
     }
 
-    public function test_consultation_schema_preserves_current_promotional_prices_and_exhaustion(): void
+    public function test_consultation_schema_uses_tier_list_prices(): void
     {
         $this->get('/consultation', $this->inertiaHeaders())->assertOk()
-            ->assertJsonPath('props.seo.jsonLd.0.offers.0.price', '149.00')
+            ->assertJsonPath('props.seo.jsonLd.0.offers.0.price', '249.00')
             ->assertJsonPath('props.seo.jsonLd.0.offers.0.priceCurrency', 'USD');
-        ConsultationSetting::setValue('consultation_booking_promotion_claimed_count', '1001');
-        $this->get('/consultation', $this->inertiaHeaders())->assertOk()
-            ->assertJsonPath('props.seo.jsonLd.0.offers.0.price', '249.00');
     }
 }
