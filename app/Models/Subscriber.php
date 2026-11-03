@@ -32,10 +32,9 @@ class Subscriber extends Model
             return false;
         }
 
-        $subscriber = static::firstOrCreate(
-            ['email' => $email],
-            ['source' => $source, 'referrer' => $referrer, 'status' => 'pending'],
-        );
+        // lower() so rows stored before addresses were lowercased still match on Postgres.
+        $subscriber = static::whereRaw('lower(email) = ?', [$email])->first()
+            ?? static::create(['email' => $email, 'source' => $source, 'referrer' => $referrer, 'status' => 'pending']);
 
         if ($subscriber->status === 'subscribed') {
             return false;

@@ -111,6 +111,43 @@ class SubscriberTest extends TestCase
     }
 
     #[Test]
+    public function a_legacy_mixed_case_subscriber_gets_no_second_row_or_mail()
+    {
+        $subscriber = Subscriber::create(['email' => 'Jane@Example.com', 'status' => 'subscribed']);
+
+        $this->post('/subscribe', ['email' => 'jane@example.com'])
+            ->assertSessionHas('flash.message', self::FLASH);
+
+        $this->assertDatabaseCount('subscribers', 1);
+        $this->assertSame('subscribed', $subscriber->fresh()->status);
+        $this->assertSame('Jane@Example.com', $subscriber->fresh()->email);
+        Mail::assertNothingSent();
+    }
+
+    #[Test]
+    public function a_legacy_mixed_case_unsubscribed_row_is_confirmed_in_place()
+    {
+        $subscriber = Subscriber::create(['email' => 'Jane@Example.com', 'status' => 'unsubscribed']);
+
+        $this->post('/subscribe', ['email' => 'jane@example.com']);
+
+        $this->assertDatabaseCount('subscribers', 1);
+        $this->assertSame('unsubscribed', $subscriber->fresh()->status);
+
+        $url = null;
+        Mail::assertSent(SubscribeConfirmationMail::class, function (SubscribeConfirmationMail $mail) use (&$url) {
+            $url = $mail->url;
+
+            return $mail->hasTo('Jane@Example.com');
+        });
+
+        $this->get($url)->assertRedirect('/blog');
+        $this->assertDatabaseCount('subscribers', 1);
+        $this->assertSame('subscribed', $subscriber->fresh()->status);
+        $this->assertSame('Jane@Example.com', $subscriber->fresh()->email);
+    }
+
+    #[Test]
     public function the_fourth_request_in_ten_minutes_sends_no_mail_but_the_same_flash()
     {
         foreach (range(1, 4) as $i) {
