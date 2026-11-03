@@ -147,6 +147,7 @@ export default function Book({
   contactEmail,
   hasGithubIdentity = false,
   githubLinkUrl,
+  scanUrl,
 }: {
   bookingUser?: BookingUser | null
   tiers: Tier[]
@@ -160,6 +161,7 @@ export default function Book({
   contactEmail: string
   hasGithubIdentity?: boolean
   githubLinkUrl: string
+  scanUrl: string
 }) {
   const [step, setStep] = useState<'plans' | 'details'>('plans')
   const [selectedCredit, setSelectedCredit] = useState<Credit | null>(null)
@@ -334,7 +336,7 @@ export default function Book({
                       You have an open-source scan credit. Tell me which repo to scan.
                     </p>
                     <a
-                      href="/consultation/scan"
+                      href={scanUrl}
                       className="shrink-0 bg-slate-900 px-5 py-3 font-mono text-xs font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
                     >
                       Request a scan

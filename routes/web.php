@@ -17,6 +17,7 @@ use App\Http\Controllers\Consultation\BookController;
 use App\Http\Controllers\Consultation\BookingAccessController;
 use App\Http\Controllers\Consultation\StripeWebhookController;
 use App\Http\Controllers\Sponsorship\GithubSponsorsWebhookController;
+use App\Http\Controllers\Sponsorship\ScanRequestController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\OperationalHealthController;
@@ -1121,6 +1122,8 @@ Route::get('/{indexNowKey}.txt', function (string $indexNowKey) {
 })->where('indexNowKey', '[A-Fa-f0-9]{8,128}')->name('indexnow.key');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/consultation/scan', [ScanRequestController::class, 'create'])->name('consultation.scan');
+    Route::post('/consultation/scan', [ScanRequestController::class, 'store'])->middleware('throttle:10,1');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

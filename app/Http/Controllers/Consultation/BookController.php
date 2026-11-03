@@ -66,6 +66,7 @@ class BookController extends Controller
                 ->values(),
             'sponsorsUrl' => config('sponsors.url'),
             'contactUrl' => route('contact'),
+            'scanUrl' => route('consultation.scan'),
             'contactEmail' => config('mail.owner.address'),
             'hasGithubIdentity' => $user !== null && ($user->provider_name === 'github'
                 || DB::table('social_identities')->where('user_id', $user->id)->where('provider', 'github')->exists()),
