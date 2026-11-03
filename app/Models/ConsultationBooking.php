@@ -13,8 +13,6 @@ class ConsultationBooking extends Model
 {
     public const STATUS_PENDING_APPROVAL = 'pending_approval';
 
-    public const STATUS_AWAITING_PAYMENT = 'awaiting_payment';
-
     public const STATUS_CONFIRMED = 'confirmed';
 
     public const STATUS_DECLINED = 'declined';
@@ -52,20 +50,6 @@ class ConsultationBooking extends Model
         'campaign_discount_cents',
         'amount_due_cents',
         'currency',
-        'stripe_checkout_session_id',
-        'stripe_checkout_idempotency_key',
-        'stripe_checkout_attempted_at',
-        'stripe_checkout_next_attempt_at',
-        'stripe_checkout_last_error',
-        'stripe_checkout_rejected_session_id',
-        'stripe_checkout_checked_at',
-        'stripe_payment_intent_id',
-        'stripe_paid_at',
-        'stripe_refund_id',
-        'stripe_refunded_at',
-        'stripe_refund_attempted_at',
-        'stripe_refund_idempotency_key',
-        'stripe_refund_last_error',
         'google_generation',
         'google_event_id',
         'google_meet_space_name',
@@ -94,12 +78,6 @@ class ConsultationBooking extends Model
         'ends_at' => 'datetime',
         'hold_expires_at' => 'datetime',
         'payment_due_at' => 'datetime',
-        'stripe_refunded_at' => 'datetime',
-        'stripe_refund_attempted_at' => 'datetime',
-        'stripe_checkout_attempted_at' => 'datetime',
-        'stripe_checkout_next_attempt_at' => 'datetime',
-        'stripe_paid_at' => 'datetime',
-        'stripe_checkout_checked_at' => 'datetime',
         'access_token_expires_at' => 'datetime',
         'reschedule_original_starts_at' => 'datetime',
         'reschedule_original_ends_at' => 'datetime',
@@ -155,11 +133,6 @@ class ConsultationBooking extends Model
         return $this->hasMany(ConsultationGoogleOperation::class);
     }
 
-    public function stripeCheckoutAttempts(): HasMany
-    {
-        return $this->hasMany(ConsultationStripeCheckoutAttempt::class);
-    }
-
     public function recordEvent(string $event, ?string $actor = null, ?array $meta = null): ConsultationBookingEvent
     {
         return DB::transaction(function () use ($event, $actor, $meta): ConsultationBookingEvent {
@@ -181,7 +154,6 @@ class ConsultationBooking extends Model
     {
         return in_array($this->status, [
             self::STATUS_PENDING_APPROVAL,
-            self::STATUS_AWAITING_PAYMENT,
             self::STATUS_RESCHEDULE_PROPOSED,
             self::STATUS_PAID_RESCHEDULE_PENDING_APPROVAL,
             self::STATUS_CANCEL_REQUESTED,
@@ -219,13 +191,6 @@ class ConsultationBooking extends Model
             'amount_due_cents' => $this->amount_due_cents,
             'hold_expires_at' => $this->hold_expires_at?->utc()->toIso8601String(),
             'payment_due_at' => $this->payment_due_at?->utc()->toIso8601String(),
-            'stripe_checkout_session_id' => $this->stripe_checkout_session_id,
-            'stripe_checkout_last_error' => $this->stripe_checkout_last_error,
-            'stripe_checkout_next_attempt_at' => $this->stripe_checkout_next_attempt_at?->utc()->toIso8601String(),
-            'stripe_checkout_rejected_session_id' => $this->stripe_checkout_rejected_session_id,
-            'stripe_paid_at' => $this->stripe_paid_at?->utc()->toIso8601String(),
-            'stripe_checkout_checked_at' => $this->stripe_checkout_checked_at?->utc()->toIso8601String(),
-            'stripe_refund_last_error' => $this->stripe_refund_last_error,
             'cancel_approval_started_at' => $this->cancel_approval_started_at?->utc()->toIso8601String(),
             'reschedule_original_payment_due_at' => $this->reschedule_original_payment_due_at?->utc()->toIso8601String(),
             'reschedule_original_access_token_expires_at' => $this->reschedule_original_access_token_expires_at?->utc()->toIso8601String(),
@@ -258,7 +223,6 @@ class ConsultationBooking extends Model
             'list_price_cents' => $this->list_price_cents,
             'campaign_discount_cents' => $this->campaign_discount_cents,
             'payment_due_at' => $this->payment_due_at?->utc()->toIso8601String(),
-            'payment_received' => $this->stripe_paid_at !== null || $this->status === self::STATUS_CONFIRMED,
             'meet_link' => $this->status === self::STATUS_CONFIRMED ? $this->meet_link : null,
             'proposed_slots' => $this->proposed_slots,
             'tier' => $this->tier?->toPublicArray(),

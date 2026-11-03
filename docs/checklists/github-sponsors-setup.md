@@ -21,6 +21,5 @@ Consultation payments run through GitHub Sponsors. Do these once, by hand. Code 
 - [ ] Put the secret and all tier vars on Railway `web` AND `scheduler`.
 
 ## After deploy
-- [ ] `php artisan consultations:retire-unpaid --dry-run`, check the list, then run it without `--dry-run`.
 - [ ] Send a test sponsorship, or redeliver a webhook from the dashboard.
 - [ ] Check `/admin/sponsorships` shows the credit.

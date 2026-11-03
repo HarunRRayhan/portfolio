@@ -1,7 +1,7 @@
 # Paid consultation operations
 
 The consultation flow uses the shared PostgreSQL database for booking state,
-Stripe checkout attempts, Google operation retries, and email notifications.
+Google operation retries, and email notifications.
 The web release runs migrations. The scheduler service runs the recurring
 commands from `routes/console.php`.
 
@@ -9,9 +9,6 @@ commands from `routes/console.php`.
 
 Set these variables in Railway for `web` and `scheduler`:
 
-- `STRIPE_KEY`
-- `STRIPE_SECRET`
-- `STRIPE_WEBHOOK_SECRET`
 - `CONSULTATION_GOOGLE_CLIENT_ID`
 - `CONSULTATION_GOOGLE_CLIENT_SECRET`
 - `CONSULTATION_GOOGLE_REDIRECT_URI=https://harun.dev/admin/consultations/google/callback`
@@ -25,8 +22,8 @@ Set these variables in Railway for `web` and `scheduler`:
 - `DB_QUEUE_RETRY_AFTER=180`
 - `RAILPACK_SKIP_MIGRATIONS=true` on both services
 
-`APP_KEY` must be identical on `web` and `scheduler`. Notification and checkout
-retry payloads are encrypted with it.
+`APP_KEY` must be identical on `web` and `scheduler`. Notification retry
+payloads are encrypted with it.
 
 ## Mail
 
@@ -52,24 +49,11 @@ Confirm a customer send in Resend: the recipient is the booker's address and
 `last_event` is `delivered`. The owner inbox is not a second copy of that
 message.
 
-## Stripe
+## Payments
 
-Create a webhook endpoint at:
-
-```text
-https://harun.dev/stripe/webhook
-```
-
-Subscribe to `checkout.session.completed` and
-`checkout.session.async_payment_succeeded`, and
-`checkout.session.async_payment_failed`. Copy the endpoint signing secret to
-`STRIPE_WEBHOOK_SECRET`. The webhook ledger is idempotent, and the scheduler
-also reconciles sessions that Stripe delivered while the app was unavailable.
-
-The refund-recovery backfill only marks paid `cancel_requested` bookings and
-legacy `cancelled` bookings that have a persisted `cancel_approved` event.
-Ordinary cancellation requests are deliberately left for an administrator to
-approve.
+Payments are GitHub Sponsors credits; see
+`docs/checklists/github-sponsors-setup.md`. The old Stripe tables stay in the
+database as history and are no longer read.
 
 ## Google Calendar
 
@@ -92,20 +76,10 @@ After deploy, run these commands against the production release if needed:
 
 ```bash
 php artisan migrate:status
-php artisan consultations:reconcile-stripe
 php artisan consultations:retry-google
 php artisan consultations:retry-notifications
-php artisan consultations:retry-refunds
-php artisan consultations:audit-refunds
-php artisan consultations:retry-stripe-webhooks
 php artisan consultations:expire
 ```
-
-To force one stored webhook through the handler again, run
-`php artisan consultations:replay-stripe-webhook EVENT_ID`.
-
-`consultations:audit-refunds` lists paid cancellations with a refund timestamp
-but no Stripe refund ID. Check those records in Stripe before retrying them.
 
 ## Launch promotion
 

@@ -5,7 +5,6 @@ namespace Tests\Feature\Admin;
 use App\Models\ConsultationBooking;
 use App\Models\ConsultationTier;
 use App\Models\User;
-use App\Services\Consultation\AvailabilityService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -69,26 +68,6 @@ class ConsultationBookingManagementTest extends TestCase
 
                     return $query['q'] === '100%_Match' && $query['status'] === 'confirmed' && $query['page'] === '2';
                 }));
-    }
-
-    public function test_cancellation_summary_matches_the_backend_refund_conditions(): void
-    {
-        $this->mock(AvailabilityService::class)->shouldReceive('availableSlots')->andReturn([]);
-        foreach ([
-            ['stripe_payment_intent_id' => null, 'stripe_refund_id' => null, 'expected' => 'not_needed'],
-            ['stripe_payment_intent_id' => 'pi_test_fixture', 'stripe_refund_id' => null, 'expected' => 'pending'],
-            ['stripe_payment_intent_id' => 'pi_test_fixture', 'stripe_refund_id' => 're_test_fixture', 'expected' => 'refunded'],
-        ] as $case) {
-            $expected = $case['expected'];
-            unset($case['expected']);
-            $booking = $this->booking($case + ['status' => 'cancel_requested', 'amount_due_cents' => 14900, 'currency' => 'usd']);
-            $this->get('/admin/consultations/bookings/'.$booking->id)->assertOk()
-                ->assertInertia(fn (Assert $page) => $page
-                    ->where('cancellation.refundStatus', $expected)
-                    ->where('cancellation.bookingAmountCents', 14900)
-                    ->where('cancellation.currency', 'usd')
-                    ->missing('cancellation.stripe_payment_intent_id'));
-        }
     }
 
     private function booking(array $attributes = []): ConsultationBooking

@@ -2,7 +2,6 @@
 
 namespace App\Services\Consultation;
 
-use App\Mail\Consultation\BookingAwaitingPaymentMail;
 use App\Mail\Consultation\BookingCancellationDeniedMail;
 use App\Mail\Consultation\BookingCancelledMail;
 use App\Mail\Consultation\BookingConfirmedMail;
@@ -12,7 +11,6 @@ use App\Mail\Consultation\BookingPendingAdminMail;
 use App\Mail\Consultation\BookingPendingClientMail;
 use App\Mail\Consultation\BookingRescheduleDeniedMail;
 use App\Mail\Consultation\BookingRescheduleProposedMail;
-use App\Mail\Consultation\StripeWebhookUnmatchedMail;
 use App\Models\ConsultationBooking;
 use App\Models\ConsultationNotification;
 use Illuminate\Support\Facades\Crypt;
@@ -25,8 +23,6 @@ class ConsultationNotificationService
     public const TYPE_PENDING_ADMIN = 'pending_admin';
 
     public const TYPE_PENDING_CLIENT = 'pending_client';
-
-    public const TYPE_AWAITING_PAYMENT = 'awaiting_payment';
 
     public const TYPE_DECLINED = 'declined';
 
@@ -41,8 +37,6 @@ class ConsultationNotificationService
     public const TYPE_CANCELLATION_DENIED = 'cancellation_denied';
 
     public const TYPE_EXPIRED = 'expired';
-
-    public const TYPE_STRIPE_WEBHOOK_UNMATCHED = 'stripe_webhook_unmatched';
 
     public function enqueue(
         ?ConsultationBooking $booking,
@@ -67,24 +61,6 @@ class ConsultationNotificationService
         return ConsultationNotification::query()
             ->where('deduplication_key', $deduplicationKey)
             ->firstOrFail();
-    }
-
-    public function supersedePaymentNotifications(int $bookingId): int
-    {
-        return ConsultationNotification::query()
-            ->where('consultation_booking_id', $bookingId)
-            ->where('mail_type', self::TYPE_AWAITING_PAYMENT)
-            ->whereIn('status', [
-                ConsultationNotification::STATUS_PENDING,
-                ConsultationNotification::STATUS_PROCESSING,
-                ConsultationNotification::STATUS_FAILED,
-            ])
-            ->update([
-                'status' => ConsultationNotification::STATUS_SUPERSEDED,
-                'last_error' => 'The Stripe checkout was superseded.',
-                'available_at' => null,
-                'updated_at' => now('UTC'),
-            ]);
     }
 
     public function deliverDueForBooking(int $bookingId): int
@@ -151,20 +127,6 @@ class ConsultationNotificationService
             : $notification;
 
         $claimed = DB::transaction(function () use ($notificationId): ?ConsultationNotification {
-            $initial = ConsultationNotification::query()->find($notificationId);
-
-            if (! $initial) {
-                return null;
-            }
-
-            $booking = null;
-            if ($initial->mail_type === self::TYPE_AWAITING_PAYMENT && $initial->consultation_booking_id) {
-                $booking = ConsultationBooking::query()
-                    ->with('tier')
-                    ->lockForUpdate()
-                    ->find($initial->consultation_booking_id);
-            }
-
             $current = ConsultationNotification::query()->lockForUpdate()->find($notificationId);
 
             if (
@@ -183,15 +145,6 @@ class ConsultationNotificationService
                 $current->status === ConsultationNotification::STATUS_PROCESSING
                 && $current->updated_at?->gt($now->copy()->subMinutes((int) config('consultation.notification_processing_timeout_minutes', 10)))
             ) {
-                return null;
-            }
-
-            if (
-                $current->mail_type === self::TYPE_AWAITING_PAYMENT
-                && ! $this->isCurrentPaymentNotification($current, $booking)
-            ) {
-                $this->markSuperseded($current);
-
                 return null;
             }
 
@@ -230,19 +183,6 @@ class ConsultationNotificationService
                 return false;
             }
 
-            if (
-                $current->mail_type === self::TYPE_AWAITING_PAYMENT
-                && ! $this->isCurrentPaymentNotification($current, $booking)
-            ) {
-                $current->forceFill([
-                    'status' => ConsultationNotification::STATUS_SUPERSEDED,
-                    'last_error' => 'The Stripe checkout was superseded.',
-                    'available_at' => null,
-                ])->save();
-
-                return false;
-            }
-
             // Keep the booking lock until the provider accepts the message.
             // Booking transitions use the same lock, so an invalidating state
             // change cannot commit while this mail is being sent.
@@ -274,41 +214,6 @@ class ConsultationNotificationService
         });
 
         return $sent;
-    }
-
-    protected function isCurrentPaymentNotification(
-        ConsultationNotification $notification,
-        ?ConsultationBooking $booking = null,
-    ): bool {
-        $booking ??= $notification->booking()->first();
-        $payload = $notification->payload ?? [];
-        $sessionId = $payload['stripe_checkout_session_id'] ?? null;
-        $idempotencyKey = $payload['stripe_checkout_idempotency_key'] ?? null;
-
-        return $booking !== null
-            && $booking->status === ConsultationBooking::STATUS_AWAITING_PAYMENT
-            && is_string($sessionId)
-            && $sessionId !== ''
-            && $booking->stripe_checkout_session_id === $sessionId
-            && (! is_string($idempotencyKey) || $booking->stripe_checkout_idempotency_key === $idempotencyKey);
-    }
-
-    protected function markSuperseded(ConsultationNotification $notification): void
-    {
-        ConsultationNotification::query()
-            ->whereKey($notification->id)
-            ->whereIn('status', [
-                ConsultationNotification::STATUS_PENDING,
-                ConsultationNotification::STATUS_PROCESSING,
-                ConsultationNotification::STATUS_FAILED,
-            ])
-            ->where('attempts', $notification->attempts)
-            ->update([
-                'status' => ConsultationNotification::STATUS_SUPERSEDED,
-                'last_error' => 'The Stripe checkout was superseded.',
-                'available_at' => null,
-                'updated_at' => now('UTC'),
-            ]);
     }
 
     protected function markFailed(ConsultationNotification $notification, \Throwable $exception): void
@@ -346,30 +251,6 @@ class ConsultationNotificationService
             ->find($notification->consultation_booking_id);
 
         if (! $booking) {
-            return;
-        }
-
-        if ($notification->mail_type === self::TYPE_AWAITING_PAYMENT) {
-            $sessionId = $payload['stripe_checkout_session_id'] ?? null;
-            $idempotencyKey = $payload['stripe_checkout_idempotency_key'] ?? null;
-
-            if (
-                ! is_string($sessionId)
-                || $sessionId === ''
-                || ! in_array($booking->status, [
-                    ConsultationBooking::STATUS_AWAITING_PAYMENT,
-                    ConsultationBooking::STATUS_CONFIRMED,
-                ], true)
-                || $booking->stripe_checkout_session_id !== $sessionId
-                || (is_string($idempotencyKey) && $booking->stripe_checkout_idempotency_key !== $idempotencyKey)
-            ) {
-                return;
-            }
-
-            $booking->access_token_hash = $tokenHash;
-            $booking->access_token_expires_at = $payload['activate_access_token_expires_at'] ?? $booking->access_token_expires_at;
-            $booking->save();
-
             return;
         }
 
@@ -470,11 +351,6 @@ class ConsultationNotificationService
         return match ($notification->mail_type) {
             self::TYPE_PENDING_ADMIN => new BookingPendingAdminMail($booking),
             self::TYPE_PENDING_CLIENT => new BookingPendingClientMail($booking, $payload['plain_token'] ?? null),
-            self::TYPE_AWAITING_PAYMENT => new BookingAwaitingPaymentMail(
-                $booking,
-                $payload['plain_token'] ?? null,
-                $payload['checkout_url'] ?? null,
-            ),
             self::TYPE_DECLINED => new BookingDeclinedMail($booking),
             self::TYPE_RESCHEDULE_DENIED => new BookingRescheduleDeniedMail($booking),
             self::TYPE_RESCHEDULE_PROPOSED => new BookingRescheduleProposedMail($booking, $payload['plain_token'] ?? null),
@@ -482,13 +358,6 @@ class ConsultationNotificationService
             self::TYPE_CANCELLED => new BookingCancelledMail($booking),
             self::TYPE_CANCELLATION_DENIED => new BookingCancellationDeniedMail($booking),
             self::TYPE_EXPIRED => new BookingExpiredMail($booking),
-            self::TYPE_STRIPE_WEBHOOK_UNMATCHED => new StripeWebhookUnmatchedMail(
-                (string) ($payload['event_id'] ?? ''),
-                (string) ($payload['event_type'] ?? ''),
-                (string) ($payload['reason'] ?? ''),
-                isset($payload['session_id']) ? (string) $payload['session_id'] : null,
-                isset($payload['booking_public_id']) ? (string) $payload['booking_public_id'] : null,
-            ),
             default => throw new \UnexpectedValueException('Unknown consultation notification type.'),
         };
     }

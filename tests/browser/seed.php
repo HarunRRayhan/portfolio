@@ -82,20 +82,14 @@ for ($i = 1; $i <= 26; $i++) {
         'access_token_hash' => hash('sha256', random_bytes(32)),
     ]);
 }
-foreach (['paid', 'unpaid', 'refunded'] as $payment) {
-    ConsultationBooking::create([
-        'consultation_tier_id' => $tier->id,
-        'client_name' => 'Browser '.$payment.' cancellation',
-        'client_email' => 'browser-'.$payment.'@example.test',
-        'starts_at' => now()->addDays(14),
-        'ends_at' => now()->addDays(14)->addMinutes(30),
-        'status' => 'cancel_requested',
-        'list_price_cents' => 24900,
-        'amount_due_cents' => 14900,
-        'stripe_payment_intent_id' => $payment === 'unpaid' ? null : 'pi_browser_fixture_only',
-        'stripe_paid_at' => $payment === 'unpaid' ? null : now(),
-        'stripe_refund_id' => $payment === 'refunded' ? 're_browser_fixture_only' : null,
-        'stripe_refunded_at' => $payment === 'refunded' ? now() : null,
-        'access_token_hash' => hash('sha256', random_bytes(32)),
-    ]);
-}
+ConsultationBooking::create([
+    'consultation_tier_id' => $tier->id,
+    'client_name' => 'Browser cancellation',
+    'client_email' => 'browser-cancellation@example.test',
+    'starts_at' => now()->addDays(14),
+    'ends_at' => now()->addDays(14)->addMinutes(30),
+    'status' => 'cancel_requested',
+    'list_price_cents' => 24900,
+    'amount_due_cents' => 14900,
+    'access_token_hash' => hash('sha256', random_bytes(32)),
+]);

@@ -7,7 +7,6 @@ use App\Models\ConsultationBooking;
 use App\Models\ConsultationCoupon;
 use App\Models\ConsultationCredit;
 use App\Models\ConsultationSetting;
-use App\Models\ConsultationStripeCheckoutAttempt;
 use App\Models\ConsultationTier;
 use App\Services\Sponsorship\SponsorCreditService;
 use Carbon\Carbon;
@@ -20,7 +19,6 @@ class BookingWorkflowService
     public function __construct(
         protected AvailabilityService $availability,
         protected GoogleCalendarService $google,
-        protected StripeCheckoutService $stripe,
         protected ConsultationNotificationService $notifications,
         protected ConsultationGoogleOperationService $googleOperations,
         protected ConsultationLaunchPromotionService $launchPromotion,
@@ -211,31 +209,11 @@ class BookingWorkflowService
                     throw new \InvalidArgumentException('Slot is no longer free.');
                 }
 
-                $alreadyPaid = $booking->amount_due_cents > 0 && $booking->confirmed_at !== null;
-
-                if ($booking->amount_due_cents > 0 && ! $alreadyPaid && ! $this->stripe->configured()) {
-                    throw new \InvalidArgumentException('Stripe payments are not configured yet.');
-                }
-
                 $booking->admin_note = $adminNote;
                 $booking->client_message = $clientMessage;
                 $booking->save();
 
-                if ($booking->amount_due_cents <= 0 || $alreadyPaid) {
-                    return [
-                        'booking' => $this->confirmBookingWithinTransaction($booking, 'admin'),
-                        'payment' => false,
-                    ];
-                }
-
-                $booking->status = ConsultationBooking::STATUS_AWAITING_PAYMENT;
-                $booking->save();
-                $booking->recordEvent('approved_awaiting_payment', 'admin');
-
-                return [
-                    'booking' => $booking->fresh(['tier', 'coupon']),
-                    'payment' => true,
-                ];
+                return $this->confirmBookingWithinTransaction($booking, 'admin');
             });
         } catch (\Throwable $e) {
             $this->recordGoogleFailure($booking, 'approve', [
@@ -246,93 +224,9 @@ class BookingWorkflowService
             throw $e;
         }
 
-        if (! $approval['payment']) {
-            $this->notifications->deliverDueForBooking($approval['booking']->id);
+        $this->notifications->deliverDueForBooking($approval->id);
 
-            return $approval['booking'];
-        }
-
-        // Keep the approval committed while Stripe is unavailable. The
-        // existing client token remains usable until checkout is created.
-        $plainToken = Str::random(48);
-        $checkoutBooking = $approval['booking']->fresh(['tier', 'coupon']);
-        $checkoutUrl = $this->stripe->createCheckoutUrl($checkoutBooking, $plainToken);
-
-        if (! $checkoutUrl) {
-            throw new \RuntimeException('Stripe checkout could not be created.');
-        }
-
-        $checkoutBooking = $checkoutBooking->fresh(['tier', 'coupon']);
-        $paymentToken = $this->checkoutAttemptToken($checkoutBooking);
-        if ($paymentToken === null && ! $checkoutBooking->stripe_checkout_session_id) {
-            // Keep mocked or legacy checkout integrations usable when no
-            // attempt row can record the token.
-            $paymentToken = $plainToken;
-        }
-        $checkoutSessionId = $checkoutBooking->stripe_checkout_session_id;
-        $checkoutIdempotencyKey = $checkoutBooking->stripe_checkout_idempotency_key;
-
-        $result = DB::transaction(function () use (
-            $approval,
-            $paymentToken,
-            $checkoutUrl,
-            $checkoutSessionId,
-            $checkoutIdempotencyKey,
-        ) {
-            $booking = ConsultationBooking::query()
-                ->with(['tier', 'coupon'])
-                ->lockForUpdate()
-                ->findOrFail($approval['booking']->id);
-
-            if ($booking->status === ConsultationBooking::STATUS_CONFIRMED) {
-                return [
-                    'booking' => $booking,
-                    'send_payment_mail' => false,
-                ];
-            }
-
-            if ($booking->status !== ConsultationBooking::STATUS_AWAITING_PAYMENT) {
-                throw new \RuntimeException('Booking is no longer awaiting payment.');
-            }
-
-            if (
-                $booking->stripe_checkout_session_id !== $checkoutSessionId
-                || $booking->stripe_checkout_idempotency_key !== $checkoutIdempotencyKey
-            ) {
-                return [
-                    'booking' => $booking,
-                    'send_payment_mail' => false,
-                ];
-            }
-
-            $notificationPayload = [
-                'plain_token' => $paymentToken,
-                'checkout_url' => $checkoutUrl,
-            ];
-            if ($paymentToken !== null) {
-                $notificationPayload['activate_access_token_hash'] = hash('sha256', $paymentToken);
-                $notificationPayload['activate_access_token_expires_at'] = $this->accessTokenExpiresAt($booking)?->toIso8601String();
-            }
-            $notificationPayload['stripe_checkout_session_id'] = $booking->stripe_checkout_session_id;
-            $notificationPayload['stripe_checkout_idempotency_key'] = $booking->stripe_checkout_idempotency_key;
-
-            $this->notifications->enqueue(
-                $booking,
-                $booking->client_email,
-                ConsultationNotificationService::TYPE_AWAITING_PAYMENT,
-                $notificationPayload,
-                'consultation-booking-'.$booking->id.'-awaiting-payment-'.$booking->stripe_checkout_session_id,
-            );
-
-            return [
-                'booking' => $booking->fresh(['tier', 'coupon']),
-                'send_payment_mail' => true,
-            ];
-        });
-
-        $this->notifications->deliverDueForBooking($result['booking']->id);
-
-        return $result['booking'];
+        return $approval;
     }
 
     public function decline(ConsultationBooking $booking, bool $blockSlot = false, ?string $taskTitle = null, ?string $adminNote = null, ?string $clientMessage = null): ConsultationBooking
@@ -672,14 +566,11 @@ class BookingWorkflowService
             ->findOrFail($booking->id);
 
         if ($booking->status === ConsultationBooking::STATUS_CONFIRMED) {
-            $this->notifications->supersedePaymentNotifications($booking->id);
-
             return $booking;
         }
 
         if (! in_array($booking->status, [
             ConsultationBooking::STATUS_PENDING_APPROVAL,
-            ConsultationBooking::STATUS_AWAITING_PAYMENT,
             ConsultationBooking::STATUS_PAID_RESCHEDULE_PENDING_APPROVAL,
         ], true)) {
             throw new \InvalidArgumentException('Booking cannot be confirmed from its current status.');
@@ -687,20 +578,7 @@ class BookingWorkflowService
 
         $wasPreviouslyConfirmed = $booking->confirmed_at !== null;
 
-        if (
-            $booking->status === ConsultationBooking::STATUS_AWAITING_PAYMENT
-            && ! $booking->stripe_paid_at
-            && $booking->payment_due_at
-            && $booking->payment_due_at->isPast()
-        ) {
-            throw new \InvalidArgumentException('The payment deadline for this booking has passed.');
-        }
-
-        if (
-            $booking->amount_due_cents > 0
-            && ! $wasPreviouslyConfirmed
-            && ! $booking->stripe_paid_at
-        ) {
+        if ($booking->amount_due_cents > 0 && ! $wasPreviouslyConfirmed) {
             throw new \InvalidArgumentException('Payment is required before confirming this booking.');
         }
 
@@ -775,7 +653,6 @@ class BookingWorkflowService
         $booking->google_meet_space_name = null;
         $booking->access_token_expires_at = $this->accessTokenExpiresAt($booking);
         $booking->save();
-        $this->notifications->supersedePaymentNotifications($booking->id);
         $this->googleOperations->supersedeMeetRecordingForBooking($booking);
 
         if ($googleConnected && ! $booking->meet_link) {
@@ -1039,163 +916,6 @@ class BookingWorkflowService
         return $this->expireBooking($booking);
     }
 
-    public function markPaidFromStripe(
-        ConsultationBooking $booking,
-        string $sessionId,
-        ?string $paymentIntentId,
-        ?Carbon $paidAt = null,
-    ): ConsultationBooking {
-        $booking = DB::transaction(function () use ($booking, $sessionId, $paymentIntentId, $paidAt): ConsultationBooking {
-            $booking = ConsultationBooking::query()
-                ->with('tier')
-                ->lockForUpdate()
-                ->findOrFail($booking->id);
-
-            if (
-                $booking->stripe_checkout_rejected_session_id === $sessionId
-                || ConsultationStripeCheckoutAttempt::query()
-                    ->where('consultation_booking_id', $booking->id)
-                    ->where('stripe_checkout_session_id', $sessionId)
-                    ->where('status', ConsultationStripeCheckoutAttempt::STATUS_SUPERSEDED)
-                    ->exists()
-            ) {
-                throw new \InvalidArgumentException('Stripe checkout session was already rejected.');
-            }
-
-            if ($booking->confirmed_at !== null) {
-                if ($booking->amount_due_cents > 0 && $booking->stripe_checkout_session_id !== $sessionId) {
-                    throw new \InvalidArgumentException('Stripe session does not belong to this booking.');
-                }
-
-                if ($paymentIntentId && $booking->stripe_payment_intent_id && $booking->stripe_payment_intent_id !== $paymentIntentId) {
-                    throw new \InvalidArgumentException('Stripe payment does not belong to this booking.');
-                }
-
-                return $booking;
-            }
-
-            $expiredRecovery = $booking->status === ConsultationBooking::STATUS_EXPIRED;
-            if (! $expiredRecovery && $booking->status !== ConsultationBooking::STATUS_AWAITING_PAYMENT) {
-                throw new \InvalidArgumentException('Booking is not awaiting payment.');
-            }
-
-            $paymentTimestamp = $paidAt?->copy()->utc();
-            if (
-                $expiredRecovery
-                && (! $paymentTimestamp
-                    || ! $booking->payment_due_at
-                    || $paymentTimestamp->isAfter($booking->payment_due_at))
-            ) {
-                throw new \InvalidArgumentException('The payment deadline for this booking has passed.');
-            }
-
-            if (
-                ! $expiredRecovery
-                && ! $booking->stripe_paid_at
-                && $booking->payment_due_at
-                && (($paymentTimestamp && $paymentTimestamp->isAfter($booking->payment_due_at))
-                    || (! $paymentTimestamp && $booking->payment_due_at->isPast()))
-            ) {
-                throw new \InvalidArgumentException('The payment deadline for this booking has passed.');
-            }
-
-            if ($booking->amount_due_cents > 0 && (! is_string($paymentIntentId) || $paymentIntentId === '')) {
-                throw new \InvalidArgumentException('Stripe payment intent was missing.');
-            }
-
-            if ($booking->stripe_checkout_session_id && $booking->stripe_checkout_session_id !== $sessionId) {
-                throw new \InvalidArgumentException('Stripe session does not belong to this booking.');
-            }
-
-            if ($booking->stripe_payment_intent_id && $paymentIntentId && $booking->stripe_payment_intent_id !== $paymentIntentId) {
-                throw new \InvalidArgumentException('Stripe payment does not belong to this booking.');
-            }
-
-            if ($expiredRecovery) {
-                $booking->status = ConsultationBooking::STATUS_AWAITING_PAYMENT;
-                $booking->hold_expires_at = null;
-            }
-
-            $booking->stripe_checkout_session_id = $sessionId;
-            $booking->stripe_payment_intent_id = $paymentIntentId ?: $booking->stripe_payment_intent_id;
-            $booking->stripe_paid_at ??= $paymentTimestamp ?: now('UTC');
-            $booking->save();
-            $this->notifications->supersedePaymentNotifications($booking->id);
-
-            return $booking->fresh(['tier']);
-        });
-
-        return $this->confirmBooking($booking, 'stripe');
-    }
-
-    public function resetFailedStripePayment(
-        ConsultationBooking $booking,
-        string $sessionId,
-        ?string $paymentIntentId,
-        string $reason,
-    ): bool {
-        return $this->stripe->resetFailedCheckout($booking, $sessionId, $paymentIntentId, $reason);
-    }
-
-    public function resetRejectedStripePayment(
-        ConsultationBooking $booking,
-        string $sessionId,
-        ?string $paymentIntentId,
-        string $reason,
-    ): bool {
-        return DB::transaction(function () use ($booking, $sessionId, $paymentIntentId, $reason): bool {
-            $current = ConsultationBooking::query()->lockForUpdate()->findOrFail($booking->id);
-            $sessionMatches = $current->stripe_checkout_session_id === $sessionId;
-            $paymentMatches = $paymentIntentId === null
-                || $current->stripe_payment_intent_id === null
-                || $current->stripe_payment_intent_id === $paymentIntentId;
-            $previousIdempotencyKey = $current->stripe_checkout_idempotency_key;
-
-            $current->stripe_checkout_rejected_session_id = $sessionId;
-            $current->stripe_checkout_checked_at = now('UTC');
-
-            if ($sessionMatches && $paymentMatches && $current->status === ConsultationBooking::STATUS_AWAITING_PAYMENT) {
-                $current->stripe_checkout_session_id = null;
-                $current->stripe_payment_intent_id = null;
-                $current->stripe_paid_at = null;
-                $current->stripe_checkout_idempotency_key = 'consultation-checkout-retry-'.substr(
-                    hash('sha256', $current->id.'-'.$sessionId),
-                    0,
-                    48,
-                );
-                $current->stripe_checkout_last_error = mb_substr($reason, 0, 2000);
-                $current->stripe_checkout_next_attempt_at = null;
-                $this->notifications->supersedePaymentNotifications($current->id);
-            }
-
-            $current->save();
-
-            ConsultationStripeCheckoutAttempt::query()
-                ->where('consultation_booking_id', $current->id)
-                ->where(function ($query) use ($sessionId, $sessionMatches, $previousIdempotencyKey) {
-                    $query->where('stripe_checkout_session_id', $sessionId);
-                    if ($sessionMatches && $previousIdempotencyKey) {
-                        $query->orWhere('idempotency_key', $previousIdempotencyKey);
-                    }
-                })
-                ->whereIn('status', [
-                    ConsultationStripeCheckoutAttempt::STATUS_PENDING,
-                    ConsultationStripeCheckoutAttempt::STATUS_PROCESSING,
-                    ConsultationStripeCheckoutAttempt::STATUS_CREATED,
-                    ConsultationStripeCheckoutAttempt::STATUS_FAILED,
-                ])
-                ->update([
-                    'status' => ConsultationStripeCheckoutAttempt::STATUS_SUPERSEDED,
-                    'last_error' => mb_substr($reason, 0, 2000),
-                    'next_attempt_at' => null,
-                    'completed_at' => now('UTC'),
-                    'updated_at' => now('UTC'),
-                ]);
-
-            return $sessionMatches && $paymentMatches;
-        });
-    }
-
     public function requestCancel(ConsultationBooking $booking): ConsultationBooking
     {
         $booking = DB::transaction(function () use ($booking) {
@@ -1300,48 +1020,10 @@ class BookingWorkflowService
                 }
 
                 $booking->cancel_approval_started_at ??= now('UTC');
-                if ($booking->stripe_payment_intent_id && ! $booking->stripe_refund_id) {
-                    $booking->stripe_refund_attempted_at ??= now('UTC');
-                    $booking->stripe_refund_idempotency_key ??= 'consultation-booking-'.$booking->id.'-refund';
-                }
                 $booking->save();
 
                 return $booking->fresh(['tier']);
             });
-
-            if ($booking->stripe_payment_intent_id && ! $booking->stripe_refund_id) {
-                try {
-                    $refundId = $this->stripe->refundBooking($booking);
-                } catch (\Throwable $e) {
-                    $this->recordRefundFailure($booking, $e);
-
-                    throw $e;
-                }
-
-                if (! $refundId) {
-                    $exception = new \RuntimeException('Stripe refund could not be created.');
-                    $this->recordRefundFailure($booking, $exception);
-
-                    throw $exception;
-                }
-
-                $booking = DB::transaction(function () use ($booking, $refundId) {
-                    $booking = ConsultationBooking::query()
-                        ->lockForUpdate()
-                        ->findOrFail($booking->id);
-
-                    if ($booking->status !== ConsultationBooking::STATUS_CANCEL_REQUESTED) {
-                        throw new \InvalidArgumentException('No cancel request pending.');
-                    }
-
-                    $booking->stripe_refund_id ??= $refundId;
-                    $booking->stripe_refunded_at ??= now('UTC');
-                    $booking->stripe_refund_last_error = null;
-                    $booking->save();
-
-                    return $booking->fresh(['tier']);
-                });
-            }
 
             $deleted = $this->google->deleteEvent($booking->google_event_id);
             if (! $deleted) {
@@ -1355,10 +1037,6 @@ class BookingWorkflowService
 
                 if ($booking->status !== ConsultationBooking::STATUS_CANCEL_REQUESTED) {
                     throw new \InvalidArgumentException('No cancel request pending.');
-                }
-
-                if ($booking->stripe_payment_intent_id && ! $booking->stripe_refund_id) {
-                    throw new \RuntimeException('Cancellation refund is not complete.');
                 }
 
                 $booking->status = ConsultationBooking::STATUS_CANCELLED;
@@ -1392,117 +1070,6 @@ class BookingWorkflowService
         }
     }
 
-    public function retryPendingRefunds(int $limit = 50): int
-    {
-        $bookings = ConsultationBooking::query()
-            ->where(function ($query) {
-                $query->where('status', ConsultationBooking::STATUS_CANCEL_REQUESTED)
-                    ->orWhere(function ($query) {
-                        $query->where('status', ConsultationBooking::STATUS_CANCELLED)
-                            ->whereNotNull('stripe_refund_attempted_at')
-                            ->whereNull('stripe_refund_id');
-                    });
-            })
-            ->whereNotNull('stripe_payment_intent_id')
-            ->where(function ($query) {
-                $query->whereNotNull('stripe_refund_attempted_at')
-                    ->orWhereNotNull('stripe_refund_id')
-                    ->orWhereNotNull('stripe_refund_last_error');
-            })
-            ->orderBy('id')
-            ->limit($limit)
-            ->get();
-
-        $recovered = 0;
-
-        foreach ($bookings as $booking) {
-            $refundCompleted = false;
-            $refundNeeded = false;
-
-            try {
-                $current = DB::transaction(function () use ($booking): ?ConsultationBooking {
-                    $current = ConsultationBooking::query()->lockForUpdate()->find($booking->id);
-
-                    if (! $current || ! in_array($current->status, [
-                        ConsultationBooking::STATUS_CANCEL_REQUESTED,
-                        ConsultationBooking::STATUS_CANCELLED,
-                    ], true)) {
-                        return null;
-                    }
-
-                    if (! $current->stripe_refund_id) {
-                        $current->stripe_refund_attempted_at ??= now('UTC');
-                        $current->stripe_refund_idempotency_key ??= 'consultation-booking-'.$current->id.'-refund';
-                        $current->save();
-                    }
-
-                    return $current->fresh(['tier']);
-                });
-
-                if (! $current) {
-                    continue;
-                }
-
-                $refundNeeded = ! $current->stripe_refund_id;
-                if ($refundNeeded) {
-                    try {
-                        $refundId = $this->stripe->refundBooking($current);
-                    } catch (\Throwable $e) {
-                        $this->recordRefundFailure($current, $e);
-
-                        continue;
-                    }
-
-                    if (! $refundId) {
-                        $exception = new \RuntimeException('Stripe refund could not be created.');
-                        $this->recordRefundFailure($current, $exception);
-
-                        continue;
-                    }
-
-                    DB::transaction(function () use ($current, $refundId): void {
-                        $locked = ConsultationBooking::query()->lockForUpdate()->findOrFail($current->id);
-
-                        if (! in_array($locked->status, [
-                            ConsultationBooking::STATUS_CANCEL_REQUESTED,
-                            ConsultationBooking::STATUS_CANCELLED,
-                        ], true)) {
-                            return;
-                        }
-
-                        $locked->stripe_refund_id ??= $refundId;
-                        $locked->stripe_refunded_at ??= now('UTC');
-                        $locked->stripe_refund_last_error = null;
-                        $locked->save();
-                    });
-
-                    $refundCompleted = true;
-                    $recovered++;
-                    $current = $current->fresh(['tier']);
-                }
-
-                if ($current->status === ConsultationBooking::STATUS_CANCELLED) {
-                    continue;
-                }
-
-                // A refund may have succeeded before the prior cancellation
-                // attempt failed while releasing Google Calendar.
-                $this->approveCancel($current);
-            } catch (\Throwable $e) {
-                if ($refundNeeded && ! $refundCompleted) {
-                    $this->recordRefundFailure($booking, $e);
-                }
-
-                Log::warning('Pending consultation cancellation could not be completed', [
-                    'booking' => $booking->public_id,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
-
-        return $recovered;
-    }
-
     public function denyCancel(ConsultationBooking $booking): ConsultationBooking
     {
         $booking = DB::transaction(function () use ($booking) {
@@ -1512,10 +1079,6 @@ class BookingWorkflowService
 
             if ($booking->status !== ConsultationBooking::STATUS_CANCEL_REQUESTED) {
                 throw new \InvalidArgumentException('No cancel request pending.');
-            }
-
-            if ($booking->stripe_refund_attempted_at || $booking->stripe_refund_id || $booking->stripe_refunded_at) {
-                throw new \InvalidArgumentException('Cancellation refund has started and cannot be denied.');
             }
 
             if ($booking->cancel_approval_started_at) {
@@ -1601,58 +1164,12 @@ class BookingWorkflowService
         return $count;
     }
 
-    public function expireUnpaidPastDeadline(): int
+    protected function expireBooking(ConsultationBooking $booking): bool
     {
-        $count = 0;
-        $bookings = ConsultationBooking::query()
-            ->where('status', ConsultationBooking::STATUS_AWAITING_PAYMENT)
-            ->whereNull('stripe_paid_at')
-            ->whereNotNull('payment_due_at')
-            ->where('payment_due_at', '<', now('UTC'))
-            ->get();
-
-        foreach ($bookings as $booking) {
-            try {
-                if ($this->expireBooking($booking)) {
-                    $count++;
-                }
-            } catch (\Throwable $e) {
-                $this->recordGoogleFailure($booking, 'expire', [], $e);
-                Log::error('Consultation unpaid booking expiration failed', [
-                    'booking' => $booking->public_id,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
-
-        return $count;
-    }
-
-    /** One-off: expire a legacy unpaid Stripe booking now. No expired notification; the caller sends its own note. */
-    public function retireUnpaid(ConsultationBooking $booking): bool
-    {
-        return $this->expireBooking($booking, true);
-    }
-
-    protected function expireBooking(ConsultationBooking $booking, bool $retire = false): bool
-    {
-        $result = DB::transaction(function () use ($booking, $retire) {
+        $result = DB::transaction(function () use ($booking) {
             $booking = ConsultationBooking::query()
                 ->lockForUpdate()
                 ->findOrFail($booking->id);
-
-            // The retire list was built before the lock: re-check the booking is still unpaid.
-            if ($retire && (
-                ! in_array($booking->status, [
-                    ConsultationBooking::STATUS_PENDING_APPROVAL,
-                    ConsultationBooking::STATUS_AWAITING_PAYMENT,
-                    ConsultationBooking::STATUS_RESCHEDULE_PROPOSED,
-                ], true)
-                || $booking->stripe_paid_at || $booking->confirmed_at || $booking->amount_due_cents <= 0
-                || ConsultationCredit::query()->where('used_by_booking_id', $booking->id)->exists()
-            )) {
-                return null;
-            }
 
             $expiresAt = in_array($booking->status, [
                 ConsultationBooking::STATUS_PENDING_APPROVAL,
@@ -1660,20 +1177,13 @@ class BookingWorkflowService
                 ConsultationBooking::STATUS_PAID_RESCHEDULE_PENDING_APPROVAL,
             ], true)
                 ? $booking->hold_expires_at
-                : ($booking->status === ConsultationBooking::STATUS_AWAITING_PAYMENT ? $booking->payment_due_at : null);
+                : null;
 
-            if (! $retire && (! $expiresAt || ! $expiresAt->isPast())) {
+            if (! $expiresAt || ! $expiresAt->isPast()) {
                 return null;
             }
 
-            if (
-                $booking->status === ConsultationBooking::STATUS_AWAITING_PAYMENT
-                && $booking->stripe_paid_at
-            ) {
-                return null;
-            }
-
-            $isPaidReschedule = ! $retire && $booking->confirmed_at !== null && in_array($booking->status, [
+            $isPaidReschedule = $booking->confirmed_at !== null && in_array($booking->status, [
                 ConsultationBooking::STATUS_RESCHEDULE_PROPOSED,
                 ConsultationBooking::STATUS_PAID_RESCHEDULE_PENDING_APPROVAL,
             ], true);
@@ -1723,16 +1233,14 @@ class BookingWorkflowService
             $booking->google_event_id = null;
             $booking->hold_expires_at = null;
             $booking->save();
-            $expiryEvent = $booking->recordEvent($retire ? 'retired' : 'expired', 'system');
-            if (! $retire) {
-                $this->notifications->enqueue(
-                    $booking,
-                    $booking->client_email,
-                    ConsultationNotificationService::TYPE_EXPIRED,
-                    [],
-                    'consultation-booking-'.$booking->id.'-event-'.$expiryEvent->id.'-expired',
-                );
-            }
+            $expiryEvent = $booking->recordEvent('expired', 'system');
+            $this->notifications->enqueue(
+                $booking,
+                $booking->client_email,
+                ConsultationNotificationService::TYPE_EXPIRED,
+                [],
+                'consultation-booking-'.$booking->id.'-event-'.$expiryEvent->id.'-expired',
+            );
 
             return [
                 'booking' => $booking->fresh(['tier']),
@@ -1825,37 +1333,6 @@ class BookingWorkflowService
                 'error' => $recordingException->getMessage(),
             ]);
         }
-    }
-
-    protected function recordRefundFailure(ConsultationBooking $booking, \Throwable $exception): void
-    {
-        ConsultationBooking::query()
-            ->whereKey($booking->id)
-            ->whereIn('status', [
-                ConsultationBooking::STATUS_CANCEL_REQUESTED,
-                ConsultationBooking::STATUS_CANCELLED,
-            ])
-            ->whereNull('stripe_refund_id')
-            ->update([
-                'stripe_refund_last_error' => mb_substr($exception->getMessage(), 0, 2000),
-                'updated_at' => now('UTC'),
-            ]);
-    }
-
-    protected function checkoutAttemptToken(ConsultationBooking $booking): ?string
-    {
-        if (! $booking->stripe_checkout_idempotency_key) {
-            return null;
-        }
-
-        $attempt = $booking->stripeCheckoutAttempts()
-            ->where('idempotency_key', $booking->stripe_checkout_idempotency_key)
-            ->latest('id')
-            ->first();
-
-        return $attempt && filled($attempt->access_token)
-            ? (string) $attempt->access_token
-            : null;
     }
 
     protected function isGoogleFailure(\Throwable $exception): bool

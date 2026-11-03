@@ -64,7 +64,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'blog/*/view',
             'bio/click',
-            'stripe/webhook',
             'github/sponsors/webhook',
         ]);
     })

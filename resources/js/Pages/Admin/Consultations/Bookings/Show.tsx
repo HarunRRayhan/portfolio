@@ -57,7 +57,7 @@ export default function Show({
   events: { id: number; event: string; actor: string | null; created_at: string }[]
   slots: Slot[]
   googleConnected: boolean
-  cancellation: { refundStatus: 'pending' | 'refunded' | 'not_needed'; bookingAmountCents: number; currency: string }
+  cancellation: { bookingAmountCents: number; currency: string }
 }) {
   const [blockSlot, setBlockSlot] = useState(false)
   const [taskTitle, setTaskTitle] = useState('')
@@ -127,11 +127,6 @@ export default function Show({
             <p>{booking.client_name} · {booking.public_id}</p>
             <p><time dateTime={booking.starts_at}>{formatLocal(booking.starts_at)}</time></p>
             <p>Booking total: {bookingAmount}</p>
-            {cancellation.refundStatus === 'pending'
-              ? <p>This will request a full payment refund to the original payment method. Stripe determines the remaining refundable amount.</p>
-              : cancellation.refundStatus === 'refunded'
-                ? <p>This payment has already been refunded. No new refund will be requested.</p>
-                : <p>No payment refund is needed for this booking.</p>}
             <p>The consultation will be cancelled and its calendar time released.</p>
           </DialogDescription>
           <div className="flex flex-wrap justify-end gap-2">

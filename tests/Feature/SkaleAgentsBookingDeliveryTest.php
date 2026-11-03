@@ -114,30 +114,6 @@ class SkaleAgentsBookingDeliveryTest extends TestCase
         Http::assertSentCount(1);
     }
 
-    public function test_payment_fields_come_only_from_stripe_timestamps(): void
-    {
-        config()->set('consultation.skaleagents_handoff_enabled', true);
-        $booking = $this->linkedBooking();
-        $booking->status = ConsultationBooking::STATUS_CONFIRMED;
-        $booking->save();
-        $booking->recordEvent('confirmed', 'system');
-        $first = json_decode(DB::table('skaleagents_booking_deliveries')->orderBy('id')->value('payload'), true);
-        $this->assertNull($first['paidAt']);
-
-        $booking->stripe_paid_at = now('UTC');
-        $booking->save();
-        $booking->recordEvent('confirmed', 'system');
-        $second = json_decode(DB::table('skaleagents_booking_deliveries')->orderByDesc('id')->value('payload'), true);
-        $this->assertNotNull($second['paidAt']);
-        $this->assertNull($second['refundedAt']);
-
-        $booking->stripe_refunded_at = now('UTC');
-        $booking->save();
-        $booking->recordEvent('cancel_approved', 'admin');
-        $third = json_decode(DB::table('skaleagents_booking_deliveries')->orderByDesc('id')->value('payload'), true);
-        $this->assertNotNull($third['refundedAt']);
-    }
-
     public function test_a_later_event_waits_for_an_earlier_failed_delivery(): void
     {
         config()->set('consultation.skaleagents_handoff_enabled', true);
@@ -145,9 +121,9 @@ class SkaleAgentsBookingDeliveryTest extends TestCase
         config()->set('consultation.skaleagents_events_secret', 'test-handoff-secret');
         $booking = $this->linkedBooking();
         $booking->recordEvent('requested', 'client');
-        $booking->status = ConsultationBooking::STATUS_AWAITING_PAYMENT;
+        $booking->status = ConsultationBooking::STATUS_CONFIRMED;
         $booking->save();
-        $booking->recordEvent('approved_awaiting_payment', 'admin');
+        $booking->recordEvent('confirmed', 'admin');
         Http::fake(['*' => Http::response(['error' => 'Unavailable'], 503)]);
 
         $this->assertSame(0, app(SkaleAgentsBookingDelivery::class)->sendDue());

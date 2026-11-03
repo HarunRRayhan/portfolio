@@ -4,8 +4,6 @@
 
 - Check `/Users/rayhan/Code/harundev/.secrets` before work involving credentials, integrations, or deployment.
 - Read secrets only into environment variables. Never print, paste, or commit secret values.
-- Use `.secrets/stripe.env` only for isolated Stripe test-mode checks. Use `.secrets/stripe-live.env` for production configuration.
-- Never run a live Stripe payment test or use test cards against `https://harun.dev`.
 - Production services are `web`, `scheduler`, and shared PostgreSQL. Run migrations through `railway.web.json`'s `preDeployCommand`.
 - Railway operations use `RAILWAY_PROJECT_TOKEN` and `RAILWAY_PROJECT_ID` from `.secrets/railway.env`; do not request account login when the project token is available.
 - Authenticate Railway GraphQL requests with a project token using the `Project-Access-Token` header. `Authorization: Bearer` is for account or workspace tokens.

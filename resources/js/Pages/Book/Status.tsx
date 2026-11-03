@@ -21,7 +21,6 @@ type Booking = {
   amount_due_cents: number
   discount_percent: number
   campaign_discount_cents: number
-  payment_received?: boolean
   meet_link: string | null
   proposed_slots: { start: string; end: string }[] | null
   tier: Tier | null
@@ -40,7 +39,6 @@ function formatLocal(iso: string): string {
 
 const statusLabel: Record<string, string> = {
   pending_approval: 'Pending approval',
-  awaiting_payment: 'Awaiting payment',
   confirmed: 'Confirmed',
   declined: 'Declined',
   reschedule_proposed: 'Pick a new time',
@@ -51,15 +49,7 @@ const statusLabel: Record<string, string> = {
   cancelled: 'Cancelled',
 }
 
-export default function Status({
-  booking,
-  flashPaid,
-  flashCancelledCheckout,
-}: {
-  booking: Booking
-  flashPaid?: boolean
-  flashCancelledCheckout?: boolean
-}) {
+export default function Status({ booking }: { booking: Booking }) {
   const [note, setNote] = useState('')
   const page = usePage()
   const flash = (page.props.flash ?? null) as { type?: string; message?: string } | null
@@ -91,9 +81,7 @@ export default function Status({
           <p className="mt-2 text-slate-500 dark:text-slate-400">
             Status:{' '}
             <span className="font-medium text-slate-800 dark:text-slate-100">
-              {booking.status === 'awaiting_payment' && booking.payment_received
-                ? 'Payment received, confirming'
-                : statusLabel[booking.status] ?? booking.status}
+              {statusLabel[booking.status] ?? booking.status}
             </span>
           </p>
         </div>
@@ -101,11 +89,9 @@ export default function Status({
 
       <section className="bg-white dark:bg-slate-900 py-10">
         <div className="container mx-auto max-w-xl space-y-6">
-          {(flash?.message || flashPaid || flashCancelledCheckout) && (
+          {flash?.message && (
             <div className="border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-4 py-3 text-sm text-slate-700 dark:text-slate-200">
-              {flashPaid && 'Payment received. Confirmation may take a moment.'}
-              {flashCancelledCheckout && 'Checkout cancelled. You can try again when ready.'}
-              {flash?.message}
+              {flash.message}
             </div>
           )}
 
@@ -156,13 +142,6 @@ export default function Status({
             <p className="text-sm text-slate-600 dark:text-slate-300">
               Waiting for my approval. I’ll check my calendar and confirm within 48 hours. If I can’t make it, your credit
               comes back.
-            </p>
-          )}
-
-          {booking.status === 'awaiting_payment' && !booking.payment_received && (
-            <p className="text-sm text-slate-600 dark:text-slate-300">
-              Online payment is closed for this booking. <a href="/contact" className="underline">Send me a note</a> and
-              I’ll sort it out.
             </p>
           )}
 

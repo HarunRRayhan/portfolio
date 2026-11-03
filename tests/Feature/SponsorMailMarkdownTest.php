@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Mail\Sponsorship\BookingRetiredMail;
 use App\Mail\Sponsorship\CreditExpiringMail;
 use App\Mail\Sponsorship\ScanRequestedMail;
 use App\Mail\Sponsorship\SponsorCreditsReadyMail;
@@ -17,7 +16,6 @@ class SponsorMailMarkdownTest extends TestCase
         $mails = [
             new SponsorCreditsReadyMail(self::EVIL, now()->addDays(30)),
             new CreditExpiringMail(self::EVIL, now()->addDays(3)),
-            new BookingRetiredMail(self::EVIL),
             new ScanRequestedMail(self::EVIL, 'a@example.test', 'https://github.com/a/b', "hi\n```\n".self::EVIL."\n```"),
         ];
 

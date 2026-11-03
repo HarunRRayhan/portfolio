@@ -49,9 +49,6 @@ class BookingController extends Controller
         return Inertia::render('Admin/Consultations/Bookings/Show', [
             'booking' => $booking->toAdminArray(),
             'cancellation' => [
-                // Mirrors approveCancel: an existing refund is reused; only a
-                // payment intent without a refund starts a full-payment refund.
-                'refundStatus' => $booking->stripe_refund_id ? 'refunded' : ($booking->stripe_payment_intent_id ? 'pending' : 'not_needed'),
                 'bookingAmountCents' => (int) $booking->amount_due_cents,
                 'currency' => $booking->currency,
             ],
