@@ -25,8 +25,6 @@ class SkaleAgentsBookingDelivery
             'currency' => strtoupper($booking->currency),
             'startsAt' => $booking->starts_at->copy()->utc()->toIso8601String(),
             'endsAt' => $booking->ends_at->copy()->utc()->toIso8601String(),
-            'paidAt' => $booking->stripe_paid_at?->copy()->utc()->toIso8601String(),
-            'refundedAt' => $booking->stripe_refunded_at?->copy()->utc()->toIso8601String(),
         ];
 
         DB::table('skaleagents_booking_deliveries')->insertOrIgnore([

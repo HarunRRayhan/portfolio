@@ -185,11 +185,6 @@ class ConsultationGoogleOperationService
                     $clientPickGeneration,
                     $claimed->id,
                 ),
-                'mark_paid' => $workflow->markPaidFromStripe(
-                    $booking,
-                    (string) $payload['session_id'],
-                    isset($payload['payment_intent_id']) ? (string) $payload['payment_intent_id'] : null,
-                ),
                 'confirm' => $workflow->confirmBooking($booking, (string) ($payload['actor'] ?? 'system')),
                 'meet_link' => $workflow->retryConfirmedMeet($booking, $payload),
                 'approve_cancel' => $workflow->approveCancel($booking),

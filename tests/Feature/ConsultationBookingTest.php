@@ -11,14 +11,12 @@ use App\Models\ConsultationBooking;
 use App\Models\ConsultationCoupon;
 use App\Models\ConsultationGoogleOperation;
 use App\Models\ConsultationSetting;
-use App\Models\ConsultationStripeCheckoutAttempt;
 use App\Models\ConsultationTier;
 use App\Models\User;
 use App\Services\Consultation\BookingWorkflowService;
 use App\Services\Consultation\ConsultationGoogleOperationService;
 use App\Services\Consultation\ConsultationNotificationService;
 use App\Services\Consultation\GoogleCalendarService;
-use App\Services\Consultation\StripeCheckoutService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Mail\Transport\ArrayTransport;
@@ -383,58 +381,7 @@ class ConsultationBookingTest extends TestCase
         }
     }
 
-    public function test_payment_confirmation_keeps_the_payment_access_token_valid(): void
-    {
-        Mail::fake();
-
-        $google = $this->createMock(GoogleCalendarService::class);
-        $google->expects($this->once())->method('deleteEvent')->with('hold-event')->willReturn(true);
-        $google->expects($this->once())->method('createConfirmedEvent')->willReturn([
-            'event_id' => 'confirmed-event',
-            'meet_link' => 'https://meet.google.com/test-room',
-            'conference_id' => 'test-room',
-        ]);
-        $this->app->instance(GoogleCalendarService::class, $google);
-
-        $stripe = $this->createMock(StripeCheckoutService::class);
-        $this->app->instance(StripeCheckoutService::class, $stripe);
-
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
-        $token = 'payment-access-token';
-        $booking = ConsultationBooking::create([
-            'consultation_tier_id' => $tier->id,
-            'client_name' => 'Ada Lovelace',
-            'client_email' => 'ada@example.com',
-            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
-            'ends_at' => now('UTC')->addDays(3)->setTime(10, 30),
-            'status' => ConsultationBooking::STATUS_AWAITING_PAYMENT,
-            'list_price_cents' => $tier->price_cents,
-            'amount_due_cents' => $tier->price_cents,
-            'currency' => 'usd',
-            'google_event_id' => 'hold-event',
-            'payment_due_at' => now('UTC')->addDays(2),
-            'access_token_hash' => hash('sha256', $token),
-        ]);
-
-        $workflow = $this->app->make(BookingWorkflowService::class);
-        $workflow->markPaidFromStripe($booking, 'cs_test', 'pi_test');
-        $workflow->markPaidFromStripe($booking, 'cs_test', 'pi_test');
-
-        $this->assertDatabaseHas('consultation_bookings', [
-            'id' => $booking->id,
-            'status' => ConsultationBooking::STATUS_CONFIRMED,
-            'stripe_checkout_session_id' => 'cs_test',
-            'stripe_payment_intent_id' => 'pi_test',
-            'access_token_hash' => hash('sha256', $token),
-        ]);
-
-        $this->get('/book/b/'.$booking->public_id.'?token='.$token)
-            ->assertRedirect('/book/b/'.$booking->public_id);
-        $this->get('/book/b/'.$booking->public_id)->assertOk();
-        Mail::assertSent(BookingConfirmedMail::class);
-    }
-
-    public function test_a_paid_reschedule_does_not_start_a_second_checkout_or_redeem_coupon_again(): void
+    public function test_a_paid_reschedule_does_not_redeem_coupon_again(): void
     {
         Mail::fake();
 
@@ -455,10 +402,6 @@ class ConsultationBookingTest extends TestCase
             'conference_id' => 'new-room',
         ]);
         $this->app->instance(GoogleCalendarService::class, $google);
-
-        $stripe = $this->createMock(StripeCheckoutService::class);
-        $stripe->expects($this->never())->method('configured');
-        $this->app->instance(StripeCheckoutService::class, $stripe);
 
         $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
         $coupon = ConsultationCoupon::create([
@@ -482,7 +425,6 @@ class ConsultationBookingTest extends TestCase
             'amount_due_cents' => $coupon->discountedAmountCents($tier->price_cents),
             'currency' => 'usd',
             'google_event_id' => 'old-event',
-            'stripe_payment_intent_id' => 'pi_original',
             'confirmed_at' => now('UTC')->subDay(),
             'hold_expires_at' => now('UTC')->addHours(48),
             'payment_due_at' => $startsAt->copy()->subDay(),
@@ -495,285 +437,8 @@ class ConsultationBookingTest extends TestCase
         $this->assertDatabaseHas('consultation_bookings', [
             'id' => $booking->id,
             'status' => ConsultationBooking::STATUS_CONFIRMED,
-            'stripe_payment_intent_id' => 'pi_original',
         ]);
         $this->assertSame(1, $coupon->fresh()->redeemed_count);
-    }
-
-    public function test_paid_approval_is_not_marked_awaiting_payment_when_stripe_is_unconfigured(): void
-    {
-        $startsAt = now('UTC')->addDays(3)->setTime(10, 0);
-        ConsultationAvailabilityWindow::create([
-            'weekday' => $startsAt->dayOfWeek,
-            'start_time' => '09:00:00',
-            'end_time' => '12:00:00',
-            'is_active' => true,
-        ]);
-
-        $google = $this->createMock(GoogleCalendarService::class);
-        $google->method('busyPeriods')->willReturn([]);
-        $this->app->instance(GoogleCalendarService::class, $google);
-
-        $stripe = $this->createMock(StripeCheckoutService::class);
-        $stripe->expects($this->once())->method('configured')->willReturn(false);
-        $this->app->instance(StripeCheckoutService::class, $stripe);
-
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
-        $booking = ConsultationBooking::create([
-            'consultation_tier_id' => $tier->id,
-            'client_name' => 'Ada Lovelace',
-            'client_email' => 'ada@example.com',
-            'starts_at' => $startsAt,
-            'ends_at' => $startsAt->copy()->addMinutes($tier->duration_minutes),
-            'status' => ConsultationBooking::STATUS_PENDING_APPROVAL,
-            'list_price_cents' => $tier->price_cents,
-            'amount_due_cents' => $tier->price_cents,
-            'currency' => 'usd',
-            'hold_expires_at' => now('UTC')->addHours(48),
-            'payment_due_at' => $startsAt->copy()->subDay(),
-            'access_token_hash' => hash('sha256', 'pending-token'),
-        ]);
-
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Stripe payments are not configured yet.');
-
-        try {
-            $this->app->make(BookingWorkflowService::class)->approve($booking);
-        } finally {
-            $this->assertSame(
-                ConsultationBooking::STATUS_PENDING_APPROVAL,
-                $booking->fresh()->status,
-            );
-        }
-    }
-
-    public function test_stripe_checkout_failure_leaves_an_approved_booking_retryable(): void
-    {
-        $startsAt = now('UTC')->addDays(3)->setTime(10, 0);
-        ConsultationAvailabilityWindow::create([
-            'weekday' => $startsAt->dayOfWeek,
-            'start_time' => '09:00:00',
-            'end_time' => '12:00:00',
-            'is_active' => true,
-        ]);
-
-        $google = $this->createStub(GoogleCalendarService::class);
-        $google->method('busyPeriods')->willReturn([]);
-        $google->method('isConnected')->willReturn(false);
-        $this->app->instance(GoogleCalendarService::class, $google);
-
-        $stripe = $this->createMock(StripeCheckoutService::class);
-        $stripe->expects($this->once())->method('configured')->willReturn(true);
-        $stripe->expects($this->once())
-            ->method('createCheckoutUrl')
-            ->willThrowException(new \RuntimeException('Stripe is unavailable'));
-        $this->app->instance(StripeCheckoutService::class, $stripe);
-
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
-        $booking = ConsultationBooking::create([
-            'consultation_tier_id' => $tier->id,
-            'client_name' => 'Retry approval',
-            'client_email' => 'retry-approval@example.com',
-            'starts_at' => $startsAt,
-            'ends_at' => $startsAt->copy()->addMinutes($tier->duration_minutes),
-            'status' => ConsultationBooking::STATUS_PENDING_APPROVAL,
-            'list_price_cents' => $tier->price_cents,
-            'amount_due_cents' => $tier->price_cents,
-            'currency' => 'usd',
-            'hold_expires_at' => now('UTC')->addHours(48),
-            'payment_due_at' => $startsAt->copy()->subDay(),
-            'access_token_hash' => hash('sha256', 'retry-approval'),
-        ]);
-
-        $this->expectException(\RuntimeException::class);
-
-        try {
-            $this->app->make(BookingWorkflowService::class)->approve($booking);
-        } finally {
-            $this->assertSame(
-                ConsultationBooking::STATUS_AWAITING_PAYMENT,
-                $booking->fresh()->status,
-            );
-            $this->assertDatabaseHas('consultation_booking_events', [
-                'consultation_booking_id' => $booking->id,
-                'event' => 'approved_awaiting_payment',
-            ]);
-        }
-    }
-
-    public function test_approval_uses_the_existing_checkout_attempt_token_when_checkout_wins_a_race(): void
-    {
-        Mail::fake();
-
-        $startsAt = now('UTC')->addDays(3)->setTime(10, 0);
-        ConsultationAvailabilityWindow::create([
-            'weekday' => $startsAt->dayOfWeek,
-            'start_time' => '09:00:00',
-            'end_time' => '12:00:00',
-            'is_active' => true,
-        ]);
-
-        $google = $this->createStub(GoogleCalendarService::class);
-        $google->method('busyPeriods')->willReturn([]);
-        $google->method('isConnected')->willReturn(false);
-        $this->app->instance(GoogleCalendarService::class, $google);
-
-        $stripe = $this->createMock(StripeCheckoutService::class);
-        $stripe->expects($this->once())->method('configured')->willReturn(true);
-        $stripe->expects($this->once())
-            ->method('createCheckoutUrl')
-            ->willReturnCallback(function (ConsultationBooking $checkoutBooking): string {
-                $checkoutBooking->forceFill([
-                    'stripe_checkout_session_id' => 'cs_race',
-                    'stripe_checkout_idempotency_key' => 'consultation-checkout-race',
-                ])->save();
-                ConsultationStripeCheckoutAttempt::create([
-                    'consultation_booking_id' => $checkoutBooking->id,
-                    'idempotency_key' => 'consultation-checkout-race',
-                    'access_token' => 'existing-checkout-token',
-                    'stripe_checkout_session_id' => 'cs_race',
-                    'status' => ConsultationStripeCheckoutAttempt::STATUS_CREATED,
-                    'attempts' => 1,
-                    'completed_at' => now('UTC'),
-                ]);
-
-                return 'https://checkout.stripe.test/cs_race';
-            });
-        $this->app->instance(StripeCheckoutService::class, $stripe);
-
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
-        $booking = ConsultationBooking::create([
-            'consultation_tier_id' => $tier->id,
-            'client_name' => 'Approval race',
-            'client_email' => 'approval-race@example.com',
-            'starts_at' => $startsAt,
-            'ends_at' => $startsAt->copy()->addMinutes($tier->duration_minutes),
-            'status' => ConsultationBooking::STATUS_PENDING_APPROVAL,
-            'list_price_cents' => $tier->price_cents,
-            'amount_due_cents' => $tier->price_cents,
-            'currency' => 'usd',
-            'hold_expires_at' => now('UTC')->addHours(48),
-            'payment_due_at' => $startsAt->copy()->subDay(),
-            'access_token_hash' => hash('sha256', 'original-approval-token'),
-        ]);
-
-        $this->app->make(BookingWorkflowService::class)->approve($booking);
-
-        $this->assertSame(
-            hash('sha256', 'existing-checkout-token'),
-            $booking->fresh()->access_token_hash,
-        );
-    }
-
-    public function test_late_stripe_payment_does_not_confirm_the_booking(): void
-    {
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
-        $booking = ConsultationBooking::create([
-            'consultation_tier_id' => $tier->id,
-            'client_name' => 'Late payment',
-            'client_email' => 'late@example.com',
-            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
-            'ends_at' => now('UTC')->addDays(3)->setTime(10, 30),
-            'status' => ConsultationBooking::STATUS_AWAITING_PAYMENT,
-            'list_price_cents' => $tier->price_cents,
-            'amount_due_cents' => $tier->price_cents,
-            'currency' => 'usd',
-            'payment_due_at' => now('UTC')->subMinute(),
-            'access_token_hash' => hash('sha256', 'late-payment'),
-        ]);
-
-        $this->expectException(
-            \InvalidArgumentException::class,
-        );
-        $this->expectExceptionMessage('payment deadline');
-
-        try {
-            $this->app->make(BookingWorkflowService::class)->markPaidFromStripe($booking, 'cs_late', 'pi_late');
-        } finally {
-            $this->assertSame(
-                ConsultationBooking::STATUS_AWAITING_PAYMENT,
-                $booking->fresh()->status,
-            );
-        }
-    }
-
-    public function test_a_delayed_webhook_accepts_payment_completed_before_the_deadline(): void
-    {
-        Mail::fake();
-
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
-        $dueAt = now('UTC')->subMinute();
-        $paidAt = $dueAt->copy()->subMinute();
-        $booking = ConsultationBooking::create([
-            'consultation_tier_id' => $tier->id,
-            'client_name' => 'Delayed payment',
-            'client_email' => 'delayed@example.com',
-            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
-            'ends_at' => now('UTC')->addDays(3)->setTime(10, 30),
-            'status' => ConsultationBooking::STATUS_AWAITING_PAYMENT,
-            'list_price_cents' => $tier->price_cents,
-            'amount_due_cents' => $tier->price_cents,
-            'currency' => 'usd',
-            'payment_due_at' => $dueAt,
-            'access_token_hash' => hash('sha256', 'delayed-payment'),
-        ]);
-
-        $result = $this->app->make(BookingWorkflowService::class)->markPaidFromStripe(
-            $booking,
-            'cs_delayed',
-            'pi_delayed',
-            $paidAt,
-        );
-
-        $this->assertSame(ConsultationBooking::STATUS_CONFIRMED, $result->status);
-        $this->assertSame($paidAt->timestamp, $result->stripe_paid_at->timestamp);
-    }
-
-    public function test_a_refunded_rejected_payment_clears_paid_state_and_rotates_checkout(): void
-    {
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
-        $booking = ConsultationBooking::create([
-            'consultation_tier_id' => $tier->id,
-            'client_name' => 'Rejected payment',
-            'client_email' => 'rejected-payment@example.com',
-            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
-            'ends_at' => now('UTC')->addDays(3)->setTime(10, 30),
-            'status' => ConsultationBooking::STATUS_AWAITING_PAYMENT,
-            'list_price_cents' => $tier->price_cents,
-            'amount_due_cents' => $tier->price_cents,
-            'currency' => 'usd',
-            'stripe_checkout_session_id' => 'cs_rejected',
-            'stripe_payment_intent_id' => 'pi_rejected',
-            'stripe_paid_at' => now('UTC'),
-            'payment_due_at' => now('UTC')->addDay(),
-            'access_token_hash' => hash('sha256', 'rejected-token'),
-        ]);
-        $booking->forceFill([
-            'stripe_checkout_idempotency_key' => 'consultation-checkout-'.$booking->id,
-        ])->save();
-
-        $workflow = $this->app->make(BookingWorkflowService::class);
-        $this->assertTrue($workflow->resetRejectedStripePayment(
-            $booking,
-            'cs_rejected',
-            'pi_rejected',
-            'coupon was no longer available',
-        ));
-
-        $fresh = $booking->fresh();
-        $this->assertSame(ConsultationBooking::STATUS_AWAITING_PAYMENT, $fresh->status);
-        $this->assertNull($fresh->stripe_checkout_session_id);
-        $this->assertNull($fresh->stripe_payment_intent_id);
-        $this->assertNull($fresh->stripe_paid_at);
-        $this->assertSame('cs_rejected', $fresh->stripe_checkout_rejected_session_id);
-        $this->assertNotSame('consultation-checkout-'.$booking->id, $fresh->stripe_checkout_idempotency_key);
-
-        try {
-            $workflow->markPaidFromStripe($fresh, 'cs_rejected', 'pi_rejected');
-            $this->fail('A rejected Stripe session must not be accepted later.');
-        } catch (\InvalidArgumentException $e) {
-            $this->assertSame('Stripe checkout session was already rejected.', $e->getMessage());
-        }
     }
 
     public function test_coupon_redemption_limit_is_enforced_when_confirming(): void
@@ -799,9 +464,8 @@ class ConsultationBookingTest extends TestCase
             'status' => ConsultationBooking::STATUS_PENDING_APPROVAL,
             'list_price_cents' => $tier->price_cents,
             'discount_percent' => 20,
-            'amount_due_cents' => $coupon->discountedAmountCents($tier->price_cents),
+            'amount_due_cents' => 0,
             'currency' => 'usd',
-            'stripe_paid_at' => now('UTC'),
             'access_token_hash' => hash('sha256', 'coupon-limit'),
         ]);
 
@@ -819,7 +483,7 @@ class ConsultationBookingTest extends TestCase
         }
     }
 
-    public function test_connected_google_failure_does_not_confirm_a_paid_booking(): void
+    public function test_connected_google_failure_does_not_confirm_a_booking(): void
     {
         Mail::fake();
 
@@ -835,10 +499,11 @@ class ConsultationBookingTest extends TestCase
             'client_email' => 'calendar-failure@example.com',
             'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
             'ends_at' => now('UTC')->addDays(3)->setTime(10, 30),
-            'status' => ConsultationBooking::STATUS_AWAITING_PAYMENT,
+            'status' => ConsultationBooking::STATUS_PENDING_APPROVAL,
             'list_price_cents' => $tier->price_cents,
-            'amount_due_cents' => $tier->price_cents,
+            'amount_due_cents' => 0,
             'currency' => 'usd',
+            'hold_expires_at' => now('UTC')->addDay(),
             'payment_due_at' => now('UTC')->addDays(2),
             'access_token_hash' => hash('sha256', 'calendar-failure'),
         ]);
@@ -847,12 +512,9 @@ class ConsultationBookingTest extends TestCase
         $this->expectExceptionMessage('Google Calendar');
 
         try {
-            $this->app->make(BookingWorkflowService::class)->markPaidFromStripe($booking, 'cs_calendar', 'pi_calendar');
+            $this->app->make(BookingWorkflowService::class)->confirmBooking($booking);
         } finally {
-            $fresh = $booking->fresh();
-            $this->assertSame(ConsultationBooking::STATUS_AWAITING_PAYMENT, $fresh->status);
-            $this->assertNotNull($fresh->stripe_paid_at);
-            $this->assertSame(0, $this->app->make(BookingWorkflowService::class)->expireUnpaidPastDeadline());
+            $this->assertSame(ConsultationBooking::STATUS_PENDING_APPROVAL, $booking->fresh()->status);
         }
     }
 
@@ -881,13 +543,11 @@ class ConsultationBookingTest extends TestCase
             'client_email' => 'pending-meet@example.com',
             'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
             'ends_at' => now('UTC')->addDays(3)->setTime(10, 30),
-            'status' => ConsultationBooking::STATUS_AWAITING_PAYMENT,
+            'status' => ConsultationBooking::STATUS_PENDING_APPROVAL,
             'list_price_cents' => $tier->price_cents,
-            'amount_due_cents' => $tier->price_cents,
+            'amount_due_cents' => 0,
             'currency' => 'usd',
-            'stripe_checkout_session_id' => 'cs_pending_meet',
-            'stripe_payment_intent_id' => 'pi_pending_meet',
-            'stripe_paid_at' => now('UTC'),
+            'hold_expires_at' => now('UTC')->addDay(),
             'payment_due_at' => now('UTC')->addDay(),
             'access_token_hash' => hash('sha256', 'pending-meet-token'),
         ]);
@@ -911,44 +571,6 @@ class ConsultationBookingTest extends TestCase
             $booking->googleOperations()->where('operation', 'meet_link')->firstOrFail()->status,
         );
         Mail::assertSent(BookingConfirmedMail::class);
-    }
-
-    public function test_approved_cancellation_refunds_the_payment_before_cancelling(): void
-    {
-        Mail::fake();
-
-        $google = $this->createMock(GoogleCalendarService::class);
-        $google->expects($this->once())->method('deleteEvent')->with('confirmed-event')->willReturn(true);
-        $google->method('isConnected')->willReturn(false);
-        $this->app->instance(GoogleCalendarService::class, $google);
-
-        $stripe = $this->createMock(StripeCheckoutService::class);
-        $stripe->expects($this->once())->method('refundBooking')->willReturn('re_test');
-        $this->app->instance(StripeCheckoutService::class, $stripe);
-
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
-        $booking = ConsultationBooking::create([
-            'consultation_tier_id' => $tier->id,
-            'client_name' => 'Cancellation',
-            'client_email' => 'cancel@example.com',
-            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
-            'ends_at' => now('UTC')->addDays(3)->setTime(10, 30),
-            'status' => ConsultationBooking::STATUS_CANCEL_REQUESTED,
-            'list_price_cents' => $tier->price_cents,
-            'amount_due_cents' => $tier->price_cents,
-            'currency' => 'usd',
-            'stripe_payment_intent_id' => 'pi_cancel',
-            'google_event_id' => 'confirmed-event',
-            'access_token_hash' => hash('sha256', 'cancel'),
-        ]);
-
-        $result = $this->app->make(BookingWorkflowService::class)->approveCancel($booking);
-
-        $this->assertSame(ConsultationBooking::STATUS_CANCELLED, $result->status);
-        $this->assertDatabaseHas('consultation_bookings', [
-            'id' => $booking->id,
-            'status' => ConsultationBooking::STATUS_CANCELLED,
-        ]);
     }
 
     public function test_denied_cancellation_notifies_the_client_and_keeps_the_booking_confirmed(): void
@@ -1113,7 +735,6 @@ class ConsultationBookingTest extends TestCase
         $google->expects($this->once())->method('deleteEvent')->with('reschedule-hold')->willReturn(true);
         $google->method('isConnected')->willReturn(true);
         $this->app->instance(GoogleCalendarService::class, $google);
-        $this->app->instance(StripeCheckoutService::class, $this->createStub(StripeCheckoutService::class));
 
         $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
         $originalStartsAt = now('UTC')->addDays(3)->setTime(10, 0);
@@ -1130,8 +751,6 @@ class ConsultationBookingTest extends TestCase
             'list_price_cents' => $tier->price_cents,
             'amount_due_cents' => $tier->price_cents,
             'currency' => 'usd',
-            'stripe_checkout_session_id' => 'cs_paid',
-            'stripe_payment_intent_id' => 'pi_paid',
             'confirmed_at' => now('UTC')->subDay(),
             'google_event_id' => 'original-event',
             'reschedule_hold_event_id' => 'reschedule-hold',
@@ -1151,7 +770,6 @@ class ConsultationBookingTest extends TestCase
         $this->assertTrue($result->starts_at->equalTo($originalStartsAt));
         $this->assertSame('original-event', $result->google_event_id);
         $this->assertNull($result->reschedule_hold_event_id);
-        $this->assertSame('pi_paid', $result->stripe_payment_intent_id);
         $this->assertTrue($result->payment_due_at->equalTo($originalPaymentDueAt));
         $this->assertTrue($result->access_token_expires_at->equalTo($originalAccessTokenExpiresAt));
         Mail::assertSent(BookingRescheduleDeniedMail::class);
@@ -1196,7 +814,6 @@ class ConsultationBookingTest extends TestCase
             });
         $google->method('isConnected')->willReturn(true);
         $this->app->instance(GoogleCalendarService::class, $google);
-        $this->app->instance(StripeCheckoutService::class, $this->createStub(StripeCheckoutService::class));
 
         $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
         $booking = ConsultationBooking::create([
@@ -1209,7 +826,6 @@ class ConsultationBookingTest extends TestCase
             'list_price_cents' => $tier->price_cents,
             'amount_due_cents' => $tier->price_cents,
             'currency' => 'usd',
-            'stripe_payment_intent_id' => 'pi_paid_approval',
             'confirmed_at' => now('UTC')->subDay(),
             'google_event_id' => 'original-approval-event',
             'reschedule_hold_event_id' => 'reschedule-approval-hold',
@@ -1238,7 +854,6 @@ class ConsultationBookingTest extends TestCase
         $google->expects($this->once())->method('deleteEvent')->with('expired-reschedule-hold')->willReturn(true);
         $google->method('isConnected')->willReturn(true);
         $this->app->instance(GoogleCalendarService::class, $google);
-        $this->app->instance(StripeCheckoutService::class, $this->createStub(StripeCheckoutService::class));
 
         $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
         $originalStartsAt = now('UTC')->addDays(3)->setTime(10, 0);
@@ -1255,7 +870,6 @@ class ConsultationBookingTest extends TestCase
             'list_price_cents' => $tier->price_cents,
             'amount_due_cents' => $tier->price_cents,
             'currency' => 'usd',
-            'stripe_payment_intent_id' => 'pi_paid_expiry',
             'confirmed_at' => now('UTC')->subDay(),
             'google_event_id' => 'original-expiry-event',
             'reschedule_hold_event_id' => 'expired-reschedule-hold',
@@ -1321,7 +935,6 @@ class ConsultationBookingTest extends TestCase
             'list_price_cents' => $tier->price_cents,
             'amount_due_cents' => $tier->price_cents,
             'currency' => 'usd',
-            'stripe_payment_intent_id' => 'pi_paid_pick',
             'confirmed_at' => now('UTC')->subDay(),
             'google_event_id' => 'original-pick-event',
             'payment_due_at' => $originalPaymentDueAt,
@@ -1473,244 +1086,6 @@ class ConsultationBookingTest extends TestCase
 
         $this->assertSame(ConsultationBooking::STATUS_PENDING_APPROVAL, $result->status);
         $this->assertSame('new-unpaid-event', $result->google_event_id);
-    }
-
-    public function test_cancellation_cannot_be_denied_after_a_refund_attempt_starts(): void
-    {
-        Mail::fake();
-
-        $google = $this->createMock(GoogleCalendarService::class);
-        $google->expects($this->once())->method('deleteEvent')->with('cancel-event')->willReturn(false);
-        $google->method('isConnected')->willReturn(true);
-        $this->app->instance(GoogleCalendarService::class, $google);
-
-        $stripe = $this->createMock(StripeCheckoutService::class);
-        $stripe->expects($this->once())->method('refundBooking')->willReturn('re_cancel');
-        $this->app->instance(StripeCheckoutService::class, $stripe);
-
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
-        $booking = ConsultationBooking::create([
-            'consultation_tier_id' => $tier->id,
-            'client_name' => 'Refund saga',
-            'client_email' => 'refund-saga@example.com',
-            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
-            'ends_at' => now('UTC')->addDays(3)->setTime(10, 30),
-            'status' => ConsultationBooking::STATUS_CANCEL_REQUESTED,
-            'list_price_cents' => $tier->price_cents,
-            'amount_due_cents' => $tier->price_cents,
-            'currency' => 'usd',
-            'stripe_payment_intent_id' => 'pi_cancel_saga',
-            'google_event_id' => 'cancel-event',
-            'access_token_hash' => hash('sha256', 'refund-saga'),
-        ]);
-
-        $this->expectException(\RuntimeException::class);
-
-        try {
-            $this->app->make(BookingWorkflowService::class)->approveCancel($booking);
-        } finally {
-            $fresh = $booking->fresh();
-            $this->assertSame(ConsultationBooking::STATUS_CANCEL_REQUESTED, $fresh->status);
-            $this->assertSame('re_cancel', $fresh->stripe_refund_id);
-            $this->assertNotNull($fresh->stripe_refund_attempted_at);
-
-            try {
-                $this->app->make(BookingWorkflowService::class)->denyCancel($fresh);
-                $this->fail('A cancellation with a refund attempt should not be deniable.');
-            } catch (\InvalidArgumentException $e) {
-                $this->assertStringContainsString('refund has started', $e->getMessage());
-            }
-        }
-    }
-
-    public function test_a_failed_cancellation_refund_is_retried_without_auto_approving_new_requests(): void
-    {
-        Mail::fake();
-
-        $google = $this->createMock(GoogleCalendarService::class);
-        $google->expects($this->once())->method('deleteEvent')->with('retry-cancel-event')->willReturn(true);
-        $google->method('isConnected')->willReturn(false);
-        $this->app->instance(GoogleCalendarService::class, $google);
-
-        $refundCalls = 0;
-        $stripe = $this->createMock(StripeCheckoutService::class);
-        $stripe->expects($this->exactly(2))
-            ->method('refundBooking')
-            ->willReturnCallback(function () use (&$refundCalls): string {
-                $refundCalls++;
-                if ($refundCalls === 1) {
-                    throw new \RuntimeException('Stripe is temporarily unavailable.');
-                }
-
-                return 're_retry';
-            });
-        $this->app->instance(StripeCheckoutService::class, $stripe);
-
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
-        $booking = ConsultationBooking::create([
-            'consultation_tier_id' => $tier->id,
-            'client_name' => 'Refund retry',
-            'client_email' => 'refund-retry@example.com',
-            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
-            'ends_at' => now('UTC')->addDays(3)->setTime(10, 30),
-            'status' => ConsultationBooking::STATUS_CANCEL_REQUESTED,
-            'list_price_cents' => $tier->price_cents,
-            'amount_due_cents' => $tier->price_cents,
-            'currency' => 'usd',
-            'stripe_payment_intent_id' => 'pi_retry',
-            'google_event_id' => 'retry-cancel-event',
-            'access_token_hash' => hash('sha256', 'refund-retry'),
-        ]);
-
-        try {
-            $this->app->make(BookingWorkflowService::class)->approveCancel($booking);
-            $this->fail('The first refund attempt should fail.');
-        } catch (\RuntimeException $e) {
-            $this->assertSame('Stripe is temporarily unavailable.', $e->getMessage());
-        }
-
-        $failed = $booking->fresh();
-        $this->assertSame(ConsultationBooking::STATUS_CANCEL_REQUESTED, $failed->status);
-        $this->assertSame('Stripe is temporarily unavailable.', $failed->stripe_refund_last_error);
-
-        $this->assertSame(1, $this->app->make(BookingWorkflowService::class)->retryPendingRefunds());
-        $this->assertSame(ConsultationBooking::STATUS_CANCELLED, $booking->fresh()->status);
-        $this->assertNull($booking->fresh()->stripe_refund_last_error);
-
-        $unapproved = ConsultationBooking::create([
-            'consultation_tier_id' => $tier->id,
-            'client_name' => 'Still pending cancellation',
-            'client_email' => 'still-pending@example.com',
-            'starts_at' => now('UTC')->addDays(4)->setTime(10, 0),
-            'ends_at' => now('UTC')->addDays(4)->setTime(10, 30),
-            'status' => ConsultationBooking::STATUS_CANCEL_REQUESTED,
-            'list_price_cents' => $tier->price_cents,
-            'amount_due_cents' => $tier->price_cents,
-            'currency' => 'usd',
-            'stripe_payment_intent_id' => 'pi_unapproved',
-            'access_token_hash' => hash('sha256', 'still-pending'),
-        ]);
-
-        $this->assertSame(0, $this->app->make(BookingWorkflowService::class)->retryPendingRefunds());
-        $this->assertSame(ConsultationBooking::STATUS_CANCEL_REQUESTED, $unapproved->fresh()->status);
-    }
-
-    public function test_refund_recovery_backfill_marks_only_legacy_approved_cancellations(): void
-    {
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
-        $approved = ConsultationBooking::create([
-            'consultation_tier_id' => $tier->id,
-            'client_name' => 'Legacy approved cancellation',
-            'client_email' => 'legacy-approved@example.com',
-            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
-            'ends_at' => now('UTC')->addDays(3)->setTime(10, 30),
-            'status' => ConsultationBooking::STATUS_CANCEL_REQUESTED,
-            'list_price_cents' => $tier->price_cents,
-            'amount_due_cents' => $tier->price_cents,
-            'currency' => 'usd',
-            'stripe_payment_intent_id' => 'pi_legacy_approved',
-            'access_token_hash' => hash('sha256', 'legacy-approved'),
-        ]);
-        $approved->recordEvent('cancel_approved', 'admin');
-
-        $pending = ConsultationBooking::create([
-            'consultation_tier_id' => $tier->id,
-            'client_name' => 'Legacy pending cancellation',
-            'client_email' => 'legacy-pending@example.com',
-            'starts_at' => now('UTC')->addDays(4)->setTime(10, 0),
-            'ends_at' => now('UTC')->addDays(4)->setTime(10, 30),
-            'status' => ConsultationBooking::STATUS_CANCEL_REQUESTED,
-            'list_price_cents' => $tier->price_cents,
-            'amount_due_cents' => $tier->price_cents,
-            'currency' => 'usd',
-            'stripe_payment_intent_id' => 'pi_legacy_pending',
-            'access_token_hash' => hash('sha256', 'legacy-pending'),
-        ]);
-
-        $cancelled = ConsultationBooking::create([
-            'consultation_tier_id' => $tier->id,
-            'client_name' => 'Legacy completed cancellation',
-            'client_email' => 'legacy-completed@example.com',
-            'starts_at' => now('UTC')->addDays(5)->setTime(10, 0),
-            'ends_at' => now('UTC')->addDays(5)->setTime(10, 30),
-            'status' => ConsultationBooking::STATUS_CANCELLED,
-            'list_price_cents' => $tier->price_cents,
-            'amount_due_cents' => $tier->price_cents,
-            'currency' => 'usd',
-            'stripe_payment_intent_id' => 'pi_legacy_completed',
-            'cancelled_at' => now('UTC')->subHour(),
-            'access_token_hash' => hash('sha256', 'legacy-completed'),
-        ]);
-        $cancelled->recordEvent('cancel_approved', 'admin');
-
-        $migration = require base_path('database/migrations/2026_09_01_100800_backfill_consultation_refund_recovery.php');
-        $migration->up();
-
-        $freshApproved = $approved->fresh();
-        $this->assertNotNull($freshApproved->stripe_refund_attempted_at);
-        $this->assertSame(
-            'consultation-booking-'.$approved->id.'-refund',
-            $freshApproved->stripe_refund_idempotency_key,
-        );
-        $this->assertNull($pending->fresh()->stripe_refund_attempted_at);
-        $this->assertNotNull($cancelled->fresh()->stripe_refund_attempted_at);
-    }
-
-    public function test_a_legacy_cancelled_booking_refund_is_retried_without_reopening_cancellation(): void
-    {
-        $stripe = $this->createMock(StripeCheckoutService::class);
-        $stripe->expects($this->once())->method('refundBooking')->willReturn('re_legacy');
-        $this->app->instance(StripeCheckoutService::class, $stripe);
-
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
-        $booking = ConsultationBooking::create([
-            'consultation_tier_id' => $tier->id,
-            'client_name' => 'Legacy refund retry',
-            'client_email' => 'legacy-refund-retry@example.com',
-            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
-            'ends_at' => now('UTC')->addDays(3)->setTime(10, 30),
-            'status' => ConsultationBooking::STATUS_CANCELLED,
-            'list_price_cents' => $tier->price_cents,
-            'amount_due_cents' => $tier->price_cents,
-            'currency' => 'usd',
-            'stripe_payment_intent_id' => 'pi_legacy_retry',
-            'stripe_refund_attempted_at' => now('UTC')->subMinute(),
-            'stripe_refund_idempotency_key' => 'consultation-booking-legacy-refund',
-            'cancelled_at' => now('UTC')->subHour(),
-            'access_token_hash' => hash('sha256', 'legacy-refund-retry'),
-        ]);
-
-        $this->assertSame(1, $this->app->make(BookingWorkflowService::class)->retryPendingRefunds());
-        $fresh = $booking->fresh();
-        $this->assertSame(ConsultationBooking::STATUS_CANCELLED, $fresh->status);
-        $this->assertSame('re_legacy', $fresh->stripe_refund_id);
-    }
-
-    public function test_a_refund_timestamp_without_an_id_is_left_for_manual_audit(): void
-    {
-        $stripe = $this->createMock(StripeCheckoutService::class);
-        $stripe->expects($this->never())->method('refundBooking');
-        $this->app->instance(StripeCheckoutService::class, $stripe);
-
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
-        $booking = ConsultationBooking::create([
-            'consultation_tier_id' => $tier->id,
-            'client_name' => 'Manual refund audit',
-            'client_email' => 'manual-refund-audit@example.com',
-            'starts_at' => now('UTC')->addDays(3)->setTime(10, 0),
-            'ends_at' => now('UTC')->addDays(3)->setTime(10, 30),
-            'status' => ConsultationBooking::STATUS_CANCELLED,
-            'list_price_cents' => $tier->price_cents,
-            'amount_due_cents' => $tier->price_cents,
-            'currency' => 'usd',
-            'stripe_payment_intent_id' => 'pi_manual_audit',
-            'stripe_refunded_at' => now('UTC')->subHour(),
-            'cancelled_at' => now('UTC')->subHour(),
-            'access_token_hash' => hash('sha256', 'manual-refund-audit'),
-        ]);
-
-        $this->assertSame(0, $this->app->make(BookingWorkflowService::class)->retryPendingRefunds());
-        $this->assertNull($booking->fresh()->stripe_refund_id);
     }
 
     public function test_a_failed_google_transition_is_replayed_by_the_operation_worker(): void
@@ -2117,7 +1492,6 @@ class ConsultationBookingTest extends TestCase
             'list_price_cents' => $tier->price_cents,
             'amount_due_cents' => $tier->price_cents,
             'currency' => 'usd',
-            'stripe_payment_intent_id' => 'pi_current_generation',
             'confirmed_at' => now('UTC')->subDay(),
             'google_event_id' => 'original-current-generation',
             'google_generation' => 0,

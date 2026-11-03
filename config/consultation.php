@@ -24,12 +24,6 @@ return [
 
     'access_token_days' => 90,
 
-    'stripe_checkout_min_minutes' => 31,
-
-    'stripe_webhook_processing_timeout_minutes' => 10,
-
-    'stripe_reconciliation_retry_minutes' => 5,
-
     'launch_promotion' => [
         'discount_cents' => 10000,
         'limit' => 1001,

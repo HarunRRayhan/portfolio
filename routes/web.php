@@ -7,22 +7,21 @@ use App\Http\Controllers\Admin\Consultation\BookingController as ConsultationBoo
 use App\Http\Controllers\Admin\Consultation\CouponController as ConsultationCouponController;
 use App\Http\Controllers\Admin\Consultation\GoogleOAuthController as ConsultationGoogleOAuthController;
 use App\Http\Controllers\Admin\ContactSubmissionController as AdminContactSubmissionController;
-use App\Http\Controllers\Admin\SponsorshipController as AdminSponsorshipController;
 use App\Http\Controllers\Admin\MediaItemController;
 use App\Http\Controllers\Admin\MediumCrosspostController;
 use App\Http\Controllers\Admin\NewsletterController as AdminNewsletterController;
 use App\Http\Controllers\Admin\ScheduleBlogPostController;
 use App\Http\Controllers\Admin\ShortLinkController;
+use App\Http\Controllers\Admin\SponsorshipController as AdminSponsorshipController;
 use App\Http\Controllers\BlogCommentController;
 use App\Http\Controllers\Consultation\BookController;
 use App\Http\Controllers\Consultation\BookingAccessController;
-use App\Http\Controllers\Consultation\StripeWebhookController;
-use App\Http\Controllers\Sponsorship\GithubSponsorsWebhookController;
-use App\Http\Controllers\Sponsorship\ScanRequestController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\OperationalHealthController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Sponsorship\GithubSponsorsWebhookController;
+use App\Http\Controllers\Sponsorship\ScanRequestController;
 use App\Models\BioLink;
 use App\Models\BioLinkClick;
 use App\Models\BlogCommentThread;
@@ -585,10 +584,6 @@ Route::post('/book', [BookController::class, 'store'])
 Route::get('/book/b/{publicId}', [BookingAccessController::class, 'show'])
     ->where('publicId', '[0-9a-z]{20,32}')
     ->name('book.status');
-Route::get('/book/b/{publicId}/stripe-return', [BookingAccessController::class, 'stripeReturn'])
-    ->where('publicId', '[0-9a-z]{20,32}')
-    ->middleware('signed')
-    ->name('book.stripe-return');
 Route::post('/book/b/{publicId}/cancel', [BookingAccessController::class, 'requestCancel'])
     ->where('publicId', '[0-9a-z]{20,32}')
     ->middleware('throttle:10,1')
@@ -602,7 +597,6 @@ Route::post('/book/b/{publicId}/pick-proposed', [BookingAccessController::class,
     ->middleware('throttle:10,1')
     ->name('book.pick-proposed');
 
-Route::post('/stripe/webhook', StripeWebhookController::class)->name('stripe.webhook');
 Route::post('/github/sponsors/webhook', GithubSponsorsWebhookController::class)->name('github.sponsors.webhook');
 
 Route::get('/contact', function () {

@@ -219,13 +219,6 @@ class AvailabilityService
                             $query->whereNull('hold_expires_at')
                                 ->orWhere('hold_expires_at', '>', now('UTC'));
                         });
-                    })
-                    ->orWhere(function ($query) {
-                        $query->where('status', ConsultationBooking::STATUS_AWAITING_PAYMENT)
-                            ->where(function ($query) {
-                                $query->whereNull('payment_due_at')
-                                    ->orWhere('payment_due_at', '>', now('UTC'));
-                            });
                     });
             })
             ->where('starts_at', '<', $to)

@@ -22,47 +22,14 @@ class BookingAccessController extends Controller
             $workflow->assertAccessToken($booking, $token);
             $request->session()->put($this->accessSessionKey($publicId), hash('sha256', $token));
 
-            $query = [];
-            if ($request->boolean('paid')) {
-                $query['paid'] = 1;
-            }
-            if ($request->boolean('cancelled_checkout')) {
-                $query['cancelled_checkout'] = 1;
-            }
-
-            $cleanUrl = route('book.status', ['publicId' => $publicId]);
-            if ($query) {
-                $cleanUrl .= '?'.http_build_query($query);
-            }
-
-            return redirect()->to($cleanUrl);
+            return redirect()->route('book.status', ['publicId' => $publicId]);
         }
 
         $workflow->assertAccessTokenHash($booking, $request->session()->get($this->accessSessionKey($publicId)));
 
         return Inertia::render('Book/Status', [
             'booking' => $booking->toClientArray(),
-            'flashPaid' => $request->boolean('paid'),
-            'flashCancelledCheckout' => $request->boolean('cancelled_checkout'),
         ]);
-    }
-
-    public function stripeReturn(Request $request, string $publicId): RedirectResponse
-    {
-        $booking = ConsultationBooking::query()->where('public_id', $publicId)->firstOrFail();
-        $returnType = (string) $request->query('return', '');
-
-        if (! in_array($returnType, ['paid', 'cancelled_checkout'], true)) {
-            abort(404);
-        }
-
-        $request->session()->put($this->accessSessionKey($publicId), $booking->access_token_hash);
-
-        return redirect()->route('book.status', array_filter([
-            'publicId' => $publicId,
-            'paid' => $returnType === 'paid' ? 1 : null,
-            'cancelled_checkout' => $returnType === 'cancelled_checkout' ? 1 : null,
-        ], fn ($value): bool => $value !== null));
     }
 
     public function requestCancel(Request $request, string $publicId, BookingWorkflowService $workflow): RedirectResponse

@@ -9,8 +9,6 @@ mkdir -p "$DEST"
 
 files=(
   cloudflare.env
-  stripe.env
-  stripe-live.env
   google-calendar.env
   railway.env
   resend.env

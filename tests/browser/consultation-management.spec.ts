@@ -38,22 +38,21 @@ test('alternate times expose dates and slots after the former first forty', asyn
   await expect(page.getByRole('button', { name: 'Send proposed times' })).toBeEnabled()
 })
 
-test('paid cancellation is confirmed before one request and dismissed without one', async ({ page }, testInfo) => {
-  await page.goto('/admin/consultations/bookings?q=Browser+paid+cancellation')
-  await page.getByRole('link', { name: /Browser paid cancellation/ }).click()
+test('cancellation is confirmed before one request and dismissed without one', async ({ page }, testInfo) => {
+  await page.goto('/admin/consultations/bookings?q=Browser+cancellation')
+  await page.getByRole('link', { name: /Browser cancellation/ }).click()
   let requests = 0
   let release!: () => void
   const held = new Promise<void>(resolve => { release = resolve })
   await page.route('**/admin/consultations/bookings/*/approve-cancel', async route => {
     requests += 1
     await held
-    // Never forward this request: the synthetic fixture must never reach Stripe.
+    // Never forward this request: the synthetic fixture must not cancel for real.
     await route.fulfill({ status: 303, headers: { location: route.request().url().replace('/approve-cancel', '') } })
   })
   await page.getByRole('button', { name: 'Approve cancel', exact: true }).click()
   const dialog = page.getByRole('dialog', { name: 'Approve cancellation?' })
-  await expect(dialog).toContainText('Browser paid cancellation')
-  await expect(dialog).toContainText('full payment refund')
+  await expect(dialog).toContainText('Browser cancellation')
   await expect(dialog).toContainText('$149.00')
   await expect(dialog.locator('time')).toBeVisible()
   await expect.poll(() => dialog.evaluate(element => element.getAnimations({ subtree: true }).filter(animation => animation.playState === 'running').length)).toBe(0)
@@ -72,20 +71,6 @@ test('paid cancellation is confirmed before one request and dismissed without on
     release()
   }
   await expect(dialog).toHaveCount(0)
-})
-
-test('unpaid and refunded cancellations explain their actual refund consequence', async ({ page }) => {
-  for (const [client, consequence] of [
-    ['Browser unpaid cancellation', 'No payment refund is needed'],
-    ['Browser refunded cancellation', 'already been refunded'],
-  ]) {
-    await page.goto(`/admin/consultations/bookings?q=${encodeURIComponent(client)}`)
-    await page.getByRole('link', { name: new RegExp(client) }).click()
-    await page.getByRole('button', { name: 'Approve cancel', exact: true }).click()
-    const dialog = page.getByRole('dialog', { name: 'Approve cancellation?' })
-    await expect(dialog).toContainText(consequence)
-    await dialog.getByRole('button', { name: 'Go back' }).click()
-  }
 })
 
 test('empty pagination pages recover with the same status and search', async ({ page }) => {

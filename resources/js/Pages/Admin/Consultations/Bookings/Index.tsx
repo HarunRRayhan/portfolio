@@ -70,7 +70,6 @@ export default function Index({
   const statuses = [
     '',
     'pending_approval',
-    'awaiting_payment',
     'confirmed',
     'reschedule_proposed',
     'paid_reschedule_pending_approval',
