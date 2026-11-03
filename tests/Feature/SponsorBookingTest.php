@@ -256,4 +256,31 @@ class SponsorBookingTest extends TestCase
             $this->assertTrue(Carbon::parse($slot['start'])->lte($expires));
         }
     }
+
+    public function test_availability_for_credit_beyond_horizon_returns_slots(): void
+    {
+        $user = User::factory()->create();
+        $credit = $this->sponsorCredit($user, 'light', ['expires_at' => now()->addDays(60)]);
+
+        $slots = $this->actingAs($user)->getJson('/book/availability?tier=light&credit='.$credit->id)
+            ->assertOk()->json('slots');
+
+        $this->assertNotEmpty($slots);
+    }
+
+    public function test_show_includes_scan_credit_for_monthly_sponsor(): void
+    {
+        $user = User::factory()->create(['provider_name' => 'github', 'provider_id' => '5151']);
+        app(SponsorCreditService::class)->recordSponsorship([
+            'github_sponsor_id' => '5151', 'github_login' => 'sponsor', 'tier_slug' => 'monthly',
+            'kind' => 'monthly', 'status' => 'active', 'source' => GithubSponsorship::SOURCE_WEBHOOK,
+            'started_at' => now(),
+        ]);
+
+        $this->actingAs($user)->get('/consultation')->assertOk()->assertInertia(fn ($page) => $page
+            ->component('Book')
+            ->has('credits', 3)
+            ->where('credits', fn ($credits) => collect($credits)->where('kind', 'scan')->count() === 1
+                && collect($credits)->where('kind', 'call')->count() === 2));
+    }
 }

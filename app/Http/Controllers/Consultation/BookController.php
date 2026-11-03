@@ -27,13 +27,15 @@ class BookController extends Controller
         if ($user) {
             $sponsorCredits->claimFor($user);
         }
-        $credits = $user ? $sponsorCredits->usableCredits($user)->load('tier')->map(fn (ConsultationCredit $c) => [
-            'id' => $c->id,
-            'tier_slug' => $c->tier?->slug,
-            'tier_name' => $c->tier?->name,
-            'kind' => $c->kind,
-            'expires_at' => $c->expires_at->toIso8601String(),
-        ])->values() : [];
+        // Book.tsx splits these by kind: call credits feed the picker, a scan credit shows the scan link.
+        $credits = $user ? $sponsorCredits->usableCredits($user)
+            ->concat($sponsorCredits->usableCredits($user, ConsultationCredit::KIND_SCAN))->load('tier')->map(fn (ConsultationCredit $c) => [
+                'id' => $c->id,
+                'tier_slug' => $c->tier?->slug,
+                'tier_name' => $c->tier?->name,
+                'kind' => $c->kind,
+                'expires_at' => $c->expires_at->toIso8601String(),
+            ])->values() : [];
         $seo = SeoCatalog::forPath('/consultation')->toArray();
         $seo['jsonLd'] = [[
             '@context' => 'https://schema.org',
@@ -95,8 +97,9 @@ class BookController extends Controller
             $expiresAt = ConsultationCredit::query()->where('user_id', $request->user()->id)
                 ->whereKey($data['credit'])->value('expires_at');
             if ($expiresAt) {
-                $expiresAt = Carbon::parse($expiresAt)->utc();
-                $to = $to ? $to->min($expiresAt) : $expiresAt;
+                // Past the booking horizon availableSlots returns nothing, so cap there too.
+                $horizonEnd = now('UTC')->addDays(max(1, (int) config('consultation.availability_horizon_days', 28)));
+                $to = ($to ?? $horizonEnd)->min(Carbon::parse($expiresAt)->utc())->min($horizonEnd);
             }
         }
 
