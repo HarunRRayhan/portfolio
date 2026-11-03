@@ -14,6 +14,8 @@ final class MailText
     /** A code span or fenced block whose fence is longer than any backtick run in the text. */
     public static function code(string $text, bool $block = false): string
     {
+        // A line break would end an inline code span and let the rest render as markdown.
+        $text = $block ? $text : (string) preg_replace('/[\r\n]+/', ' ', $text);
         preg_match_all('/`+/', $text, $runs);
         $fence = str_repeat('`', max($block ? 3 : 1, ...array_map(fn ($r) => strlen($r) + 1, $runs[0] ?: [''])));
 

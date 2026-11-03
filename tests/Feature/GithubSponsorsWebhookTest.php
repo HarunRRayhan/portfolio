@@ -196,6 +196,25 @@ class GithubSponsorsWebhookTest extends TestCase
         $this->assertSame(2, $s->credits()->whereNull('revoked_at')->count());
     }
 
+    public function test_two_one_time_purchases_same_day_grant_two_credits_and_two_mails(): void
+    {
+        User::factory()->create(['provider_name' => 'github', 'provider_id' => '1001']);
+        $this->travelTo(now()->startOfDay()->addHours(9));
+        $this->send($this->payload())->assertOk();
+        $this->travel(2)->hours();
+        $second = $this->payload();
+        $this->send($second, 'd-2')->assertOk();
+
+        $s = GithubSponsorship::firstOrFail();
+        $this->assertSame(2, $s->credits()->usable()->count());
+        Mail::assertSent(SponsorCreditsReadyMail::class, 2);
+
+        $this->send($second, 'd-2')->assertOk();
+        $this->send($second, 'd-3')->assertOk();
+        $this->assertSame(2, $s->credits()->count());
+        Mail::assertSent(SponsorCreditsReadyMail::class, 2);
+    }
+
     public function test_failing_cancel_cascade_keeps_cancel_and_marks_processed(): void
     {
         $this->send($this->payload('created', 'T_monthly'))->assertOk();

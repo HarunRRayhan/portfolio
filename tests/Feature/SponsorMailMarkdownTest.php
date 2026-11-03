@@ -28,6 +28,13 @@ class SponsorMailMarkdownTest extends TestCase
         }
     }
 
+    public function test_inline_code_value_with_line_break_stays_code(): void
+    {
+        $html = (new ScanRequestedMail('Ann', "a@example.test\n\n[x](https://evil.test)", 'https://github.com/a/b'))->render();
+
+        $this->assertStringNotContainsString('href="https://evil.test"', $html);
+    }
+
     public function test_scan_mail_keeps_repo_url_and_notes_readable(): void
     {
         $html = (new ScanRequestedMail('Ann', 'a_b@example.test', 'https://github.com/a/b_c', 'Check [x](https://evil.test)'))->render();

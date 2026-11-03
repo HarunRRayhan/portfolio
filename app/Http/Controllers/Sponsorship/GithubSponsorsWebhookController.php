@@ -130,6 +130,7 @@ class GithubSponsorsWebhookController extends Controller
             $who = ['id' => $existing->github_sponsor_id, 'login' => $existing->github_login];
         }
 
+        $creditsBefore = $existing ? $existing->credits()->count() : 0;
         $s = $credits->recordSponsorship([
             'github_sponsor_id' => $who['id'],
             'github_login' => $who['login'],
@@ -143,7 +144,9 @@ class GithubSponsorsWebhookController extends Controller
             'github_sponsorship_node_id' => $nodeId,
         ]);
 
-        return $action === 'created' && $slug ? fn () => $this->notify($s, $who['login'], (string) $who['id']) : null;
+        $granted = $s->credits->count() > $creditsBefore;
+
+        return $action === 'created' && $slug && $granted ? fn () => $this->notify($s, $who['login'], (string) $who['id']) : null;
     }
 
     private function notify(GithubSponsorship $s, string $login, string $githubId): void

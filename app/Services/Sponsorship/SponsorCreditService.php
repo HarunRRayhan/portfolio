@@ -33,6 +33,7 @@ class SponsorCreditService
         ];
 
         $nodeId = $attrs['github_sponsorship_node_id'] ?? null;
+        $previousStart = $nodeId ? GithubSponsorship::where('github_sponsorship_node_id', $nodeId)->value('started_at') : null;
         $s = $nodeId
             ? GithubSponsorship::updateOrCreate(['github_sponsorship_node_id' => $nodeId], $values)
             : GithubSponsorship::create($values);
@@ -44,9 +45,15 @@ class SponsorCreditService
         if ($tier && $s->status === GithubSponsorship::STATUS_ACTIVE) {
             if ($s->kind === GithubSponsorship::KIND_MONTHLY) {
                 $this->ensurePeriodCredits($s);
-            } elseif (! $s->credits()->where('period_start', $startedAt->toDateString())->exists()) {
-                $expires = $attrs['expires_at'] ?? $startedAt->copy()->addDays((int) config('sponsors.one_time_days'));
-                $this->grant($s, $tier, $startedAt->toDateString(), Carbon::parse($expires));
+            } else {
+                $period = $startedAt->toDateString();
+                // A repeat purchase moves started_at forward; on the same day it needs slots after the existing ones.
+                $repeat = $previousStart && $startedAt->gt(Carbon::parse($previousStart));
+                $offset = (int) $s->credits()->where('period_start', $period)->max('slot');
+                if ($offset === 0 || $repeat) {
+                    $expires = $attrs['expires_at'] ?? $startedAt->copy()->addDays((int) config('sponsors.one_time_days'));
+                    $this->grant($s, $tier, $period, Carbon::parse($expires), $offset);
+                }
             }
         }
 
@@ -138,10 +145,10 @@ class SponsorCreditService
     }
 
     /** Insert call + scan credits for one period; the unique key makes repeats and races no-ops. */
-    private function grant(GithubSponsorship $s, array $tier, string $periodStart, Carbon $expiresAt): void
+    private function grant(GithubSponsorship $s, array $tier, string $periodStart, Carbon $expiresAt, int $offset = 0): void
     {
         $rows = [];
-        $slot = 0;
+        $slot = $offset;
         foreach ($tier['calls'] as $tierSlug => $count) {
             $tierId = ConsultationTier::query()->where('slug', $tierSlug)->value('id');
             for ($i = 0; $i < $count; $i++) {
@@ -149,7 +156,7 @@ class SponsorCreditService
             }
         }
         for ($i = 1; $i <= ($tier['scans'] ?? 0); $i++) {
-            $rows[] = $this->row($s, ConsultationCredit::KIND_SCAN, null, $i, $periodStart, $expiresAt);
+            $rows[] = $this->row($s, ConsultationCredit::KIND_SCAN, null, $offset + $i, $periodStart, $expiresAt);
         }
 
         ConsultationCredit::query()->insertOrIgnore($rows);
