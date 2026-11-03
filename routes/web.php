@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\Consultation\BookingController as ConsultationBoo
 use App\Http\Controllers\Admin\Consultation\CouponController as ConsultationCouponController;
 use App\Http\Controllers\Admin\Consultation\GoogleOAuthController as ConsultationGoogleOAuthController;
 use App\Http\Controllers\Admin\ContactSubmissionController as AdminContactSubmissionController;
+use App\Http\Controllers\Admin\SponsorshipController as AdminSponsorshipController;
 use App\Http\Controllers\Admin\MediaItemController;
 use App\Http\Controllers\Admin\MediumCrosspostController;
 use App\Http\Controllers\Admin\NewsletterController as AdminNewsletterController;
@@ -272,6 +273,16 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::get('/', [AdminContactSubmissionController::class, 'index'])->name('index');
         Route::patch('/{submission}', [AdminContactSubmissionController::class, 'update'])->where('submission', '[0-9]{1,18}')->name('update');
         Route::delete('/{submission}', [AdminContactSubmissionController::class, 'destroy'])->where('submission', '[0-9]{1,18}')->name('destroy');
+    });
+
+// GitHub Sponsors: list, manual grants, revoke
+Route::middleware(['auth', 'verified', 'role:admin'])
+    ->prefix('admin/sponsorships')
+    ->name('admin.sponsorships.')
+    ->group(function () {
+        Route::get('/', [AdminSponsorshipController::class, 'index'])->name('index');
+        Route::post('/', [AdminSponsorshipController::class, 'store'])->name('store');
+        Route::post('/{sponsorship}/revoke', [AdminSponsorshipController::class, 'revoke'])->where('sponsorship', '[0-9]{1,18}')->name('revoke');
     });
 
 // Paid consultation admin
