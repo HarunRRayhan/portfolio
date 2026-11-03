@@ -8,6 +8,7 @@ use App\Models\ConsultationCoupon;
 use App\Models\ConsultationSetting;
 use App\Models\ConsultationStripeCheckoutAttempt;
 use App\Models\ConsultationTier;
+use App\Services\Sponsorship\SponsorCreditService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -22,6 +23,7 @@ class BookingWorkflowService
         protected ConsultationNotificationService $notifications,
         protected ConsultationGoogleOperationService $googleOperations,
         protected ConsultationLaunchPromotionService $launchPromotion,
+        protected SponsorCreditService $credits,
     ) {}
 
     /**
@@ -438,6 +440,10 @@ class BookingWorkflowService
             ], $e);
 
             throw $e;
+        }
+
+        if (! $result['reschedule']) {
+            $this->credits->releaseForBooking($result['booking']);
         }
 
         $this->notifications->deliverDueForBooking($result['booking']->id);
@@ -1233,6 +1239,34 @@ class BookingWorkflowService
         return $booking;
     }
 
+    /** System cancel when a sponsorship ends: no owner mail, then the normal approve path. */
+    public function cancelForSponsorEnd(ConsultationBooking $booking): ConsultationBooking
+    {
+        $booking = DB::transaction(function () use ($booking) {
+            $booking = ConsultationBooking::query()->lockForUpdate()->findOrFail($booking->id);
+
+            if (in_array($booking->status, [
+                ConsultationBooking::STATUS_CANCELLED,
+                ConsultationBooking::STATUS_DECLINED,
+                ConsultationBooking::STATUS_EXPIRED,
+            ], true)) {
+                return $booking;
+            }
+
+            if ($booking->status !== ConsultationBooking::STATUS_CANCEL_REQUESTED) {
+                $booking->status = ConsultationBooking::STATUS_CANCEL_REQUESTED;
+                $booking->save();
+                $booking->recordEvent('sponsor_ended', 'system');
+            }
+
+            return $booking->fresh(['tier']);
+        });
+
+        return $booking->status === ConsultationBooking::STATUS_CANCEL_REQUESTED
+            ? $this->approveCancel($booking)
+            : $booking;
+    }
+
     public function approveCancel(ConsultationBooking $booking): ConsultationBooking
     {
         try {
@@ -1327,6 +1361,7 @@ class BookingWorkflowService
                 return $booking->fresh(['tier']);
             });
 
+            $this->credits->releaseForBooking($booking);
             $this->notifications->deliverDueForBooking($booking->id);
 
             return $booking;
