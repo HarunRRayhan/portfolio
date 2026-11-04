@@ -90,6 +90,7 @@ const skillGroups: { title: string; skills: [string, string][] }[] = [
             ["database-review", "Queries, indexes, migrations, backups, connections, and bloat."],
             ["app-security-review", "Your app's code: IDOR, injection, secrets, CSRF, security logging, and vulnerable dependencies. Every finding needs a working exploit."],
             ["performance-review", "Per-request cost today: N+1 queries, unbounded queries, slow work in the request path, caching, and bundle size."],
+            ["cve-review", "Known CVEs in your dependencies, checked against your code for reach, plus software that will collect them: end-of-life runtimes and frameworks, old base images, unsupported cloud versions, vendored libraries, and no update process."],
             ["pipeline-security-review", "CI/CD and supply chain: GitHub Actions pwn requests and injection, unpinned actions, Dockerfiles, IaC, and lockfiles."],
             ["architecture-review", "Finds the pattern your code uses (MVC, layered, CQRS, hexagonal, modular monolith, microservices) and checks it is followed: fat controllers, mixed CQRS sides, layer leaks, cycles, god classes."],
             ["frontend-review", "React, Next, Vue, Svelte, Angular, or Inertia: components, data fetching, re-renders, accessibility, forms, bundle, and SEO basics."],
@@ -358,7 +359,7 @@ export default function RayStack({ stars, version }: { stars?: number | null; ve
                 </section>
 
                 <section aria-labelledby="skills" className="border-b border-[#dedfd8] dark:border-slate-800 py-14 sm:py-16">
-                    <SectionHeading id="skills" eyebrow="Skills" title="Thirty-one skills, three groups" />
+                    <SectionHeading id="skills" eyebrow="Skills" title="Thirty-two skills, three groups" />
                     <p className="mt-4 max-w-2xl text-sm leading-6 text-[#686b65] dark:text-slate-400">
                         <code className="font-mono">/raystack</code> is the front door, with two entry points behind it:{" "}
                         <code className="font-mono">/dev</code> for building and <code className="font-mono">/audit</code> for reviews. For build work it
@@ -451,7 +452,7 @@ export default function RayStack({ stars, version }: { stars?: number | null; ve
                     <div className="mt-6 min-w-0">
                         <CodeBlock code={uninstallCommand + "\nrm -rf ~/.raystack ~/.raystack-installs"} label="uninstall" prompt={uninstallPrompt} />
                         <p className="mt-2 text-xs leading-5 text-[#686b65] dark:text-slate-400">
-                            Removes exactly the thirty-one RayStack skills from every agent it finds, then the checkout.
+                            Removes exactly the thirty-two RayStack skills from every agent it finds, then the checkout.
                             For a project install, run the first line with --project . in the repo instead.
                         </p>
                     </div>
