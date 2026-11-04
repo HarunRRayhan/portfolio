@@ -11,55 +11,47 @@ const focusRing =
 
 const getSh = "curl -fsSL https://raw.githubusercontent.com/HarunRRayhan/RayStack/main/get.sh | bash"
 
-const projectCommand = getSh + " -s -- --project ."
 // An agent can't answer the per-agent questions, so its prompts add --yes.
 const globalPrompt = "Install RayStack globally: run `" + getSh + " -s -- --yes`, then tell me which agents it installed for."
-const projectPrompt = "Install RayStack into this project: run `" + getSh + " -s -- --yes --project .`, then show me the new skills folders."
 
-type AgentInstall = { name: string; flag: string; global: string; project: string; extra?: string }
+type AgentInstall = { name: string; flag: string; logo: string; global: string; project: string; extra?: string; promptOnly?: string }
 
 // Folders match install.sh's agent table in the RayStack repo.
 const agentInstalls: AgentInstall[] = [
-    { name: "Claude Code", flag: "claude", global: "~/.claude/skills", project: ".claude/skills", extra: "Plugin instead: claude plugin marketplace add HarunRRayhan/RayStack, then claude plugin install raystack@raystack. Use the script or the plugin, not both. Only Claude Code enforces the read-only review guard." },
-    { name: "Codex", flag: "codex", global: "~/.agents/skills", project: ".agents/skills", extra: "Plugin instead: codex plugin marketplace add HarunRRayhan/RayStack, then codex plugin add raystack@raystack." },
-    { name: "Cursor", flag: "cursor", global: "~/.cursor/skills", project: ".cursor/skills" },
-    { name: "Grok Build", flag: "grok", global: "~/.grok/skills", project: ".claude/skills", extra: "Grok also reads ~/.claude/skills and ~/.cursor/skills, so a Claude Code or Cursor install already covers it. Plugin instead: grok plugin install HarunRRayhan/RayStack --trust." },
-    { name: "Antigravity", flag: "antigravity", global: "~/.gemini/antigravity/skills", project: ".agents/skills" },
-    { name: "Gemini CLI", flag: "gemini", global: "~/.gemini/skills", project: ".agents/skills" },
-    { name: "GitHub Copilot", flag: "copilot", global: "~/.copilot/skills", project: ".agents/skills" },
-    { name: "Windsurf", flag: "windsurf", global: "~/.codeium/windsurf/skills", project: ".windsurf/skills" },
-    { name: "Cline", flag: "cline", global: "~/.agents/skills", project: ".agents/skills" },
-    { name: "Kiro", flag: "kiro", global: "~/.kiro/skills", project: ".kiro/skills" },
-    { name: "Roo Code", flag: "roo", global: "~/.roo/skills", project: ".roo/skills" },
-    { name: "Kilo Code", flag: "kilo", global: "~/.kilo/skills", project: ".agents/skills" },
-    { name: "Amp", flag: "amp", global: "~/.config/agents/skills", project: ".agents/skills" },
-    { name: "Goose", flag: "goose", global: "~/.config/goose/skills", project: ".goose/skills" },
-    { name: "OpenCode", flag: "opencode", global: "~/.config/opencode/skills", project: ".opencode/skills" },
-    { name: "Qwen Code", flag: "qwen", global: "~/.qwen/skills", project: ".qwen/skills" },
-    { name: "Trae", flag: "trae", global: "~/.trae/skills", project: ".trae/skills" },
-    { name: "Junie", flag: "junie", global: "~/.junie/skills", project: ".junie/skills" },
-    { name: "Augment", flag: "augment", global: "~/.augment/skills", project: ".augment/skills" },
-    { name: "Warp", flag: "warp", global: "~/.agents/skills", project: ".agents/skills" },
-    { name: "Zed", flag: "zed", global: "~/.agents/skills", project: ".agents/skills" },
-    { name: "OpenHands", flag: "openhands", global: "~/.openhands/skills", project: ".openhands/skills" },
-    { name: "Continue", flag: "continue", global: "~/.continue/skills", project: ".continue/skills" },
+    { name: "Claude Code", flag: "claude", logo: "claude", global: "~/.claude/skills", project: ".claude/skills", extra: "Plugin instead: claude plugin marketplace add HarunRRayhan/RayStack, then claude plugin install raystack@raystack. Use the script or the plugin, not both. Only Claude Code enforces the read-only review guard." },
+    { name: "Claude (desktop app)", flag: "claude", logo: "claude", global: "~/.claude/skills", project: ".claude/skills", promptOnly: "Paste into the Code tab of the Claude desktop app, which is Claude Code. The skills go to ~/.claude/skills." },
+    { name: "Codex", flag: "codex", logo: "codex", global: "~/.agents/skills", project: ".agents/skills", extra: "Plugin instead: codex plugin marketplace add HarunRRayhan/RayStack, then codex plugin add raystack@raystack." },
+    { name: "ChatGPT (desktop app)", flag: "codex", logo: "chatgpt", global: "~/.agents/skills", project: ".agents/skills", promptOnly: "Paste into Codex in the ChatGPT desktop app. The skills go to ~/.agents/skills." },
+    { name: "Cursor", flag: "cursor", logo: "cursor", global: "~/.cursor/skills", project: ".cursor/skills" },
+    { name: "Grok Build", flag: "grok", logo: "grok", global: "~/.grok/skills", project: ".claude/skills", extra: "Grok also reads ~/.claude/skills and ~/.cursor/skills, so a Claude Code or Cursor install already covers it. Plugin instead: grok plugin install HarunRRayhan/RayStack --trust." },
+    { name: "Antigravity", flag: "antigravity", logo: "antigravity", global: "~/.gemini/antigravity/skills", project: ".agents/skills" },
+    { name: "Gemini CLI", flag: "gemini", logo: "gemini", global: "~/.gemini/skills", project: ".agents/skills" },
+    { name: "GitHub Copilot", flag: "copilot", logo: "copilot", global: "~/.copilot/skills", project: ".agents/skills" },
+    { name: "Windsurf", flag: "windsurf", logo: "windsurf", global: "~/.codeium/windsurf/skills", project: ".windsurf/skills" },
+    { name: "Cline", flag: "cline", logo: "cline", global: "~/.agents/skills", project: ".agents/skills" },
+    { name: "Kiro", flag: "kiro", logo: "kiro", global: "~/.kiro/skills", project: ".kiro/skills" },
+    { name: "Roo Code", flag: "roo", logo: "roo", global: "~/.roo/skills", project: ".roo/skills" },
+    { name: "Kilo Code", flag: "kilo", logo: "kilo", global: "~/.kilo/skills", project: ".agents/skills" },
+    { name: "Amp", flag: "amp", logo: "amp", global: "~/.config/agents/skills", project: ".agents/skills" },
+    { name: "Goose", flag: "goose", logo: "goose", global: "~/.config/goose/skills", project: ".goose/skills" },
+    { name: "OpenCode", flag: "opencode", logo: "opencode", global: "~/.config/opencode/skills", project: ".opencode/skills" },
+    { name: "Qwen Code", flag: "qwen", logo: "qwen", global: "~/.qwen/skills", project: ".qwen/skills" },
+    { name: "Trae", flag: "trae", logo: "trae", global: "~/.trae/skills", project: ".trae/skills" },
+    { name: "Junie", flag: "junie", logo: "junie", global: "~/.junie/skills", project: ".junie/skills" },
+    { name: "Augment", flag: "augment", logo: "augment", global: "~/.augment/skills", project: ".augment/skills" },
+    { name: "Warp", flag: "warp", logo: "warp", global: "~/.agents/skills", project: ".agents/skills" },
+    { name: "Zed", flag: "zed", logo: "zed", global: "~/.agents/skills", project: ".agents/skills" },
+    { name: "OpenHands", flag: "openhands", logo: "openhands", global: "~/.openhands/skills", project: ".openhands/skills" },
+    { name: "Continue", flag: "continue", logo: "continue", global: "~/.continue/skills", project: ".continue/skills" },
 ]
 
-const agentPrompts = (a: AgentInstall) => {
-    const globalCmd = getSh + " -s -- --agent " + a.flag
-    const projectCmd = globalCmd + " --project ."
-    return [
-        {
-            label: "Global",
-            code: globalCmd,
-            prompt: "Install RayStack globally for " + a.name + ": run `" + globalCmd + "`, then tell me what it printed."
-        },
-        {
-            label: "This project",
-            code: projectCmd,
-            prompt: "Install RayStack into this project for " + a.name + ": run `" + projectCmd + "`, then show me the new " + a.project + " folder."
-        }
-    ]
+const agentInstall = (a: AgentInstall) => {
+    const command = getSh + " -s -- --agent " + a.flag
+    const app = a.name.replace(/ \(.*\)$/, "")
+    return {
+        command,
+        prompt: "Install RayStack " + (a.promptOnly ? "for " : "globally for ") + app + ": run `" + command + "`, then tell me what it printed."
+    }
 }
 
 const maintenance = [
@@ -87,7 +79,7 @@ const skillGroups: { title: string; skills: [string, string][] }[] = [
     {
         title: "Reviews",
         skills: [
-            ["raystack", "The entry point. Picks the reviews that fit this repo and runs them, or runs a whole scan: security, performance, scalability, reliability, architecture, code, frontend, infra, aws, database, or all."],
+            ["audit", "The entry point for reviews, as dev is for building. /audit picks the reviews that fit this repo and runs them; /audit security runs one; /audit all runs a scan of every review that fits and writes one ranked summary."],
             ["aws-billing-review", "AWS spend, with savings ranked in $/mo."],
             ["aws-security-review", "IAM, public exposure, logging, and secrets on AWS."],
             ["aws-bottleneck-review", "Throttling, limits, quotas, and single points on the request path."],
@@ -268,7 +260,7 @@ export default function RayStack({ stars, version }: { stars?: number | null; ve
                     </p>
                     <div className="mt-8 grid gap-8">
                         <div className="min-w-0">
-                            <h3 className="mb-3 text-base font-semibold">Every agent on your machine</h3>
+                            <h3 className="mb-3 text-base font-semibold">Global: every agent on your machine</h3>
                             <CodeBlock code={getSh} label="global install" prompt={globalPrompt} />
                             <p className="mt-2 text-xs leading-5 text-[#686b65] dark:text-slate-400">
                                 Run the command in a terminal: it finds the coding agents on your machine and asks, for
@@ -277,43 +269,42 @@ export default function RayStack({ stars, version }: { stars?: number | null; ve
                                 and type /raystack.
                             </p>
                         </div>
-                        <div className="min-w-0">
-                            <h3 className="mb-3 text-base font-semibold">Into one project</h3>
-                            <CodeBlock code={projectCommand} label="project install" prompt={projectPrompt} />
-                            <p className="mt-2 text-xs leading-5 text-[#686b65] dark:text-slate-400">
-                                Run it in the repo. The skills go into the repo; commit them so everyone who clones it
-                                gets RayStack.
-                            </p>
-                        </div>
                     </div>
 
-                    <h3 className="mt-12 text-base font-semibold">One agent</h3>
+                    <h3 className="mt-12 text-base font-semibold">Agents</h3>
                     <p className="mt-2 max-w-2xl text-sm leading-6 text-[#686b65] dark:text-slate-400">
-                        Open your agent for its own commands. Copy the command for a terminal, or copy it for your AI agent.
+                        Open yours for its command, or copy it as a prompt for your AI agent. Install for as many agents as you use; add --project . to install into one repo.
                     </p>
                     <div className="mt-4 divide-y divide-[#dedfd8] overflow-hidden rounded-xl border border-[#dedfd8] bg-[#fffefa] dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
                         {agentInstalls.map((a) => (
-                            <details key={a.flag} className="group">
+                            <details key={a.name} className="group">
                                 <summary
                                     className={cn(
                                         "flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-5 py-3 text-sm font-medium hover:bg-[#f4f4ef] dark:hover:bg-slate-800 [&::-webkit-details-marker]:hidden",
                                         focusRing
                                     )}
                                 >
-                                    {a.name}
+                                    <span className="flex items-center gap-3">
+                                        <img src={`/images/products/agents/${a.logo}.png`} alt="" width="20" height="20" loading="lazy" className="h-5 w-5 rounded" />
+                                        {a.name}
+                                    </span>
                                     <ChevronDown aria-hidden="true" className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180" />
                                 </summary>
                                 <div className="grid gap-5 px-5 pb-6 pt-2">
-                                    {agentPrompts(a).map((p) => (
-                                        <div key={p.label} className="min-w-0">
-                                            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#686b65] dark:text-slate-400">{p.label}</p>
-                                            <CodeBlock code={p.code} label={`${a.name} ${p.label}`} prompt={p.prompt} />
+                                    {a.promptOnly ? (
+                                        <div className="min-w-0">
+                                            <CodeBlock code={agentInstall(a).prompt} label={`${a.name} prompt`} />
+                                            <p className="mt-2 text-xs leading-5 text-[#686b65] dark:text-slate-400">{a.promptOnly}</p>
                                         </div>
-                                    ))}
-                                    <p className="text-xs leading-5 text-[#686b65] dark:text-slate-400">
-                                        Global folder <code className="font-mono">{a.global}</code>, project folder{" "}
-                                        <code className="font-mono">{a.project}</code>.{a.extra ? ` ${a.extra}` : ""}
-                                    </p>
+                                    ) : (
+                                        <div className="min-w-0">
+                                            <CodeBlock code={agentInstall(a).command} label={a.name} prompt={agentInstall(a).prompt} />
+                                            <p className="mt-2 text-xs leading-5 text-[#686b65] dark:text-slate-400">
+                                                Global folder <code className="font-mono">{a.global}</code>, project folder{" "}
+                                                <code className="font-mono">{a.project}</code>.{a.extra ? ` ${a.extra}` : ""}
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             </details>
                         ))}
@@ -336,7 +327,7 @@ export default function RayStack({ stars, version }: { stars?: number | null; ve
                                 ))}
                                 <p className="text-xs leading-5 text-[#686b65] dark:text-slate-400">
                                     Or type /raystack update in your agent. Update refreshes every global and project
-                                    install; uninstall removes exactly the thirty skills.
+                                    install; uninstall removes exactly the thirty-one skills.
                                 </p>
                             </div>
                         </details>
@@ -344,18 +335,19 @@ export default function RayStack({ stars, version }: { stars?: number | null; ve
                 </section>
 
                 <section aria-labelledby="skills" className="border-b border-[#dedfd8] dark:border-slate-800 py-14 sm:py-16">
-                    <SectionHeading id="skills" eyebrow="Skills" title="Thirty skills, three groups" />
+                    <SectionHeading id="skills" eyebrow="Skills" title="Thirty-one skills, three groups" />
                     <p className="mt-4 max-w-2xl text-sm leading-6 text-[#686b65] dark:text-slate-400">
-                        <code className="font-mono">/raystack</code> is the one entry point. For build work it
+                        <code className="font-mono">/raystack</code> is the front door, with two entry points behind it:{" "}
+                        <code className="font-mono">/dev</code> for building and <code className="font-mono">/audit</code> for reviews. For build work it
                         hands off to <code className="font-mono">dev</code>, which picks the smallest track that
                         fits, from a quick bug fix to a full product. <code className="font-mono">/raystack project new</code>{" "}
                         starts a product with a short questionnaire, one question at a time, then research, PRD,
                         architecture, specs and a plan. <code className="font-mono">project update</code>,{" "}
                         <code className="font-mono">project review</code> and <code className="font-mono">project migrate</code>{" "}
-                        work on an existing codebase. For reviews it looks at the repo, recommends
-                        reviews, and asks once which ones to run. Or say what you want, like{" "}
-                        <code className="font-mono">/raystack review cqrs</code> or <code className="font-mono">review reliability</code>. <code className="font-mono">/raystack scan all</code>{" "}
-                        runs every review that fits and writes one ranked summary. You can also call any skill directly. Principles
+                        work on an existing codebase. For reviews, <code className="font-mono">/audit</code> looks at the repo,
+                        recommends reviews, and asks once which ones to run. Or say what you want, like{" "}
+                        <code className="font-mono">/audit cqrs</code> or <code className="font-mono">/audit reliability</code>.{" "}
+                        <code className="font-mono">/audit all</code> runs every review that fits and writes one ranked summary. You can also call any skill directly. Principles
                         load on their own when a task matches.
                     </p>
                     {skillGroups.map((group) => (
