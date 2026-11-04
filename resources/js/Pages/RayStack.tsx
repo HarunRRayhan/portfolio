@@ -24,6 +24,7 @@ const agentInstalls: AgentInstall[] = [
     { name: "ChatGPT (desktop app)", flag: "codex", logo: "chatgpt", global: "~/.agents/skills", project: ".agents/skills", promptOnly: "Paste into Codex in the ChatGPT desktop app. The skills go to ~/.agents/skills." },
     { name: "Cursor", flag: "cursor", logo: "cursor", global: "~/.cursor/skills", project: ".cursor/skills" },
     { name: "Grok Build", flag: "grok", logo: "grok", global: "~/.grok/skills", project: ".claude/skills", extra: "Grok also reads ~/.claude/skills and ~/.cursor/skills, so a Claude Code or Cursor install already covers it. Plugin instead: grok plugin install HarunRRayhan/RayStack --trust." },
+    { name: "Grok (app)", flag: "grok", logo: "grok", global: "~/.grok/skills", project: ".claude/skills", promptOnly: "Paste into the Grok app, where it can run commands on your machine. The skills go to ~/.grok/skills, which Grok Build reads too." },
     { name: "Antigravity", flag: "antigravity", logo: "antigravity", global: "~/.gemini/antigravity/skills", project: ".agents/skills" },
     { name: "Gemini CLI", flag: "gemini", logo: "gemini", global: "~/.gemini/skills", project: ".agents/skills" },
     { name: "GitHub Copilot", flag: "copilot", logo: "copilot", global: "~/.copilot/skills", project: ".agents/skills" },
@@ -43,6 +44,7 @@ const agentInstalls: AgentInstall[] = [
     { name: "Zed", flag: "zed", logo: "zed", global: "~/.agents/skills", project: ".agents/skills" },
     { name: "OpenHands", flag: "openhands", logo: "openhands", global: "~/.openhands/skills", project: ".openhands/skills" },
     { name: "Continue", flag: "continue", logo: "continue", global: "~/.continue/skills", project: ".continue/skills" },
+    { name: "OpenClaw (Clawdbot)", flag: "openclaw", logo: "openclaw", global: "~/.openclaw/skills", project: "skills", extra: "Still on the old name? Use --agent clawdbot or --agent moltbot." },
 ]
 
 const agentInstall = (a: AgentInstall) => {
@@ -54,11 +56,11 @@ const agentInstall = (a: AgentInstall) => {
     }
 }
 
-const maintenance = [
-    { label: "Update", code: "~/.raystack/install.sh --update" },
-    { label: "Uninstall", code: "~/.raystack/install.sh --uninstall --agent all" },
-    { label: "Any other agent", code: "~/.raystack/install.sh --agent custom --dir /path/to/its/skills" }
-]
+const updateCommand = "~/.raystack/install.sh --update"
+const updatePrompt = "Update RayStack: run `" + updateCommand + "`, then tell me the new version."
+const uninstallCommand = "~/.raystack/install.sh --uninstall --agent all"
+const uninstallPrompt = "Uninstall RayStack: run `" + uninstallCommand + "`, then delete ~/.raystack and ~/.raystack-installs and tell me what was removed."
+const customCommand = "~/.raystack/install.sh --agent custom --dir /path/to/its/skills"
 
 const skillGroups: { title: string; skills: [string, string][] }[] = [
     {
@@ -108,7 +110,7 @@ const skillGroups: { title: string; skills: [string, string][] }[] = [
     }
 ]
 
-function CodeBlock({ code, label, prompt }: { code: string; label: string; prompt?: string }) {
+function CodeBlock({ code, label, prompt, promptFirst = false }: { code: string; label: string; prompt?: string; promptFirst?: boolean }) {
     const [copied, setCopied] = useState<"" | "command" | "prompt">("")
 
     async function copy(text: string, which: "command" | "prompt") {
@@ -130,18 +132,25 @@ function CodeBlock({ code, label, prompt }: { code: string; label: string; promp
         <div className="relative min-w-0 max-w-full rounded-lg bg-[#242821] text-[#f4f4ef] dark:ring-1 dark:ring-slate-700">
             {/* Long commands wrap inside the block; copy still takes the exact text. */}
             <pre className={cn("whitespace-pre-wrap p-4 font-mono text-[13px] leading-6 [overflow-wrap:anywhere]", !prompt && "pr-14")}>
-                <code>{code}</code>
+                <code>{promptFirst && prompt ? prompt : code}</code>
             </pre>
             {prompt ? (
                 <div className="flex flex-wrap gap-2 border-t border-white/10 px-4 py-3">
-                    <button type="button" onClick={() => copy(code, "command")} aria-label={`Copy the ${label} command`} className={pill}>
-                        {copied === "command" ? <Check aria-hidden="true" className="h-3.5 w-3.5" /> : <Copy aria-hidden="true" className="h-3.5 w-3.5" />}
-                        Copy command
-                    </button>
-                    <button type="button" onClick={() => copy(prompt, "prompt")} aria-label={`Copy the ${label} prompt for an AI agent`} className={pill}>
-                        {copied === "prompt" ? <Check aria-hidden="true" className="h-3.5 w-3.5" /> : <Copy aria-hidden="true" className="h-3.5 w-3.5" />}
-                        Copy for AI agent
-                    </button>
+                    {(promptFirst
+                        ? [
+                              { which: "prompt" as const, text: prompt, title: "Copy prompt", aria: `Copy the ${label} prompt for an AI agent` },
+                              { which: "command" as const, text: code, title: "Copy command", aria: `Copy the ${label} command` }
+                          ]
+                        : [
+                              { which: "command" as const, text: code, title: "Copy command", aria: `Copy the ${label} command` },
+                              { which: "prompt" as const, text: prompt, title: "Copy for AI agent", aria: `Copy the ${label} prompt for an AI agent` }
+                          ]
+                    ).map((b) => (
+                        <button key={b.which} type="button" onClick={() => copy(b.text, b.which)} aria-label={b.aria} className={pill}>
+                            {copied === b.which ? <Check aria-hidden="true" className="h-3.5 w-3.5" /> : <Copy aria-hidden="true" className="h-3.5 w-3.5" />}
+                            {b.title}
+                        </button>
+                    ))}
                 </div>
             ) : (
                 <button
@@ -291,20 +300,18 @@ export default function RayStack({ stars, version }: { stars?: number | null; ve
                                     <ChevronDown aria-hidden="true" className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180" />
                                 </summary>
                                 <div className="grid gap-5 px-5 pb-6 pt-2">
-                                    {a.promptOnly ? (
-                                        <div className="min-w-0">
-                                            <CodeBlock code={agentInstall(a).prompt} label={`${a.name} prompt`} />
-                                            <p className="mt-2 text-xs leading-5 text-[#686b65] dark:text-slate-400">{a.promptOnly}</p>
-                                        </div>
-                                    ) : (
-                                        <div className="min-w-0">
-                                            <CodeBlock code={agentInstall(a).command} label={a.name} prompt={agentInstall(a).prompt} />
-                                            <p className="mt-2 text-xs leading-5 text-[#686b65] dark:text-slate-400">
-                                                Global folder <code className="font-mono">{a.global}</code>, project folder{" "}
-                                                <code className="font-mono">{a.project}</code>.{a.extra ? ` ${a.extra}` : ""}
-                                            </p>
-                                        </div>
-                                    )}
+                                    <div className="min-w-0">
+                                        <CodeBlock code={agentInstall(a).command} label={a.name} prompt={agentInstall(a).prompt} promptFirst />
+                                        <p className="mt-2 text-xs leading-5 text-[#686b65] dark:text-slate-400">
+                                            {a.promptOnly ?? (
+                                                <>
+                                                    Global folder <code className="font-mono">{a.global}</code>, project folder{" "}
+                                                    <code className="font-mono">{a.project}</code> (add --project . to the command).
+                                                    {a.extra ? ` ${a.extra}` : ""}
+                                                </>
+                                            )}
+                                        </p>
+                                    </div>
                                 </div>
                             </details>
                         ))}
@@ -315,22 +322,38 @@ export default function RayStack({ stars, version }: { stars?: number | null; ve
                                     focusRing
                                 )}
                             >
-                                Update, uninstall and other agents
+                                <span className="flex items-center gap-3">
+                                    <span aria-hidden="true" className="flex h-5 w-5 items-center justify-center rounded bg-[#e8e9e3] text-xs dark:bg-slate-700">+</span>
+                                    Any other agent
+                                </span>
                                 <ChevronDown aria-hidden="true" className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180" />
                             </summary>
                             <div className="grid gap-5 px-5 pb-6 pt-2">
-                                {maintenance.map((m) => (
-                                    <div key={m.label} className="min-w-0">
-                                        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#686b65] dark:text-slate-400">{m.label}</p>
-                                        <CodeBlock code={m.code} label={m.label} />
-                                    </div>
-                                ))}
-                                <p className="text-xs leading-5 text-[#686b65] dark:text-slate-400">
-                                    Or type /raystack update in your agent. Update refreshes every global and project
-                                    install; uninstall removes exactly the thirty-one skills.
-                                </p>
+                                <div className="min-w-0">
+                                    <CodeBlock
+                                        code={customCommand}
+                                        label="any other agent"
+                                        prompt={"Install RayStack for my agent: run `" + getSh + "` once, then `" + customCommand + "` with the folder my agent reads skills from, and tell me what it printed."}
+                                        promptFirst
+                                    />
+                                    <p className="mt-2 text-xs leading-5 text-[#686b65] dark:text-slate-400">
+                                        Replace the folder with the one your agent reads skills from.
+                                    </p>
+                                </div>
                             </div>
                         </details>
+                    </div>
+                </section>
+
+                <section aria-labelledby="update" className="border-b border-[#dedfd8] dark:border-slate-800 py-14 sm:py-16">
+                    <SectionHeading id="update" eyebrow="Update" title="Get the latest release" />
+                    <div className="mt-6 min-w-0">
+                        <CodeBlock code={updateCommand} label="update" prompt={updatePrompt} />
+                        <p className="mt-2 text-xs leading-5 text-[#686b65] dark:text-slate-400">
+                            Or type /raystack update in your agent. It pulls the latest release into ~/.raystack and
+                            refreshes every global and project install made from it. Start a new agent session after.
+                            Plugin installs update through the agent.
+                        </p>
                     </div>
                 </section>
 
@@ -421,6 +444,17 @@ export default function RayStack({ stars, version }: { stars?: number | null; ve
                         No live access? A review still works from your IaC and code, marks those findings
                         unconfirmed, and lists what it needs from you.
                     </p>
+                </section>
+
+                <section aria-labelledby="uninstall" className="border-b border-[#dedfd8] dark:border-slate-800 py-14 sm:py-16">
+                    <SectionHeading id="uninstall" eyebrow="Uninstall" title="Remove RayStack" />
+                    <div className="mt-6 min-w-0">
+                        <CodeBlock code={uninstallCommand + "\nrm -rf ~/.raystack ~/.raystack-installs"} label="uninstall" prompt={uninstallPrompt} />
+                        <p className="mt-2 text-xs leading-5 text-[#686b65] dark:text-slate-400">
+                            Removes exactly the thirty-one RayStack skills from every agent it finds, then the checkout.
+                            For a project install, run the first line with --project . in the repo instead.
+                        </p>
+                    </div>
                 </section>
 
                 <section
