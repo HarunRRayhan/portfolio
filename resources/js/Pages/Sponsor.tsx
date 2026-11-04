@@ -11,6 +11,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { Github } from '@/lib/icons'
 
 type SponsorProps = {
   canonicalUrl?: string
@@ -43,40 +44,44 @@ const supportPoints: SupportPoint[] = [
   },
 ]
 
-function SponsorCard({ sponsorsUrl, contactUrl, contactEmail }: SponsorProps) {
+function SponsorCard({ sponsorsUrl }: SponsorProps) {
   return (
-    <div id="sponsor-checkout" className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.07] p-6 shadow-2xl backdrop-blur sm:p-7">
-      <div className="flex items-center justify-between border-b border-white/10 pb-5">
+    <div id="sponsor-checkout" className="relative overflow-hidden rounded-2xl border border-[#30363d] bg-[#0d1117] p-6 shadow-2xl sm:p-7">
+      <div className="flex items-center justify-between border-b border-[#30363d] pb-5">
         <div className="flex items-center gap-3">
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-amber-400/15 text-amber-300">
-            <Coffee className="h-5 w-5" />
+          <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#161b22] ring-1 ring-[#30363d]">
+            <Github aria-hidden="true" className="h-6 w-6 text-[#e6edf3]" />
           </span>
           <div>
-            <p className="text-sm font-semibold text-white">Support this work</p>
+            <p className="text-sm font-semibold text-[#e6edf3]">GitHub Sponsors</p>
+            <p className="text-xs text-[#8b949e]">Give once or monthly</p>
           </div>
         </div>
-        <Heart className="h-5 w-5 fill-amber-400 text-amber-400" />
+        <Heart aria-hidden="true" className="h-5 w-5 fill-[#db61a2] text-[#db61a2]" />
       </div>
 
-      <p className="mt-6 text-sm leading-6 text-slate-300">
-        Sponsorships run through GitHub Sponsors. Give once or monthly, any amount you like.
+      <p className="mt-6 text-sm leading-6 text-[#c9d1d9]">
+        Sponsorships run through GitHub Sponsors. Pick a tier or any amount you like, and GitHub handles the payment.
       </p>
 
       <a
         href={sponsorsUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-amber-400 px-5 py-3.5 text-sm font-semibold text-slate-950 transition hover:bg-amber-300 focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-400/40"
+        className="mt-6 inline-flex w-full items-center justify-center gap-2.5 rounded-lg border border-[#db61a2]/40 bg-[#bf3989] px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-[#a82e78] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#db61a2]/40"
       >
+        <Github aria-hidden="true" className="h-5 w-5" />
         Sponsor on GitHub
-        <ArrowRight className="h-4 w-4" />
+        <Heart aria-hidden="true" className="h-4 w-4 fill-current" />
       </a>
 
-      <p className="mt-4 text-center text-xs leading-5 text-slate-400">
-        GitHub doesn’t support your payment method? Use the{' '}
-        <a href={contactUrl} className="underline underline-offset-4 hover:text-white">contact page</a> or{' '}
-        <a href={`mailto:${contactEmail}`} className="underline underline-offset-4 hover:text-white">email me</a> and I’ll set it up by hand.
-      </p>
+      <a
+        href="#other-payment-methods"
+        className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#30363d] bg-[#21262d] px-5 py-3 text-sm font-medium text-[#e6edf3] transition hover:border-[#8b949e] hover:bg-[#30363d] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#8b949e]/40"
+      >
+        GitHub doesn’t support my payment method
+        <ArrowRight aria-hidden="true" className="h-4 w-4" />
+      </a>
     </div>
   )
 }
@@ -220,6 +225,57 @@ export default function Sponsor({ sponsorsUrl, contactUrl, contactEmail }: Spons
                 <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{description}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="other-payment-methods" className="scroll-mt-24 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-20 sm:py-24">
+        <div className="container mx-auto">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Another way to pay</p>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">GitHub doesn’t support your payment method?</h2>
+            <p className="mt-4 text-base leading-7 text-slate-500 dark:text-slate-400">
+              GitHub Sponsors depends on the payment methods GitHub accepts in your country. If yours isn’t one of them, you can still sponsor. I’ll set it up with you by hand.
+            </p>
+          </div>
+
+          <ol className="mx-auto mt-12 grid max-w-4xl gap-4 md:grid-cols-3">
+            {[
+              {
+                title: 'Check GitHub first',
+                description: 'Open the sponsor page and go to checkout. If your card, bank or wallet isn’t offered there, carry on to the next step.',
+              },
+              {
+                title: 'Send me a short note',
+                description: 'Use the contact page or email me. Say your country, the amount, whether it is once or monthly, and which payment methods you can use.',
+              },
+              {
+                title: 'I reply with options',
+                description: 'I’ll answer with what can work for your country and we agree on one. I won’t ask for card details over email.',
+              },
+            ].map(({ title, description }, i) => (
+              <li key={title} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-5">
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 dark:bg-white text-xs font-bold text-white dark:text-slate-900">{i + 1}</span>
+                <h3 className="mt-4 text-sm font-semibold text-slate-900 dark:text-white">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{description}</p>
+              </li>
+            ))}
+          </ol>
+
+          <div className="mx-auto mt-10 flex max-w-4xl flex-col gap-3 sm:flex-row sm:justify-center">
+            <a
+              href={contactUrl}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 dark:bg-white px-5 py-3 text-sm font-semibold text-white dark:text-slate-900 transition hover:bg-slate-700 dark:hover:bg-slate-200"
+            >
+              Open the contact page
+              <ArrowRight aria-hidden="true" className="h-4 w-4" />
+            </a>
+            <a
+              href={`mailto:${contactEmail}`}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 dark:border-slate-700 px-5 py-3 text-sm font-semibold text-slate-900 dark:text-white transition hover:bg-slate-50 dark:hover:bg-slate-800"
+            >
+              Email {contactEmail}
+            </a>
           </div>
         </div>
       </section>
