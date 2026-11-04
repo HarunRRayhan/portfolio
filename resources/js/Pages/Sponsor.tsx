@@ -274,7 +274,7 @@ export default function Sponsor({ sponsorsUrl, contactUrl, contactEmail }: Spons
               href={`mailto:${contactEmail}`}
               className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 dark:border-slate-700 px-5 py-3 text-sm font-semibold text-slate-900 dark:text-white transition hover:bg-slate-50 dark:hover:bg-slate-800"
             >
-              Email {contactEmail}
+              Email me
             </a>
           </div>
         </div>
