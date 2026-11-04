@@ -44,6 +44,7 @@ const agentInstalls: AgentInstall[] = [
     { name: "Zed", flag: "zed", logo: "zed", global: "~/.agents/skills", project: ".agents/skills" },
     { name: "OpenHands", flag: "openhands", logo: "openhands", global: "~/.openhands/skills", project: ".openhands/skills" },
     { name: "Continue", flag: "continue", logo: "continue", global: "~/.continue/skills", project: ".continue/skills" },
+    { name: "OpenClaw (Clawdbot)", flag: "openclaw", logo: "openclaw", global: "~/.openclaw/skills", project: "skills", extra: "Still on the old name? Use --agent clawdbot or --agent moltbot." },
 ]
 
 const agentInstall = (a: AgentInstall) => {
