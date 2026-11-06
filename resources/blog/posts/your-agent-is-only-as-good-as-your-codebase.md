@@ -2,7 +2,7 @@
 title: "Your Agent Is Only as Good as Your Codebase"
 slug: "your-agent-is-only-as-good-as-your-codebase"
 brief: "Coding agents copy what they find. In a tangled repo they copy the tangle. Here's why structure changes what an agent writes, and what RayStack's new dev-refactor skill does about it."
-publishedAt: "2099-06-01T18:00:00.000Z"
+publishedAt: "2026-11-07T06:00:00.000Z"
 draft: true
 draftToken: "3c4de12a9b7ab67b0bbe2458c365590a"
 readTimeInMinutes: 7
