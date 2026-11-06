@@ -75,7 +75,9 @@ const skillGroups: { title: string; skills: [string, string][] }[] = [
             ["dev-build", "A fresh agent builds each task and another reviews it. A ledger lets a stopped build resume, then a final review and ship."],
             ["dev-gaps", "For an existing project: finds the missing research, PRD, architecture, specs and plan, then writes them from the code and your answers."],
             ["dev-review", "Mid-build and read-only: checks the architecture, specs and plan against the code for drift, unserved behaviours and over-design."],
-            ["dev-migrate", "Moves part of a project to another stack, say a service to Rust, step by step with parity tests."]
+            ["dev-migrate", "Moves part of a project to another stack, say a service to Rust, step by step with parity tests."],
+            ["dev-refactor", "Refactors a codebase inside the architecture it already follows. Tests first, then DRY, SOLID and change-together fixes in small green steps, reviewed until clean."],
+            ["rs", "A shorter name for /raystack. /rs refactor, /rs scan all and /rs project new all work."]
         ]
     },
     {
@@ -359,7 +361,7 @@ export default function RayStack({ stars, version }: { stars?: number | null; ve
                 </section>
 
                 <section aria-labelledby="skills" className="border-b border-[#dedfd8] dark:border-slate-800 py-14 sm:py-16">
-                    <SectionHeading id="skills" eyebrow="Skills" title="Thirty-two skills, three groups" />
+                    <SectionHeading id="skills" eyebrow="Skills" title="Thirty-four skills, three groups" />
                     <p className="mt-4 max-w-2xl text-sm leading-6 text-[#686b65] dark:text-slate-400">
                         <code className="font-mono">/raystack</code> is the front door, with two entry points behind it:{" "}
                         <code className="font-mono">/dev</code> for building and <code className="font-mono">/audit</code> for reviews. For build work it
@@ -452,7 +454,7 @@ export default function RayStack({ stars, version }: { stars?: number | null; ve
                     <div className="mt-6 min-w-0">
                         <CodeBlock code={uninstallCommand + "\nrm -rf ~/.raystack ~/.raystack-installs"} label="uninstall" prompt={uninstallPrompt} />
                         <p className="mt-2 text-xs leading-5 text-[#686b65] dark:text-slate-400">
-                            Removes exactly the thirty-two RayStack skills from every agent it finds, then the checkout.
+                            Removes exactly the thirty-four RayStack skills from every agent it finds, then the checkout.
                             For a project install, run the first line with --project . in the repo instead.
                         </p>
                     </div>
