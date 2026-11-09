@@ -290,7 +290,7 @@ function SidebarBrand({ compact = false }: { compact?: boolean }) {
     return (
         <a href="/" target="_blank" rel="noopener noreferrer" aria-label={compact ? 'Harun R. Rayhan home' : undefined}
             className={'flex h-14 shrink-0 items-center gap-2 border-b ' + (compact ? 'justify-center px-2' : 'px-4')}>
-            <ApplicationLogo className="block h-8 w-auto fill-current text-foreground" />
+            <ApplicationLogo className="block h-8 w-8" />
             {!compact && <span className="text-sm font-semibold text-foreground">Harun R. Rayhan</span>}
         </a>
     );

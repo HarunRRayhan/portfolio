@@ -40,10 +40,10 @@ screen, directly under Approve and Decline, and is omitted from customer mail.
 The scheduler command `consultations:retry-notifications` only retries a send
 that did not succeed in the request.
 
-The header image is `https://cdn.harun.dev/images/brand/harun-logo-full-email.png`.
-Leave the `logo` class off that image. Laravel's default mail stylesheet sizes
-`.logo` to 75×75. The weekly newsletter keeps the uncropped
-`harun-logo-wordmark-email.png`.
+The header image is `https://cdn.harun.dev/images/brand/harun-logo-email.png`
+(the bio photo, rounded-square PNG with transparent corners). Leave the `logo`
+class off that image. Laravel's default mail stylesheet sizes `.logo` to 75×75.
+The weekly newsletter uses the same file.
 
 Confirm a customer send in Resend: the recipient is the booker's address and
 `last_event` is `delivered`. The owner inbox is not a second copy of that
