@@ -93,6 +93,8 @@ class CrosspostBlogPostsTest extends TestCase
     {
         config(['services.devto.api_key' => 'k']);
         Http::fake();
+        // Pinned: on the real clock, any newly published post enters the 3-7 day window.
+        $this->travelTo('2026-07-20 12:00:00');
 
         $this->artisan('blog:crosspost')->assertSuccessful();
 
