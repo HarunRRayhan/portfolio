@@ -10,7 +10,7 @@ export function HarunBrandMark({ className, ...rest }: ImgHTMLAttributes<HTMLIma
       height={400}
       {...rest}
       src={getImageUrl('/images/profile/harun-bio.jpg')}
-      className={cn('block rounded-full object-cover', className)}
+      className={cn('block rounded-[22%] object-cover', className)}
     />
   )
 }

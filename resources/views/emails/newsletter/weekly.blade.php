@@ -15,7 +15,7 @@
 <body style="margin:0;padding:0;background:#f3f5f7;color:#17212e;font-family:Arial,Helvetica,sans-serif;">
 <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f3f5f7;">
     <tr><td align="center" style="padding:28px 12px;">
-        <a href="{{ $track(rtrim(config('app.url'), '/')) }}" style="display:block;margin:0 0 18px;text-decoration:none;"><img src="https://harun.dev/images/brand/harun-logo-wordmark-email.png" alt="Harun.dev" width="240" height="60" style="display:block;width:240px;height:60px;max-width:100%;border:0;"></a>
+        <a href="{{ $track(rtrim(config('app.url'), '/')) }}" style="display:block;margin:0 0 18px;text-decoration:none;"><img src="https://harun.dev/images/brand/harun-logo-email.png" alt="Harun.dev" width="72" height="72" style="display:block;width:72px;height:72px;border:0;margin:0 auto;"></a>
         <table role="presentation" class="newsletter" cellpadding="0" cellspacing="0" width="720" style="width:720px;max-width:100%;background:#ffffff;border:1px solid #dce2e8;">
             <tr><td class="inset" style="padding:38px 42px 20px;">
                 <h1 style="margin:0 0 12px;color:#17212e;font-size:32px;line-height:1.2;">This week on Harun.dev</h1>

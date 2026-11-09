@@ -264,8 +264,8 @@ class NewsletterSendingTest extends TestCase
         $this->assertStringContainsString('https://harun.dev/images/products/toolblip-email.png', $html);
         $this->assertStringContainsString('https://harun.dev/images/products/crontinel.png', $html);
         $this->assertStringContainsString('A note from X about cron jobs.', $html);
-        $this->assertStringContainsString('https://harun.dev/images/brand/harun-logo-wordmark-email.png', $html);
-        $this->assertTrue(strpos($html, 'harun-logo-wordmark-email.png') < strpos($html, 'class="newsletter"'));
+        $this->assertStringContainsString('https://harun.dev/images/brand/harun-logo-email.png', $html);
+        $this->assertTrue(strpos($html, 'harun-logo-email.png') < strpos($html, 'class="newsletter"'));
         $this->assertTrue(strpos($html, 'Also building') < strpos($html, 'A note from X about cron jobs.'));
         $this->assertTrue(strpos($html, 'A note from X about cron jobs.') < strpos($html, 'Thanks for reading'));
         $this->assertStringContainsString('Browse the blog', $html);

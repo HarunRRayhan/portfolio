@@ -159,7 +159,7 @@ class ConsultationBookingTest extends TestCase
 
         $this->assertSame(['owner@example.com', 'shehab@example.com'], collect(array_keys($byRecipient))->sort()->values()->all());
         $this->assertStringContainsString('Hi Shehab', $byRecipient['shehab@example.com']);
-        $this->assertStringContainsString('harun-logo-full-email.png', $byRecipient['shehab@example.com']);
+        $this->assertStringContainsString('harun-logo-email.png', $byRecipient['shehab@example.com']);
         $this->assertStringContainsString('New consultation request', $byRecipient['owner@example.com']);
         $this->assertStringContainsString('shehab@example.com', $byRecipient['owner@example.com']);
     }
