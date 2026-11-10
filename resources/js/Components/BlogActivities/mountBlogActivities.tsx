@@ -3,6 +3,7 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import AgentContextActivity from '@/Components/BlogActivities/AgentContextActivity'
+import FirecrackerBootActivity from '@/Components/BlogActivities/FirecrackerBootActivity'
 import LanguageRaceActivity from '@/Components/BlogActivities/LanguageRaceActivity'
 import LoadBalancerActivity from '@/Components/BlogActivities/LoadBalancerActivity'
 import PresignedUrlActivity from '@/Components/BlogActivities/PresignedUrlActivity'
@@ -18,6 +19,7 @@ const activities: Record<string, (node: HTMLElement) => ReactNode> = {
   'agent-context': () => <AgentContextActivity />,
   'zero-write-batch': () => <ZeroWriteBatchActivity />,
   'zero-write-alarm': () => <ZeroWriteAlarmActivity />,
+  'firecracker-boot': () => <FirecrackerBootActivity />,
 }
 
 class ActivityBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {

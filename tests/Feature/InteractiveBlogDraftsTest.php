@@ -22,6 +22,7 @@ class InteractiveBlogDraftsTest extends TestCase
             'why-rust-is-faster-than-python-javascript-php-and-go' => 'language-race',
             'agents-md-is-code' => 'agent-context',
             'catch-lambda-jobs-that-succeed-but-write-nothing' => 'zero-write-batch',
+            'build-instant-server-service-firecracker-microvms' => 'firecracker-boot',
         ];
 
         foreach ($expected as $slug => $activity) {
