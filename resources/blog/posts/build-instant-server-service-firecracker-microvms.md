@@ -26,7 +26,7 @@ tags:
 
 <p>I ran into Firecracker before, from the other side. When I wrote about <a href="/blog/lambda-snapstart-terraform-cold-starts">Lambda SnapStart</a> in July, the whole trick turned out to be a snapshot of a Firecracker microVM. So this time I wanted the operator's view: the host, the jail, the network, the snapshot, and the small API that hands you a box, not the SDK.</p>
 
-<p>This post builds a small version of that service end to end. One Linux host, Firecracker v1.18.0 under the jailer, one network namespace per box, a golden snapshot, a warm pool, a persistent <code>/data</code> disk per box, and a TypeScript control plane where <code>POST /boxes</code> claims a VM that's already restored instead of booting one.</p>
+<p>This post builds a small version of that service end to end: one Linux host, Firecracker v1.18.0 under the jailer, one network namespace per box, a golden snapshot, a warm pool, a persistent <code>/data</code> disk per box, and a TypeScript control plane where <code>POST /boxes</code> claims a VM that's already restored instead of booting one.</p>
 
 <p>One caveat before the commands. I wrote this on a Mac, and macOS has no KVM. I checked every command and JSON body against the Firecracker v1.18.0 docs and its OpenAPI spec, and the TypeScript passes <code>tsc --strict</code>. But I haven't run this stack on real KVM hardware. Treat it as a reviewed design, and test it on a metal host before you trust it.</p>
 
@@ -34,7 +34,7 @@ tags:
 
 <p>A container shares the host kernel. Every syscall the agent's code makes lands in the same kernel your control plane runs on, and one kernel bug is a way out. That's fine for code you wrote. It's not fine for code a model wrote five seconds ago, or code a stranger pasted into your free tier.</p>
 
-<p>A Firecracker microVM gets its own guest kernel, and the wall between guest and host is KVM, which is hardware virtualization. The <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/README.md" target="_blank" rel="noopener noreferrer">README</a> says Firecracker "excludes unnecessary devices and guest-facing functionality to reduce the memory footprint and attack surface area of each microVM". Per the <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/docs/design.md" target="_blank" rel="noopener noreferrer">design doc</a>, the guest gets VirtIO net and block, vsock, a serial console, and a partial keyboard controller that only exists so the guest can ask for a reboot.</p>
+<p>A Firecracker microVM gets its own guest kernel, and the wall between guest and host is KVM, which is hardware virtualization. The <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/README.md" target="_blank" rel="noopener noreferrer">README</a> says Firecracker "excludes unnecessary devices and guest-facing functionality to reduce the memory footprint and attack surface area of each microVM", which in practice leaves the guest with VirtIO net and block, vsock, a serial console, and a partial keyboard controller that only exists so the guest can ask for a reboot, per the <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/docs/design.md" target="_blank" rel="noopener noreferrer">design doc</a>.</p>
 
 <p>Then it stacks process-level walls on top. Firecracker installs seccomp filters per thread by default. The <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/docs/jailer.md" target="_blank" rel="noopener noreferrer">jailer</a> puts each VMM process in its own chroot, mount namespace and cgroup, optionally its own network and PID namespace, and drops to an unprivileged uid before it execs Firecracker. The design doc's threat model treats every vCPU thread as "running malicious code as soon as they have been started". That's the stance you want for agent code.</p>
 
@@ -58,9 +58,9 @@ tags:
 
 <p>Firecracker needs read and write access to <code>/dev/kvm</code>. The <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/docs/getting-started.md" target="_blank" rel="noopener noreferrer">getting-started guide</a> suggests a <code>c5.metal</code> with Ubuntu 24.04, and it still says "EC2 only supports KVM on .metal instance types".</p>
 
-<p>That stopped being the whole story in February 2026, when AWS <a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-ec2-nested-virtualization-on-virtual/" target="_blank" rel="noopener noreferrer">launched nested virtualization</a> on virtual instances. The <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/amazon-ec2-nested-virtualization.html" target="_blank" rel="noopener noreferrer">current EC2 docs</a> list M7i, M7i-flex, M8i, M8id, M8i-flex, C7i, C7i-flex, C8i, C8id, C8i-flex, R7i, R7iz, R8i, R8id, R8i-flex, X8i, I7i and I7ie, with KVM and Hyper-V as the supported L1 hypervisors. You turn it on at launch with <code>--cpu-options "NestedVirtualization=enabled"</code>, or on a stopped instance with <code>modify-instance-cpu-options</code>. AWS says there's no extra charge for it. Every family on that list is Intel, so no Graviton yet.</p>
+<p>That stopped being the whole story in February 2026, when AWS <a href="https://aws.amazon.com/about-aws/whats-new/2026/02/amazon-ec2-nested-virtualization-on-virtual/" target="_blank" rel="noopener noreferrer">launched nested virtualization</a> on virtual instances. The <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/amazon-ec2-nested-virtualization.html" target="_blank" rel="noopener noreferrer">current EC2 docs</a> list M7i, M7i-flex, M8i, M8id, M8i-flex, C7i, C7i-flex, C8i, C8id, C8i-flex, R7i, R7iz, R8i, R8id, R8i-flex, X8i, I7i and I7ie, with KVM and Hyper-V as the supported L1 hypervisors. You turn it on at launch with <code>--cpu-options "NestedVirtualization=enabled"</code>, or on a stopped instance with <code>modify-instance-cpu-options</code>. AWS says there's no extra charge for it. Every family on that list is Intel. No Graviton yet.</p>
 
-<p>I'd still run the real fleet on metal, for two reasons. The same AWS page tells you to evaluate bare metal for workloads that are "performance sensitive or have strict latency requirements", and a box service is exactly that. And Firecracker's own <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/README.md#tested-platforms" target="_blank" rel="noopener noreferrer">tested platforms</a> table is all <code>.metal</code>: <code>m6i.metal</code>, <code>m7i.metal-24xl</code>, <code>m8i.metal-48xl</code>, <code>m7a.metal-48xl</code>, <code>m8g.metal-24xl</code>, <code>m9g.metal-48xl</code> and a few more. I couldn't find Firecracker docs that cover running inside nested virtualization, so I'd use nested instances for dev boxes and CI, and metal for production.</p>
+<p>I'd still run the real fleet on metal, for two reasons. The same AWS page tells you to evaluate bare metal for workloads that are "performance sensitive or have strict latency requirements", which a box service is, and Firecracker's own <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/README.md#tested-platforms" target="_blank" rel="noopener noreferrer">tested platforms</a> table is all <code>.metal</code>: <code>m6i.metal</code>, <code>m7i.metal-24xl</code>, <code>m8i.metal-48xl</code>, <code>m7a.metal-48xl</code>, <code>m8g.metal-24xl</code>, <code>m9g.metal-48xl</code> and a few more. I couldn't find Firecracker docs that cover running inside nested virtualization, so I'd use nested instances for dev boxes and CI, and metal for production.</p>
 
 <p>The first command below runs from your laptop; the rest run on the host as root.</p>
 
@@ -187,7 +187,7 @@ table ip hrr {
 }
 NFT</code></pre>
 
-<p>From the host, box <code>N</code> is <code>10.200.N.2</code>. The gateway connects there on port 22 or 8080 and the namespace forwards it to the guest. Outbound, the guest's traffic leaves the namespace as <code>10.200.N.2</code> and then the host decides what's allowed.</p>
+<p>From the host, box <code>N</code> is <code>10.200.N.2</code>, which is where the gateway connects on port 22 or 8080 before the namespace forwards it to the guest. Outbound, the guest's traffic leaves the namespace as <code>10.200.N.2</code>, and then the host decides what's allowed.</p>
 
 <p>My taps live inside namespaces, so the host sees the <code>hrrv*</code> veths instead of <code>tap*</code>. The <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/docs/prod-host-setup.md#filtering-guest-egress-network-traffic" target="_blank" rel="noopener noreferrer">production guide</a> shows a single rule that drops traffic from <code>tap*</code> to <code>169.254.169.254</code>, and I block more than IMDS:</p>
 
@@ -223,7 +223,7 @@ table inet hrr_host {
 
 <h2>Snapshot once, restore per request</h2>
 
-<p>Booting is the slow path. The 125 ms in the spec is with a minimal kernel and rootfs, and a real box has systemd, an SSH server, your agent, and whatever runtime the user expects to be warm. You don't want to pay that on every <code>POST</code>.</p>
+<p>Booting is the slow path. The 125 ms in the spec is with a minimal kernel and rootfs, and a real box has systemd, an SSH server, your agent, and whatever runtime the user expects to be warm, none of which you want to pay for on every <code>POST</code>.</p>
 
 <p>So you pay it once. Boot the golden VM, warm it up, and snapshot it. A <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/docs/snapshotting/snapshot-support.md" target="_blank" rel="noopener noreferrer">Firecracker snapshot</a> is a guest memory file plus a small microVM state file with the device and KVM state. Disks aren't part of it. They're yours to manage.</p>
 
@@ -250,13 +250,13 @@ chmod 0444 /var/lib/hrr/golden/*</code></pre>
 
 <p><strong>The golden VM is never resumed.</strong> The snapshot docs walk through which patterns are safe. "Boot A, snapshot, terminate, load in B" is safe. Resuming the original and a clone from the same state isn't, because both continue with the same random state and tokens. Kill the golden VM.</p>
 
-<p><strong>The clones' rootfs is the golden VM's disk after the snapshot, not the image you started from.</strong> The guest's page cache in <code>snap.mem</code> describes that disk at that moment. Hand a clone a different disk and its filesystem state won't match its memory. Firecracker drains and <code>fsync</code>s block devices during snapshot creation, so the file is consistent once the call returns.</p>
+<p><strong>The clones' rootfs is the golden VM's disk after the snapshot, not the image you started from.</strong> The guest's page cache in <code>snap.mem</code> describes that disk at that moment, so hand a clone a different disk and its filesystem state won't match its memory, which is why Firecracker drains and <code>fsync</code>s block devices during snapshot creation and the file is consistent once the call returns.</p>
 
 <p><strong>Loading a snapshot is lazy.</strong> With the <code>File</code> backend, Firecracker <code>mmap</code>s the memory file <code>MAP_PRIVATE</code>. Pages load from it on first touch and writes go to private copy-on-write memory. That's why restore is fast, and it's also why <code>snap.mem</code> must stay unchanged on disk for as long as any clone runs. All the clones on a host share its read pages through the page cache.</p>
 
 <p>If kernel page faults are too slow for you, the <code>Uffd</code> backend hands every page fault to a process you write, over <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/docs/snapshotting/handling-page-faults-on-snapshot-resume.md" target="_blank" rel="noopener noreferrer">userfaultfd</a>. That's where you'd prefetch the pages a box always touches, or pull memory from somewhere other than local disk. Firecracker gives you the protocol, not the handler. Start with <code>File</code>.</p>
 
-<p>You'll also see diff snapshots, which only write pages dirtied since the last snapshot. In v1.18.0 the docs still mark them as developer preview, and most diff files have to be merged onto a base with <code>snapshot-editor</code> before you can resume them. I'd use full snapshots for both the golden image and idle boxes, and come back to diffs once they're stable.</p>
+<p>You'll also see diff snapshots, which only write pages dirtied since the last snapshot, but in v1.18.0 the docs still mark them as developer preview and most diff files have to be merged onto a base with <code>snapshot-editor</code> before you can resume them. I'd use full snapshots for both the golden image and idle boxes, and come back to diffs once they're stable.</p>
 
 <p>What one <code>POST /boxes</code> does once the pool is warm: nothing on the request path boots a kernel.</p>
 
@@ -268,7 +268,7 @@ chmod 0444 /var/lib/hrr/golden/*</code></pre>
 
 <h2>A warm pool of paused clones</h2>
 
-<p>A restore is quick, but a slot also needs a namespace, a jail and a rootfs copy, and the jailer gets slower with load. Its docs measured jail creation at about 2x slower with 10 jails starting in parallel on a host with no mount points, and about 10x with 500 mount points. So I don't do any of that on the request path. A slot is built ahead of time, restored, and left paused.</p>
+<p>A restore is quick, but a slot also needs a namespace, a jail and a rootfs copy, and the jailer gets slower with load. Its docs measured jail creation at about 2x slower with 10 jails starting in parallel on a host with no mount points, and about 10x with 500 mount points. So I don't do any of that on the request path: a slot is built ahead of time, restored, and left paused.</p>
 
 <pre><code class="language-bash">#!/usr/bin/env bash
 # hrr-slot-up.sh &lt;slot&gt;: one restored, paused microVM, waiting to be claimed
@@ -304,11 +304,11 @@ curl -sS --fail-with-body --unix-socket &quot;$SOCK&quot; -X PUT http://localhos
        &quot;clock_realtime&quot;: true,
        &quot;resume_vm&quot;: false}'</code></pre>
 
-<p>The rootfs uses <code>cp --reflink=always</code>, which only works on a filesystem with reflinks, like XFS or Btrfs. On those it's a metadata-only copy, so every box starts with a private, writable rootfs that shares blocks with the golden one until it writes. On ext4 the command fails rather than quietly copying gigabytes, which is the behaviour I want. The hard links mean <code>/var/lib/hrr</code> and <code>/srv/jailer</code> have to be on the same filesystem.</p>
+<p>The rootfs uses <code>cp --reflink=always</code>, which only works on a filesystem with reflinks, like XFS or Btrfs, where it's a metadata-only copy, so every box starts with a private, writable rootfs that shares blocks with the golden one until it writes. On ext4 the command fails rather than quietly copying gigabytes, which is the behaviour I want. The hard links mean <code>/var/lib/hrr</code> and <code>/srv/jailer</code> have to be on the same filesystem.</p>
 
 <p>Each slot runs under its own uid and gid, which the production guide recommends, so a broken jail can't read a neighbour's files. <code>cpu.max=200000 100000</code> caps the box at two CPUs' worth of time per 100 ms period. <code>memory.max</code> leaves some room above the guest's 1024 MiB for the VMM itself.</p>
 
-<p>How big should the pool be? It needs to cover the boxes requested while a slot is being rebuilt. If you hand out 2 boxes a second at peak and a slot takes 3 seconds to build, a pool of 6 runs dry. Measure your slot build time on your hardware and size from that. When the pool is empty, the API returns 503 and the client retries, which is better than quietly falling back to a cold boot.</p>
+<p>How big should the pool be? It needs to cover the boxes requested while a slot is being rebuilt, so if you hand out 2 boxes a second at peak and a slot takes 3 seconds to build, a pool of 6 runs dry. Measure your slot build time on your hardware and size from that. When the pool is empty, the API returns 503 and the client retries, which is better than quietly falling back to a cold boot.</p>
 
 <h2>Every clone wakes up with the same secrets</h2>
 
@@ -339,7 +339,7 @@ curl -sS --fail-with-body --unix-socket &quot;$SOCK&quot; -X PUT http://localhos
 
 <h2>/data lives on its own disk</h2>
 
-<p>InstaBox's homepage describes "a 20 GiB persistent disk at <code>/data</code>" next to a separate root disk. I like that split, and the placeholder drive makes it possible on top of a shared snapshot.</p>
+<p>InstaBox's homepage describes "a 20 GiB persistent disk at <code>/data</code>" next to a separate root disk, a split I like, and the placeholder drive makes it possible on top of a shared snapshot.</p>
 
 <pre><code class="language-bash">#!/usr/bin/env bash
 # hrr-data-attach.sh &lt;box-id&gt; &lt;slot&gt;: create the box's /data disk once, link it into the jail
@@ -355,7 +355,7 @@ fi
 chown &quot;$((20000 + N)):$((20000 + N))&quot; &quot;$DISK&quot;
 ln -f &quot;$DISK&quot; &quot;/srv/jailer/firecracker/hrr-slot-$N/root/box.ext4&quot;</code></pre>
 
-<p>On claim, the control plane links the box's disk into the jail and calls <code>PATCH /drives/data</code> with the new path. The <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/docs/api_requests/patch-block.md" target="_blank" rel="noopener noreferrer">block update docs</a> describe exactly this placeholder pattern, with one rule: the guest must not have the device mounted or be reading it while you swap. The golden VM never touched it, so that holds. The agent then mounts <code>LABEL=hrr-data</code> on <code>/data</code>. The label matters, because device names like <code>/dev/vdb</code> depend on the order the drives were added.</p>
+<p>On claim, the control plane links the box's disk into the jail and calls <code>PATCH /drives/data</code> with the new path. The <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/docs/api_requests/patch-block.md" target="_blank" rel="noopener noreferrer">block update docs</a> describe exactly this placeholder pattern, with one rule: the guest must not have the device mounted or be reading it while you swap. The golden VM never touched it, so that holds. The agent then mounts <code>LABEL=hrr-data</code> on <code>/data</code>, and the label matters here, because device names like <code>/dev/vdb</code> depend on the order the drives were added.</p>
 
 <p>The rootfs is disposable. Resetting a box means throwing away its reflinked rootfs and taking a fresh slot. <code>/data</code> outlives that, and it outlives <code>DELETE /boxes/:id</code> too, until you add a volume API to remove it.</p>
 

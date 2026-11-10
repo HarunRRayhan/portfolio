@@ -73,7 +73,7 @@ export function hrr_verdict(result: HrrResult, onUnexplainedEmpty: HrrPolicy) {
   return onUnexplainedEmpty;
 }</code></pre>
 
-<p><code>hrr_verdict</code> assumes the input wasn't empty. An empty input has to say <code>empty_input</code> out loud, same as any other excuse. An excuse doesn't count if <code>errors</code> has anything in it.</p>
+<p><code>hrr_verdict</code> assumes the input wasn't empty. An empty input has to say <code>empty_input</code> out loud, same as any other excuse, and an excuse doesn't count if <code>errors</code> has anything in it.</p>
 
 <figure><img src="/blog-assets/catch-lambda-jobs-that-succeed-but-write-nothing/diagram-contract-routes.jpg" alt="Diagram of the contract: every message returns ok, itemsWritten, errors and an optional emptyReason. hrr_verdict sends it down exactly one route. OK means rows landed or a stated emptyReason, and SQS deletes the message while ZeroWrites is still counted. WARN deletes but emits UnexplainedZeroWrites to a CloudWatch alarm that pages through SNS. FAIL puts the messageId in batchItemFailures, so the message is retried up to 5 times and then lands in the DLQ with its body intact." width="1600" height="900" loading="lazy" decoding="async"><figcaption>One result in, one route out. Only FAIL keeps the input; WARN leaves it to the alarm.</figcaption></figure>
 
@@ -265,7 +265,7 @@ resource &quot;aws_lambda_event_source_mapping&quot; &quot;hrr_extract&quot; {
 
 <p>Don't forget <code>function_response_types</code>. Without it, the list your handler returns isn't a partial batch response, and the unit test below can't tell. <code>maxReceiveCount</code> of 5 and a visibility timeout of six times the function timeout are <a href="https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-configure.html" target="_blank" rel="noopener noreferrer">AWS's recommendations</a>.</p>
 
-<p>FAIL has a price. If the writer is broken for everyone, every message runs the whole extraction up to five times before reaching the DLQ. AWS also notes that Lambda doesn't scale down polling on failed invocations when <code>ReportBatchItemFailures</code> is on. I'd still pay it for pipelines where losing the input is worse than the repeat calls. Where it isn't, use WARN and let the alarm do the work.</p>
+<p>FAIL has a price. If the writer is broken for everyone, every message runs the whole extraction up to five times before reaching the DLQ, and AWS notes that Lambda doesn't scale down polling on failed invocations when <code>ReportBatchItemFailures</code> is on. I'd still pay it for pipelines where losing the input is worse than the repeat calls. Where it isn't, use WARN and let the alarm do the work.</p>
 
 <p>A FIFO queue needs a different loop: stop at the first failure and return everything unprocessed, so ordering holds.</p>
 
@@ -319,7 +319,7 @@ export async function hrr_extract(
 
 <h2>A Map state can succeed over nothing</h2>
 
-<p>Step Functions has the same blind spot one level up. A Map state's output is an array of iteration outputs, and an empty array is a perfectly valid result. So the check goes in a Choice right after each Map.</p>
+<p>Step Functions has the same blind spot one level up, where a Map state's output is an array of iteration outputs and an empty array is a perfectly valid result. So the check goes in a Choice right after each Map.</p>
 
 <p>The definition below is the part that matters, in JSONata. A chunking Task before it returns <code>documentId</code>, <code>documentBytes</code> and <code>chunks</code>, and each iteration returns the contract.</p>
 
@@ -390,7 +390,7 @@ export async function hrr_extract(
 },
 &quot;HrrDone&quot;: { &quot;Type&quot;: &quot;Succeed&quot; }</code></pre>
 
-<p>"Non-empty input" is measured in <code>documentBytes</code>, because a chunker that returns <code>[]</code> for a real document looks like an empty input if you only count chunks. The <code>$append</code> wrappers are there because JSONata returns undefined when a path matches nothing, and Step Functions treats that as <code>States.QueryEvaluationError</code>. A Choice state has no <code>Catch</code>, so the Map's <code>Catch</code> and the Choice both point at the same SNS Task. That Task ends in a Fail state, so the execution really is <code>FAILED</code>.</p>
+<p>"Non-empty input" is measured in <code>documentBytes</code>, because a chunker that returns <code>[]</code> for a real document looks like an empty input if you only count chunks. The <code>$append</code> wrappers are there for a related reason: JSONata returns undefined when a path matches nothing, Step Functions treats that as <code>States.QueryEvaluationError</code>, and a Choice state has no <code>Catch</code>, so the Map's <code>Catch</code> and the Choice both point at the same SNS Task. That Task ends in a Fail state, so the execution really is <code>FAILED</code>.</p>
 
 <pre><code class="language-hcl">resource &quot;aws_sfn_state_machine&quot; &quot;hrr_ingest&quot; {
   name     = &quot;hrr-ingest&quot;
@@ -550,7 +550,7 @@ resource &quot;aws_cloudwatch_metric_alarm&quot; &quot;hrr_zero_write_spike&quot
   }
 }</code></pre>
 
-<p>That alarm over an hour of illustrative traffic. Move the threshold and the floor, change how many datapoints it needs, and try the three scenarios. The quiet pipeline and the prompt drift are the two I'd test first, because they're the ones that never page. Then break the EMF emitter and watch the alarm clear itself.</p>
+<p>That alarm over an hour of illustrative traffic. Move the threshold and the floor, change how many datapoints it needs, and try the three scenarios, starting with the quiet pipeline and the prompt drift, because those are the ones that never page. Then break the EMF emitter and watch the alarm clear itself.</p>
 
 <div data-blog-activity="zero-write-alarm"></div>
 
@@ -623,7 +623,7 @@ test(&quot;non-empty batch plus a no-op writer fails and moves the metric&quot;,
 
 <p>It needs no AWS account and no mocking library: all the TypeScript in this post lives in one file, <code>hrr_pipeline.ts</code>, with <code>import type { SQSEvent, SQSBatchResponse, SQSBatchItemFailure } from &quot;aws-lambda&quot;</code> at the top, and those types come from <code>@types/aws-lambda</code>. Run the test with <code>node --test</code> on a Node version that strips types, or through your own TypeScript runner.</p>
 
-<p>The handler and this test run as written under <code>node --test</code>. The JSONata expressions were evaluated against sample inputs with jsonata 2.0.6, the version Step Functions implements, and the Terraform passes <code>terraform validate</code> on AWS provider 6.72. None of it has been deployed as a full stack, so test the alarm and the state machine in your own account before you trust them.</p>
+<p>The handler and this test run as written under <code>node --test</code>. The JSONata expressions were evaluated against sample inputs with jsonata 2.0.6, the version Step Functions implements, and the Terraform passes <code>terraform validate</code> on AWS provider 6.72, though none of it has been deployed as a full stack, so test the alarm and the state machine in your own account before you trust them.</p>
 
 <p>Hope you enjoyed this one. If your pipeline has an empty-success case this contract wouldn't catch, I'd like to hear about it.</p>
 

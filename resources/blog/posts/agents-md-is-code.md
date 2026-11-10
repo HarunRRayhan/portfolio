@@ -58,11 +58,11 @@ tags:
 
 <p>Two things have to line up before a hidden line in a markdown file matters at all.</p>
 
-<p><strong>Instructions and data share one channel.</strong> An agent is a model reading one long stream of text. Maya's prompt, the <code>AGENTS.md</code>, the source code and the test output all land in it. The <a href="https://agents.md/" target="_blank" rel="noopener noreferrer">AGENTS.md site</a> calls the file "a README for agents" and says agents read the nearest one automatically. Once it's loaded, as Johnny puts it, "there is no hard cryptographic boundary between system instructions and ingested project context."</p>
+<p><strong>Instructions and data share one channel.</strong> An agent is a model reading one long stream of text, so Maya's prompt, the <code>AGENTS.md</code>, the source code and the test output all land in the same window, in the same format, with nothing marking which is which. The <a href="https://agents.md/" target="_blank" rel="noopener noreferrer">AGENTS.md site</a> calls the file "a README for agents" and says agents read the nearest one automatically. Once it's loaded, as Johnny puts it, "there is no hard cryptographic boundary between system instructions and ingested project context."</p>
 
 <p>The flip side is that your own instructions have the same status. Daniel Nwaneri, in <a href="https://dev.to/dannwaneri/dont-write-markdown-files-for-your-coding-agent-write-scripts-j00" target="_blank" rel="noopener noreferrer">Don't Write Markdown Files for Your Coding Agent. Write Scripts.</a>: "Markdown documents aren't constraints. They're recommendations." Anthropic's <a href="https://code.claude.com/docs/en/memory" target="_blank" rel="noopener noreferrer">memory docs</a> call <code>CLAUDE.md</code> "context, not enforced configuration." Your "never read <code>.env</code>" line is a polite request. So is a hostile line. It just has to work some of the time.</p>
 
-<p><strong>The agent runs as Maya.</strong> Its shell commands get her user account: her SSH keys, her cloud profiles, her <code>.env</code> files.</p>
+<p><strong>The agent runs as Maya.</strong> Its shell commands get her user account, which means the SSH keys in <code>~/.ssh</code>, the cloud profiles somebody signed into for her months ago, and every <code>.env</code> file that an earlier afternoon left in the tree because it never seemed worth moving.</p>
 
 <p><strong>An agent session is a new principal in your system.</strong> It has no identity unless you give it one, so by default it borrows yours. The files that steer it are your supply chain, because they arrive from repos, gists and teammates, and your control plane, because they decide what that principal does. Nobody lets a random PR edit an IAM policy without review.</p>
 
@@ -142,9 +142,9 @@ CLAUDE.md            @your-org/hrr_agent_reviewers
 /.github/workflows/  @your-org/hrr_agent_reviewers
 /.github/CODEOWNERS  @your-org/hrr_agent_reviewers</code></pre>
 
-<p>The second block matters too. A CI gate that can be edited in the pull request it judges isn't a gate. Owners need write access, and paths are case sensitive.</p>
+<p>The second block matters too, because a CI gate that can be edited in the pull request it judges isn't a gate at all, however carefully its rules are worded. Owners need write access to the repo. Paths are case sensitive.</p>
 
-<p><strong>4. Make that review required.</strong> On its own, <code>CODEOWNERS</code> only requests a reviewer. To block the merge, turn on "Require review from Code Owners" in a branch protection rule or ruleset. Then treat a one-line change to <code>AGENTS.md</code> like a one-line change to a deploy script. My <a href="/blog/pre-merge-checklist-ai-generated-prs">pre-merge checklist for AI-generated PRs</a> covers the rest of the diff.</p>
+<p><strong>4. Make that review required.</strong> On its own, <code>CODEOWNERS</code> only requests a reviewer. To block the merge, turn on "Require review from Code Owners" in a branch protection rule or ruleset, and then treat a one-line change to <code>AGENTS.md</code> like a one-line change to a deploy script. My <a href="/blog/pre-merge-checklist-ai-generated-prs">pre-merge checklist for AI-generated PRs</a> covers the rest of the diff.</p>
 
 <p><strong>5. Shrink what the agent can reach.</strong> Deny by default, and keep production credentials out of the agent's shell. A key that isn't there needs no rule.</p>
 
@@ -269,7 +269,7 @@ deny contains msg if {
 
 <p>Now say the team also runs an agent review on every PR, where a workflow checks out the branch and runs <code>claude -p "review this diff"</code>.</p>
 
-<p>Interactive Claude Code shows a workspace trust dialog when you start it in a folder you haven't trusted. The permissions docs say a <code>claude -p</code> run or an SDK session never shows it. Hooks in settings files are used. Servers in <code>.mcp.json</code> connect without asking. A project skill's <code>allowed-tools</code> applies.</p>
+<p>Interactive Claude Code shows a workspace trust dialog when you start it in a folder you haven't trusted. The permissions docs say a <code>claude -p</code> run or an SDK session never shows it: hooks in settings files are used, servers in <code>.mcp.json</code> connect without asking, and a project skill's <code>allowed-tools</code> applies.</p>
 
 <p>So Maya's <code>SessionStart</code> hook would have run on your runner, next to the job's secrets. I run specialist agents headless in my <a href="/blog/multi-agent-claude-code-aws-devops-routines">multi-agent Claude Code routines</a>, so this one tops my list. The docs' knobs for a repo you didn't write:</p>
 
@@ -283,7 +283,7 @@ deny contains msg if {
 
 <h3>Pin MCP servers and skills like dependencies</h3>
 
-<p>An MCP server is code with your permissions, feeding the model's context. The <a href="https://code.claude.com/docs/en/mcp" target="_blank" rel="noopener noreferrer">MCP docs</a> say: "Verify you trust each server before connecting it." Yet the common setup, <code>npx -y some-server</code>, pulls whatever is newest at launch. That's an unpinned dependency with shell access.</p>
+<p>An MCP server is code with your permissions, feeding the model's context. The <a href="https://code.claude.com/docs/en/mcp" target="_blank" rel="noopener noreferrer">MCP docs</a> say: "Verify you trust each server before connecting it." Yet the common setup, <code>npx -y some-server</code>, pulls whatever is newest at launch: no version, no checksum, no review, and the thing it pulls runs with your credentials.</p>
 
 <p>Skills are the same: copying one is installing software. Read its <code>allowed-tools</code> line first, or set <code>disableSkillShellExecution</code> so skill files can't run commands.</p>
 
@@ -329,7 +329,7 @@ deny contains msg if {
 
 <h3>Her credential chain was the agent's credential chain</h3>
 
-<p>Whatever the AWS CLI can find, the agent can find. The part people miss is IAM Identity Center. The CLI caches the sign-in token under <code>~/.aws/sso/cache</code>, and every profile that points at the same <code>sso-session</code> reuses it. If Maya's admin profile shares that session, an agent shell can switch to it with one environment variable. A separate profile gives you attribution, not isolation.</p>
+<p>Whatever the AWS CLI can find, the agent can find. The part people miss is IAM Identity Center, which caches the sign-in token under <code>~/.aws/sso/cache</code>, where every profile pointing at the same <code>sso-session</code> reuses it, so if Maya's admin profile shares that session an agent shell can switch into it with one environment variable. A separate profile gives you attribution, not isolation.</p>
 
 <h3>Give the agent its own role</h3>
 
@@ -350,7 +350,7 @@ source_profile = hrr_dev
 role_session_name = hrr_agent-laptop
 region = us-east-1</code></pre>
 
-<p>An SSO role assuming another role is role chaining, and AWS caps chained sessions at one hour whatever the role's maximum says. For an agent, that's a feature.</p>
+<p>An SSO role assuming another role is role chaining, and AWS caps chained sessions at one hour whatever the role's maximum says, which is the limit you would otherwise spend a design review arguing for. For an agent, that's a feature.</p>
 
 <p>The <code>role_session_name</code> lands in the session ARN, so CloudTrail shows <code>assumed-role/hrr_agent_readonly/hrr_agent-laptop</code>. A dedicated IAM role is also a kill switch: "Revoke active sessions" cuts off the agent without touching any human. Identity Center's own roles can't be edited in IAM, so that doesn't work there.</p>
 
@@ -437,7 +437,7 @@ region = us-east-1</code></pre>
   ]
 }</code></pre>
 
-<p>Effective permissions are the intersection of the role's policies and the boundary, so even a later <code>AdministratorAccess</code> attachment stays inside that list. The denies are for the day someone widens it. Logs are allowed, since reading them is one of the main things I use an agent for. They can hold tokens too. The same pattern for Lambda roles is in <a href="/blog/lock-down-bedrock-iam-lambda-data-leak">how I lock down Bedrock access</a>.</p>
+<p>Effective permissions are the intersection of the role's policies and the boundary, so even a later <code>AdministratorAccess</code> attachment stays inside that list. The denies are for the day someone widens it. Logs are allowed, because reading them is one of the main things I use an agent for, and logs can hold tokens just as easily as anything else. The same pattern for Lambda roles is in <a href="/blog/lock-down-bedrock-iam-lambda-data-leak">how I lock down Bedrock access</a>.</p>
 
 <p>Above the boundary sits the organization. Keep production in its own account, and don't assign the agent role or its source permission set there. Then add an SCP on the production OU that denies everything when <code>aws:PrincipalArn</code> is <code>ArnLike</code> <code>arn:aws:iam::*:role/hrr_agent_*</code>. An explicit deny in any of the three layers wins.</p>
 
@@ -445,7 +445,7 @@ region = us-east-1</code></pre>
 
 <p>People say "let the agent run <code>terraform plan</code>, it doesn't change anything." Look at what plan needs.</p>
 
-<p>It reads the state file, which holds secrets in plain JSON (see <a href="/blog/terraform-state-more-sensitive-than-env">why Terraform state is more sensitive than your .env file</a>). It takes a lock unless you pass <code>-lock=false</code>, so with <code>use_lockfile = true</code> the role needs <code>s3:PutObject</code> and <code>s3:DeleteObject</code> on the <code>.tflock</code> file. And it refreshes, reading every resource it manages.</p>
+<p>It reads the state file, which holds secrets in plain JSON (see <a href="/blog/terraform-state-more-sensitive-than-env">why Terraform state is more sensitive than your .env file</a>). It takes a lock unless you pass <code>-lock=false</code>, so with <code>use_lockfile = true</code> the role needs <code>s3:PutObject</code> and <code>s3:DeleteObject</code> on the <code>.tflock</code> file, and it refreshes, which means reading every resource it manages. Plan writes.</p>
 
 <p>A plan-only role is a state-reading role. My approach is the one from my <a href="/blog/github-actions-lambda-terraform-cicd">GitHub Actions and Terraform post</a>: CI runs plan through GitHub OIDC with no long-lived keys and posts the result on the pull request. Let the agent read that output instead of holding the role that produced it.</p>
 
@@ -506,11 +506,11 @@ LIMIT 200;</code></pre>
   <li><code>permissions.disableBypassPermissionsMode</code> set to <code>"disable"</code>.</li>
 </ul>
 
-<p>On GitHub, if your plan has organization rulesets, one ruleset can require code owner review and the agent config check across every repo.</p>
+<p>On GitHub, if your plan has organization rulesets, one ruleset can require code owner review and the agent config check across every repo, so the control outlives any one team's memory of why it exists.</p>
 
 <h3>Decide what you'd want to know afterward</h3>
 
-<p>Claude Code exports OpenTelemetry events such as <code>claude_code.tool_decision</code> and <code>claude_code.tool_result</code> when telemetry is on (<code>CLAUDE_CODE_ENABLE_TELEMETRY=1</code> plus an <code>OTEL_LOGS_EXPORTER</code>). Tool parameters are left out unless you set <code>OTEL_LOG_TOOL_DETAILS=1</code>, so decide whether you want them and who can read them. A <code>ConfigChange</code> hook can audit or block settings changes mid-session.</p>
+<p>Claude Code exports OpenTelemetry events such as <code>claude_code.tool_decision</code> and <code>claude_code.tool_result</code> when telemetry is on (<code>CLAUDE_CODE_ENABLE_TELEMETRY=1</code> plus an <code>OTEL_LOGS_EXPORTER</code>). Tool parameters are left out unless you set <code>OTEL_LOG_TOOL_DETAILS=1</code>, so decide whether you want them, and who gets to read them, because a tool parameter is one of the places a pasted secret shows up. A <code>ConfigChange</code> hook can audit or block settings changes mid-session.</p>
 
 <p>The response runbook can be short:</p>
 
