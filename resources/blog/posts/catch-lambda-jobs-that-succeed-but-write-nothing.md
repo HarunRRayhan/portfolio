@@ -7,7 +7,7 @@ publishedAt: "2099-06-01T18:00:00.000Z"
 draft: true
 draftToken: "2e1a2d6ed774753fa8e5ff4874f20330"
 readTimeInMinutes: 15
-coverImageUrl: "/blog-assets/catch-lambda-jobs-that-succeed-but-write-nothing/cover-v2.jpg"
+coverImageUrl: "/blog-assets/catch-lambda-jobs-that-succeed-but-write-nothing/cover-v3.jpg"
 reactionCount: 0
 responseCount: 0
 replyCount: 0
