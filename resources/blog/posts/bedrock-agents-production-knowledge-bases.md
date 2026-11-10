@@ -79,8 +79,9 @@ resource "aws_bedrockagent_knowledge_base" "hrr_docs" {
       collection_arn    = aws_opensearchserverless_collection.hrr_kb.arn
       vector_index_name = "hrr-bedrock-kb-index"
       field_mapping {
-        metadata_field = "AMAZON_BEDROCK_METADATA"
+        vector_field   = "bedrock-knowledge-base-default-vector"
         text_field     = "AMAZON_BEDROCK_TEXT_CHUNK"
+        metadata_field = "AMAZON_BEDROCK_METADATA"
       }
     }
   }
@@ -89,23 +90,24 @@ resource "aws_bedrockagent_knowledge_base" "hrr_docs" {
 resource "aws_bedrockagent_data_source" "hrr_docs_source" {
   name                 = "hrr-prod-docs"
   knowledge_base_id    = aws_bedrockagent_knowledge_base.hrr_docs.id
-  data_source_type     = "S3"
-
   data_deletion_policy = "RETAIN"
 
-  s3_configuration {
-    bucket_arn = aws_s3_bucket.hrr_knowledge_docs.arn
-    inclusion_prefixes = ["documents/"]
+  data_source_configuration {
+    type = "S3"
+    s3_configuration {
+      bucket_arn         = aws_s3_bucket.hrr_knowledge_docs.arn
+      inclusion_prefixes = ["documents/"]
+    }
   }
 
   vector_ingestion_configuration {
     chunking_configuration {
       chunking_strategy = "HIERARCHICAL"
       hierarchical_chunking_configuration {
-        level_configurations {
+        level_configuration {
           max_tokens = 1500
         }
-        level_configurations {
+        level_configuration {
           max_tokens = 512
         }
         overlap_tokens = 100
@@ -114,6 +116,9 @@ resource "aws_bedrockagent_data_source" "hrr_docs_source" {
 
     parsing_configuration {
       parsing_strategy = "BEDROCK_FOUNDATION_MODEL"
+      bedrock_foundation_model_configuration {
+        model_arn = "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0"
+      }
     }
   }
 }
@@ -187,8 +192,8 @@ resource "aws_bedrockagent_agent_action_group" "hrr_support" {
 
   api_schema {
     s3 {
-      s3_bucket = aws_s3_bucket.hrr_action_schemas.id
-      s3_key    = "schemas/support-actions.json"
+      s3_bucket_name = aws_s3_bucket.hrr_action_schemas.id
+      s3_object_key  = "schemas/support-actions.json"
     }
   }
 }
@@ -336,7 +341,7 @@ export const handler = async (event) =&gt; {
 <p>Strip personally identifiable information from inputs and outputs before they reach the model or the user. Bedrock supports regex-based patterns for common PII types. Credit card numbers, email addresses, phone numbers, SSNs. You can choose to mask or block.</p>
 <pre><code class="language-hcl"># guardrails.tf
 
-resource "aws_bedrockagent_guardrail" "hrr_support" {
+resource "aws_bedrock_guardrail" "hrr_support" {
   name        = "hrr-support-guardrails"
   description = "Guardrails for the customer support agent"
   blocked_input_messaging  = "I cannot process that request."
@@ -419,7 +424,7 @@ resource "aws_bedrockagent_guardrail" "hrr_support" {
 }
 </code></pre>
 <p>I set <code>PROMPT_ATTACK</code> input strength to HIGH and output strength to NONE. Prompt injection is an input problem. The guardrail should catch attempts to override the agent's system prompt on the way in, but there is no reason to filter model outputs for prompt attacks.</p>
-<p>For PII, I use BLOCK instead of MASK or ANONYMIZE. Masking replaces the PII with a placeholder, which means the agent still processes content that references credit card numbers. Blocking stops the request entirely. For a support agent, there is no legitimate reason to send raw credit card numbers through the model.</p>
+<p>For PII, I use BLOCK instead of ANONYMIZE. Anonymizing replaces the PII with a placeholder, which means the agent still processes content that references credit card numbers. Blocking stops the request entirely. For a support agent, there is no legitimate reason to send raw credit card numbers through the model.</p>
 <h2>IAM Permissions for the Agent Execution Role</h2>
 <p>The agent execution role is the most commonly misconfigured piece of a Bedrock Agent deployment. The role needs a specific trust policy that allows Bedrock to assume it, plus permissions for whatever the agent needs to access.</p>
 <pre><code class="language-hcl"># iam.tf
@@ -558,7 +563,7 @@ provider "aws" {
   region = "us-east-1"
 }
 
-data "aws_caller_account" "current" {}
+data "aws_caller_identity" "current" {}
 
 # --- Agent ---
 
@@ -566,9 +571,22 @@ resource "aws_bedrockagent_agent" "hrr_support" {
   agent_name              = "hrr-support-agent"
   agent_resource_role_arn = aws_iam_role.hrr_bedrock_agent.arn
   foundation_model        = "anthropic.claude-sonnet-4-6"
-  instruction             = "You are a customer support agent..."
-  idle_ttl                = 300
-  prepare_agent   = true
+  instruction             = "You are a customer support agent. Answer from the knowledge base and use the order tools."
+  idle_session_ttl_in_seconds = 600
+  prepare_agent           = true
+
+  guardrail_configuration = [{
+    guardrail_identifier = aws_bedrock_guardrail.hrr_support.guardrail_id
+    guardrail_version    = aws_bedrock_guardrail_version.hrr_support.version
+  }]
+}
+
+# --- Guardrails ---
+
+# The guardrail itself is the aws_bedrock_guardrail from guardrails.tf above.
+resource "aws_bedrock_guardrail_version" "hrr_support" {
+  guardrail_arn = aws_bedrock_guardrail.hrr_support.guardrail_arn
+  description   = "Pinned version for the support agent"
 }
 
 # --- Knowledge Base ---
@@ -590,8 +608,9 @@ resource "aws_bedrockagent_knowledge_base" "hrr_docs" {
       collection_arn    = aws_opensearchserverless_collection.hrr_kb.arn
       vector_index_name = "hrr-bedrock-kb-index"
       field_mapping {
-        metadata_field = "AMAZON_BEDROCK_METADATA"
+        vector_field   = "bedrock-knowledge-base-default-vector"
         text_field     = "AMAZON_BEDROCK_TEXT_CHUNK"
+        metadata_field = "AMAZON_BEDROCK_METADATA"
       }
     }
   }
@@ -600,25 +619,30 @@ resource "aws_bedrockagent_knowledge_base" "hrr_docs" {
 resource "aws_bedrockagent_data_source" "hrr_docs_source" {
   name              = "hrr-prod-docs"
   knowledge_base_id = aws_bedrockagent_knowledge_base.hrr_docs.id
-  data_source_type  = "S3"
   data_deletion_policy = "RETAIN"
 
-  s3_configuration {
-    bucket_arn = aws_s3_bucket.hrr_knowledge_docs.arn
-    inclusion_prefixes = ["documents/"]
+  data_source_configuration {
+    type = "S3"
+    s3_configuration {
+      bucket_arn         = aws_s3_bucket.hrr_knowledge_docs.arn
+      inclusion_prefixes = ["documents/"]
+    }
   }
 
   vector_ingestion_configuration {
     chunking_configuration {
       chunking_strategy = "HIERARCHICAL"
       hierarchical_chunking_configuration {
-        level_configurations { max_tokens = 1500 }
-        level_configurations { max_tokens = 512 }
+        level_configuration { max_tokens = 1500 }
+        level_configuration { max_tokens = 512 }
         overlap_tokens = 100
       }
     }
     parsing_configuration {
       parsing_strategy = "BEDROCK_FOUNDATION_MODEL"
+      bedrock_foundation_model_configuration {
+        model_arn = "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0"
+      }
     }
   }
 }
@@ -637,25 +661,20 @@ resource "aws_bedrockagent_agent_action_group" "hrr_support" {
 
   api_schema {
     s3 {
-      s3_bucket = aws_s3_bucket.hrr_action_schemas.id
-      s3_key    = "schemas/support-actions.json"
+      s3_bucket_name = aws_s3_bucket.hrr_action_schemas.id
+      s3_object_key  = "schemas/support-actions.json"
     }
   }
 }
 
-# --- Guardrails ---
+# --- Knowledge base association ---
 
 resource "aws_bedrockagent_agent_knowledge_base_association" "hrr_docs_assoc" {
   agent_id       = aws_bedrockagent_agent.hrr_support.id
   agent_version  = "DRAFT"
   description    = "Associate knowledge base with agent"
-  knowledge_base_id = aws_bedrockagent_knowledge_base.hrr_docs.id
-}
-
-resource "aws_bedrockagent_agent_guardrail_association" "hrr_guardrail_assoc" {
-  agent_id      = aws_bedrockagent_agent.hrr_support.id
-  agent_version = "DRAFT"
-  guardrail_id  = aws_bedrockagent_guardrail.hrr_support.id
+  knowledge_base_id    = aws_bedrockagent_knowledge_base.hrr_docs.id
+  knowledge_base_state = "ENABLED"
 }
 </code></pre>
 <h2>Testing with the Bedrock Console</h2>
@@ -687,7 +706,6 @@ resource "aws_bedrockagent_agent_guardrail_association" "hrr_guardrail_assoc" {
 <p>Do not try to make a Bedrock Agent respond in under a second. It is not architected for real-time use cases. If you need low-latency responses, use direct model inference and handle tool routing in your own code.</p>
 <p>The biggest latency improvements I have found:</p>
 <ul>
-<li><strong>Reduce idle TTL</strong> on the agent (<code>idle_ttl</code> in Terraform). Default is 300 seconds. Lowering it to 60 seconds reduces cold start frequency for bursty traffic.</li>
 <li><strong>Use the same Lambda runtime</strong> for all action groups. If some are Python and some are Node.js, the agent has to initialize different runtimes.</li>
 <li><strong>Pre-warm the OpenSearch collection</strong> by running periodic health-check queries if your traffic pattern has sudden spikes.</li>
 </ul>
@@ -695,10 +713,11 @@ resource "aws_bedrockagent_agent_guardrail_association" "hrr_guardrail_assoc" {
 <p>Bedrock Agents use a versioning system similar to Lambda. You create a DRAFT version during development, then create numbered versions for production. Aliases point to specific versions, and you can shift traffic between versions for canary deployments.</p>
 <pre><code class="language-hcl">resource "aws_bedrockagent_agent_alias" "hrr_support_prod" {
   agent_id    = aws_bedrockagent_agent.hrr_support.id
-  alias_name  = "prod"
-  routing_configuration {
-    agent_version = "1"
-  }
+  agent_alias_name = "prod"
+  routing_configuration = [{
+    agent_version          = "1"
+    provisioned_throughput = null
+  }]
 }
 </code></pre>
 <p>I use DRAFT for all development and testing, then promote to version 1 and alias it as "prod" for production traffic. When I need to make changes, I update the DRAFT, test in the console, create a new version, and point the prod alias at it.</p>
