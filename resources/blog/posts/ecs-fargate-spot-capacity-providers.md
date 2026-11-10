@@ -60,7 +60,7 @@ resource "aws_ecs_capacity_provider" "fargate_spot" {
 
   auto_scaling_group_provider {
     auto_scaling_group_arn = aws_autoscaling_group.fargate_spot.arn
-    
+
     managed_scaling {
       status                    = "ENABLED"
       target_capacity           = 100
@@ -68,7 +68,7 @@ resource "aws_ecs_capacity_provider" "fargate_spot" {
       maximum_scaling_step_size = 1000
       instance_warmup_period    = 60
     }
-    
+
     managed_termination_protection = "DISABLED"
   }
 }
@@ -177,20 +177,20 @@ TASK_METADATA_ENDPOINT="${ECS_CONTAINER_METADATA_URI_V4}/task"
 
 while true; do
   response=$(curl -s "${TASK_METADATA_ENDPOINT}" 2>/dev/null)
-  
+
   if echo "$response" | grep -q '"Interrupted": "true"'; then
     echo "Spot interruption notice received. Draining tasks..."
-    
+
     # Send SIGTERM to the main application process
     kill -TERM 1
-    
+
     # Wait for graceful shutdown
     sleep 60
-    
+
     # Force exit if still running
     kill -KILL 1
   fi
-  
+
   sleep 15
 done
 </code></pre>
