@@ -86,11 +86,11 @@ The auto-mode classifier blocks these Railway/infra actions from Bash even after
   draft that is already due, and CI runs that command on the real catalog. A past timestamp
   rewrites the file during PHPUnit and can block the Railway release. Set the real timestamp
   only when publishing.
-- **Catalog cache outlives the deploy.** Production keeps
-  `blog.repository.payload.meta4.*` in the database for about 15 minutes. A successful
-  Railway deploy can still 404 a just-published slug, or keep serving a draft, until that
-  row expires. Confirm with a fresh request after the TTL. Do not purge all of Cloudflare
-  to bust it.
+- **Catalog cache is keyed per deploy.** `BlogRepository::cacheKey()` adds a fingerprint of
+  the post files' names, mtimes and sizes, so a deploy that adds or edits a post reads a new
+  `blog.repository.payload.meta4.*` row at once instead of the old one for ~15 minutes.
+  Admin-calendar schedules are read live from the DB, not from this cache. Do not purge all
+  of Cloudflare to bust it.
 - **HTML tables in posts are supported.** `resources/js/Pages/Blog/Post.tsx`
   styles `<table>` (borders, padding, zebra rows, horizontal scroll shell).
   Prefer a real table over a smashed plain-text comparison.
