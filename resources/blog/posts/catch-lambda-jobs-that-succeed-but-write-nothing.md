@@ -24,13 +24,13 @@ tags:
     slug: ai
 ---
 
-<p>A session commit reports success. The memory extraction behind it produced zero memories. Nothing failed and no metric moved. The run is marked done, and whatever the model learned is gone.</p>
+<p>A session commit reports success, and the memory extraction behind it produced zero memories. Nothing failed, no metric moved, the run is marked done, and whatever the model learned is gone.</p>
 
 <p>That's the failure <a href="https://dev.to/pm25coder/the-extraction-returned-zero-memories-and-nothing-screamed-3c7c" target="_blank" rel="noopener noreferrer">pm25coder wrote up on dev.to</a> in September, from <a href="https://github.com/volcengine/OpenViking/issues/4580" target="_blank" rel="noopener noreferrer">issue #4580 on volcengine/OpenViking</a>. The title says it better than I can: "The extraction returned zero memories, and nothing screamed."</p>
 
 <p>It isn't my incident. But the pipelines I've written up on this blog have the same hole. Neither the <a href="/blog/running-ai-background-jobs-serverlessly-with-sqs-lambda-bedrock">SQS and Bedrock job handler</a> nor the <a href="/blog/rag-ingestion-pipeline-step-functions-lambda">RAG ingestion state machine</a> compares what went in with what landed.</p>
 
-<p>Here's the rule I'd add to both. <strong>A pipeline that processes a non-empty input and writes nothing has failed, even if every status says OK.</strong> The one exception is when it can say why.</p>
+<p>The rule I'd add to both: <strong>a pipeline that processes a non-empty input and writes nothing has failed, even if every status says OK.</strong> The one exception is when it can say why.</p>
 
 <h2>Every green light here is telling the truth</h2>
 
@@ -45,7 +45,7 @@ tags:
 
 <figure><img src="/blog-assets/catch-lambda-jobs-that-succeed-but-write-nothing/diagram-empty-success.jpg" alt="Diagram of one SQS batch: the queue delivers 10 messages to the Lambda handler (Lambda Errors 0), which calls the Bedrock model (stopReason tool_use, 19 memories), which saves to the memory store, which accepts the call and writes 0 rows. The handler returns an empty batchItemFailures list (Invocation Success), and SQS deletes all 10 messages, so the input is gone." width="1600" height="900" loading="lazy" decoding="async"><figcaption>Every check mark is true. The two crosses are what actually happened, and nothing on the left side of the diagram can see them.</figcaption></figure>
 
-<p>Try it before reading any code. The figure below runs one ten-message SQS batch through a memory-extract Lambda. Pick what goes wrong, run the batch, and compare what AWS shows with what actually landed. Then switch the handler to the contract from the next section and run the same bug again. Flip <code>function_response_types</code> off too, because that one bites people who did everything else right.</p>
+<p>Run the bug yourself before reading any code. The figure below runs one ten-message SQS batch through a memory-extract Lambda. Pick what goes wrong, run the batch, and compare what AWS shows with what actually landed. Then switch the handler to the contract from the next section and run the same bug again. Flip <code>function_response_types</code> off too, because that one bites people who did everything else right.</p>
 
 <div data-blog-activity="zero-write-batch"></div>
 
@@ -154,7 +154,7 @@ export function hrr_verdict(result: HrrResult, onUnexplainedEmpty: HrrPolicy) {
 
 <p>The EMF spec requires a log event that's a JSON object with nothing before or after it. In Lambda's default text format, the Node runtime adds a timestamp, request ID, and level to <code>console.log</code> output. In JSON log format, CloudWatch can stop recognizing EMF that was written with <code>console.log</code>. <a href="https://docs.aws.amazon.com/lambda/latest/dg/nodejs-logging.html" target="_blank" rel="noopener noreferrer">AWS's fix is <code>process.stdout.write</code></a>, so that's what this uses.</p>
 
-<p>Two more rules. Emit zeros, because a rate needs its denominator in every period. And keep <code>messageId</code> out of the dimensions. Every unique dimension value creates a new custom metric.</p>
+<p>Emit zeros, because a rate needs its denominator in every period. Keep <code>messageId</code> out of the dimensions too: every unique dimension value creates a new custom metric.</p>
 
 <h2>In partial batch responses, an empty list means delete everything</h2>
 
@@ -238,7 +238,7 @@ export function hrr_verdict(result: HrrResult, onUnexplainedEmpty: HrrPolicy) {
   };
 }</code></pre>
 
-<p>Notice what the catch does. It's the standard pattern, and it also means per-message exceptions never reach Lambda's <code>Errors</code> metric. That's why <code>FailedMessages</code> is its own count.</p>
+<p>The catch is the standard pattern, and it also means per-message exceptions never reach Lambda's <code>Errors</code> metric. That's why <code>FailedMessages</code> is its own count.</p>
 
 <p>SQS isn't a caller that reads your contract, so the full result goes to the log and the counts go to EMF. The response stays as just <code>batchItemFailures</code>. That's the only key AWS documents for it.</p>
 
@@ -265,7 +265,9 @@ resource &quot;aws_lambda_event_source_mapping&quot; &quot;hrr_extract&quot; {
 
 <p>Don't forget <code>function_response_types</code>. Without it, the list your handler returns isn't a partial batch response, and the unit test below can't tell. <code>maxReceiveCount</code> of 5 and a visibility timeout of six times the function timeout are <a href="https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-configure.html" target="_blank" rel="noopener noreferrer">AWS's recommendations</a>.</p>
 
-<p>FAIL has a price. If the writer is broken for everyone, every message runs the whole extraction up to five times before reaching the DLQ. AWS also notes that Lambda doesn't scale down polling on failed invocations when <code>ReportBatchItemFailures</code> is on. I'd still pay it for pipelines where losing the input is worse than the repeat calls. Where it isn't, use WARN and let the alarm do the work. On a FIFO queue, this loop needs changing too: stop at the first failure and return everything unprocessed, so ordering holds.</p>
+<p>FAIL has a price. If the writer is broken for everyone, every message runs the whole extraction up to five times before reaching the DLQ. AWS also notes that Lambda doesn't scale down polling on failed invocations when <code>ReportBatchItemFailures</code> is on. I'd still pay it for pipelines where losing the input is worse than the repeat calls. Where it isn't, use WARN and let the alarm do the work.</p>
+
+<p>A FIFO queue needs a different loop: stop at the first failure and return everything unprocessed, so ordering holds.</p>
 
 <h2>Three ways a model reply turns into nothing</h2>
 
@@ -319,7 +321,7 @@ export async function hrr_extract(
 
 <p>Step Functions has the same blind spot one level up. A Map state's output is an array of iteration outputs, and an empty array is a perfectly valid result. So the check goes in a Choice right after each Map.</p>
 
-<p>Here's the part of the definition that matters, in JSONata. A chunking Task before it returns <code>documentId</code>, <code>documentBytes</code>, and <code>chunks</code>, and each iteration returns the contract.</p>
+<p>The definition below is the part that matters, in JSONata. A chunking Task before it returns <code>documentId</code>, <code>documentBytes</code> and <code>chunks</code>, and each iteration returns the contract.</p>
 
 <pre><code class="language-json">&quot;HrrEmbedChunks&quot;: {
   &quot;Type&quot;: &quot;Map&quot;,
@@ -388,7 +390,7 @@ export async function hrr_extract(
 },
 &quot;HrrDone&quot;: { &quot;Type&quot;: &quot;Succeed&quot; }</code></pre>
 
-<p>Some of this looks odd, so here's why. "Non-empty input" is measured in <code>documentBytes</code>, because a chunker that returns <code>[]</code> for a real document looks like an empty input if you only count chunks. The <code>$append</code> wrappers are there because JSONata returns undefined when a path matches nothing, and Step Functions treats that as <code>States.QueryEvaluationError</code>. A Choice state has no <code>Catch</code>, so the Map's <code>Catch</code> and the Choice both point at the same SNS Task. That Task ends in a Fail state, so the execution really is <code>FAILED</code>.</p>
+<p>"Non-empty input" is measured in <code>documentBytes</code>, because a chunker that returns <code>[]</code> for a real document looks like an empty input if you only count chunks. The <code>$append</code> wrappers are there because JSONata returns undefined when a path matches nothing, and Step Functions treats that as <code>States.QueryEvaluationError</code>. A Choice state has no <code>Catch</code>, so the Map's <code>Catch</code> and the Choice both point at the same SNS Task. That Task ends in a Fail state, so the execution really is <code>FAILED</code>.</p>
 
 <pre><code class="language-hcl">resource &quot;aws_sfn_state_machine&quot; &quot;hrr_ingest&quot; {
   name     = &quot;hrr-ingest&quot;
@@ -408,7 +410,7 @@ export async function hrr_extract(
 
 <h2>Put success rate and zero-write rate side by side</h2>
 
-<p>Either number alone misleads. Here's the failure in one illustrative five-minute window.</p>
+<p>Either number alone misleads. Take a five-minute window where the failure is invisible:</p>
 
 <table>
 <thead>
@@ -548,7 +550,7 @@ resource &quot;aws_cloudwatch_metric_alarm&quot; &quot;hrr_zero_write_spike&quot
   }
 }</code></pre>
 
-<p>Here's that alarm on an hour of illustrative traffic. Move the threshold and the floor, change how many datapoints it needs, and try the three scenarios. The quiet pipeline and the prompt drift are the two I'd test first, because they're the ones that never page. Then break the EMF emitter and watch the alarm clear itself.</p>
+<p>That alarm over an hour of illustrative traffic. Move the threshold and the floor, change how many datapoints it needs, and try the three scenarios. The quiet pipeline and the prompt drift are the two I'd test first, because they're the ones that never page. Then break the EMF emitter and watch the alarm clear itself.</p>
 
 <div data-blog-activity="zero-write-alarm"></div>
 

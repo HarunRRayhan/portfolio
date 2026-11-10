@@ -24,11 +24,11 @@ tags:
 
 <p>Every agent sandbox launch I read this year has the same line in its docs. <a href="https://instabox.sh" target="_blank" rel="noopener noreferrer">InstaBox</a>, the "cloud computers for AI agents" product from InsForge in <a href="https://www.ycombinator.com/companies/insforge" target="_blank" rel="noopener noreferrer">YC's Spring 2026 batch</a>, says each machine is "a Firecracker microVM". <a href="https://github.com/e2b-dev/infra" target="_blank" rel="noopener noreferrer">E2B's infra repo</a> says "one Firecracker microVM per sandbox". <a href="https://vercel.com/docs/vercel-sandbox" target="_blank" rel="noopener noreferrer">Vercel Sandbox</a> says each sandbox "runs in a secure Firecracker microVM". <a href="https://docs.superserve.ai/introduction" target="_blank" rel="noopener noreferrer">Superserve</a> says its sandboxes are "powered by Firecracker MicroVMs".</p>
 
-<p>I ran into Firecracker before, from the other side. When I wrote about <a href="/blog/lambda-snapstart-terraform-cold-starts">Lambda SnapStart</a> in July, the whole trick turned out to be a snapshot of a Firecracker microVM. So this time I wanted the operator's view. Not the SDK. The host, the jail, the network, the snapshot, and the small API that hands you a box.</p>
+<p>I ran into Firecracker before, from the other side. When I wrote about <a href="/blog/lambda-snapstart-terraform-cold-starts">Lambda SnapStart</a> in July, the whole trick turned out to be a snapshot of a Firecracker microVM. So this time I wanted the operator's view: the host, the jail, the network, the snapshot, and the small API that hands you a box, not the SDK.</p>
 
 <p>This post builds a small version of that service end to end. One Linux host, Firecracker v1.18.0 under the jailer, one network namespace per box, a golden snapshot, a warm pool, a persistent <code>/data</code> disk per box, and a TypeScript control plane where <code>POST /boxes</code> claims a VM that's already restored instead of booting one.</p>
 
-<p>An honest note before the commands. I wrote this on a Mac, and macOS has no KVM. I checked every command and JSON body against the Firecracker v1.18.0 docs and its OpenAPI spec, and the TypeScript passes <code>tsc --strict</code>. But I haven't run this stack on real KVM hardware. Treat it as a reviewed design, and test it on a metal host before you trust it.</p>
+<p>One caveat before the commands. I wrote this on a Mac, and macOS has no KVM. I checked every command and JSON body against the Firecracker v1.18.0 docs and its OpenAPI spec, and the TypeScript passes <code>tsc --strict</code>. But I haven't run this stack on real KVM hardware. Treat it as a reviewed design, and test it on a metal host before you trust it.</p>
 
 <h2>Why a microVM and not a container</h2>
 
@@ -42,7 +42,7 @@ tags:
 
 <h2>The pieces of a small instant-server service</h2>
 
-<p>Here's everything the rest of the post builds, so you know where each command fits.</p>
+<p>This is everything the rest of the post builds.</p>
 
 <ul>
   <li><strong>The host.</strong> An EC2 instance with <code>/dev/kvm</code>, Firecracker and the jailer pinned to v1.18.0, cgroup v2, and one nftables ruleset that boxes can't get around.</li>
@@ -62,7 +62,7 @@ tags:
 
 <p>I'd still run the real fleet on metal, for two reasons. The same AWS page tells you to evaluate bare metal for workloads that are "performance sensitive or have strict latency requirements", and a box service is exactly that. And Firecracker's own <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/README.md#tested-platforms" target="_blank" rel="noopener noreferrer">tested platforms</a> table is all <code>.metal</code>: <code>m6i.metal</code>, <code>m7i.metal-24xl</code>, <code>m8i.metal-48xl</code>, <code>m7a.metal-48xl</code>, <code>m8g.metal-24xl</code>, <code>m9g.metal-48xl</code> and a few more. I couldn't find Firecracker docs that cover running inside nested virtualization, so I'd use nested instances for dev boxes and CI, and metal for production.</p>
 
-<p>Here's the host prep. The first command runs from your laptop. The rest run on the host as root.</p>
+<p>The first command below runs from your laptop; the rest run on the host as root.</p>
 
 <pre><code class="language-bash"># From your laptop: does this virtual instance type expose virtualization at all?
 # An empty list means no nested virtualization.
@@ -134,8 +134,6 @@ fc PUT /entropy '{}'
 sleep 0.015   # getting-started.md: config is applied async, let it land before start
 fc PUT /actions '{&quot;action_type&quot;: &quot;InstanceStart&quot;}'</code></pre>
 
-<p>A few things in there are easy to miss:</p>
-
 <ul>
   <li>Every path in the API calls is relative to the jail root, <code>/srv/jailer/firecracker/hrr-golden/root</code>. The jailer copies the Firecracker binary into that chroot and Firecracker can't see anything outside it.</li>
   <li><code>vcpu_count</code> has to be 1 or an even number, per the <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/src/firecracker/swagger/firecracker.yaml" target="_blank" rel="noopener noreferrer">API spec</a>.</li>
@@ -191,7 +189,7 @@ NFT</code></pre>
 
 <p>From the host, box <code>N</code> is <code>10.200.N.2</code>. The gateway connects there on port 22 or 8080 and the namespace forwards it to the guest. Outbound, the guest's traffic leaves the namespace as <code>10.200.N.2</code> and then the host decides what's allowed.</p>
 
-<p>Here's that host ruleset. The <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/docs/prod-host-setup.md#filtering-guest-egress-network-traffic" target="_blank" rel="noopener noreferrer">production guide</a> shows a single rule that drops traffic from <code>tap*</code> to <code>169.254.169.254</code>. My taps live inside namespaces, so the host sees the <code>hrrv*</code> veths instead, and I block more than IMDS.</p>
+<p>My taps live inside namespaces, so the host sees the <code>hrrv*</code> veths instead of <code>tap*</code>. The <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/docs/prod-host-setup.md#filtering-guest-egress-network-traffic" target="_blank" rel="noopener noreferrer">production guide</a> shows a single rule that drops traffic from <code>tap*</code> to <code>169.254.169.254</code>, and I block more than IMDS:</p>
 
 <pre><code class="language-nft"># /etc/nftables.d/hrr-host.nft
 # Replace ens5 with your uplink: ip -j route list default | jq -r '.[0].dev'
@@ -250,8 +248,6 @@ done
 chown root:root /var/lib/hrr/golden/*
 chmod 0444 /var/lib/hrr/golden/*</code></pre>
 
-<p>Three details matter more than they look.</p>
-
 <p><strong>The golden VM is never resumed.</strong> The snapshot docs walk through which patterns are safe. "Boot A, snapshot, terminate, load in B" is safe. Resuming the original and a clone from the same state isn't, because both continue with the same random state and tokens. Kill the golden VM.</p>
 
 <p><strong>The clones' rootfs is the golden VM's disk after the snapshot, not the image you started from.</strong> The guest's page cache in <code>snap.mem</code> describes that disk at that moment. Hand a clone a different disk and its filesystem state won't match its memory. Firecracker drains and <code>fsync</code>s block devices during snapshot creation, so the file is consistent once the call returns.</p>
@@ -262,11 +258,11 @@ chmod 0444 /var/lib/hrr/golden/*</code></pre>
 
 <p>You'll also see diff snapshots, which only write pages dirtied since the last snapshot. In v1.18.0 the docs still mark them as developer preview, and most diff files have to be merged onto a base with <code>snapshot-editor</code> before you can resume them. I'd use full snapshots for both the golden image and idle boxes, and come back to diffs once they're stable.</p>
 
-<p>Here's what a single <code>POST /boxes</code> does once the pool is warm. Nothing on the request path boots a kernel.</p>
+<p>What one <code>POST /boxes</code> does once the pool is warm: nothing on the request path boots a kernel.</p>
 
 <figure><img src="/blog-assets/build-instant-server-service-firecracker-microvms/diagram-request-lifecycle.jpg" alt="Flow diagram of one request: POST /boxes checks quota and picks a host. If the warm pool has a paused VM it is resumed in a few milliseconds; if not, a VM is restored from the snapshot with lazy page loading. Both paths go through post-restore fix-ups (new SSH keys, machine-id, MMDS identity, stepping the clock), then the box gets its /data disk and network, and the API returns id, ssh and url in under a second. Later an idle timeout pauses, snapshots or destroys the box and stops the meter; the same customer can resume from that box's own snapshot." width="1600" height="900" loading="lazy" decoding="async"><figcaption>Both paths meet at the fix-ups. Skip them and every clone shares the golden VM's keys and identity.</figcaption></figure>
 
-<p>Before reading on, try the three paths yourself. The figure below races a cold boot against a snapshot restore and a claim from the warm pool. Start all three at once and watch where the time goes on each lane. The cold boot spends it on the kernel, init and your app. The restore spends a few milliseconds loading state, more if the memory file sits on network storage. The warm pool has already paid both before anyone asked. The timings are illustrative, in the range public write-ups report, not a benchmark. Switch to the burst view to see what pool size does to p99, and skip the fix-ups to see what goes wrong.</p>
+<p>Try the three paths before reading on. The figure below races a cold boot against a snapshot restore and a claim from the warm pool. Start all three at once and watch where the time goes on each lane. The cold boot spends it on the kernel, init and your app. The restore spends a few milliseconds loading state, more if the memory file sits on network storage. The warm pool has already paid both before anyone asked. The timings are illustrative, in the range public write-ups report, not a benchmark. Switch to the burst view to see what pool size does to p99, and skip the fix-ups to see what goes wrong.</p>
 
 <div data-blog-activity="firecracker-boot"></div>
 
@@ -576,8 +572,6 @@ http
     }
   })
   .listen(8080, &quot;127.0.0.1&quot;, hrr_refill);</code></pre>
-
-<p>Some choices in there worth calling out:</p>
 
 <ul>
   <li><strong>Metering has two numbers.</strong> <code>billableSeconds</code> is wall time while running, rounded up to the second. <code>cpu</code> comes from the slot's cgroup v2 <code>cpu.stat</code> <code>usage_usec</code>, minus whatever was spent restoring before the claim. Bill on either. Vercel <a href="https://vercel.com/docs/vercel-sandbox" target="_blank" rel="noopener noreferrer">bills Sandbox CPU</a> on active CPU time and memory on what's provisioned, which is the second model.</li>
