@@ -35,7 +35,25 @@ class BlogRepository
      */
     public static function cacheKey(): string
     {
-        return self::CACHE_KEY.'.'.md5(base_path());
+        return self::CACHE_KEY.'.'.md5(base_path()).'.'.self::catalogFingerprint();
+    }
+
+    /**
+     * Changes whenever a post file is added, removed or edited (a deploy ships new
+     * mtimes), so a fresh deploy reads a new cache row instead of the old catalog
+     * for up to CACHE_TTL_MINUTES. Stats only; no file contents are read.
+     */
+    private static function catalogFingerprint(): string
+    {
+        $files = glob(resource_path(self::CONTENT_DIR.'/*.md')) ?: [];
+        $files[] = resource_path(self::PUBLICATION_PATH);
+        $parts = [];
+
+        foreach ($files as $file) {
+            $parts[] = basename($file).':'.(@filemtime($file) ?: 0).':'.(@filesize($file) ?: 0);
+        }
+
+        return substr(md5(implode('|', $parts)), 0, 12);
     }
 
     public static function viewsMapCacheKey(): string
