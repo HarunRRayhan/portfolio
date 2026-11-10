@@ -6,7 +6,7 @@ publishedAt: "2099-06-01T18:00:00.000Z"
 draft: true
 draftToken: "aa899c1b8e3e80274bee37c1e0c7dc45"
 readTimeInMinutes: 23
-coverImageUrl: "/blog-assets/agents-md-is-code/cover.jpg"
+coverImageUrl: "/blog-assets/agents-md-is-code/cover-v2.jpg"
 reactionCount: 0
 responseCount: 0
 replyCount: 0
