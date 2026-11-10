@@ -1,13 +1,13 @@
 ---
-title: "How to Build Your Own Instant-Server Service on Firecracker MicroVMs"
-seoTitle: "Build an Instant-Server Service on Firecracker MicroVMs"
+title: "How to Build Your Own Instant-Server Service Using Firecracker MicroVMs"
+seoTitle: "Build an Instant-Server Service Using Firecracker MicroVMs"
 slug: "build-instant-server-service-firecracker-microvms"
-brief: "Most agent sandboxes run on Firecracker. Here's how to build a small instant-server service yourself: host, jailer, networking, snapshots, a warm pool, and the API."
+brief: "Most agent sandboxes run in Firecracker microVMs. Here's how to build a small instant-server service yourself: host, jailer, networking, snapshots, a warm pool, and the API."
 publishedAt: "2099-06-01T18:00:00.000Z"
 draft: true
 draftToken: "1ce8fd7883bf5227b544f17a29da72d9"
 readTimeInMinutes: 22
-coverImageUrl: "/blog-assets/build-instant-server-service-firecracker-microvms/cover.jpg"
+coverImageUrl: "/blog-assets/build-instant-server-service-firecracker-microvms/cover-v2.jpg"
 reactionCount: 0
 responseCount: 0
 replyCount: 0
