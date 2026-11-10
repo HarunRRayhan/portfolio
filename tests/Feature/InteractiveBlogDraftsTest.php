@@ -20,6 +20,7 @@ class InteractiveBlogDraftsTest extends TestCase
             'why-s3-presigned-urls' => 's3-presigned-url',
             'terraform-or-pulumi' => 'terraform-vs-pulumi',
             'why-rust-is-faster-than-python-javascript-php-and-go' => 'language-race',
+            'agents-md-is-code' => 'agent-context',
         ];
 
         foreach ($expected as $slug => $activity) {

@@ -2,6 +2,7 @@
 
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
+import AgentContextActivity from '@/Components/BlogActivities/AgentContextActivity'
 import LanguageRaceActivity from '@/Components/BlogActivities/LanguageRaceActivity'
 import LoadBalancerActivity from '@/Components/BlogActivities/LoadBalancerActivity'
 import PresignedUrlActivity from '@/Components/BlogActivities/PresignedUrlActivity'
@@ -12,6 +13,7 @@ const activities: Record<string, (node: HTMLElement) => ReactNode> = {
   's3-presigned-url': () => <PresignedUrlActivity />,
   'terraform-vs-pulumi': () => <TerraformPulumiActivity />,
   'language-race': () => <LanguageRaceActivity />,
+  'agent-context': () => <AgentContextActivity />,
 }
 
 class ActivityBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
