@@ -1,12 +1,13 @@
 ---
-title: "The Job Said Success. Zero Writes. No Alarm."
-slug: "job-said-success-zero-writes-no-alarm"
+title: "How to Catch AWS Lambda Jobs That Succeed but Write Nothing"
+seoTitle: "Catch AWS Lambda Jobs That Succeed but Write Nothing"
+slug: "catch-lambda-jobs-that-succeed-but-write-nothing"
 brief: "Tooling catches crashes and misses empty success. Here's a contract, EMF metrics, a Step Functions check, and a regression test for jobs that write nothing."
 publishedAt: "2099-06-01T18:00:00.000Z"
 draft: true
 draftToken: "2e1a2d6ed774753fa8e5ff4874f20330"
 readTimeInMinutes: 13
-coverImageUrl: "/blog-assets/job-said-success-zero-writes-no-alarm/cover.jpg"
+coverImageUrl: "/blog-assets/catch-lambda-jobs-that-succeed-but-write-nothing/cover.jpg"
 reactionCount: 0
 responseCount: 0
 replyCount: 0
