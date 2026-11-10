@@ -6,7 +6,7 @@ brief: "Tooling catches crashes and misses empty success. Here's a contract, EMF
 publishedAt: "2099-06-01T18:00:00.000Z"
 draft: true
 draftToken: "2e1a2d6ed774753fa8e5ff4874f20330"
-readTimeInMinutes: 13
+readTimeInMinutes: 15
 coverImageUrl: "/blog-assets/catch-lambda-jobs-that-succeed-but-write-nothing/cover.jpg"
 reactionCount: 0
 responseCount: 0
@@ -42,6 +42,10 @@ tags:
   <li>A Step Functions Map state over an empty array has nothing to fail on.</li>
   <li>Retries don't fire, because nothing threw.</li>
 </ul>
+
+<p>Try it before reading any code. The figure below runs one ten-message SQS batch through a memory-extract Lambda. Pick what goes wrong, run the batch, and compare what AWS shows with what actually landed. Then switch the handler to the contract from the next section and run the same bug again. Flip <code>function_response_types</code> off too, because that one bites people who did everything else right.</p>
+
+<div data-blog-activity="zero-write-batch"></div>
 
 <p>The <a href="/blog/llm-observability-langfuse-lambda-cloudwatch">Langfuse and CloudWatch setup</a> I wrote about earlier won't catch this either. It tells you what the model did and what it cost. This post is about one narrower question: did anything land?</p>
 
@@ -539,6 +543,10 @@ resource &quot;aws_cloudwatch_metric_alarm&quot; &quot;hrr_zero_write_spike&quot
     }
   }
 }</code></pre>
+
+<p>Here's that alarm on an hour of illustrative traffic. Move the threshold and the floor, change how many datapoints it needs, and try the three scenarios. The quiet pipeline and the prompt drift are the two I'd test first, because they're the ones that never page. Then break the EMF emitter and watch the alarm clear itself.</p>
+
+<div data-blog-activity="zero-write-alarm"></div>
 
 <p>The 20 messages and 20% are example numbers. Tune them to your traffic. A pipeline that gets five messages an hour never clears that floor, so alarm directly on a sum of <code>UnexplainedZeroWrites</code> instead.</p>
 

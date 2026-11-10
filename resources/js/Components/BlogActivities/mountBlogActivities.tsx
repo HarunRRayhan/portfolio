@@ -7,6 +7,8 @@ import LanguageRaceActivity from '@/Components/BlogActivities/LanguageRaceActivi
 import LoadBalancerActivity from '@/Components/BlogActivities/LoadBalancerActivity'
 import PresignedUrlActivity from '@/Components/BlogActivities/PresignedUrlActivity'
 import TerraformPulumiActivity from '@/Components/BlogActivities/TerraformPulumiActivity'
+import ZeroWriteAlarmActivity from '@/Components/BlogActivities/ZeroWriteAlarmActivity'
+import ZeroWriteBatchActivity from '@/Components/BlogActivities/ZeroWriteBatchActivity'
 
 const activities: Record<string, (node: HTMLElement) => ReactNode> = {
   'load-balancer': (node) => <LoadBalancerActivity algorithmId={node.dataset.algorithm ?? ''} />,
@@ -14,6 +16,8 @@ const activities: Record<string, (node: HTMLElement) => ReactNode> = {
   'terraform-vs-pulumi': () => <TerraformPulumiActivity />,
   'language-race': () => <LanguageRaceActivity />,
   'agent-context': () => <AgentContextActivity />,
+  'zero-write-batch': () => <ZeroWriteBatchActivity />,
+  'zero-write-alarm': () => <ZeroWriteAlarmActivity />,
 }
 
 class ActivityBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {

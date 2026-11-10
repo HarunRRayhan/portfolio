@@ -21,6 +21,7 @@ class InteractiveBlogDraftsTest extends TestCase
             'terraform-or-pulumi' => 'terraform-vs-pulumi',
             'why-rust-is-faster-than-python-javascript-php-and-go' => 'language-race',
             'agents-md-is-code' => 'agent-context',
+            'catch-lambda-jobs-that-succeed-but-write-nothing' => 'zero-write-batch',
         ];
 
         foreach ($expected as $slug => $activity) {
@@ -55,6 +56,10 @@ class InteractiveBlogDraftsTest extends TestCase
                 $this->assertStringNotContainsString('Who can fetch the object', $hydrated['content']['html']);
                 $this->assertStringNotContainsString('Make the object public', $hydrated['content']['html']);
                 $this->assertStringNotContainsString('—', $hydrated['content']['html']);
+            }
+
+            if ($slug === 'catch-lambda-jobs-that-succeed-but-write-nothing') {
+                $this->assertStringContainsString('data-blog-activity="zero-write-alarm"', $hydrated['content']['html']);
             }
 
             if ($slug === 'eight-load-balancer-algorithms') {
