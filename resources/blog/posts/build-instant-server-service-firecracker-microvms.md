@@ -26,7 +26,7 @@ tags:
 
 <p>I ran into Firecracker before, from the other side. When I wrote about <a href="/blog/lambda-snapstart-terraform-cold-starts">Lambda SnapStart</a> in July, the whole trick turned out to be a snapshot of a Firecracker microVM. This time I wanted the operator's view: the host, the jail, the network, the snapshot, and the small API that hands you a box, not the SDK.</p>
 
-<p>This post builds a small version of that service end to end: one Linux host, Firecracker v1.18.0 under the jailer, one network namespace per box, a golden snapshot, a warm pool, a persistent <code>/data</code> disk per box, and a TypeScript control plane where <code>POST /boxes</code> claims a VM that's already restored instead of booting one.</p>
+<p>This post builds a small version of that service end to end. One Linux host, Firecracker v1.18.0 under the jailer, one network namespace per box, a golden snapshot, a warm pool, a persistent <code>/data</code> disk per box, and a TypeScript control plane where <code>POST /boxes</code> claims a VM that's already restored instead of booting one.</p>
 
 <p>One caveat before the commands. I wrote this on a Mac, and macOS has no KVM. I checked every command and JSON body against the Firecracker v1.18.0 docs and its OpenAPI spec, and the TypeScript passes <code>tsc --strict</code>. But I haven't run this stack on real KVM hardware. Treat it as a reviewed design, and test it on a metal host before you trust it.</p>
 
@@ -187,7 +187,7 @@ table ip hrr {
 }
 NFT</code></pre>
 
-<p>From the host, box <code>N</code> is <code>10.200.N.2</code>, which is where the gateway connects on port 22 or 8080 before the namespace forwards it to the guest. Outbound, the guest's traffic leaves the namespace as <code>10.200.N.2</code>, and then the host decides what's allowed.</p>
+<p>From the host, box <code>N</code> is <code>10.200.N.2</code>. The gateway connects there on port 22 or 8080 before the namespace forwards it to the guest. Outbound, the guest's traffic leaves the namespace as <code>10.200.N.2</code>, and then the host decides what's allowed.</p>
 
 <p>My taps live inside namespaces, so the host sees the <code>hrrv*</code> veths instead of <code>tap*</code>. The <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/docs/prod-host-setup.md#filtering-guest-egress-network-traffic" target="_blank" rel="noopener noreferrer">production guide</a> shows a single rule that drops traffic from <code>tap*</code> to <code>169.254.169.254</code>, and I block more than IMDS:</p>
 
@@ -256,7 +256,7 @@ chmod 0444 /var/lib/hrr/golden/*</code></pre>
 
 <p>If kernel page faults are too slow for you, the <code>Uffd</code> backend hands every page fault to a process you write, over <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/docs/snapshotting/handling-page-faults-on-snapshot-resume.md" target="_blank" rel="noopener noreferrer">userfaultfd</a>. That's where you'd prefetch the pages a box always touches, or pull memory from somewhere other than local disk. Firecracker gives you the protocol, not the handler. Start with <code>File</code>.</p>
 
-<p>You'll also see diff snapshots, which only write pages dirtied since the last snapshot, but in v1.18.0 the docs still mark them as developer preview and most diff files have to be merged onto a base with <code>snapshot-editor</code> before you can resume them. I'd use full snapshots for both the golden image and idle boxes, and come back to diffs once they're stable.</p>
+<p>You'll also see diff snapshots, which only write pages dirtied since the last snapshot. In v1.18.0 the docs still mark them as developer preview, and most diff files have to be merged onto a base with <code>snapshot-editor</code> before you can resume them. I'd use full snapshots for both the golden image and idle boxes, and come back to diffs once they're stable.</p>
 
 <p>What one <code>POST /boxes</code> does once the pool is warm: nothing on the request path boots a kernel.</p>
 
@@ -304,7 +304,7 @@ curl -sS --fail-with-body --unix-socket &quot;$SOCK&quot; -X PUT http://localhos
        &quot;clock_realtime&quot;: true,
        &quot;resume_vm&quot;: false}'</code></pre>
 
-<p>The rootfs uses <code>cp --reflink=always</code>, which only works on a filesystem with reflinks, like XFS or Btrfs, where it's a metadata-only copy, so every box starts with a private, writable rootfs that shares blocks with the golden one until it writes. On ext4 the command fails rather than quietly copying gigabytes, which is the behaviour I want. The hard links mean <code>/var/lib/hrr</code> and <code>/srv/jailer</code> have to be on the same filesystem.</p>
+<p>The rootfs uses <code>cp --reflink=always</code>. That only works on a filesystem with reflinks, like XFS or Btrfs, where it's a metadata-only copy, so every box starts with a private, writable rootfs that shares blocks with the golden one until it writes. On ext4 the command fails rather than quietly copying gigabytes, which is the behaviour I want. The hard links mean <code>/var/lib/hrr</code> and <code>/srv/jailer</code> have to be on the same filesystem.</p>
 
 <p>Each slot runs under its own uid and gid, which the production guide recommends, so a broken jail can't read a neighbour's files. <code>cpu.max=200000 100000</code> caps the box at two CPUs' worth of time per 100 ms period. <code>memory.max</code> leaves some room above the guest's 1024 MiB for the VMM itself.</p>
 

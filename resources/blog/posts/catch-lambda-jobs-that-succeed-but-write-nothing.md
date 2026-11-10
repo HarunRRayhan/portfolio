@@ -53,7 +53,7 @@ tags:
 
 <h2>The contract is three fields and one excuse</h2>
 
-<p>Every batch, extraction and ingest Lambda returns the same shape, <code>{ok, itemsWritten, errors[]}</code>, and I'd add a fourth optional field, because SQS is at-least-once and a redelivered message can legitimately write nothing when the first delivery already did the work. The idempotent re-run in the RAG post does that on purpose. Without a way to say so, every duplicate looks like the bug.</p>
+<p>Every batch, extraction and ingest Lambda returns the same shape, <code>{ok, itemsWritten, errors[]}</code>. I'd add a fourth optional field, because SQS is at-least-once and a redelivered message can legitimately write nothing when the first delivery already did the work. The idempotent re-run in the RAG post does that on purpose. Without a way to say so, every duplicate looks like the bug.</p>
 
 <pre><code class="language-typescript">export type HrrError = { code: string; message: string };
 
@@ -152,7 +152,7 @@ export function hrr_verdict(result: HrrResult, onUnexplainedEmpty: HrrPolicy) {
   );
 }</code></pre>
 
-<p>The EMF spec wants a log event that is a JSON object with nothing before or after it. Lambda's default text format can't produce one: the Node runtime adds a timestamp, request ID and level to everything <code>console.log</code> writes, and in JSON log format CloudWatch can stop recognizing EMF that went through <code>console.log</code> at all. <a href="https://docs.aws.amazon.com/lambda/latest/dg/nodejs-logging.html" target="_blank" rel="noopener noreferrer">AWS's fix is <code>process.stdout.write</code></a>, so that's what this uses.</p>
+<p>The EMF spec wants a log event that is a JSON object with nothing before or after it. Lambda's default text format can't produce one: the Node runtime adds a timestamp, request ID and level to everything <code>console.log</code> writes, and in JSON log format CloudWatch can stop recognizing EMF that went through <code>console.log</code> at all. <a href="https://docs.aws.amazon.com/lambda/latest/dg/nodejs-logging.html" target="_blank" rel="noopener noreferrer">AWS's fix is <code>process.stdout.write</code></a>. That's what this uses.</p>
 
 <p>Emit zeros, because a rate needs its denominator in every period. Keep <code>messageId</code> out of the dimensions too: every unique dimension value creates a new custom metric.</p>
 
@@ -240,7 +240,7 @@ export function hrr_verdict(result: HrrResult, onUnexplainedEmpty: HrrPolicy) {
 
 <p>The catch is the standard pattern, and it also means per-message exceptions never reach Lambda's <code>Errors</code> metric. <code>FailedMessages</code> exists to count them.</p>
 
-<p>SQS isn't a caller that reads your contract, so the full result goes to the log and the counts go to EMF. The response stays as just <code>batchItemFailures</code>. That's the only key AWS documents for it.</p>
+<p>SQS isn't a caller that reads your contract. The full result goes to the log, and the counts go to EMF. The response stays as just <code>batchItemFailures</code>. That's the only key AWS documents for it.</p>
 
 <pre><code class="language-hcl">resource &quot;aws_sqs_queue&quot; &quot;hrr_extract_dlq&quot; {
   name = &quot;hrr-memory-extract-dlq&quot;
@@ -271,13 +271,13 @@ resource &quot;aws_lambda_event_source_mapping&quot; &quot;hrr_extract&quot; {
 
 <h2>Three ways a model reply turns into nothing</h2>
 
-<p>The OpenViking report had three gaps, and <a href="https://dev.to/pm25coder/the-extraction-returned-zero-memories-and-nothing-screamed-3c7c" target="_blank" rel="noopener noreferrer">the dev.to write-up</a> explains why each one looked defensible on its own. That stack was a self-hosted model server, so this is my adaptation to Bedrock, not something the report measured there.</p>
+<p>The OpenViking report had three gaps, and <a href="https://dev.to/pm25coder/the-extraction-returned-zero-memories-and-nothing-screamed-3c7c" target="_blank" rel="noopener noreferrer">the dev.to write-up</a> explains why each one looked defensible on its own. That stack was a self-hosted model server. This is my adaptation to Bedrock, not something the report measured there.</p>
 
 <p><strong>The wrong parse channel.</strong> In the original, tool-call markup leaked into the content field and the parser only looked in the structured channel, and since Converse <a href="https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ContentBlock.html" target="_blank" rel="noopener noreferrer">separates <code>text</code> and <code>toolUse</code> blocks</a> the same markup may never show up. The same shape can, though: tool JSON sitting in a <code>text</code> block with no <code>toolUse</code> at all. <a href="https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ToolChoice.html" target="_blank" rel="noopener noreferrer">Setting <code>toolChoice</code></a> to <code>any</code> or <code>tool</code> narrows this down where the model supports it. I'd keep the check anyway, since <code>stopReason</code> can also come back as <code>malformed_model_output</code> or <code>malformed_tool_use</code>.</p>
 
 <p><strong>The retry budget spent on garbage.</strong> One shared format-retry counter means a junk reply can use the only retry before a real formatting slip shows up. Each failure kind gets its own budget.</p>
 
-<p><strong>The flag that disabled the recovery path.</strong> A flag built for "the model called a tool that doesn't exist" was reused for any parse failure, so a model that answered "let me search first" ran its next iteration with tools off and guaranteed the empty result. The fix below is blunt: <code>callModel</code> has no parameter that turns tools off, so nobody can reuse it. A bad reply changes the prompt and nothing else.</p>
+<p><strong>The flag that disabled the recovery path.</strong> A flag built for "the model called a tool that doesn't exist" was reused for any parse failure, so a model that answered "let me search first" ran its next iteration with tools off and guaranteed the empty result. The fix below is blunt: <code>callModel</code> has no parameter that turns tools off. Nobody can reuse it. A bad reply changes the prompt and nothing else.</p>
 
 <pre><code class="language-typescript">const HRR_TOOL = &quot;hrr_save_memories&quot;;
 const HRR_BUDGET = { wrong_channel: 1, prose: 2, malformed: 1 };
@@ -319,7 +319,7 @@ export async function hrr_extract(
 
 <h2>A Map state can succeed over nothing</h2>
 
-<p>Step Functions has the same blind spot one level up, where a Map state's output is an array of iteration outputs and an empty array is a perfectly valid result. The check goes in a Choice right after each Map.</p>
+<p>Step Functions has the same blind spot one level up. A Map state's output is an array of iteration outputs, and an empty array is a perfectly valid result. The check goes in a Choice right after each Map.</p>
 
 <p>The definition below is the part that matters, in JSONata. A chunking Task before it returns <code>documentId</code>, <code>documentBytes</code> and <code>chunks</code>, and each iteration returns the contract.</p>
 
@@ -554,7 +554,7 @@ resource &quot;aws_cloudwatch_metric_alarm&quot; &quot;hrr_zero_write_spike&quot
 
 <div data-blog-activity="zero-write-alarm"></div>
 
-<p>The 20 messages and 20% are example numbers. Tune them to your traffic. A pipeline that gets five messages an hour never clears that floor, so alarm directly on a sum of <code>UnexplainedZeroWrites</code> instead.</p>
+<p>The 20 messages and 20% are example numbers. Tune them to your traffic. A pipeline that gets five messages an hour never clears that floor. Alarm directly on a sum of <code>UnexplainedZeroWrites</code> instead.</p>
 
 <p>EMF metrics depend on log delivery, and AWS suggests M out of N alarms when you can't control log flushing, which is the case in Lambda, so 2 of 3 periods. <code>notBreaching</code> has a cost too: if the emitter itself breaks, missing data reads as OK, and that's a silent success about your silent success detector. Add alarms on <code>EMFParsingErrors</code> and <code>EMFValidationErrors</code> in the <code>AWS/Logs</code> namespace with the <code>LogGroupName</code> dimension. The test below covers the code path.</p>
 
@@ -621,7 +621,7 @@ test(&quot;non-empty batch plus a no-op writer fails and moves the metric&quot;,
   assert.equal(emf.FailedMessages, 2);
 });</code></pre>
 
-<p>It needs no AWS account and no mocking library: all the TypeScript in this post lives in one file, <code>hrr_pipeline.ts</code>, with <code>import type { SQSEvent, SQSBatchResponse, SQSBatchItemFailure } from &quot;aws-lambda&quot;</code> at the top, and those types come from <code>@types/aws-lambda</code>. Run the test with <code>node --test</code> on a Node version that strips types, or through your own TypeScript runner.</p>
+<p>It needs no AWS account and no mocking library. All the TypeScript in this post lives in one file, <code>hrr_pipeline.ts</code>, with <code>import type { SQSEvent, SQSBatchResponse, SQSBatchItemFailure } from &quot;aws-lambda&quot;</code> at the top, and those types come from <code>@types/aws-lambda</code>. Run the test with <code>node --test</code> on a Node version that strips types, or through your own TypeScript runner.</p>
 
 <p>The handler and this test run as written under <code>node --test</code>. The JSONata expressions were evaluated against sample inputs with jsonata 2.0.6, the version Step Functions implements, and the Terraform passes <code>terraform validate</code> on AWS provider 6.72, though none of it has been deployed as a full stack, so test the alarm and the state machine in your own account before you trust them.</p>
 
