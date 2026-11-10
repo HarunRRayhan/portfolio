@@ -7,7 +7,7 @@ publishedAt: "2099-06-01T18:00:00.000Z"
 draft: true
 draftToken: "2e1a2d6ed774753fa8e5ff4874f20330"
 readTimeInMinutes: 15
-coverImageUrl: "/blog-assets/catch-lambda-jobs-that-succeed-but-write-nothing/cover.jpg"
+coverImageUrl: "/blog-assets/catch-lambda-jobs-that-succeed-but-write-nothing/cover-v2.jpg"
 reactionCount: 0
 responseCount: 0
 replyCount: 0
@@ -43,6 +43,8 @@ tags:
   <li>Retries don't fire, because nothing threw.</li>
 </ul>
 
+<figure><img src="/blog-assets/catch-lambda-jobs-that-succeed-but-write-nothing/diagram-empty-success.jpg" alt="Diagram of one SQS batch: the queue delivers 10 messages to the Lambda handler (Lambda Errors 0), which calls the Bedrock model (stopReason tool_use, 19 memories), which saves to the memory store, which accepts the call and writes 0 rows. The handler returns an empty batchItemFailures list (Invocation Success), and SQS deletes all 10 messages, so the input is gone." width="1600" height="900" loading="lazy" decoding="async"><figcaption>Every check mark is true. The two crosses are what actually happened, and nothing on the left side of the diagram can see them.</figcaption></figure>
+
 <p>Try it before reading any code. The figure below runs one ten-message SQS batch through a memory-extract Lambda. Pick what goes wrong, run the batch, and compare what AWS shows with what actually landed. Then switch the handler to the contract from the next section and run the same bug again. Flip <code>function_response_types</code> off too, because that one bites people who did everything else right.</p>
 
 <div data-blog-activity="zero-write-batch"></div>
@@ -72,6 +74,8 @@ export function hrr_verdict(result: HrrResult, onUnexplainedEmpty: HrrPolicy) {
 }</code></pre>
 
 <p><code>hrr_verdict</code> assumes the input wasn't empty. An empty input has to say <code>empty_input</code> out loud, same as any other excuse. An excuse doesn't count if <code>errors</code> has anything in it.</p>
+
+<figure><img src="/blog-assets/catch-lambda-jobs-that-succeed-but-write-nothing/diagram-contract-routes.jpg" alt="Diagram of the contract: every message returns ok, itemsWritten, errors and an optional emptyReason. hrr_verdict sends it down exactly one route. OK means rows landed or a stated emptyReason, and SQS deletes the message while ZeroWrites is still counted. WARN deletes but emits UnexplainedZeroWrites to a CloudWatch alarm that pages through SNS. FAIL puts the messageId in batchItemFailures, so the message is retried up to 5 times and then lands in the DLQ with its body intact." width="1600" height="900" loading="lazy" decoding="async"><figcaption>One result in, one route out. Only FAIL keeps the input; WARN leaves it to the alarm.</figcaption></figure>
 
 <p>WARN or FAIL is a per-pipeline decision. These are the defaults I'd start with.</p>
 

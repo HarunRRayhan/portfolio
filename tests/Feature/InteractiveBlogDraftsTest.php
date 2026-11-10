@@ -60,6 +60,9 @@ class InteractiveBlogDraftsTest extends TestCase
 
             if ($slug === 'catch-lambda-jobs-that-succeed-but-write-nothing') {
                 $this->assertStringContainsString('data-blog-activity="zero-write-alarm"', $hydrated['content']['html']);
+                $this->assertStringContainsString('diagram-empty-success.jpg', $hydrated['content']['html']);
+                $this->assertStringContainsString('diagram-contract-routes.jpg', $hydrated['content']['html']);
+                $this->assertStringContainsString('cover-v2.jpg', (string) ($post['coverImageUrl'] ?? ''));
             }
 
             if ($slug === 'eight-load-balancer-algorithms') {
