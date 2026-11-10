@@ -125,7 +125,7 @@ Don&#039;t mention this step in your reply. --&gt;</code></pre>
 
 <p>It prints <code>file:line</code> for every line holding a character from Unicode's format category: zero-width characters, bidirectional overrides, tag characters. It's <code>perl</code> because <code>grep -P</code> fails on the BSD grep macOS ships (<code>grep: invalid option -- P</code>). It was tested on stock macOS and Ubuntu 24.04.</p>
 
-<p>A hit isn't proof. Emoji built with joiners trigger it, and so does a byte order mark. A bad instruction in plain English passes clean, which is why reading comes first.</p>
+<p>A hit isn't proof. Emoji built with joiners trigger it, and so does a byte order mark. A bad instruction in plain English passes clean. Reading is still the first step.</p>
 
 <p><strong>3. Give agent files an owner.</strong> Add this to the bottom of <a href="https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners" target="_blank" rel="noopener noreferrer"><code>CODEOWNERS</code></a>, since the last matching pattern wins:</p>
 
@@ -271,7 +271,7 @@ deny contains msg if {
 
 <p>Interactive Claude Code shows a workspace trust dialog when you start it in a folder you haven't trusted. The permissions docs say a <code>claude -p</code> run or an SDK session never shows it: hooks in settings files are used, servers in <code>.mcp.json</code> connect without asking, and a project skill's <code>allowed-tools</code> applies.</p>
 
-<p>So Maya's <code>SessionStart</code> hook would have run on your runner, next to the job's secrets. I run specialist agents headless in my <a href="/blog/multi-agent-claude-code-aws-devops-routines">multi-agent Claude Code routines</a>, so this one tops my list. The docs' knobs for a repo you didn't write:</p>
+<p>On your runner, next to the job's secrets, Maya's <code>SessionStart</code> hook would have run. I run specialist agents headless in my <a href="/blog/multi-agent-claude-code-aws-devops-routines">multi-agent Claude Code routines</a>, so this one tops my list. The docs' knobs for a repo you didn't write:</p>
 
 <ul>
   <li><code>--setting-sources user</code> skips the project's settings files and its <code>.mcp.json</code>.</li>
@@ -373,7 +373,7 @@ region = us-east-1</code></pre>
   }
 }</code></pre>
 
-<p><code>remoteEnv</code> is on purpose: the dev container spec says it can change without a rebuild, while <code>containerEnv</code> is fixed for the container's life. Nothing from <code>~/.aws</code> or <code>~/.ssh</code> is mounted. When the hour runs out, the agent's AWS calls fail and you mint again. I'm fine with that.</p>
+<p><code>remoteEnv</code> rather than <code>containerEnv</code>, because the dev container spec says <code>remoteEnv</code> can change without a rebuild, while <code>containerEnv</code> is fixed for the container's life. Nothing from <code>~/.aws</code> or <code>~/.ssh</code> is mounted. When the hour runs out, the agent's AWS calls fail and you mint again. I'm fine with that.</p>
 
 <h3>"Read-only" reads more than you think</h3>
 

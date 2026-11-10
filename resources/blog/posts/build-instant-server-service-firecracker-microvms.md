@@ -24,7 +24,7 @@ tags:
 
 <p>Every agent sandbox launch I read this year has the same line in its docs. <a href="https://instabox.sh" target="_blank" rel="noopener noreferrer">InstaBox</a>, the "cloud computers for AI agents" product from InsForge in <a href="https://www.ycombinator.com/companies/insforge" target="_blank" rel="noopener noreferrer">YC's Spring 2026 batch</a>, says each machine is "a Firecracker microVM". <a href="https://github.com/e2b-dev/infra" target="_blank" rel="noopener noreferrer">E2B's infra repo</a> says "one Firecracker microVM per sandbox". <a href="https://vercel.com/docs/vercel-sandbox" target="_blank" rel="noopener noreferrer">Vercel Sandbox</a> says each sandbox "runs in a secure Firecracker microVM". <a href="https://docs.superserve.ai/introduction" target="_blank" rel="noopener noreferrer">Superserve</a> says its sandboxes are "powered by Firecracker MicroVMs".</p>
 
-<p>I ran into Firecracker before, from the other side. When I wrote about <a href="/blog/lambda-snapstart-terraform-cold-starts">Lambda SnapStart</a> in July, the whole trick turned out to be a snapshot of a Firecracker microVM. So this time I wanted the operator's view: the host, the jail, the network, the snapshot, and the small API that hands you a box, not the SDK.</p>
+<p>I ran into Firecracker before, from the other side. When I wrote about <a href="/blog/lambda-snapstart-terraform-cold-starts">Lambda SnapStart</a> in July, the whole trick turned out to be a snapshot of a Firecracker microVM. This time I wanted the operator's view: the host, the jail, the network, the snapshot, and the small API that hands you a box, not the SDK.</p>
 
 <p>This post builds a small version of that service end to end: one Linux host, Firecracker v1.18.0 under the jailer, one network namespace per box, a golden snapshot, a warm pool, a persistent <code>/data</code> disk per box, and a TypeScript control plane where <code>POST /boxes</code> claims a VM that's already restored instead of booting one.</p>
 
@@ -95,7 +95,7 @@ install -m 0755 &quot;release-${FC}-${ARCH}/jailer-${FC}-${ARCH}&quot; /usr/loca
 
 <p>You need two artifacts: an uncompressed guest kernel and an ext4 rootfs. For a first run, the getting-started guide has a script that pulls both from Firecracker's CI bucket, patches an SSH key into the Ubuntu rootfs, and leaves you with <code>$KERNEL</code>, <code>$ROOTFS</code> and <code>$KEY_NAME</code>. For production, build your own with <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/docs/rootfs-and-kernel-setup.md" target="_blank" rel="noopener noreferrer">rootfs-and-kernel-setup.md</a>.</p>
 
-<p>Pick the guest kernel on purpose. The <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/docs/kernel-policy.md" target="_blank" rel="noopener noreferrer">kernel policy</a> supports 5.10, 6.1 and 6.18 guests, but the snapshot section below leans on VMGenID, and Linux only reseeds its RNG from VMGenID from 5.18 onward. So 6.1 or 6.18, not 5.10.</p>
+<p>Pick the guest kernel on purpose. The <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/docs/kernel-policy.md" target="_blank" rel="noopener noreferrer">kernel policy</a> supports 5.10, 6.1 and 6.18 guests, but the snapshot section below leans on VMGenID, and Linux only reseeds its RNG from VMGenID from 5.18 onward. 6.1 or 6.18, not 5.10.</p>
 
 <p>This boots the golden VM. It's the only VM in the system that boots from a kernel. Everything after it restores from its snapshot.</p>
 
@@ -143,7 +143,7 @@ fc PUT /actions '{&quot;action_type&quot;: &quot;InstanceStart&quot;}'</code></p
   <li><code>PUT /entropy</code> adds a <code>virtio-rng</code> device, one more entropy source for the guest after restore.</li>
 </ul>
 
-<p>The guest MAC <code>06:00:AC:10:00:02</code> isn't random. The CI rootfs derives its IP from the MAC, so this one means <code>172.16.0.2</code>. Every clone will have that same MAC and IP, which is why the network has to be built around it.</p>
+<p>The guest MAC <code>06:00:AC:10:00:02</code> isn't random. The CI rootfs derives its IP from the MAC, so this one means <code>172.16.0.2</code>. Every clone will have that same MAC and IP. The network has to be built around that.</p>
 
 <h2>Networking: one namespace per box</h2>
 
@@ -225,7 +225,7 @@ table inet hrr_host {
 
 <p>Booting is the slow path. The 125 ms in the spec is with a minimal kernel and rootfs, and a real box has systemd, an SSH server, your agent, and whatever runtime the user expects to be warm, none of which you want to pay for on every <code>POST</code>.</p>
 
-<p>So you pay it once. Boot the golden VM, warm it up, and snapshot it. A <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/docs/snapshotting/snapshot-support.md" target="_blank" rel="noopener noreferrer">Firecracker snapshot</a> is a guest memory file plus a small microVM state file with the device and KVM state. Disks aren't part of it. They're yours to manage.</p>
+<p>You pay it once. Boot the golden VM, warm it up, and snapshot it. A <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/docs/snapshotting/snapshot-support.md" target="_blank" rel="noopener noreferrer">Firecracker snapshot</a> is a guest memory file plus a small microVM state file with the device and KVM state. Disks aren't part of it. They're yours to manage.</p>
 
 <pre><code class="language-bash">G=&quot;ip netns exec hrr-254 ssh -i $KEY_NAME root@172.16.0.2&quot;
 
@@ -250,9 +250,9 @@ chmod 0444 /var/lib/hrr/golden/*</code></pre>
 
 <p><strong>The golden VM is never resumed.</strong> The snapshot docs walk through which patterns are safe. "Boot A, snapshot, terminate, load in B" is safe. Resuming the original and a clone from the same state isn't, because both continue with the same random state and tokens. Kill the golden VM.</p>
 
-<p><strong>The clones' rootfs is the golden VM's disk after the snapshot, not the image you started from.</strong> The guest's page cache in <code>snap.mem</code> describes that disk at that moment, so hand a clone a different disk and its filesystem state won't match its memory, which is why Firecracker drains and <code>fsync</code>s block devices during snapshot creation and the file is consistent once the call returns.</p>
+<p><strong>The clones' rootfs is the golden VM's disk after the snapshot, not the image you started from.</strong> The guest's page cache in <code>snap.mem</code> describes that disk at that moment, so hand a clone a different disk and its filesystem state won't match its memory; Firecracker drains and <code>fsync</code>s block devices during snapshot creation, so the file is consistent once the call returns.</p>
 
-<p><strong>Loading a snapshot is lazy.</strong> With the <code>File</code> backend, Firecracker <code>mmap</code>s the memory file <code>MAP_PRIVATE</code>. Pages load from it on first touch and writes go to private copy-on-write memory. That's why restore is fast, and it's also why <code>snap.mem</code> must stay unchanged on disk for as long as any clone runs. All the clones on a host share its read pages through the page cache.</p>
+<p><strong>Loading a snapshot is lazy.</strong> With the <code>File</code> backend, Firecracker <code>mmap</code>s the memory file <code>MAP_PRIVATE</code>. Pages load from it on first touch and writes go to private copy-on-write memory, which keeps restore fast and also means <code>snap.mem</code> must stay unchanged on disk for as long as any clone runs. All the clones on a host share its read pages through the page cache.</p>
 
 <p>If kernel page faults are too slow for you, the <code>Uffd</code> backend hands every page fault to a process you write, over <a href="https://github.com/firecracker-microvm/firecracker/blob/v1.18.0/docs/snapshotting/handling-page-faults-on-snapshot-resume.md" target="_blank" rel="noopener noreferrer">userfaultfd</a>. That's where you'd prefetch the pages a box always touches, or pull memory from somewhere other than local disk. Firecracker gives you the protocol, not the handler. Start with <code>File</code>.</p>
 
@@ -268,7 +268,7 @@ chmod 0444 /var/lib/hrr/golden/*</code></pre>
 
 <h2>A warm pool of paused clones</h2>
 
-<p>A restore is quick, but a slot also needs a namespace, a jail and a rootfs copy, and the jailer gets slower with load. Its docs measured jail creation at about 2x slower with 10 jails starting in parallel on a host with no mount points, and about 10x with 500 mount points. So I don't do any of that on the request path: a slot is built ahead of time, restored, and left paused.</p>
+<p>A restore is quick, but a slot also needs a namespace, a jail and a rootfs copy, and the jailer gets slower with load. Its docs measured jail creation at about 2x slower with 10 jails starting in parallel on a host with no mount points, and about 10x with 500 mount points. None of that happens on the request path: a slot is built ahead of time, restored, and left paused.</p>
 
 <pre><code class="language-bash">#!/usr/bin/env bash
 # hrr-slot-up.sh &lt;slot&gt;: one restored, paused microVM, waiting to be claimed
@@ -372,7 +372,7 @@ fc PUT /snapshot/create '{&quot;snapshot_type&quot;: &quot;Full&quot;,
 
 <h2>The control plane: POST /boxes without a boot</h2>
 
-<p>This is the whole API for one host. Claiming a box is a hard link and three Firecracker calls: write the identity to MMDS, resume, and swap the data disk. That's why the target of under a second is realistic. It's a target, though. I haven't measured it.</p>
+<p>This is the whole API for one host. Claiming a box is a hard link and three Firecracker calls: write the identity to MMDS, resume, and swap the data disk. That leaves room for the target of under a second. It's a target, though. I haven't measured it.</p>
 
 <p>The control plane also owns the lifecycle (pause, resume, destroy, idle timeout), per-second metering, and a per-owner quota.</p>
 

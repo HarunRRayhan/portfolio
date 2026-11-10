@@ -130,7 +130,7 @@ export function hrr_verdict(result: HrrResult, onUnexplainedEmpty: HrrPolicy) {
 
 <h2>Send the same numbers to CloudWatch, without console.log</h2>
 
-<p>A returned object only helps a caller that reads it. So the same counts go out as <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Embedded_Metric_Format_Specification.html" target="_blank" rel="noopener noreferrer">CloudWatch Embedded Metric Format</a>, one JSON line per invocation.</p>
+<p>A returned object only helps a caller that reads it. The same counts go out as <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Embedded_Metric_Format_Specification.html" target="_blank" rel="noopener noreferrer">CloudWatch Embedded Metric Format</a>, one JSON line per invocation.</p>
 
 <pre><code class="language-typescript">export function hrr_emitMetrics(pipeline: string, counts: Record&lt;string, number&gt;) {
   // console.log adds a timestamp and request ID in text log format, which breaks EMF.
@@ -152,7 +152,7 @@ export function hrr_verdict(result: HrrResult, onUnexplainedEmpty: HrrPolicy) {
   );
 }</code></pre>
 
-<p>The EMF spec wants a log event that is a JSON object with nothing before or after it, which is why Lambda's default text format breaks it: the Node runtime adds a timestamp, request ID and level to everything <code>console.log</code> writes, and in JSON log format CloudWatch can stop recognizing EMF that went through <code>console.log</code> at all. <a href="https://docs.aws.amazon.com/lambda/latest/dg/nodejs-logging.html" target="_blank" rel="noopener noreferrer">AWS's fix is <code>process.stdout.write</code></a>, so that's what this uses.</p>
+<p>The EMF spec wants a log event that is a JSON object with nothing before or after it. Lambda's default text format can't produce one: the Node runtime adds a timestamp, request ID and level to everything <code>console.log</code> writes, and in JSON log format CloudWatch can stop recognizing EMF that went through <code>console.log</code> at all. <a href="https://docs.aws.amazon.com/lambda/latest/dg/nodejs-logging.html" target="_blank" rel="noopener noreferrer">AWS's fix is <code>process.stdout.write</code></a>, so that's what this uses.</p>
 
 <p>Emit zeros, because a rate needs its denominator in every period. Keep <code>messageId</code> out of the dimensions too: every unique dimension value creates a new custom metric.</p>
 
@@ -187,7 +187,7 @@ export function hrr_verdict(result: HrrResult, onUnexplainedEmpty: HrrPolicy) {
 </tbody>
 </table>
 
-<p>So a no-op writer plus <code>{ batchItemFailures: [] }</code> is the worst version of this bug. Lambda reports success and SQS deletes the input. There's nothing left to replay. FAIL has to become an entry in that list, so the message comes back and eventually lands in the DLQ with its body intact.</p>
+<p>A no-op writer plus <code>{ batchItemFailures: [] }</code> is the worst version of this bug. Lambda reports success and SQS deletes the input. There's nothing left to replay. FAIL has to become an entry in that list, so the message comes back and eventually lands in the DLQ with its body intact.</p>
 
 <pre><code class="language-typescript">export function hrr_makeSqsHandler(deps: {
   pipeline: string;
@@ -238,7 +238,7 @@ export function hrr_verdict(result: HrrResult, onUnexplainedEmpty: HrrPolicy) {
   };
 }</code></pre>
 
-<p>The catch is the standard pattern, and it also means per-message exceptions never reach Lambda's <code>Errors</code> metric. That's why <code>FailedMessages</code> is its own count.</p>
+<p>The catch is the standard pattern, and it also means per-message exceptions never reach Lambda's <code>Errors</code> metric. <code>FailedMessages</code> exists to count them.</p>
 
 <p>SQS isn't a caller that reads your contract, so the full result goes to the log and the counts go to EMF. The response stays as just <code>batchItemFailures</code>. That's the only key AWS documents for it.</p>
 
@@ -275,7 +275,7 @@ resource &quot;aws_lambda_event_source_mapping&quot; &quot;hrr_extract&quot; {
 
 <p><strong>The wrong parse channel.</strong> In the original, tool-call markup leaked into the content field and the parser only looked in the structured channel, and since Converse <a href="https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ContentBlock.html" target="_blank" rel="noopener noreferrer">separates <code>text</code> and <code>toolUse</code> blocks</a> the same markup may never show up. The same shape can, though: tool JSON sitting in a <code>text</code> block with no <code>toolUse</code> at all. <a href="https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ToolChoice.html" target="_blank" rel="noopener noreferrer">Setting <code>toolChoice</code></a> to <code>any</code> or <code>tool</code> narrows this down where the model supports it. I'd keep the check anyway, since <code>stopReason</code> can also come back as <code>malformed_model_output</code> or <code>malformed_tool_use</code>.</p>
 
-<p><strong>The retry budget spent on garbage.</strong> One shared format-retry counter means a junk reply can use the only retry before a real formatting slip shows up. So each failure kind gets its own budget.</p>
+<p><strong>The retry budget spent on garbage.</strong> One shared format-retry counter means a junk reply can use the only retry before a real formatting slip shows up. Each failure kind gets its own budget.</p>
 
 <p><strong>The flag that disabled the recovery path.</strong> A flag built for "the model called a tool that doesn't exist" was reused for any parse failure, so a model that answered "let me search first" ran its next iteration with tools off and guaranteed the empty result. The fix below is blunt: <code>callModel</code> has no parameter that turns tools off, so nobody can reuse it. A bad reply changes the prompt and nothing else.</p>
 
@@ -319,7 +319,7 @@ export async function hrr_extract(
 
 <h2>A Map state can succeed over nothing</h2>
 
-<p>Step Functions has the same blind spot one level up, where a Map state's output is an array of iteration outputs and an empty array is a perfectly valid result. So the check goes in a Choice right after each Map.</p>
+<p>Step Functions has the same blind spot one level up, where a Map state's output is an array of iteration outputs and an empty array is a perfectly valid result. The check goes in a Choice right after each Map.</p>
 
 <p>The definition below is the part that matters, in JSONata. A chunking Task before it returns <code>documentId</code>, <code>documentBytes</code> and <code>chunks</code>, and each iteration returns the contract.</p>
 
