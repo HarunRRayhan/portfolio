@@ -116,6 +116,45 @@ class ScheduleBlogPostTest extends TestCase
         Http::assertSentCount(1);
     }
 
+    public function test_admin_boards_list_scheduled_drafts_as_scheduled_not_as_drafts(): void
+    {
+        $scheduled = $this->createDraftBlogPost();
+        $unscheduled = $this->createDraftBlogPost();
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'email_verified_at' => now(),
+        ]);
+
+        BlogPostSchedule::create([
+            'slug' => $scheduled['slug'],
+            'publish_at' => Carbon::parse('2030-10-13 05:00:00', 'UTC'),
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Dashboard')
+                ->where('scheduleTimezone', 'Asia/Dhaka')
+                ->where('stats.scheduledPosts', fn ($count) => $count >= 1)
+                ->where('scheduledPostsList', fn ($posts) => collect($posts)->contains(
+                    fn ($post) => $post['slug'] === $scheduled['slug']
+                        && $post['scheduledForHuman'] === 'Sun, Oct 13, 2030 11:00 AM'
+                ))
+                ->where('draftPostsList', fn ($posts) => collect($posts)->contains(
+                    fn ($post) => $post['slug'] === $unscheduled['slug']
+                ) && ! collect($posts)->contains(
+                    fn ($post) => $post['slug'] === $scheduled['slug']
+                )));
+
+        $this->actingAs($admin)
+            ->get(route('admin.posts.index'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('stats.scheduledPosts', fn ($count) => $count >= 1)
+                ->where('stats.draftPosts', fn ($count) => $count >= 1));
+    }
+
     public function test_scheduled_posts_are_listed_by_their_publish_date_not_the_file_placeholder(): void
     {
         $older = $this->createDraftBlogPost();

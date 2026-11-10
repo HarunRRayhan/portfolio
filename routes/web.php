@@ -62,7 +62,9 @@ $renderDashboard = function () {
     $blog = new BlogRepository;
     $posts = $blog->posts();
     $publishedPosts = array_values(array_filter($posts, fn (array $post) => $blog->isPublic($post)));
-    $draftPosts = array_values(array_filter($posts, fn (array $post) => ! $blog->isPublic($post)));
+    $unpublishedPosts = array_values(array_filter($posts, fn (array $post) => ! $blog->isPublic($post)));
+    $scheduledPosts = array_values(array_filter($unpublishedPosts, fn (array $post) => $blog->isScheduled($post)));
+    $draftPosts = array_values(array_filter($unpublishedPosts, fn (array $post) => ! $blog->isScheduled($post)));
 
     $postsByMonth = [];
     foreach ($publishedPosts as $post) {
@@ -83,21 +85,39 @@ $renderDashboard = function () {
         'stats' => [
             'totalPosts' => count($posts),
             'publishedPosts' => count($publishedPosts),
+            'scheduledPosts' => count($scheduledPosts),
             'draftPosts' => count($draftPosts),
-            'previewReadyDrafts' => count(array_filter($draftPosts, fn (array $post) => ! empty($blog->previewUrl((string) $post['slug'])))),
+            'previewReadyDrafts' => count(array_filter($unpublishedPosts, fn (array $post) => ! empty($blog->previewUrl((string) $post['slug'])))),
         ],
         'panelStatus' => 'Ready',
         'panelStatusDetail' => 'Protected by auth + verified and wired to the live blog content source.',
         'recentPosts' => array_slice($blog->indexPosts(), 0, 5),
-        'draftPostsList' => array_map(fn (array $post) => [
-            'title' => (string) $post['title'],
-            'slug' => (string) $post['slug'],
-            'brief' => (string) $post['brief'],
-            'publishedAtHuman' => (string) ($post['publishedAtHuman'] ?? ''),
-            'readTimeLabel' => (string) ($post['readTimeLabel'] ?? ''),
-            'draftPreviewUrl' => $blog->previewUrl((string) $post['slug']),
-        ], $draftPosts),
+        'scheduledPostsList' => array_map(function (array $post) use ($blog): array {
+            $summary = $blog->summarizePost($post, 0, false);
+
+            return [
+                'title' => $summary['title'],
+                'slug' => $summary['slug'],
+                'brief' => $summary['brief'],
+                'readTimeLabel' => $summary['readTimeLabel'],
+                'scheduledForHuman' => $summary['scheduledForHuman'],
+                'draftPreviewUrl' => $summary['draftPreviewUrl'],
+            ];
+        }, $scheduledPosts),
+        'draftPostsList' => array_map(function (array $post) use ($blog): array {
+            $summary = $blog->summarizePost($post, 0, false);
+
+            return [
+                'title' => $summary['title'],
+                'slug' => $summary['slug'],
+                'brief' => $summary['brief'],
+                'publishedAtHuman' => $summary['publishedAtHuman'],
+                'readTimeLabel' => $summary['readTimeLabel'],
+                'draftPreviewUrl' => $summary['draftPreviewUrl'],
+            ];
+        }, $draftPosts),
         'postsTrend' => $postsTrend,
+        'scheduleTimezone' => BlogRepository::SCHEDULE_TIMEZONE,
     ]);
 };
 
@@ -133,12 +153,14 @@ Route::get('/admin/posts', function () {
     $posts = collect($blog->posts());
     $views = DB::table('blog_post_views')->whereIn('slug', $posts->pluck('slug'))->pluck('count', 'slug');
     $published = $posts->filter(fn (array $post) => $blog->isPublic($post));
+    $scheduled = $posts->filter(fn (array $post) => $blog->isScheduled($post));
 
     return Inertia::render('Admin/Posts/Index', [
         'stats' => [
             'totalPosts' => $posts->count(),
             'publishedPosts' => $published->count(),
-            'draftPosts' => $posts->count() - $published->count(),
+            'scheduledPosts' => $scheduled->count(),
+            'draftPosts' => $posts->count() - $published->count() - $scheduled->count(),
             'totalViews' => (int) $published->sum(fn (array $post) => (int) ($views[$post['slug']] ?? 0)),
         ],
         'posts' => $posts->map(fn (array $post) => $blog->withCalendar($blog->summarizePost(

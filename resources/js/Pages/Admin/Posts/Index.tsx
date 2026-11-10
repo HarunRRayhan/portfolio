@@ -21,7 +21,7 @@ interface Post {
 }
 
 interface Props {
-    stats: { totalPosts: number; publishedPosts: number; draftPosts: number; totalViews: number };
+    stats: { totalPosts: number; publishedPosts: number; scheduledPosts: number; draftPosts: number; totalViews: number };
     posts: Post[];
     scheduleTimezone: string;
     today: string;
@@ -225,10 +225,11 @@ export default function PostsIndex({ stats, posts, scheduleTimezone, today }: Pr
                     </Link>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
                     {[
                         ['All posts', stats.totalPosts],
                         ['Published', stats.publishedPosts],
+                        ['Scheduled', stats.scheduledPosts],
                         ['Drafts', stats.draftPosts],
                         ['All-time views', stats.totalViews],
                     ].map(([label, value]) => (

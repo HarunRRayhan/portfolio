@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import {
     ArrowUpRight,
+    CalendarClock,
     CalendarDays,
     CheckCircle2,
     ChevronRight,
@@ -38,11 +39,13 @@ interface PostSummary {
     url: string;
     isDraft?: boolean;
     draftPreviewUrl?: string | null;
+    scheduledForHuman?: string | null;
 }
 
 interface DashboardStats {
     totalPosts: number;
     publishedPosts: number;
+    scheduledPosts: number;
     draftPosts: number;
     previewReadyDrafts: number;
 }
@@ -57,8 +60,10 @@ interface Props {
     panelStatus: string;
     panelStatusDetail: string;
     recentPosts: PostSummary[];
+    scheduledPostsList: PostSummary[];
     draftPostsList: PostSummary[];
     postsTrend: PostsTrendPoint[];
+    scheduleTimezone: string;
     canonicalUrl?: string;
 }
 
@@ -76,6 +81,13 @@ const statCards = (stats: DashboardStats) => [
         icon: CheckCircle2,
         iconClassName: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400',
         accentClassName: 'bg-emerald-500',
+    },
+    {
+        label: 'Scheduled',
+        value: stats.scheduledPosts,
+        icon: CalendarClock,
+        iconClassName: 'bg-sky-100 text-sky-600 dark:bg-sky-950 dark:text-sky-400',
+        accentClassName: 'bg-sky-500',
     },
     {
         label: 'Drafts',
@@ -120,7 +132,7 @@ function EmptyState({ icon: Icon, message }: { icon: typeof Inbox; message: stri
     );
 }
 
-export default function Dashboard({ stats, panelStatus, panelStatusDetail, recentPosts, draftPostsList, postsTrend, canonicalUrl }: Props) {
+export default function Dashboard({ stats, panelStatus, panelStatusDetail, recentPosts, scheduledPostsList, draftPostsList, postsTrend, scheduleTimezone, canonicalUrl }: Props) {
     const trendTotal = postsTrend.reduce((sum, point) => sum + point.count, 0);
 
     return (
@@ -143,7 +155,7 @@ export default function Dashboard({ stats, panelStatus, panelStatusDetail, recen
 
             <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
                 {/* Stats Cards */}
-                <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
                     {statCards(stats).map((stat) => {
                         const Icon = stat.icon;
 
@@ -323,52 +335,105 @@ export default function Dashboard({ stats, panelStatus, panelStatusDetail, recen
                         </CardContent>
                     </Card>
 
-                    {/* Draft Posts */}
-                    <Card className="flex flex-col">
-                        <CardHeader className="flex-row items-center justify-between gap-4 space-y-0 border-b p-5">
-                            <div className="flex items-center gap-2.5">
-                                <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 text-amber-600 dark:bg-amber-950 dark:text-amber-400">
-                                    <PenLine className="h-4 w-4" />
-                                </span>
-                                <CardTitle className="text-base font-semibold">Draft Posts</CardTitle>
-                            </div>
-                            <CountBadge value={draftPostsList.length} />
-                        </CardHeader>
-                        <CardContent className="flex-1 divide-y p-0">
-                            {draftPostsList.length > 0 ? draftPostsList.map((post) => (
-                                <div
-                                    key={post.slug}
-                                    className="flex items-start gap-3 px-4 py-3.5 sm:px-5"
-                                >
-                                    <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-amber-500" aria-hidden="true" />
+                    <div className="flex flex-col gap-6">
+                        {/* Scheduled Posts */}
+                        <Card className="flex flex-col">
+                            <CardHeader className="flex-row items-center justify-between gap-4 space-y-0 border-b p-5">
+                                <div className="flex items-center gap-2.5">
+                                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-sky-100 text-sky-600 dark:bg-sky-950 dark:text-sky-400">
+                                        <CalendarClock className="h-4 w-4" />
+                                    </span>
+                                    <CardTitle className="text-base font-semibold">Scheduled Posts</CardTitle>
+                                </div>
+                                <CountBadge value={scheduledPostsList.length} />
+                            </CardHeader>
+                            <CardContent className="flex-1 divide-y p-0">
+                                {scheduledPostsList.length > 0 ? scheduledPostsList.map((post) => (
+                                    <div
+                                        key={post.slug}
+                                        className="flex items-start gap-3 px-4 py-3.5 sm:px-5"
+                                    >
+                                        <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-sky-500" aria-hidden="true" />
 
-                                    <div className="min-w-0 flex-1">
-                                        <p className="text-sm font-medium text-foreground">{post.title}</p>
-                                        <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{post.brief}</p>
-                                        <div className="mt-2 flex flex-wrap items-center gap-2">
-                                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-400">
-                                                <Clock className="h-3 w-3" />
-                                                {post.readTimeLabel}
-                                            </span>
-                                            {post.draftPreviewUrl && (
-                                                <a
-                                                    href={post.draftPreviewUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
-                                                >
-                                                    <ExternalLink className="h-3 w-3" />
-                                                    Preview
-                                                </a>
-                                            )}
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-sm font-medium text-foreground">{post.title}</p>
+                                            <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{post.brief}</p>
+                                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                                                <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700 dark:bg-sky-950 dark:text-sky-400">
+                                                    <CalendarClock className="h-3 w-3" />
+                                                    {post.scheduledForHuman} {scheduleTimezone}
+                                                </span>
+                                                <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                                                    <Clock className="h-3 w-3" />
+                                                    {post.readTimeLabel}
+                                                </span>
+                                                {post.draftPreviewUrl && (
+                                                    <a
+                                                        href={post.draftPreviewUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+                                                    >
+                                                        <ExternalLink className="h-3 w-3" />
+                                                        Preview
+                                                    </a>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
+                                )) : (
+                                    <EmptyState icon={CalendarClock} message="No scheduled posts." />
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {/* Draft Posts */}
+                        <Card className="flex flex-col">
+                            <CardHeader className="flex-row items-center justify-between gap-4 space-y-0 border-b p-5">
+                                <div className="flex items-center gap-2.5">
+                                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 text-amber-600 dark:bg-amber-950 dark:text-amber-400">
+                                        <PenLine className="h-4 w-4" />
+                                    </span>
+                                    <CardTitle className="text-base font-semibold">Draft Posts</CardTitle>
                                 </div>
-                            )) : (
-                                <EmptyState icon={PenLine} message="No draft posts." />
-                            )}
-                        </CardContent>
-                    </Card>
+                                <CountBadge value={draftPostsList.length} />
+                            </CardHeader>
+                            <CardContent className="flex-1 divide-y p-0">
+                                {draftPostsList.length > 0 ? draftPostsList.map((post) => (
+                                    <div
+                                        key={post.slug}
+                                        className="flex items-start gap-3 px-4 py-3.5 sm:px-5"
+                                    >
+                                        <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-amber-500" aria-hidden="true" />
+
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-sm font-medium text-foreground">{post.title}</p>
+                                            <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{post.brief}</p>
+                                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                                                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-400">
+                                                    <Clock className="h-3 w-3" />
+                                                    {post.readTimeLabel}
+                                                </span>
+                                                {post.draftPreviewUrl && (
+                                                    <a
+                                                        href={post.draftPreviewUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+                                                    >
+                                                        <ExternalLink className="h-3 w-3" />
+                                                        Preview
+                                                    </a>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )) : (
+                                    <EmptyState icon={PenLine} message="No draft posts." />
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
             </div>
         </AuthenticatedLayout>
