@@ -23,7 +23,7 @@ class SponsorCommandsTest extends TestCase
     {
         Mail::fake();
         $user = $this->user();
-        $credit = $this->sponsorCredit($user, 'light', ['expires_at' => now()->addDays(3)]);
+        $credit = $this->sponsorCredit($user, 'pro', ['expires_at' => now()->addDays(3)]);
 
         $this->artisan('sponsors:remind-expiring')->assertExitCode(0);
         $this->artisan('sponsors:remind-expiring')->assertExitCode(0);
@@ -36,8 +36,8 @@ class SponsorCommandsTest extends TestCase
     {
         Mail::fake();
         $user = $this->user();
-        $this->sponsorCredit($user, 'light', ['expires_at' => now()->addDays(30)]);
-        $monthly = $this->sponsorCredit($user, 'light', ['expires_at' => now()->addDays(2)]);
+        $this->sponsorCredit($user, 'pro', ['expires_at' => now()->addDays(30)]);
+        $monthly = $this->sponsorCredit($user, 'pro', ['expires_at' => now()->addDays(2)]);
         $monthly->sponsorship->update(['kind' => 'monthly']);
 
         $this->artisan('sponsors:remind-expiring')->assertExitCode(0);
@@ -48,7 +48,7 @@ class SponsorCommandsTest extends TestCase
     public function test_failed_reminder_stays_unreminded(): void
     {
         Mail::shouldReceive('to')->andThrow(new \RuntimeException('smtp down'));
-        $credit = $this->sponsorCredit($this->user(), 'light', ['expires_at' => now()->addDays(3)]);
+        $credit = $this->sponsorCredit($this->user(), 'pro', ['expires_at' => now()->addDays(3)]);
 
         $this->artisan('sponsors:remind-expiring')->assertExitCode(0);
 

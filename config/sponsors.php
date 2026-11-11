@@ -11,11 +11,11 @@ return [
     // slug => GitHub tier node id, kind, and what a sponsorship grants.
     // calls: consultation tier slug => count. Unmapped GitHub tiers are donations.
     'tiers' => [
-        'light' => [
-            'node_id' => env('GITHUB_SPONSORS_TIER_LIGHT'),
-            'url' => env('GITHUB_SPONSORS_TIER_LIGHT_URL'),
+        'pro' => [
+            'node_id' => env('GITHUB_SPONSORS_TIER_PRO'),
+            'url' => env('GITHUB_SPONSORS_TIER_PRO_URL'),
             'kind' => 'one_time',
-            'calls' => ['light' => 1],
+            'calls' => ['pro' => 1],
             'scans' => 0,
         ],
         'max' => [
@@ -36,7 +36,7 @@ return [
             'node_id' => env('GITHUB_SPONSORS_TIER_MONTHLY'),
             'url' => env('GITHUB_SPONSORS_TIER_MONTHLY_URL'),
             'kind' => 'monthly',
-            'calls' => ['light' => 2],
+            'calls' => ['max' => 2],
             'scans' => 1,
         ],
     ],

@@ -73,7 +73,7 @@ class ConsultationBookingManagementTest extends TestCase
     private function booking(array $attributes = []): ConsultationBooking
     {
         return ConsultationBooking::create($attributes + [
-            'consultation_tier_id' => ConsultationTier::where('slug', 'light')->firstOrFail()->id,
+            'consultation_tier_id' => ConsultationTier::where('slug', 'pro')->firstOrFail()->id,
             'client_name' => 'Default client',
             'client_email' => 'default@example.test',
             'starts_at' => now()->addDays(7),

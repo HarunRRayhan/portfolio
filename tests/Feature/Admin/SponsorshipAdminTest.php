@@ -68,7 +68,7 @@ class SponsorshipAdminTest extends TestCase
     public function test_grant_by_email_attaches_on_claim(): void
     {
         $this->actingAs($this->admin())->post('/admin/sponsorships', [
-            'identifier' => 'Jane@Example.com', 'tier_slug' => 'light', 'expires_at' => now()->addDays(10)->toDateString(),
+            'identifier' => 'Jane@Example.com', 'tier_slug' => 'pro', 'expires_at' => now()->addDays(10)->toDateString(),
         ])->assertRedirect()->assertSessionHasNoErrors();
 
         $s = GithubSponsorship::firstOrFail();

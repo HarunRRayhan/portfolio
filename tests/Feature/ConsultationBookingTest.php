@@ -65,7 +65,7 @@ class ConsultationBookingTest extends TestCase
         Mail::fake();
         config()->set('consultation.skaleagents_handoff_enabled', true);
         $reference = rtrim(strtr(base64_encode(random_bytes(24)), '+/', '-_'), '=');
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
 
         $user = User::factory()->create(['email' => 'linked@example.com']);
         $this->actingAs($user)->post('/book', [
@@ -88,7 +88,7 @@ class ConsultationBookingTest extends TestCase
     {
         Mail::fake();
         config()->set('consultation.skaleagents_handoff_enabled', false);
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
 
         $user = User::factory()->create(['email' => 'direct@example.com']);
         $this->actingAs($user)->post('/book', [
@@ -107,7 +107,7 @@ class ConsultationBookingTest extends TestCase
     public function test_invalid_skaleagents_reference_is_rejected_when_handoff_is_enabled(): void
     {
         config()->set('consultation.skaleagents_handoff_enabled', true);
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
 
         $user = User::factory()->create(['email' => 'invalid@example.com']);
         $this->actingAs($user)->post('/book', [
@@ -135,7 +135,7 @@ class ConsultationBookingTest extends TestCase
         $this->assertNull(config('mail.to.address'));
         config(['mail.owner.address' => 'owner@example.com']);
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $this->app->make(BookingWorkflowService::class)->requestBooking(
             $tier,
             'Shehab',
@@ -173,7 +173,7 @@ class ConsultationBookingTest extends TestCase
         $google->method('deleteEvent')->willReturn(true);
         $this->app->instance(GoogleCalendarService::class, $google);
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $startsAt = $this->nextWeekdayAt(10);
         $booking = ConsultationBooking::create([
             'consultation_tier_id' => $tier->id,
@@ -219,7 +219,7 @@ class ConsultationBookingTest extends TestCase
     {
         Mail::fake();
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $result = $this->app->make(BookingWorkflowService::class)->requestBooking(
             $tier,
             'Launch customer',
@@ -246,7 +246,7 @@ class ConsultationBookingTest extends TestCase
     {
         Mail::fake();
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $coupon = ConsultationCoupon::create([
             'code' => 'STACK20',
             'percent_off' => 20,
@@ -278,7 +278,7 @@ class ConsultationBookingTest extends TestCase
         Mail::fake();
         ConsultationSetting::setValue('consultation_booking_promotion_claimed_count', '1000');
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $workflow = $this->app->make(BookingWorkflowService::class);
         $first = $workflow->requestBooking(
             $tier,
@@ -306,7 +306,7 @@ class ConsultationBookingTest extends TestCase
 
     public function test_invalid_coupon_does_not_consume_a_launch_discount_claim(): void
     {
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $coupon = ConsultationCoupon::create([
             'code' => 'INACTIVE20',
             'percent_off' => 20,
@@ -340,7 +340,7 @@ class ConsultationBookingTest extends TestCase
             ->where('key', 'consultation_booking_promotion_claimed_count')
             ->delete();
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $booking = $this->app->make(BookingWorkflowService::class)->requestBooking(
             $tier,
             'Counter recovery customer',
@@ -361,7 +361,7 @@ class ConsultationBookingTest extends TestCase
             ->willThrowException(new \RuntimeException('notification failure'));
         $this->app->instance(ConsultationNotificationService::class, $notifications);
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
 
         $this->expectException(\RuntimeException::class);
 
@@ -403,7 +403,7 @@ class ConsultationBookingTest extends TestCase
         ]);
         $this->app->instance(GoogleCalendarService::class, $google);
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $coupon = ConsultationCoupon::create([
             'code' => 'RESCHEDULE20',
             'percent_off' => 20,
@@ -445,7 +445,7 @@ class ConsultationBookingTest extends TestCase
     {
         Mail::fake();
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $coupon = ConsultationCoupon::create([
             'code' => 'LIMITED20',
             'percent_off' => 20,
@@ -492,7 +492,7 @@ class ConsultationBookingTest extends TestCase
         $google->expects($this->once())->method('createConfirmedEvent')->willReturn(null);
         $this->app->instance(GoogleCalendarService::class, $google);
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $booking = ConsultationBooking::create([
             'consultation_tier_id' => $tier->id,
             'client_name' => 'Calendar failure',
@@ -536,7 +536,7 @@ class ConsultationBookingTest extends TestCase
         ]);
         $this->app->instance(GoogleCalendarService::class, $google);
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $booking = ConsultationBooking::create([
             'consultation_tier_id' => $tier->id,
             'client_name' => 'Pending Meet',
@@ -577,7 +577,7 @@ class ConsultationBookingTest extends TestCase
     {
         Mail::fake();
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $booking = ConsultationBooking::create([
             'consultation_tier_id' => $tier->id,
             'client_name' => 'Cancellation denial',
@@ -603,7 +603,7 @@ class ConsultationBookingTest extends TestCase
         $google->expects($this->once())->method('deleteEvent')->with('pending-cancel-event')->willReturn(false);
         $this->app->instance(GoogleCalendarService::class, $google);
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $booking = ConsultationBooking::create([
             'consultation_tier_id' => $tier->id,
             'client_name' => 'Pending cancellation',
@@ -641,7 +641,7 @@ class ConsultationBookingTest extends TestCase
     {
         Mail::fake();
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $booking = ConsultationBooking::create([
             'consultation_tier_id' => $tier->id,
             'client_name' => 'Reschedule denial',
@@ -668,7 +668,7 @@ class ConsultationBookingTest extends TestCase
         $google->expects($this->once())->method('updateEvent')->willReturn(null);
         $this->app->instance(GoogleCalendarService::class, $google);
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $booking = ConsultationBooking::create([
             'consultation_tier_id' => $tier->id,
             'client_name' => 'Google retry',
@@ -702,7 +702,7 @@ class ConsultationBookingTest extends TestCase
         $google->expects($this->once())->method('createHoldEvent')->willReturn(null);
         $this->app->instance(GoogleCalendarService::class, $google);
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $startsAt = now('UTC')->addDays(3)->setTime(10, 0);
         $booking = ConsultationBooking::create([
             'consultation_tier_id' => $tier->id,
@@ -736,7 +736,7 @@ class ConsultationBookingTest extends TestCase
         $google->method('isConnected')->willReturn(true);
         $this->app->instance(GoogleCalendarService::class, $google);
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $originalStartsAt = now('UTC')->addDays(3)->setTime(10, 0);
         $newStartsAt = $originalStartsAt->copy()->addDay();
         $originalPaymentDueAt = $originalStartsAt->copy()->subHours(24)->subMinutes(7);
@@ -815,7 +815,7 @@ class ConsultationBookingTest extends TestCase
         $google->method('isConnected')->willReturn(true);
         $this->app->instance(GoogleCalendarService::class, $google);
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $booking = ConsultationBooking::create([
             'consultation_tier_id' => $tier->id,
             'client_name' => 'Paid reschedule approval',
@@ -855,7 +855,7 @@ class ConsultationBookingTest extends TestCase
         $google->method('isConnected')->willReturn(true);
         $this->app->instance(GoogleCalendarService::class, $google);
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $originalStartsAt = now('UTC')->addDays(3)->setTime(10, 0);
         $newStartsAt = $originalStartsAt->copy()->addDay();
         $originalPaymentDueAt = $originalStartsAt->copy()->subHours(24)->subMinutes(11);
@@ -924,7 +924,7 @@ class ConsultationBookingTest extends TestCase
         $google->method('isConnected')->willReturn(true);
         $this->app->instance(GoogleCalendarService::class, $google);
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $booking = ConsultationBooking::create([
             'consultation_tier_id' => $tier->id,
             'client_name' => 'Paid reschedule pick',
@@ -969,7 +969,7 @@ class ConsultationBookingTest extends TestCase
         $google->expects($this->never())->method('createHoldEvent');
         $this->app->instance(GoogleCalendarService::class, $google);
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $startsAt = now('UTC')->addDays(3)->setTime(10, 0);
         $booking = ConsultationBooking::create([
             'consultation_tier_id' => $tier->id,
@@ -1004,7 +1004,7 @@ class ConsultationBookingTest extends TestCase
 
     public function test_an_expired_booking_hold_cannot_receive_a_reschedule_proposal(): void
     {
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $startsAt = now('UTC')->addDays(3)->setTime(10, 0);
         $booking = ConsultationBooking::create([
             'consultation_tier_id' => $tier->id,
@@ -1062,7 +1062,7 @@ class ConsultationBookingTest extends TestCase
         $google->method('isConnected')->willReturn(true);
         $this->app->instance(GoogleCalendarService::class, $google);
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $booking = ConsultationBooking::create([
             'consultation_tier_id' => $tier->id,
             'client_name' => 'Unpaid reschedule pick',
@@ -1107,7 +1107,7 @@ class ConsultationBookingTest extends TestCase
         $google->method('isConnected')->willReturn(true);
         $this->app->instance(GoogleCalendarService::class, $google);
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $booking = ConsultationBooking::create([
             'consultation_tier_id' => $tier->id,
             'client_name' => 'Google operation retry',
@@ -1343,7 +1343,7 @@ class ConsultationBookingTest extends TestCase
         $google->expects($this->once())->method('createHoldEvent')->willReturn(null);
         $this->app->instance(GoogleCalendarService::class, $google);
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $result = $this->app->make(BookingWorkflowService::class)->requestBooking(
             $tier,
             'Hold retry client',
@@ -1366,7 +1366,7 @@ class ConsultationBookingTest extends TestCase
         $google->expects($this->never())->method('createHoldEvent');
         $this->app->instance(GoogleCalendarService::class, $google);
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $booking = ConsultationBooking::create([
             'consultation_tier_id' => $tier->id,
             'client_name' => 'Old hold retry',
@@ -1413,7 +1413,7 @@ class ConsultationBookingTest extends TestCase
         $google->expects($this->never())->method('createHoldEvent');
         $this->app->instance(GoogleCalendarService::class, $google);
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $startsAt = now('UTC')->addDays(4)->setTime(10, 0);
         $booking = ConsultationBooking::create([
             'consultation_tier_id' => $tier->id,
@@ -1481,7 +1481,7 @@ class ConsultationBookingTest extends TestCase
         $google->method('isConnected')->willReturn(true);
         $this->app->instance(GoogleCalendarService::class, $google);
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $booking = ConsultationBooking::create([
             'consultation_tier_id' => $tier->id,
             'client_name' => 'Current generation retry',
@@ -1538,7 +1538,7 @@ class ConsultationBookingTest extends TestCase
         $google->expects($this->never())->method('createHoldEvent');
         $this->app->instance(GoogleCalendarService::class, $google);
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $startsAt = now('UTC')->addDays(4)->setTime(11, 0);
         $booking = ConsultationBooking::create([
             'consultation_tier_id' => $tier->id,

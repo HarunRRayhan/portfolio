@@ -33,7 +33,7 @@ $user->forceFill([
     'email_verified_at' => now(),
 ])->save();
 
-// Signed-in consultation tests: a user holding one Light and one Pro call credit.
+// Signed-in consultation tests: a user holding one Pro and one Max call credit.
 $client = User::firstOrNew(['email' => 'browser-client@example.test']);
 $client->forceFill([
     'name' => 'Browser test client',
@@ -42,7 +42,7 @@ $client->forceFill([
     'provider_id' => '9000001',
     'email_verified_at' => now(),
 ])->save();
-foreach (['light', 'max'] as $slug) {
+foreach (['pro', 'max'] as $slug) {
     app(SponsorCreditService::class)->recordSponsorship([
         'github_sponsor_id' => '9000001', 'github_login' => 'browser-client',
         'github_sponsorship_node_id' => 'browser-'.$slug, 'tier_slug' => $slug,
@@ -55,7 +55,7 @@ ConsultationAvailabilityWindow::create([
     'weekday' => 1, 'start_time' => '10:00:00', 'end_time' => '16:00:00', 'is_active' => true,
 ]);
 
-$tier = ConsultationTier::where('slug', 'light')->firstOrFail();
+$tier = ConsultationTier::where('slug', 'pro')->firstOrFail();
 ConsultationBooking::create([
     'consultation_tier_id' => $tier->id,
     'client_name' => 'Browser validation client',

@@ -90,7 +90,7 @@ test.describe('signed in', () => {
     let lightStarted!: () => void
     const started = new Promise<void>(resolve => { lightStarted = resolve })
     await page.route('**/book/availability?*', async route => {
-      if (new URL(route.request().url()).searchParams.get('tier') === 'light') {
+      if (new URL(route.request().url()).searchParams.get('tier') === 'pro') {
         lightStarted()
         await holdLight
         await route.fulfill({ json: { slots: [lightSlot] } }).catch(() => {})
@@ -102,7 +102,7 @@ test.describe('signed in', () => {
     await page.getByRole('button', { name: 'Book this call' }).first().click()
     await started
     const cancelled = page.waitForEvent('requestfailed', {
-      predicate: request => request.url().includes('/book/availability?tier=light'),
+      predicate: request => request.url().includes('/book/availability?tier=pro'),
     })
     await page.getByRole('button', { name: 'Back' }).click()
     await cancelled

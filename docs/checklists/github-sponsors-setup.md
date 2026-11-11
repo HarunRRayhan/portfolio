@@ -3,8 +3,8 @@
 Consultation payments run through GitHub Sponsors. Done 2026-11-03 (tiers 677329-677332, webhook 706850459, Railway vars set, end-to-end test passed). Do these once, by hand. Code details: `CLAUDE.md` > Infra.
 
 ## Sponsors dashboard
-- [x] Create three one-time tiers: Light $449, Max $599, Ultra $999.
-- [x] Create one monthly tier: $499.
+- [x] Create three one-time tiers: Pro $449, Max $599, Ultra $999.
+- [x] Create one monthly tier: $899 (2 Max calls + 1 scan).
 - [x] Welcome message on every tier: "Sign in at harun.dev/consultation with GitHub to book. One-time credits must be used within 60 days."
 
 ## Webhook
@@ -17,7 +17,7 @@ Consultation payments run through GitHub Sponsors. Done 2026-11-03 (tiers 677329
 - [x] Get each tier's node id:
   `gh api graphql -f query='query { viewer { sponsorsListing { tiers(first: 20) { nodes { id name monthlyPriceInDollars isOneTime } } } } }'`
 - [x] Copy each tier's public URL from the dashboard.
-- [x] Set `GITHUB_SPONSORS_TIER_LIGHT`, `_PRO`, `_MAX`, `_MONTHLY` (node ids) and the matching `_URL` vars.
+- [x] Set `GITHUB_SPONSORS_TIER_PRO`, `_MAX`, `_ULTRA`, `_MONTHLY` (node ids) and the matching `_URL` vars.
 - [x] Put the secret and all tier vars on Railway `web` AND `scheduler`.
 
 ## After deploy
