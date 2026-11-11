@@ -27,7 +27,7 @@ class SponsorCreditServiceTest extends TestCase
         return array_merge([
             'github_sponsor_id' => '1001',
             'github_login' => 'alice',
-            'tier_slug' => 'pro',
+            'tier_slug' => 'max',
             'kind' => 'one_time',
             'status' => 'active',
             'source' => 'webhook',
@@ -39,7 +39,7 @@ class SponsorCreditServiceTest extends TestCase
     private function booking(Carbon $startsAt, string $status = 'confirmed'): ConsultationBooking
     {
         return ConsultationBooking::create([
-            'consultation_tier_id' => ConsultationTier::query()->where('slug', 'pro')->value('id'),
+            'consultation_tier_id' => ConsultationTier::query()->where('slug', 'max')->value('id'),
             'client_name' => 'C', 'client_email' => 'c@example.test',
             'starts_at' => $startsAt, 'ends_at' => $startsAt->copy()->addHour(),
             'status' => $status, 'list_price_cents' => 0, 'amount_due_cents' => 0,
@@ -55,7 +55,7 @@ class SponsorCreditServiceTest extends TestCase
         $this->assertCount(1, $s->credits);
         $c = $s->credits->first();
         $this->assertSame('call', $c->kind);
-        $this->assertSame('pro', $c->tier->slug);
+        $this->assertSame('max', $c->tier->slug);
         $this->assertSame('2027-01-02', $c->expires_at->toDateString());
         $this->assertSame(1, $c->slot);
     }

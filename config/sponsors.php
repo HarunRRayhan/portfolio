@@ -18,13 +18,6 @@ return [
             'calls' => ['light' => 1],
             'scans' => 0,
         ],
-        'pro' => [
-            'node_id' => env('GITHUB_SPONSORS_TIER_PRO'),
-            'url' => env('GITHUB_SPONSORS_TIER_PRO_URL'),
-            'kind' => 'one_time',
-            'calls' => ['pro' => 1],
-            'scans' => 0,
-        ],
         'max' => [
             'node_id' => env('GITHUB_SPONSORS_TIER_MAX'),
             'url' => env('GITHUB_SPONSORS_TIER_MAX_URL'),
@@ -32,11 +25,18 @@ return [
             'calls' => ['max' => 1],
             'scans' => 0,
         ],
+        'ultra' => [
+            'node_id' => env('GITHUB_SPONSORS_TIER_ULTRA'),
+            'url' => env('GITHUB_SPONSORS_TIER_ULTRA_URL'),
+            'kind' => 'one_time',
+            'calls' => ['ultra' => 1],
+            'scans' => 0,
+        ],
         'monthly' => [
             'node_id' => env('GITHUB_SPONSORS_TIER_MONTHLY'),
             'url' => env('GITHUB_SPONSORS_TIER_MONTHLY_URL'),
             'kind' => 'monthly',
-            'calls' => ['pro' => 2],
+            'calls' => ['light' => 2],
             'scans' => 1,
         ],
     ],
