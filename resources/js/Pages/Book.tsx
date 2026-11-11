@@ -51,15 +51,15 @@ const accentBySlug: Record<string, { border: string; button: string; ring: strin
     button: 'bg-slate-900 hover:bg-slate-800',
     ring: 'ring-slate-300',
   },
-  pro: {
-    border: 'border-t-amber-300 border-b-amber-300',
-    button: 'bg-slate-800 hover:bg-slate-900',
-    ring: 'ring-amber-300',
-  },
   max: {
     border: 'border-t-amber-600 border-b-amber-600',
     button: 'bg-amber-700 hover:bg-amber-800',
     ring: 'ring-amber-600',
+  },
+  ultra: {
+    border: 'border-t-rose-700 border-b-rose-700',
+    button: 'bg-rose-800 hover:bg-rose-900',
+    ring: 'ring-rose-700',
   },
 }
 

@@ -42,7 +42,7 @@ $client->forceFill([
     'provider_id' => '9000001',
     'email_verified_at' => now(),
 ])->save();
-foreach (['light', 'pro'] as $slug) {
+foreach (['light', 'max'] as $slug) {
     app(SponsorCreditService::class)->recordSponsorship([
         'github_sponsor_id' => '9000001', 'github_login' => 'browser-client',
         'github_sponsorship_node_id' => 'browser-'.$slug, 'tier_slug' => $slug,

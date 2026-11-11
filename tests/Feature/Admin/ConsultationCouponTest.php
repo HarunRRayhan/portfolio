@@ -48,7 +48,7 @@ class ConsultationCouponTest extends TestCase
         return [
             'code' => 'LAUNCH20',
             'percent_off' => 20,
-            'tier_slugs' => ['light', 'pro', 'max'],
+            'tier_slugs' => ['light', 'max', 'ultra'],
             'max_redemptions' => null,
             'expires_at' => null,
             'is_active' => true,

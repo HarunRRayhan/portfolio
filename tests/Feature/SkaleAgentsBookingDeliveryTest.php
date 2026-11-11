@@ -16,7 +16,7 @@ class SkaleAgentsBookingDeliveryTest extends TestCase
 
     private function linkedBooking(): ConsultationBooking
     {
-        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'max')->firstOrFail();
 
         return ConsultationBooking::query()->create([
             'consultation_tier_id' => $tier->id,

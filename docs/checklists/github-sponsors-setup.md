@@ -3,7 +3,7 @@
 Consultation payments run through GitHub Sponsors. Done 2026-11-03 (tiers 677329-677332, webhook 706850459, Railway vars set, end-to-end test passed). Do these once, by hand. Code details: `CLAUDE.md` > Infra.
 
 ## Sponsors dashboard
-- [x] Create three one-time tiers: Light $149, Pro $249, Max $349.
+- [x] Create three one-time tiers: Light $449, Max $599, Ultra $999.
 - [x] Create one monthly tier: $499.
 - [x] Welcome message on every tier: "Sign in at harun.dev/consultation with GitHub to book. One-time credits must be used within 60 days."
 

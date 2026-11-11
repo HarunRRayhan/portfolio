@@ -27,16 +27,16 @@ class GithubSponsorsWebhookTest extends TestCase
         parent::setUp();
         config([
             'sponsors.webhook_secret' => self::SECRET,
-            'sponsors.tiers.pro.node_id' => 'T_pro',
+            'sponsors.tiers.max.node_id' => 'T_max',
             'sponsors.tiers.light.node_id' => 'T_light',
             'sponsors.tiers.monthly.node_id' => 'T_monthly',
             'mail.owner.address' => 'owner@example.test',
         ]);
-        ConsultationTier::query()->firstOrCreate(['slug' => 'pro'], ['name' => 'Pro', 'duration_minutes' => 60, 'price_cents' => 0, 'is_active' => true]);
+        ConsultationTier::query()->firstOrCreate(['slug' => 'max'], ['name' => 'Max', 'duration_minutes' => 60, 'price_cents' => 0, 'is_active' => true]);
         Mail::fake();
     }
 
-    private function payload(string $action = 'created', string $tierNode = 'T_pro', array $over = []): array
+    private function payload(string $action = 'created', string $tierNode = 'T_max', array $over = []): array
     {
         return array_replace_recursive([
             'action' => $action,
@@ -81,7 +81,7 @@ class GithubSponsorsWebhookTest extends TestCase
         $this->send($this->payload())->assertOk();
 
         $s = GithubSponsorship::firstOrFail();
-        $this->assertSame('pro', $s->tier_slug);
+        $this->assertSame('max', $s->tier_slug);
         $this->assertSame($user->id, $s->user_id);
         $this->assertSame(1, $s->credits()->count());
         $this->assertNotNull(GithubWebhookEvent::first()->processed_at);
@@ -123,7 +123,7 @@ class GithubSponsorsWebhookTest extends TestCase
     {
         Http::fake(['api.github.com/*' => Http::response([])]);
 
-        $this->send($this->payload('created', 'T_pro', [
+        $this->send($this->payload('created', 'T_max', [
             'sponsorship' => ['sponsor' => ['id' => 5, 'login' => 'acme', 'type' => 'Organization']],
             'sender' => ['id' => 1002, 'login' => 'bob', 'type' => 'User'],
         ]))->assertOk();
@@ -137,7 +137,7 @@ class GithubSponsorsWebhookTest extends TestCase
     {
         Http::fake(['api.github.com/*' => Http::response([])]);
 
-        $this->send($this->payload('created', 'T_pro', ['sender' => ['id' => 7, 'login' => 'someone-else', 'type' => 'User']]))->assertOk();
+        $this->send($this->payload('created', 'T_max', ['sender' => ['id' => 7, 'login' => 'someone-else', 'type' => 'User']]))->assertOk();
 
         $this->assertSame('alice', GithubSponsorship::firstOrFail()->github_login);
     }
@@ -188,7 +188,7 @@ class GithubSponsorsWebhookTest extends TestCase
 
     public function test_repeat_one_time_purchase_grants_again(): void
     {
-        $this->send($this->payload('created', 'T_pro', ['sponsorship' => ['created_at' => now()->subDays(40)->toIso8601String()]]))->assertOk();
+        $this->send($this->payload('created', 'T_max', ['sponsorship' => ['created_at' => now()->subDays(40)->toIso8601String()]]))->assertOk();
         $this->send($this->payload('created', 'T_light'), 'd-2')->assertOk();
 
         $s = GithubSponsorship::firstOrFail();
@@ -220,7 +220,7 @@ class GithubSponsorsWebhookTest extends TestCase
         $this->send($this->payload('created', 'T_monthly'))->assertOk();
         $s = GithubSponsorship::firstOrFail();
         $b = ConsultationBooking::create([
-            'consultation_tier_id' => ConsultationTier::query()->where('slug', 'pro')->value('id'),
+            'consultation_tier_id' => ConsultationTier::query()->where('slug', 'max')->value('id'),
             'client_name' => 'C', 'client_email' => 'c@example.test',
             'starts_at' => now()->addDays(5), 'ends_at' => now()->addDays(5)->addHour(),
             'status' => 'confirmed', 'list_price_cents' => 0, 'amount_due_cents' => 0,

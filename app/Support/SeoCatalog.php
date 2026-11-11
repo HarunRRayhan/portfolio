@@ -139,7 +139,7 @@ final class SeoCatalog
 
         $pages['/consultation'] = new SeoMeta(
             title: 'Book a consult | Harun R. Rayhan',
-            description: 'Book a paid DevOps consultation (Light, Pro, or Max). The first 1,001 booking requests get $100 off before any valid coupon is applied.',
+            description: 'Book a paid DevOps consultation (Light, Max, or Ultra).',
             canonicalUrl: $siteUrl.'/consultation',
         );
 

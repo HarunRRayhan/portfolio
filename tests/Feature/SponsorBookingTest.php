@@ -78,12 +78,12 @@ class SponsorBookingTest extends TestCase
     {
         Mail::fake();
         $user = User::factory()->create(['email' => 'client@example.com']);
-        $credit = $this->sponsorCredit($user, 'pro');
+        $credit = $this->sponsorCredit($user, 'max');
 
         $booking = $this->book($user, $credit);
 
         $this->assertSame(ConsultationBooking::STATUS_PENDING_APPROVAL, $booking->status);
-        $this->assertSame('pro', $booking->tier->slug);
+        $this->assertSame('max', $booking->tier->slug);
         $this->assertSame(0, $booking->amount_due_cents);
         $this->assertSame((int) $booking->tier->price_cents, $booking->list_price_cents);
         $this->assertSame(0, $booking->campaign_discount_cents);
@@ -199,7 +199,7 @@ class SponsorBookingTest extends TestCase
     {
         $user = User::factory()->create(['email' => 'sponsor@example.com', 'provider_name' => 'google', 'provider_id' => 'g-1']);
         app(SponsorCreditService::class)->recordSponsorship([
-            'github_sponsor_id' => '4242', 'github_login' => 'sponsor', 'tier_slug' => 'pro',
+            'github_sponsor_id' => '4242', 'github_login' => 'sponsor', 'tier_slug' => 'max',
             'kind' => 'one_time', 'status' => 'active', 'source' => GithubSponsorship::SOURCE_MANUAL,
             'grant_email' => 'Sponsor@example.com', 'started_at' => now(),
         ]);
@@ -207,7 +207,7 @@ class SponsorBookingTest extends TestCase
         $this->actingAs($user)->get('/consultation')->assertOk()->assertInertia(fn ($page) => $page
             ->component('Book')
             ->has('credits', 1)
-            ->where('credits.0.tier_slug', 'pro')
+            ->where('credits.0.tier_slug', 'max')
             ->where('credits.0.kind', 'call')
             ->has('credits.0.id')
             ->has('credits.0.tier_name')

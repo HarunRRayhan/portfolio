@@ -232,11 +232,11 @@ class ConsultationBookingTest extends TestCase
 
         $booking = $result['booking']->fresh();
 
-        $this->assertSame(14900, $booking->list_price_cents);
+        $this->assertSame(44900, $booking->list_price_cents);
         $this->assertSame('Launch Company', $booking->company_name);
         $this->assertSame(10000, $booking->campaign_discount_cents);
         $this->assertSame(0, $booking->discount_percent);
-        $this->assertSame(4900, $booking->amount_due_cents);
+        $this->assertSame(34900, $booking->amount_due_cents);
         $this->assertSame('1', ConsultationSetting::query()
             ->where('key', 'consultation_booking_promotion_claimed_count')
             ->value('value'));
@@ -267,7 +267,7 @@ class ConsultationBookingTest extends TestCase
 
         $this->assertSame(10000, $booking->campaign_discount_cents);
         $this->assertSame(20, $booking->discount_percent);
-        $this->assertSame(3920, $booking->amount_due_cents);
+        $this->assertSame(27920, $booking->amount_due_cents);
         $this->assertSame('1', ConsultationSetting::query()
             ->where('key', 'consultation_booking_promotion_claimed_count')
             ->value('value'));
@@ -297,8 +297,8 @@ class ConsultationBookingTest extends TestCase
 
         $this->assertSame(10000, $first->campaign_discount_cents);
         $this->assertSame(0, $second->campaign_discount_cents);
-        $this->assertSame(4900, $first->amount_due_cents);
-        $this->assertSame(14900, $second->amount_due_cents);
+        $this->assertSame(34900, $first->amount_due_cents);
+        $this->assertSame(44900, $second->amount_due_cents);
         $this->assertSame('1001', ConsultationSetting::query()
             ->where('key', 'consultation_booking_promotion_claimed_count')
             ->value('value'));
@@ -350,7 +350,7 @@ class ConsultationBookingTest extends TestCase
         )['booking']->fresh();
 
         $this->assertSame(0, $booking->campaign_discount_cents);
-        $this->assertSame(14900, $booking->amount_due_cents);
+        $this->assertSame(44900, $booking->amount_due_cents);
     }
 
     public function test_failed_booking_transaction_restores_the_launch_discount_claim(): void
@@ -957,7 +957,7 @@ class ConsultationBookingTest extends TestCase
         $this->assertTrue($result->reschedule_original_access_token_expires_at->equalTo($originalAccessTokenExpiresAt));
         $this->assertTrue($result->payment_due_at->equalTo($newStartsAt->copy()->subHours(24)));
         $this->assertSame(
-            $newStartsAt->copy()->addMinutes(30)->addDays(90)->timestamp,
+            $newStartsAt->copy()->addMinutes(60)->addDays(90)->timestamp,
             $result->access_token_expires_at->timestamp,
         );
     }

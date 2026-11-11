@@ -46,7 +46,7 @@ class SponsorshipAdminTest extends TestCase
     {
         Http::fake(['api.github.com/users/octo' => Http::response(['id' => 583231, 'login' => 'octo'])]);
 
-        $this->actingAs($this->admin())->post('/admin/sponsorships', ['identifier' => 'octo', 'tier_slug' => 'pro'])
+        $this->actingAs($this->admin())->post('/admin/sponsorships', ['identifier' => 'octo', 'tier_slug' => 'max'])
             ->assertRedirect()->assertSessionHasNoErrors();
 
         $s = GithubSponsorship::firstOrFail();
@@ -60,7 +60,7 @@ class SponsorshipAdminTest extends TestCase
     {
         Http::fake(['api.github.com/*' => Http::response([], 404)]);
 
-        $this->actingAs($this->admin())->post('/admin/sponsorships', ['identifier' => 'nobody', 'tier_slug' => 'pro'])
+        $this->actingAs($this->admin())->post('/admin/sponsorships', ['identifier' => 'nobody', 'tier_slug' => 'max'])
             ->assertSessionHasErrors('identifier');
         $this->assertDatabaseCount('github_sponsorships', 0);
     }
@@ -105,11 +105,11 @@ class SponsorshipAdminTest extends TestCase
         $this->app->instance(GoogleCalendarService::class, $google);
 
         $s = app(SponsorCreditService::class)->recordSponsorship([
-            'github_sponsor_id' => '1', 'github_login' => 'a', 'tier_slug' => 'pro',
+            'github_sponsor_id' => '1', 'github_login' => 'a', 'tier_slug' => 'max',
             'started_at' => now(), 'github_sponsorship_node_id' => 'S_1',
         ]);
         $b = ConsultationBooking::create([
-            'consultation_tier_id' => ConsultationTier::where('slug', 'pro')->value('id'),
+            'consultation_tier_id' => ConsultationTier::where('slug', 'max')->value('id'),
             'client_name' => 'C', 'client_email' => 'c@example.test',
             'starts_at' => now()->addDays(3), 'ends_at' => now()->addDays(3)->addHour(),
             'status' => 'confirmed', 'list_price_cents' => 0, 'amount_due_cents' => 0,
@@ -134,7 +134,7 @@ class SponsorshipAdminTest extends TestCase
         $commenter = User::factory()->create(['role' => 'commenter', 'terms_accepted_at' => now()]);
         $this->actingAs($commenter)->get('/admin/sponsorships')->assertForbidden();
         $this->actingAs($commenter)->post("/admin/sponsorships/{$s->id}/revoke")->assertForbidden();
-        $this->actingAs($user)->post('/admin/sponsorships', ['identifier' => 'a@b.co', 'tier_slug' => 'pro'])->assertForbidden();
+        $this->actingAs($user)->post('/admin/sponsorships', ['identifier' => 'a@b.co', 'tier_slug' => 'max'])->assertForbidden();
         $this->actingAs($user)->post("/admin/sponsorships/{$s->id}/revoke")->assertForbidden();
     }
 
@@ -145,7 +145,7 @@ class SponsorshipAdminTest extends TestCase
             $d->update(['status' => $status, 'github_sponsorship_node_id' => "S_$status"]);
 
             $this->actingAs($this->admin())->post('/admin/sponsorships', [
-                'identifier' => 'donor', 'tier_slug' => 'pro', 'sponsorship_id' => $d->id,
+                'identifier' => 'donor', 'tier_slug' => 'max', 'sponsorship_id' => $d->id,
             ])->assertNotFound();
 
             $d->refresh();

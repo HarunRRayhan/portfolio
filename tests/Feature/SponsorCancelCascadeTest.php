@@ -32,7 +32,7 @@ class SponsorCancelCascadeTest extends TestCase
     private function sponsorship(): GithubSponsorship
     {
         return app(SponsorCreditService::class)->recordSponsorship([
-            'github_sponsor_id' => '1001', 'github_login' => 'alice', 'tier_slug' => 'pro',
+            'github_sponsor_id' => '1001', 'github_login' => 'alice', 'tier_slug' => 'max',
             'kind' => 'one_time', 'status' => 'active', 'source' => 'webhook',
             'started_at' => now(), 'github_sponsorship_node_id' => 'S_1',
         ]);
@@ -41,7 +41,7 @@ class SponsorCancelCascadeTest extends TestCase
     private function booking(Carbon $startsAt, string $status = 'confirmed'): ConsultationBooking
     {
         return ConsultationBooking::create([
-            'consultation_tier_id' => ConsultationTier::query()->where('slug', 'pro')->value('id'),
+            'consultation_tier_id' => ConsultationTier::query()->where('slug', 'max')->value('id'),
             'client_name' => 'C', 'client_email' => 'c@example.test',
             'starts_at' => $startsAt, 'ends_at' => $startsAt->copy()->addHour(),
             'status' => $status, 'list_price_cents' => 0, 'amount_due_cents' => 0,

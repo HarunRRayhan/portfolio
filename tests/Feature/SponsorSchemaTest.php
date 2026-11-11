@@ -17,12 +17,12 @@ class SponsorSchemaTest extends TestCase
     public function test_relations_and_usable_scope(): void
     {
         $user = User::factory()->create();
-        $tier = ConsultationTier::where('slug', 'pro')->firstOrFail();
+        $tier = ConsultationTier::where('slug', 'max')->firstOrFail();
         $sponsorship = GithubSponsorship::create([
             'github_sponsor_id' => '123',
             'github_login' => 'octocat',
             'user_id' => $user->id,
-            'tier_slug' => 'pro',
+            'tier_slug' => 'max',
             'kind' => GithubSponsorship::KIND_ONE_TIME,
             'status' => GithubSponsorship::STATUS_ACTIVE,
             'source' => GithubSponsorship::SOURCE_WEBHOOK,

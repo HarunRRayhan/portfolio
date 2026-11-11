@@ -71,7 +71,7 @@ class ConsultationAvailabilityTest extends TestCase
             $start = Carbon::parse($slot['start'])->utc();
             $end = Carbon::parse($slot['end'])->utc();
             $this->assertTrue($start->gte(now('UTC')->addHours(48)));
-            $this->assertSame(30, (int) $start->diffInMinutes($end));
+            $this->assertSame(60, (int) $start->diffInMinutes($end));
         }
     }
 
