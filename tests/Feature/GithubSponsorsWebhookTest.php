@@ -28,7 +28,7 @@ class GithubSponsorsWebhookTest extends TestCase
         config([
             'sponsors.webhook_secret' => self::SECRET,
             'sponsors.tiers.max.node_id' => 'T_max',
-            'sponsors.tiers.light.node_id' => 'T_light',
+            'sponsors.tiers.pro.node_id' => 'T_pro',
             'sponsors.tiers.monthly.node_id' => 'T_monthly',
             'mail.owner.address' => 'owner@example.test',
         ]);
@@ -155,7 +155,7 @@ class GithubSponsorsWebhookTest extends TestCase
     public function test_tier_changed_updates_tier(): void
     {
         Http::fake(['api.github.com/*' => Http::response([])]);
-        $this->send($this->payload('created', 'T_light'), 'd-1')->assertOk();
+        $this->send($this->payload('created', 'T_pro'), 'd-1')->assertOk();
 
         $this->send($this->payload('tier_changed', 'T_monthly', ['sponsorship' => ['tier' => ['is_one_time' => false]]]), 'd-2')->assertOk();
 
@@ -189,10 +189,10 @@ class GithubSponsorsWebhookTest extends TestCase
     public function test_repeat_one_time_purchase_grants_again(): void
     {
         $this->send($this->payload('created', 'T_max', ['sponsorship' => ['created_at' => now()->subDays(40)->toIso8601String()]]))->assertOk();
-        $this->send($this->payload('created', 'T_light'), 'd-2')->assertOk();
+        $this->send($this->payload('created', 'T_pro'), 'd-2')->assertOk();
 
         $s = GithubSponsorship::firstOrFail();
-        $this->assertSame('light', $s->tier_slug);
+        $this->assertSame('pro', $s->tier_slug);
         $this->assertSame(2, $s->credits()->whereNull('revoked_at')->count());
     }
 
@@ -310,7 +310,7 @@ class GithubSponsorsWebhookTest extends TestCase
     {
         $this->send($this->payload('created', 'T_monthly'))->assertOk();
         $this->send($this->payload('cancelled', 'T_monthly'), 'd-2')->assertOk();
-        $this->send($this->payload('tier_changed', 'T_light'), 'd-3')->assertOk();
+        $this->send($this->payload('tier_changed', 'T_pro'), 'd-3')->assertOk();
 
         $this->assertSame('cancelled', GithubSponsorship::firstOrFail()->status);
     }
@@ -323,17 +323,17 @@ class GithubSponsorsWebhookTest extends TestCase
         $this->send($this->payload('cancelled', 'T_monthly'), 'd-2')->assertOk();
         $this->travel(1)->minutes();
         $new = ['sponsorship' => ['created_at' => now()->toIso8601String()]];
-        $this->send($this->payload('created', 'T_light', $new), 'd-3')->assertOk();
+        $this->send($this->payload('created', 'T_pro', $new), 'd-3')->assertOk();
 
         $s = GithubSponsorship::firstOrFail();
         $this->assertSame('active', $s->status);
         $this->assertNull($s->ended_at);
-        $this->assertSame('light', $s->tier_slug);
+        $this->assertSame('pro', $s->tier_slug);
         $this->assertSame(1, $s->credits()->whereNull('revoked_at')->count());
         $this->assertSame(4, $s->credits()->count());
         Mail::assertSent(SponsorCreditsReadyMail::class, 2);
 
-        $this->send($this->payload('created', 'T_light', $new), 'd-4')->assertOk();
+        $this->send($this->payload('created', 'T_pro', $new), 'd-4')->assertOk();
         $this->assertSame(4, $s->credits()->count());
         Mail::assertSent(SponsorCreditsReadyMail::class, 2);
     }

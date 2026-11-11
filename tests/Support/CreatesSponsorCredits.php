@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 trait CreatesSponsorCredits
 {
     /** A one-time sponsorship credit for $tierSlug owned by $user. */
-    protected function sponsorCredit(User $user, string $tierSlug = 'light', array $overrides = []): ConsultationCredit
+    protected function sponsorCredit(User $user, string $tierSlug = 'pro', array $overrides = []): ConsultationCredit
     {
         $s = app(SponsorCreditService::class)->recordSponsorship([
             'github_sponsor_id' => (string) random_int(100000, 999999),

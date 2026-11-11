@@ -191,7 +191,7 @@ class ConsultationNotificationTest extends TestCase
     /** @param array<string, mixed> $overrides */
     private function booking(array $overrides = []): ConsultationBooking
     {
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $startsAt = now('UTC')->addDays(3)->setTime(10, 0);
 
         return ConsultationBooking::create(array_merge([

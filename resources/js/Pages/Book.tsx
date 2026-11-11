@@ -46,7 +46,7 @@ function ManualPaymentNote({ contactUrl, contactEmail }: { contactUrl: string; c
 }
 
 const accentBySlug: Record<string, { border: string; button: string; ring: string }> = {
-  light: {
+  pro: {
     border: 'border-t-slate-300 border-b-slate-300',
     button: 'bg-slate-900 hover:bg-slate-800',
     ring: 'ring-slate-300',
@@ -347,7 +347,7 @@ export default function Book({
                   <div className="grid gap-6 md:grid-cols-3">
                     {callCredits.map((credit) => {
                       const tier = tiers.find((t) => t.slug === credit.tier_slug)
-                      const accent = accentBySlug[credit.tier_slug ?? ''] ?? accentBySlug.light
+                      const accent = accentBySlug[credit.tier_slug ?? ''] ?? accentBySlug.pro
                       return (
                         <div
                           key={credit.id}
@@ -380,7 +380,7 @@ export default function Book({
                   <>
                     <div className="grid gap-6 md:grid-cols-3">
                     {tiers.map((tier) => {
-                      const accent = accentBySlug[tier.slug] ?? accentBySlug.light
+                      const accent = accentBySlug[tier.slug] ?? accentBySlug.pro
                       const isRecommended = tier.slug === 'max'
                       return (
                         <div
@@ -439,7 +439,7 @@ export default function Book({
                       <div>
                         <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Monthly</p>
                         <p className="mt-2 text-lg font-bold text-slate-900 dark:text-white">
-                          $499/mo · 2 × 60-min calls + 1 open-source scan each month
+                          $899/mo · 2 × Max calls + 1 open-source scan each month (save $299 vs. buying two Max calls)
                         </p>
                       </div>
                       <a

@@ -130,7 +130,7 @@ class SponsorBookingTest extends TestCase
     public function test_store_without_credit_rejected(): void
     {
         $this->actingAs(User::factory()->create())->post('/book', [
-            'tier' => 'light',
+            'tier' => 'pro',
             'client_name' => 'Client Person',
             'company_name' => 'Acme',
             'website' => 'https://acme.test',
@@ -144,7 +144,7 @@ class SponsorBookingTest extends TestCase
     public function test_slot_after_expiry_rejected(): void
     {
         $user = User::factory()->create();
-        $credit = $this->sponsorCredit($user, 'light', ['expires_at' => $this->slot(5)->subDay()]);
+        $credit = $this->sponsorCredit($user, 'pro', ['expires_at' => $this->slot(5)->subDay()]);
 
         $this->actingAs($user)->post('/book', $this->payload($credit, $this->slot(5)))
             ->assertSessionHasErrors(['starts_at' => 'That credit has expired or was already used.']);
@@ -246,9 +246,9 @@ class SponsorBookingTest extends TestCase
     {
         $user = User::factory()->create();
         $expires = $this->slot(5)->setTime(12, 0);
-        $credit = $this->sponsorCredit($user, 'light', ['expires_at' => $expires]);
+        $credit = $this->sponsorCredit($user, 'pro', ['expires_at' => $expires]);
 
-        $slots = $this->actingAs($user)->getJson('/book/availability?tier=light&credit='.$credit->id)
+        $slots = $this->actingAs($user)->getJson('/book/availability?tier=pro&credit='.$credit->id)
             ->assertOk()->json('slots');
 
         $this->assertNotEmpty($slots);
@@ -260,9 +260,9 @@ class SponsorBookingTest extends TestCase
     public function test_availability_for_credit_beyond_horizon_returns_slots(): void
     {
         $user = User::factory()->create();
-        $credit = $this->sponsorCredit($user, 'light', ['expires_at' => now()->addDays(60)]);
+        $credit = $this->sponsorCredit($user, 'pro', ['expires_at' => now()->addDays(60)]);
 
-        $slots = $this->actingAs($user)->getJson('/book/availability?tier=light&credit='.$credit->id)
+        $slots = $this->actingAs($user)->getJson('/book/availability?tier=pro&credit='.$credit->id)
             ->assertOk()->json('slots');
 
         $this->assertNotEmpty($slots);

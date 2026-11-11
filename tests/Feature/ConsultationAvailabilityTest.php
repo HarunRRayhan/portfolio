@@ -29,7 +29,7 @@ class ConsultationAvailabilityTest extends TestCase
             ]);
         }
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $google = $this->createMock(GoogleCalendarService::class);
         $google->expects($this->once())->method('busyPeriods')->willReturn([]);
         $this->app->instance(GoogleCalendarService::class, $google);
@@ -52,8 +52,8 @@ class ConsultationAvailabilityTest extends TestCase
             ]);
         }
 
-        // Ensure a Light tier exists (migration seeds them; RefreshDatabase replays migrations)
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        // Ensure a Pro tier exists (migration seeds them; RefreshDatabase replays migrations)
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
 
         $google = $this->createMock(GoogleCalendarService::class);
         $google->method('busyPeriods')->willReturn([]);
@@ -80,7 +80,7 @@ class ConsultationAvailabilityTest extends TestCase
         ConsultationSetting::setValue('schedule_timezone', 'UTC');
 
         $startsAt = now('UTC')->addDays(3)->startOfDay()->setTime(10, 0);
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         ConsultationAvailabilityWindow::create([
             'weekday' => $startsAt->dayOfWeek,
             'start_time' => '09:00:00',
@@ -118,7 +118,7 @@ class ConsultationAvailabilityTest extends TestCase
             'is_active' => true,
         ]);
 
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $google = $this->createMock(GoogleCalendarService::class);
         $google->method('busyPeriods')->willReturn([]);
         $this->app->instance(GoogleCalendarService::class, $google);
@@ -132,7 +132,7 @@ class ConsultationAvailabilityTest extends TestCase
 
     public function test_reversed_ranges_return_no_slots(): void
     {
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $google = $this->createMock(GoogleCalendarService::class);
         $google->expects($this->never())->method('busyPeriods');
         $this->app->instance(GoogleCalendarService::class, $google);
@@ -148,7 +148,7 @@ class ConsultationAvailabilityTest extends TestCase
         ConsultationSetting::setValue('schedule_timezone', 'UTC');
 
         $startsAt = now('UTC')->addDays(3)->setTime(10, 0);
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         ConsultationAvailabilityWindow::create([
             'weekday' => $startsAt->dayOfWeek,
             'start_time' => '09:00:00',
@@ -187,7 +187,7 @@ class ConsultationAvailabilityTest extends TestCase
         ConsultationSetting::setValue('schedule_timezone', 'UTC');
 
         $startsAt = now('UTC')->addDays(3)->setTime(10, 0);
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         ConsultationAvailabilityWindow::create([
             'weekday' => $startsAt->dayOfWeek,
             'start_time' => '09:00:00',
@@ -235,7 +235,7 @@ class ConsultationAvailabilityTest extends TestCase
         ConsultationSetting::setValue('schedule_timezone', 'UTC');
 
         $startsAt = now('UTC')->addDays(3)->setTime(10, 0);
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         ConsultationAvailabilityWindow::create([
             'weekday' => $startsAt->dayOfWeek,
             'start_time' => '09:00:00',
@@ -281,7 +281,7 @@ class ConsultationAvailabilityTest extends TestCase
 
     public function test_availability_rejects_ranges_longer_than_the_booking_horizon(): void
     {
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $google = $this->createMock(GoogleCalendarService::class);
         $google->expects($this->never())->method('busyPeriods');
         $this->app->instance(GoogleCalendarService::class, $google);

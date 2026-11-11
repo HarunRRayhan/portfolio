@@ -53,7 +53,7 @@ class ConsultationPostgresConcurrencyTest extends TestCase
     public function test_two_postgres_requests_for_one_slot_create_one_booking(): void
     {
         $startsAt = $this->nextWeekday()->setTime(10, 0);
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         ConsultationAvailabilityWindow::create([
             'weekday' => $startsAt->dayOfWeek,
             'start_time' => '10:00:00',
@@ -147,7 +147,7 @@ do {
 
 try {
     if ($argv[3] === 'booking') {
-        $tier = \App\Models\ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = \App\Models\ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         app(\App\Services\Consultation\BookingWorkflowService::class)->requestBooking(
             $tier,
             'Concurrent client',

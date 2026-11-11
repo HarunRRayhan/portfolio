@@ -112,7 +112,7 @@ class ProfileTest extends TestCase
     public function test_deleting_account_keeps_bookings(): void
     {
         $user = User::factory()->create();
-        $tier = ConsultationTier::query()->where('slug', 'light')->firstOrFail();
+        $tier = ConsultationTier::query()->where('slug', 'pro')->firstOrFail();
         $booking = ConsultationBooking::create([
             'user_id' => $user->id,
             'consultation_tier_id' => $tier->id,
