@@ -89,7 +89,7 @@ class SeoOwnershipTest extends TestCase
     public function test_consultation_schema_uses_tier_list_prices(): void
     {
         $this->get('/consultation', $this->inertiaHeaders())->assertOk()
-            ->assertJsonPath('props.seo.jsonLd.0.offers.0.price', '149.00')
+            ->assertJsonPath('props.seo.jsonLd.0.offers.0.price', '449.00')
             ->assertJsonPath('props.seo.jsonLd.0.offers.0.priceCurrency', 'USD');
     }
 }
