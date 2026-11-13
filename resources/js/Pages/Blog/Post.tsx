@@ -362,7 +362,7 @@ export default function BlogPostPage({
             <article className="rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-[0_30px_90px_-55px_rgba(15,23,42,0.45)]">
               {coverImageUrl ? (
                 <div className="overflow-hidden rounded-t-[2rem] border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800">
-                  <img src={coverImageUrl} alt={post.coverImageAlt} className="h-[clamp(16rem,42vw,30rem)] w-full object-cover object-top" />
+                  <img src={coverImageUrl} alt={post.coverImageAlt} width={1600} height={840} fetchPriority="high" decoding="async" className="h-[clamp(16rem,42vw,30rem)] w-full object-cover object-top" />
                 </div>
               ) : (
                 <div className="rounded-t-[2rem] border-b border-slate-200 dark:border-slate-800 bg-[linear-gradient(180deg,#0f172a_0%,#111827_100%)] px-6 py-14 text-white sm:px-10 sm:py-16 lg:px-14 lg:py-20">
