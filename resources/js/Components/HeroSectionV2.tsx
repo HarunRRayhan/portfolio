@@ -136,6 +136,10 @@ export function HeroSectionV2({ study = null }: { study?: HeroCaseStudy | null }
                                     <img
                                         src={study.coverImageUrl}
                                         alt=""
+                                        width={1600}
+                                        height={840}
+                                        fetchPriority="high"
+                                        decoding="async"
                                         className="aspect-[16/9] w-full object-cover"
                                     />
                                 ) : null}
