@@ -22,6 +22,9 @@ export function ServiceHero({ icon: Icon, title, description, backgroundImage }:
         <>
           <img
             src={getImageUrl(backgroundImage)}
+            // hero-800.jpg sits next to every hero.jpg; phones fetch it instead of the 1600px file
+            srcSet={`${getImageUrl(backgroundImage.replace("hero.jpg", "hero-800.jpg"))} 800w, ${getImageUrl(backgroundImage)} 1600w`}
+            sizes="100vw"
             alt=""
             aria-hidden="true"
             width={1600}
