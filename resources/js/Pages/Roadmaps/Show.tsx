@@ -3,6 +3,7 @@ import { AlertTriangle, Bookmark, Check, Eye, Heart, Lock, Share2 } from 'lucide
 import { useEffect, useState } from 'react'
 import { ShareButton } from '@/Components/ShareButton'
 import { ProgressBar, UnlockCard, formatDate, levelLabel } from '@/Components/Roadmap/shared'
+import { RoadmapArt, type RoadmapArtData } from '@/Components/Roadmap/RoadmapArt'
 import { cn } from '@/lib/utils'
 import type { PageProps } from '@/types'
 
@@ -19,7 +20,7 @@ type TopicNodeData = {
 type Stage = { level: string; title: string; locked: boolean; topics: TopicNodeData[] }
 
 type Props = {
-  roadmap: { slug: string; title: string; summary: string; buildsOn: { slug: string; title: string } | null; updatedAt: string }
+  roadmap: { slug: string; title: string; summary: string; buildsOn: { slug: string; title: string } | null; updatedAt: string; art: RoadmapArtData }
   stages: Stage[]
   hasPaidAccess: boolean
   started: boolean
@@ -56,7 +57,8 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
     <div className="pt-24">
       <section className="mx-auto max-w-4xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
         <Link href="/roadmaps" className="text-sm text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">← All roadmaps</Link>
-        <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-5xl">{roadmap.title}</h1>
+        <RoadmapArt art={roadmap.art} size="hero" className="mt-6" />
+        <h1 className="mt-8 text-4xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-5xl">{roadmap.title}</h1>
         <p className="mt-4 text-lg leading-8 text-slate-600 dark:text-slate-300">{roadmap.summary}</p>
         {roadmap.buildsOn && (
           <div className="mt-6 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">

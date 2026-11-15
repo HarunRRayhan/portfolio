@@ -63,6 +63,7 @@ class RoadmapController extends Controller
                 'viewCount' => (int) ($views[$r['slug']] ?? 0),
                 'buildsOn' => $this->buildsOn($r),
                 'updatedAt' => (string) $r['updated'],
+                'art' => $this->art($r),
             ], $this->repo->all()),
             'mine' => $mine,
             'canonicalUrl' => SeoCatalog::forPath('/roadmaps')?->canonicalUrl ?? url('/roadmaps'),
@@ -109,7 +110,7 @@ class RoadmapController extends Controller
             : [];
 
         return Inertia::render('Roadmaps/Show', [
-            'roadmap' => ['slug' => $slug, 'title' => $roadmap['title'], 'summary' => $roadmap['summary'], 'buildsOn' => $this->buildsOn($roadmap), 'updatedAt' => (string) $roadmap['updated']],
+            'roadmap' => ['slug' => $slug, 'title' => $roadmap['title'], 'summary' => $roadmap['summary'], 'buildsOn' => $this->buildsOn($roadmap), 'updatedAt' => (string) $roadmap['updated'], 'art' => $this->art($roadmap)],
             'hasAccount' => (bool) $user,
             'stages' => $stages,
             'hasPaidAccess' => $paid,
@@ -311,6 +312,12 @@ class RoadmapController extends Controller
         $level = $this->repo->lessonIndex($this->roadmapOr404($slug))[$lesson]['level'] ?? null;
         abort_unless($level, 404);
         abort_if($level !== RoadmapRepository::FREE_LEVEL && ! RoadmapAccess::canAccessPaid($request->user()), 403);
+    }
+
+    /** @return array{icon: string, color: string, logos: list<string>} */
+    private function art(array $roadmap): array
+    {
+        return ['icon' => (string) ($roadmap['icon'] ?? 'globe'), 'color' => (string) ($roadmap['color'] ?? 'amber'), 'logos' => array_values($roadmap['logos'] ?? [])];
     }
 
     /** @return array{slug: string, title: string}|null */

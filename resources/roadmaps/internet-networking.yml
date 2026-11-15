@@ -3,6 +3,11 @@ title: How the Internet Works
 summary: From what a network is to how BGP holds the whole internet together. Learn the layers in order, one topic at a time.
 order: 1
 updated: '2026-11-15'
+icon: globe
+color: sky
+logos:
+  - /images/logos/cloudflare-workers.svg
+  - /images/tech/linux.svg
 
 stages:
   - level: beginner

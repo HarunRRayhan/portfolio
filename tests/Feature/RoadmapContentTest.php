@@ -27,6 +27,13 @@ class RoadmapContentTest extends TestCase
             $this->assertNotEmpty($raw['summary'] ?? null, $name);
             $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}$/', (string) ($raw['updated'] ?? ''), "{$name} needs updated: 'YYYY-MM-DD'");
             $this->assertSame(['beginner', 'intermediate', 'advanced'], array_column($raw['stages'], 'level'), "{$name}: stages must be beginner, intermediate, advanced");
+            $this->assertContains($raw['icon'] ?? null, RoadmapRepository::ICONS, "{$name}: icon must be one of RoadmapRepository::ICONS");
+            $this->assertContains($raw['color'] ?? null, RoadmapRepository::COLORS, "{$name}: color must be one of RoadmapRepository::COLORS");
+            $this->assertLessThanOrEqual(4, count($raw['logos'] ?? []), "{$name}: at most 4 logos");
+            foreach ($raw['logos'] ?? [] as $logo) {
+                $this->assertMatchesRegularExpression('#^/images/[a-z0-9/_.-]+\.(svg|png|webp)$#i', $logo, $name);
+                $this->assertFileExists(public_path(ltrim($logo, '/')), "{$name}: missing logo {$logo}");
+            }
             $topicIds = [];
             $lessonIds = [];
             foreach ($raw['stages'] as $stage) {

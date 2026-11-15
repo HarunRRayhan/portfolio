@@ -3,6 +3,12 @@ title: AI Engineering
 summary: Build products on top of large language models. Learn how models behave, call them well, ground them in your data, measure them, and run them safely in production.
 order: 9
 updated: '2026-11-15'
+icon: sparkles
+color: fuchsia
+logos:
+  - /images/tech/python.svg
+  - /images/tech/nodejs.svg
+  - /images/tech/aws.svg
 
 stages:
   - level: beginner

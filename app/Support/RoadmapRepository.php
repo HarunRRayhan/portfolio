@@ -14,6 +14,12 @@ final class RoadmapRepository
 
     public const FREE_LEVEL = 'beginner';
 
+    /** Lucide icons the roadmap art may use (mapped in resources/js/Components/Roadmap/RoadmapArt.tsx). */
+    public const ICONS = ['globe', 'cloud', 'infinity', 'activity', 'brain-circuit', 'shield-check', 'network', 'database', 'sparkles', 'rocket', 'library'];
+
+    /** Accent palettes for the roadmap art. */
+    public const COLORS = ['sky', 'amber', 'indigo', 'rose', 'violet', 'emerald', 'cyan', 'blue', 'fuchsia', 'orange', 'teal'];
+
     public const RESOURCE_KINDS = ['article', 'docs', 'video', 'course', 'tool'];
 
     /** Per instance, not static: a long-lived worker would otherwise keep stale content and draft status. */

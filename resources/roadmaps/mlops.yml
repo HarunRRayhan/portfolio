@@ -3,6 +3,12 @@ title: MLOps
 summary: DevOps for machine learning. Take models from a notebook to production, then keep them honest.
 order: 5
 updated: '2026-11-15'
+icon: brain-circuit
+color: violet
+logos:
+  - /images/tech/python.svg
+  - /images/tech/docker.svg
+  - /images/tech/aws.svg
 builds_on: devops
 
 stages:

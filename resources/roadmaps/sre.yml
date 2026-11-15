@@ -3,6 +3,12 @@ title: Site Reliability Engineering
 summary: Keep production fast and available on purpose. SLOs, alerting, incidents, capacity and the engineering that makes systems fail less and recover faster.
 order: 4
 updated: '2026-11-15'
+icon: activity
+color: rose
+logos:
+  - /images/logos/grafana_logo_swirl_fullcolor.svg
+  - /images/tech/kubernetes.svg
+  - /images/tech/linux.svg
 builds_on: devops
 
 stages:

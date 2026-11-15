@@ -3,6 +3,12 @@ title: Forward Deployed Engineering
 summary: The engineer who sits with a customer and ships working software on their data and systems. Covers discovery, working inside customer environments, fast prototypes, data and AI delivery, enterprise security, and turning field work into product.
 order: 10
 updated: '2026-11-15'
+icon: rocket
+color: orange
+logos:
+  - /images/tech/aws.svg
+  - /images/tech/python.svg
+  - /images/skills/git-original.svg
 
 stages:
   - level: beginner
