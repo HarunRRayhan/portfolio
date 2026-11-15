@@ -1,0 +1,213 @@
+slug: devops
+title: DevOps
+summary: From the Linux shell to Kubernetes and SLOs. How code gets built, shipped and kept running, one topic at a time.
+order: 2
+
+stages:
+  - level: beginner
+    title: The foundations
+    steps:
+      - id: linux-command-line
+        title: The Linux command line
+        summary: Almost every server runs Linux. Get comfortable moving around, reading files and managing processes.
+        learn:
+          - Files, permissions and users
+          - Processes, signals and services (systemd)
+          - Pipes, grep, and reading logs
+        resources:
+          - { label: "Linux Journey", url: "https://linuxjourney.com/", kind: course }
+          - { label: "The Art of Command Line", url: "https://github.com/jlevy/the-art-of-command-line", kind: article }
+
+      - id: git
+        title: Git
+        summary: Version control is where every pipeline starts. Branches, commits and pull requests.
+        learn:
+          - Commits, branches and merges
+          - Rebasing and resolving conflicts
+          - Pull request workflow
+        resources:
+          - { label: "Pro Git (free book)", url: "https://git-scm.com/book/en/v2", kind: course }
+          - { label: "Learn Git Branching (interactive)", url: "https://learngitbranching.js.org/", kind: tool }
+
+      - id: shell-scripting
+        title: Shell scripting
+        summary: Automate the boring parts with small, safe Bash scripts.
+        learn:
+          - Variables, loops and conditionals
+          - Exit codes and set -euo pipefail
+          - When to stop and use a real language
+        resources:
+          - { label: "Bash reference manual", url: "https://www.gnu.org/software/bash/manual/bash.html", kind: docs }
+          - { label: "ShellCheck", url: "https://www.shellcheck.net/", kind: tool }
+
+      - id: networking-for-devops
+        title: Networking you need
+        summary: DNS, ports, HTTP and TLS show up in every outage. The Internet roadmap covers them in depth.
+        learn:
+          - DNS, ports and HTTP basics
+          - TLS certificates
+          - Reading curl -v output
+        resources:
+          - { label: "How the Internet Works roadmap", url: "https://harun.dev/roadmaps/internet-networking", kind: course }
+          - { label: "What is DNS? (Cloudflare)", url: "https://www.cloudflare.com/learning/dns/what-is-dns/", kind: article }
+
+      - id: how-apps-are-deployed
+        title: How an app gets deployed
+        summary: Put code on a server by hand once, so every tool later makes sense.
+        learn:
+          - Build, release, run
+          - Environment config
+          - The twelve-factor app
+        resources:
+          - { label: "The Twelve-Factor App", url: "https://12factor.net/", kind: article }
+          - post: deploy-laravel-application-to-amazon-ec2-instance
+          - post: deploy-laravel-application-to-amazon-lightsail
+
+      - id: cloud-basics
+        title: Cloud basics
+        summary: Compute, storage, networking and IAM on a public cloud, and what you pay for.
+        learn:
+          - Regions and availability zones
+          - VMs, object storage and managed databases
+          - IAM users, roles and policies
+        resources:
+          - { label: "AWS getting started", url: "https://aws.amazon.com/getting-started/", kind: docs }
+          - { label: "AWS Well-Architected Framework", url: "https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html", kind: docs }
+
+  - level: intermediate
+    title: Automate everything
+    steps:
+      - id: containers
+        title: Containers and Docker
+        summary: Package an app with everything it needs so it runs the same everywhere.
+        learn:
+          - Images, layers and Dockerfiles
+          - Multi-stage builds and small images
+          - Volumes and networking
+        resources:
+          - { label: "Docker: get started", url: "https://docs.docker.com/get-started/", kind: docs }
+          - post: serverless-laravel-containers-with-ecs-fargate-app-runner-and-terraform
+
+      - id: ci-cd
+        title: CI/CD pipelines
+        summary: Test and ship every change automatically, with a safe way back.
+        learn:
+          - Build, test and deploy stages
+          - Artifacts and environments
+          - Rollbacks and blue/green deploys
+        resources:
+          - { label: "GitHub Actions docs", url: "https://docs.github.com/en/actions", kind: docs }
+          - post: github-actions-lambda-terraform-cicd
+
+      - id: infrastructure-as-code
+        title: Infrastructure as code
+        summary: Describe servers, networks and permissions in files you can review and repeat.
+        learn:
+          - Terraform plan and apply
+          - State and why it is sensitive
+          - Modules and environments
+        resources:
+          - { label: "Terraform tutorials", url: "https://developer.hashicorp.com/terraform/tutorials", kind: course }
+          - post: terraform-or-pulumi
+          - post: terraform-state-more-sensitive-than-env
+          - post: deploying-a-laravel-application-to-amazon-ec2-using-terraform
+
+      - id: config-and-secrets
+        title: Config and secrets
+        summary: Keep passwords and keys out of code and out of logs.
+        learn:
+          - Environment variables vs secret stores
+          - Rotation
+          - Least-privilege access to secrets
+        resources:
+          - { label: "OWASP secrets management cheat sheet", url: "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html", kind: docs }
+
+      - id: monitoring-logging
+        title: Monitoring and logging
+        summary: Know something broke before your users tell you.
+        learn:
+          - Metrics vs logs
+          - Dashboards and alerts that matter
+          - Centralised logging
+        resources:
+          - { label: "Prometheus overview", url: "https://prometheus.io/docs/introduction/overview/", kind: docs }
+          - post: install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging
+
+      - id: serverless
+        title: Serverless
+        summary: Run code without managing servers, and know when it costs more than it saves.
+        learn:
+          - Functions, triggers and cold starts
+          - Queues and event-driven design
+          - Limits and pricing
+        resources:
+          - { label: "AWS Lambda developer guide", url: "https://docs.aws.amazon.com/lambda/latest/dg/welcome.html", kind: docs }
+          - post: serverless-laravel-on-aws-lambda-with-bref-and-terraform
+          - post: lambda-snapstart-terraform-cold-starts
+
+  - level: advanced
+    title: Run it at scale
+    steps:
+      - id: kubernetes
+        title: Kubernetes
+        summary: Schedule and heal containers across many machines.
+        learn:
+          - Pods, deployments and services
+          - Ingress and config maps
+          - Requests, limits and autoscaling
+        resources:
+          - { label: "Kubernetes basics tutorial", url: "https://kubernetes.io/docs/tutorials/kubernetes-basics/", kind: course }
+          - post: ecs-fargate-spot-capacity-providers
+
+      - id: gitops
+        title: GitOps
+        summary: Git is the source of truth; a controller makes the cluster match it.
+        learn:
+          - Pull-based deploys
+          - Drift detection
+          - Argo CD or Flux
+        resources:
+          - { label: "OpenGitOps principles", url: "https://opengitops.dev/", kind: article }
+
+      - id: observability
+        title: Observability
+        summary: Metrics, logs and traces together, so you can answer questions you did not plan for.
+        learn:
+          - Distributed tracing
+          - OpenTelemetry
+          - High-cardinality data
+        resources:
+          - { label: "OpenTelemetry docs", url: "https://opentelemetry.io/docs/", kind: docs }
+          - post: catch-lambda-jobs-that-succeed-but-write-nothing
+
+      - id: sre-slos
+        title: SRE and SLOs
+        summary: Decide how reliable is reliable enough, and spend the rest on shipping.
+        learn:
+          - SLIs, SLOs and error budgets
+          - Incident response and postmortems
+          - Toil and on-call
+        resources:
+          - { label: "Google SRE book", url: "https://sre.google/sre-book/table-of-contents/", kind: course }
+          - { label: "Implementing SLOs (SRE workbook)", url: "https://sre.google/workbook/implementing-slos/", kind: article }
+
+      - id: cloud-cost
+        title: Cloud cost (FinOps)
+        summary: Every architecture choice shows up on the bill. Learn to read it.
+        learn:
+          - Where cloud money goes
+          - Rightsizing, reserved and spot capacity
+          - Tagging and showback
+        resources:
+          - { label: "What is FinOps?", url: "https://www.finops.org/introduction/what-is-finops/", kind: article }
+
+      - id: platform-engineering
+        title: Platform engineering
+        summary: Turn your DevOps work into paved roads other teams can use.
+        learn:
+          - Internal developer platforms
+          - Golden paths and templates
+          - Measuring developer experience
+        resources:
+          - { label: "What is platform engineering?", url: "https://platformengineering.org/blog/what-is-platform-engineering", kind: article }
+          - post: multi-agent-claude-code-aws-devops-routines

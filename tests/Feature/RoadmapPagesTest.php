@@ -71,6 +71,15 @@ class RoadmapPagesTest extends TestCase
             ->has('stages.2.steps.0.prompt'));
     }
 
+    public function test_builds_on_is_shown(): void
+    {
+        $this->get('/roadmaps/mlops')->assertOk()->assertInertia(fn ($page) => $page
+            ->where('roadmap.buildsOn.slug', 'devops')
+            ->where('roadmap.buildsOn.title', 'DevOps'));
+        $this->get('/roadmaps/devops')->assertInertia(fn ($page) => $page->where('roadmap.buildsOn', null));
+        $this->get('/roadmaps')->assertInertia(fn ($page) => $page->has('roadmaps', 4));
+    }
+
     public function test_unknown_roadmap_is_404(): void
     {
         $this->get('/roadmaps/nope')->assertNotFound();

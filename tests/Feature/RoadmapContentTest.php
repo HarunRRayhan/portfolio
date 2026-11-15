@@ -48,6 +48,22 @@ class RoadmapContentTest extends TestCase
         }
     }
 
+    public function test_builds_on_points_at_a_real_roadmap(): void
+    {
+        $repo = new RoadmapRepository;
+        foreach (['mlops', 'devsecops'] as $slug) {
+            $roadmap = $repo->find($slug);
+            $this->assertNotNull($roadmap, $slug);
+            $this->assertSame('devops', $roadmap['builds_on']);
+        }
+        foreach ($repo->all() as $roadmap) {
+            if (isset($roadmap['builds_on'])) {
+                $this->assertNotNull($repo->find($roadmap['builds_on']), "{$roadmap['slug']} builds on a missing roadmap");
+                $this->assertNotSame($roadmap['slug'], $roadmap['builds_on']);
+            }
+        }
+    }
+
     public function test_internet_roadmap_has_all_three_stages(): void
     {
         $roadmap = (new RoadmapRepository)->find('internet-networking');

@@ -1,0 +1,145 @@
+slug: mlops
+title: MLOps
+summary: DevOps for machine learning. Take models from a notebook to production, then keep them honest.
+order: 3
+builds_on: devops
+
+stages:
+  - level: beginner
+    title: From notebook to pipeline
+    steps:
+      - id: ml-lifecycle
+        title: The ML lifecycle
+        summary: Data, training, evaluation, deployment and monitoring, and why ML systems decay.
+        learn:
+          - How ML differs from normal software
+          - Training vs inference
+          - Where things break in production
+        resources:
+          - { label: "MLOps principles (ml-ops.org)", url: "https://ml-ops.org/", kind: article }
+          - { label: "Rules of ML (Google)", url: "https://developers.google.com/machine-learning/guides/rules-of-ml", kind: article }
+
+      - id: data-versioning
+        title: Data versioning
+        summary: A model is code plus data. Version both, or you can't reproduce anything.
+        learn:
+          - Datasets as artifacts
+          - DVC basics
+          - Reproducible splits
+        resources:
+          - { label: "DVC docs", url: "https://dvc.org/doc", kind: docs }
+
+      - id: experiment-tracking
+        title: Experiment tracking
+        summary: Record every run's parameters, metrics and artifacts so you can compare them.
+        learn:
+          - Runs, params and metrics
+          - Comparing experiments
+          - MLflow tracking
+        resources:
+          - { label: "MLflow docs", url: "https://mlflow.org/docs/latest/index.html", kind: docs }
+
+      - id: packaging-models
+        title: Packaging models
+        summary: Ship a model as a container or an API that DevOps tooling already knows how to run.
+        learn:
+          - Model serialisation formats
+          - Wrapping a model in an API
+          - Containerising inference
+        resources:
+          - { label: "Made With ML", url: "https://madewithml.com/", kind: course }
+          - { label: "BentoML docs", url: "https://docs.bentoml.com/", kind: docs }
+
+  - level: intermediate
+    title: Pipelines and serving
+    steps:
+      - id: training-pipelines
+        title: Training pipelines
+        summary: Automate data prep, training and evaluation so retraining is one command.
+        learn:
+          - Pipeline steps and orchestration
+          - Continuous training
+          - Evaluation gates before release
+        resources:
+          - { label: "MLOps: continuous delivery for ML (Google Cloud)", url: "https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning", kind: article }
+          - post: rag-ingestion-pipeline-step-functions-lambda
+
+      - id: model-registry
+        title: Model registry
+        summary: One place that knows which model version is in staging and which is live.
+        learn:
+          - Versions and stages
+          - Promotion and rollback
+          - Lineage back to data and code
+        resources:
+          - { label: "MLflow model registry", url: "https://mlflow.org/docs/latest/model-registry.html", kind: docs }
+
+      - id: model-serving
+        title: Model serving
+        summary: Real-time endpoints, batch jobs and serverless inference, and their trade-offs.
+        learn:
+          - Online vs batch inference
+          - Latency, throughput and autoscaling
+          - Managed endpoints
+        resources:
+          - { label: "Amazon SageMaker overview", url: "https://docs.aws.amazon.com/sagemaker/latest/dg/whatis.html", kind: docs }
+          - post: serverless-ai-inference-endpoints-with-aws-bedrock-and-lambda
+          - post: running-ai-background-jobs-serverlessly-with-sqs-lambda-bedrock
+
+      - id: feature-stores
+        title: Feature stores
+        summary: Compute features once and serve the same values to training and inference.
+        learn:
+          - Online vs offline stores
+          - Training/serving skew
+        resources:
+          - { label: "featurestore.org", url: "https://www.featurestore.org/", kind: article }
+
+  - level: advanced
+    title: Production ML and LLMs
+    steps:
+      - id: model-monitoring
+        title: Monitoring drift
+        summary: Data changes, and models quietly get worse. Catch it.
+        learn:
+          - Data drift vs concept drift
+          - Quality metrics without labels
+          - Retraining triggers
+        resources:
+          - { label: "Data drift explained (Evidently)", url: "https://www.evidentlyai.com/ml-in-production/data-drift", kind: article }
+
+      - id: llmops
+        title: LLMOps and observability
+        summary: Prompts, traces, evals and cost for apps built on large language models.
+        learn:
+          - Tracing LLM calls
+          - Evals and regression tests
+          - Token cost tracking
+        resources:
+          - { label: "Langfuse docs", url: "https://langfuse.com/docs", kind: docs }
+          - post: llm-observability-langfuse-lambda-cloudwatch
+          - post: step-functions-llm-orchestration-replacing-lambda-chains
+
+      - id: rag-in-production
+        title: RAG in production
+        summary: Retrieval-augmented generation that stays fresh, fast and permission-aware.
+        learn:
+          - Ingestion and chunking
+          - Vector search
+          - Access control on retrieved data
+        resources:
+          - post: building-a-production-rag-pipeline-on-aws-lambda-pgvector
+          - post: persistence-is-not-permission-rag-citation-reauth-chat-replay
+          - { label: "pgvector", url: "https://github.com/pgvector/pgvector", kind: tool }
+
+      - id: ml-compliance
+        title: Security and compliance for ML
+        summary: Sensitive training data, model access and audit trails.
+        learn:
+          - Data privacy in training sets
+          - Locking down model endpoints
+          - Audit logging
+        resources:
+          - post: how-to-use-aws-sagemaker-for-hipaa-compliant-data-a-complete-guide
+          - post: lock-down-bedrock-iam-lambda-data-leak
+          - { label: "OWASP Top 10 for LLM applications", url: "https://genai.owasp.org/llm-top-10/", kind: article }

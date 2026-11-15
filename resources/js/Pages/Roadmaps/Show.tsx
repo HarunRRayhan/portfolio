@@ -1,6 +1,7 @@
 import { Link, router, usePage } from '@inertiajs/react'
 import { Bookmark, Check, ChevronDown, Copy, ExternalLink, Heart, Lock, Search, Sparkles } from 'lucide-react'
 import { useState } from 'react'
+import { Github } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import type { PageProps } from '@/types'
 import { ProgressBar } from './Index'
@@ -23,7 +24,7 @@ type Step = {
 type Stage = { level: string; title: string; locked: boolean; steps: Step[] }
 
 type Props = {
-  roadmap: { slug: string; title: string; summary: string }
+  roadmap: { slug: string; title: string; summary: string; buildsOn: { slug: string; title: string } | null }
   stages: Stage[]
   hasPaidAccess: boolean
   started: boolean
@@ -55,6 +56,15 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
         <Link href="/roadmaps" className="text-sm text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">← All roadmaps</Link>
         <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-5xl">{roadmap.title}</h1>
         <p className="mt-4 text-lg leading-8 text-slate-600 dark:text-slate-300">{roadmap.summary}</p>
+        {roadmap.buildsOn && (
+          <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
+            Builds on{' '}
+            <Link href={`/roadmaps/${roadmap.buildsOn.slug}`} className="font-medium text-emerald-700 underline-offset-2 hover:underline dark:text-emerald-400">
+              {roadmap.buildsOn.title}
+            </Link>
+            . Do its Beginner stage first if these topics are new to you.
+          </p>
+        )}
 
         <div className="mt-8 flex flex-wrap items-center gap-3">
           {!started && (
@@ -87,7 +97,7 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
         )}
 
         <ol className="mt-12 space-y-12">
-          {stages.map((stage) => (
+          {stages.map((stage, i) => (
             <li key={stage.level}>
               <div className="flex items-center gap-3">
                 <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white dark:bg-white dark:text-slate-900">
@@ -103,7 +113,8 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
                 ))}
               </ol>
 
-              {stage.locked && <UnlockCard />}
+              {/* One card under the first locked stage is enough. */}
+              {stage.locked && !stages[i - 1]?.locked && <UnlockCard />}
             </li>
           ))}
         </ol>
@@ -218,12 +229,15 @@ function StepDetail({ step }: { step: Step }) {
 
 function UnlockCard() {
   return (
-    <div className="ml-8 rounded-2xl border border-amber-200 bg-amber-50 p-5 dark:border-amber-900 dark:bg-amber-950/40">
-      <p className="font-semibold text-amber-950 dark:text-amber-200">Sponsor me</p>
-      <p className="mt-1 text-sm text-amber-900/80 dark:text-amber-200/80">Any amount of $5 or more unlocks Intermediate and Advanced.</p>
-      <Link href="/sponsor-me" className="mt-4 inline-flex rounded-full bg-amber-500 px-4 py-2 text-sm font-semibold text-amber-950 hover:bg-amber-400">
-        Sponsor me
+    <div className="ml-8 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+      <p className="text-sm text-slate-700 dark:text-slate-200">Intermediate and Advanced topics are for sponsors.</p>
+      <Link
+        href="/sponsor-me"
+        className="mt-3 inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+      >
+        <Github className="h-4 w-4" /> Sponsor on GitHub
       </Link>
+      <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">Any amount of $5 or more gets you access to every roadmap's Intermediate and Advanced topics.</p>
     </div>
   )
 }

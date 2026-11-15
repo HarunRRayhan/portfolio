@@ -55,6 +55,7 @@ class RoadmapController extends Controller
                 'stepCount' => count($this->repo->stepIds($r)),
                 'levels' => array_column($r['stages'], 'level'),
                 'loveCount' => (int) ($loves[$r['slug']] ?? 0),
+                'buildsOn' => $this->buildsOn($r),
             ], $this->repo->all()),
             'mine' => $mine,
             'canonicalUrl' => SeoCatalog::forPath('/roadmaps')?->canonicalUrl ?? url('/roadmaps'),
@@ -107,7 +108,7 @@ class RoadmapController extends Controller
             : [];
 
         return Inertia::render('Roadmaps/Show', [
-            'roadmap' => ['slug' => $slug, 'title' => $roadmap['title'], 'summary' => $roadmap['summary']],
+            'roadmap' => ['slug' => $slug, 'title' => $roadmap['title'], 'summary' => $roadmap['summary'], 'buildsOn' => $this->buildsOn($roadmap)],
             'stages' => $stages,
             'hasPaidAccess' => $paid,
             'started' => $user ? RoadmapStart::where('user_id', $user->id)->where('roadmap_slug', $slug)->exists() : false,
@@ -175,6 +176,14 @@ class RoadmapController extends Controller
         $level = $this->repo->stepIds($this->roadmapOr404($slug))[$step] ?? null;
         abort_unless($level, 404);
         abort_if($level !== RoadmapRepository::FREE_LEVEL && ! RoadmapAccess::canAccessPaid($request->user()), 403);
+    }
+
+    /** @return array{slug: string, title: string}|null */
+    private function buildsOn(array $roadmap): ?array
+    {
+        $parent = isset($roadmap['builds_on']) ? $this->repo->find((string) $roadmap['builds_on']) : null;
+
+        return $parent ? ['slug' => $parent['slug'], 'title' => $parent['title']] : null;
     }
 
     /** @return array<string, mixed> */

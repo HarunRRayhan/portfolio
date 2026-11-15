@@ -8,6 +8,7 @@ type RoadmapCard = {
   stepCount: number
   levels: string[]
   loveCount: number
+  buildsOn: { slug: string; title: string } | null
 }
 
 type Mine = {
@@ -78,6 +79,7 @@ export default function RoadmapsIndex({ roadmaps, mine }: Props) {
             >
               <Route className="h-8 w-8 text-emerald-600" />
               <h2 className="mt-4 text-2xl font-semibold text-slate-950 dark:text-white">{r.title}</h2>
+              {r.buildsOn && <p className="mt-1 text-xs font-medium uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Builds on {r.buildsOn.title}</p>}
               <p className="mt-2 flex-1 text-slate-600 dark:text-slate-300">{r.summary}</p>
               <div className="mt-6 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
                 <span>{r.stepCount} topics · {r.levels.length} levels</span>

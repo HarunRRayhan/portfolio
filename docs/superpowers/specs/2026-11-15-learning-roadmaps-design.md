@@ -25,7 +25,9 @@ They can love-react a roadmap and save it to a wishlist.
 - **Love** (public count, toggle) and **Save for later** (private wishlist, toggle) on
   each roadmap.
 - Guests can read everything; Start/Love/Save/ticks send them to sign-in, then back.
-- First release ships one complete roadmap: **Internet & Networking**.
+- First release ships four roadmaps: **Internet & Networking**, **DevOps**, and **MLOps** and
+  **DevSecOps**, which declare `builds_on: devops` (shown as "Builds on DevOps", not enforced).
+- Main menu: Home, Roadmaps, Blog, More. About and Products move into More.
 - **Access:** Beginner is free for everyone. Intermediate and Advanced need a GitHub
   sponsorship of **any amount of $5 or more** (custom amounts
   count; GitHub sends them as `monthly_price_in_cents`): monthly unlocks while active; one-time unlocks for
@@ -35,9 +37,9 @@ They can love-react a roadmap and save it to a wishlist.
   person has an account (matched on email at sign-in).
 - **Locked view:** without access, Intermediate/Advanced topics show title + summary only;
   learn bullets, resources, search, AI prompt and ticking are replaced by a
-  an unlock card: heading **Sponsor me**, subtitle
-  **"Any amount of $5 or more unlocks Intermediate and Advanced."**, button to
-  `/sponsor-me`. Copy never says "sponsor $5" as if $5 were the price. Locked fields are stripped
+  one unlock card under the first locked stage: a **Sponsor on GitHub** button (GitHub icon) to
+  `/sponsor-me`, and small text: "Any amount of $5 or more gets you access to every
+  roadmap's Intermediate and Advanced topics." Locked fields are stripped
   server-side, never just hidden in the browser.
 
 ## Non-goals
