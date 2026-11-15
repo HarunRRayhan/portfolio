@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Subscriber;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -27,7 +28,17 @@ class AgreementController extends Controller
     {
         $request->validate(['terms' => ['accepted']], ['terms.accepted' => 'Please agree to the Terms and Privacy Policy to continue.']);
 
-        $request->user()->forceFill(['terms_accepted_at' => now()])->save();
+        $user = $request->user();
+        $user->forceFill(['terms_accepted_at' => now()])->save();
+
+        // Sign-in already proved the address, so no confirm mail: subscribe straight away.
+        if ($request->boolean('newsletter') && $user->email_verified_at && $user->email) {
+            $email = strtolower($user->email);
+            $subscriber = Subscriber::whereRaw('lower(email) = ?', [$email])->first()
+                ?? new Subscriber(['email' => $email, 'source' => 'signup']);
+            $subscriber->status = 'subscribed';
+            $subscriber->save();
+        }
 
         return $this->continue($request);
     }

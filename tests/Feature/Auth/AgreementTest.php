@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\Subscriber;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -51,6 +52,36 @@ class AgreementTest extends TestCase
             ->assertSessionMissing('agreement.redirect_to');
 
         $this->assertNotNull($user->fresh()->terms_accepted_at);
+    }
+
+    public function test_newsletter_box_subscribes_the_new_account(): void
+    {
+        $user = User::factory()->create(['terms_accepted_at' => null, 'email' => 'New@Example.com']);
+
+        $this->actingAs($user)->post(route('agreement.accept'), ['terms' => true, 'newsletter' => true])->assertRedirect();
+
+        $subscriber = Subscriber::whereRaw('lower(email) = ?', ['new@example.com'])->first();
+        $this->assertNotNull($subscriber);
+        $this->assertSame('subscribed', $subscriber->status);
+        $this->assertSame('signup', $subscriber->source);
+    }
+
+    public function test_unticked_newsletter_box_does_not_subscribe(): void
+    {
+        $user = User::factory()->create(['terms_accepted_at' => null]);
+
+        $this->actingAs($user)->post(route('agreement.accept'), ['terms' => true, 'newsletter' => false])->assertRedirect();
+
+        $this->assertSame(0, Subscriber::count());
+    }
+
+    public function test_unverified_email_is_not_subscribed(): void
+    {
+        $user = User::factory()->unverified()->create(['terms_accepted_at' => null]);
+
+        $this->actingAs($user)->post(route('agreement.accept'), ['terms' => true, 'newsletter' => true]);
+
+        $this->assertSame(0, Subscriber::where('status', 'subscribed')->count());
     }
 
     public function test_account_pages_send_unagreed_users_to_the_screen_and_back(): void
