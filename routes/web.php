@@ -10,10 +10,11 @@ use App\Http\Controllers\Admin\ContactSubmissionController as AdminContactSubmis
 use App\Http\Controllers\Admin\MediaItemController;
 use App\Http\Controllers\Admin\MediumCrosspostController;
 use App\Http\Controllers\Admin\NewsletterController as AdminNewsletterController;
+use App\Http\Controllers\Admin\RoadmapAccessController as AdminRoadmapAccessController;
 use App\Http\Controllers\Admin\ScheduleBlogPostController;
 use App\Http\Controllers\Admin\ShortLinkController;
-use App\Http\Controllers\Admin\RoadmapAccessController as AdminRoadmapAccessController;
 use App\Http\Controllers\Admin\SponsorshipController as AdminSponsorshipController;
+use App\Http\Controllers\Auth\AgreementController;
 use App\Http\Controllers\BlogCommentController;
 use App\Http\Controllers\Consultation\BookController;
 use App\Http\Controllers\Consultation\BookingAccessController;
@@ -21,6 +22,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\OperationalHealthController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RoadmapCommentController;
 use App\Http\Controllers\RoadmapController;
 use App\Http\Controllers\Sponsorship\GithubSponsorsWebhookController;
 use App\Http\Controllers\Sponsorship\ScanRequestController;
@@ -644,6 +646,10 @@ Route::post('/subscribe', [NewsletterController::class, 'subscribe'])
     ->middleware('throttle:5,1')
     ->name('subscribe');
 
+Route::post('/newsletter/account', [AgreementController::class, 'subscribe'])
+    ->middleware(['auth', 'throttle:10,1'])
+    ->name('newsletter.account');
+
 Route::get('/newsletter/confirm/{subscriber}', [NewsletterController::class, 'confirm'])
     ->where('subscriber', '[0-9]+')
     ->middleware(['signed', 'throttle:30,1'])
@@ -667,6 +673,12 @@ Route::get('/newsletter/c/{delivery}', [NewsletterController::class, 'click'])
 
 Route::get('/roadmaps', [RoadmapController::class, 'index'])->name('roadmaps.index');
 Route::get('/roadmaps/{slug}', [RoadmapController::class, 'show'])->where('slug', '[a-z0-9-]{1,64}')->name('roadmaps.show');
+Route::delete('/roadmaps/comments/{comment}', [RoadmapCommentController::class, 'destroy'])->where('comment', '[0-9]{1,18}')->middleware(['auth', 'throttle:roadmap-actions'])->name('roadmaps.comments.destroy');
+Route::get('/roadmaps/{slug}/{topic}/{lesson}', [RoadmapController::class, 'lesson'])->where(['slug' => '[a-z0-9-]{1,64}', 'topic' => '[a-z0-9-]{1,64}', 'lesson' => '[a-z0-9-]{1,64}'])->name('roadmaps.lesson');
+Route::middleware(['auth', 'throttle:10,1'])->where(['slug' => '[a-z0-9-]{1,64}', 'topic' => '[a-z0-9-]{1,64}', 'lesson' => '[a-z0-9-]{1,64}'])->group(function () {
+    Route::post('/roadmaps/{slug}/{topic}/comments', [RoadmapCommentController::class, 'storeTopic'])->name('roadmaps.topic.comments');
+    Route::post('/roadmaps/{slug}/{topic}/{lesson}/comments', [RoadmapCommentController::class, 'storeLesson'])->name('roadmaps.lesson.comments');
+});
 Route::get('/roadmaps/{slug}/{topic}', [RoadmapController::class, 'topic'])->where(['slug' => '[a-z0-9-]{1,64}', 'topic' => '[a-z0-9-]{1,64}'])->name('roadmaps.topic');
 Route::post('/roadmaps/{slug}/view', [RoadmapController::class, 'view'])->where('slug', '[a-z0-9-]{1,64}')->middleware('throttle:30,1')->name('roadmaps.view');
 Route::middleware(['auth', 'throttle:roadmap-actions'])

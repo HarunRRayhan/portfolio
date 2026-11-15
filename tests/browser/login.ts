@@ -12,5 +12,7 @@ export async function loginAs(page: Page, email: string): Promise<void> {
     await page.getByRole('checkbox', { name: /I agree to the/ }).check()
     await page.getByRole('button', { name: 'Skip passkey' }).click()
     await page.waitForURL((u) => u.pathname !== '/welcome')
+    // New accounts get a one-time newsletter offer on the next page; decline it so it doesn't cover the page.
+    await page.getByRole('button', { name: 'No thanks' }).click({ timeout: 5000 }).catch(() => {})
   }
 }

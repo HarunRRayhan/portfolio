@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\RoadmapCommentThread;
 use App\Models\RoadmapProgress;
 use App\Models\RoadmapReaction;
 use App\Models\RoadmapStart;
@@ -62,6 +63,7 @@ class RoadmapController extends Controller
                 'viewCount' => (int) ($views[$r['slug']] ?? 0),
                 'buildsOn' => $this->buildsOn($r),
                 'updatedAt' => (string) $r['updated'],
+                'art' => $this->art($r),
             ], $this->repo->all()),
             'mine' => $mine,
             'canonicalUrl' => SeoCatalog::forPath('/roadmaps')?->canonicalUrl ?? url('/roadmaps'),
@@ -108,7 +110,7 @@ class RoadmapController extends Controller
             : [];
 
         return Inertia::render('Roadmaps/Show', [
-            'roadmap' => ['slug' => $slug, 'title' => $roadmap['title'], 'summary' => $roadmap['summary'], 'buildsOn' => $this->buildsOn($roadmap), 'updatedAt' => (string) $roadmap['updated']],
+            'roadmap' => ['slug' => $slug, 'title' => $roadmap['title'], 'summary' => $roadmap['summary'], 'buildsOn' => $this->buildsOn($roadmap), 'updatedAt' => (string) $roadmap['updated'], 'art' => $this->art($roadmap)],
             'hasAccount' => (bool) $user,
             'stages' => $stages,
             'hasPaidAccess' => $paid,
@@ -136,42 +138,14 @@ class RoadmapController extends Controller
         $done = $user ? $this->doneIds($user, $slug) : [];
         $canonicalUrl = $this->repo->topicUrl($slug, $topicId);
 
-        $lessons = array_map(function (array $lesson) use ($roadmap, $stage, $topic, $locked, $done, $user) {
-            $base = [
-                'id' => $lesson['id'],
-                'title' => $lesson['title'],
-                'summary' => $lesson['summary'],
-                'optional' => $lesson['optional'],
-                'done' => ! $locked && in_array($lesson['id'], $done, true),
-            ];
-            // Locked lessons never send their content, so view-source shows nothing extra.
-            if ($locked) {
-                return $base;
-            }
-            $base += [
-                'learn' => $lesson['learn'],
-                'resources' => $lesson['resources'],
-                'searchUrl' => $this->repo->searchUrl($topic, $lesson),
-            ];
-            // The AI prompt is for signed-in readers only.
-            if ($user) {
-                $prompt = $this->repo->prompt($roadmap, $stage['level'], $topic, $lesson);
-                $base += [
-                    'prompt' => $prompt,
-                    'claudeUrl' => 'https://claude.ai/new?q='.urlencode($prompt),
-                    'chatgptUrl' => 'https://chatgpt.com/?q='.urlencode($prompt),
-                ];
-            }
-
-            return $base;
-        }, $topic['lessons']);
+        $lessons = array_map(fn (array $lesson) => $this->lessonPayload($roadmap, $stage, $topic, $lesson, $locked, $done, (bool) $user), $topic['lessons']);
 
         $required = array_values(array_filter($lessons, fn ($l) => ! $l['optional']));
         $doneRequired = count(array_filter($required, fn ($l) => $l['done']));
 
         return Inertia::render('Roadmaps/Topic', [
             'roadmap' => ['slug' => $slug, 'title' => $roadmap['title']],
-            'topic' => ['id' => $topic['id'], 'title' => $topic['title'], 'summary' => $topic['summary'], 'level' => $stage['level'], 'stageTitle' => $stage['title']],
+            'topic' => ['id' => $topic['id'], 'number' => $found['number'], 'title' => $topic['title'], 'summary' => $topic['summary'], 'level' => $stage['level'], 'stageTitle' => $stage['title']],
             'lessons' => $lessons,
             'locked' => $locked,
             'hasAccount' => (bool) $user,
@@ -180,7 +154,93 @@ class RoadmapController extends Controller
             'next' => $next ? ['id' => $next['id'], 'title' => $next['title']] : null,
             'canonicalUrl' => $canonicalUrl,
             'seo' => SeoCatalog::forMedia($topic['title'].' · '.$roadmap['title'].' roadmap | Harun R. Rayhan', $topic['summary'], $canonicalUrl)->toArray(),
-        ]);
+        ] + $this->comments("{$slug}/{$topicId}", $locked));
+    }
+
+    public function lesson(Request $request, string $slug, string $topicId, string $lessonId): Response
+    {
+        $roadmap = $this->roadmapOr404($slug);
+        $found = $this->repo->findTopic($roadmap, $topicId);
+        abort_unless($found, 404);
+        ['stage' => $stage, 'topic' => $topic] = $found;
+        $position = collect($topic['lessons'])->search(fn ($l) => $l['id'] === $lessonId);
+        abort_if($position === false, 404);
+
+        $user = $request->user();
+        $locked = $stage['level'] !== RoadmapRepository::FREE_LEVEL && ! RoadmapAccess::canAccessPaid($user);
+        $done = $user ? $this->doneIds($user, $slug) : [];
+        $lesson = $topic['lessons'][$position];
+        $canonicalUrl = $this->repo->topicUrl($slug, $topicId).'/'.$lessonId;
+
+        // Neighbours across the whole roadmap, so "next" moves on to the next topic's first lesson.
+        $order = array_keys($this->repo->lessonIndex($roadmap));
+        $index = $this->repo->lessonIndex($roadmap);
+        $i = array_search($lessonId, $order, true);
+        $neighbour = function (?string $id) use ($roadmap, $index): ?array {
+            if ($id === null) {
+                return null;
+            }
+            $t = $this->repo->findTopic($roadmap, $index[$id]['topic'])['topic'];
+            $l = collect($t['lessons'])->firstWhere('id', $id);
+
+            return ['id' => $id, 'title' => $l['title'], 'topicId' => $t['id']];
+        };
+
+        return Inertia::render('Roadmaps/Lesson', [
+            'roadmap' => ['slug' => $slug, 'title' => $roadmap['title']],
+            'topic' => ['id' => $topic['id'], 'number' => $found['number'], 'title' => $topic['title'], 'level' => $stage['level']],
+            'lesson' => $this->lessonPayload($roadmap, $stage, $topic, $lesson, $locked, $done, (bool) $user),
+            'position' => $position + 1,
+            'lessonCount' => count($topic['lessons']),
+            'locked' => $locked,
+            'hasAccount' => (bool) $user,
+            'prev' => $neighbour($order[$i - 1] ?? null),
+            'next' => $neighbour($order[$i + 1] ?? null),
+            'canonicalUrl' => $canonicalUrl,
+            'seo' => SeoCatalog::forMedia($lesson['title'].' · '.$topic['title'].' | Harun R. Rayhan', $lesson['summary'], $canonicalUrl)->toArray(),
+        ] + $this->comments("{$slug}/{$topicId}/{$lessonId}", $locked));
+    }
+
+    /** @return array<string, mixed> */
+    private function lessonPayload(array $roadmap, array $stage, array $topic, array $lesson, bool $locked, array $done, bool $signedIn): array
+    {
+        $base = [
+            'id' => $lesson['id'],
+            'title' => $lesson['title'],
+            'optional' => $lesson['optional'],
+            'done' => ! $locked && in_array($lesson['id'], $done, true),
+        ];
+        // Locked lessons never send their content, so view-source shows nothing extra.
+        if ($locked) {
+            return $base;
+        }
+        $base += [
+            'resources' => $lesson['resources'],
+            'searchUrl' => $this->repo->searchUrl($topic, $lesson),
+        ];
+        // The AI prompt is for signed-in readers only.
+        if ($signedIn) {
+            $prompt = $this->repo->prompt($roadmap, $stage['level'], $topic, $lesson);
+            $base += [
+                'prompt' => $prompt,
+                'claudeUrl' => 'https://claude.ai/new?q='.urlencode($prompt),
+                'chatgptUrl' => 'https://chatgpt.com/?q='.urlencode($prompt),
+            ];
+        }
+
+        return $base;
+    }
+
+    /** @return array{comments: list<array<string, mixed>>, commentCount: int} */
+    private function comments(string $key, bool $locked): array
+    {
+        // Paid discussions stay with readers who can open the topic.
+        $thread = $locked ? null : RoadmapCommentThread::findKey($key);
+
+        return [
+            'comments' => $thread ? $thread->tree() : [],
+            'commentCount' => $thread ? $thread->comments()->count() : 0,
+        ];
     }
 
     /** Called by the page after it loads, like blog post views, so crawlers and cached HTML don't count. */
@@ -252,6 +312,12 @@ class RoadmapController extends Controller
         $level = $this->repo->lessonIndex($this->roadmapOr404($slug))[$lesson]['level'] ?? null;
         abort_unless($level, 404);
         abort_if($level !== RoadmapRepository::FREE_LEVEL && ! RoadmapAccess::canAccessPaid($request->user()), 403);
+    }
+
+    /** @return array{icon: string, color: string, logos: list<string>} */
+    private function art(array $roadmap): array
+    {
+        return ['icon' => (string) ($roadmap['icon'] ?? 'globe'), 'color' => (string) ($roadmap['color'] ?? 'amber'), 'logos' => array_values($roadmap['logos'] ?? [])];
     }
 
     /** @return array{slug: string, title: string}|null */

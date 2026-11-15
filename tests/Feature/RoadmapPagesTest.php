@@ -99,7 +99,6 @@ class RoadmapPagesTest extends TestCase
         $this->actingAs(User::factory()->create())->get('/roadmaps/'.self::R.'/'.$topic['id'])->assertOk()->assertInertia(fn ($page) => $page
             ->where('locked', true)
             ->has('lessons.0.title')
-            ->has('lessons.0.summary')
             ->missing('lessons.0.resources')
             ->missing('lessons.0.learn')
             ->missing('lessons.0.prompt'));

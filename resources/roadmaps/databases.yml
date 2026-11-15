@@ -3,6 +3,12 @@ title: Database Engineering
 summary: From your first SQL query to how a database stores pages on disk. Learn modelling, indexes, transactions, replication and scaling, then the internals underneath.
 order: 8
 updated: '2026-11-15'
+icon: database
+color: blue
+logos:
+  - /images/skills/postgresql-original.svg
+  - /images/skills/mongodb-original.svg
+  - /images/skills/redis-original.svg
 
 stages:
   - level: beginner

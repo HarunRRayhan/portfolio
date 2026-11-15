@@ -27,6 +27,13 @@ class RoadmapContentTest extends TestCase
             $this->assertNotEmpty($raw['summary'] ?? null, $name);
             $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}$/', (string) ($raw['updated'] ?? ''), "{$name} needs updated: 'YYYY-MM-DD'");
             $this->assertSame(['beginner', 'intermediate', 'advanced'], array_column($raw['stages'], 'level'), "{$name}: stages must be beginner, intermediate, advanced");
+            $this->assertContains($raw['icon'] ?? null, RoadmapRepository::ICONS, "{$name}: icon must be one of RoadmapRepository::ICONS");
+            $this->assertContains($raw['color'] ?? null, RoadmapRepository::COLORS, "{$name}: color must be one of RoadmapRepository::COLORS");
+            $this->assertLessThanOrEqual(4, count($raw['logos'] ?? []), "{$name}: at most 4 logos");
+            foreach ($raw['logos'] ?? [] as $logo) {
+                $this->assertMatchesRegularExpression('#^/images/[a-z0-9/_.-]+\.(svg|png|webp)$#i', $logo, $name);
+                $this->assertFileExists(public_path(ltrim($logo, '/')), "{$name}: missing logo {$logo}");
+            }
             $topicIds = [];
             $lessonIds = [];
             foreach ($raw['stages'] as $stage) {
@@ -36,7 +43,7 @@ class RoadmapContentTest extends TestCase
                     $where = "{$name} topic {$topic['id']}";
                     $this->assertMatchesRegularExpression($id, $topic['id'], $where);
                     $this->assertNotContains($topic['id'], $topicIds, "{$where}: duplicate topic id");
-                    $this->assertNotContains($topic['id'], ['view', 'start', 'love', 'wishlist', 'lessons'], "{$where}: reserved id");
+                    $this->assertNotContains($topic['id'], ['view', 'start', 'love', 'wishlist', 'lessons', 'comments'], "{$where}: reserved id");
                     $topicIds[] = $topic['id'];
                     $this->assertNotEmpty($topic['title'] ?? null, $where);
                     $this->assertNotEmpty($topic['summary'] ?? null, $where);
@@ -47,6 +54,7 @@ class RoadmapContentTest extends TestCase
                         $lw = "{$where} lesson {$lesson['id']}";
                         $this->assertMatchesRegularExpression($id, $lesson['id'], $lw);
                         $this->assertNotContains($lesson['id'], $lessonIds, "{$lw}: lesson ids must be unique in the roadmap");
+                        $this->assertNotSame('comments', $lesson['id'], "{$lw}: reserved id");
                         $lessonIds[] = $lesson['id'];
                         $this->assertNotEmpty($lesson['title'] ?? null, $lw);
                         $this->assertNotEmpty($lesson['summary'] ?? null, $lw);

@@ -54,34 +54,53 @@ class AgreementTest extends TestCase
         $this->assertNotNull($user->fresh()->terms_accepted_at);
     }
 
-    public function test_newsletter_box_subscribes_the_new_account(): void
-    {
-        $user = User::factory()->create(['terms_accepted_at' => null, 'email' => 'New@Example.com']);
-
-        $this->actingAs($user)->post(route('agreement.accept'), ['terms' => true, 'newsletter' => true])->assertRedirect();
-
-        $subscriber = Subscriber::whereRaw('lower(email) = ?', ['new@example.com'])->first();
-        $this->assertNotNull($subscriber);
-        $this->assertSame('subscribed', $subscriber->status);
-        $this->assertSame('signup', $subscriber->source);
-    }
-
-    public function test_unticked_newsletter_box_does_not_subscribe(): void
+    public function test_agreeing_offers_the_newsletter_once_on_the_next_page(): void
     {
         $user = User::factory()->create(['terms_accepted_at' => null]);
 
-        $this->actingAs($user)->post(route('agreement.accept'), ['terms' => true, 'newsletter' => false])->assertRedirect();
-
+        $this->actingAs($user)->post(route('agreement.accept'), ['terms' => true])->assertRedirect();
         $this->assertSame(0, Subscriber::count());
+
+        $this->actingAs($user)->get('/roadmaps')->assertInertia(fn ($p) => $p->where('newsletter.offerAfterSignup', true));
+        $this->actingAs($user)->get('/roadmaps')->assertInertia(fn ($p) => $p->where('newsletter.offerAfterSignup', false));
     }
 
-    public function test_unverified_email_is_not_subscribed(): void
+    public function test_no_offer_when_the_account_email_is_already_subscribed(): void
     {
-        $user = User::factory()->unverified()->create(['terms_accepted_at' => null]);
+        $user = User::factory()->create(['terms_accepted_at' => null, 'email' => 'a@b.com']);
+        Subscriber::create(['email' => 'a@b.com', 'status' => 'subscribed', 'source' => 'footer']);
 
-        $this->actingAs($user)->post(route('agreement.accept'), ['terms' => true, 'newsletter' => true]);
+        $this->actingAs($user)->post(route('agreement.accept'), ['terms' => true]);
 
+        $this->actingAs($user)->get('/roadmaps')->assertInertia(fn ($p) => $p
+            ->where('newsletter.offerAfterSignup', false)
+            ->where('newsletter.accountSubscribed', true));
+    }
+
+    public function test_account_subscribe_adds_the_verified_email(): void
+    {
+        $user = User::factory()->create(['email' => 'New@Example.com']);
+
+        $this->actingAs($user)->post(route('newsletter.account'))->assertRedirect();
+
+        $subscriber = Subscriber::whereRaw('lower(email) = ?', ['new@example.com'])->first();
+        $this->assertSame('subscribed', $subscriber->status);
+        $this->actingAs($user)->get('/roadmaps')->assertInertia(fn ($p) => $p->where('newsletter.accountSubscribed', true));
+    }
+
+    public function test_account_subscribe_needs_a_verified_signed_in_user(): void
+    {
+        $this->post(route('newsletter.account'))->assertRedirect('/login');
+
+        $this->actingAs(User::factory()->unverified()->create())->post(route('newsletter.account'));
         $this->assertSame(0, Subscriber::where('status', 'subscribed')->count());
+    }
+
+    public function test_guests_are_not_marked_subscribed(): void
+    {
+        $this->get('/roadmaps')->assertInertia(fn ($p) => $p
+            ->where('newsletter.accountSubscribed', false)
+            ->where('newsletter.offerAfterSignup', false));
     }
 
     public function test_account_pages_send_unagreed_users_to_the_screen_and_back(): void

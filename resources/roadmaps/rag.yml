@@ -1,0 +1,696 @@
+slug: rag
+title: RAG (Retrieval-Augmented Generation)
+summary: Ground LLM answers in your own documents. Learn embeddings, chunking, vector search, hybrid retrieval, citations, evaluation and permission-aware retrieval, then run it all in production.
+order: 11
+updated: '2026-11-15'
+icon: library
+color: teal
+logos:
+  - /images/skills/postgresql-original.svg
+  - /images/tech/python.svg
+  - /images/tech/aws.svg
+builds_on: ai-engineering
+
+stages:
+  - level: beginner
+    title: How RAG works
+    topics:
+      - id: why-rag
+        title: Why RAG
+        summary: What retrieval adds to an LLM, and the cases where a longer prompt, fine-tuning or plain search is the better tool.
+        lessons:
+          - id: what-rag-solves
+            title: What RAG solves
+            summary: Models do not know your private or recent data. RAG fetches the relevant pieces at question time and puts them in the prompt.
+            learn:
+              - Knowledge cutoff and private data
+              - Retrieve, then augment, then generate
+              - Grounded answers reduce, but do not remove, hallucinations
+            resources:
+              - post: building-a-production-rag-pipeline-on-aws-lambda-pgvector
+              - { label: "Retrieval-Augmented Generation paper (Lewis et al., 2020)", url: "https://arxiv.org/abs/2005.11401", kind: article }
+              - { label: "Pinecone Learning Center", url: "https://www.pinecone.io/learn/", kind: article }
+          - id: when-not-to-use-rag
+            title: When not to use RAG
+            summary: Small corpora fit in the context window, style changes need fine-tuning, and exact lookups need a database query, not similarity search.
+            learn:
+              - Long context plus prompt caching for small corpora
+              - Fine-tuning for format and tone, not facts
+              - Structured data belongs in SQL or a tool call
+            resources:
+              - { label: "Introducing contextual retrieval (Anthropic)", url: "https://www.anthropic.com/news/contextual-retrieval", kind: article }
+              - { label: "Prompt caching (Anthropic docs)", url: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching", kind: docs }
+          - id: rag-architecture-overview
+            title: The parts of a RAG system
+            summary: An offline ingestion path that builds the index and an online query path that reads it. They scale and fail differently.
+            learn:
+              - Ingestion path vs query path
+              - Where embeddings, the vector store and the LLM sit
+              - Managed options like Bedrock Knowledge Bases
+            resources:
+              - post: rag-ingestion-pipeline-step-functions-lambda
+              - post: bedrock-agents-production-knowledge-bases
+              - { label: "LlamaIndex docs", url: "https://docs.llamaindex.ai/", kind: docs }
+
+      - id: embeddings
+        title: Embeddings and similarity
+        summary: Embeddings turn text into vectors so that similar meaning sits close together, which is what makes semantic search possible.
+        lessons:
+          - id: what-embeddings-are
+            title: What an embedding is
+            summary: A fixed-length list of numbers that represents the meaning of a piece of text.
+            learn:
+              - Text in, vector out
+              - Dimensions and why they matter for storage
+              - Same model for documents and queries
+            resources:
+              - { label: "The Illustrated Word2vec (Jay Alammar)", url: "https://jalammar.github.io/illustrated-word2vec/", kind: article }
+              - { label: "Embeddings guide (OpenAI docs)", url: "https://platform.openai.com/docs/guides/embeddings", kind: docs }
+          - id: similarity-metrics
+            title: Cosine, dot product and L2
+            summary: Similarity search ranks vectors by distance. Pick the metric your embedding model was trained for.
+            learn:
+              - Cosine similarity vs inner product vs Euclidean distance
+              - Normalised vectors make cosine and dot product equal
+              - Top-k nearest neighbours
+            resources:
+              - { label: "pgvector (GitHub)", url: "https://github.com/pgvector/pgvector", kind: tool }
+              - { label: "Pinecone Learning Center", url: "https://www.pinecone.io/learn/", kind: article }
+          - id: choosing-embedding-model
+            title: Choosing an embedding model
+            summary: Compare models on retrieval benchmarks, language support, dimensions, price and where they can run.
+            learn:
+              - Reading the MTEB leaderboard
+              - Hosted APIs vs open models
+              - Re-embedding cost when you switch models
+            resources:
+              - { label: "MTEB leaderboard (Hugging Face)", url: "https://huggingface.co/spaces/mteb/leaderboard", kind: tool }
+              - { label: "Sentence Transformers", url: "https://www.sbert.net/", kind: docs }
+              - { label: "Embeddings (Anthropic docs)", url: "https://docs.anthropic.com/en/docs/build-with-claude/embeddings", kind: docs }
+          - id: embedding-internals
+            title: How embedding models are trained
+            optional: true
+            summary: Contrastive training on query and passage pairs, and why that makes some models better at retrieval than others.
+            learn:
+              - Bi-encoders and contrastive loss
+              - Asymmetric query and passage prefixes
+              - Matryoshka embeddings and truncation
+            resources:
+              - { label: "Hugging Face course", url: "https://huggingface.co/learn", kind: course }
+              - { label: "Sentence Transformers", url: "https://www.sbert.net/", kind: docs }
+
+      - id: chunking
+        title: Chunking
+        summary: How you split documents decides what can be found. Chunks that are too big dilute meaning, chunks that are too small lose context.
+        lessons:
+          - id: fixed-size-chunking
+            title: Fixed-size chunks and overlap
+            summary: The simple baseline. Split by tokens with some overlap so sentences are not cut in half at the boundary.
+            learn:
+              - Chunk size in tokens, not characters
+              - Overlap and its storage cost
+              - A sensible default to start from
+            resources:
+              - post: building-a-production-rag-pipeline-on-aws-lambda-pgvector
+              - { label: "Pinecone Learning Center", url: "https://www.pinecone.io/learn/", kind: article }
+          - id: structure-aware-chunking
+            title: Structure-aware chunking
+            summary: Split on headings, paragraphs, code blocks and table rows so each chunk is a unit that makes sense alone.
+            learn:
+              - Recursive splitting by separators
+              - Keeping tables and code intact
+              - Carrying the section heading into each chunk
+            resources:
+              - { label: "LangChain docs", url: "https://docs.langchain.com/", kind: docs }
+              - { label: "LlamaIndex docs", url: "https://docs.llamaindex.ai/", kind: docs }
+          - id: contextual-chunks
+            title: Contextual chunk headers
+            summary: Prepend a short summary of where a chunk sits in its document before embedding it, so isolated chunks still retrieve well.
+            learn:
+              - Why a chunk alone loses context
+              - Generating context with a cheap model and prompt caching
+              - Measured gains from contextual retrieval
+            resources:
+              - { label: "Introducing contextual retrieval (Anthropic)", url: "https://www.anthropic.com/news/contextual-retrieval", kind: article }
+          - id: parent-child-chunking
+            title: Small-to-big retrieval
+            optional: true
+            summary: Search over small chunks for precision, then send the larger parent section to the model for context.
+            learn:
+              - Parent and child chunk ids
+              - Sentence-window retrieval
+              - Trade-off against prompt size
+            resources:
+              - { label: "LlamaIndex docs", url: "https://docs.llamaindex.ai/", kind: docs }
+
+      - id: vector-databases
+        title: Vector databases and pgvector
+        summary: Where the vectors live and how the database finds near neighbours fast enough without scanning every row.
+        lessons:
+          - id: pgvector-basics
+            title: pgvector basics
+            summary: Add a vector column to Postgres, store embeddings next to your other data, and query by distance with SQL.
+            learn:
+              - The vector type and distance operators
+              - Storing text, metadata and vector in one row
+              - Filtering with a normal WHERE clause
+            resources:
+              - post: building-a-production-rag-pipeline-on-aws-lambda-pgvector
+              - post: everything-new-in-laravel-13
+              - { label: "pgvector (GitHub)", url: "https://github.com/pgvector/pgvector", kind: tool }
+          - id: ann-indexes
+            title: HNSW and IVFFlat indexes
+            summary: Approximate nearest-neighbour indexes trade a little recall for a large speed gain. Know their build cost and tuning knobs.
+            learn:
+              - Exact scan vs approximate search
+              - HNSW m, ef_construction and ef_search
+              - IVFFlat lists and probes
+            resources:
+              - { label: "pgvector (GitHub)", url: "https://github.com/pgvector/pgvector", kind: tool }
+              - { label: "HNSW paper (Malkov and Yashunin)", url: "https://arxiv.org/abs/1603.09320", kind: article }
+          - id: dedicated-vector-stores
+            title: Dedicated vector databases
+            summary: When a separate store like Qdrant, Pinecone or OpenSearch is worth the extra system, and when Postgres is enough.
+            learn:
+              - Scale and filtering limits of each option
+              - Operational cost of another datastore
+              - Keeping source of truth and index in sync
+            resources:
+              - { label: "Qdrant documentation", url: "https://qdrant.tech/documentation/", kind: docs }
+              - { label: "Pinecone Learning Center", url: "https://www.pinecone.io/learn/", kind: article }
+          - id: vector-quantization
+            title: Quantization and storage size
+            optional: true
+            summary: Half-precision, binary and product quantization cut memory and cost at some loss of recall.
+            learn:
+              - halfvec and binary vectors in pgvector
+              - Re-scoring after a coarse search
+              - Estimating index memory
+            resources:
+              - { label: "pgvector (GitHub)", url: "https://github.com/pgvector/pgvector", kind: tool }
+              - { label: "Faiss (GitHub)", url: "https://github.com/facebookresearch/faiss", kind: tool }
+
+      - id: first-rag-pipeline
+        title: Your first RAG pipeline
+        summary: Wire ingestion, retrieval and generation together end to end before optimising any single part.
+        lessons:
+          - id: basic-retrieve-and-generate
+            title: Retrieve and generate
+            summary: Embed the question, fetch the top chunks, put them in the prompt and ask the model to answer from them only.
+            learn:
+              - Query embedding and top-k search
+              - A grounded system prompt
+              - Saying "I don't know" when nothing relevant is found
+            resources:
+              - post: building-a-production-rag-pipeline-on-aws-lambda-pgvector
+              - { label: "Anthropic docs", url: "https://docs.anthropic.com/", kind: docs }
+          - id: serving-rag-api
+            title: Serving RAG behind an API
+            summary: Put the pipeline behind an endpoint with timeouts, streaming and sensible error handling.
+            learn:
+              - Streaming the answer to the client
+              - Timeouts on embedding, search and generation
+              - Returning sources with the answer
+            resources:
+              - post: serverless-ai-inference-endpoints-with-aws-bedrock-and-lambda
+              - post: real-time-ai-chat-with-lambda-api-gateway-websockets
+          - id: rag-frameworks
+            title: Frameworks vs plain code
+            optional: true
+            summary: LlamaIndex and LangChain speed up prototypes. Plain code is often easier to debug and own in production.
+            learn:
+              - What the frameworks give you
+              - Hidden prompts and defaults to check
+              - When to drop down to direct API calls
+            resources:
+              - { label: "LlamaIndex docs", url: "https://docs.llamaindex.ai/", kind: docs }
+              - { label: "LangChain docs", url: "https://docs.langchain.com/", kind: docs }
+
+  - level: intermediate
+    title: Production retrieval
+    topics:
+      - id: ingestion-pipelines
+        title: Ingestion pipelines
+        summary: Turn messy PDFs, HTML and docs into clean, tagged chunks reliably, and keep the index current as sources change.
+        lessons:
+          - id: parsing-documents
+            title: Parsing PDFs and HTML
+            summary: Extraction quality caps retrieval quality. Handle layout, tables, scanned pages and boilerplate.
+            learn:
+              - Text extraction vs layout-aware parsing
+              - OCR for scanned documents
+              - Stripping navigation and boilerplate from HTML
+            resources:
+              - { label: "Unstructured (GitHub)", url: "https://github.com/Unstructured-IO/unstructured", kind: tool }
+              - { label: "LlamaIndex docs", url: "https://docs.llamaindex.ai/", kind: docs }
+          - id: chunk-metadata
+            title: Metadata on every chunk
+            summary: Store source, section, date, owner and access labels with each chunk so you can filter, cite and authorise later.
+            learn:
+              - Source URL and position for citations
+              - Tenant and permission fields
+              - Metadata filters at query time
+            resources:
+              - post: persistence-is-not-permission-rag-citation-reauth-chat-replay
+              - { label: "pgvector (GitHub)", url: "https://github.com/pgvector/pgvector", kind: tool }
+          - id: pipeline-orchestration
+            title: Orchestrating ingestion
+            summary: Run parse, chunk, embed and index as separate retryable steps, fanned out per document, with a place for failures to land.
+            learn:
+              - Manifests instead of large payloads
+              - Fan-out with retries per step
+              - Dead-letter handling for broken documents
+            resources:
+              - post: rag-ingestion-pipeline-step-functions-lambda
+              - post: running-ai-background-jobs-serverlessly-with-sqs-lambda-bedrock
+          - id: incremental-updates
+            title: Incremental and idempotent indexing
+            summary: Re-index only what changed, and make a re-run of the same document produce the same rows instead of duplicates.
+            learn:
+              - Content hashes to detect changes
+              - Deterministic chunk ids and upserts
+              - Deleting chunks of removed documents
+            resources:
+              - post: rag-ingestion-pipeline-step-functions-lambda
+              - { label: "LlamaIndex docs", url: "https://docs.llamaindex.ai/", kind: docs }
+
+      - id: retrieval-methods
+        title: Dense, keyword and hybrid retrieval
+        summary: Vector search misses exact terms and keyword search misses paraphrases. Combining them beats either alone.
+        lessons:
+          - id: dense-retrieval
+            title: Dense retrieval
+            summary: Semantic search over embeddings. Strong on paraphrase, weak on IDs, codes and rare names.
+            learn:
+              - Where dense retrieval shines
+              - Failure cases with exact tokens
+              - Choosing k
+            resources:
+              - { label: "Pinecone Learning Center", url: "https://www.pinecone.io/learn/", kind: article }
+              - { label: "Sentence Transformers", url: "https://www.sbert.net/", kind: docs }
+          - id: keyword-bm25
+            title: Keyword search and BM25
+            summary: Classic lexical ranking that still wins on product codes, error messages and proper nouns.
+            learn:
+              - How BM25 scores term frequency and rarity
+              - Postgres full-text search as a starting point
+              - Tokenisation and stemming pitfalls
+            resources:
+              - { label: "Full text search (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/textsearch.html", kind: docs }
+              - { label: "Introducing contextual retrieval (Anthropic)", url: "https://www.anthropic.com/news/contextual-retrieval", kind: article }
+          - id: hybrid-search
+            title: Hybrid search and rank fusion
+            summary: Run both searches and merge the lists with reciprocal rank fusion or weighted scores.
+            learn:
+              - Reciprocal rank fusion
+              - Weighting dense vs keyword results
+              - Running both in one Postgres query
+            resources:
+              - { label: "pgvector (GitHub)", url: "https://github.com/pgvector/pgvector", kind: tool }
+              - { label: "Pinecone Learning Center", url: "https://www.pinecone.io/learn/", kind: article }
+          - id: metadata-filtering
+            title: Filtering with metadata
+            optional: true
+            summary: Restrict search by tenant, date or document type, and watch how filters interact with approximate indexes.
+            learn:
+              - Pre-filter vs post-filter
+              - Filtered HNSW returning too few results
+              - Iterative index scans in pgvector
+            resources:
+              - { label: "pgvector (GitHub)", url: "https://github.com/pgvector/pgvector", kind: tool }
+              - { label: "Qdrant documentation", url: "https://qdrant.tech/documentation/", kind: docs }
+
+      - id: reranking
+        title: Reranking
+        summary: Fetch a wide candidate set cheaply, then reorder it with a slower, more accurate model before it reaches the prompt.
+        lessons:
+          - id: cross-encoder-rerankers
+            title: Cross-encoder rerankers
+            summary: A reranker reads query and chunk together, which scores relevance far better than comparing two separate vectors.
+            learn:
+              - Bi-encoder vs cross-encoder
+              - Retrieve 50, rerank, keep 5
+              - Hosted rerank APIs vs open models
+            resources:
+              - { label: "Sentence Transformers", url: "https://www.sbert.net/", kind: docs }
+              - { label: "Cohere docs", url: "https://docs.cohere.com/", kind: docs }
+          - id: rerank-trade-offs
+            title: Reranking trade-offs
+            summary: Rerankers add latency and cost per query. Measure the gain before you keep one.
+            learn:
+              - Latency budget for reranking
+              - Score thresholds to drop weak chunks
+              - Comparing with and without on your eval set
+            resources:
+              - { label: "Introducing contextual retrieval (Anthropic)", url: "https://www.anthropic.com/news/contextual-retrieval", kind: article }
+          - id: llm-as-reranker
+            title: Using an LLM as a reranker
+            optional: true
+            summary: A small LLM can judge relevance in batch when no reranker fits your domain or language.
+            learn:
+              - Pointwise vs listwise ranking prompts
+              - Cost compared with a cross-encoder
+              - Position bias in long candidate lists
+            resources:
+              - { label: "LlamaIndex docs", url: "https://docs.llamaindex.ai/", kind: docs }
+
+      - id: prompt-assembly
+        title: Prompt assembly and citations
+        summary: Turn retrieved chunks into a prompt the model uses well, and make every claim traceable to a source.
+        lessons:
+          - id: context-formatting
+            title: Formatting retrieved context
+            summary: Wrap each chunk with its id and source, order them well and keep the total inside a token budget.
+            learn:
+              - Tagging chunks with ids and titles
+              - Token budgets and truncation
+              - Lost in the middle effects
+            resources:
+              - { label: "Lost in the Middle (Liu et al.)", url: "https://arxiv.org/abs/2307.03172", kind: article }
+              - { label: "Anthropic docs", url: "https://docs.anthropic.com/", kind: docs }
+          - id: citations
+            title: Citations
+            summary: Ask the model to cite chunk ids, or use a citations API, then link each claim back to the source the user can open.
+            learn:
+              - Inline citation markers
+              - Provider citation features
+              - Checking that cited chunks were actually retrieved
+            resources:
+              - { label: "Citations (Anthropic docs)", url: "https://docs.anthropic.com/en/docs/build-with-claude/citations", kind: docs }
+              - post: persistence-is-not-permission-rag-citation-reauth-chat-replay
+          - id: grounding-instructions
+            title: Grounding and refusal
+            summary: Instruct the model to answer only from the context and to say so when the context does not cover the question.
+            learn:
+              - Answer-from-context instructions
+              - Handling conflicting sources
+              - Measuring unsupported claims
+            resources:
+              - { label: "Anthropic docs", url: "https://docs.anthropic.com/", kind: docs }
+              - { label: "Chip Huyen's blog", url: "https://huyenchip.com/blog/", kind: article }
+          - id: retrieved-prompt-injection
+            title: Prompt injection in retrieved documents
+            optional: true
+            summary: Retrieved text is untrusted input. A document can carry instructions that hijack the model.
+            learn:
+              - Indirect prompt injection
+              - Separating data from instructions
+              - Limiting what tools a RAG answer can trigger
+            resources:
+              - { label: "OWASP Top 10 for LLM Applications", url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/", kind: docs }
+              - { label: "Simon Willison on prompt injection", url: "https://simonwillison.net/tags/prompt-injection/", kind: article }
+
+      - id: rag-evaluation
+        title: Evaluating RAG
+        summary: Measure retrieval and generation separately, so you know which half to fix when answers are wrong.
+        lessons:
+          - id: golden-dataset
+            title: Building an eval set
+            summary: A set of real questions with the documents that should be found and what a good answer contains.
+            learn:
+              - Collecting questions from real users
+              - Labelling relevant chunks
+              - Synthetic questions and their limits
+            resources:
+              - { label: "Ragas documentation", url: "https://docs.ragas.io/", kind: docs }
+              - { label: "Chip Huyen's blog", url: "https://huyenchip.com/blog/", kind: article }
+          - id: retrieval-metrics
+            title: Retrieval metrics
+            summary: Recall@k, precision@k, MRR and nDCG tell you whether the right chunks reach the prompt.
+            learn:
+              - Recall@k as the first number to watch
+              - MRR and nDCG for ranking quality
+              - Comparing chunking and retrieval changes
+            resources:
+              - { label: "Pinecone Learning Center", url: "https://www.pinecone.io/learn/", kind: article }
+              - { label: "Introducing contextual retrieval (Anthropic)", url: "https://www.anthropic.com/news/contextual-retrieval", kind: article }
+          - id: answer-faithfulness
+            title: Faithfulness and answer relevance
+            summary: Check whether the answer is supported by the retrieved context and actually addresses the question.
+            learn:
+              - Faithfulness vs correctness
+              - LLM-as-judge and its biases
+              - Context precision and context recall
+            resources:
+              - { label: "Ragas documentation", url: "https://docs.ragas.io/", kind: docs }
+              - { label: "Ragas (GitHub)", url: "https://github.com/explodinggradients/ragas", kind: tool }
+          - id: evals-in-ci
+            title: Running evals in CI
+            optional: true
+            summary: Run the eval set on every change to prompts, chunking or models, and block regressions.
+            learn:
+              - Fixed seeds and pinned model versions
+              - Thresholds that fail the build
+              - Tracking scores over time
+            resources:
+              - { label: "Langfuse docs", url: "https://langfuse.com/docs", kind: docs }
+              - post: llm-observability-langfuse-lambda-cloudwatch
+
+      - id: freshness
+        title: Freshness and re-indexing
+        summary: Keep the index in step with its sources, and plan for the full rebuilds that model and chunking changes force.
+        lessons:
+          - id: change-detection
+            title: Detecting source changes
+            summary: Use webhooks, change feeds or scheduled crawls to know when a document was added, edited or deleted.
+            learn:
+              - Push vs poll
+              - Tombstones for deleted documents
+              - Freshness targets per source
+            resources:
+              - post: rag-ingestion-pipeline-step-functions-lambda
+              - { label: "LlamaIndex docs", url: "https://docs.llamaindex.ai/", kind: docs }
+          - id: full-reindex
+            title: Full re-indexing without downtime
+            summary: A new embedding model or chunker means re-embedding everything. Build the new index beside the old one and switch over.
+            learn:
+              - Versioned index tables or collections
+              - Blue-green switch of the read path
+              - Back-filling cost and time
+            resources:
+              - { label: "pgvector (GitHub)", url: "https://github.com/pgvector/pgvector", kind: tool }
+              - post: rag-ingestion-pipeline-step-functions-lambda
+          - id: time-aware-retrieval
+            title: Time-aware retrieval
+            optional: true
+            summary: Prefer recent versions of a document and avoid answering from superseded policies.
+            learn:
+              - Effective dates in metadata
+              - Recency boosts in ranking
+              - Keeping only the latest version searchable
+            resources:
+              - { label: "Pinecone Learning Center", url: "https://www.pinecone.io/learn/", kind: article }
+
+  - level: advanced
+    title: Secure, fast and smart RAG
+    topics:
+      - id: permission-aware-retrieval
+        title: Access control and permission-aware retrieval
+        summary: A RAG system must never show a user a chunk they could not open in the source system, including in old chats.
+        lessons:
+          - id: tenant-isolation
+            title: Tenant isolation
+            summary: Separate customers by index, schema or a mandatory filter, and make the filter impossible to forget.
+            learn:
+              - Index-per-tenant vs shared index with filter
+              - Postgres row-level security
+              - Testing for cross-tenant leaks
+            resources:
+              - { label: "Row security policies (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/ddl-rowsecurity.html", kind: docs }
+              - post: lock-down-bedrock-iam-lambda-data-leak
+          - id: document-level-acls
+            title: Document-level permissions
+            summary: Copy source ACLs onto chunks at ingestion and filter by the caller's groups at query time.
+            learn:
+              - Syncing ACLs from the source system
+              - Filtering before ranking, not after
+              - Handling permission changes between syncs
+            resources:
+              - post: persistence-is-not-permission-rag-citation-reauth-chat-replay
+              - { label: "OWASP Top 10 for LLM Applications", url: "https://owasp.org/www-project-top-10-for-large-language-model-applications/", kind: docs }
+          - id: citation-reauth
+            title: Re-checking access on replay
+            summary: Stored answers and source cards are a read path too. Re-authorise them when a chat is reopened.
+            learn:
+              - Why persisted citations leak
+              - Tombstones instead of silent gaps
+              - Fail-closed checks and regression tests
+            resources:
+              - post: persistence-is-not-permission-rag-citation-reauth-chat-replay
+
+      - id: cost-and-latency
+        title: Cost and latency
+        summary: Know where each millisecond and cent goes in a RAG request, and cut the expensive parts first.
+        lessons:
+          - id: latency-budget
+            title: The latency budget
+            summary: Break a request into embed, search, rerank and generate, and measure each step at p50 and p95.
+            learn:
+              - Time to first token vs total time
+              - Parallel retrieval calls
+              - Streaming to hide generation time
+            resources:
+              - post: llm-observability-langfuse-lambda-cloudwatch
+              - post: real-time-ai-chat-with-lambda-api-gateway-websockets
+          - id: rag-cost-model
+            title: The cost model
+            summary: Ingestion embedding, storage, per-query tokens and reranking calls each scale differently.
+            learn:
+              - One-off vs per-query costs
+              - Fewer, better chunks in the prompt
+              - Prompt caching for repeated context
+            resources:
+              - post: building-a-production-rag-pipeline-on-aws-lambda-pgvector
+              - { label: "Prompt caching (Anthropic docs)", url: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching", kind: docs }
+          - id: semantic-caching
+            title: Caching answers and embeddings
+            optional: true
+            summary: Cache query embeddings and, carefully, whole answers for repeated questions, without serving stale or unauthorised results.
+            learn:
+              - Exact vs semantic cache keys
+              - Cache scope per user or tenant
+              - Invalidation on re-index
+            resources:
+              - { label: "Pinecone Learning Center", url: "https://www.pinecone.io/learn/", kind: article }
+
+      - id: query-transformation
+        title: Query rewriting and multi-hop retrieval
+        summary: User questions are often vague or need several lookups. Rewrite, split or chain them before searching.
+        lessons:
+          - id: query-rewriting
+            title: Query rewriting
+            summary: Turn a follow-up or vague question into a standalone search query using the chat history.
+            learn:
+              - Condensing chat history into one query
+              - Multi-query expansion
+              - Cost of an extra LLM call
+            resources:
+              - { label: "LangChain docs", url: "https://docs.langchain.com/", kind: docs }
+              - { label: "LlamaIndex docs", url: "https://docs.llamaindex.ai/", kind: docs }
+          - id: hyde
+            title: Hypothetical document embeddings
+            optional: true
+            summary: Have the model write a fake answer, embed that, and search with it to close the gap between question and document wording.
+            learn:
+              - How HyDE works
+              - When it helps and when it misleads
+            resources:
+              - { label: "HyDE paper (Gao et al.)", url: "https://arxiv.org/abs/2212.10496", kind: article }
+          - id: multi-hop-retrieval
+            title: Multi-hop retrieval
+            summary: Answer questions that need facts from several documents by decomposing them into sub-questions.
+            learn:
+              - Question decomposition
+              - Iterative retrieve-then-reason loops
+              - Stopping conditions
+            resources:
+              - { label: "LlamaIndex docs", url: "https://docs.llamaindex.ai/", kind: docs }
+              - post: step-functions-llm-orchestration-replacing-lambda-chains
+
+      - id: agentic-rag
+        title: Agentic RAG
+        summary: Give the model retrieval as a tool and let it decide when and what to search, at the price of less predictable behaviour.
+        lessons:
+          - id: retrieval-as-tool
+            title: Retrieval as a tool
+            summary: Expose search as a tool call so the model can search more than once, refine queries and pick sources.
+            learn:
+              - Tool definitions for search
+              - Several indexes behind one agent
+              - Bounding the number of calls
+            resources:
+              - { label: "Building effective agents (Anthropic)", url: "https://www.anthropic.com/engineering/building-effective-agents", kind: article }
+              - post: bedrock-agents-production-knowledge-bases
+          - id: self-correcting-rag
+            title: Self-checking retrieval
+            optional: true
+            summary: Let the model grade retrieved chunks and its own answer, and retry when support is weak.
+            learn:
+              - Relevance grading of chunks
+              - Answer self-critique
+              - Latency cost of extra loops
+            resources:
+              - { label: "Self-RAG paper (Asai et al.)", url: "https://arxiv.org/abs/2310.11511", kind: article }
+          - id: agent-vs-pipeline
+            title: Agent or fixed pipeline
+            summary: Most RAG products do better with a fixed pipeline. Use an agent only when questions really need open-ended search.
+            learn:
+              - Predictability and testability
+              - Cost and latency differences
+              - Hybrid designs with a routing step
+            resources:
+              - { label: "Building effective agents (Anthropic)", url: "https://www.anthropic.com/engineering/building-effective-agents", kind: article }
+              - post: step-functions-llm-orchestration-replacing-lambda-chains
+
+      - id: graph-rag
+        title: GraphRAG and structured retrieval
+        summary: Build a knowledge graph from the corpus to answer questions about relationships and whole-corpus themes that chunk search misses.
+        lessons:
+          - id: graphrag-basics
+            title: How GraphRAG works
+            summary: Extract entities and relations with an LLM, cluster them into communities and summarise each one for global questions.
+            learn:
+              - Entity and relation extraction
+              - Community summaries
+              - Local vs global search
+            resources:
+              - { label: "GraphRAG (Microsoft)", url: "https://microsoft.github.io/graphrag/", kind: docs }
+              - { label: "From Local to Global paper (Edge et al.)", url: "https://arxiv.org/abs/2404.16130", kind: article }
+          - id: graphrag-trade-offs
+            title: When a graph is worth it
+            optional: true
+            summary: Graph construction is expensive and hard to keep fresh. Weigh it against better chunking and hybrid search.
+            learn:
+              - Indexing cost of LLM extraction
+              - Updating a graph incrementally
+              - Questions that need a graph
+            resources:
+              - { label: "GraphRAG (Microsoft)", url: "https://microsoft.github.io/graphrag/", kind: docs }
+              - { label: "Neo4j documentation", url: "https://neo4j.com/docs/", kind: docs }
+          - id: text-to-sql-retrieval
+            title: Retrieving from structured data
+            summary: Some answers live in tables. Route those questions to SQL or an API instead of embedding rows.
+            learn:
+              - Routing between documents and databases
+              - Text-to-SQL with a read-only role
+              - Combining both in one answer
+            resources:
+              - { label: "LlamaIndex docs", url: "https://docs.llamaindex.ai/", kind: docs }
+              - post: lock-down-bedrock-iam-lambda-data-leak
+
+      - id: rag-observability
+        title: Production observability
+        summary: Trace every query from question to retrieved chunks to answer, so you can debug bad answers and catch drift.
+        lessons:
+          - id: rag-tracing
+            title: Tracing a RAG request
+            summary: Record the query, rewritten query, retrieved chunk ids and scores, the prompt and the answer for each request.
+            learn:
+              - Spans for each pipeline step
+              - Logging chunk ids, not whole documents
+              - Redacting sensitive text
+            resources:
+              - post: llm-observability-langfuse-lambda-cloudwatch
+              - { label: "Langfuse docs", url: "https://langfuse.com/docs", kind: docs }
+              - { label: "OpenTelemetry docs", url: "https://opentelemetry.io/docs/", kind: docs }
+          - id: user-feedback-loop
+            title: Feedback and failure review
+            summary: Collect thumbs up and down, sample bad answers and sort them into retrieval misses and generation errors.
+            learn:
+              - Capturing feedback with trace ids
+              - Weekly failure review
+              - Turning failures into eval cases
+            resources:
+              - { label: "Langfuse docs", url: "https://langfuse.com/docs", kind: docs }
+              - { label: "Chip Huyen's blog", url: "https://huyenchip.com/blog/", kind: article }
+          - id: rag-alerting
+            title: Alerts and drift
+            optional: true
+            summary: Alert on empty retrievals, falling relevance scores, latency spikes and ingestion failures.
+            learn:
+              - Empty-result and low-score rates
+              - Ingestion lag and dead-letter counts
+              - Online eval sampling
+            resources:
+              - post: llm-observability-langfuse-lambda-cloudwatch
+              - post: rag-ingestion-pipeline-step-functions-lambda

@@ -13,6 +13,8 @@ class AgreementController extends Controller
 {
     public const REDIRECT_KEY = 'agreement.redirect_to';
 
+    public const NEWSLETTER_OFFER_KEY = 'newsletter.offer_after_signup';
+
     public function show(Request $request): Response|RedirectResponse
     {
         if ($request->user()->terms_accepted_at) {
@@ -31,16 +33,23 @@ class AgreementController extends Controller
         $user = $request->user();
         $user->forceFill(['terms_accepted_at' => now()])->save();
 
-        // Sign-in already proved the address, so no confirm mail: subscribe straight away.
-        if ($request->boolean('newsletter') && $user->email_verified_at && $user->email) {
-            $email = strtolower($user->email);
-            $subscriber = Subscriber::whereRaw('lower(email) = ?', [$email])->first()
-                ?? new Subscriber(['email' => $email, 'source' => 'signup']);
-            $subscriber->status = 'subscribed';
-            $subscriber->save();
+        // Offer the newsletter once, on the first page after this step (pulled by HandleInertiaRequests).
+        if ($user->email && ! Subscriber::isSubscribed($user->email)) {
+            $request->session()->put(self::NEWSLETTER_OFFER_KEY, true);
         }
 
         return $this->continue($request);
+    }
+
+    /** One-click subscribe from the after-sign-up offer. */
+    public function subscribe(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        if ($user->email_verified_at && $user->email) {
+            Subscriber::subscribeVerified($user->email, 'signup-offer');
+        }
+
+        return back();
     }
 
     private function continue(Request $request): RedirectResponse

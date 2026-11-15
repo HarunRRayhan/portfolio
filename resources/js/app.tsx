@@ -40,11 +40,16 @@ createInertiaApp({
         return page;
     },
     setup({ el, App, props }) {
-        const initialProps = props.initialPage.props as { newsletter?: { subscriberCount?: number } };
+        const initialProps = props.initialPage.props as { newsletter?: { subscriberCount?: number; accountSubscribed?: boolean; offerAfterSignup?: boolean } };
         const subscriberCount = initialProps.newsletter?.subscriberCount ?? 0;
 
         const tree = (
-            <SubscribeProvider subscriberCount={subscriberCount} initialUrl={props.initialPage.url}>
+            <SubscribeProvider
+                subscriberCount={subscriberCount}
+                initialUrl={props.initialPage.url}
+                initialAccountSubscribed={initialProps.newsletter?.accountSubscribed ?? false}
+                initialOffer={initialProps.newsletter?.offerAfterSignup ?? false}
+            >
                 <App {...props} />
             </SubscribeProvider>
         );

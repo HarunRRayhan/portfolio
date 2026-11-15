@@ -156,6 +156,9 @@ test('a new account must agree to the terms once before using account pages', as
   await page.getByRole('checkbox', { name: /I agree to the/ }).check()
   await skip.click()
   await expect(page).toHaveURL(/\/blog$/)
+  await expect(page.getByRole('dialog', { name: 'Get the weekly newsletter?' })).toBeVisible()
+  await page.getByRole('button', { name: 'No thanks' }).click()
+  await expect(page.getByRole('dialog', { name: 'Get the weekly newsletter?' })).toHaveCount(0)
 
   await page.goto('/profile')
   await expect(page).toHaveURL(/\/profile$/)

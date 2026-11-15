@@ -6,7 +6,8 @@ import { useIdleSubscribe } from '@/hooks/useIdleSubscribe'
 const IDLE_MS = 60_000
 const SubscribePopup = lazy(() => import('@/Components/SubscribePopup').then(module => ({ default: module.SubscribePopup })))
 const DISMISS_KEY = 'subscribe-popup-dismissed'
-type NewsletterPageProps = { newsletter?: { subscriberCount?: number } }
+type NewsletterPageProps = { newsletter?: { subscriberCount?: number; accountSubscribed?: boolean; offerAfterSignup?: boolean } }
+const AccountNewsletterOffer = lazy(() => import('@/Components/AccountNewsletterOffer').then(module => ({ default: module.AccountNewsletterOffer })))
 
 /** Admin/authenticated pages (sidebar layout) never show the subscribe popup. */
 function isAdminPath(pathname: string) {
@@ -51,10 +52,14 @@ export function SubscribeProvider({
   children,
   subscriberCount = 0,
   initialUrl = '/',
+  initialAccountSubscribed = false,
+  initialOffer = false,
 }: {
   children: ReactNode
   subscriberCount?: number
   initialUrl?: string
+  initialAccountSubscribed?: boolean
+  initialOffer?: boolean
 }) {
   const isAdminArea = useIsAdminArea(initialUrl)
   const [pathname, setPathname] = useState(() => new URL(initialUrl, 'http://localhost').pathname)
@@ -64,6 +69,8 @@ export function SubscribeProvider({
   const [theme, setTheme] = useState<SubscribeTheme>('slate')
   const [currentSubscriberCount, setCurrentSubscriberCount] = useState(subscriberCount)
   const returnFocusRef = useRef<HTMLElement | null>(null)
+  const [accountSubscribed, setAccountSubscribed] = useState(initialAccountSubscribed)
+  const [offerOpen, setOfferOpen] = useState(initialOffer)
 
   useEffect(() => {
     return router.on('navigate', (event) => {
@@ -71,6 +78,9 @@ export function SubscribeProvider({
       const nextCount = (event.detail.page.props as NewsletterPageProps).newsletter?.subscriberCount
 
       if (typeof nextCount === 'number') setCurrentSubscriberCount(nextCount)
+      const newsletter = (event.detail.page.props as NewsletterPageProps).newsletter
+      setAccountSubscribed(Boolean(newsletter?.accountSubscribed))
+      if (newsletter?.offerAfterSignup) setOfferOpen(true)
     })
   }, [])
 
@@ -93,14 +103,15 @@ export function SubscribeProvider({
 
   // Newsletter emails link forwarded readers to ?subscribe=1.
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).has('subscribe')) openPopup('forwarded-email')
+    if (new URLSearchParams(window.location.search).has('subscribe') && !initialAccountSubscribed) openPopup('forwarded-email')
   }, [])
 
   useIdleSubscribe(
     () => openPopup('idle-popup'),
     IDLE_MS,
     DISMISS_KEY,
-    !isAdminArea && !isArticlePath(pathname),
+    // No idle nudge for a signed-in reader whose account email already gets it, or while the sign-up offer shows.
+    !isAdminArea && !isArticlePath(pathname) && !accountSubscribed && !offerOpen,
   )
 
   return (
@@ -116,6 +127,11 @@ export function SubscribeProvider({
             subscriberCount={currentSubscriberCount}
             returnFocusTo={returnFocusRef.current}
           />
+        </Suspense>
+      )}
+      {offerOpen && (
+        <Suspense fallback={null}>
+          <AccountNewsletterOffer onClose={() => setOfferOpen(false)} />
         </Suspense>
       )}
     </SubscribeContext.Provider>
