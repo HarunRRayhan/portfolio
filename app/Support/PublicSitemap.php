@@ -29,6 +29,9 @@ final class PublicSitemap
             'lastmod' => substr($study['lastModifiedAtIso'], 0, 10),
         ]);
 
+        $roadmapRepo = new RoadmapRepository;
+        $roadmapUrls = collect($roadmapRepo->all())->map(fn (array $roadmap) => ['loc' => $roadmapRepo->absoluteUrl($roadmap['slug'])]);
+
         $slideUrls = MediaItem::query()->active()->ofType('slide')->get()->map(fn (MediaItem $item) => self::datedEntry(
             $siteUrl.'/slides/'.$item->slug,
             $item->sitemapLastModified(),
@@ -42,6 +45,7 @@ final class PublicSitemap
         return $staticUrls
             ->merge($blogUrls)
             ->merge($caseStudyUrls)
+            ->merge($roadmapUrls)
             ->merge($slideUrls)
             ->merge($videoUrls)
             ->values()

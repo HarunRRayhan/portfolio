@@ -20,6 +20,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\OperationalHealthController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RoadmapController;
 use App\Http\Controllers\Sponsorship\GithubSponsorsWebhookController;
 use App\Http\Controllers\Sponsorship\ScanRequestController;
 use App\Models\BioLink;
@@ -653,6 +654,9 @@ Route::get('/newsletter/c/{delivery}', [NewsletterController::class, 'click'])
     ->where('delivery', '[0-9]+')
     ->middleware(['signed', 'throttle:120,1'])
     ->name('newsletter.click');
+
+Route::get('/roadmaps', [RoadmapController::class, 'index'])->name('roadmaps.index');
+Route::get('/roadmaps/{slug}', [RoadmapController::class, 'show'])->where('slug', '[a-z0-9-]{1,64}')->name('roadmaps.show');
 
 Route::get('/case-studies', function (Request $request) {
     if ($request->getRequestUri() === '/case-studies/') {
