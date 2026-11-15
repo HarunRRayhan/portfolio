@@ -61,7 +61,7 @@ test('desktop More toggles and dismisses with Escape or focus leaving', async ({
   await expect(more).toHaveAttribute('aria-expanded', 'false')
   await page.keyboard.press('Enter')
   await page.keyboard.press('Tab')
-  await expect(page.getByRole('link', { name: /Case Studies Real engagements/ })).toBeFocused()
+  await expect(page.getByRole('link', { name: /Services The problems I take on/ })).toBeFocused()
   await page.keyboard.press('Escape')
   await expect(more).toHaveAttribute('aria-expanded', 'false')
   await expect(more).toBeFocused()
