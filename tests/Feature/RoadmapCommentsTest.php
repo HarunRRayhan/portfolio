@@ -101,6 +101,26 @@ class RoadmapCommentsTest extends TestCase
         $this->get("/roadmaps/internet-networking/{$topic}")->assertInertia(fn ($p) => $p->where('comments', []));
     }
 
+    public function test_paid_topic_comments_need_access(): void
+    {
+        $roadmap = (new RoadmapRepository)->find('internet-networking');
+        $topic = $roadmap['stages'][1]['topics'][0];
+        $lesson = $topic['lessons'][0]['id'];
+        $base = "/roadmaps/internet-networking/{$topic['id']}";
+        $free = User::factory()->create(['email' => 'free@example.com']);
+
+        $this->actingAs($free)->post("{$base}/comments", ['content' => 'Hi'])->assertForbidden();
+        $this->actingAs($free)->post("{$base}/{$lesson}/comments", ['content' => 'Hi'])->assertForbidden();
+
+        \App\Models\RoadmapAccessGrant::create(['email' => 'sponsor@example.com', 'expires_at' => now()->addDay()]);
+        $sponsor = User::factory()->create(['email' => 'sponsor@example.com']);
+        $this->actingAs($sponsor)->post("{$base}/{$lesson}/comments", ['content' => 'Paid tip'])->assertRedirect();
+
+        $this->actingAs($sponsor)->get("{$base}/{$lesson}")->assertInertia(fn ($p) => $p->where('comments.0.content', 'Paid tip'));
+        $this->actingAs($free)->get("{$base}/{$lesson}")->assertInertia(fn ($p) => $p->where('comments', [])->where('commentCount', 0));
+        $this->get("{$base}/{$lesson}")->assertDontSee('Paid tip');
+    }
+
     public function test_blog_comments_cannot_be_deleted_through_the_roadmap_route(): void
     {
         $user = User::factory()->create();

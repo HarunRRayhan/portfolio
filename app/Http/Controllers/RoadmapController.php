@@ -153,7 +153,7 @@ class RoadmapController extends Controller
             'next' => $next ? ['id' => $next['id'], 'title' => $next['title']] : null,
             'canonicalUrl' => $canonicalUrl,
             'seo' => SeoCatalog::forMedia($topic['title'].' · '.$roadmap['title'].' roadmap | Harun R. Rayhan', $topic['summary'], $canonicalUrl)->toArray(),
-        ] + $this->comments("{$slug}/{$topicId}"));
+        ] + $this->comments("{$slug}/{$topicId}", $locked));
     }
 
     public function lesson(Request $request, string $slug, string $topicId, string $lessonId): Response
@@ -197,7 +197,7 @@ class RoadmapController extends Controller
             'next' => $neighbour($order[$i + 1] ?? null),
             'canonicalUrl' => $canonicalUrl,
             'seo' => SeoCatalog::forMedia($lesson['title'].' · '.$topic['title'].' | Harun R. Rayhan', $lesson['summary'], $canonicalUrl)->toArray(),
-        ] + $this->comments("{$slug}/{$topicId}/{$lessonId}"));
+        ] + $this->comments("{$slug}/{$topicId}/{$lessonId}", $locked));
     }
 
     /** @return array<string, mixed> */
@@ -231,9 +231,10 @@ class RoadmapController extends Controller
     }
 
     /** @return array{comments: list<array<string, mixed>>, commentCount: int} */
-    private function comments(string $key): array
+    private function comments(string $key, bool $locked): array
     {
-        $thread = RoadmapCommentThread::findKey($key);
+        // Paid discussions stay with readers who can open the topic.
+        $thread = $locked ? null : RoadmapCommentThread::findKey($key);
 
         return [
             'comments' => $thread ? $thread->tree() : [],

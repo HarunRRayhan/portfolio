@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\RoadmapCommentThread;
+use App\Support\RoadmapAccess;
 use App\Support\RoadmapRepository;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -66,6 +67,8 @@ class RoadmapCommentController extends Controller
         $roadmap = $this->repo->find($slug);
         $found = $roadmap ? $this->repo->findTopic($roadmap, $topic) : null;
         abort_unless($found, 404);
+        // Paid topics' discussions are for readers who can open them.
+        abort_if($found['stage']['level'] !== RoadmapRepository::FREE_LEVEL && ! RoadmapAccess::canAccessPaid(request()->user()), 403);
 
         return $found;
     }

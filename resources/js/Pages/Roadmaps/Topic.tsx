@@ -118,7 +118,7 @@ export default function RoadmapTopic({ roadmap, topic, lessons, locked, hasAccou
           )}
         </nav>
 
-        <Comments comments={comments} count={commentCount} postUrl={`${here}/comments`} loginHref={loginHref} />
+        {!locked && <Comments comments={comments} count={commentCount} postUrl={`${here}/comments`} loginHref={loginHref} />}
       </section>
 
     </div>
