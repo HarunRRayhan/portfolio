@@ -89,6 +89,12 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
           </button>
         </div>
 
+        {!auth?.user && (
+          <p className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
+            <Link href={loginHref} className="font-semibold underline underline-offset-2">Sign in or create a free account</Link> to tick off topics and track your progress.
+          </p>
+        )}
+
         {auth?.user && (
           <div className="mt-6 flex items-center gap-3">
             <ProgressBar percent={percent} />

@@ -1,4 +1,5 @@
-import { Link } from '@inertiajs/react'
+import { Link, usePage } from '@inertiajs/react'
+import type { PageProps } from '@/types'
 import { ArrowRight, Bookmark, Heart, Route } from 'lucide-react'
 
 type RoadmapCard = {
@@ -31,6 +32,7 @@ export function ProgressBar({ percent }: { percent: number }) {
 }
 
 export default function RoadmapsIndex({ roadmaps, mine }: Props) {
+  const { auth } = usePage<PageProps>().props
   return (
     <div className="pt-24">
       <section className="mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
@@ -40,6 +42,12 @@ export default function RoadmapsIndex({ roadmaps, mine }: Props) {
             Step-by-step paths from beginner to advanced. Each topic says what to learn, where to read about it, and gives you a prompt to take to your AI.
           </p>
         </div>
+
+        {!auth?.user && (
+          <p className="mt-8 max-w-3xl rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
+            <Link href="/login?redirect=%2Froadmaps" className="font-semibold underline underline-offset-2">Sign in or create a free account</Link> to start roadmaps, save them for later and track your progress.
+          </p>
+        )}
 
         {mine.length > 0 && (
           <div className="mt-12">
