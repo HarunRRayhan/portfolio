@@ -13,6 +13,7 @@ const mainNavItems = [
   { name: 'About', href: '/about' },
   { name: 'Products', href: '/products' },
   { name: 'Blog', href: '/blog' },
+  { name: 'Roadmaps', href: '/roadmaps' },
 ]
 
 type MoreItem = {
