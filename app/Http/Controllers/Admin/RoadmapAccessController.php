@@ -49,8 +49,10 @@ class RoadmapAccessController extends Controller
         return back()->with('success', "Roadmap access granted to {$email}.");
     }
 
-    public function revoke(RoadmapAccessGrant $grant): RedirectResponse
+    public function revoke(string $grant): RedirectResponse
     {
+        // Manual lookup, not route binding: binding runs before role:admin.
+        $grant = RoadmapAccessGrant::findOrFail($grant);
         $grant->revoked_at ??= now();
         $grant->save();
 

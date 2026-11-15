@@ -67,8 +67,15 @@ class RoadmapAccessTest extends TestCase
     public function test_consultation_tier_without_price_unlocks(): void
     {
         $user = User::factory()->create();
-        $this->sponsor($user, ['tier_slug' => 'pro', 'monthly_price_cents' => null, 'kind' => GithubSponsorship::KIND_ONE_TIME, 'started_at' => now()->subDays(50)]);
+        $this->sponsor($user, ['tier_slug' => 'pro', 'monthly_price_cents' => null, 'kind' => GithubSponsorship::KIND_ONE_TIME, 'started_at' => now()->subDays(10)]);
         $this->assertTrue(RoadmapAccess::canAccessPaid($user));
+    }
+
+    public function test_one_time_consultation_tier_expires_after_thirty_days(): void
+    {
+        $user = User::factory()->create();
+        $this->sponsor($user, ['tier_slug' => 'pro', 'monthly_price_cents' => null, 'kind' => GithubSponsorship::KIND_ONE_TIME, 'started_at' => now()->subDays(31)]);
+        $this->assertFalse(RoadmapAccess::canAccessPaid($user));
     }
 
     public function test_sponsorship_linked_by_github_id_unlocks(): void

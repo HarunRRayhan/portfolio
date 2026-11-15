@@ -26,6 +26,8 @@ class RoadmapAccessAdminTest extends TestCase
         $this->actingAs($user)->post('/admin/roadmap-access', ['email' => 'x@y.com', 'expires_at' => now()->addWeek()->toDateString()])->assertForbidden();
         $this->actingAs($user)->post("/admin/roadmap-access/{$grant->id}/revoke")->assertForbidden();
         $this->assertSame(1, RoadmapAccessGrant::count());
+        // A missing id must look the same as an existing one to non-admins.
+        $this->actingAs($user)->post('/admin/roadmap-access/999999/revoke')->assertForbidden();
     }
 
     public function test_admin_grants_and_revokes_access(): void

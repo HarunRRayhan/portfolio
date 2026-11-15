@@ -16,8 +16,9 @@ final class RoadmapRepository
 
     public const RESOURCE_KINDS = ['article', 'docs', 'video', 'course', 'tool'];
 
+    /** Per instance, not static: a long-lived worker would otherwise keep stale content and draft status. */
     /** @var array<string, array<string, mixed>>|null */
-    private static ?array $cache = null;
+    private ?array $cache = null;
 
     /** @return list<array<string, mixed>> */
     public function all(): array
@@ -72,8 +73,8 @@ final class RoadmapRepository
     /** @return array<string, array<string, mixed>> */
     private function load(): array
     {
-        if (self::$cache !== null) {
-            return self::$cache;
+        if ($this->cache !== null) {
+            return $this->cache;
         }
 
         $blog = new BlogRepository;
@@ -93,7 +94,7 @@ final class RoadmapRepository
             $roadmaps[$raw['slug']] = $raw;
         }
 
-        return self::$cache = $roadmaps;
+        return $this->cache = $roadmaps;
     }
 
     /** @return array{label: string, url: string, kind: string, own: bool}|null */

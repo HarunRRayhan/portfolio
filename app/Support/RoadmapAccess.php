@@ -39,13 +39,10 @@ final class RoadmapAccess
                     $q->orWhere(fn ($m) => $m->where('source', GithubSponsorship::SOURCE_MANUAL)->whereRaw('lower(grant_email) = ?', [$email]));
                 }
             })
-            ->where(function ($q) {
-                $q->whereNotNull('tier_slug')
-                    ->orWhere(fn ($m) => $m->where('monthly_price_cents', '>=', self::MIN_CENTS)->where(
-                        fn ($k) => $k->where('kind', GithubSponsorship::KIND_MONTHLY)
-                            ->orWhere('started_at', '>=', now()->subDays(self::ONE_TIME_DAYS)),
-                    ));
-            })
+            // $5+ (any consultation tier counts): monthly while active, one-time for 30 days.
+            ->where(fn ($q) => $q->whereNotNull('tier_slug')->orWhere('monthly_price_cents', '>=', self::MIN_CENTS))
+            ->where(fn ($k) => $k->where('kind', GithubSponsorship::KIND_MONTHLY)
+                ->orWhere('started_at', '>=', now()->subDays(self::ONE_TIME_DAYS)))
             ->exists();
     }
 }
