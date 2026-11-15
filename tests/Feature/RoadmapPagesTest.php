@@ -77,7 +77,7 @@ class RoadmapPagesTest extends TestCase
             ->where('roadmap.buildsOn.slug', 'devops')
             ->where('roadmap.buildsOn.title', 'DevOps'));
         $this->get('/roadmaps/devops')->assertInertia(fn ($page) => $page->where('roadmap.buildsOn', null));
-        $this->get('/roadmaps')->assertInertia(fn ($page) => $page->has('roadmaps', 4));
+        $this->get('/roadmaps')->assertInertia(fn ($page) => $page->has('roadmaps', 5));
     }
 
     public function test_unknown_roadmap_is_404(): void

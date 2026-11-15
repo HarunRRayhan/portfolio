@@ -1,7 +1,7 @@
 slug: mlops
 title: MLOps
 summary: DevOps for machine learning. Take models from a notebook to production, then keep them honest.
-order: 3
+order: 4
 builds_on: devops
 
 stages:

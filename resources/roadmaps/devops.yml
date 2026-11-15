@@ -1,7 +1,7 @@
 slug: devops
 title: DevOps
 summary: From the Linux shell to Kubernetes and SLOs. How code gets built, shipped and kept running, one topic at a time.
-order: 2
+order: 3
 
 stages:
   - level: beginner
