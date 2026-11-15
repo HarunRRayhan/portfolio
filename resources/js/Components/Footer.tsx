@@ -28,6 +28,7 @@ const links: FooterLinkGroup[] = [
         items: [
             { label: 'Home', href: '/' },
             { label: 'Blog', href: '/blog' },
+            { label: 'Roadmaps', href: '/roadmaps' },
             { label: 'About', href: '/about' },
             { label: 'Products', href: '/products' },
             { label: 'Services', href: '/services' },

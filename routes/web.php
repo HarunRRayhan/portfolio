@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\MediumCrosspostController;
 use App\Http\Controllers\Admin\NewsletterController as AdminNewsletterController;
 use App\Http\Controllers\Admin\ScheduleBlogPostController;
 use App\Http\Controllers\Admin\ShortLinkController;
+use App\Http\Controllers\Admin\RoadmapAccessController as AdminRoadmapAccessController;
 use App\Http\Controllers\Admin\SponsorshipController as AdminSponsorshipController;
 use App\Http\Controllers\BlogCommentController;
 use App\Http\Controllers\Consultation\BookController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\OperationalHealthController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RoadmapController;
 use App\Http\Controllers\Sponsorship\GithubSponsorsWebhookController;
 use App\Http\Controllers\Sponsorship\ScanRequestController;
 use App\Models\BioLink;
@@ -304,6 +306,15 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::get('/', [AdminSponsorshipController::class, 'index'])->name('index');
         Route::post('/', [AdminSponsorshipController::class, 'store'])->name('store');
         Route::post('/{sponsorship}/revoke', [AdminSponsorshipController::class, 'revoke'])->where('sponsorship', '[0-9]{1,18}')->name('revoke');
+    });
+
+Route::middleware(['auth', 'verified', 'role:admin'])
+    ->prefix('admin/roadmap-access')
+    ->name('admin.roadmap-access.')
+    ->group(function () {
+        Route::get('/', [AdminRoadmapAccessController::class, 'index'])->name('index');
+        Route::post('/', [AdminRoadmapAccessController::class, 'store'])->name('store');
+        Route::post('/{grant}/revoke', [AdminRoadmapAccessController::class, 'revoke'])->where('grant', '[0-9]{1,18}')->name('revoke');
     });
 
 // Paid consultation admin
@@ -653,6 +664,20 @@ Route::get('/newsletter/c/{delivery}', [NewsletterController::class, 'click'])
     ->where('delivery', '[0-9]+')
     ->middleware(['signed', 'throttle:120,1'])
     ->name('newsletter.click');
+
+Route::get('/roadmaps', [RoadmapController::class, 'index'])->name('roadmaps.index');
+Route::get('/roadmaps/{slug}', [RoadmapController::class, 'show'])->where('slug', '[a-z0-9-]{1,64}')->name('roadmaps.show');
+Route::middleware(['auth', 'throttle:roadmap-actions'])
+    ->prefix('roadmaps/{slug}')
+    ->where(['slug' => '[a-z0-9-]{1,64}', 'step' => '[a-z0-9-]{1,64}'])
+    ->name('roadmaps.')
+    ->group(function () {
+        Route::post('/start', [RoadmapController::class, 'start'])->name('start');
+        Route::post('/steps/{step}', [RoadmapController::class, 'complete'])->name('steps.complete');
+        Route::delete('/steps/{step}', [RoadmapController::class, 'uncomplete'])->name('steps.uncomplete');
+        Route::post('/love', [RoadmapController::class, 'love'])->name('love');
+        Route::post('/wishlist', [RoadmapController::class, 'wishlist'])->name('wishlist');
+    });
 
 Route::get('/case-studies', function (Request $request) {
     if ($request->getRequestUri() === '/case-studies/') {

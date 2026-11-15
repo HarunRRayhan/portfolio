@@ -152,6 +152,13 @@ class GithubSponsorsWebhookTest extends TestCase
         Mail::assertNothingSent();
     }
 
+    public function test_stores_monthly_price_for_custom_amounts(): void
+    {
+        $this->send($this->payload('created', 'T_unknown', ['sponsorship' => ['tier' => ['monthly_price_in_cents' => 700]]]))->assertOk();
+
+        $this->assertSame(700, GithubSponsorship::firstOrFail()->monthly_price_cents);
+    }
+
     public function test_tier_changed_updates_tier(): void
     {
         Http::fake(['api.github.com/*' => Http::response([])]);

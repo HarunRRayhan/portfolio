@@ -196,6 +196,12 @@ final class SeoCatalog
             canonicalUrl: $siteUrl.'/case-studies',
         );
 
+        $pages['/roadmaps'] = new SeoMeta(
+            title: 'Learning roadmaps | Harun R. Rayhan',
+            description: 'Step-by-step learning paths from beginner to advanced: how the internet works, DevOps, SRE and more. Each topic comes with hand-picked resources and a ready AI prompt.',
+            canonicalUrl: $siteUrl.'/roadmaps',
+        );
+
         $pages['/slides'] = new SeoMeta(
             title: 'Slides | Harun R. Rayhan',
             description: 'Talk decks and presentations on cloud, DevOps, and AWS. Open any deck in the browser, and the matching recorded talk is linked where one exists.',

@@ -28,6 +28,7 @@ class GithubSponsorship extends Model
         'user_id',
         'tier_slug',
         'github_tier_node_id',
+        'monthly_price_cents',
         'kind',
         'status',
         'source',
@@ -42,6 +43,7 @@ class GithubSponsorship extends Model
         return [
             'started_at' => 'datetime',
             'ended_at' => 'datetime',
+            'monthly_price_cents' => 'integer',
         ];
     }
 

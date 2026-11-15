@@ -25,6 +25,7 @@ class SponsorCreditService
             'github_login' => $attrs['github_login'],
             'tier_slug' => $tierSlug,
             'github_tier_node_id' => $attrs['github_tier_node_id'] ?? null,
+            'monthly_price_cents' => $attrs['monthly_price_cents'] ?? null,
             'kind' => $attrs['kind'] ?? $tier['kind'] ?? GithubSponsorship::KIND_ONE_TIME,
             'status' => $attrs['status'] ?? GithubSponsorship::STATUS_ACTIVE,
             'source' => $attrs['source'] ?? GithubSponsorship::SOURCE_WEBHOOK,

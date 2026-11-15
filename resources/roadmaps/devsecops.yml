@@ -1,0 +1,153 @@
+slug: devsecops
+title: DevSecOps
+summary: Security built into the DevOps pipeline, from secrets and dependencies to policy as code and incident response.
+order: 5
+builds_on: devops
+
+stages:
+  - level: beginner
+    title: Shift left
+    steps:
+      - id: shift-left
+        title: What shift-left means
+        summary: Find security problems while code is cheap to change, not after it ships.
+        learn:
+          - Security in each pipeline stage
+          - Shared responsibility between dev, ops and security
+        resources:
+          - { label: "OWASP DevSecOps guideline", url: "https://owasp.org/www-project-devsecops-guideline/", kind: docs }
+          - { label: "OWASP Top 10", url: "https://owasp.org/www-project-top-ten/", kind: article }
+
+      - id: secrets-management
+        title: Secrets management
+        summary: Keep keys out of git, out of images and out of logs.
+        learn:
+          - Secret stores and short-lived credentials
+          - Secret scanning on commit
+          - What to do when a key leaks
+        resources:
+          - { label: "OWASP secrets management cheat sheet", url: "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html", kind: docs }
+          - { label: "Gitleaks", url: "https://gitleaks.io/", kind: tool }
+          - post: terraform-state-more-sensitive-than-env
+
+      - id: dependency-scanning
+        title: Dependency scanning
+        summary: Most of your code is other people's code. Know when it has a known hole.
+        learn:
+          - CVEs and advisories
+          - Lockfiles
+          - Automated update PRs
+        resources:
+          - { label: "Dependabot docs", url: "https://docs.github.com/en/code-security/dependabot", kind: docs }
+
+      - id: least-privilege
+        title: Least privilege
+        summary: Every user, service and pipeline gets only the access it needs.
+        learn:
+          - IAM roles vs long-lived keys
+          - Scoping policies
+          - Reviewing unused permissions
+        resources:
+          - { label: "AWS IAM best practices", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html", kind: docs }
+          - post: lock-down-bedrock-iam-lambda-data-leak
+
+  - level: intermediate
+    title: Security in the pipeline
+    steps:
+      - id: sast-dast
+        title: SAST and DAST
+        summary: Scan source code for risky patterns, and scan the running app from the outside.
+        learn:
+          - Static analysis in CI
+          - Dynamic scans against staging
+          - Handling false positives
+        resources:
+          - { label: "Semgrep docs", url: "https://semgrep.dev/docs/", kind: docs }
+          - { label: "OWASP ZAP getting started", url: "https://www.zaproxy.org/getting-started/", kind: docs }
+
+      - id: container-security
+        title: Container image security
+        summary: Small, patched, non-root images, scanned before they ship.
+        learn:
+          - Image scanning
+          - Minimal base images
+          - Running as non-root
+        resources:
+          - { label: "Trivy", url: "https://trivy.dev/", kind: tool }
+          - { label: "Docker security docs", url: "https://docs.docker.com/engine/security/", kind: docs }
+
+      - id: iac-scanning
+        title: Infrastructure as code scanning
+        summary: Catch public buckets and open security groups in the pull request.
+        learn:
+          - Misconfiguration checks
+          - Reviewing terraform plan
+          - AI review for infra PRs
+        resources:
+          - { label: "Checkov", url: "https://www.checkov.io/", kind: tool }
+          - post: production-ai-code-review-for-terraform-and-lambda-prs
+
+      - id: edge-protection
+        title: Edge protection and WAFs
+        summary: Filter bad traffic before it reaches your app.
+        learn:
+          - WAF rules and managed rule sets
+          - Rate limiting
+          - Bot protection
+        resources:
+          - post: aws-waf-cloudfront-solo-dev
+          - { label: "What is a WAF? (Cloudflare)", url: "https://www.cloudflare.com/learning/ddos/glossary/web-application-firewall-waf/", kind: article }
+
+  - level: advanced
+    title: Defend at scale
+    steps:
+      - id: supply-chain
+        title: Software supply chain
+        summary: Prove where your builds came from, and that nobody tampered with them.
+        learn:
+          - SLSA levels
+          - Signing artifacts with Sigstore
+          - SBOMs
+        resources:
+          - { label: "SLSA", url: "https://slsa.dev/", kind: docs }
+          - { label: "Sigstore docs", url: "https://docs.sigstore.dev/", kind: docs }
+
+      - id: policy-as-code
+        title: Policy as code
+        summary: Write security rules as code and enforce them in CI and in the cluster.
+        learn:
+          - Rego and OPA
+          - Admission control in Kubernetes
+        resources:
+          - { label: "Open Policy Agent docs", url: "https://www.openpolicyagent.org/docs/latest/", kind: docs }
+
+      - id: runtime-security
+        title: Runtime security
+        summary: Detect strange behaviour in running containers and hosts.
+        learn:
+          - Syscall-level detection
+          - Kubernetes security model
+        resources:
+          - { label: "Falco docs", url: "https://falco.org/docs/", kind: docs }
+          - { label: "Kubernetes security concepts", url: "https://kubernetes.io/docs/concepts/security/", kind: docs }
+
+      - id: threat-modeling
+        title: Threat modeling
+        summary: Ask what could go wrong before you build it.
+        learn:
+          - STRIDE
+          - Data flow diagrams
+          - Turning threats into tickets
+        resources:
+          - { label: "OWASP threat modeling", url: "https://owasp.org/www-community/Threat_Modeling", kind: article }
+          - { label: "Threat Modeling Manifesto", url: "https://www.threatmodelingmanifesto.org/", kind: article }
+
+      - id: incident-response
+        title: Security incident response
+        summary: Detect, contain, recover, and learn, with a plan written before you need it.
+        learn:
+          - Incident phases
+          - Evidence and logging
+          - Blameless postmortems
+        resources:
+          - { label: "NIST SP 800-61 incident handling", url: "https://csrc.nist.gov/pubs/sp/800/61/r2/final", kind: docs }

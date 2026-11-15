@@ -6,7 +6,7 @@ import type { PageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
     BarChart3, Calendar, ChevronDown, FileText, Image, Images, KeyRound, LayoutDashboard,
-    ChevronsUpDown, Heart, Inbox, LayoutTemplate, Link2, LogOut, Mail, Menu, PanelLeftClose, PanelLeftOpen, Presentation, Send, Ticket, Trash2, User, UserCog, Users, Video,
+    ChevronsUpDown, Heart, Inbox, LayoutTemplate, Link2, LogOut, Mail, Menu, PanelLeftClose, PanelLeftOpen, Presentation, Route as RouteIcon, Send, Ticket, Trash2, User, UserCog, Users, Video,
 } from 'lucide-react';
 import { PropsWithChildren, ReactNode, useEffect, useRef, useState } from 'react';
 
@@ -58,6 +58,7 @@ function useNavSections(): NavSection[] {
                 { label: 'Analytics', href: route('admin.analytics'), icon: BarChart3, active: route().current('admin.analytics') },
                 { label: 'Contacts', href: route('admin.contacts.index'), icon: Inbox, active: route().current('admin.contacts.*') },
                 { label: 'Sponsorships', href: route('admin.sponsorships.index'), icon: Heart, active: route().current('admin.sponsorships.*') },
+                { label: 'Roadmap access', href: route('admin.roadmap-access.index'), icon: RouteIcon, active: route().current('admin.roadmap-access.*') },
             ],
         },
         {
