@@ -1,14 +1,14 @@
 import { Link, router } from '@inertiajs/react'
 import { ArrowLeft, ArrowRight, Check, ChevronRight } from 'lucide-react'
 import { Comments, type RoadmapComment } from '@/Components/Roadmap/Comments'
-import { type Lesson, LessonDetail, OptionalTag, UnlockCard, levelLabel } from '@/Components/Roadmap/shared'
+import { type Lesson, LessonDetail, OptionalTag, UnlockCard, lessonLetter, levelLabel } from '@/Components/Roadmap/shared'
 import { cn } from '@/lib/utils'
 
 type Neighbour = { id: string; title: string; topicId: string } | null
 
 type Props = {
   roadmap: { slug: string; title: string }
-  topic: { id: string; title: string; level: string }
+  topic: { id: string; number: number; title: string; level: string }
   lesson: Lesson
   position: number
   lessonCount: number
@@ -39,13 +39,16 @@ export default function RoadmapLesson({ roadmap, topic, lesson, position, lesson
         <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-sm text-slate-500">
           <Link href={base} className="hover:text-slate-800 dark:hover:text-slate-200">{roadmap.title}</Link>
           <ChevronRight className="h-3.5 w-3.5" />
-          <Link href={`${base}/${topic.id}`} className="hover:text-slate-800 dark:hover:text-slate-200">{topic.title}</Link>
+          <Link href={`${base}/${topic.id}`} className="hover:text-slate-800 dark:hover:text-slate-200">{topic.number}. {topic.title}</Link>
         </nav>
 
         <p className="mt-6 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-          {levelLabel[topic.level]} · Lesson {position} of {lessonCount} {lesson.optional && <OptionalTag />}
+          {levelLabel[topic.level]} · Topic {topic.number} · Lesson {lessonLetter(position - 1)} of {lessonLetter(lessonCount - 1)} {lesson.optional && <OptionalTag />}
         </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">{lesson.title}</h1>
+        <h1 className="mt-2 flex items-center gap-3 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">
+          <span className="inline-flex h-10 min-w-10 items-center justify-center rounded-xl bg-amber-500 px-2 text-lg font-bold text-amber-950">{topic.number}{lessonLetter(position - 1)}</span>
+          {lesson.title}
+        </h1>
 
         {locked ? (
           <UnlockCard className="mt-8" />

@@ -145,7 +145,7 @@ class RoadmapController extends Controller
 
         return Inertia::render('Roadmaps/Topic', [
             'roadmap' => ['slug' => $slug, 'title' => $roadmap['title']],
-            'topic' => ['id' => $topic['id'], 'title' => $topic['title'], 'summary' => $topic['summary'], 'level' => $stage['level'], 'stageTitle' => $stage['title']],
+            'topic' => ['id' => $topic['id'], 'number' => $found['number'], 'title' => $topic['title'], 'summary' => $topic['summary'], 'level' => $stage['level'], 'stageTitle' => $stage['title']],
             'lessons' => $lessons,
             'locked' => $locked,
             'hasAccount' => (bool) $user,
@@ -188,7 +188,7 @@ class RoadmapController extends Controller
 
         return Inertia::render('Roadmaps/Lesson', [
             'roadmap' => ['slug' => $slug, 'title' => $roadmap['title']],
-            'topic' => ['id' => $topic['id'], 'title' => $topic['title'], 'level' => $stage['level']],
+            'topic' => ['id' => $topic['id'], 'number' => $found['number'], 'title' => $topic['title'], 'level' => $stage['level']],
             'lesson' => $this->lessonPayload($roadmap, $stage, $topic, $lesson, $locked, $done, (bool) $user),
             'position' => $position + 1,
             'lessonCount' => count($topic['lessons']),

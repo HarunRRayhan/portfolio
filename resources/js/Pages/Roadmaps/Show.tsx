@@ -127,7 +127,10 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
         {/* The spine: left edge on phones, centre from md up. */}
         <div aria-hidden className="absolute bottom-24 left-[2.1rem] top-0 w-0.5 bg-slate-300 sm:left-[2.6rem] md:left-1/2 md:-translate-x-1/2 dark:bg-slate-700" />
 
-        {stages.map((stage, i) => (
+        {stages.map((stage, i) => {
+          // Topic numbers run 1, 2, 3 … down the whole roadmap.
+          const offset = stages.slice(0, i).reduce((n, st) => n + st.topics.length, 0)
+          return (
           <div key={stage.level} className="relative">
             <div className="relative z-10 flex py-8 pl-0 md:justify-center">
               <span className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-sm dark:bg-white dark:text-slate-900">
@@ -141,6 +144,7 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
               {stage.topics.map((topic, j) => (
                 <TopicNode
                   key={topic.id}
+                  number={offset + j + 1}
                   href={`${base}/${topic.id}`}
                   topic={topic}
                   locked={stage.locked}
@@ -157,7 +161,8 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
               </div>
             )}
           </div>
-        ))}
+          )
+        })}
 
         <div className="relative z-10 flex pt-10 md:justify-center">
           <span className="inline-flex items-center gap-2 rounded-full border-2 border-amber-500 bg-white px-5 py-2 text-sm font-semibold text-amber-700 dark:bg-slate-950 dark:text-amber-400">
@@ -173,7 +178,7 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
   )
 }
 
-function TopicNode({ href, topic, locked, side, isNext }: { href: string; topic: TopicNodeData; locked: boolean; side: 'left' | 'right'; isNext: boolean }) {
+function TopicNode({ number, href, topic, locked, side, isNext }: { number: number; href: string; topic: TopicNodeData; locked: boolean; side: 'left' | 'right'; isNext: boolean }) {
   return (
     <li id={topic.id} className="relative scroll-mt-28 pl-12 md:pl-0">
       {/* Connector from the box to the spine. Phones: spine is 1.1rem into the item, box starts at 3rem. */}
@@ -207,7 +212,7 @@ function TopicNode({ href, topic, locked, side, isNext }: { href: string; topic:
           {locked ? <Lock className="h-3 w-3" /> : topic.done ? <Check className="h-3.5 w-3.5" /> : null}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block font-semibold">{topic.title}</span>
+          <span className="block font-semibold"><span className="mr-1.5 tabular-nums text-amber-600 dark:text-amber-400">{number}.</span>{topic.title}</span>
           <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
             {isNext ? <span className="font-medium text-amber-700 dark:text-amber-400">Up next · </span> : null}
             {locked ? `${topic.lessonCount} lessons` : `${topic.doneCount}/${topic.requiredCount} lessons`}

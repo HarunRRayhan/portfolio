@@ -18,6 +18,9 @@ export type Lesson = {
   chatgptUrl?: string
 }
 
+/** A, B, C … Z, then AA, AB … for lesson positions (0-based). */
+export const lessonLetter = (i: number): string => (i < 26 ? '' : lessonLetter(Math.floor(i / 26) - 1)) + String.fromCharCode(65 + (i % 26))
+
 export const levelLabel: Record<string, string> = { beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced' }
 
 export const external = { target: '_blank', rel: 'noopener noreferrer' } as const

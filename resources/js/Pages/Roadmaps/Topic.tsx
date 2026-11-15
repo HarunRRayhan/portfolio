@@ -2,12 +2,12 @@ import { Link, router } from '@inertiajs/react'
 import { ArrowLeft, ArrowRight, Check, ChevronRight, Lock, Share2 } from 'lucide-react'
 import { ShareButton } from '@/Components/ShareButton'
 import { Comments, type RoadmapComment } from '@/Components/Roadmap/Comments'
-import { type Lesson, OptionalTag, ProgressBar, UnlockCard, levelLabel } from '@/Components/Roadmap/shared'
+import { type Lesson, OptionalTag, ProgressBar, UnlockCard, lessonLetter, levelLabel } from '@/Components/Roadmap/shared'
 import { cn } from '@/lib/utils'
 
 type Props = {
   roadmap: { slug: string; title: string }
-  topic: { id: string; title: string; summary: string; level: string; stageTitle: string }
+  topic: { id: string; number: number; title: string; summary: string; level: string; stageTitle: string }
   lessons: Lesson[]
   locked: boolean
   hasAccount: boolean
@@ -44,7 +44,10 @@ export default function RoadmapTopic({ roadmap, topic, lessons, locked, hasAccou
         <p className="mt-6 text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">
           {levelLabel[topic.level]} · {topic.stageTitle}
         </p>
-        <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950 dark:text-white">{topic.title}</h1>
+        <h1 className="mt-2 flex items-center gap-3 text-4xl font-semibold tracking-tight text-slate-950 dark:text-white">
+          <span className="inline-flex h-11 min-w-11 items-center justify-center rounded-xl bg-amber-500 px-2 text-xl font-bold text-amber-950">{topic.number}</span>
+          {topic.title}
+        </h1>
         <p className="mt-3 text-lg leading-8 text-slate-600 dark:text-slate-300">{topic.summary}</p>
 
         <div className="mt-6 flex flex-wrap items-center gap-4">
@@ -93,7 +96,7 @@ export default function RoadmapTopic({ roadmap, topic, lessons, locked, hasAccou
               )}
               <Link href={`${here}/${lesson.id}`} className="min-w-0 flex-1 text-left">
                 <span className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs tabular-nums text-slate-400">{i + 1}.</span>
+                  <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-slate-100 px-1.5 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">{lessonLetter(i)}</span>
                   <span className={cn('font-semibold', lesson.done ? 'text-slate-500 line-through decoration-amber-500/60' : 'text-slate-900 dark:text-white')}>{lesson.title}</span>
                   {lesson.optional && <OptionalTag />}
                 </span>

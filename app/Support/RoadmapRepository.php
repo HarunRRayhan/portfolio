@@ -63,7 +63,7 @@ final class RoadmapRepository
     /**
      * A topic with its stage and its neighbours on the path.
      *
-     * @return array{stage: array<string, mixed>, topic: array<string, mixed>, prev: ?array<string, mixed>, next: ?array<string, mixed>}|null
+     * @return array{stage: array<string, mixed>, topic: array<string, mixed>, number: int, prev: ?array<string, mixed>, next: ?array<string, mixed>}|null
      */
     public function findTopic(array $roadmap, string $topicId): ?array
     {
@@ -75,7 +75,7 @@ final class RoadmapRepository
         }
         foreach ($flat as $i => $item) {
             if ($item['topic']['id'] === $topicId) {
-                return $item + ['prev' => $flat[$i - 1]['topic'] ?? null, 'next' => $flat[$i + 1]['topic'] ?? null];
+                return $item + ['number' => $i + 1, 'prev' => $flat[$i - 1]['topic'] ?? null, 'next' => $flat[$i + 1]['topic'] ?? null];
             }
         }
 
