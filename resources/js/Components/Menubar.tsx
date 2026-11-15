@@ -4,14 +4,12 @@ import * as React from 'react'
 import { Link, router, usePage } from '@inertiajs/react'
 import { cn } from '@/lib/utils'
 import { Logo } from './Logo'
-import { ArrowRight, Briefcase, Calendar, ChevronDown, Heart, Layers, Link2, LogOut, Mail, Menu, Presentation, SquareTerminal, User, Video } from 'lucide-react'
+import { ArrowRight, Briefcase, Calendar, ChevronDown, Heart, Layers, Link2, LogOut, Mail, Menu, Package, Presentation, SquareTerminal, User, Video } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 const MobileNavigation = React.lazy(() => import('@/Components/MobileNavigation'))
 
 const mainNavItems = [
   { name: 'Home', href: '/' },
-  { name: 'About', href: '/about' },
-  { name: 'Products', href: '/products' },
   { name: 'Blog', href: '/blog' },
   { name: 'Roadmaps', href: '/roadmaps' },
 ]
@@ -31,26 +29,28 @@ type MoreGroup = {
 
 const moreGroups: MoreGroup[] = [
   {
-    title: 'Work',
+    title: 'Work with me',
     items: [
-      { name: 'Case Studies', href: '/case-studies', icon: Briefcase, description: 'Real engagements, with the client name left out.' },
       { name: 'Services', href: '/services', icon: Layers, description: 'The problems I take on.' },
-      { name: 'RayStack', href: '/raystack', icon: SquareTerminal, description: 'Open-source skills for your coding agent.' },
+      { name: 'Case Studies', href: '/case-studies', icon: Briefcase, description: 'Real engagements, with the client name left out.' },
       { name: 'Sponsor my work', href: '/sponsor-me', icon: Heart, description: 'Help keep the writing and tools free.', featured: true },
     ],
   },
   {
-    title: 'Reach me',
+    title: 'Things I make',
     items: [
-      { name: 'Bio', href: '/bio', icon: Link2, description: 'Links, profiles, and ways to reach me.' },
-      { name: 'Contact', href: '/contact', icon: Mail, description: 'Send a note. I read it and reply myself.' },
+      { name: 'Products', href: '/products', icon: Package, description: 'Tools and products I build and run.' },
+      { name: 'RayStack', href: '/raystack', icon: SquareTerminal, description: 'Open-source skills for your coding agent.' },
+      { name: 'Slides', href: '/slides', icon: Presentation, description: 'Decks from talks and presentations.' },
+      { name: 'Videos', href: '/videos', icon: Video, description: 'Recorded talks, demos, and walkthroughs.' },
     ],
   },
   {
-    title: 'Media',
+    title: 'About me',
     items: [
-      { name: 'Slides', href: '/slides', icon: Presentation, description: 'Decks from talks and presentations.' },
-      { name: 'Videos', href: '/videos', icon: Video, description: 'Recorded talks, demos, and walkthroughs.' },
+      { name: 'About', href: '/about', icon: User, description: 'Who I am and how I work.' },
+      { name: 'Bio', href: '/bio', icon: Link2, description: 'Links, profiles, and ways to reach me.' },
+      { name: 'Contact', href: '/contact', icon: Mail, description: 'Send a note. I read it and reply myself.' },
     ],
   },
 ]
