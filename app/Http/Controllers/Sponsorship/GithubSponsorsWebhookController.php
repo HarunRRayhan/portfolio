@@ -136,6 +136,7 @@ class GithubSponsorsWebhookController extends Controller
             'github_login' => $who['login'],
             'tier_slug' => $slug,
             'github_tier_node_id' => $tierNode,
+            'monthly_price_cents' => isset($tier['monthly_price_in_cents']) ? (int) $tier['monthly_price_in_cents'] : null,
             'kind' => $kind,
             'status' => GithubSponsorship::STATUS_ACTIVE,
             'source' => GithubSponsorship::SOURCE_WEBHOOK,
