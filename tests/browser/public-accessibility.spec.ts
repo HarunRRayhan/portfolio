@@ -153,7 +153,7 @@ test('a new account must agree to the terms once before using account pages', as
 
   const skip = page.getByRole('button', { name: 'Skip passkey' })
   await expect(skip).toBeDisabled()
-  await page.getByRole('checkbox').check()
+  await page.getByRole('checkbox', { name: /I agree to the/ }).check()
   await skip.click()
   await expect(page).toHaveURL(/\/blog$/)
 

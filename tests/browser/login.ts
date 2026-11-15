@@ -9,7 +9,7 @@ export async function loginAs(page: Page, email: string): Promise<void> {
 
   // Accounts that haven't agreed to the Terms yet land on the one-time welcome screen.
   if (new URL(page.url()).pathname === '/welcome') {
-    await page.getByRole('checkbox').check()
+    await page.getByRole('checkbox', { name: /I agree to the/ }).check()
     await page.getByRole('button', { name: 'Skip passkey' }).click()
     await page.waitForURL((u) => u.pathname !== '/welcome')
   }
