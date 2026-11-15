@@ -9,7 +9,9 @@ use App\Models\User;
 use App\Support\RoadmapAccess;
 use App\Support\RoadmapRepository;
 use App\Support\SeoCatalog;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -24,6 +26,7 @@ class RoadmapController extends Controller
         $paid = RoadmapAccess::canAccessPaid($user);
         $loves = RoadmapReaction::query()->where('type', RoadmapReaction::LOVE)
             ->selectRaw('roadmap_slug, count(*) as n')->groupBy('roadmap_slug')->pluck('n', 'roadmap_slug');
+        $views = DB::table('roadmap_views')->pluck('count', 'roadmap_slug');
 
         $mine = [];
         if ($user) {
@@ -55,6 +58,7 @@ class RoadmapController extends Controller
                 'stepCount' => count($this->repo->stepIds($r)),
                 'levels' => array_column($r['stages'], 'level'),
                 'loveCount' => (int) ($loves[$r['slug']] ?? 0),
+                'viewCount' => (int) ($views[$r['slug']] ?? 0),
                 'buildsOn' => $this->buildsOn($r),
             ], $this->repo->all()),
             'mine' => $mine,
@@ -116,9 +120,24 @@ class RoadmapController extends Controller
             'saved' => in_array(RoadmapReaction::WISHLIST, $reactions, true),
             'loveCount' => RoadmapReaction::where('roadmap_slug', $slug)->where('type', RoadmapReaction::LOVE)->count(),
             'percent' => $this->progress($roadmap, $done, $paid)[0],
+            'viewCount' => (int) DB::table('roadmap_views')->where('roadmap_slug', $slug)->value('count'),
             'canonicalUrl' => $canonicalUrl,
             'seo' => SeoCatalog::forMedia($roadmap['title'].' roadmap | Harun R. Rayhan', $roadmap['summary'], $canonicalUrl)->toArray(),
         ]);
+    }
+
+    /** Called by the page after it loads, like blog post views, so crawlers and cached HTML don't count. */
+    public function view(string $slug): JsonResponse
+    {
+        $this->roadmapOr404($slug);
+        $now = now();
+        DB::table('roadmap_views')->upsert(
+            ['roadmap_slug' => $slug, 'count' => 1, 'created_at' => $now, 'updated_at' => $now],
+            'roadmap_slug',
+            ['count' => DB::raw('roadmap_views.count + 1'), 'updated_at' => $now],
+        );
+
+        return response()->json(['views' => (int) DB::table('roadmap_views')->where('roadmap_slug', $slug)->value('count')]);
     }
 
     public function start(Request $request, string $slug): RedirectResponse

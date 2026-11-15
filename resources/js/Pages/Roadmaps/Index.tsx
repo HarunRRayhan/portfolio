@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react'
 import type { PageProps } from '@/types'
-import { ArrowRight, Bookmark, Heart, Route } from 'lucide-react'
+import { ArrowRight, Bookmark, Eye, Heart, Route } from 'lucide-react'
 
 type RoadmapCard = {
   slug: string
@@ -9,6 +9,7 @@ type RoadmapCard = {
   stepCount: number
   levels: string[]
   loveCount: number
+  viewCount: number
   buildsOn: { slug: string; title: string } | null
 }
 
@@ -91,7 +92,10 @@ export default function RoadmapsIndex({ roadmaps, mine }: Props) {
               <p className="mt-2 flex-1 text-slate-600 dark:text-slate-300">{r.summary}</p>
               <div className="mt-6 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
                 <span>{r.stepCount} topics · {r.levels.length} levels</span>
-                <span className="inline-flex items-center gap-1"><Heart className="h-4 w-4" /> {r.loveCount}</span>
+                <span className="inline-flex items-center gap-3">
+                  <span className="inline-flex items-center gap-1" title="Views"><Eye className="h-4 w-4" aria-hidden /> {r.viewCount.toLocaleString()}<span className="sr-only"> views</span></span>
+                  <span className="inline-flex items-center gap-1" title="Loves"><Heart className="h-4 w-4" aria-hidden /> {r.loveCount}<span className="sr-only"> loves</span></span>
+                </span>
               </div>
             </Link>
           ))}

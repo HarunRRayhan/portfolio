@@ -667,6 +667,7 @@ Route::get('/newsletter/c/{delivery}', [NewsletterController::class, 'click'])
 
 Route::get('/roadmaps', [RoadmapController::class, 'index'])->name('roadmaps.index');
 Route::get('/roadmaps/{slug}', [RoadmapController::class, 'show'])->where('slug', '[a-z0-9-]{1,64}')->name('roadmaps.show');
+Route::post('/roadmaps/{slug}/view', [RoadmapController::class, 'view'])->where('slug', '[a-z0-9-]{1,64}')->middleware('throttle:30,1')->name('roadmaps.view');
 Route::middleware(['auth', 'throttle:roadmap-actions'])
     ->prefix('roadmaps/{slug}')
     ->where(['slug' => '[a-z0-9-]{1,64}', 'step' => '[a-z0-9-]{1,64}'])

@@ -80,6 +80,21 @@ class RoadmapPagesTest extends TestCase
         $this->get('/roadmaps')->assertInertia(fn ($page) => $page->has('roadmaps', 5));
     }
 
+    public function test_views_are_counted_and_shown(): void
+    {
+        $this->get('/roadmaps/aws')->assertInertia(fn ($page) => $page->where('viewCount', 0));
+
+        $this->postJson('/roadmaps/aws/view')->assertOk()->assertJson(['views' => 1]);
+        $this->postJson('/roadmaps/aws/view')->assertOk()->assertJson(['views' => 2]);
+        $this->postJson('/roadmaps/nope/view')->assertNotFound();
+
+        $this->get('/roadmaps/aws')->assertInertia(fn ($page) => $page->where('viewCount', 2));
+        $this->get('/roadmaps')->assertInertia(fn ($page) => $page
+            ->where('roadmaps.1.slug', 'aws')
+            ->where('roadmaps.1.viewCount', 2)
+            ->where('roadmaps.0.viewCount', 0));
+    }
+
     public function test_unknown_roadmap_is_404(): void
     {
         $this->get('/roadmaps/nope')->assertNotFound();

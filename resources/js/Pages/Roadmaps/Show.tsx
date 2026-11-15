@@ -1,6 +1,8 @@
 import { Link, router, usePage } from '@inertiajs/react'
-import { Bookmark, Check, ChevronDown, Copy, ExternalLink, Heart, Lock, Search, Sparkles } from 'lucide-react'
-import { useState } from 'react'
+import { Bookmark, Check, Copy, ExternalLink, Eye, Heart, Lock, Search, Share2, Sparkles } from 'lucide-react'
+import { ShareButton } from '@/Components/ShareButton'
+import { useEffect, useState } from 'react'
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/Components/ui/sheet'
 import { Github } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import type { PageProps } from '@/types'
@@ -32,13 +34,15 @@ type Props = {
   saved: boolean
   loveCount: number
   percent: number
+  viewCount: number
+  canonicalUrl: string
 }
 
 const levelLabel: Record<string, string> = { beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced' }
 
 const external = { target: '_blank', rel: 'noopener noreferrer' } as const
 
-export default function RoadmapShow({ roadmap, stages, started, loved, saved, loveCount, percent }: Props) {
+export default function RoadmapShow({ roadmap, stages, started, loved, saved, loveCount, percent, viewCount, canonicalUrl }: Props) {
   const { auth } = usePage<PageProps>().props
   const base = `/roadmaps/${roadmap.slug}`
   const loginHref = `/login?redirect=${encodeURIComponent(base)}`
@@ -49,6 +53,29 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
     }
     router[method](`${base}${path}`, {}, { preserveScroll: true })
   }
+
+  const [openId, setOpenId] = useState<string | null>(null)
+  const all = stages.flatMap((stage) => stage.steps.map((step) => ({ stage, step })))
+  const open = all.find((x) => x.step.id === openId) ?? null
+  const nextId = auth?.user ? all.find((x) => !x.stage.locked && !x.step.done)?.step.id : undefined
+
+  const [views, setViews] = useState(viewCount)
+  useEffect(() => {
+    fetch(`${base}/view`, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d && typeof d.views === 'number' && setViews(d.views))
+      .catch(() => {})
+  }, [base])
+
+  // "Continue" links land on #step-id: open that topic.
+  useEffect(() => {
+    const id = window.location.hash.slice(1)
+    if (id && all.some((x) => x.step.id === id)) {
+      document.getElementById(id)?.scrollIntoView({ block: 'center' })
+      setOpenId(id)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className="pt-24">
@@ -87,6 +114,18 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
           >
             <Bookmark className={cn('h-4 w-4', saved && 'fill-current')} /> {saved ? 'Saved' : 'Save for later'}
           </button>
+          <ShareButton
+            url={canonicalUrl}
+            title={`${roadmap.title} roadmap`}
+            shareTitle={`${roadmap.title} roadmap`}
+            label={`Share the ${roadmap.title} roadmap`}
+            triggerClassName="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            <Share2 className="h-4 w-4" /> Share
+          </ShareButton>
+          <span className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
+            <Eye className="h-4 w-4" aria-hidden /> {views.toLocaleString()} {views === 1 ? 'view' : 'views'}
+          </span>
         </div>
 
         {!auth?.user && (
@@ -102,70 +141,119 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
           </div>
         )}
 
-        <ol className="mt-12 space-y-12">
-          {stages.map((stage, i) => (
-            <li key={stage.level}>
-              <div className="flex items-center gap-3">
-                <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white dark:bg-white dark:text-slate-900">
-                  {levelLabel[stage.level] ?? stage.level}
-                </span>
-                <h2 className="text-xl font-semibold text-slate-900 dark:text-white">{stage.title}</h2>
-                {stage.locked && <Lock className="h-4 w-4 text-slate-400" aria-label="Locked" />}
-              </div>
-
-              <ol className="mt-6 border-l-2 border-slate-200 dark:border-slate-800">
-                {stage.steps.map((step) => (
-                  <StepNode key={step.id} step={step} locked={stage.locked} onToggle={() => act(step.done ? 'delete' : 'post', `/steps/${step.id}`)} />
-                ))}
-              </ol>
-
-              {/* One card under the first locked stage is enough. */}
-              {stage.locked && !stages[i - 1]?.locked && <UnlockCard />}
-            </li>
-          ))}
-        </ol>
+        <p className="mt-10 text-sm text-slate-500 dark:text-slate-400">Click a topic to see what to learn, resources and an AI prompt.</p>
       </section>
+
+      <section className="relative mx-auto max-w-5xl px-4 pb-24 sm:px-6 lg:px-8">
+        {/* The spine: left edge on phones, centre from md up. */}
+        <div aria-hidden className="absolute bottom-24 left-[2.1rem] top-0 w-0.5 bg-slate-300 sm:left-[2.6rem] md:left-1/2 md:-translate-x-1/2 dark:bg-slate-700" />
+
+        {stages.map((stage, i) => (
+          <div key={stage.level} className="relative">
+            <div className="relative z-10 flex py-8 pl-0 md:justify-center">
+              <span className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-sm dark:bg-white dark:text-slate-900">
+                {levelLabel[stage.level] ?? stage.level}
+                <span className="font-normal opacity-70">· {stage.title}</span>
+                {stage.locked && <Lock className="h-3.5 w-3.5" aria-label="Locked" />}
+              </span>
+            </div>
+
+            <ol className="grid gap-y-4 md:grid-cols-2 md:gap-x-16">
+              {stage.steps.map((step, j) => (
+                <TopicNode
+                  key={step.id}
+                  step={step}
+                  locked={stage.locked}
+                  side={j % 2 === 0 ? 'left' : 'right'}
+                  isNext={step.id === nextId}
+                  onOpen={() => setOpenId(step.id)}
+                />
+              ))}
+            </ol>
+
+            {/* One card under the first locked stage is enough. */}
+            {stage.locked && !stages[i - 1]?.locked && (
+              <div className="relative z-10 mt-8 flex pl-12 md:justify-center md:pl-0">
+                <UnlockCard />
+              </div>
+            )}
+          </div>
+        ))}
+
+        <div className="relative z-10 flex pt-10 md:justify-center">
+          <span className="inline-flex items-center gap-2 rounded-full border-2 border-emerald-500 bg-white px-5 py-2 text-sm font-semibold text-emerald-700 dark:bg-slate-950 dark:text-emerald-400">
+            <Check className="h-4 w-4" /> Finish
+          </span>
+        </div>
+      </section>
+
+      <Sheet open={!!open} onOpenChange={(o) => !o && setOpenId(null)}>
+        <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
+          {open && (
+            <>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{levelLabel[open.stage.level]}</p>
+              <SheetTitle className="mt-1 pr-8 text-2xl">{open.step.title}</SheetTitle>
+              <SheetDescription className="mt-2 text-base">{open.step.summary}</SheetDescription>
+              {open.stage.locked ? (
+                <div className="mt-6"><UnlockCard /></div>
+              ) : (
+                <>
+                  <button
+                    onClick={() => act(open.step.done ? 'delete' : 'post', `/steps/${open.step.id}`)}
+                    className={cn('mt-5 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold', open.step.done ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-emerald-600 text-white hover:bg-emerald-500')}
+                  >
+                    <Check className="h-4 w-4" /> {open.step.done ? 'Done (click to undo)' : auth?.user ? 'Mark as done' : 'Sign in to track progress'}
+                  </button>
+                  <StepDetail step={open.step} />
+                </>
+              )}
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }
 
-function StepNode({ step, locked, onToggle }: { step: Step; locked: boolean; onToggle: () => void }) {
-  const [open, setOpen] = useState(false)
-
+function TopicNode({ step, locked, side, isNext, onOpen }: { step: Step; locked: boolean; side: 'left' | 'right'; isNext: boolean; onOpen: () => void }) {
   return (
-    <li id={step.id} className="relative scroll-mt-28 pb-6 pl-8">
-      {locked ? (
-        <span className="absolute -left-[11px] top-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-950">
-          <Lock className="h-2.5 w-2.5 text-slate-400" />
-        </span>
-      ) : (
-        <button
-          onClick={onToggle}
-          aria-pressed={step.done}
-          aria-label={step.done ? `Mark "${step.title}" not done` : `Mark "${step.title}" done`}
-          className={cn('absolute -left-[11px] top-1 flex h-5 w-5 items-center justify-center rounded-full border-2', step.done ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-300 bg-white hover:border-emerald-500 dark:border-slate-600 dark:bg-slate-950')}
+    <li id={step.id} className="relative scroll-mt-28 pl-12 md:pl-0">
+      {/* Connector from the box to the spine. */}
+      <span
+        aria-hidden
+        className={cn(
+          // Phones: from the spine (1.1rem into the item) to the box (3rem). md+: box edge to the centre.
+          'absolute left-[1.1rem] top-1/2 h-0.5 w-[1.9rem] bg-slate-300 md:w-8 dark:bg-slate-700',
+          side === 'left' ? 'md:left-auto md:-right-8' : 'md:-left-8',
+          step.done && 'bg-emerald-400 dark:bg-emerald-600',
+        )}
+      />
+      <button
+        onClick={onOpen}
+        className={cn(
+          'group flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition',
+          side === 'left' && 'md:flex-row-reverse md:text-right',
+          locked
+            ? 'border-dashed border-slate-300 bg-slate-50 text-slate-500 hover:border-slate-400 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-400'
+            : step.done
+              ? 'border-emerald-500 bg-emerald-50 text-emerald-900 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-200'
+              : 'border-slate-200 bg-white text-slate-900 shadow-sm hover:-translate-y-0.5 hover:border-emerald-400 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:text-white',
+          isNext && 'ring-2 ring-emerald-400 ring-offset-2 dark:ring-offset-slate-950',
+        )}
+      >
+        <span
+          className={cn(
+            'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2',
+            locked ? 'border-slate-300 dark:border-slate-600' : step.done ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-300 dark:border-slate-600',
+          )}
         >
-          {step.done && <Check className="h-3 w-3" />}
-        </button>
-      )}
-
-      {locked ? (
-        <div>
-          <p className="font-semibold text-slate-500 dark:text-slate-400">{step.title}</p>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-500">{step.summary}</p>
-        </div>
-      ) : (
-        <>
-          <button onClick={() => setOpen(!open)} aria-expanded={open} className="flex w-full items-start justify-between gap-4 text-left">
-            <span>
-              <span className={cn('block font-semibold', step.done ? 'text-slate-500 line-through decoration-emerald-500/60' : 'text-slate-900 dark:text-white')}>{step.title}</span>
-              <span className="mt-1 block text-sm text-slate-600 dark:text-slate-300">{step.summary}</span>
-            </span>
-            <ChevronDown className={cn('mt-1 h-5 w-5 shrink-0 text-slate-400 transition', open && 'rotate-180')} />
-          </button>
-          {open && <StepDetail step={step} />}
-        </>
-      )}
+          {locked ? <Lock className="h-3 w-3" /> : step.done ? <Check className="h-3.5 w-3.5" /> : null}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-semibold">{step.title}</span>
+          {isNext && <span className="mt-0.5 block text-xs font-medium text-emerald-700 dark:text-emerald-400">Up next</span>}
+        </span>
+      </button>
     </li>
   )
 }

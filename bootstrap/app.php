@@ -62,6 +62,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // These endpoints are called without a CSRF token (client-side beacons).
         $middleware->validateCsrfTokens(except: [
             'blog/*/view',
+            'roadmaps/*/view',
             'bio/click',
             'github/sponsors/webhook',
         ]);
