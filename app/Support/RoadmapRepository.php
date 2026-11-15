@@ -35,34 +35,67 @@ final class RoadmapRepository
         return $this->load()[$slug] ?? null;
     }
 
-    /** @return array<string, string> step id => level */
-    public function stepIds(array $roadmap): array
+    /**
+     * Every lesson in the roadmap, in order. Lesson ids are unique per roadmap and are the progress keys.
+     *
+     * @return array<string, array{level: string, topic: string, optional: bool}>
+     */
+    public function lessonIndex(array $roadmap): array
     {
         $ids = [];
         foreach ($roadmap['stages'] as $stage) {
-            foreach ($stage['steps'] as $step) {
-                $ids[$step['id']] = $stage['level'];
+            foreach ($stage['topics'] as $topic) {
+                foreach ($topic['lessons'] as $lesson) {
+                    $ids[$lesson['id']] = ['level' => $stage['level'], 'topic' => $topic['id'], 'optional' => $lesson['optional']];
+                }
             }
         }
 
         return $ids;
     }
 
-    public function prompt(array $roadmap, string $level, array $step): string
+    /**
+     * A topic with its stage and its neighbours on the path.
+     *
+     * @return array{stage: array<string, mixed>, topic: array<string, mixed>, prev: ?array<string, mixed>, next: ?array<string, mixed>}|null
+     */
+    public function findTopic(array $roadmap, string $topicId): ?array
     {
-        if (filled($step['prompt'] ?? null)) {
-            return (string) $step['prompt'];
+        $flat = [];
+        foreach ($roadmap['stages'] as $stage) {
+            foreach ($stage['topics'] as $topic) {
+                $flat[] = ['stage' => $stage, 'topic' => $topic];
+            }
+        }
+        foreach ($flat as $i => $item) {
+            if ($item['topic']['id'] === $topicId) {
+                return $item + ['prev' => $flat[$i - 1]['topic'] ?? null, 'next' => $flat[$i + 1]['topic'] ?? null];
+            }
+        }
+
+        return null;
+    }
+
+    public function prompt(array $roadmap, string $level, array $topic, array $lesson): string
+    {
+        if (filled($lesson['prompt'] ?? null)) {
+            return (string) $lesson['prompt'];
         }
 
         return sprintf(
-            'I\'m learning %s, at the %s stage. Teach me "%s": %s Cover: %s. Explain it simply with a real-world example, then give me 3 questions to check I understood.',
-            $roadmap['title'], $level, $step['title'], $step['summary'], implode('; ', $step['learn'] ?? []),
+            'I\'m learning %s, at the %s stage, on the topic "%s". Teach me "%s": %s Cover: %s. Explain it simply with a real-world example, then give me 3 questions to check I understood.',
+            $roadmap['title'], $level, $topic['title'], $lesson['title'], $lesson['summary'], implode('; ', $lesson['learn']),
         );
     }
 
-    public function searchUrl(array $roadmap, array $step): string
+    public function searchUrl(array $topic, array $lesson): string
     {
-        return 'https://www.google.com/search?q='.urlencode($step['title'].' '.$roadmap['title']);
+        return 'https://www.google.com/search?q='.urlencode($lesson['title'].' '.$topic['title']);
+    }
+
+    public function topicUrl(string $slug, string $topicId): string
+    {
+        return $this->absoluteUrl($slug).'/'.$topicId;
     }
 
     public function absoluteUrl(string $slug): string
@@ -82,13 +115,20 @@ final class RoadmapRepository
         foreach (glob(resource_path('roadmaps/*.yml')) ?: [] as $file) {
             $raw = Yaml::parseFile($file);
             foreach ($raw['stages'] as &$stage) {
-                foreach ($stage['steps'] as &$step) {
-                    $step['learn'] = array_values($step['learn'] ?? []);
-                    $step['resources'] = array_values(array_filter(array_map(
-                        fn (array $r) => $this->resource($r, $blog), $step['resources'] ?? [],
-                    )));
+                foreach ($stage['topics'] as &$topic) {
+                    foreach ($topic['lessons'] as &$lesson) {
+                        $lesson['optional'] = (bool) ($lesson['optional'] ?? false);
+                        $lesson['learn'] = array_values($lesson['learn'] ?? []);
+                        $resources = array_values(array_filter(array_map(
+                            fn (array $r) => $this->resource($r, $blog), $lesson['resources'] ?? [],
+                        )));
+                        // Own posts first, then outside sources, each group in file order.
+                        usort($resources, fn ($a, $b) => $b['own'] <=> $a['own']);
+                        $lesson['resources'] = $resources;
+                    }
+                    unset($lesson);
                 }
-                unset($step);
+                unset($topic);
             }
             unset($stage);
             $roadmaps[$raw['slug']] = $raw;

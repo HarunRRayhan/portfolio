@@ -1,0 +1,158 @@
+import { Link, router } from '@inertiajs/react'
+import { ArrowLeft, ArrowRight, Check, ChevronRight, Lock, Share2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ShareButton } from '@/Components/ShareButton'
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/Components/ui/sheet'
+import { type Lesson, LessonDetail, OptionalTag, ProgressBar, UnlockCard, levelLabel } from '@/Components/Roadmap/shared'
+import { cn } from '@/lib/utils'
+
+type Props = {
+  roadmap: { slug: string; title: string }
+  topic: { id: string; title: string; summary: string; level: string; stageTitle: string }
+  lessons: Lesson[]
+  locked: boolean
+  hasAccount: boolean
+  percent: number
+  prev: { id: string; title: string } | null
+  next: { id: string; title: string } | null
+  canonicalUrl: string
+}
+
+export default function RoadmapTopic({ roadmap, topic, lessons, locked, hasAccount, percent, prev, next, canonicalUrl }: Props) {
+  const base = `/roadmaps/${roadmap.slug}`
+  const here = `${base}/${topic.id}`
+  const loginHref = `/login?redirect=${encodeURIComponent(here)}`
+  const [openId, setOpenId] = useState<string | null>(null)
+  const open = lessons.find((l) => l.id === openId) ?? null
+
+  const toggle = (lesson: Lesson) => {
+    if (!hasAccount) {
+      router.visit(loginHref)
+      return
+    }
+    router[lesson.done ? 'delete' : 'post'](`${base}/lessons/${lesson.id}`, {}, { preserveScroll: true })
+  }
+
+  // Deep links like #lesson-id open that lesson.
+  useEffect(() => {
+    const id = window.location.hash.slice(1)
+    if (id && lessons.some((l) => l.id === id)) setOpenId(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  return (
+    <div className="pt-24">
+      <section className="mx-auto max-w-3xl px-4 pb-24 pt-8 sm:px-6 lg:px-8">
+        <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-sm text-slate-500">
+          <Link href="/roadmaps" className="hover:text-slate-800 dark:hover:text-slate-200">Roadmaps</Link>
+          <ChevronRight className="h-3.5 w-3.5" />
+          <Link href={`${base}#${topic.id}`} className="hover:text-slate-800 dark:hover:text-slate-200">{roadmap.title}</Link>
+        </nav>
+
+        <p className="mt-6 text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+          {levelLabel[topic.level]} · {topic.stageTitle}
+        </p>
+        <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950 dark:text-white">{topic.title}</h1>
+        <p className="mt-3 text-lg leading-8 text-slate-600 dark:text-slate-300">{topic.summary}</p>
+
+        <div className="mt-6 flex flex-wrap items-center gap-4">
+          {hasAccount && !locked && (
+            <div className="flex min-w-[12rem] flex-1 items-center gap-3">
+              <ProgressBar percent={percent} />
+              <span className="text-sm tabular-nums text-slate-600 dark:text-slate-300">{percent}%</span>
+            </div>
+          )}
+          <ShareButton
+            url={canonicalUrl}
+            title={`${topic.title} · ${roadmap.title}`}
+            shareTitle={`${topic.title} · ${roadmap.title} roadmap`}
+            label={`Share ${topic.title}`}
+            triggerClassName="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            <Share2 className="h-4 w-4" /> Share
+          </ShareButton>
+        </div>
+
+        {!hasAccount && !locked && (
+          <p className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
+            <Link href={loginHref} className="font-semibold underline underline-offset-2">Sign in or create a free account</Link> to tick off lessons and track your progress.
+          </p>
+        )}
+
+        {locked && <UnlockCard className="mt-8" />}
+
+        <h2 className="mt-10 text-sm font-semibold uppercase tracking-wider text-slate-500">Lessons</h2>
+        <ol className="mt-3 divide-y divide-slate-200 rounded-2xl border border-slate-200 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
+          {lessons.map((lesson, i) => (
+            <li key={lesson.id} id={lesson.id} className="flex items-center gap-3 px-4 py-3">
+              {locked ? (
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-slate-300 dark:border-slate-600">
+                  <Lock className="h-3 w-3 text-slate-400" />
+                </span>
+              ) : (
+                <button
+                  onClick={() => toggle(lesson)}
+                  aria-pressed={lesson.done}
+                  aria-label={`Mark "${lesson.title}" ${lesson.done ? 'not done' : 'done'}`}
+                  className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2', lesson.done ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-300 hover:border-emerald-500 dark:border-slate-600')}
+                >
+                  {lesson.done && <Check className="h-3.5 w-3.5" />}
+                </button>
+              )}
+              <button onClick={() => setOpenId(lesson.id)} className="min-w-0 flex-1 text-left">
+                <span className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs tabular-nums text-slate-400">{i + 1}.</span>
+                  <span className={cn('font-semibold', lesson.done ? 'text-slate-500 line-through decoration-emerald-500/60' : 'text-slate-900 dark:text-white')}>{lesson.title}</span>
+                  {lesson.optional && <OptionalTag />}
+                </span>
+              </button>
+              <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
+            </li>
+          ))}
+        </ol>
+
+        <nav className="mt-10 grid gap-3 sm:grid-cols-2" aria-label="Topics">
+          {prev ? (
+            <Link href={`${base}/${prev.id}`} className="rounded-xl border border-slate-200 p-4 hover:border-emerald-400 dark:border-slate-800">
+              <span className="inline-flex items-center gap-1 text-xs text-slate-500"><ArrowLeft className="h-3.5 w-3.5" /> Previous topic</span>
+              <span className="mt-1 block font-semibold text-slate-900 dark:text-white">{prev.title}</span>
+            </Link>
+          ) : <span />}
+          {next && (
+            <Link href={`${base}/${next.id}`} className="rounded-xl border border-slate-200 p-4 text-right hover:border-emerald-400 dark:border-slate-800">
+              <span className="inline-flex items-center gap-1 text-xs text-slate-500">Next topic <ArrowRight className="h-3.5 w-3.5" /></span>
+              <span className="mt-1 block font-semibold text-slate-900 dark:text-white">{next.title}</span>
+            </Link>
+          )}
+        </nav>
+      </section>
+
+      <Sheet open={!!open} onOpenChange={(o) => !o && setOpenId(null)}>
+        <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
+          {open && (
+            <>
+              <p className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                {topic.title} {open.optional && <OptionalTag />}
+              </p>
+              <SheetTitle className="mt-1 pr-8 text-2xl">{open.title}</SheetTitle>
+              <SheetDescription className="sr-only">Resources for {open.title}</SheetDescription>
+              {locked ? (
+                <UnlockCard className="mt-6" />
+              ) : (
+                <>
+                  <button
+                    onClick={() => toggle(open)}
+                    className={cn('mt-5 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold', open.done ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-emerald-600 text-white hover:bg-emerald-500')}
+                  >
+                    <Check className="h-4 w-4" /> {open.done ? 'Done (click to undo)' : hasAccount ? 'Mark as done' : 'Sign in to track progress'}
+                  </button>
+                  <LessonDetail lesson={open} loginHref={loginHref} />
+                </>
+              )}
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+    </div>
+  )
+}

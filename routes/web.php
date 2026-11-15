@@ -667,15 +667,16 @@ Route::get('/newsletter/c/{delivery}', [NewsletterController::class, 'click'])
 
 Route::get('/roadmaps', [RoadmapController::class, 'index'])->name('roadmaps.index');
 Route::get('/roadmaps/{slug}', [RoadmapController::class, 'show'])->where('slug', '[a-z0-9-]{1,64}')->name('roadmaps.show');
+Route::get('/roadmaps/{slug}/{topic}', [RoadmapController::class, 'topic'])->where(['slug' => '[a-z0-9-]{1,64}', 'topic' => '[a-z0-9-]{1,64}'])->name('roadmaps.topic');
 Route::post('/roadmaps/{slug}/view', [RoadmapController::class, 'view'])->where('slug', '[a-z0-9-]{1,64}')->middleware('throttle:30,1')->name('roadmaps.view');
 Route::middleware(['auth', 'throttle:roadmap-actions'])
     ->prefix('roadmaps/{slug}')
-    ->where(['slug' => '[a-z0-9-]{1,64}', 'step' => '[a-z0-9-]{1,64}'])
+    ->where(['slug' => '[a-z0-9-]{1,64}', 'lesson' => '[a-z0-9-]{1,64}'])
     ->name('roadmaps.')
     ->group(function () {
         Route::post('/start', [RoadmapController::class, 'start'])->name('start');
-        Route::post('/steps/{step}', [RoadmapController::class, 'complete'])->name('steps.complete');
-        Route::delete('/steps/{step}', [RoadmapController::class, 'uncomplete'])->name('steps.uncomplete');
+        Route::post('/lessons/{lesson}', [RoadmapController::class, 'complete'])->name('lessons.complete');
+        Route::delete('/lessons/{lesson}', [RoadmapController::class, 'uncomplete'])->name('lessons.uncomplete');
         Route::post('/love', [RoadmapController::class, 'love'])->name('love');
         Route::post('/wishlist', [RoadmapController::class, 'wishlist'])->name('wishlist');
     });

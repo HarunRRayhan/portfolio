@@ -7,6 +7,7 @@ use App\Models\RoadmapProgress;
 use App\Models\RoadmapReaction;
 use App\Models\RoadmapStart;
 use App\Models\User;
+use App\Support\RoadmapRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -16,11 +17,18 @@ class RoadmapActionsTest extends TestCase
 
     private const R = '/roadmaps/internet-networking';
 
+    private function lessonAt(string $level): string
+    {
+        $repo = new RoadmapRepository;
+
+        return collect($repo->lessonIndex($repo->find('internet-networking')))->filter(fn ($l) => $l['level'] === $level)->keys()->first();
+    }
+
     public function test_guests_are_sent_to_login(): void
     {
         $this->post(self::R.'/start')->assertRedirect('/login');
         $this->post(self::R.'/love')->assertRedirect('/login');
-        $this->post(self::R.'/steps/dns-basics')->assertRedirect('/login');
+        $this->post(self::R.'/lessons/'.$this->lessonAt('beginner'))->assertRedirect('/login');
     }
 
     public function test_start_is_idempotent(): void
@@ -35,24 +43,25 @@ class RoadmapActionsTest extends TestCase
     public function test_tick_and_untick_a_free_topic(): void
     {
         $user = User::factory()->create();
-        $this->actingAs($user)->post(self::R.'/steps/dns-basics')->assertRedirect();
-        $this->actingAs($user)->post(self::R.'/steps/dns-basics')->assertRedirect();
+        $lesson = $this->lessonAt('beginner');
+        $this->actingAs($user)->post(self::R.'/lessons/'.$lesson)->assertRedirect();
+        $this->actingAs($user)->post(self::R.'/lessons/'.$lesson)->assertRedirect();
 
         $this->assertSame(1, RoadmapProgress::where('user_id', $user->id)->count());
         $this->assertTrue(RoadmapStart::where('user_id', $user->id)->exists());
 
-        $this->actingAs($user)->delete(self::R.'/steps/dns-basics')->assertRedirect();
+        $this->actingAs($user)->delete(self::R.'/lessons/'.$lesson)->assertRedirect();
         $this->assertSame(0, RoadmapProgress::where('user_id', $user->id)->count());
     }
 
     public function test_paid_topic_needs_access(): void
     {
         $user = User::factory()->create(['email' => 'a@b.com']);
-        $this->actingAs($user)->post(self::R.'/steps/bgp')->assertForbidden();
+        $this->actingAs($user)->post(self::R.'/lessons/'.$this->lessonAt('advanced'))->assertForbidden();
         $this->assertSame(0, RoadmapProgress::count());
 
         RoadmapAccessGrant::create(['email' => 'a@b.com', 'expires_at' => now()->addWeek()]);
-        $this->actingAs($user)->post(self::R.'/steps/bgp')->assertRedirect();
+        $this->actingAs($user)->post(self::R.'/lessons/'.$this->lessonAt('advanced'))->assertRedirect();
         $this->assertSame(1, RoadmapProgress::count());
     }
 
@@ -60,7 +69,7 @@ class RoadmapActionsTest extends TestCase
     {
         $user = User::factory()->create();
         $this->actingAs($user)->post('/roadmaps/nope/start')->assertNotFound();
-        $this->actingAs($user)->post(self::R.'/steps/nope')->assertNotFound();
+        $this->actingAs($user)->post(self::R.'/lessons/nope')->assertNotFound();
     }
 
     public function test_love_toggles_and_counts(): void

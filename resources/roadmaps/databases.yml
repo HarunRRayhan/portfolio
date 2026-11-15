@@ -1,0 +1,582 @@
+slug: databases
+title: Database Engineering
+summary: From your first SQL query to how a database stores pages on disk. Learn modelling, indexes, transactions, replication and scaling, then the internals underneath.
+order: 8
+updated: '2026-11-15'
+
+stages:
+  - level: beginner
+    title: SQL and data modelling
+    topics:
+      - id: what-a-database-is
+        title: What a database is
+        summary: A database stores data so many programs can read and change it safely, and that is harder than writing to a file.
+        lessons:
+          - id: database-vs-files
+            title: Databases vs files
+            summary: Why concurrent access, crashes and queries push you from files to a database.
+            learn:
+              - Concurrent readers and writers
+              - Surviving a crash mid-write
+              - Querying instead of scanning
+            resources:
+              - { label: "CMU 15-445 Intro to Database Systems", url: "https://15445.courses.cs.cmu.edu/", kind: course }
+              - { label: "CMU Database Group on YouTube", url: "https://www.youtube.com/@CMUDatabaseGroup", kind: video }
+          - id: relational-model
+            title: The relational model
+            summary: Tables, rows, columns and keys, and why relations made databases general purpose.
+            learn:
+              - Tables and rows
+              - Primary and foreign keys
+            resources:
+              - { label: "PostgreSQL tutorial: concepts", url: "https://www.postgresql.org/docs/current/tutorial-concepts.html", kind: docs }
+          - id: managed-databases
+            title: Running a managed database
+            summary: Start a hosted database and connect your app to it.
+            learn:
+              - Connection strings
+              - Managed vs self-hosted
+            resources:
+              - post: add-database-to-application-hosted-in-amazon-lightsail
+              - { label: "What is Amazon RDS? (AWS docs)", url: "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html", kind: docs }
+
+      - id: sql-basics
+        title: SQL basics
+        summary: SELECT, INSERT, UPDATE and DELETE are the four verbs you will use every day.
+        lessons:
+          - id: select-where
+            title: SELECT and WHERE
+            summary: Read rows, filter them and sort the result.
+            learn:
+              - SELECT, WHERE, ORDER BY, LIMIT
+              - NULL and three-valued logic
+            resources:
+              - { label: "SQLBolt", url: "https://sqlbolt.com/", kind: course }
+              - { label: "PostgreSQL tutorial: querying a table", url: "https://www.postgresql.org/docs/current/tutorial-select.html", kind: docs }
+          - id: insert-update-delete
+            title: INSERT, UPDATE and DELETE
+            summary: Change data safely and check how many rows you touched.
+            learn:
+              - Inserting many rows
+              - UPDATE and DELETE with WHERE
+              - RETURNING clauses
+            resources:
+              - { label: "PostgreSQL docs: data manipulation", url: "https://www.postgresql.org/docs/current/dml.html", kind: docs }
+          - id: practice-sql
+            title: Practise on real exercises
+            optional: true
+            summary: Build fluency by solving graded SQL problems.
+            learn:
+              - Writing queries from a question
+            resources:
+              - { label: "PostgreSQL Exercises", url: "https://pgexercises.com/", kind: course }
+
+      - id: joins-aggregation
+        title: Joins and aggregation
+        summary: Combine tables and summarise rows, which is where SQL starts to pay off.
+        lessons:
+          - id: joins
+            title: Joins
+            summary: Inner, left, right and full joins, and what happens to rows with no match.
+            learn:
+              - Inner vs outer joins
+              - Join conditions
+              - Self joins
+            resources:
+              - { label: "PostgreSQL tutorial: joins", url: "https://www.postgresql.org/docs/current/tutorial-join.html", kind: docs }
+              - { label: "SQLBolt", url: "https://sqlbolt.com/", kind: course }
+          - id: group-by
+            title: GROUP BY and aggregates
+            summary: Count, sum and average per group, and filter groups with HAVING.
+            learn:
+              - Aggregate functions
+              - GROUP BY and HAVING
+            resources:
+              - { label: "PostgreSQL tutorial: aggregate functions", url: "https://www.postgresql.org/docs/current/tutorial-agg.html", kind: docs }
+          - id: window-functions
+            title: Window functions and CTEs
+            optional: true
+            summary: Rank, run totals and break long queries into named steps.
+            learn:
+              - OVER and PARTITION BY
+              - WITH queries
+            resources:
+              - { label: "PostgreSQL tutorial: window functions", url: "https://www.postgresql.org/docs/current/tutorial-window.html", kind: docs }
+              - { label: "Modern SQL (Markus Winand)", url: "https://modern-sql.com/", kind: article }
+
+      - id: data-modelling
+        title: Data modelling
+        summary: The shape of your tables decides which queries are easy and which bugs are possible.
+        lessons:
+          - id: entities-relationships
+            title: Entities and relationships
+            summary: Model one-to-one, one-to-many and many-to-many relationships with keys and join tables.
+            learn:
+              - Entity-relationship diagrams
+              - Join tables for many-to-many
+            resources:
+              - { label: "Designing Data-Intensive Applications", url: "https://dataintensive.net/", kind: article }
+              - { label: "CMU 15-445 Intro to Database Systems", url: "https://15445.courses.cs.cmu.edu/", kind: course }
+          - id: normalisation
+            title: Normalisation
+            summary: Store each fact once to avoid update anomalies, and know when to denormalise on purpose.
+            learn:
+              - First, second and third normal form
+              - Denormalising for reads
+            resources:
+              - { label: "Hussein Nasser on YouTube", url: "https://www.youtube.com/@hnasr", kind: video }
+              - { label: "CMU Database Group on YouTube", url: "https://www.youtube.com/@CMUDatabaseGroup", kind: video }
+          - id: multi-tenant-schemas
+            title: Multi-tenant schemas
+            optional: true
+            summary: Keep many customers' data in one database without leaking between them.
+            learn:
+              - Tenant ID column vs schema per tenant
+              - Row-level security
+            resources:
+              - post: multi-tenant-saas-auth-lambda-fastify
+              - { label: "Row security policies (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/ddl-rowsecurity.html", kind: docs }
+
+      - id: constraints-types
+        title: Constraints and data types
+        summary: Let the database reject bad data instead of hoping the application never writes any.
+        lessons:
+          - id: constraints
+            title: Constraints
+            summary: NOT NULL, UNIQUE, CHECK and foreign keys keep data valid at the source.
+            learn:
+              - NOT NULL and UNIQUE
+              - CHECK constraints
+              - Foreign keys and ON DELETE
+            resources:
+              - { label: "Constraints (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/ddl-constraints.html", kind: docs }
+          - id: data-types
+            title: Choosing data types
+            summary: Pick types for money, time, text and JSON that will not bite you later.
+            learn:
+              - Numeric vs float for money
+              - timestamptz vs timestamp
+              - JSONB columns
+            resources:
+              - { label: "Data types (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/datatype.html", kind: docs }
+
+      - id: schema-migrations
+        title: Schema migrations
+        summary: Change a live schema in small, reversible steps that ship with the code.
+        lessons:
+          - id: migration-basics
+            title: Migration files
+            summary: Version schema changes in code and apply them in order on every environment.
+            learn:
+              - Up and down migrations
+              - Running migrations on deploy
+            resources:
+              - { label: "ALTER TABLE (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/sql-altertable.html", kind: docs }
+          - id: zero-downtime-migrations
+            title: Zero-downtime changes
+            summary: Expand, migrate and contract so old and new code both work during a deploy.
+            learn:
+              - Expand and contract
+              - Adding columns and indexes without long locks
+              - Backfilling in batches
+            resources:
+              - { label: "CREATE INDEX CONCURRENTLY (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/sql-createindex.html", kind: docs }
+              - { label: "Hussein Nasser on YouTube", url: "https://www.youtube.com/@hnasr", kind: video }
+
+  - level: intermediate
+    title: Performance and correctness
+    topics:
+      - id: indexes
+        title: Indexes
+        summary: An index turns a full table scan into a short lookup, and the wrong one costs writes for nothing.
+        lessons:
+          - id: index-anatomy
+            title: How an index works
+            summary: A B-tree index keeps keys sorted so the database can find rows in a few page reads.
+            learn:
+              - B-tree leaf and branch nodes
+              - Index lookup vs table scan
+            resources:
+              - { label: "Anatomy of an index (Use The Index, Luke)", url: "https://use-the-index-luke.com/sql/anatomy", kind: article }
+              - { label: "Indexes (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/indexes.html", kind: docs }
+          - id: composite-indexes
+            title: Composite and covering indexes
+            summary: Column order in a multi-column index decides which queries it helps.
+            learn:
+              - Leftmost prefix rule
+              - Index-only scans
+              - Partial indexes
+            resources:
+              - { label: "Use The Index, Luke", url: "https://use-the-index-luke.com/", kind: article }
+              - { label: "Hussein Nasser on YouTube", url: "https://www.youtube.com/@hnasr", kind: video }
+          - id: index-types
+            title: Other index types
+            optional: true
+            summary: Hash, GIN, GiST, BRIN and vector indexes for data B-trees handle badly.
+            learn:
+              - GIN for JSONB and full-text search
+              - BRIN for large ordered tables
+              - Vector indexes for embeddings
+            resources:
+              - { label: "Index types (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/indexes-types.html", kind: docs }
+              - post: building-a-production-rag-pipeline-on-aws-lambda-pgvector
+
+      - id: query-plans
+        title: Query plans
+        summary: EXPLAIN shows what the database will actually do, which is the only honest answer to "why is this slow".
+        lessons:
+          - id: reading-explain
+            title: Reading EXPLAIN output
+            summary: Read plan nodes, costs and row estimates from the inside out.
+            learn:
+              - Seq scan, index scan, bitmap scan
+              - Estimated vs actual rows
+              - EXPLAIN ANALYZE and BUFFERS
+            resources:
+              - { label: "Using EXPLAIN (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/using-explain.html", kind: docs }
+              - { label: "Use The Index, Luke", url: "https://use-the-index-luke.com/", kind: article }
+          - id: join-algorithms
+            title: Join algorithms
+            summary: Nested loop, hash join and merge join, and when the planner picks each.
+            learn:
+              - Nested loop with an index
+              - Hash join memory use
+              - Merge join on sorted input
+            resources:
+              - { label: "CMU 15-445 Intro to Database Systems", url: "https://15445.courses.cs.cmu.edu/", kind: course }
+          - id: statistics-planner
+            title: Statistics and the planner
+            optional: true
+            summary: The planner guesses from table statistics, and stale statistics give bad plans.
+            learn:
+              - ANALYZE and histograms
+              - Correlated columns
+            resources:
+              - { label: "Statistics used by the planner (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/planner-stats.html", kind: docs }
+
+      - id: transactions-isolation
+        title: Transactions and isolation
+        summary: Isolation levels decide which anomalies concurrent transactions can see.
+        lessons:
+          - id: transaction-basics
+            title: Transactions
+            summary: Group statements so they commit or roll back together.
+            learn:
+              - BEGIN, COMMIT, ROLLBACK
+              - Savepoints
+            resources:
+              - { label: "PostgreSQL tutorial: transactions", url: "https://www.postgresql.org/docs/current/tutorial-transactions.html", kind: docs }
+          - id: isolation-levels
+            title: Isolation levels and anomalies
+            summary: Dirty reads, non-repeatable reads, phantoms and write skew, and which level stops each.
+            learn:
+              - Read committed vs repeatable read
+              - Serializable
+              - Write skew
+            resources:
+              - { label: "Transaction isolation (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/transaction-iso.html", kind: docs }
+              - { label: "Hussein Nasser on YouTube", url: "https://www.youtube.com/@hnasr", kind: video }
+          - id: consistency-models-db
+            title: Consistency models
+            optional: true
+            summary: How database isolation levels relate to the wider family of consistency models.
+            learn:
+              - Serializability vs linearizability
+              - Snapshot isolation
+            resources:
+              - { label: "Consistency models (Jepsen)", url: "https://jepsen.io/consistency", kind: article }
+
+      - id: locking-mvcc
+        title: Locking and MVCC
+        summary: How a database lets readers and writers work at the same time without corrupting data.
+        lessons:
+          - id: row-table-locks
+            title: Row and table locks
+            summary: Which statements take which locks, and how to see who is waiting.
+            learn:
+              - Row locks and SELECT FOR UPDATE
+              - Table lock modes
+              - pg_locks
+            resources:
+              - { label: "Explicit locking (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/explicit-locking.html", kind: docs }
+          - id: mvcc
+            title: MVCC
+            summary: Keep several versions of a row so readers never block writers.
+            learn:
+              - Row versions and snapshots
+              - Dead tuples
+            resources:
+              - { label: "Concurrency control (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/mvcc.html", kind: docs }
+              - { label: "CMU Database Group on YouTube", url: "https://www.youtube.com/@CMUDatabaseGroup", kind: video }
+          - id: deadlocks
+            title: Deadlocks
+            summary: Why two transactions can wait on each other forever and how to avoid it.
+            learn:
+              - Lock ordering
+              - Deadlock detection and retries
+            resources:
+              - { label: "Explicit locking (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/explicit-locking.html", kind: docs }
+              - { label: "Hussein Nasser on YouTube", url: "https://www.youtube.com/@hnasr", kind: video }
+          - id: vacuum
+            title: VACUUM and bloat
+            optional: true
+            summary: Clean up dead row versions so tables and indexes do not grow without limit.
+            learn:
+              - Autovacuum
+              - Transaction ID wraparound
+            resources:
+              - { label: "Routine vacuuming (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/routine-vacuuming.html", kind: docs }
+
+      - id: connection-pooling
+        title: Connection pooling
+        summary: Database connections are expensive, so reuse them instead of opening one per request.
+        lessons:
+          - id: why-pool
+            title: Why connections are expensive
+            summary: Each connection uses server memory, and too many of them slow everything down.
+            learn:
+              - Process per connection in PostgreSQL
+              - max_connections
+            resources:
+              - { label: "Connections and authentication (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/runtime-config-connection.html", kind: docs }
+              - { label: "Hussein Nasser on YouTube", url: "https://www.youtube.com/@hnasr", kind: video }
+          - id: poolers
+            title: PgBouncer and RDS Proxy
+            summary: Put a pooler between many app instances and the database.
+            learn:
+              - Session vs transaction pooling
+              - Pooling for serverless functions
+            resources:
+              - { label: "PgBouncer", url: "https://www.pgbouncer.org/", kind: tool }
+              - { label: "Amazon RDS Proxy (AWS docs)", url: "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-proxy.html", kind: docs }
+
+      - id: backups-recovery
+        title: Backups and recovery
+        summary: A backup only counts once you have restored from it.
+        lessons:
+          - id: logical-physical-backups
+            title: Logical and physical backups
+            summary: Dumps versus file-level copies, and what each one can restore.
+            learn:
+              - pg_dump and pg_restore
+              - Base backups
+            resources:
+              - { label: "Backup and restore (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/backup.html", kind: docs }
+          - id: point-in-time-recovery
+            title: Point-in-time recovery
+            summary: Replay archived WAL to restore the database to any moment.
+            learn:
+              - WAL archiving
+              - RPO and RTO
+              - Restore drills
+            resources:
+              - { label: "Continuous archiving and PITR (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/continuous-archiving.html", kind: docs }
+
+  - level: advanced
+    title: Scale and internals
+    topics:
+      - id: db-replication
+        title: Replication
+        summary: Copy data to other servers for read scaling and failover.
+        lessons:
+          - id: streaming-replication
+            title: Streaming replication
+            summary: Ship WAL from a primary to standbys that can take over.
+            learn:
+              - Primary and standby
+              - Sync vs async replication
+              - Failover
+            resources:
+              - { label: "High availability and replication (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/high-availability.html", kind: docs }
+              - { label: "Hussein Nasser on YouTube", url: "https://www.youtube.com/@hnasr", kind: video }
+          - id: logical-replication
+            title: Logical replication and CDC
+            summary: Replicate row changes to other databases or streams.
+            learn:
+              - Publications and subscriptions
+              - Change data capture
+            resources:
+              - { label: "Logical replication (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/logical-replication.html", kind: docs }
+          - id: replica-reads
+            title: Reading from replicas
+            optional: true
+            summary: Route reads to replicas without showing users stale data they just wrote.
+            learn:
+              - Replication lag
+              - Read-your-writes routing
+            resources:
+              - { label: "Designing Data-Intensive Applications", url: "https://dataintensive.net/", kind: article }
+
+      - id: partitioning-sharding
+        title: Partitioning and sharding
+        summary: Split big tables inside one server, or split data across many servers.
+        lessons:
+          - id: table-partitioning
+            title: Table partitioning
+            summary: Break one large table into range, list or hash partitions.
+            learn:
+              - Declarative partitioning
+              - Partition pruning
+              - Dropping old partitions
+            resources:
+              - { label: "Table partitioning (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/ddl-partitioning.html", kind: docs }
+          - id: sharding-db
+            title: Sharding across servers
+            summary: Pick a shard key and route each query to the right server.
+            learn:
+              - Shard keys and hot spots
+              - Cross-shard queries and transactions
+            resources:
+              - { label: "Vitess docs", url: "https://vitess.io/docs/", kind: docs }
+              - { label: "Hussein Nasser on YouTube", url: "https://www.youtube.com/@hnasr", kind: video }
+
+      - id: nosql-tradeoffs
+        title: NoSQL trade-offs
+        summary: Non-relational stores give up joins or transactions to gain scale or flexibility.
+        lessons:
+          - id: key-value-stores
+            title: Key-value and caching stores
+            summary: Simple, fast lookups by key, often in memory.
+            learn:
+              - Redis data structures
+              - Persistence and eviction
+            resources:
+              - post: connect-redis-elasticache-to-application-in-amazon-lightsail-instance
+              - { label: "Redis docs", url: "https://redis.io/docs/latest/", kind: docs }
+          - id: document-stores
+            title: Document stores
+            summary: Store JSON-like documents and design around how they are read.
+            learn:
+              - Embedding vs referencing
+              - Schema flexibility and its cost
+            resources:
+              - { label: "MongoDB docs", url: "https://www.mongodb.com/docs/", kind: docs }
+          - id: wide-column-dynamo
+            title: DynamoDB and wide-column stores
+            summary: Model data around access patterns with partition and sort keys.
+            learn:
+              - Partition and sort keys
+              - Single-table design
+              - Dynamo-style quorums
+            resources:
+              - { label: "What is DynamoDB? (AWS docs)", url: "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html", kind: docs }
+              - { label: "Apache Cassandra docs", url: "https://cassandra.apache.org/doc/latest/", kind: docs }
+
+      - id: storage-engines
+        title: Storage engines
+        summary: How a database lays data out on disk decides its read and write costs.
+        lessons:
+          - id: pages-heap
+            title: Pages and heap files
+            summary: Data lives in fixed-size pages read through a buffer pool.
+            learn:
+              - Pages and tuples
+              - The buffer pool
+            resources:
+              - { label: "Database page layout (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/storage-page-layout.html", kind: docs }
+              - { label: "CMU 15-445 Intro to Database Systems", url: "https://15445.courses.cs.cmu.edu/", kind: course }
+          - id: btree-internals
+            title: B-tree internals
+            summary: How B+trees split, merge and stay balanced as rows change.
+            learn:
+              - Page splits
+              - Fill factor
+            resources:
+              - { label: "CMU Database Group on YouTube", url: "https://www.youtube.com/@CMUDatabaseGroup", kind: video }
+              - { label: "Database Internals (Alex Petrov)", url: "https://www.databass.dev/", kind: article }
+          - id: lsm-trees
+            title: LSM trees
+            summary: Buffer writes in memory and merge sorted files on disk for write-heavy loads.
+            learn:
+              - Memtables and SSTables
+              - Compaction
+              - Bloom filters
+            resources:
+              - { label: "RocksDB wiki", url: "https://github.com/facebook/rocksdb/wiki", kind: docs }
+              - { label: "Designing Data-Intensive Applications", url: "https://dataintensive.net/", kind: article }
+
+      - id: wal-durability
+        title: Write-ahead logging
+        summary: Log every change before applying it, so a crash never loses committed data.
+        lessons:
+          - id: wal-basics
+            title: How the WAL works
+            summary: Write the log first, flush it on commit, and redo from it after a crash.
+            learn:
+              - Log before data
+              - fsync and commit latency
+              - Checkpoints
+            resources:
+              - { label: "Write-ahead logging (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/wal-intro.html", kind: docs }
+              - { label: "CMU 15-445 Intro to Database Systems", url: "https://15445.courses.cs.cmu.edu/", kind: course }
+          - id: crash-recovery
+            title: Crash recovery
+            optional: true
+            summary: How recovery algorithms like ARIES replay and undo work after a crash.
+            learn:
+              - Redo and undo
+              - Log sequence numbers
+            resources:
+              - { label: "CMU Database Group on YouTube", url: "https://www.youtube.com/@CMUDatabaseGroup", kind: video }
+
+      - id: query-execution
+        title: Query execution
+        summary: How a parsed query becomes a plan and then a stream of rows.
+        lessons:
+          - id: execution-models
+            title: Execution models
+            summary: Iterator, vectorised and compiled execution, and why analytics engines differ.
+            learn:
+              - The iterator model
+              - Vectorised execution
+              - Row vs column storage
+            resources:
+              - { label: "CMU 15-721 Advanced Database Systems", url: "https://15721.courses.cs.cmu.edu/", kind: course }
+          - id: query-optimizer
+            title: The query optimiser
+            summary: How cost-based optimisers search join orders and pick a plan.
+            learn:
+              - Cost models
+              - Join order search
+            resources:
+              - { label: "CMU 15-445 Intro to Database Systems", url: "https://15445.courses.cs.cmu.edu/", kind: course }
+          - id: read-a-database
+            title: Read a real database's code
+            optional: true
+            summary: Study a small, well-documented engine to see the pieces fit together.
+            learn:
+              - SQLite's architecture
+              - Tracing one query through the code
+            resources:
+              - { label: "Architecture of SQLite", url: "https://www.sqlite.org/arch.html", kind: docs }
+
+      - id: operating-databases
+        title: Operating databases in production
+        summary: Monitor, tune and upgrade a database that real users depend on.
+        lessons:
+          - id: monitoring-db
+            title: Monitoring and slow queries
+            summary: Find the queries that cost the most and watch the signals that predict trouble.
+            learn:
+              - pg_stat_statements
+              - Cache hit ratio and replication lag
+            resources:
+              - { label: "pg_stat_statements (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/pgstatstatements.html", kind: docs }
+              - { label: "Hussein Nasser on YouTube", url: "https://www.youtube.com/@hnasr", kind: video }
+          - id: tuning-memory
+            title: Memory and configuration tuning
+            summary: Size shared buffers, work memory and checkpoints for your workload.
+            learn:
+              - shared_buffers and work_mem
+              - Checkpoint settings
+            resources:
+              - { label: "Resource consumption (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/runtime-config-resource.html", kind: docs }
+          - id: major-upgrades
+            title: Major version upgrades
+            optional: true
+            summary: Upgrade with pg_upgrade or logical replication and keep downtime short.
+            learn:
+              - pg_upgrade
+              - Upgrading through a replica
+            resources:
+              - { label: "Upgrading a PostgreSQL cluster (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/upgrading.html", kind: docs }
