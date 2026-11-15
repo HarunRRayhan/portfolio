@@ -10,10 +10,11 @@ use App\Http\Controllers\Admin\ContactSubmissionController as AdminContactSubmis
 use App\Http\Controllers\Admin\MediaItemController;
 use App\Http\Controllers\Admin\MediumCrosspostController;
 use App\Http\Controllers\Admin\NewsletterController as AdminNewsletterController;
+use App\Http\Controllers\Admin\RoadmapAccessController as AdminRoadmapAccessController;
 use App\Http\Controllers\Admin\ScheduleBlogPostController;
 use App\Http\Controllers\Admin\ShortLinkController;
-use App\Http\Controllers\Admin\RoadmapAccessController as AdminRoadmapAccessController;
 use App\Http\Controllers\Admin\SponsorshipController as AdminSponsorshipController;
+use App\Http\Controllers\Auth\AgreementController;
 use App\Http\Controllers\BlogCommentController;
 use App\Http\Controllers\Consultation\BookController;
 use App\Http\Controllers\Consultation\BookingAccessController;
@@ -643,6 +644,10 @@ Route::post('/contact', [ContactController::class, 'submit'])
 Route::post('/subscribe', [NewsletterController::class, 'subscribe'])
     ->middleware('throttle:5,1')
     ->name('subscribe');
+
+Route::post('/newsletter/account', [AgreementController::class, 'subscribe'])
+    ->middleware(['auth', 'throttle:10,1'])
+    ->name('newsletter.account');
 
 Route::get('/newsletter/confirm/{subscriber}', [NewsletterController::class, 'confirm'])
     ->where('subscriber', '[0-9]+')

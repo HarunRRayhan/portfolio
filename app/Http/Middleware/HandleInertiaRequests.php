@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Controllers\Auth\AgreementController;
 use App\Models\Subscriber;
 use App\Support\CaseStudyRepository;
 use App\Support\ContentLinks;
@@ -58,6 +59,9 @@ class HandleInertiaRequests extends Middleware
                 : [],
             'featuredCaseStudies' => fn () => $request->is('/') ? $caseStudies->featured(3) : [],
             'newsletter' => [
+                // Signed-in readers whose account email already gets the newsletter never see the idle popup.
+                'accountSubscribed' => fn (): bool => (bool) ($request->user()?->email_verified_at && $request->user()->email && Subscriber::isSubscribed($request->user()->email)),
+                'offerAfterSignup' => fn (): bool => (bool) ($request->user() && $request->session()->pull(AgreementController::NEWSLETTER_OFFER_KEY, false)),
                 'subscriberCount' => function (): int {
                     try {
                         return (int) Cache::remember(

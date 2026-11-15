@@ -14,7 +14,6 @@ import { FormEventHandler, useState } from "react";
 export default function Welcome({ hasPasskey }: { hasPasskey: boolean }) {
     const { data, setData, post, processing, errors } = useForm({
         terms: false,
-        newsletter: true,
     });
     const [busy, setBusy] = useState(false);
     const [passkeyError, setPasskeyError] = useState<string | null>(null);
@@ -98,19 +97,6 @@ export default function Welcome({ hasPasskey }: { hasPasskey: boolean }) {
                 </span>
             </label>
             <InputError message={errors.terms} className="mt-2" />
-
-            <label className="mt-3 flex items-start gap-3 text-sm text-gray-700">
-                <Checkbox
-                    name="newsletter"
-                    className="mt-0.5"
-                    checked={data.newsletter}
-                    onChange={(e) => setData("newsletter", e.target.checked)}
-                />
-                <span>
-                    Add my email to the weekly newsletter (new posts and
-                    roadmap updates). Unsubscribe anytime.
-                </span>
-            </label>
 
             {hasPasskey ? (
                 <div className="mt-6">

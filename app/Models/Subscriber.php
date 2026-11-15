@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use App\Mail\SubscribeConfirmationMail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Mail\SubscribeConfirmationMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
@@ -51,6 +51,22 @@ class Subscriber extends Model
         ));
 
         return true;
+    }
+
+    /** Whether this address already gets the newsletter. */
+    public static function isSubscribed(string $email): bool
+    {
+        return static::subscribed()->whereRaw('lower(email) = ?', [strtolower(trim($email))])->exists();
+    }
+
+    /** Subscribe an address whose ownership sign-in already proved, so no confirm mail. */
+    public static function subscribeVerified(string $email, string $source): void
+    {
+        $email = strtolower(trim($email));
+        $subscriber = static::whereRaw('lower(email) = ?', [$email])->first()
+            ?? new static(['email' => $email, 'source' => $source]);
+        $subscriber->status = 'subscribed';
+        $subscriber->save();
     }
 
     protected $fillable = [
