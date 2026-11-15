@@ -1,0 +1,262 @@
+slug: internet-networking
+title: How the Internet Works
+summary: From what a network is to how BGP holds the whole internet together. Learn the layers in order, one topic at a time.
+order: 1
+
+stages:
+  - level: beginner
+    title: The basics
+    steps:
+      - id: what-is-a-network
+        title: What a network is
+        summary: Two or more devices that can send data to each other, and how many small networks join into the internet.
+        learn:
+          - LAN vs WAN
+          - Routers, switches and modems
+          - The internet as a network of networks
+        resources:
+          - { label: "What is the Internet? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-the-internet/", kind: article }
+          - { label: "What is a LAN? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-a-lan/", kind: article }
+
+      - id: ip-addresses
+        title: IP addresses
+        summary: Every device on a network needs an address so packets know where to go.
+        learn:
+          - IPv4 format
+          - Public vs private addresses
+          - How your device gets an address (DHCP)
+        resources:
+          - { label: "What is my IP address? (Cloudflare)", url: "https://www.cloudflare.com/learning/dns/glossary/what-is-my-ip-address/", kind: article }
+          - { label: "Internet Protocol (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/internet-protocol/", kind: article }
+          - { label: "RFC 1918: private address space", url: "https://www.rfc-editor.org/rfc/rfc1918", kind: docs }
+
+      - id: packets
+        title: Packets
+        summary: Data travels in small chunks with a header that says where each chunk is going.
+        learn:
+          - Why data is split into packets
+          - Headers vs payload
+          - MTU and why packet size matters
+        resources:
+          - { label: "What is a packet? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-a-packet/", kind: article }
+          - { label: "What is MTU? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-mtu/", kind: article }
+
+      - id: ports
+        title: Ports
+        summary: One address, many programs. Ports tell the machine which program a packet is for.
+        learn:
+          - Well-known ports (80, 443, 22, 53)
+          - Source vs destination port
+          - Why firewalls care about ports
+        resources:
+          - { label: "What is a computer port? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-a-computer-port/", kind: article }
+
+      - id: client-server
+        title: Clients and servers
+        summary: Most of the web is a client asking and a server answering. Know who does what.
+        learn:
+          - Request and response
+          - Client-side vs server-side work
+        resources:
+          - { label: "Client-side vs server-side (Cloudflare)", url: "https://www.cloudflare.com/learning/serverless/glossary/client-side-vs-server-side/", kind: article }
+
+      - id: dns-basics
+        title: DNS
+        summary: How a name like harun.dev turns into an IP address before anything else can happen.
+        learn:
+          - Resolvers, root, TLD and authoritative servers
+          - A, AAAA, CNAME, MX and TXT records
+          - TTL and caching
+        resources:
+          - { label: "What is DNS? (Cloudflare)", url: "https://www.cloudflare.com/learning/dns/what-is-dns/", kind: article }
+          - { label: "DNS records (Cloudflare)", url: "https://www.cloudflare.com/learning/dns/dns-records/", kind: article }
+          - { label: "How DNS works (comic)", url: "https://howdns.works/", kind: article }
+          - { label: "Mess With DNS (hands-on)", url: "https://messwithdns.net/", kind: tool }
+
+      - id: http-basics
+        title: HTTP
+        summary: The language browsers and servers speak. Methods, status codes and headers.
+        learn:
+          - GET, POST, PUT, DELETE
+          - Status codes (200, 301, 404, 500)
+          - Headers and cookies
+        resources:
+          - { label: "An overview of HTTP (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview", kind: docs }
+          - { label: "RFC 9110: HTTP semantics", url: "https://www.rfc-editor.org/rfc/rfc9110", kind: docs }
+
+      - id: how-a-page-loads
+        title: What happens when you open a website
+        summary: Put it all together, from typing a URL to pixels on screen.
+        learn:
+          - DNS lookup, TCP connect, TLS, HTTP request
+          - How the browser renders the response
+        resources:
+          - { label: "How browsers work (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/Performance/How_browsers_work", kind: docs }
+          - { label: "High Performance Browser Networking (free book)", url: "https://hpbn.co/", kind: course }
+
+  - level: intermediate
+    title: How the pieces fit
+    steps:
+      - id: osi-model
+        title: The 7 OSI layers
+        summary: A shared map of networking, from cables (layer 1) to apps (layer 7), and the TCP/IP model used in practice.
+        learn:
+          - What each of the 7 layers does
+          - OSI vs the TCP/IP model
+          - Where common protocols sit
+        resources:
+          - { label: "What is the OSI model? (Cloudflare)", url: "https://www.cloudflare.com/learning/ddos/glossary/open-systems-interconnection-model-osi/", kind: article }
+          - { label: "What is TCP/IP? (Cloudflare)", url: "https://www.cloudflare.com/learning/ddos/glossary/tcp-ip/", kind: article }
+
+      - id: tcp-vs-udp
+        title: TCP vs UDP
+        summary: Reliable, ordered delivery vs fast, fire-and-forget. When each one wins.
+        learn:
+          - The TCP three-way handshake
+          - Retransmission and congestion control
+          - Why video calls and DNS use UDP
+        resources:
+          - { label: "What is UDP? (Cloudflare)", url: "https://www.cloudflare.com/learning/ddos/glossary/user-datagram-protocol-udp/", kind: article }
+          - { label: "RFC 9293: TCP", url: "https://www.rfc-editor.org/rfc/rfc9293", kind: docs }
+          - { label: "Beej's Guide to Network Programming", url: "https://beej.us/guide/bgnet/", kind: course }
+
+      - id: tls-https
+        title: TLS and HTTPS
+        summary: How a browser and a server agree on keys and prove who they are before sending anything private.
+        learn:
+          - The TLS handshake
+          - Certificates and certificate authorities
+          - TLS 1.3 vs older versions
+        resources:
+          - { label: "What is HTTPS? (Cloudflare)", url: "https://www.cloudflare.com/learning/ssl/what-is-https/", kind: article }
+          - { label: "What happens in a TLS handshake? (Cloudflare)", url: "https://www.cloudflare.com/learning/ssl/what-happens-in-a-tls-handshake/", kind: article }
+          - { label: "RFC 8446: TLS 1.3", url: "https://www.rfc-editor.org/rfc/rfc8446", kind: docs }
+
+      - id: subnets-cidr
+        title: Subnets and CIDR
+        summary: Splitting address space into smaller networks, and reading notation like 10.0.0.0/16.
+        learn:
+          - Subnet masks
+          - CIDR notation
+          - Planning subnets for a VPC
+        resources:
+          - { label: "What is a subnet? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-a-subnet/", kind: article }
+          - { label: "Subnet calculator", url: "https://www.subnet-calculator.com/cidr.php", kind: tool }
+
+      - id: nat
+        title: NAT
+        summary: How a whole house or office shares one public IP address.
+        learn:
+          - Source NAT and port mapping
+          - Why NAT breaks inbound connections
+          - NAT gateways in the cloud
+        resources:
+          - { label: "Network address translation (Wikipedia)", url: "https://en.wikipedia.org/wiki/Network_address_translation", kind: article }
+
+      - id: routing
+        title: Routing
+        summary: How each router picks the next hop, and how packets cross many networks to reach you.
+        learn:
+          - Routing tables and default routes
+          - Hops and traceroute
+          - Static vs dynamic routing
+        resources:
+          - { label: "What is routing? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-routing/", kind: article }
+
+      - id: cdns
+        title: CDNs
+        summary: Copies of content close to users so pages load fast and origins stay calm.
+        learn:
+          - Edge caching and cache keys
+          - Origin shielding
+          - Purging and TTLs
+        resources:
+          - { label: "What is a CDN? (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/what-is-a-cdn/", kind: article }
+          - post: add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail
+
+      - id: load-balancers
+        title: Load balancers
+        summary: Spreading traffic over many servers, and the algorithms that decide who gets the next request.
+        learn:
+          - Layer 4 vs layer 7 load balancing
+          - Round robin, least connections, hashing
+          - Health checks
+        resources:
+          - post: eight-load-balancer-algorithms
+          - { label: "What is load balancing? (Cloudflare)", url: "https://www.cloudflare.com/learning/performance/what-is-load-balancing/", kind: article }
+          - post: add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances
+
+  - level: advanced
+    title: How the internet holds together
+    steps:
+      - id: autonomous-systems
+        title: Autonomous systems
+        summary: The internet is about 100,000 networks, each run by someone, each with its own number.
+        learn:
+          - What an AS and an ASN are
+          - Transit vs peering
+        resources:
+          - { label: "What is an autonomous system? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-an-autonomous-system/", kind: article }
+
+      - id: bgp
+        title: BGP
+        summary: The protocol networks use to tell each other which addresses they can reach. The internet's routing map.
+        learn:
+          - How BGP announcements spread
+          - Path selection
+          - BGP hijacks and route leaks, and RPKI
+        resources:
+          - { label: "What is BGP? (Cloudflare)", url: "https://www.cloudflare.com/learning/security/glossary/what-is-bgp/", kind: article }
+          - { label: "What is BGP hijacking? (Cloudflare)", url: "https://www.cloudflare.com/learning/security/glossary/bgp-hijacking/", kind: article }
+          - { label: "RFC 4271: BGP-4", url: "https://www.rfc-editor.org/rfc/rfc4271", kind: docs }
+
+      - id: internet-exchange-points
+        title: Internet exchange points
+        summary: The buildings where networks plug into each other directly.
+        learn:
+          - Why IXPs make traffic cheaper and faster
+          - Public vs private peering
+        resources:
+          - { label: "What is an IXP? (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/glossary/internet-exchange-point-ixp/", kind: article }
+
+      - id: anycast
+        title: Anycast
+        summary: One IP address announced from many places, so users reach the closest one.
+        learn:
+          - Anycast vs unicast
+          - How DNS and CDNs use anycast
+        resources:
+          - { label: "What is an anycast network? (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/glossary/anycast-network/", kind: article }
+
+      - id: ipv6
+        title: IPv6
+        summary: 128-bit addresses, why we ran out of IPv4, and how both run side by side.
+        learn:
+          - IPv6 address format
+          - Dual stack
+          - No NAT by default
+        resources:
+          - { label: "IPv6 (Wikipedia)", url: "https://en.wikipedia.org/wiki/IPv6", kind: article }
+          - { label: "RFC 8200: IPv6", url: "https://www.rfc-editor.org/rfc/rfc8200", kind: docs }
+
+      - id: quic-http3
+        title: QUIC and HTTP/3
+        summary: HTTP over UDP, with TLS built in and no head-of-line blocking.
+        learn:
+          - What was wrong with TCP for the web
+          - How QUIC streams work
+          - Connection migration
+        resources:
+          - { label: "What is HTTP/3? (Cloudflare)", url: "https://www.cloudflare.com/learning/performance/what-is-http3/", kind: article }
+          - { label: "RFC 9000: QUIC", url: "https://www.rfc-editor.org/rfc/rfc9000", kind: docs }
+
+      - id: ddos
+        title: DDoS and how it is stopped
+        summary: Floods of traffic at every layer, and how edge networks soak them up.
+        learn:
+          - Volumetric, protocol and application attacks
+          - Rate limiting and WAFs
+          - Why anycast helps
+        resources:
+          - { label: "What is a DDoS attack? (Cloudflare)", url: "https://www.cloudflare.com/learning/ddos/what-is-a-ddos-attack/", kind: article }
+          - post: aws-waf-cloudfront-solo-dev
