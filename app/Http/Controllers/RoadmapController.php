@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\RoadmapAccess;
 use App\Support\RoadmapRepository;
 use App\Support\SeoCatalog;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -117,6 +118,63 @@ class RoadmapController extends Controller
             'canonicalUrl' => $canonicalUrl,
             'seo' => SeoCatalog::forMedia($roadmap['title'].' roadmap | Harun R. Rayhan', $roadmap['summary'], $canonicalUrl)->toArray(),
         ]);
+    }
+
+    public function start(Request $request, string $slug): RedirectResponse
+    {
+        $this->roadmapOr404($slug);
+        RoadmapStart::firstOrCreate(['user_id' => $request->user()->id, 'roadmap_slug' => $slug]);
+
+        return back();
+    }
+
+    public function complete(Request $request, string $slug, string $step): RedirectResponse
+    {
+        $this->openStepOr404($request, $slug, $step);
+        $user = $request->user();
+        RoadmapStart::firstOrCreate(['user_id' => $user->id, 'roadmap_slug' => $slug]);
+        RoadmapProgress::firstOrCreate(
+            ['user_id' => $user->id, 'roadmap_slug' => $slug, 'step_id' => $step],
+            ['completed_at' => now()],
+        );
+
+        return back();
+    }
+
+    public function uncomplete(Request $request, string $slug, string $step): RedirectResponse
+    {
+        $this->openStepOr404($request, $slug, $step);
+        RoadmapProgress::where(['user_id' => $request->user()->id, 'roadmap_slug' => $slug, 'step_id' => $step])->delete();
+
+        return back();
+    }
+
+    public function love(Request $request, string $slug): RedirectResponse
+    {
+        return $this->toggle($request, $slug, RoadmapReaction::LOVE);
+    }
+
+    public function wishlist(Request $request, string $slug): RedirectResponse
+    {
+        return $this->toggle($request, $slug, RoadmapReaction::WISHLIST);
+    }
+
+    private function toggle(Request $request, string $slug, string $type): RedirectResponse
+    {
+        $this->roadmapOr404($slug);
+        $key = ['user_id' => $request->user()->id, 'roadmap_slug' => $slug, 'type' => $type];
+        if (RoadmapReaction::where($key)->delete() === 0) {
+            RoadmapReaction::firstOrCreate($key);
+        }
+
+        return back();
+    }
+
+    private function openStepOr404(Request $request, string $slug, string $step): void
+    {
+        $level = $this->repo->stepIds($this->roadmapOr404($slug))[$step] ?? null;
+        abort_unless($level, 404);
+        abort_if($level !== RoadmapRepository::FREE_LEVEL && ! RoadmapAccess::canAccessPaid($request->user()), 403);
     }
 
     /** @return array<string, mixed> */

@@ -88,6 +88,8 @@ class AppServiceProvider extends ServiceProvider
         // rotating keys can't be used to dodge the limit. Unauthenticated
         // requests never reach this limiter -- auth:sanctum rejects them
         // with a 401 first in the api/v1 middleware group.
+        RateLimiter::for('roadmap-actions', fn (Request $request) => Limit::perMinute(60)->by('user:'.$request->user()?->id));
+
         RateLimiter::for('api-key', function (Request $request) {
             $token = $request->user()?->currentAccessToken();
             abort_unless($token instanceof PersonalAccessToken, 403, 'A personal API key is required.');

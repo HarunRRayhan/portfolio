@@ -657,6 +657,17 @@ Route::get('/newsletter/c/{delivery}', [NewsletterController::class, 'click'])
 
 Route::get('/roadmaps', [RoadmapController::class, 'index'])->name('roadmaps.index');
 Route::get('/roadmaps/{slug}', [RoadmapController::class, 'show'])->where('slug', '[a-z0-9-]{1,64}')->name('roadmaps.show');
+Route::middleware(['auth', 'throttle:roadmap-actions'])
+    ->prefix('roadmaps/{slug}')
+    ->where(['slug' => '[a-z0-9-]{1,64}', 'step' => '[a-z0-9-]{1,64}'])
+    ->name('roadmaps.')
+    ->group(function () {
+        Route::post('/start', [RoadmapController::class, 'start'])->name('start');
+        Route::post('/steps/{step}', [RoadmapController::class, 'complete'])->name('steps.complete');
+        Route::delete('/steps/{step}', [RoadmapController::class, 'uncomplete'])->name('steps.uncomplete');
+        Route::post('/love', [RoadmapController::class, 'love'])->name('love');
+        Route::post('/wishlist', [RoadmapController::class, 'wishlist'])->name('wishlist');
+    });
 
 Route::get('/case-studies', function (Request $request) {
     if ($request->getRequestUri() === '/case-studies/') {
