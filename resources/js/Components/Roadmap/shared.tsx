@@ -9,10 +9,8 @@ export type Resource = { label: string; url: string; kind: string; own: boolean 
 export type Lesson = {
   id: string
   title: string
-  summary: string
   optional: boolean
   done: boolean
-  learn?: string[]
   resources?: Resource[]
   searchUrl?: string
   prompt?: string

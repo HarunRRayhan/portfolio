@@ -22,6 +22,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\OperationalHealthController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RoadmapCommentController;
 use App\Http\Controllers\RoadmapController;
 use App\Http\Controllers\Sponsorship\GithubSponsorsWebhookController;
 use App\Http\Controllers\Sponsorship\ScanRequestController;
@@ -672,6 +673,12 @@ Route::get('/newsletter/c/{delivery}', [NewsletterController::class, 'click'])
 
 Route::get('/roadmaps', [RoadmapController::class, 'index'])->name('roadmaps.index');
 Route::get('/roadmaps/{slug}', [RoadmapController::class, 'show'])->where('slug', '[a-z0-9-]{1,64}')->name('roadmaps.show');
+Route::delete('/roadmaps/comments/{comment}', [RoadmapCommentController::class, 'destroy'])->where('comment', '[0-9]{1,18}')->middleware(['auth', 'throttle:roadmap-actions'])->name('roadmaps.comments.destroy');
+Route::get('/roadmaps/{slug}/{topic}/{lesson}', [RoadmapController::class, 'lesson'])->where(['slug' => '[a-z0-9-]{1,64}', 'topic' => '[a-z0-9-]{1,64}', 'lesson' => '[a-z0-9-]{1,64}'])->name('roadmaps.lesson');
+Route::middleware(['auth', 'throttle:10,1'])->where(['slug' => '[a-z0-9-]{1,64}', 'topic' => '[a-z0-9-]{1,64}', 'lesson' => '[a-z0-9-]{1,64}'])->group(function () {
+    Route::post('/roadmaps/{slug}/{topic}/comments', [RoadmapCommentController::class, 'storeTopic'])->name('roadmaps.topic.comments');
+    Route::post('/roadmaps/{slug}/{topic}/{lesson}/comments', [RoadmapCommentController::class, 'storeLesson'])->name('roadmaps.lesson.comments');
+});
 Route::get('/roadmaps/{slug}/{topic}', [RoadmapController::class, 'topic'])->where(['slug' => '[a-z0-9-]{1,64}', 'topic' => '[a-z0-9-]{1,64}'])->name('roadmaps.topic');
 Route::post('/roadmaps/{slug}/view', [RoadmapController::class, 'view'])->where('slug', '[a-z0-9-]{1,64}')->middleware('throttle:30,1')->name('roadmaps.view');
 Route::middleware(['auth', 'throttle:roadmap-actions'])

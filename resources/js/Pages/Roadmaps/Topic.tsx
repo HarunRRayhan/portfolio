@@ -1,9 +1,8 @@
 import { Link, router } from '@inertiajs/react'
 import { ArrowLeft, ArrowRight, Check, ChevronRight, Lock, Share2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
 import { ShareButton } from '@/Components/ShareButton'
-import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/Components/ui/sheet'
-import { type Lesson, LessonDetail, OptionalTag, ProgressBar, UnlockCard, levelLabel } from '@/Components/Roadmap/shared'
+import { Comments, type RoadmapComment } from '@/Components/Roadmap/Comments'
+import { type Lesson, OptionalTag, ProgressBar, UnlockCard, levelLabel } from '@/Components/Roadmap/shared'
 import { cn } from '@/lib/utils'
 
 type Props = {
@@ -16,14 +15,14 @@ type Props = {
   prev: { id: string; title: string } | null
   next: { id: string; title: string } | null
   canonicalUrl: string
+  comments: RoadmapComment[]
+  commentCount: number
 }
 
-export default function RoadmapTopic({ roadmap, topic, lessons, locked, hasAccount, percent, prev, next, canonicalUrl }: Props) {
+export default function RoadmapTopic({ roadmap, topic, lessons, locked, hasAccount, percent, prev, next, canonicalUrl, comments, commentCount }: Props) {
   const base = `/roadmaps/${roadmap.slug}`
   const here = `${base}/${topic.id}`
   const loginHref = `/login?redirect=${encodeURIComponent(here)}`
-  const [openId, setOpenId] = useState<string | null>(null)
-  const open = lessons.find((l) => l.id === openId) ?? null
 
   const toggle = (lesson: Lesson) => {
     if (!hasAccount) {
@@ -32,13 +31,6 @@ export default function RoadmapTopic({ roadmap, topic, lessons, locked, hasAccou
     }
     router[lesson.done ? 'delete' : 'post'](`${base}/lessons/${lesson.id}`, {}, { preserveScroll: true })
   }
-
-  // Deep links like #lesson-id open that lesson.
-  useEffect(() => {
-    const id = window.location.hash.slice(1)
-    if (id && lessons.some((l) => l.id === id)) setOpenId(id)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   return (
     <div className="pt-24">
@@ -99,13 +91,13 @@ export default function RoadmapTopic({ roadmap, topic, lessons, locked, hasAccou
                   {lesson.done && <Check className="h-3.5 w-3.5" />}
                 </button>
               )}
-              <button onClick={() => setOpenId(lesson.id)} className="min-w-0 flex-1 text-left">
+              <Link href={`${here}/${lesson.id}`} className="min-w-0 flex-1 text-left">
                 <span className="flex flex-wrap items-center gap-2">
                   <span className="text-xs tabular-nums text-slate-400">{i + 1}.</span>
                   <span className={cn('font-semibold', lesson.done ? 'text-slate-500 line-through decoration-emerald-500/60' : 'text-slate-900 dark:text-white')}>{lesson.title}</span>
                   {lesson.optional && <OptionalTag />}
                 </span>
-              </button>
+              </Link>
               <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
             </li>
           ))}
@@ -125,34 +117,10 @@ export default function RoadmapTopic({ roadmap, topic, lessons, locked, hasAccou
             </Link>
           )}
         </nav>
+
+        <Comments comments={comments} count={commentCount} postUrl={`${here}/comments`} loginHref={loginHref} />
       </section>
 
-      <Sheet open={!!open} onOpenChange={(o) => !o && setOpenId(null)}>
-        <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
-          {open && (
-            <>
-              <p className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                {topic.title} {open.optional && <OptionalTag />}
-              </p>
-              <SheetTitle className="mt-1 pr-8 text-2xl">{open.title}</SheetTitle>
-              <SheetDescription className="sr-only">Resources for {open.title}</SheetDescription>
-              {locked ? (
-                <UnlockCard className="mt-6" />
-              ) : (
-                <>
-                  <button
-                    onClick={() => toggle(open)}
-                    className={cn('mt-5 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold', open.done ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-emerald-600 text-white hover:bg-emerald-500')}
-                  >
-                    <Check className="h-4 w-4" /> {open.done ? 'Done (click to undo)' : hasAccount ? 'Mark as done' : 'Sign in to track progress'}
-                  </button>
-                  <LessonDetail lesson={open} loginHref={loginHref} />
-                </>
-              )}
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
     </div>
   )
 }
