@@ -27,7 +27,7 @@ export function Comments({ comments, count, postUrl, loginHref }: { comments: Ro
         <CommentForm postUrl={postUrl} />
       ) : (
         <p className="mt-4 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300">
-          <Link href={loginHref} className="font-semibold text-emerald-700 underline underline-offset-2 dark:text-emerald-400">Sign in or create a free account</Link> to comment.
+          <Link href={loginHref} className="font-semibold text-amber-700 underline underline-offset-2 dark:text-amber-400">Sign in or create a free account</Link> to comment.
         </p>
       )}
 
@@ -90,7 +90,7 @@ function CommentItem({ comment, postUrl, depth = 0 }: { comment: RoadmapComment;
         </p>
         <p className="mt-1 whitespace-pre-line break-words text-sm text-slate-700 dark:text-slate-200">{comment.content}</p>
         <div className="mt-2 flex gap-3 text-xs">
-          {auth?.user && depth === 0 && <button onClick={() => setReplying(!replying)} className="font-medium text-emerald-700 dark:text-emerald-400">Reply</button>}
+          {auth?.user && depth === 0 && <button onClick={() => setReplying(!replying)} className="font-medium text-amber-700 dark:text-amber-400">Reply</button>}
           {canDelete && <button onClick={remove} className="text-slate-500 hover:text-red-600">Delete</button>}
         </div>
       </div>

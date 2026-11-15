@@ -41,7 +41,7 @@ export default function RoadmapTopic({ roadmap, topic, lessons, locked, hasAccou
           <Link href={`${base}#${topic.id}`} className="hover:text-slate-800 dark:hover:text-slate-200">{roadmap.title}</Link>
         </nav>
 
-        <p className="mt-6 text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+        <p className="mt-6 text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">
           {levelLabel[topic.level]} · {topic.stageTitle}
         </p>
         <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950 dark:text-white">{topic.title}</h1>
@@ -66,7 +66,7 @@ export default function RoadmapTopic({ roadmap, topic, lessons, locked, hasAccou
         </div>
 
         {!hasAccount && !locked && (
-          <p className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
+          <p className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
             <Link href={loginHref} className="font-semibold underline underline-offset-2">Sign in or create a free account</Link> to tick off lessons and track your progress.
           </p>
         )}
@@ -86,7 +86,7 @@ export default function RoadmapTopic({ roadmap, topic, lessons, locked, hasAccou
                   onClick={() => toggle(lesson)}
                   aria-pressed={lesson.done}
                   aria-label={`Mark "${lesson.title}" ${lesson.done ? 'not done' : 'done'}`}
-                  className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2', lesson.done ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-300 hover:border-emerald-500 dark:border-slate-600')}
+                  className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2', lesson.done ? 'border-amber-500 bg-amber-500 text-amber-950' : 'border-slate-300 hover:border-amber-500 dark:border-slate-600')}
                 >
                   {lesson.done && <Check className="h-3.5 w-3.5" />}
                 </button>
@@ -94,7 +94,7 @@ export default function RoadmapTopic({ roadmap, topic, lessons, locked, hasAccou
               <Link href={`${here}/${lesson.id}`} className="min-w-0 flex-1 text-left">
                 <span className="flex flex-wrap items-center gap-2">
                   <span className="text-xs tabular-nums text-slate-400">{i + 1}.</span>
-                  <span className={cn('font-semibold', lesson.done ? 'text-slate-500 line-through decoration-emerald-500/60' : 'text-slate-900 dark:text-white')}>{lesson.title}</span>
+                  <span className={cn('font-semibold', lesson.done ? 'text-slate-500 line-through decoration-amber-500/60' : 'text-slate-900 dark:text-white')}>{lesson.title}</span>
                   {lesson.optional && <OptionalTag />}
                 </span>
               </Link>
@@ -105,13 +105,13 @@ export default function RoadmapTopic({ roadmap, topic, lessons, locked, hasAccou
 
         <nav className="mt-10 grid gap-3 sm:grid-cols-2" aria-label="Topics">
           {prev ? (
-            <Link href={`${base}/${prev.id}`} className="rounded-xl border border-slate-200 p-4 hover:border-emerald-400 dark:border-slate-800">
+            <Link href={`${base}/${prev.id}`} className="rounded-xl border border-slate-200 p-4 hover:border-amber-400 dark:border-slate-800">
               <span className="inline-flex items-center gap-1 text-xs text-slate-500"><ArrowLeft className="h-3.5 w-3.5" /> Previous topic</span>
               <span className="mt-1 block font-semibold text-slate-900 dark:text-white">{prev.title}</span>
             </Link>
           ) : <span />}
           {next && (
-            <Link href={`${base}/${next.id}`} className="rounded-xl border border-slate-200 p-4 text-right hover:border-emerald-400 dark:border-slate-800">
+            <Link href={`${base}/${next.id}`} className="rounded-xl border border-slate-200 p-4 text-right hover:border-amber-400 dark:border-slate-800">
               <span className="inline-flex items-center gap-1 text-xs text-slate-500">Next topic <ArrowRight className="h-3.5 w-3.5" /></span>
               <span className="mt-1 block font-semibold text-slate-900 dark:text-white">{next.title}</span>
             </Link>

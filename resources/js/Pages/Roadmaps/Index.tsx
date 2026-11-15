@@ -40,7 +40,7 @@ export default function RoadmapsIndex({ roadmaps, mine }: Props) {
         </div>
 
         {!auth?.user && (
-          <p className="mt-8 max-w-3xl rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
+          <p className="mt-8 max-w-3xl rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
             <Link href="/login?redirect=%2Froadmaps" className="font-semibold underline underline-offset-2">Sign in or create a free account</Link> to start roadmaps, save them for later and track your progress.
           </p>
         )}
@@ -65,7 +65,7 @@ export default function RoadmapsIndex({ roadmaps, mine }: Props) {
                     <ProgressBar percent={m.percent} />
                     <span className="text-sm tabular-nums text-slate-600 dark:text-slate-300">{m.percent}%</span>
                   </div>
-                  <p className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                  <p className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-amber-700 dark:text-amber-400">
                     {m.started ? 'Continue' : 'Start'} <ArrowRight className="h-4 w-4" />
                   </p>
                 </Link>
@@ -81,9 +81,9 @@ export default function RoadmapsIndex({ roadmaps, mine }: Props) {
               href={`/roadmaps/${r.slug}`}
               className="group flex flex-col rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900"
             >
-              <Route className="h-8 w-8 text-emerald-600" />
+              <Route className="h-8 w-8 text-amber-600" />
               <h2 className="mt-4 text-2xl font-semibold text-slate-950 dark:text-white">{r.title}</h2>
-              {r.buildsOn && <p className="mt-1 text-xs font-medium uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Builds on {r.buildsOn.title}</p>}
+              {r.buildsOn && <p className="mt-1 text-xs font-medium uppercase tracking-wider text-amber-700 dark:text-amber-400">Builds on {r.buildsOn.title}</p>}
               <p className="mt-2 flex-1 text-slate-600 dark:text-slate-300">{r.summary}</p>
               <div className="mt-6 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
                 <span>{r.topicCount} topics · {r.lessonCount} lessons · Updated <time dateTime={r.updatedAt}>{formatDate(r.updatedAt)}</time></span>

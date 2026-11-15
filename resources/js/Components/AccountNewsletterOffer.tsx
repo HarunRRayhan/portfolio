@@ -23,7 +23,7 @@ export function AccountNewsletterOffer({ onClose }: { onClose: () => void }) {
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-slate-950/50" />
         <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300">
             <Mail className="h-5 w-5" aria-hidden />
           </span>
           {done ? (
@@ -46,7 +46,7 @@ export function AccountNewsletterOffer({ onClose }: { onClose: () => void }) {
                 <button
                   onClick={subscribe}
                   disabled={busy}
-                  className="flex-1 rounded-full bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-60"
+                  className="flex-1 rounded-full bg-amber-500 px-4 py-2.5 text-sm font-semibold text-amber-950 hover:bg-amber-400 disabled:opacity-60"
                 >
                   {busy ? 'Subscribing…' : 'Subscribe'}
                 </button>

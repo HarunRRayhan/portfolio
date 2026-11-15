@@ -53,7 +53,7 @@ export default function RoadmapLesson({ roadmap, topic, lesson, position, lesson
           <>
             <button
               onClick={toggle}
-              className={cn('mt-6 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold', lesson.done ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-emerald-600 text-white hover:bg-emerald-500')}
+              className={cn('mt-6 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold', lesson.done ? 'bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-950 dark:text-amber-300' : 'bg-amber-500 text-amber-950 hover:bg-amber-400')}
             >
               <Check className="h-4 w-4" /> {lesson.done ? 'Done (click to undo)' : hasAccount ? 'Mark as done' : 'Sign in to track progress'}
             </button>
@@ -63,13 +63,13 @@ export default function RoadmapLesson({ roadmap, topic, lesson, position, lesson
 
         <nav className="mt-10 grid gap-3 sm:grid-cols-2" aria-label="Lessons">
           {prev ? (
-            <Link href={link(prev)} className="rounded-xl border border-slate-200 p-4 hover:border-emerald-400 dark:border-slate-800">
+            <Link href={link(prev)} className="rounded-xl border border-slate-200 p-4 hover:border-amber-400 dark:border-slate-800">
               <span className="inline-flex items-center gap-1 text-xs text-slate-500"><ArrowLeft className="h-3.5 w-3.5" /> Previous</span>
               <span className="mt-1 block font-semibold text-slate-900 dark:text-white">{prev.title}</span>
             </Link>
           ) : <span />}
           {next && (
-            <Link href={link(next)} className="rounded-xl border border-slate-200 p-4 text-right hover:border-emerald-400 dark:border-slate-800">
+            <Link href={link(next)} className="rounded-xl border border-slate-200 p-4 text-right hover:border-amber-400 dark:border-slate-800">
               <span className="inline-flex items-center gap-1 text-xs text-slate-500">Next <ArrowRight className="h-3.5 w-3.5" /></span>
               <span className="mt-1 block font-semibold text-slate-900 dark:text-white">{next.title}</span>
             </Link>

@@ -72,7 +72,7 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
 
         <div className="mt-8 flex flex-wrap items-center gap-3">
           {!started && (
-            <button onClick={() => act('post', '/start')} className="rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500">
+            <button onClick={() => act('post', '/start')} className="rounded-full bg-amber-500 px-5 py-2.5 text-sm font-semibold text-amber-950 hover:bg-amber-400">
               Start this roadmap
             </button>
           )}
@@ -106,7 +106,7 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
         </div>
 
         {!auth?.user && (
-          <p className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
+          <p className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
             <Link href={loginHref} className="font-semibold underline underline-offset-2">Sign in or create a free account</Link> to tick off topics and track your progress.
           </p>
         )}
@@ -158,7 +158,7 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
         ))}
 
         <div className="relative z-10 flex pt-10 md:justify-center">
-          <span className="inline-flex items-center gap-2 rounded-full border-2 border-emerald-500 bg-white px-5 py-2 text-sm font-semibold text-emerald-700 dark:bg-slate-950 dark:text-emerald-400">
+          <span className="inline-flex items-center gap-2 rounded-full border-2 border-amber-500 bg-white px-5 py-2 text-sm font-semibold text-amber-700 dark:bg-slate-950 dark:text-amber-400">
             <Check className="h-4 w-4" /> Finish
           </span>
         </div>
@@ -180,7 +180,7 @@ function TopicNode({ href, topic, locked, side, isNext }: { href: string; topic:
         className={cn(
           'absolute left-[1.1rem] top-1/2 h-0.5 w-[1.9rem] bg-slate-300 md:w-8 dark:bg-slate-700',
           side === 'left' ? 'md:left-auto md:-right-8' : 'md:-left-8',
-          topic.done && 'bg-emerald-400 dark:bg-emerald-600',
+          topic.done && 'bg-amber-400 dark:bg-amber-600',
         )}
       />
       <Link
@@ -191,15 +191,15 @@ function TopicNode({ href, topic, locked, side, isNext }: { href: string; topic:
           locked
             ? 'border-dashed border-slate-300 bg-slate-50 text-slate-500 hover:border-slate-400 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-400'
             : topic.done
-              ? 'border-emerald-500 bg-emerald-50 text-emerald-900 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-200'
-              : 'border-slate-200 bg-white text-slate-900 shadow-sm hover:-translate-y-0.5 hover:border-emerald-400 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:text-white',
-          isNext && 'ring-2 ring-emerald-400 ring-offset-2 dark:ring-offset-slate-950',
+              ? 'border-amber-500 bg-amber-50 text-amber-900 hover:bg-amber-100 dark:bg-amber-950/50 dark:text-amber-200'
+              : 'border-slate-200 bg-white text-slate-900 shadow-sm hover:-translate-y-0.5 hover:border-amber-400 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:text-white',
+          isNext && 'ring-2 ring-amber-400 ring-offset-2 dark:ring-offset-slate-950',
         )}
       >
         <span
           className={cn(
             'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2',
-            locked ? 'border-slate-300 dark:border-slate-600' : topic.done ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-300 dark:border-slate-600',
+            locked ? 'border-slate-300 dark:border-slate-600' : topic.done ? 'border-amber-500 bg-amber-500 text-amber-950' : 'border-slate-300 dark:border-slate-600',
           )}
         >
           {locked ? <Lock className="h-3 w-3" /> : topic.done ? <Check className="h-3.5 w-3.5" /> : null}
@@ -207,7 +207,7 @@ function TopicNode({ href, topic, locked, side, isNext }: { href: string; topic:
         <span className="min-w-0 flex-1">
           <span className="block font-semibold">{topic.title}</span>
           <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
-            {isNext ? <span className="font-medium text-emerald-700 dark:text-emerald-400">Up next · </span> : null}
+            {isNext ? <span className="font-medium text-amber-700 dark:text-amber-400">Up next · </span> : null}
             {locked ? `${topic.lessonCount} lessons` : `${topic.doneCount}/${topic.requiredCount} lessons`}
           </span>
         </span>

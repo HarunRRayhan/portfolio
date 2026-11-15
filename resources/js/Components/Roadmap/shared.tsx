@@ -29,7 +29,7 @@ export const formatDate = (ymd: string) =>
 export function ProgressBar({ percent }: { percent: number }) {
   return (
     <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800" role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100} aria-label={`${percent}% done`}>
-      <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${percent}%` }} />
+      <div className="h-full rounded-full bg-amber-500 transition-all" style={{ width: `${percent}%` }} />
     </div>
   )
 }
@@ -66,7 +66,7 @@ export function LessonDetail({ lesson, loginHref }: { lesson: Lesson; loginHref:
           <ul className="mt-2 space-y-2">
             {lesson.resources.map((r) => (
               <li key={r.url}>
-                <a href={r.url} {...external} className="inline-flex items-center gap-2 text-sm font-medium text-emerald-700 hover:underline dark:text-emerald-400">
+                <a href={r.url} {...external} className="inline-flex items-center gap-2 text-sm font-medium text-amber-700 hover:underline dark:text-amber-400">
                   {r.label} <ExternalLink className="h-3.5 w-3.5" />
                 </a>
                 <span className={cn('ml-2 rounded px-1.5 py-0.5 text-[11px] uppercase tracking-wide', r.own ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800')}>
@@ -105,7 +105,7 @@ function AskYourAi({ lesson, loginHref }: { lesson: Lesson; loginHref: string })
   return (
     <details className="group rounded-xl border border-slate-200 dark:border-slate-800">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-semibold text-slate-800 dark:text-slate-100 [&::-webkit-details-marker]:hidden">
-        <span className="inline-flex items-center gap-2"><Sparkles className="h-4 w-4 text-emerald-600" /> Ask your AI</span>
+        <span className="inline-flex items-center gap-2"><Sparkles className="h-4 w-4 text-amber-600" /> Ask your AI</span>
         <ChevronDown className="h-4 w-4 text-slate-400 transition group-open:rotate-180" />
       </summary>
       <div className="border-t border-slate-200 px-4 py-4 dark:border-slate-800">
@@ -123,7 +123,7 @@ function AskYourAi({ lesson, loginHref }: { lesson: Lesson; loginHref: string })
         ) : (
           <div className="text-sm text-slate-600 dark:text-slate-300">
             <p className="inline-flex items-center gap-2"><Lock className="h-4 w-4" /> You need a free account to use the AI prompt.</p>
-            <Link href={loginHref} className="mt-3 inline-flex rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500">
+            <Link href={loginHref} className="mt-3 inline-flex rounded-full bg-amber-500 px-4 py-2 text-sm font-semibold text-amber-950 hover:bg-amber-400">
               Create a free account
             </Link>
           </div>
