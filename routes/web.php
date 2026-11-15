@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\MediumCrosspostController;
 use App\Http\Controllers\Admin\NewsletterController as AdminNewsletterController;
 use App\Http\Controllers\Admin\ScheduleBlogPostController;
 use App\Http\Controllers\Admin\ShortLinkController;
+use App\Http\Controllers\Admin\RoadmapAccessController as AdminRoadmapAccessController;
 use App\Http\Controllers\Admin\SponsorshipController as AdminSponsorshipController;
 use App\Http\Controllers\BlogCommentController;
 use App\Http\Controllers\Consultation\BookController;
@@ -305,6 +306,15 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::get('/', [AdminSponsorshipController::class, 'index'])->name('index');
         Route::post('/', [AdminSponsorshipController::class, 'store'])->name('store');
         Route::post('/{sponsorship}/revoke', [AdminSponsorshipController::class, 'revoke'])->where('sponsorship', '[0-9]{1,18}')->name('revoke');
+    });
+
+Route::middleware(['auth', 'verified', 'role:admin'])
+    ->prefix('admin/roadmap-access')
+    ->name('admin.roadmap-access.')
+    ->group(function () {
+        Route::get('/', [AdminRoadmapAccessController::class, 'index'])->name('index');
+        Route::post('/', [AdminRoadmapAccessController::class, 'store'])->name('store');
+        Route::post('/{grant}/revoke', [AdminRoadmapAccessController::class, 'revoke'])->where('grant', '[0-9]{1,18}')->name('revoke');
     });
 
 // Paid consultation admin
