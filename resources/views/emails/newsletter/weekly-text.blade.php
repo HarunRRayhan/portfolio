@@ -21,6 +21,15 @@ New notes from the blog, plus a couple of things I’m building.
 
 @endif
 @endforeach
+@if(!empty($roadmaps))
+Roadmap updates
+
+@foreach($roadmaps as $roadmap)
+{{ $roadmap['title'] }}: {{ $roadmap['summary'] }}
+{!! $track($roadmap['url']) !!}
+
+@endforeach
+@endif
 @if(!empty($tweets))
 From my X feed
 

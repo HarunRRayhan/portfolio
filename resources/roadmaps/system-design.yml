@@ -1,0 +1,631 @@
+slug: system-design
+title: System Design
+summary: From how a client talks to a server to designing large distributed systems. Learn caching, load balancing, databases, queues and consistency, then put them together on well-known designs.
+order: 7
+updated: '2026-11-15'
+
+stages:
+  - level: beginner
+    title: The building blocks
+    topics:
+      - id: client-server-http
+        title: Clients, servers and HTTP
+        summary: Every system design starts with a client sending a request and a server sending a response, so know that exchange well.
+        lessons:
+          - id: request-response
+            title: Request and response
+            summary: What happens between typing a URL and seeing a page, from DNS lookup to the HTTP response.
+            learn:
+              - DNS lookup, TCP and TLS handshakes
+              - HTTP methods, status codes and headers
+              - Stateless requests
+            resources:
+              - { label: "An overview of HTTP (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview", kind: docs }
+              - { label: "What is DNS? (Cloudflare)", url: "https://www.cloudflare.com/learning/dns/what-is-dns/", kind: article }
+          - id: http-versions
+            title: HTTP/1.1, HTTP/2 and HTTP/3
+            summary: How each HTTP version changes connection reuse and latency, and why it matters at scale.
+            learn:
+              - Keep-alive and head-of-line blocking
+              - Multiplexing in HTTP/2
+              - QUIC in HTTP/3
+            resources:
+              - { label: "Evolution of HTTP (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Evolution_of_HTTP", kind: docs }
+              - { label: "What is HTTP/3? (Cloudflare)", url: "https://www.cloudflare.com/learning/performance/what-is-http3/", kind: article }
+          - id: latency-numbers
+            title: Latency numbers
+            optional: true
+            summary: Rough costs of memory, disk and network access, so you can estimate before you build.
+            learn:
+              - Memory vs SSD vs network round trip
+              - Same region vs cross-region latency
+            resources:
+              - { label: "system-design-primer: latency numbers", url: "https://github.com/donnemartin/system-design-primer#latency-numbers-every-programmer-should-know", kind: article }
+
+      - id: apis
+        title: API styles
+        summary: The contract between client and server shapes how the system can change later.
+        lessons:
+          - id: rest-basics
+            title: REST basics
+            summary: Resources, verbs and status codes, and how to design endpoints people can guess.
+            learn:
+              - Resources and URLs
+              - Idempotent vs non-idempotent methods
+              - Pagination and versioning
+            resources:
+              - { label: "HTTP request methods (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods", kind: docs }
+              - { label: "ByteByteGo blog", url: "https://blog.bytebytego.com/", kind: article }
+          - id: grpc-graphql
+            title: gRPC and GraphQL
+            summary: When a binary RPC protocol or a query language fits better than plain REST.
+            learn:
+              - Protocol buffers and streaming in gRPC
+              - Client-shaped queries in GraphQL
+              - Trade-offs against REST
+            resources:
+              - { label: "gRPC docs", url: "https://grpc.io/docs/", kind: docs }
+              - { label: "Learn GraphQL", url: "https://graphql.org/learn/", kind: docs }
+          - id: real-time-connections
+            title: Polling, SSE and WebSockets
+            summary: How a server pushes data to clients, and what each option costs in open connections.
+            learn:
+              - Short and long polling
+              - Server-sent events
+              - WebSockets and connection state
+            resources:
+              - post: real-time-ai-chat-with-lambda-api-gateway-websockets
+              - { label: "WebSockets API (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API", kind: docs }
+
+      - id: scaling-basics
+        title: Vertical and horizontal scaling
+        summary: The two ways to handle more load, and why stateless services make the second one possible.
+        lessons:
+          - id: scale-up-vs-out
+            title: Scale up vs scale out
+            summary: Bigger machines versus more machines, with the limits of each.
+            learn:
+              - Vertical scaling and its ceiling
+              - Horizontal scaling and coordination cost
+            resources:
+              - { label: "system-design-primer", url: "https://github.com/donnemartin/system-design-primer", kind: article }
+          - id: stateless-services
+            title: Stateless services
+            summary: Move session and file state out of the app server so any instance can serve any request.
+            learn:
+              - Sessions in a shared store
+              - Files in object storage
+              - The twelve-factor processes rule
+            resources:
+              - { label: "The Twelve-Factor App: processes", url: "https://12factor.net/processes", kind: article }
+              - post: how-i-architected-a-fully-serverless-saas-on-aws-lambda-with-fastify
+          - id: back-of-envelope
+            title: Back-of-the-envelope estimates
+            summary: Turn users and actions into requests per second, storage and bandwidth before choosing a design.
+            learn:
+              - Daily active users to peak QPS
+              - Storage growth per year
+              - Read-to-write ratio
+            resources:
+              - { label: "ByteByteGo", url: "https://bytebytego.com/", kind: course }
+              - { label: "system-design-primer", url: "https://github.com/donnemartin/system-design-primer", kind: article }
+
+      - id: load-balancing
+        title: Load balancing
+        summary: A load balancer spreads traffic across servers and takes unhealthy ones out of the pool.
+        lessons:
+          - id: what-a-load-balancer-does
+            title: What a load balancer does
+            summary: Spread requests, run health checks and give clients one stable address.
+            learn:
+              - Health checks
+              - Layer 4 vs layer 7 balancing
+              - TLS termination
+            resources:
+              - { label: "What is load balancing? (Cloudflare)", url: "https://www.cloudflare.com/learning/performance/what-is-load-balancing/", kind: article }
+              - post: add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances
+          - id: balancing-algorithms
+            title: Balancing algorithms
+            summary: Round robin, least connections, hashing and weighted variants, and when each fits.
+            learn:
+              - Round robin and weighted round robin
+              - Least connections and least response time
+              - IP hash and sticky sessions
+            resources:
+              - post: eight-load-balancer-algorithms
+              - { label: "system-design-primer: load balancer", url: "https://github.com/donnemartin/system-design-primer#load-balancer", kind: article }
+          - id: reverse-proxies
+            title: Reverse proxies and API gateways
+            optional: true
+            summary: How a proxy in front of services handles routing, auth and rate limits in one place.
+            learn:
+              - Reverse proxy vs load balancer
+              - API gateway duties
+            resources:
+              - { label: "What is a reverse proxy? (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/glossary/reverse-proxy/", kind: article }
+
+      - id: caching
+        title: Caching
+        summary: Keep hot data close to where it is read, and know how stale it is allowed to be.
+        lessons:
+          - id: cache-layers
+            title: Where caches live
+            summary: Browser, CDN, application and database caches, and what each one saves.
+            learn:
+              - Client and HTTP caching headers
+              - CDN edge caches
+              - In-memory caches like Redis
+            resources:
+              - { label: "HTTP caching (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching", kind: docs }
+              - post: connect-redis-elasticache-to-application-in-amazon-lightsail-instance
+          - id: cache-strategies
+            title: Cache-aside, write-through and write-back
+            summary: Patterns for reading and writing through a cache, and how each one fails.
+            learn:
+              - Cache-aside reads
+              - Write-through vs write-back
+              - TTLs and invalidation
+            resources:
+              - { label: "system-design-primer: cache", url: "https://github.com/donnemartin/system-design-primer#cache", kind: article }
+              - { label: "Redis docs", url: "https://redis.io/docs/latest/", kind: docs }
+          - id: cache-failure-modes
+            title: Cache stampedes and hot keys
+            optional: true
+            summary: What happens when many requests miss at once or one key gets most of the traffic.
+            learn:
+              - Thundering herd on expiry
+              - Request coalescing and jittered TTLs
+              - Hot key replication
+            resources:
+              - { label: "ByteByteGo blog", url: "https://blog.bytebytego.com/", kind: article }
+
+      - id: cdn-object-storage
+        title: CDNs and object storage
+        summary: Serve static files and large uploads from storage and edge networks, not from app servers.
+        lessons:
+          - id: cdn-basics
+            title: How a CDN works
+            summary: Edge locations cache content near users and absorb traffic before it reaches the origin.
+            learn:
+              - Edge, origin and cache hit ratio
+              - Push vs pull CDNs
+            resources:
+              - { label: "What is a CDN? (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/what-is-a-cdn/", kind: article }
+              - post: add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail
+          - id: object-storage
+            title: Object storage for files
+            summary: Store blobs in a service like S3 and let clients upload directly with signed URLs.
+            learn:
+              - Objects, buckets and keys
+              - Presigned upload and download URLs
+            resources:
+              - post: why-s3-presigned-urls
+              - { label: "What is Amazon S3? (AWS docs)", url: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html", kind: docs }
+
+      - id: database-choices
+        title: Choosing a database
+        summary: Relational and non-relational stores make different promises, and the choice shapes the rest of the design.
+        lessons:
+          - id: sql-vs-nosql
+            title: SQL vs NoSQL
+            summary: Tables with joins and transactions versus key-value, document, wide-column and graph stores.
+            learn:
+              - Schemas and joins
+              - Key-value and document models
+              - When each fits
+            resources:
+              - { label: "system-design-primer: SQL or NoSQL", url: "https://github.com/donnemartin/system-design-primer#sql-or-nosql", kind: article }
+              - { label: "Designing Data-Intensive Applications", url: "https://dataintensive.net/", kind: article }
+          - id: acid-basics
+            title: ACID in one page
+            summary: What atomicity, consistency, isolation and durability guarantee, in plain terms.
+            learn:
+              - All-or-nothing writes
+              - Durability after a crash
+            resources:
+              - { label: "PostgreSQL tutorial: transactions", url: "https://www.postgresql.org/docs/current/tutorial-transactions.html", kind: docs }
+
+  - level: intermediate
+    title: Scaling the data and the work
+    topics:
+      - id: replication
+        title: Database replication
+        summary: Copies of the data on more machines give you read capacity and survive a failed node.
+        lessons:
+          - id: leader-follower
+            title: Leader and follower replicas
+            summary: One node takes writes and streams them to read replicas.
+            learn:
+              - Read replicas for read scaling
+              - Failover when the leader dies
+            resources:
+              - { label: "system-design-primer: replication", url: "https://github.com/donnemartin/system-design-primer#master-slave-replication", kind: article }
+              - { label: "Designing Data-Intensive Applications", url: "https://dataintensive.net/", kind: article }
+          - id: replication-lag
+            title: Replication lag
+            summary: Async replicas fall behind, so users can read their own writes as missing.
+            learn:
+              - Sync vs async replication
+              - Read-your-writes consistency
+              - Routing reads after a write
+            resources:
+              - { label: "High availability and replication (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/high-availability.html", kind: docs }
+          - id: multi-leader
+            title: Multi-leader and leaderless replication
+            optional: true
+            summary: Accept writes in several places and deal with the conflicts that follow.
+            learn:
+              - Write conflicts and resolution
+              - Quorum reads and writes
+            resources:
+              - { label: "Amazon's Dynamo (All Things Distributed)", url: "https://www.allthingsdistributed.com/2007/10/amazons_dynamo.html", kind: article }
+
+      - id: sharding
+        title: Partitioning and sharding
+        summary: Split data across machines when one database can no longer hold the writes or the size.
+        lessons:
+          - id: shard-keys
+            title: Shard keys
+            summary: How the key you split on decides whether load spreads evenly.
+            learn:
+              - Range vs hash partitioning
+              - Hot partitions
+              - Cross-shard queries
+            resources:
+              - { label: "system-design-primer: sharding", url: "https://github.com/donnemartin/system-design-primer#sharding", kind: article }
+              - { label: "ByteByteGo blog", url: "https://blog.bytebytego.com/", kind: article }
+          - id: consistent-hashing
+            title: Consistent hashing
+            summary: Map keys to nodes so adding or removing a node moves only a small share of the data.
+            learn:
+              - The hash ring
+              - Virtual nodes
+            resources:
+              - { label: "Consistent hashing (Wikipedia)", url: "https://en.wikipedia.org/wiki/Consistent_hashing", kind: article }
+              - { label: "ByteByteGo on YouTube", url: "https://www.youtube.com/@ByteByteGo", kind: video }
+          - id: resharding
+            title: Resharding without downtime
+            optional: true
+            summary: Move data between shards while the system keeps serving traffic.
+            learn:
+              - Double writes and backfill
+              - Directory-based shard maps
+            resources:
+              - { label: "Vitess docs", url: "https://vitess.io/docs/", kind: docs }
+
+      - id: queues-async
+        title: Queues and async work
+        summary: Put slow or spiky work on a queue so the request path stays fast and failures can retry.
+        lessons:
+          - id: message-queues
+            title: Message queues
+            summary: Producers add jobs, workers take them, and the queue absorbs bursts in between.
+            learn:
+              - Producers, consumers and visibility timeouts
+              - At-least-once delivery
+              - Dead-letter queues
+            resources:
+              - post: running-ai-background-jobs-serverlessly-with-sqs-lambda-bedrock
+              - { label: "Amazon SQS docs", url: "https://docs.aws.amazon.com/sqs/", kind: docs }
+          - id: pub-sub-streams
+            title: Pub/sub and event streams
+            summary: Fan one event out to many consumers, or keep an ordered log they can replay.
+            learn:
+              - Topics and subscriptions
+              - Partitions and consumer groups in Kafka
+              - Queue vs log
+            resources:
+              - { label: "Apache Kafka docs", url: "https://kafka.apache.org/documentation/", kind: docs }
+              - { label: "RabbitMQ tutorials", url: "https://www.rabbitmq.com/tutorials", kind: course }
+          - id: idempotent-consumers
+            title: Idempotent consumers
+            summary: Make handling a message twice safe, because at-least-once delivery means it will happen.
+            learn:
+              - Idempotency keys
+              - Deduplication tables
+            resources:
+              - { label: "Making retries safe with idempotent APIs (Amazon Builders' Library)", url: "https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/", kind: article }
+              - { label: "Amazon Builders' Library", url: "https://aws.amazon.com/builders-library/", kind: article }
+
+      - id: rate-limiting
+        title: Rate limiting
+        summary: Cap how fast a client can call you, to protect the system and keep usage fair.
+        lessons:
+          - id: rate-limit-algorithms
+            title: Rate limiting algorithms
+            summary: Token bucket, leaky bucket, fixed window and sliding window, with their trade-offs.
+            learn:
+              - Token bucket and leaky bucket
+              - Fixed vs sliding windows
+              - Burst allowance
+            resources:
+              - { label: "Scaling your API with rate limiters (Stripe)", url: "https://stripe.com/blog/rate-limiters", kind: article }
+              - { label: "What is rate limiting? (Cloudflare)", url: "https://www.cloudflare.com/learning/bots/what-is-rate-limiting/", kind: article }
+          - id: distributed-rate-limits
+            title: Rate limits across many servers
+            summary: Share counters in a fast store or enforce limits at the edge.
+            learn:
+              - Counters in Redis
+              - Limits at the CDN or WAF
+              - 429 responses and Retry-After
+            resources:
+              - post: aws-waf-cloudfront-solo-dev
+              - { label: "429 Too Many Requests (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429", kind: docs }
+
+      - id: consistency-cap
+        title: Consistency and CAP
+        summary: When the network splits, a distributed system must choose between staying available and staying consistent.
+        lessons:
+          - id: cap-theorem
+            title: The CAP theorem
+            summary: What consistency, availability and partition tolerance mean, and why you pick two during a partition.
+            learn:
+              - Network partitions are not optional
+              - CP vs AP behaviour
+            resources:
+              - { label: "system-design-primer: CAP theorem", url: "https://github.com/donnemartin/system-design-primer#cap-theorem", kind: article }
+              - { label: "Please stop calling databases CP or AP (Martin Kleppmann)", url: "https://martin.kleppmann.com/2015/05/11/please-stop-calling-databases-cp-or-ap.html", kind: article }
+          - id: consistency-models
+            title: Consistency models
+            summary: Strong, eventual and causal consistency, and what each one lets a user see.
+            learn:
+              - Linearizability
+              - Eventual consistency
+              - Read-your-writes and monotonic reads
+            resources:
+              - { label: "Consistency models (Jepsen)", url: "https://jepsen.io/consistency", kind: article }
+          - id: pacelc
+            title: PACELC and latency trade-offs
+            optional: true
+            summary: Even without a partition, stronger consistency costs latency.
+            learn:
+              - Latency vs consistency in normal operation
+              - Tunable consistency in Dynamo-style stores
+            resources:
+              - { label: "Designing Data-Intensive Applications", url: "https://dataintensive.net/", kind: article }
+
+      - id: reliability-patterns
+        title: Timeouts, retries and backpressure
+        summary: Remote calls fail, and how you retry decides whether a small fault becomes an outage.
+        lessons:
+          - id: timeouts-retries
+            title: Timeouts and retries with jitter
+            summary: Set timeouts on every call and retry with exponential backoff plus jitter.
+            learn:
+              - Choosing a timeout
+              - Exponential backoff and jitter
+              - Retry budgets
+            resources:
+              - { label: "Timeouts, retries and backoff with jitter (Amazon Builders' Library)", url: "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/", kind: article }
+          - id: circuit-breakers
+            title: Circuit breakers and bulkheads
+            summary: Stop calling a failing dependency and keep one failure from using up every thread.
+            learn:
+              - Open, half-open and closed states
+              - Isolating resource pools
+            resources:
+              - { label: "Circuit breaker (Martin Fowler)", url: "https://martinfowler.com/bliki/CircuitBreaker.html", kind: article }
+          - id: load-shedding
+            title: Load shedding and backpressure
+            optional: true
+            summary: Reject work early when overloaded so the work you accept still finishes.
+            learn:
+              - Bounded queues
+              - Priority-based shedding
+            resources:
+              - { label: "Amazon Builders' Library", url: "https://aws.amazon.com/builders-library/", kind: article }
+
+  - level: advanced
+    title: Designing real systems
+    topics:
+      - id: interview-framework
+        title: A method for any design
+        summary: A repeatable way to go from vague requirements to a design you can defend.
+        lessons:
+          - id: requirements-first
+            title: Requirements and scope
+            summary: Pin down functional needs, scale and non-functional goals before drawing boxes.
+            learn:
+              - Functional vs non-functional requirements
+              - Scale estimates
+              - What is out of scope
+            resources:
+              - { label: "ByteByteGo", url: "https://bytebytego.com/", kind: course }
+              - { label: "system-design-primer: how to approach a question", url: "https://github.com/donnemartin/system-design-primer#how-to-approach-a-system-design-interview-question", kind: article }
+          - id: high-level-to-deep-dive
+            title: High-level design, then deep dives
+            summary: Sketch the main components and data flow, then go deep on the hardest part.
+            learn:
+              - Components and data flow
+              - Finding the bottleneck
+              - Naming trade-offs out loud
+            resources:
+              - { label: "ByteByteGo on YouTube", url: "https://www.youtube.com/@ByteByteGo", kind: video }
+
+      - id: design-url-shortener
+        title: Design a URL shortener
+        summary: A small, read-heavy system that covers ID generation, storage and caching.
+        lessons:
+          - id: short-id-generation
+            title: Generating short IDs
+            summary: Base62 encoding, hash collisions and counters for unique short codes.
+            learn:
+              - Base62 encoding
+              - Hash vs counter approaches
+              - Distributed ID generators
+            resources:
+              - { label: "system-design-primer: Pastebin and bit.ly", url: "https://github.com/donnemartin/system-design-primer/blob/master/solutions/system_design/pastebin/README.md", kind: article }
+              - { label: "ByteByteGo", url: "https://bytebytego.com/", kind: course }
+          - id: redirect-path
+            title: The redirect path
+            summary: Serve redirects fast from cache and choose between 301 and 302.
+            learn:
+              - Read-heavy caching
+              - 301 vs 302 and analytics
+            resources:
+              - { label: "Redirections in HTTP (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections", kind: docs }
+
+      - id: design-chat
+        title: Design a chat system
+        summary: Persistent connections, message delivery and presence for many users at once.
+        lessons:
+          - id: chat-connections
+            title: Connection servers
+            summary: Keep WebSocket connections on stateful gateway servers and route messages between them.
+            learn:
+              - Stateful connection gateways
+              - Routing messages across servers
+            resources:
+              - post: real-time-ai-chat-with-lambda-api-gateway-websockets
+              - { label: "ByteByteGo", url: "https://bytebytego.com/", kind: course }
+          - id: message-storage
+            title: Storing and ordering messages
+            summary: Store messages per conversation with IDs that keep them in order.
+            learn:
+              - Per-conversation partitioning
+              - Ordered message IDs
+              - Offline delivery and sync
+            resources:
+              - { label: "Designing Data-Intensive Applications", url: "https://dataintensive.net/", kind: article }
+          - id: presence
+            title: Presence and typing indicators
+            optional: true
+            summary: Track who is online with heartbeats without flooding the system.
+            learn:
+              - Heartbeats and timeouts
+              - Fan-out of status changes
+            resources:
+              - { label: "ByteByteGo blog", url: "https://blog.bytebytego.com/", kind: article }
+
+      - id: design-news-feed
+        title: Design a news feed
+        summary: Build each user's feed from many authors, fast, at large fan-out.
+        lessons:
+          - id: fan-out-write-read
+            title: Fan-out on write vs on read
+            summary: Push posts into followers' feeds up front, or assemble feeds when they are read.
+            learn:
+              - Push model and its write cost
+              - Pull model and its read cost
+              - Hybrid for celebrity accounts
+            resources:
+              - { label: "system-design-primer: Twitter timeline", url: "https://github.com/donnemartin/system-design-primer/blob/master/solutions/system_design/twitter/README.md", kind: article }
+              - { label: "ByteByteGo", url: "https://bytebytego.com/", kind: course }
+          - id: feed-ranking-cache
+            title: Feed caching and ranking
+            summary: Keep recent feed entries in memory and rank them on read.
+            learn:
+              - Feed caches in Redis
+              - Cursor pagination
+            resources:
+              - { label: "High Scalability", url: "https://highscalability.com/", kind: article }
+
+      - id: microservices-events
+        title: Services and event-driven architecture
+        summary: Split a system into services only when the team and the load need it, and connect them with events.
+        lessons:
+          - id: monolith-to-services
+            title: Monolith vs microservices
+            summary: What you gain and pay when you split a monolith into services.
+            learn:
+              - Service boundaries
+              - Operational cost of many services
+              - Modular monolith as a middle step
+            resources:
+              - post: when-your-app-outgrows-the-tool-that-built-it
+              - { label: "Microservices (Martin Fowler)", url: "https://martinfowler.com/articles/microservices.html", kind: article }
+          - id: sagas-orchestration
+            title: Sagas and workflow orchestration
+            summary: Run a business process across services with compensating steps instead of one transaction.
+            learn:
+              - Choreography vs orchestration
+              - Compensating actions
+            resources:
+              - post: step-functions-llm-orchestration-replacing-lambda-chains
+              - { label: "Saga pattern (microservices.io)", url: "https://microservices.io/patterns/data/saga.html", kind: article }
+          - id: cqrs-event-sourcing
+            title: CQRS and event sourcing
+            optional: true
+            summary: Separate read and write models, and store changes as a log of events.
+            learn:
+              - Read models built from events
+              - Replaying history
+            resources:
+              - { label: "CQRS (Martin Fowler)", url: "https://martinfowler.com/bliki/CQRS.html", kind: article }
+              - { label: "Event sourcing (Martin Fowler)", url: "https://martinfowler.com/eaaDev/EventSourcing.html", kind: article }
+
+      - id: serverless-architecture
+        title: Serverless architecture
+        summary: Build on managed compute, queues and storage, and design around their limits.
+        lessons:
+          - id: serverless-building-blocks
+            title: Serverless building blocks
+            summary: Functions, API gateways, queues and managed databases wired into one system.
+            learn:
+              - Event-driven functions
+              - Managed queues and storage
+              - Concurrency limits
+            resources:
+              - post: how-i-architected-a-fully-serverless-saas-on-aws-lambda-with-fastify
+              - { label: "AWS Lambda docs", url: "https://docs.aws.amazon.com/lambda/", kind: docs }
+          - id: multi-tenancy
+            title: Multi-tenant design
+            summary: Isolate tenants' data and limits in one shared system.
+            learn:
+              - Pooled vs siloed tenants
+              - Tenant context on every request
+            resources:
+              - post: multi-tenant-saas-auth-lambda-fastify
+              - { label: "AWS Well-Architected Framework", url: "https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html", kind: docs }
+          - id: cold-starts
+            title: Cold starts and limits
+            optional: true
+            summary: Where serverless latency comes from and how to reduce it.
+            learn:
+              - Cold vs warm starts
+              - Snapshotting and provisioned concurrency
+            resources:
+              - post: lambda-snapstart-terraform-cold-starts
+
+      - id: distributed-systems
+        title: Large-scale distributed systems
+        summary: Consensus, clocks and failure in systems that span many machines and regions.
+        lessons:
+          - id: consensus
+            title: Consensus with Raft
+            summary: How a cluster agrees on one value or leader even when nodes fail.
+            learn:
+              - Leader election
+              - Replicated logs
+              - Quorums
+            resources:
+              - { label: "The Raft consensus algorithm", url: "https://raft.github.io/", kind: article }
+              - { label: "MIT 6.824 Distributed Systems", url: "https://pdos.csail.mit.edu/6.824/", kind: course }
+          - id: time-and-ordering
+            title: Clocks and ordering
+            summary: Why wall clocks drift and how logical clocks order events.
+            learn:
+              - Clock skew
+              - Lamport and vector clocks
+            resources:
+              - { label: "Designing Data-Intensive Applications", url: "https://dataintensive.net/", kind: article }
+          - id: multi-region
+            title: Multi-region design
+            summary: Serve users from several regions and decide where writes go.
+            learn:
+              - Active-passive vs active-active
+              - Data residency and latency
+              - Regional failover
+            resources:
+              - { label: "Amazon Builders' Library", url: "https://aws.amazon.com/builders-library/", kind: article }
+              - { label: "Google SRE books", url: "https://sre.google/books/", kind: article }
+          - id: real-world-architectures
+            title: Real-world architectures
+            optional: true
+            summary: Read how large companies built and changed their systems.
+            learn:
+              - Case studies of scaling
+              - What broke and why
+            resources:
+              - { label: "High Scalability", url: "https://highscalability.com/", kind: article }
+              - { label: "system-design-primer: real world architectures", url: "https://github.com/donnemartin/system-design-primer#real-world-architectures", kind: article }

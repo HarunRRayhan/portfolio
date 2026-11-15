@@ -2,283 +2,988 @@ slug: aws
 title: AWS Cloud
 summary: From your first account and EC2 server to multi-account, serverless and AI workloads on AWS, one service at a time.
 order: 2
+updated: '2026-11-15'
 
 stages:
   - level: beginner
     title: Your first steps on AWS
-    steps:
+    topics:
       - id: what-is-cloud
         title: What the cloud is
         summary: Renting compute, storage and networking by the hour instead of buying servers.
-        learn:
-          - IaaS, PaaS and SaaS
-          - Pay-as-you-go pricing
-          - The AWS shared responsibility model
-        resources:
-          - { label: "What is cloud computing? (AWS)", url: "https://aws.amazon.com/what-is-cloud-computing/", kind: article }
-          - { label: "Overview of Amazon Web Services", url: "https://docs.aws.amazon.com/whitepapers/latest/aws-overview/introduction.html", kind: docs }
+        lessons:
+          - id: iaas-paas-saas
+            title: IaaS, PaaS and SaaS
+            summary: How much of the stack you manage yourself in each cloud model, with an AWS example of each.
+            learn:
+              - Renting servers vs renting platforms
+              - Pay-as-you-go pricing
+            resources:
+              - { label: "What is cloud computing? (AWS)", url: "https://aws.amazon.com/what-is-cloud-computing/", kind: article }
+              - { label: "Overview of Amazon Web Services", url: "https://docs.aws.amazon.com/whitepapers/latest/aws-overview/introduction.html", kind: docs }
+          - id: shared-responsibility
+            title: The shared responsibility model
+            summary: AWS secures the hardware and data centres. You secure what you put on them.
+            learn:
+              - Security of the cloud vs security in the cloud
+              - How the split changes for managed services
+            resources:
+              - { label: "Shared responsibility model (AWS)", url: "https://aws.amazon.com/compliance/shared-responsibility-model/", kind: article }
+          - id: learning-path-and-certs
+            title: How to learn AWS and get certified
+            optional: true
+            summary: A practical order to learn the services in, and which certification to take first.
+            learn:
+              - Cloud Practitioner vs Solutions Architect Associate
+              - Free training from AWS Skill Builder
+            resources:
+              - post: how-to-start-learning-aws-cloud-and-get-certified
+              - { label: "AWS Certification", url: "https://aws.amazon.com/certification/", kind: course }
+              - { label: "AWS Skill Builder", url: "https://skillbuilder.aws/", kind: course }
 
       - id: account-and-billing
         title: Account setup and billing alarms
         summary: Create an account safely and make sure a mistake can't run up a surprise bill.
-        learn:
-          - Root user and MFA
-          - The free tier and its limits
-          - Budgets and billing alerts
-        resources:
-          - { label: "AWS Free Tier", url: "https://aws.amazon.com/free/", kind: docs }
-          - { label: "Managing costs with AWS Budgets", url: "https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html", kind: docs }
-          - post: 5-aws-mistakes-quietly-draining-your-bank-account
+        lessons:
+          - id: root-user-and-mfa
+            title: Lock down the root user
+            summary: The root user can do anything. Put MFA on it, then stop using it for daily work.
+            learn:
+              - Root user vs an admin identity
+              - Turning on MFA
+              - The first things to do in a new account
+            resources:
+              - post: first-3-things-i-always-do-after-creating-a-new-aws-account
+              - { label: "Root user best practices (AWS docs)", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/root-user-best-practices.html", kind: docs }
+          - id: free-tier
+            title: The free tier and its limits
+            summary: What is free, for how long, and the common ways people go over without noticing.
+            learn:
+              - Always-free vs trial offers
+              - Services that are never free
+            resources:
+              - { label: "AWS Free Tier", url: "https://aws.amazon.com/free/", kind: docs }
+          - id: budgets-and-alerts
+            title: Budgets and billing alerts
+            summary: Set a budget with an email alert on day one, so a forgotten resource costs you dollars, not thousands.
+            learn:
+              - Creating a monthly cost budget
+              - Forecasted vs actual alerts
+            resources:
+              - { label: "Managing costs with AWS Budgets", url: "https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html", kind: docs }
+              - post: 5-aws-mistakes-quietly-draining-your-bank-account
 
       - id: regions-and-azs
         title: Regions and availability zones
         summary: Where your resources physically live, and why that matters for latency and outages.
-        learn:
-          - Regions vs availability zones
-          - Picking a region
-          - Global vs regional services
-        resources:
-          - { label: "Regions and availability zones (AWS)", url: "https://aws.amazon.com/about-aws/global-infrastructure/regions_az/", kind: article }
+        lessons:
+          - id: regions-vs-azs
+            title: Regions vs availability zones
+            summary: A region is a geographic area. Each has several isolated data-centre groups called availability zones.
+            learn:
+              - What an AZ is isolated from
+              - Spreading across AZs for uptime
+            resources:
+              - { label: "Regions and availability zones (AWS)", url: "https://aws.amazon.com/about-aws/global-infrastructure/regions_az/", kind: article }
+          - id: picking-a-region
+            title: Picking a region
+            summary: Choose by user latency, service availability, price and data rules.
+            learn:
+              - Latency to your users
+              - Not every service is in every region
+              - Data residency
+            resources:
+              - { label: "AWS services by region", url: "https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/", kind: docs }
+          - id: global-vs-regional
+            title: Global vs regional services
+            optional: true
+            summary: IAM, Route 53 and CloudFront are global. Most others live in one region, which matters when you look for them.
+            learn:
+              - Which services are global
+              - Why us-east-1 is special
+            resources:
+              - { label: "AWS global infrastructure", url: "https://aws.amazon.com/about-aws/global-infrastructure/", kind: article }
 
       - id: iam-basics
         title: IAM basics
         summary: Users, groups, roles and policies decide who can do what in your account.
-        learn:
-          - Users vs roles
-          - Policy JSON (effect, action, resource)
-          - Least privilege
-        resources:
-          - { label: "What is IAM?", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html", kind: docs }
-          - { label: "IAM security best practices", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html", kind: docs }
+        lessons:
+          - id: users-vs-roles
+            title: Users vs roles
+            summary: Users have long-lived credentials. Roles are assumed for a short time. Prefer roles wherever you can.
+            learn:
+              - IAM users, groups and roles
+              - Temporary credentials
+              - IAM Identity Center for people
+            resources:
+              - { label: "What is IAM?", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html", kind: docs }
+              - { label: "IAM roles (AWS docs)", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html", kind: docs }
+          - id: policy-json
+            title: Reading policy JSON
+            summary: Every policy is a list of statements with an effect, actions, resources and optional conditions.
+            learn:
+              - Effect, Action, Resource, Condition
+              - Explicit deny beats allow
+            resources:
+              - { label: "Policies and permissions in IAM (AWS docs)", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html", kind: docs }
+          - id: least-privilege
+            title: Least privilege
+            summary: Grant only the actions and resources a person or service needs, and tighten from there.
+            learn:
+              - Starting from managed policies, then narrowing
+              - IAM Access Analyzer for unused access
+            resources:
+              - { label: "IAM security best practices", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html", kind: docs }
+          - id: policy-evaluation
+            title: How AWS evaluates a request
+            optional: true
+            summary: Identity policies, resource policies, boundaries and SCPs all combine into one allow or deny.
+            learn:
+              - The policy evaluation logic
+              - Permission boundaries
+            resources:
+              - { label: "Policy evaluation logic (AWS docs)", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html", kind: docs }
 
       - id: ec2-and-lightsail
         title: EC2 and Lightsail
         summary: Launch a virtual server, SSH in and run an app on it.
-        learn:
-          - Instance types and AMIs
-          - Key pairs and security groups
-          - Lightsail as the simple option
-        resources:
-          - { label: "Amazon EC2 concepts", url: "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts.html", kind: docs }
-          - { label: "What is Amazon Lightsail?", url: "https://docs.aws.amazon.com/lightsail/latest/userguide/what-is-amazon-lightsail.html", kind: docs }
-          - post: deploy-laravel-application-to-amazon-ec2-instance
-          - post: deploy-wordpress-app-to-amazon-lightsail
+        lessons:
+          - id: instance-types-and-amis
+            title: Instance types and AMIs
+            summary: Pick a machine size and a starting disk image, and know what the letters in t3.micro mean.
+            learn:
+              - Instance families and sizes
+              - AMIs as server templates
+              - Burstable instances and CPU credits
+            resources:
+              - { label: "Amazon EC2 concepts", url: "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts.html", kind: docs }
+              - { label: "Amazon EC2 instance types", url: "https://aws.amazon.com/ec2/instance-types/", kind: docs }
+          - id: key-pairs-and-security-groups
+            title: Key pairs and security groups
+            summary: Get into your server safely, and open only the ports your app needs.
+            learn:
+              - SSH key pairs
+              - Security group inbound rules
+              - Session Manager instead of open SSH
+            resources:
+              - { label: "Amazon EC2 security groups (AWS docs)", url: "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-security-groups.html", kind: docs }
+              - { label: "AWS Systems Manager Session Manager", url: "https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager.html", kind: docs }
+          - id: deploy-app-on-ec2
+            title: Deploy an app on EC2
+            summary: Install a web server and runtime, pull your code and serve it from a real instance.
+            learn:
+              - Installing the stack on a fresh instance
+              - Elastic IPs and pointing a domain
+            resources:
+              - post: deploy-laravel-application-to-amazon-ec2-instance
+              - post: running-openclaw-on-amazon-ec2-with-claude-and-telegram
+          - id: lightsail
+            title: Lightsail as the simple option
+            summary: Fixed monthly price, simple console, everything bundled. Good for small apps and first projects.
+            learn:
+              - Lightsail vs EC2
+              - Deploying WordPress or Laravel on Lightsail
+            resources:
+              - { label: "What is Amazon Lightsail?", url: "https://docs.aws.amazon.com/lightsail/latest/userguide/what-is-amazon-lightsail.html", kind: docs }
+              - post: deploy-wordpress-app-to-amazon-lightsail
+              - post: deploy-laravel-application-to-amazon-lightsail
+          - id: snapshots-and-restore
+            title: Snapshots and restore
+            optional: true
+            summary: Back up a whole server as a snapshot and restore it, even from Lightsail into EC2.
+            learn:
+              - Instance and disk snapshots
+              - Moving from Lightsail to EC2
+            resources:
+              - post: snapshot-restore-of-lightsail-instance-to-lightsail-ec2
+              - { label: "Amazon EBS snapshots (AWS docs)", url: "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-snapshots.html", kind: docs }
 
       - id: s3-basics
         title: S3 storage
         summary: Store files of any size, serve them, and keep them private by default.
-        learn:
-          - Buckets, objects and keys
-          - Block public access
-          - Storage classes and lifecycle rules
-        resources:
-          - { label: "What is Amazon S3?", url: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html", kind: docs }
+        lessons:
+          - id: buckets-and-objects
+            title: Buckets, objects and keys
+            summary: S3 is a flat key-value store for files. Folders are just key prefixes.
+            learn:
+              - Buckets and object keys
+              - Uploading and downloading with the CLI
+            resources:
+              - { label: "What is Amazon S3?", url: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html", kind: docs }
+          - id: block-public-access
+            title: Keeping buckets private
+            summary: Most S3 leaks are a bucket made public by mistake. Block public access and serve through CloudFront instead.
+            learn:
+              - Block Public Access settings
+              - Bucket policies
+            resources:
+              - { label: "Blocking public access to S3 (AWS docs)", url: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html", kind: docs }
+          - id: presigned-urls
+            title: Presigned URLs
+            summary: Let a browser upload or download one object directly, with a link that expires, without making the bucket public.
+            learn:
+              - Generating a presigned URL on the server
+              - Direct browser uploads for big files
+            resources:
+              - post: why-s3-presigned-urls
+              - { label: "Sharing objects with presigned URLs (AWS docs)", url: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/ShareObjectPreSignedURL.html", kind: docs }
+          - id: storage-classes-lifecycle
+            title: Storage classes and lifecycle rules
+            optional: true
+            summary: Move old data to cheaper tiers and delete it automatically.
+            learn:
+              - Standard, Infrequent Access, Glacier
+              - Lifecycle transitions and expiry
+            resources:
+              - { label: "Amazon S3 storage classes", url: "https://aws.amazon.com/s3/storage-classes/", kind: docs }
+              - { label: "Managing the lifecycle of objects (AWS docs)", url: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html", kind: docs }
 
       - id: managed-databases
         title: Managed databases (RDS)
         summary: Let AWS run backups, patching and failover for your Postgres or MySQL.
-        learn:
-          - RDS vs a database on EC2
-          - Backups and snapshots
-          - Keeping the database private
-        resources:
-          - { label: "What is Amazon RDS?", url: "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html", kind: docs }
-          - post: add-database-to-application-hosted-in-amazon-lightsail
-
-  - level: intermediate
-    title: Build real architectures
-    steps:
-      - id: vpc-networking
-        title: VPC networking
-        summary: Your private network in AWS. Subnets, routes and gateways decide what can talk to what.
-        learn:
-          - Public vs private subnets
-          - Internet and NAT gateways
-          - Security groups vs network ACLs
-        resources:
-          - { label: "What is Amazon VPC?", url: "https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html", kind: docs }
-          - { label: "How the Internet Works roadmap", url: "https://harun.dev/roadmaps/internet-networking", kind: course }
-
-      - id: load-balancing-autoscaling
-        title: Load balancing and auto scaling
-        summary: Spread traffic over many instances and add or remove them with demand.
-        learn:
-          - Application vs Network Load Balancer
-          - Target groups and health checks
-          - Auto Scaling groups
-        resources:
-          - { label: "What is an Application Load Balancer?", url: "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html", kind: docs }
-          - post: add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances
+        lessons:
+          - id: rds-vs-ec2-database
+            title: RDS vs a database on EC2
+            summary: What you stop doing yourself when AWS runs the database, and what you give up.
+            learn:
+              - Managed backups and patching
+              - Engines RDS supports
+            resources:
+              - { label: "What is Amazon RDS?", url: "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html", kind: docs }
+              - post: add-database-to-application-hosted-in-amazon-lightsail
+          - id: rds-backups
+            title: Backups and snapshots
+            summary: Automated backups give point-in-time restore. Manual snapshots stay until you delete them.
+            learn:
+              - Backup retention and point-in-time recovery
+              - Testing a restore
+            resources:
+              - { label: "Backing up and restoring (Amazon RDS docs)", url: "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_CommonTasks.BackupRestore.html", kind: docs }
+          - id: private-database
+            title: Keeping the database private
+            summary: The database should live in a private subnet and only accept connections from your app.
+            learn:
+              - Public accessibility off
+              - Security group from the app only
+            resources:
+              - { label: "Security in Amazon RDS (AWS docs)", url: "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.html", kind: docs }
+          - id: elasticache-redis
+            title: Caching with ElastiCache
+            optional: true
+            summary: Add a managed Redis or Valkey cache in front of the database for sessions, queues and hot data.
+            learn:
+              - When a cache helps
+              - Connecting an app to ElastiCache
+            resources:
+              - post: connect-redis-elasticache-to-application-in-amazon-lightsail-instance
+              - { label: "What is Amazon ElastiCache?", url: "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/WhatIs.html", kind: docs }
 
       - id: cloudfront-route53
         title: CloudFront and Route 53
         summary: DNS for your domains and a CDN in front of your app.
-        learn:
-          - Hosted zones and records
-          - CloudFront origins and caching
-          - TLS certificates with ACM
-        resources:
-          - { label: "What is Amazon CloudFront?", url: "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Introduction.html", kind: docs }
-          - { label: "What is Amazon Route 53?", url: "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/Welcome.html", kind: docs }
-          - post: add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail
+        lessons:
+          - id: route53-hosted-zones
+            title: Hosted zones and records
+            summary: Put your domain's DNS in Route 53 and point it at your server, load balancer or CDN.
+            learn:
+              - Public hosted zones
+              - Alias records vs CNAME
+            resources:
+              - { label: "What is Amazon Route 53?", url: "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/Welcome.html", kind: docs }
+          - id: acm-certificates
+            title: TLS certificates with ACM
+            summary: Free public certificates that renew themselves, for CloudFront and load balancers.
+            learn:
+              - DNS validation
+              - Why CloudFront certificates live in us-east-1
+            resources:
+              - { label: "What is AWS Certificate Manager?", url: "https://docs.aws.amazon.com/acm/latest/userguide/acm-overview.html", kind: docs }
+          - id: cloudfront-origins-caching
+            title: CloudFront origins and caching
+            summary: Serve your app and static files from edge locations close to your users.
+            learn:
+              - Origins and behaviors
+              - Cache policies and invalidations
+            resources:
+              - { label: "What is Amazon CloudFront?", url: "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Introduction.html", kind: docs }
+              - post: add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail
+          - id: cloudfront-s3-oac
+            title: Private S3 behind CloudFront
+            optional: true
+            summary: Origin access control lets CloudFront read a private bucket so nobody can go around the CDN.
+            learn:
+              - Origin access control
+              - Bucket policy for CloudFront only
+            resources:
+              - { label: "Restricting access to an S3 origin (AWS docs)", url: "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html", kind: docs }
+
+  - level: intermediate
+    title: Build real architectures
+    topics:
+      - id: vpc-networking
+        title: VPC networking
+        summary: Your private network in AWS. Subnets, routes and gateways decide what can talk to what.
+        lessons:
+          - id: public-private-subnets
+            title: Public vs private subnets
+            summary: A subnet is public only because its route table points at an internet gateway.
+            learn:
+              - CIDR ranges for a VPC
+              - Route tables
+              - One subnet of each kind per AZ
+            resources:
+              - { label: "What is Amazon VPC?", url: "https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html", kind: docs }
+              - { label: "How the Internet Works roadmap", url: "https://harun.dev/roadmaps/internet-networking", kind: course }
+          - id: internet-and-nat-gateways
+            title: Internet and NAT gateways
+            summary: Inbound and outbound for public subnets, outbound only for private ones, and what NAT costs.
+            learn:
+              - Internet gateway
+              - NAT gateway per AZ
+              - VPC endpoints to skip NAT for AWS services
+            resources:
+              - { label: "NAT gateways (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html", kind: docs }
+              - { label: "AWS PrivateLink and VPC endpoints (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/privatelink/what-is-privatelink.html", kind: docs }
+          - id: sg-vs-nacl
+            title: Security groups vs network ACLs
+            summary: Stateful rules on each resource vs stateless rules on each subnet.
+            learn:
+              - Stateful vs stateless
+              - Referencing one security group from another
+            resources:
+              - { label: "Control traffic with security groups (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-security-groups.html", kind: docs }
+              - { label: "Network ACLs (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-network-acls.html", kind: docs }
+          - id: connecting-vpcs
+            title: Connecting VPCs
+            optional: true
+            summary: Peering, Transit Gateway and VPC Lattice for traffic between VPCs and accounts.
+            learn:
+              - VPC peering limits
+              - Transit Gateway hubs
+            resources:
+              - { label: "What is a transit gateway? (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/tgw/what-is-transit-gateway.html", kind: docs }
+              - { label: "What is VPC peering? (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html", kind: docs }
+
+      - id: load-balancing-autoscaling
+        title: Load balancing and auto scaling
+        summary: Spread traffic over many instances and add or remove them with demand.
+        lessons:
+          - id: alb-vs-nlb
+            title: Application vs Network Load Balancer
+            summary: ALB routes HTTP by path and host. NLB passes TCP and UDP through at very high scale.
+            learn:
+              - Layer 7 vs layer 4
+              - Listeners and rules
+            resources:
+              - { label: "What is an Application Load Balancer?", url: "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html", kind: docs }
+              - { label: "What is a Network Load Balancer?", url: "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/introduction.html", kind: docs }
+          - id: target-groups-health-checks
+            title: Target groups and health checks
+            summary: The load balancer only sends traffic to targets that pass their health check.
+            learn:
+              - Registering targets
+              - Healthy and unhealthy thresholds
+            resources:
+              - { label: "Target group health checks (AWS docs)", url: "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html", kind: docs }
+              - post: add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances
+          - id: auto-scaling-groups
+            title: Auto Scaling groups
+            summary: Keep a fleet at the right size, replace broken instances and scale on load.
+            learn:
+              - Launch templates
+              - Target tracking policies
+            resources:
+              - { label: "What is Amazon EC2 Auto Scaling?", url: "https://docs.aws.amazon.com/autoscaling/ec2/userguide/what-is-amazon-ec2-auto-scaling.html", kind: docs }
 
       - id: lambda-serverless
         title: Lambda and serverless
         summary: Run code on events without servers, and pay only while it runs.
-        learn:
-          - Triggers and event sources
-          - API Gateway
-          - Cold starts, timeouts and limits
-        resources:
-          - { label: "What is AWS Lambda?", url: "https://docs.aws.amazon.com/lambda/latest/dg/welcome.html", kind: docs }
-          - post: how-i-architected-a-fully-serverless-saas-on-aws-lambda-with-fastify
-          - post: serverless-laravel-on-aws-lambda-with-bref-and-terraform
+        lessons:
+          - id: lambda-triggers
+            title: Triggers and event sources
+            summary: A Lambda function runs when something happens, such as an HTTP request, a file upload or a queue message.
+            learn:
+              - Synchronous vs asynchronous invokes
+              - Event source mappings
+            resources:
+              - { label: "What is AWS Lambda?", url: "https://docs.aws.amazon.com/lambda/latest/dg/welcome.html", kind: docs }
+          - id: api-gateway
+            title: HTTP APIs with API Gateway
+            summary: Put an HTTPS endpoint in front of your functions and build a whole backend on it.
+            learn:
+              - HTTP APIs vs REST APIs
+              - One function per route vs one app function
+            resources:
+              - { label: "What is Amazon API Gateway?", url: "https://docs.aws.amazon.com/apigateway/latest/developerguide/welcome.html", kind: docs }
+              - post: how-i-architected-a-fully-serverless-saas-on-aws-lambda-with-fastify
+          - id: frameworks-on-lambda
+            title: Running a web framework on Lambda
+            summary: Run a full Laravel or Node app on Lambda without rewriting it.
+            learn:
+              - Bref for PHP
+              - Packaging and deploying with Terraform
+            resources:
+              - post: serverless-laravel-on-aws-lambda-with-bref-and-terraform
+              - { label: "Bref", url: "https://bref.sh/", kind: docs }
+          - id: lambda-limits
+            title: Cold starts, timeouts and limits
+            summary: Know the hard limits before you hit them in production.
+            learn:
+              - The 15-minute timeout
+              - Memory, payload and concurrency limits
+              - What a cold start costs
+            resources:
+              - { label: "Lambda quotas (AWS docs)", url: "https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html", kind: docs }
+              - post: lambda-snapstart-terraform-cold-starts
+          - id: lambda-websockets
+            title: WebSockets on Lambda
+            optional: true
+            summary: Keep live connections open through API Gateway while Lambda handles each message.
+            learn:
+              - Connect, message and disconnect routes
+              - Storing connection ids
+            resources:
+              - post: real-time-ai-chat-with-lambda-api-gateway-websockets
+              - { label: "WebSocket APIs in API Gateway (AWS docs)", url: "https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api.html", kind: docs }
+          - id: multi-tenant-serverless
+            title: Multi-tenant SaaS on Lambda
+            optional: true
+            summary: Auth, tenant isolation and billing for a SaaS that runs entirely on Lambda.
+            learn:
+              - Tenant-aware auth
+              - Billing with Stripe webhooks
+            resources:
+              - post: multi-tenant-saas-auth-lambda-fastify
+              - post: multi-tenant-billing-aws-lambda-stripe
 
       - id: containers-ecs
         title: Containers on ECS and Fargate
         summary: Run Docker containers without managing the servers under them.
-        learn:
-          - Task definitions and services
-          - Fargate vs EC2 capacity
-          - Spot capacity to save money
-        resources:
-          - { label: "What is Amazon ECS?", url: "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html", kind: docs }
-          - post: serverless-laravel-containers-with-ecs-fargate-app-runner-and-terraform
-          - post: ecs-fargate-spot-capacity-providers
+        lessons:
+          - id: task-definitions-services
+            title: Task definitions and services
+            summary: A task definition describes your containers. A service keeps the right number running.
+            learn:
+              - Images in ECR
+              - Tasks vs services
+            resources:
+              - { label: "What is Amazon ECS?", url: "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html", kind: docs }
+          - id: fargate-vs-ec2
+            title: Fargate vs EC2 capacity
+            summary: Let AWS run the hosts with Fargate, or run your own EC2 instances for more control and lower cost at scale.
+            learn:
+              - When Fargate is simpler
+              - App Runner as an even simpler option
+            resources:
+              - post: serverless-laravel-containers-with-ecs-fargate-app-runner-and-terraform
+              - { label: "AWS Fargate (AWS docs)", url: "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html", kind: docs }
+          - id: fargate-spot
+            title: Spot capacity to save money
+            optional: true
+            summary: Run interruptible tasks on Fargate Spot and mix them with on-demand using capacity providers.
+            learn:
+              - Capacity provider strategies
+              - Handling interruptions
+            resources:
+              - post: ecs-fargate-spot-capacity-providers
+              - { label: "Fargate capacity providers (AWS docs)", url: "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-capacity-providers.html", kind: docs }
 
       - id: queues-and-events
         title: Queues, events and workflows
         summary: Decouple parts of your system with SQS, EventBridge and Step Functions.
-        learn:
-          - SQS queues and dead-letter queues
-          - Event-driven design
-          - Step Functions state machines
-        resources:
-          - { label: "What is Amazon SQS?", url: "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/welcome.html", kind: docs }
-          - { label: "What is Step Functions?", url: "https://docs.aws.amazon.com/step-functions/latest/dg/welcome.html", kind: docs }
-          - post: running-ai-background-jobs-serverlessly-with-sqs-lambda-bedrock
+        lessons:
+          - id: sqs-and-dlqs
+            title: SQS queues and dead-letter queues
+            summary: Put slow work on a queue, process it in the background and catch messages that keep failing.
+            learn:
+              - Visibility timeout
+              - Dead-letter queues and redrive
+            resources:
+              - { label: "What is Amazon SQS?", url: "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/welcome.html", kind: docs }
+              - post: running-ai-background-jobs-serverlessly-with-sqs-lambda-bedrock
+          - id: eventbridge
+            title: Event-driven design with EventBridge
+            summary: Publish events and let other parts of the system react, without knowing who listens.
+            learn:
+              - Event buses and rules
+              - Scheduled events
+            resources:
+              - { label: "What is Amazon EventBridge?", url: "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-what-is.html", kind: docs }
+          - id: step-functions
+            title: Step Functions state machines
+            summary: Model multi-step workflows with retries and branches instead of chaining Lambdas together.
+            learn:
+              - States, retries and catches
+              - Standard vs Express workflows
+            resources:
+              - { label: "What is Step Functions?", url: "https://docs.aws.amazon.com/step-functions/latest/dg/welcome.html", kind: docs }
+              - post: rag-ingestion-pipeline-step-functions-lambda
+          - id: silent-job-failures
+            title: Jobs that succeed but do nothing
+            optional: true
+            summary: A green run is not proof of work. Check outputs, not just exit codes.
+            learn:
+              - Output checks after a job
+              - Alarming on missing writes
+            resources:
+              - post: catch-lambda-jobs-that-succeed-but-write-nothing
+              - { label: "Using Lambda with Amazon SQS (AWS docs)", url: "https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html", kind: docs }
 
       - id: dynamodb
         title: DynamoDB
         summary: A serverless key-value database. Design around your access patterns.
-        learn:
-          - Partition and sort keys
-          - Single-table design
-          - On-demand vs provisioned capacity
-        resources:
-          - { label: "What is Amazon DynamoDB?", url: "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html", kind: docs }
+        lessons:
+          - id: partition-sort-keys
+            title: Partition and sort keys
+            summary: The key design decides which queries are cheap and which are impossible.
+            learn:
+              - Partition key distribution
+              - Sort keys for range queries
+              - Global secondary indexes
+            resources:
+              - { label: "What is Amazon DynamoDB?", url: "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html", kind: docs }
+              - { label: "Best practices for DynamoDB (AWS docs)", url: "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/best-practices.html", kind: docs }
+          - id: capacity-modes
+            title: On-demand vs provisioned capacity
+            summary: Pay per request, or reserve throughput and save when traffic is steady.
+            learn:
+              - Read and write capacity units
+              - Switching modes
+            resources:
+              - { label: "DynamoDB capacity modes (AWS docs)", url: "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/capacity-mode.html", kind: docs }
+          - id: single-table-design
+            title: Single-table design
+            optional: true
+            summary: Store many entity types in one table to serve related queries in a single request.
+            learn:
+              - Modelling access patterns first
+              - Overloaded keys
+            resources:
+              - { label: "The DynamoDB Book (Alex DeBrie)", url: "https://www.dynamodbbook.com/", kind: course }
+              - { label: "Alex DeBrie on DynamoDB", url: "https://www.alexdebrie.com/", kind: article }
 
       - id: cloudwatch
         title: CloudWatch monitoring
         summary: Metrics, logs and alarms for everything you run on AWS.
-        learn:
-          - Metrics and alarms
-          - Logs Insights queries
-          - Dashboards
-        resources:
-          - { label: "What is Amazon CloudWatch?", url: "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html", kind: docs }
-          - post: install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging
+        lessons:
+          - id: metrics-and-alarms
+            title: Metrics and alarms
+            summary: Every service sends metrics. Alarm on the few that mean users are hurting.
+            learn:
+              - Built-in vs custom metrics
+              - Alarms to email or chat
+            resources:
+              - { label: "What is Amazon CloudWatch?", url: "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html", kind: docs }
+          - id: logs-insights
+            title: Logs and Logs Insights
+            summary: Ship logs from servers and functions, then query them with Logs Insights.
+            learn:
+              - Log groups and retention
+              - The CloudWatch agent on servers
+              - Logs Insights queries
+            resources:
+              - post: install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging
+              - { label: "Analyzing logs with CloudWatch Logs Insights (AWS docs)", url: "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html", kind: docs }
+          - id: dashboards
+            title: Dashboards
+            summary: One page with the handful of graphs you check when something feels wrong.
+            learn:
+              - Picking the right graphs
+              - Sharing dashboards
+            resources:
+              - { label: "Using CloudWatch dashboards (AWS docs)", url: "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Dashboards.html", kind: docs }
+          - id: llm-observability
+            title: Observability for AI features
+            optional: true
+            summary: Trace prompts, tokens and latency for LLM calls alongside normal CloudWatch metrics.
+            learn:
+              - Tracing LLM calls
+              - Cost and latency per request
+            resources:
+              - post: llm-observability-langfuse-lambda-cloudwatch
+              - { label: "Langfuse docs", url: "https://langfuse.com/docs", kind: docs }
 
       - id: infrastructure-as-code-aws
         title: Infrastructure as code on AWS
         summary: Stop clicking in the console. Define your AWS setup in code.
-        learn:
-          - Terraform vs CloudFormation vs CDK
-          - Remote state
-          - Reviewing changes before apply
-        resources:
-          - { label: "AWS CDK developer guide", url: "https://docs.aws.amazon.com/cdk/v2/guide/home.html", kind: docs }
-          - post: deploying-a-laravel-application-to-amazon-ec2-using-terraform
-          - post: terraform-or-pulumi
+        lessons:
+          - id: iac-tools
+            title: Terraform vs CloudFormation vs CDK
+            summary: Three ways to describe AWS in code, and how to pick one for your team.
+            learn:
+              - Declarative config vs real code
+              - Multi-cloud vs AWS-only
+            resources:
+              - { label: "AWS CDK developer guide", url: "https://docs.aws.amazon.com/cdk/v2/guide/home.html", kind: docs }
+              - { label: "Terraform AWS provider", url: "https://registry.terraform.io/providers/hashicorp/aws/latest/docs", kind: docs }
+              - post: terraform-or-pulumi
+          - id: first-terraform-deploy
+            title: A first Terraform deploy
+            summary: Build a real server and its network from code, end to end.
+            learn:
+              - Providers, resources and variables
+              - Plan, apply and destroy
+            resources:
+              - post: deploying-a-laravel-application-to-amazon-ec2-using-terraform
+              - { label: "Get started with Terraform on AWS (HashiCorp)", url: "https://developer.hashicorp.com/terraform/tutorials/aws-get-started", kind: course }
+          - id: remote-state
+            title: Remote state
+            summary: Keep state in S3 with locking, and treat it as a secret, since it holds passwords and keys.
+            learn:
+              - S3 backend and locking
+              - Who can read the state
+            resources:
+              - post: terraform-state-more-sensitive-than-env
+              - { label: "S3 backend (Terraform docs)", url: "https://developer.hashicorp.com/terraform/language/backend/s3", kind: docs }
+          - id: iac-cicd
+            title: Reviewing changes before apply
+            summary: Run plan on every pull request and apply from CI with short-lived credentials.
+            learn:
+              - Plan in PR, apply on merge
+              - GitHub OIDC instead of access keys
+            resources:
+              - post: github-actions-lambda-terraform-cicd
+              - { label: "Configuring OpenID Connect in AWS (GitHub docs)", url: "https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services", kind: docs }
 
   - level: advanced
     title: Run AWS like a pro
-    steps:
+    topics:
       - id: multi-account
         title: Multi-account setup
         summary: Separate prod, staging and security into their own accounts with guardrails.
-        learn:
-          - AWS Organizations and SCPs
-          - Control Tower landing zones
-          - IAM Identity Center (SSO)
-        resources:
-          - { label: "What is AWS Organizations?", url: "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_introduction.html", kind: docs }
-          - { label: "What is AWS Control Tower?", url: "https://docs.aws.amazon.com/controltower/latest/userguide/what-is-control-tower.html", kind: docs }
+        lessons:
+          - id: organizations-and-scps
+            title: AWS Organizations and SCPs
+            summary: Group accounts and set guardrails no one inside an account can override.
+            learn:
+              - Organizational units
+              - Service control policies
+            resources:
+              - { label: "What is AWS Organizations?", url: "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_introduction.html", kind: docs }
+              - { label: "Service control policies (AWS docs)", url: "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html", kind: docs }
+          - id: identity-center
+            title: IAM Identity Center (SSO)
+            summary: One login for people across every account, with short-lived credentials on the CLI.
+            learn:
+              - Permission sets
+              - aws sso login
+            resources:
+              - { label: "What is IAM Identity Center?", url: "https://docs.aws.amazon.com/singlesignon/latest/userguide/what-is.html", kind: docs }
+          - id: control-tower
+            title: Control Tower landing zones
+            optional: true
+            summary: A ready-made multi-account setup with logging, security accounts and guardrails.
+            learn:
+              - Landing zone layout
+              - Account Factory
+            resources:
+              - { label: "What is AWS Control Tower?", url: "https://docs.aws.amazon.com/controltower/latest/userguide/what-is-control-tower.html", kind: docs }
+              - { label: "Organizing your AWS environment using multiple accounts", url: "https://docs.aws.amazon.com/whitepapers/latest/organizing-your-aws-environment/organizing-your-aws-environment.html", kind: docs }
 
       - id: aws-security
         title: Security at scale
         summary: Audit everything, detect threats and block bad traffic at the edge.
-        learn:
-          - CloudTrail and GuardDuty
-          - WAF rules
-          - Locking down data access
-        resources:
-          - { label: "What is AWS CloudTrail?", url: "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html", kind: docs }
-          - { label: "What is Amazon GuardDuty?", url: "https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html", kind: docs }
-          - post: aws-waf-cloudfront-solo-dev
-          - post: lock-down-bedrock-iam-lambda-data-leak
+        lessons:
+          - id: cloudtrail-guardduty
+            title: CloudTrail and GuardDuty
+            summary: Record every API call, and let GuardDuty flag the ones that look like an attack.
+            learn:
+              - Organization trails
+              - GuardDuty findings
+            resources:
+              - { label: "What is AWS CloudTrail?", url: "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html", kind: docs }
+              - { label: "What is Amazon GuardDuty?", url: "https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html", kind: docs }
+          - id: waf-rules
+            title: WAF rules
+            summary: Rate limiting, managed rules and bot control in front of CloudFront or a load balancer.
+            learn:
+              - Managed rule groups
+              - Rate-based rules
+              - Blocking by IP or country
+            resources:
+              - post: aws-waf-cloudfront-solo-dev
+              - { label: "What is AWS WAF?", url: "https://docs.aws.amazon.com/waf/latest/developerguide/waf-chapter.html", kind: docs }
+          - id: secrets-management
+            title: Secrets and encryption keys
+            summary: Keep credentials in Secrets Manager or Parameter Store, encrypted with KMS, never in code or env files.
+            learn:
+              - Secrets Manager vs Parameter Store
+              - KMS keys and key policies
+            resources:
+              - { label: "What is AWS Secrets Manager?", url: "https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html", kind: docs }
+              - { label: "AWS Key Management Service (AWS docs)", url: "https://docs.aws.amazon.com/kms/latest/developerguide/overview.html", kind: docs }
+          - id: data-access-lockdown
+            title: Locking down data access
+            optional: true
+            summary: Scope what each function can read and send, so a bug or a prompt cannot leak data.
+            learn:
+              - Resource-level IAM conditions
+              - VPC endpoints and endpoint policies
+            resources:
+              - post: lock-down-bedrock-iam-lambda-data-leak
+              - { label: "Security best practices in IAM", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html", kind: docs }
+          - id: compliance-workloads
+            title: Compliance workloads (HIPAA)
+            optional: true
+            summary: What changes when you handle regulated data, from the BAA to encryption and audit logs.
+            learn:
+              - HIPAA-eligible services
+              - Encryption and audit requirements
+            resources:
+              - post: how-to-use-aws-sagemaker-for-hipaa-compliant-data-a-complete-guide
+              - { label: "HIPAA compliance on AWS", url: "https://aws.amazon.com/compliance/hipaa-compliance/", kind: docs }
 
       - id: high-availability-dr
         title: High availability and disaster recovery
         summary: Survive an AZ or a region going down, and know how fast you recover.
-        learn:
-          - Multi-AZ designs
-          - RPO and RTO
-          - Backup, pilot light, warm standby, multi-site
-        resources:
-          - { label: "Disaster recovery of workloads on AWS", url: "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-workloads-on-aws.html", kind: docs }
+        lessons:
+          - id: multi-az-design
+            title: Multi-AZ designs
+            summary: Run every layer in at least two zones so one data centre failing is a non-event.
+            learn:
+              - Multi-AZ databases
+              - Load balancers across zones
+            resources:
+              - { label: "Reliability pillar (AWS Well-Architected)", url: "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html", kind: docs }
+          - id: rpo-rto
+            title: RPO and RTO
+            summary: How much data you can lose and how long you can be down. Agree on both before picking a design.
+            learn:
+              - Recovery point objective
+              - Recovery time objective
+            resources:
+              - { label: "Disaster recovery of workloads on AWS", url: "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-workloads-on-aws.html", kind: docs }
+          - id: dr-strategies
+            title: Backup, pilot light, warm standby, multi-site
+            summary: Four disaster recovery strategies, from cheapest and slowest to most expensive and fastest.
+            learn:
+              - What each strategy keeps running
+              - AWS Backup for cross-region copies
+            resources:
+              - { label: "Disaster recovery of workloads on AWS", url: "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-workloads-on-aws.html", kind: docs }
+              - { label: "What is AWS Backup?", url: "https://docs.aws.amazon.com/aws-backup/latest/devguide/whatisbackup.html", kind: docs }
+          - id: game-days
+            title: Testing failure on purpose
+            optional: true
+            summary: Run game days and fault injection so the recovery plan is proven, not hoped for.
+            learn:
+              - Fault Injection Service experiments
+              - Running a game day
+            resources:
+              - { label: "What is AWS Fault Injection Service?", url: "https://docs.aws.amazon.com/fis/latest/userguide/what-is.html", kind: docs }
 
       - id: well-architected
         title: The Well-Architected Framework
         summary: AWS's six pillars for reviewing any architecture.
-        learn:
-          - Operational excellence, security, reliability
-          - Performance, cost and sustainability
-          - Running a review
-        resources:
-          - { label: "AWS Well-Architected Framework", url: "https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html", kind: docs }
+        lessons:
+          - id: six-pillars
+            title: The six pillars
+            summary: Operational excellence, security, reliability, performance, cost and sustainability, and the key questions of each.
+            learn:
+              - What each pillar asks
+              - Trade-offs between pillars
+            resources:
+              - { label: "AWS Well-Architected Framework", url: "https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html", kind: docs }
+          - id: running-a-review
+            title: Running a review
+            summary: Use the Well-Architected Tool on a real workload and turn the findings into a plan.
+            learn:
+              - High-risk issues
+              - Turning findings into tickets
+            resources:
+              - { label: "What is the AWS Well-Architected Tool?", url: "https://docs.aws.amazon.com/wellarchitected/latest/userguide/intro.html", kind: docs }
+          - id: well-architected-lenses
+            title: Lenses
+            optional: true
+            summary: Extra question sets for serverless, SaaS, machine learning and other workload types.
+            learn:
+              - The serverless lens
+              - The generative AI lens
+            resources:
+              - { label: "AWS Well-Architected lenses", url: "https://aws.amazon.com/architecture/well-architected/", kind: docs }
 
       - id: cost-optimization
         title: Cost optimization
         summary: Find where the money goes and cut it without breaking anything.
-        learn:
-          - Cost Explorer and tagging
-          - Savings Plans and Spot
-          - NAT gateway and data transfer costs
-        resources:
-          - { label: "What are Savings Plans?", url: "https://docs.aws.amazon.com/savingsplans/latest/userguide/what-is-savings-plans.html", kind: docs }
-          - post: 5-aws-mistakes-quietly-draining-your-bank-account
+        lessons:
+          - id: cost-explorer-tagging
+            title: Cost Explorer and tagging
+            summary: Tag everything by team and app, then use Cost Explorer to see what each one costs.
+            learn:
+              - Cost allocation tags
+              - Grouping and filtering in Cost Explorer
+            resources:
+              - { label: "Analyzing costs with Cost Explorer (AWS docs)", url: "https://docs.aws.amazon.com/cost-management/latest/userguide/ce-what-is.html", kind: docs }
+              - post: 5-aws-mistakes-quietly-draining-your-bank-account
+          - id: savings-plans-spot
+            title: Savings Plans and Spot
+            summary: Commit to steady usage for a discount, and run interruptible work on Spot for up to 90% off.
+            learn:
+              - Compute vs EC2 Instance Savings Plans
+              - Workloads that suit Spot
+            resources:
+              - { label: "What are Savings Plans?", url: "https://docs.aws.amazon.com/savingsplans/latest/userguide/what-is-savings-plans.html", kind: docs }
+              - { label: "Amazon EC2 Spot Instances", url: "https://aws.amazon.com/ec2/spot/", kind: docs }
+          - id: data-transfer-costs
+            title: NAT gateway and data transfer costs
+            summary: The hidden line items. Traffic through NAT, across AZs and out to the internet all cost money.
+            learn:
+              - Gateway endpoints for S3 and DynamoDB
+              - Cross-AZ traffic charges
+            resources:
+              - { label: "Overview of data transfer costs (AWS Architecture Blog)", url: "https://aws.amazon.com/blogs/architecture/overview-of-data-transfer-costs-for-common-architectures/", kind: article }
+          - id: rightsizing
+            title: Rightsizing
+            optional: true
+            summary: Use Compute Optimizer to find oversized instances, functions and volumes.
+            learn:
+              - Reading Compute Optimizer findings
+              - Graviton for cheaper compute
+            resources:
+              - { label: "What is AWS Compute Optimizer?", url: "https://docs.aws.amazon.com/compute-optimizer/latest/ug/what-is-compute-optimizer.html", kind: docs }
 
       - id: kubernetes-eks
         title: Kubernetes on EKS
         summary: Managed Kubernetes on AWS, and when it is worth the extra work over ECS.
-        learn:
-          - EKS control plane and node groups
-          - IAM roles for service accounts
-          - EKS vs ECS
-        resources:
-          - { label: "What is Amazon EKS?", url: "https://docs.aws.amazon.com/eks/latest/userguide/what-is-eks.html", kind: docs }
+        lessons:
+          - id: eks-control-plane-nodes
+            title: Control plane and node groups
+            summary: AWS runs the control plane. You choose managed nodes, Karpenter or Fargate for the workers.
+            learn:
+              - Managed node groups
+              - Karpenter for autoscaling
+            resources:
+              - { label: "What is Amazon EKS?", url: "https://docs.aws.amazon.com/eks/latest/userguide/what-is-eks.html", kind: docs }
+              - { label: "EKS Best Practices Guide", url: "https://docs.aws.amazon.com/eks/latest/best-practices/introduction.html", kind: docs }
+          - id: eks-pod-iam
+            title: IAM for pods
+            summary: Give each workload its own AWS permissions with Pod Identity or IRSA, not the node's role.
+            learn:
+              - EKS Pod Identity
+              - IAM roles for service accounts
+            resources:
+              - { label: "EKS Pod Identity (AWS docs)", url: "https://docs.aws.amazon.com/eks/latest/userguide/pod-identities.html", kind: docs }
+          - id: eks-vs-ecs
+            title: EKS vs ECS
+            summary: Kubernetes buys portability and an ecosystem, at the cost of more to run and learn.
+            learn:
+              - When ECS is enough
+              - What EKS adds
+            resources:
+              - { label: "Choosing an AWS container service", url: "https://docs.aws.amazon.com/decision-guides/latest/containers-on-aws-how-to-choose/choosing-aws-container-service.html", kind: docs }
+          - id: eks-workshop
+            title: Hands-on with the EKS Workshop
+            optional: true
+            summary: Work through a real cluster with networking, autoscaling, observability and security labs.
+            learn:
+              - Cluster networking
+              - Observability on EKS
+            resources:
+              - { label: "EKS Workshop", url: "https://www.eksworkshop.com/", kind: course }
 
       - id: ai-on-aws
         title: AI workloads on AWS
         summary: Call foundation models with Bedrock and run AI apps serverlessly.
-        learn:
-          - Amazon Bedrock basics
-          - Serverless inference patterns
-          - Guarding data and cost
-        resources:
-          - { label: "What is Amazon Bedrock?", url: "https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-bedrock.html", kind: docs }
-          - post: serverless-ai-inference-endpoints-with-aws-bedrock-and-lambda
-          - post: step-functions-llm-orchestration-replacing-lambda-chains
+        lessons:
+          - id: bedrock-basics
+            title: Amazon Bedrock basics
+            summary: Call Claude and other foundation models through one AWS API, billed per token.
+            learn:
+              - Model access and regions
+              - The Converse API
+              - OpenAI-compatible endpoints
+            resources:
+              - { label: "What is Amazon Bedrock?", url: "https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-bedrock.html", kind: docs }
+              - post: migrated-lambda-ai-app-to-bedrock-openai-compatible-apis-without-rewriting-everything
+          - id: serverless-inference
+            title: Serverless inference patterns
+            summary: Put a model behind Lambda and API Gateway, and validate what it returns before you trust it.
+            learn:
+              - Sync endpoints vs background jobs
+              - Validating model output
+            resources:
+              - post: serverless-ai-inference-endpoints-with-aws-bedrock-and-lambda
+              - post: ai-endpoints-post-generate-validation-lambda-bedrock-fastify
+          - id: llm-workflows
+            title: Orchestrating LLM workflows
+            summary: Multi-step AI jobs with Step Functions, and long-running work without Lambda timeouts.
+            learn:
+              - Step Functions for LLM chains
+              - Handling long workloads
+            resources:
+              - post: step-functions-llm-orchestration-replacing-lambda-chains
+              - post: lambda-microvm-long-ai-workloads
+          - id: rag-on-aws
+            title: RAG on AWS
+            summary: Retrieval-augmented generation with pgvector or Bedrock Knowledge Bases, and keeping access rules on retrieved data.
+            learn:
+              - Chunking, embedding and indexing
+              - Re-checking permissions on citations
+            resources:
+              - post: building-a-production-rag-pipeline-on-aws-lambda-pgvector
+              - post: persistence-is-not-permission-rag-citation-reauth-chat-replay
+              - { label: "Amazon Bedrock Knowledge Bases (AWS docs)", url: "https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base.html", kind: docs }
+          - id: bedrock-agents
+            title: Agents and guardrails
+            optional: true
+            summary: Bedrock Agents with action groups and knowledge bases, and guardrails that filter what goes in and out.
+            learn:
+              - Action groups
+              - Bedrock Guardrails
+            resources:
+              - post: bedrock-agents-production-knowledge-bases
+              - { label: "Amazon Bedrock Guardrails (AWS docs)", url: "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html", kind: docs }
+          - id: mcp-on-aws
+            title: MCP servers on AWS
+            optional: true
+            summary: Host Model Context Protocol servers on Lambda or behind AgentCore Gateway, with proper auth.
+            learn:
+              - Streamable HTTP on Lambda
+              - Authentication for remote MCP
+              - AgentCore Gateway targets
+            resources:
+              - post: deploying-an-mcp-server-on-aws-lambda
+              - post: mcp-authentication-fix-401-remote-server
+              - post: agentcore-gateway-private-ca-without-the-alb
 
       - id: agentic-aws-ops
         title: AI agents for AWS operations
         summary: Use coding agents to write, review and run your AWS infrastructure safely.
-        learn:
-          - Agents with read-only cloud access
-          - Reviewing agent-written Terraform
-          - Guardrails for automation
-        resources:
-          - post: claude-code-for-aws-infrastructure-agentic-devops-workflow-with-terraform
-          - post: production-ai-code-review-for-terraform-and-lambda-prs
-          - { label: "AWS Well-Architected: operational excellence", url: "https://docs.aws.amazon.com/wellarchitected/latest/operational-excellence-pillar/welcome.html", kind: docs }
+        lessons:
+          - id: agents-read-only-access
+            title: Agents with read-only cloud access
+            summary: Give agents the least access that lets them help, starting with read-only roles.
+            learn:
+              - Read-only profiles for agents
+              - Keeping writes behind a human
+            resources:
+              - post: how-i-make-ai-coding-agents-safe-in-a-real-aws-codebase
+              - { label: "ReadOnlyAccess managed policy (AWS docs)", url: "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/ReadOnlyAccess.html", kind: docs }
+          - id: agent-terraform-workflow
+            title: Writing Terraform with an agent
+            summary: A plan-review-apply workflow where the agent drafts and you approve.
+            learn:
+              - Agent drafts, human applies
+              - Checking plans before apply
+            resources:
+              - post: claude-code-for-aws-infrastructure-agentic-devops-workflow-with-terraform
+              - { label: "Claude Code docs", url: "https://docs.anthropic.com/en/docs/claude-code/overview", kind: docs }
+          - id: reviewing-agent-prs
+            title: Reviewing agent-written changes
+            summary: AI review and a checklist for Terraform and Lambda pull requests before they merge.
+            learn:
+              - What to check in agent PRs
+              - Automated AI review in CI
+            resources:
+              - post: production-ai-code-review-for-terraform-and-lambda-prs
+              - post: pre-merge-checklist-ai-generated-prs
+          - id: multi-agent-routines
+            title: Multi-agent routines
+            optional: true
+            summary: Split ops work across several agents with clear roles and guardrails.
+            learn:
+              - Roles per agent
+              - Guardrails for automation
+            resources:
+              - post: multi-agent-claude-code-aws-devops-routines
+              - { label: "AWS Well-Architected: operational excellence", url: "https://docs.aws.amazon.com/wellarchitected/latest/operational-excellence-pillar/welcome.html", kind: docs }

@@ -2,212 +2,697 @@ slug: devops
 title: DevOps
 summary: From the Linux shell to Kubernetes and SLOs. How code gets built, shipped and kept running, one topic at a time.
 order: 3
+updated: '2026-11-15'
 
 stages:
   - level: beginner
     title: The foundations
-    steps:
+    topics:
       - id: linux-command-line
         title: The Linux command line
         summary: Almost every server runs Linux. Get comfortable moving around, reading files and managing processes.
-        learn:
-          - Files, permissions and users
-          - Processes, signals and services (systemd)
-          - Pipes, grep, and reading logs
-        resources:
-          - { label: "Linux Journey", url: "https://linuxjourney.com/", kind: course }
-          - { label: "The Art of Command Line", url: "https://github.com/jlevy/the-art-of-command-line", kind: article }
+        lessons:
+          - id: files-and-permissions
+            title: Files, permissions and users
+            summary: Move around the filesystem and read who can do what with a file.
+            learn:
+              - The directory layout (/etc, /var, /home)
+              - rwx permissions, chmod and chown
+              - Users, groups and sudo
+            resources:
+              - { label: "Linux Journey", url: "https://linuxjourney.com/", kind: course }
+              - { label: "The Art of Command Line", url: "https://github.com/jlevy/the-art-of-command-line", kind: article }
+          - id: processes-and-services
+            title: Processes, signals and services
+            summary: See what is running, stop it cleanly, and keep services running with systemd.
+            learn:
+              - ps, top and kill
+              - SIGTERM vs SIGKILL
+              - systemctl and unit files
+            resources:
+              - { label: "Linux Journey", url: "https://linuxjourney.com/", kind: course }
+              - { label: "systemd documentation", url: "https://systemd.io/", kind: docs }
+          - id: pipes-grep-and-logs
+            title: Pipes, grep and reading logs
+            summary: Chain small tools together to find the one line in a log that matters.
+            learn:
+              - Pipes and redirection
+              - grep, less, tail -f
+              - journalctl
+            resources:
+              - { label: "The Art of Command Line", url: "https://github.com/jlevy/the-art-of-command-line", kind: article }
+          - id: package-managers-and-ssh
+            title: Package managers and SSH
+            optional: true
+            summary: Install software the distro way and log in to remote machines with keys, not passwords.
+            learn:
+              - apt and dnf basics
+              - SSH keys and ~/.ssh/config
+              - Copying files with scp and rsync
+            resources:
+              - { label: "OpenSSH manual pages", url: "https://www.openssh.com/manual.html", kind: docs }
+              - post: first-3-things-i-always-do-after-creating-a-new-aws-account
 
       - id: git
         title: Git
         summary: Version control is where every pipeline starts. Branches, commits and pull requests.
-        learn:
-          - Commits, branches and merges
-          - Rebasing and resolving conflicts
-          - Pull request workflow
-        resources:
-          - { label: "Pro Git (free book)", url: "https://git-scm.com/book/en/v2", kind: course }
-          - { label: "Learn Git Branching (interactive)", url: "https://learngitbranching.js.org/", kind: tool }
+        lessons:
+          - id: commits-and-branches
+            title: Commits, branches and merges
+            summary: Record changes in small steps and work on several things at once without losing any.
+            learn:
+              - The working tree, index and commits
+              - Branching and merging
+              - Reading git log and git diff
+            resources:
+              - { label: "Pro Git (free book)", url: "https://git-scm.com/book/en/v2", kind: course }
+              - { label: "Learn Git Branching (interactive)", url: "https://learngitbranching.js.org/", kind: tool }
+          - id: rebase-and-conflicts
+            title: Rebasing and resolving conflicts
+            summary: Keep history readable and fix the conflicts that come with working in a team.
+            learn:
+              - Rebase vs merge
+              - Resolving a conflict by hand
+              - Undoing mistakes with reflog
+            resources:
+              - { label: "Pro Git: Rebasing", url: "https://git-scm.com/book/en/v2/Git-Branching-Rebasing", kind: docs }
+              - { label: "Learn Git Branching (interactive)", url: "https://learngitbranching.js.org/", kind: tool }
+          - id: pull-request-workflow
+            title: Pull request workflow
+            summary: Propose a change, get it reviewed and merge it, the way every pipeline expects.
+            learn:
+              - Feature branches and pull requests
+              - Code review etiquette
+              - Branch protection
+            resources:
+              - { label: "GitHub flow", url: "https://docs.github.com/en/get-started/using-github/github-flow", kind: docs }
+              - post: pre-merge-checklist-ai-generated-prs
+          - id: git-internals
+            title: How Git stores data
+            optional: true
+            summary: Blobs, trees and commits, so the strange errors start to make sense.
+            learn:
+              - Objects and the content-addressed store
+              - Refs and HEAD
+            resources:
+              - { label: "Pro Git: Git Internals", url: "https://git-scm.com/book/en/v2/Git-Internals-Plumbing-and-Porcelain", kind: docs }
 
       - id: shell-scripting
         title: Shell scripting
         summary: Automate the boring parts with small, safe Bash scripts.
-        learn:
-          - Variables, loops and conditionals
-          - Exit codes and set -euo pipefail
-          - When to stop and use a real language
-        resources:
-          - { label: "Bash reference manual", url: "https://www.gnu.org/software/bash/manual/bash.html", kind: docs }
-          - { label: "ShellCheck", url: "https://www.shellcheck.net/", kind: tool }
+        lessons:
+          - id: bash-basics
+            title: Variables, loops and conditionals
+            summary: Write your first scripts that repeat a task you used to do by hand.
+            learn:
+              - Variables and quoting
+              - for, while and if
+              - Functions and arguments
+            resources:
+              - { label: "Bash reference manual", url: "https://www.gnu.org/software/bash/manual/bash.html", kind: docs }
+          - id: safe-scripts
+            title: Exit codes and safe scripts
+            summary: Make scripts stop on the first error instead of carrying on and doing damage.
+            learn:
+              - Exit codes and $?
+              - set -euo pipefail
+              - Linting with ShellCheck
+            resources:
+              - { label: "ShellCheck", url: "https://www.shellcheck.net/", kind: tool }
+              - { label: "Bash reference manual", url: "https://www.gnu.org/software/bash/manual/bash.html", kind: docs }
+          - id: when-to-leave-bash
+            title: When to stop and use a real language
+            optional: true
+            summary: Know the point where a Bash script should become Python or Go.
+            learn:
+              - Signs a script has outgrown Bash
+              - Data structures and error handling elsewhere
+            resources:
+              - { label: "Google Shell Style Guide", url: "https://google.github.io/styleguide/shellguide.html", kind: docs }
 
       - id: networking-for-devops
         title: Networking you need
         summary: DNS, ports, HTTP and TLS show up in every outage. The Internet roadmap covers them in depth.
-        learn:
-          - DNS, ports and HTTP basics
-          - TLS certificates
-          - Reading curl -v output
-        resources:
-          - { label: "How the Internet Works roadmap", url: "https://harun.dev/roadmaps/internet-networking", kind: course }
-          - { label: "What is DNS? (Cloudflare)", url: "https://www.cloudflare.com/learning/dns/what-is-dns/", kind: article }
+        lessons:
+          - id: dns-ports-http
+            title: DNS, ports and HTTP basics
+            summary: How a name becomes an IP address and a request reaches the right process.
+            learn:
+              - DNS records and resolution
+              - Ports and listening sockets
+              - HTTP requests and status codes
+            resources:
+              - { label: "How the Internet Works roadmap", url: "https://harun.dev/roadmaps/internet-networking", kind: course }
+              - { label: "What is DNS? (Cloudflare)", url: "https://www.cloudflare.com/learning/dns/what-is-dns/", kind: article }
+          - id: tls-certificates
+            title: TLS certificates
+            summary: Why HTTPS needs a certificate, who issues it and what happens when it expires.
+            learn:
+              - Certificates and certificate authorities
+              - Let's Encrypt and automated renewal
+            resources:
+              - { label: "What is TLS? (Cloudflare)", url: "https://www.cloudflare.com/learning/ssl/transport-layer-security-tls/", kind: article }
+              - { label: "Let's Encrypt: how it works", url: "https://letsencrypt.org/how-it-works/", kind: docs }
+          - id: debugging-with-curl
+            title: Debugging with curl and dig
+            summary: Read curl -v and dig output to tell a DNS problem from a TLS or app problem.
+            learn:
+              - curl -v step by step
+              - dig and nslookup
+              - Checking open ports
+            resources:
+              - { label: "Everything curl", url: "https://everything.curl.dev/", kind: course }
 
       - id: how-apps-are-deployed
         title: How an app gets deployed
         summary: Put code on a server by hand once, so every tool later makes sense.
-        learn:
-          - Build, release, run
-          - Environment config
-          - The twelve-factor app
-        resources:
-          - { label: "The Twelve-Factor App", url: "https://12factor.net/", kind: article }
-          - post: deploy-laravel-application-to-amazon-ec2-instance
-          - post: deploy-laravel-application-to-amazon-lightsail
+        lessons:
+          - id: build-release-run
+            title: Build, release, run
+            summary: The three stages every deploy goes through, whether a tool hides them or not.
+            learn:
+              - Build artifacts
+              - Releases as build plus config
+              - Running processes
+            resources:
+              - { label: "The Twelve-Factor App", url: "https://12factor.net/", kind: article }
+          - id: deploy-by-hand
+            title: Deploy an app by hand
+            summary: Provision a server, install the runtime and put an app behind a web server yourself.
+            learn:
+              - Installing a runtime and web server
+              - Pulling code and running migrations
+              - Restarting without downtime
+            resources:
+              - post: deploy-laravel-application-to-amazon-ec2-instance
+              - post: deploy-laravel-application-to-amazon-lightsail
+          - id: environment-config
+            title: Environment config
+            summary: Keep the same build and change behaviour per environment with config.
+            learn:
+              - Config in the environment
+              - Dev, staging and production parity
+            resources:
+              - { label: "The Twelve-Factor App: Config", url: "https://12factor.net/config", kind: article }
+          - id: twelve-factor-in-depth
+            title: The twelve-factor app in depth
+            optional: true
+            summary: Walk through all twelve factors and where modern platforms still follow them.
+            learn:
+              - Stateless processes and backing services
+              - Logs as event streams
+              - Disposability
+            resources:
+              - { label: "The Twelve-Factor App", url: "https://12factor.net/", kind: article }
+              - post: when-your-app-outgrows-the-tool-that-built-it
 
       - id: cloud-basics
         title: Cloud basics
         summary: Compute, storage, networking and IAM on a public cloud, and what you pay for.
-        learn:
-          - Regions and availability zones
-          - VMs, object storage and managed databases
-          - IAM users, roles and policies
-        resources:
-          - { label: "AWS getting started", url: "https://aws.amazon.com/getting-started/", kind: docs }
-          - { label: "AWS Well-Architected Framework", url: "https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html", kind: docs }
+        lessons:
+          - id: regions-and-zones
+            title: Regions and availability zones
+            summary: Where cloud resources physically live and why that matters for uptime and latency.
+            learn:
+              - Regions vs availability zones
+              - Choosing a region
+            resources:
+              - { label: "AWS global infrastructure", url: "https://aws.amazon.com/about-aws/global-infrastructure/", kind: docs }
+              - post: how-to-start-learning-aws-cloud-and-get-certified
+          - id: core-cloud-services
+            title: VMs, object storage and managed databases
+            summary: The three building blocks behind most applications in the cloud.
+            learn:
+              - Virtual machines
+              - Object storage
+              - Managed databases
+            resources:
+              - { label: "AWS getting started", url: "https://aws.amazon.com/getting-started/", kind: docs }
+              - post: add-database-to-application-hosted-in-amazon-lightsail
+          - id: iam-intro
+            title: IAM users, roles and policies
+            summary: Decide who and what can touch each resource, starting with least privilege.
+            learn:
+              - Users, roles and policies
+              - Least privilege
+              - Protecting the root account
+            resources:
+              - { label: "AWS IAM user guide", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html", kind: docs }
+              - post: first-3-things-i-always-do-after-creating-a-new-aws-account
+          - id: well-architected
+            title: The Well-Architected Framework
+            optional: true
+            summary: AWS's checklist for reliable, secure and cost-aware designs.
+            learn:
+              - The six pillars
+              - Using it as a review tool
+            resources:
+              - { label: "AWS Well-Architected Framework", url: "https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html", kind: docs }
+              - post: 5-aws-mistakes-quietly-draining-your-bank-account
 
   - level: intermediate
     title: Automate everything
-    steps:
+    topics:
       - id: containers
         title: Containers and Docker
         summary: Package an app with everything it needs so it runs the same everywhere.
-        learn:
-          - Images, layers and Dockerfiles
-          - Multi-stage builds and small images
-          - Volumes and networking
-        resources:
-          - { label: "Docker: get started", url: "https://docs.docker.com/get-started/", kind: docs }
-          - post: serverless-laravel-containers-with-ecs-fargate-app-runner-and-terraform
+        lessons:
+          - id: images-and-dockerfiles
+            title: Images, layers and Dockerfiles
+            summary: Write a Dockerfile and understand how layers and caching shape build time.
+            learn:
+              - Containers vs VMs
+              - Dockerfile instructions
+              - Layer caching
+            resources:
+              - { label: "Docker: get started", url: "https://docs.docker.com/get-started/", kind: docs }
+          - id: small-images
+            title: Multi-stage builds and small images
+            summary: Ship only what runs, for faster pulls and fewer vulnerabilities.
+            learn:
+              - Multi-stage builds
+              - Slim and distroless base images
+              - .dockerignore
+            resources:
+              - { label: "Docker build best practices", url: "https://docs.docker.com/build/building/best-practices/", kind: docs }
+          - id: volumes-and-networking
+            title: Volumes, networking and Compose
+            summary: Persist data and run several containers together on one machine.
+            learn:
+              - Volumes and bind mounts
+              - Container networks
+              - Docker Compose
+            resources:
+              - { label: "Docker Compose docs", url: "https://docs.docker.com/compose/", kind: docs }
+          - id: running-containers-in-the-cloud
+            title: Running containers in the cloud
+            optional: true
+            summary: Move a container from your laptop to a managed service like ECS Fargate or App Runner.
+            learn:
+              - Container registries
+              - Managed container services
+            resources:
+              - post: serverless-laravel-containers-with-ecs-fargate-app-runner-and-terraform
+              - { label: "Amazon ECS developer guide", url: "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html", kind: docs }
 
       - id: ci-cd
         title: CI/CD pipelines
         summary: Test and ship every change automatically, with a safe way back.
-        learn:
-          - Build, test and deploy stages
-          - Artifacts and environments
-          - Rollbacks and blue/green deploys
-        resources:
-          - { label: "GitHub Actions docs", url: "https://docs.github.com/en/actions", kind: docs }
-          - post: github-actions-lambda-terraform-cicd
+        lessons:
+          - id: pipeline-stages
+            title: Build, test and deploy stages
+            summary: Turn every push into a build, a test run and, when green, a deploy.
+            learn:
+              - Continuous integration vs delivery vs deployment
+              - Pipeline stages and jobs
+              - Fast feedback
+            resources:
+              - { label: "GitHub Actions docs", url: "https://docs.github.com/en/actions", kind: docs }
+              - { label: "Continuous Integration (Martin Fowler)", url: "https://martinfowler.com/articles/continuousIntegration.html", kind: article }
+          - id: artifacts-and-environments
+            title: Artifacts and environments
+            summary: Build once, promote the same artifact through staging and production.
+            learn:
+              - Build artifacts and versioning
+              - Environments and approvals
+            resources:
+              - post: github-actions-lambda-terraform-cicd
+              - { label: "GitHub Actions: environments", url: "https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment", kind: docs }
+          - id: rollbacks-and-blue-green
+            title: Rollbacks and blue/green deploys
+            summary: Release with a way back, so a bad deploy costs minutes instead of hours.
+            learn:
+              - Rollback strategies
+              - Blue/green and canary releases
+            resources:
+              - { label: "BlueGreenDeployment (Martin Fowler)", url: "https://martinfowler.com/bliki/BlueGreenDeployment.html", kind: article }
+          - id: pipeline-security
+            title: Pipeline security
+            optional: true
+            summary: CI runners hold your deploy keys. Lock them down.
+            learn:
+              - OIDC instead of long-lived keys
+              - Pinning actions and least-privilege tokens
+            resources:
+              - { label: "GitHub Actions security hardening", url: "https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions", kind: docs }
+              - post: production-ai-code-review-for-terraform-and-lambda-prs
 
       - id: infrastructure-as-code
         title: Infrastructure as code
         summary: Describe servers, networks and permissions in files you can review and repeat.
-        learn:
-          - Terraform plan and apply
-          - State and why it is sensitive
-          - Modules and environments
-        resources:
-          - { label: "Terraform tutorials", url: "https://developer.hashicorp.com/terraform/tutorials", kind: course }
-          - post: terraform-or-pulumi
-          - post: terraform-state-more-sensitive-than-env
-          - post: deploying-a-laravel-application-to-amazon-ec2-using-terraform
+        lessons:
+          - id: terraform-plan-apply
+            title: Terraform plan and apply
+            summary: Write your first resources and read a plan before you change anything.
+            learn:
+              - Providers and resources
+              - plan vs apply
+              - Variables and outputs
+            resources:
+              - { label: "Terraform tutorials", url: "https://developer.hashicorp.com/terraform/tutorials", kind: course }
+              - post: deploying-a-laravel-application-to-amazon-ec2-using-terraform
+          - id: terraform-state
+            title: State and why it is sensitive
+            summary: Terraform remembers what it built in state, and that file holds secrets.
+            learn:
+              - Remote state and locking
+              - Secrets in state
+            resources:
+              - post: terraform-state-more-sensitive-than-env
+              - { label: "Terraform state (docs)", url: "https://developer.hashicorp.com/terraform/language/state", kind: docs }
+          - id: modules-and-environments
+            title: Modules and environments
+            summary: Reuse code across dev, staging and production without copying it.
+            learn:
+              - Writing and calling modules
+              - One state per environment
+            resources:
+              - { label: "Terraform modules (docs)", url: "https://developer.hashicorp.com/terraform/language/modules", kind: docs }
+          - id: choosing-an-iac-tool
+            title: Choosing an IaC tool
+            optional: true
+            summary: Terraform, Pulumi, CloudFormation and CDK, and how to pick one.
+            learn:
+              - Declarative vs general-purpose languages
+              - Trade-offs by team and cloud
+            resources:
+              - post: terraform-or-pulumi
+              - { label: "Pulumi docs", url: "https://www.pulumi.com/docs/", kind: docs }
 
       - id: config-and-secrets
         title: Config and secrets
         summary: Keep passwords and keys out of code and out of logs.
-        learn:
-          - Environment variables vs secret stores
-          - Rotation
-          - Least-privilege access to secrets
-        resources:
-          - { label: "OWASP secrets management cheat sheet", url: "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html", kind: docs }
+        lessons:
+          - id: env-vars-vs-secret-stores
+            title: Environment variables vs secret stores
+            summary: Where secrets should live and why a .env file in Git is a breach waiting to happen.
+            learn:
+              - Env vars and their limits
+              - Secrets managers and parameter stores
+            resources:
+              - { label: "OWASP secrets management cheat sheet", url: "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html", kind: docs }
+              - { label: "AWS Secrets Manager user guide", url: "https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html", kind: docs }
+          - id: least-privilege-secrets
+            title: Least-privilege access to secrets
+            summary: Give each service only the secrets it needs, and nothing else.
+            learn:
+              - Scoping access per service
+              - Auditing who read what
+            resources:
+              - { label: "OWASP secrets management cheat sheet", url: "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html", kind: docs }
+              - post: how-i-make-ai-coding-agents-safe-in-a-real-aws-codebase
+          - id: secret-rotation
+            title: Rotation
+            optional: true
+            summary: Change secrets on a schedule and after a leak without breaking production.
+            learn:
+              - Automatic rotation
+              - Dual credentials during rollover
+            resources:
+              - { label: "Rotate AWS Secrets Manager secrets", url: "https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotating-secrets.html", kind: docs }
 
       - id: monitoring-logging
         title: Monitoring and logging
         summary: Know something broke before your users tell you.
-        learn:
-          - Metrics vs logs
-          - Dashboards and alerts that matter
-          - Centralised logging
-        resources:
-          - { label: "Prometheus overview", url: "https://prometheus.io/docs/introduction/overview/", kind: docs }
-          - post: install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging
+        lessons:
+          - id: metrics-vs-logs
+            title: Metrics vs logs
+            summary: Numbers over time for trends, events for detail, and when to use each.
+            learn:
+              - Counters, gauges and histograms
+              - Structured logs
+            resources:
+              - { label: "Prometheus overview", url: "https://prometheus.io/docs/introduction/overview/", kind: docs }
+          - id: dashboards-and-alerts
+            title: Dashboards and alerts that matter
+            summary: Alert on symptoms users feel, not every CPU spike.
+            learn:
+              - The four golden signals
+              - Alerting on symptoms
+            resources:
+              - { label: "Monitoring distributed systems (SRE book)", url: "https://sre.google/sre-book/monitoring-distributed-systems/", kind: article }
+              - { label: "Grafana docs", url: "https://grafana.com/docs/grafana/latest/", kind: docs }
+          - id: centralised-logging
+            title: Centralised logging
+            summary: Ship logs from every server and service to one place you can search.
+            learn:
+              - Log agents and shipping
+              - Retention and cost
+            resources:
+              - post: install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging
+              - { label: "Amazon CloudWatch Logs user guide", url: "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html", kind: docs }
 
       - id: serverless
         title: Serverless
         summary: Run code without managing servers, and know when it costs more than it saves.
-        learn:
-          - Functions, triggers and cold starts
-          - Queues and event-driven design
-          - Limits and pricing
-        resources:
-          - { label: "AWS Lambda developer guide", url: "https://docs.aws.amazon.com/lambda/latest/dg/welcome.html", kind: docs }
-          - post: serverless-laravel-on-aws-lambda-with-bref-and-terraform
-          - post: lambda-snapstart-terraform-cold-starts
+        lessons:
+          - id: functions-and-triggers
+            title: Functions, triggers and cold starts
+            summary: How a function runs on demand and why the first request can be slow.
+            learn:
+              - The Lambda execution model
+              - Event sources
+              - Cold starts
+            resources:
+              - { label: "AWS Lambda developer guide", url: "https://docs.aws.amazon.com/lambda/latest/dg/welcome.html", kind: docs }
+              - post: serverless-laravel-on-aws-lambda-with-bref-and-terraform
+          - id: queues-and-events
+            title: Queues and event-driven design
+            summary: Decouple work with queues so slow jobs do not block requests.
+            learn:
+              - Queues and dead-letter queues
+              - Retries and idempotency
+            resources:
+              - post: running-ai-background-jobs-serverlessly-with-sqs-lambda-bedrock
+              - { label: "Amazon SQS developer guide", url: "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/welcome.html", kind: docs }
+          - id: serverless-limits-and-pricing
+            title: Limits and pricing
+            summary: Timeouts, concurrency and the bill, and when a container is cheaper.
+            learn:
+              - Timeouts and concurrency limits
+              - Pay-per-request vs always-on
+            resources:
+              - { label: "AWS Lambda pricing", url: "https://aws.amazon.com/lambda/pricing/", kind: docs }
+              - post: how-i-architected-a-fully-serverless-saas-on-aws-lambda-with-fastify
+          - id: cold-start-tuning
+            title: Cold start tuning
+            optional: true
+            summary: SnapStart, provisioned concurrency and smaller packages.
+            learn:
+              - SnapStart
+              - Provisioned concurrency
+            resources:
+              - post: lambda-snapstart-terraform-cold-starts
 
   - level: advanced
     title: Run it at scale
-    steps:
+    topics:
       - id: kubernetes
         title: Kubernetes
         summary: Schedule and heal containers across many machines.
-        learn:
-          - Pods, deployments and services
-          - Ingress and config maps
-          - Requests, limits and autoscaling
-        resources:
-          - { label: "Kubernetes basics tutorial", url: "https://kubernetes.io/docs/tutorials/kubernetes-basics/", kind: course }
-          - post: ecs-fargate-spot-capacity-providers
+        lessons:
+          - id: pods-deployments-services
+            title: Pods, deployments and services
+            summary: The core objects that run your containers and route traffic to them.
+            learn:
+              - Pods and ReplicaSets
+              - Deployments and rolling updates
+              - Services
+            resources:
+              - { label: "Kubernetes basics tutorial", url: "https://kubernetes.io/docs/tutorials/kubernetes-basics/", kind: course }
+          - id: ingress-and-config
+            title: Ingress, ConfigMaps and Secrets
+            summary: Get traffic into the cluster and give pods their configuration.
+            learn:
+              - Ingress and ingress controllers
+              - ConfigMaps and Secrets
+            resources:
+              - { label: "Kubernetes concepts", url: "https://kubernetes.io/docs/concepts/", kind: docs }
+          - id: requests-limits-autoscaling
+            title: Requests, limits and autoscaling
+            summary: Tell the scheduler what each pod needs and let the cluster grow and shrink.
+            learn:
+              - Resource requests and limits
+              - Horizontal Pod Autoscaler
+              - Cluster autoscaling
+            resources:
+              - { label: "Kubernetes: resource management", url: "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/", kind: docs }
+          - id: kubernetes-or-not
+            title: Do you need Kubernetes?
+            optional: true
+            summary: Compare Kubernetes with simpler managed options like ECS Fargate.
+            learn:
+              - Operational cost of a cluster
+              - When ECS or a PaaS is enough
+            resources:
+              - post: ecs-fargate-spot-capacity-providers
+              - { label: "Amazon EKS user guide", url: "https://docs.aws.amazon.com/eks/latest/userguide/what-is-eks.html", kind: docs }
 
       - id: gitops
         title: GitOps
         summary: Git is the source of truth; a controller makes the cluster match it.
-        learn:
-          - Pull-based deploys
-          - Drift detection
-          - Argo CD or Flux
-        resources:
-          - { label: "OpenGitOps principles", url: "https://opengitops.dev/", kind: article }
+        lessons:
+          - id: pull-based-deploys
+            title: Pull-based deploys
+            summary: A controller in the cluster pulls changes from Git instead of CI pushing them.
+            learn:
+              - The four GitOps principles
+              - Push vs pull deploys
+            resources:
+              - { label: "OpenGitOps principles", url: "https://opengitops.dev/", kind: article }
+          - id: argo-cd-or-flux
+            title: Argo CD or Flux
+            summary: The two common GitOps controllers and how they sync a cluster.
+            learn:
+              - Applications and sync
+              - Drift detection and self-healing
+            resources:
+              - { label: "Argo CD docs", url: "https://argo-cd.readthedocs.io/", kind: docs }
+              - { label: "Flux docs", url: "https://fluxcd.io/flux/", kind: docs }
+          - id: progressive-delivery
+            title: Progressive delivery
+            optional: true
+            summary: Canary and blue/green rollouts driven by metrics, not by hand.
+            learn:
+              - Automated canary analysis
+              - Argo Rollouts and Flagger
+            resources:
+              - { label: "Argo Rollouts docs", url: "https://argoproj.github.io/argo-rollouts/", kind: docs }
 
       - id: observability
         title: Observability
         summary: Metrics, logs and traces together, so you can answer questions you did not plan for.
-        learn:
-          - Distributed tracing
-          - OpenTelemetry
-          - High-cardinality data
-        resources:
-          - { label: "OpenTelemetry docs", url: "https://opentelemetry.io/docs/", kind: docs }
-          - post: catch-lambda-jobs-that-succeed-but-write-nothing
+        lessons:
+          - id: distributed-tracing
+            title: Distributed tracing
+            summary: Follow one request across services and see where the time went.
+            learn:
+              - Traces, spans and context propagation
+              - Sampling
+            resources:
+              - { label: "OpenTelemetry: traces", url: "https://opentelemetry.io/docs/concepts/signals/traces/", kind: docs }
+          - id: opentelemetry
+            title: OpenTelemetry
+            summary: One vendor-neutral way to collect metrics, logs and traces.
+            learn:
+              - SDKs and auto-instrumentation
+              - The Collector
+            resources:
+              - { label: "OpenTelemetry docs", url: "https://opentelemetry.io/docs/", kind: docs }
+              - post: llm-observability-langfuse-lambda-cloudwatch
+          - id: high-cardinality
+            title: High-cardinality data
+            optional: true
+            summary: Why per-user and per-request fields make debugging possible, and what they cost.
+            learn:
+              - Cardinality and cost
+              - Wide events
+            resources:
+              - { label: "Observability Engineering (O'Reilly)", url: "https://www.oreilly.com/library/view/observability-engineering/9781492076438/", kind: course }
+          - id: silent-failures
+            title: Catching silent failures
+            optional: true
+            summary: Detect jobs that report success but did not do the work.
+            learn:
+              - Business-level checks
+              - Alerting on missing data
+            resources:
+              - post: catch-lambda-jobs-that-succeed-but-write-nothing
+              - { label: "Monitoring distributed systems (SRE book)", url: "https://sre.google/sre-book/monitoring-distributed-systems/", kind: article }
 
       - id: sre-slos
         title: SRE and SLOs
         summary: Decide how reliable is reliable enough, and spend the rest on shipping.
-        learn:
-          - SLIs, SLOs and error budgets
-          - Incident response and postmortems
-          - Toil and on-call
-        resources:
-          - { label: "Google SRE book", url: "https://sre.google/sre-book/table-of-contents/", kind: course }
-          - { label: "Implementing SLOs (SRE workbook)", url: "https://sre.google/workbook/implementing-slos/", kind: article }
+        lessons:
+          - id: slis-slos-error-budgets
+            title: SLIs, SLOs and error budgets
+            summary: Measure what users feel, set a target and use the gap as a budget for change.
+            learn:
+              - Choosing SLIs
+              - Setting SLOs
+              - Error budget policies
+            resources:
+              - { label: "Implementing SLOs (SRE workbook)", url: "https://sre.google/workbook/implementing-slos/", kind: article }
+              - { label: "Google SRE book", url: "https://sre.google/sre-book/table-of-contents/", kind: course }
+          - id: incidents-and-postmortems
+            title: Incident response and postmortems
+            summary: Run an incident calmly and learn from it without blame.
+            learn:
+              - Incident roles
+              - Blameless postmortems
+            resources:
+              - { label: "Postmortem culture (SRE book)", url: "https://sre.google/sre-book/postmortem-culture/", kind: article }
+          - id: toil-and-on-call
+            title: Toil and on-call
+            summary: Keep manual work and pages low enough that on-call stays sustainable.
+            learn:
+              - What counts as toil
+              - Healthy on-call rotations
+            resources:
+              - { label: "Eliminating toil (SRE book)", url: "https://sre.google/sre-book/eliminating-toil/", kind: article }
+              - { label: "Site Reliability Engineering roadmap", url: "https://harun.dev/roadmaps/sre", kind: course }
 
       - id: cloud-cost
         title: Cloud cost (FinOps)
         summary: Every architecture choice shows up on the bill. Learn to read it.
-        learn:
-          - Where cloud money goes
-          - Rightsizing, reserved and spot capacity
-          - Tagging and showback
-        resources:
-          - { label: "What is FinOps?", url: "https://www.finops.org/introduction/what-is-finops/", kind: article }
+        lessons:
+          - id: where-cloud-money-goes
+            title: Where cloud money goes
+            summary: Read a cloud bill and find the services and line items that dominate it.
+            learn:
+              - Compute, storage and data transfer
+              - Cost Explorer and budgets
+            resources:
+              - { label: "What is FinOps?", url: "https://www.finops.org/introduction/what-is-finops/", kind: article }
+              - post: 5-aws-mistakes-quietly-draining-your-bank-account
+          - id: rightsizing-and-commitments
+            title: Rightsizing, reserved and spot capacity
+            summary: Pay less for the same work by sizing correctly and committing where usage is steady.
+            learn:
+              - Rightsizing
+              - Savings Plans and reserved instances
+              - Spot capacity
+            resources:
+              - { label: "AWS Cost Optimization pillar", url: "https://docs.aws.amazon.com/wellarchitected/latest/cost-optimization-pillar/welcome.html", kind: docs }
+              - post: ecs-fargate-spot-capacity-providers
+          - id: tagging-and-showback
+            title: Tagging and showback
+            optional: true
+            summary: Tag resources so each team sees and owns what it spends.
+            learn:
+              - Cost allocation tags
+              - Showback vs chargeback
+            resources:
+              - { label: "FinOps Framework", url: "https://www.finops.org/framework/", kind: article }
 
       - id: platform-engineering
         title: Platform engineering
         summary: Turn your DevOps work into paved roads other teams can use.
-        learn:
-          - Internal developer platforms
-          - Golden paths and templates
-          - Measuring developer experience
-        resources:
-          - { label: "What is platform engineering?", url: "https://platformengineering.org/blog/what-is-platform-engineering", kind: article }
-          - post: multi-agent-claude-code-aws-devops-routines
+        lessons:
+          - id: internal-developer-platforms
+            title: Internal developer platforms
+            summary: What a platform team builds and how it differs from a DevOps team.
+            learn:
+              - Platforms as products
+              - Self-service infrastructure
+            resources:
+              - { label: "What is platform engineering?", url: "https://platformengineering.org/blog/what-is-platform-engineering", kind: article }
+          - id: golden-paths
+            title: Golden paths and templates
+            summary: Give teams a ready-made, supported way to build and ship a new service.
+            learn:
+              - Service templates
+              - Developer portals like Backstage
+            resources:
+              - { label: "Backstage docs", url: "https://backstage.io/docs/overview/what-is-backstage", kind: docs }
+              - post: multi-agent-claude-code-aws-devops-routines
+          - id: measuring-developer-experience
+            title: Measuring developer experience
+            optional: true
+            summary: Track delivery with DORA metrics and ask developers what slows them down.
+            learn:
+              - The four DORA metrics
+              - Surveys and feedback loops
+            resources:
+              - { label: "DORA research", url: "https://dora.dev/", kind: article }
+              - post: claude-code-for-aws-infrastructure-agentic-devops-workflow-with-terraform

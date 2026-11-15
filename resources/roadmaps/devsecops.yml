@@ -1,153 +1,608 @@
 slug: devsecops
 title: DevSecOps
 summary: Security built into the DevOps pipeline, from secrets and dependencies to policy as code and incident response.
-order: 5
+order: 6
+updated: '2026-11-15'
 builds_on: devops
 
 stages:
   - level: beginner
     title: Shift left
-    steps:
+    topics:
       - id: shift-left
         title: What shift-left means
         summary: Find security problems while code is cheap to change, not after it ships.
-        learn:
-          - Security in each pipeline stage
-          - Shared responsibility between dev, ops and security
-        resources:
-          - { label: "OWASP DevSecOps guideline", url: "https://owasp.org/www-project-devsecops-guideline/", kind: docs }
-          - { label: "OWASP Top 10", url: "https://owasp.org/www-project-top-ten/", kind: article }
+        lessons:
+          - id: security-per-stage
+            title: Security in each pipeline stage
+            summary: Map which checks belong at commit, pull request, build, deploy and runtime.
+            learn:
+              - Fast checks early, slow checks later
+              - Blocking vs reporting checks
+            resources:
+              - { label: "OWASP DevSecOps guideline", url: "https://owasp.org/www-project-devsecops-guideline/", kind: docs }
+          - id: shared-responsibility
+            title: Shared responsibility
+            summary: Security is a job for developers, operations and the security team together, not a gate at the end.
+            learn:
+              - Who owns which control
+              - Security champions in product teams
+            resources:
+              - { label: "OWASP DevSecOps guideline", url: "https://owasp.org/www-project-devsecops-guideline/", kind: docs }
+              - { label: "OWASP Top 10", url: "https://owasp.org/www-project-top-ten/", kind: article }
+          - id: security-requirements
+            title: Security requirements
+            optional: true
+            summary: Use a standard like OWASP ASVS to say what "secure enough" means for your app.
+            learn:
+              - ASVS levels
+              - Turning requirements into tests
+            resources:
+              - { label: "OWASP ASVS", url: "https://owasp.org/www-project-application-security-verification-standard/", kind: docs }
+
+      - id: web-app-security
+        title: Web application security basics
+        summary: The common classes of web vulnerability that every developer should recognise.
+        lessons:
+          - id: owasp-top-ten
+            title: The OWASP Top 10
+            summary: The most common web application risks, and what each looks like in real code.
+            learn:
+              - Broken access control
+              - Injection
+              - Security misconfiguration
+            resources:
+              - { label: "OWASP Top 10", url: "https://owasp.org/www-project-top-ten/", kind: article }
+              - { label: "OWASP Cheat Sheet Series", url: "https://cheatsheetseries.owasp.org/", kind: docs }
+          - id: hands-on-web-labs
+            title: Hands-on web security labs
+            summary: Learn by exploiting deliberately vulnerable apps in a safe lab.
+            learn:
+              - SQL injection and XSS by hand
+              - Access control bugs
+            resources:
+              - { label: "PortSwigger Web Security Academy", url: "https://portswigger.net/web-security", kind: course }
+          - id: auth-and-access-control
+            title: Authentication and access control
+            optional: true
+            summary: How sign-in, sessions and per-object permission checks go wrong.
+            learn:
+              - Session handling
+              - Insecure direct object references
+            resources:
+              - { label: "OWASP Cheat Sheet Series", url: "https://cheatsheetseries.owasp.org/", kind: docs }
+              - post: multi-tenant-saas-auth-lambda-fastify
 
       - id: secrets-management
         title: Secrets management
         summary: Keep keys out of git, out of images and out of logs.
-        learn:
-          - Secret stores and short-lived credentials
-          - Secret scanning on commit
-          - What to do when a key leaks
-        resources:
-          - { label: "OWASP secrets management cheat sheet", url: "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html", kind: docs }
-          - { label: "Gitleaks", url: "https://gitleaks.io/", kind: tool }
-          - post: terraform-state-more-sensitive-than-env
+        lessons:
+          - id: secret-stores
+            title: Secret stores and short-lived credentials
+            summary: Keep secrets in a managed store and hand out credentials that expire.
+            learn:
+              - Secrets Manager, Parameter Store and Vault
+              - Rotating secrets
+            resources:
+              - { label: "OWASP secrets management cheat sheet", url: "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html", kind: docs }
+              - { label: "AWS Secrets Manager", url: "https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html", kind: docs }
+              - { label: "HashiCorp Vault docs", url: "https://developer.hashicorp.com/vault/docs", kind: docs }
+          - id: secret-scanning
+            title: Secret scanning on commit
+            summary: Catch keys before they reach the remote, and scan history for the ones that already did.
+            learn:
+              - Pre-commit hooks
+              - Push protection on the git host
+            resources:
+              - { label: "Gitleaks", url: "https://gitleaks.io/", kind: tool }
+              - { label: "GitHub secret scanning", url: "https://docs.github.com/en/code-security/secret-scanning", kind: docs }
+          - id: leaked-key-response
+            title: What to do when a key leaks
+            summary: Revoke first, then rotate, then look for use. Deleting the commit is not enough.
+            learn:
+              - Revoke and rotate order
+              - Checking logs for misuse
+            resources:
+              - { label: "OWASP secrets management cheat sheet", url: "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html", kind: docs }
+          - id: secrets-in-state
+            title: Secrets hiding in state and build output
+            optional: true
+            summary: Terraform state, build logs and image layers often hold secrets nobody meant to store.
+            learn:
+              - Why Terraform state is sensitive
+              - Secrets left in image layers
+            resources:
+              - post: terraform-state-more-sensitive-than-env
+              - { label: "OWASP secrets management cheat sheet", url: "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html", kind: docs }
 
       - id: dependency-scanning
         title: Dependency scanning
         summary: Most of your code is other people's code. Know when it has a known hole.
-        learn:
-          - CVEs and advisories
-          - Lockfiles
-          - Automated update PRs
-        resources:
-          - { label: "Dependabot docs", url: "https://docs.github.com/en/code-security/dependabot", kind: docs }
+        lessons:
+          - id: cves-and-advisories
+            title: CVEs and advisories
+            summary: How vulnerabilities get an ID, a score and an advisory, and where to look them up.
+            learn:
+              - CVE IDs and CVSS scores
+              - Advisory databases
+            resources:
+              - { label: "OSV vulnerability database", url: "https://osv.dev/", kind: tool }
+              - { label: "GitHub Advisory Database", url: "https://github.com/advisories", kind: tool }
+          - id: lockfiles
+            title: Lockfiles
+            summary: Pin the exact versions you install so scans and builds see the same tree.
+            learn:
+              - Direct vs transitive dependencies
+              - Committing lockfiles
+            resources:
+              - { label: "OWASP Top 10", url: "https://owasp.org/www-project-top-ten/", kind: article }
+              - { label: "OSV vulnerability database", url: "https://osv.dev/", kind: tool }
+          - id: update-prs
+            title: Automated update PRs
+            summary: Let a bot open small update pull requests so patching is routine, not a project.
+            learn:
+              - Dependabot and Renovate
+              - Grouping and scheduling updates
+            resources:
+              - { label: "Dependabot docs", url: "https://docs.github.com/en/code-security/dependabot", kind: docs }
+              - { label: "Renovate docs", url: "https://docs.renovatebot.com/", kind: docs }
+          - id: reachability
+            title: Prioritising by reachability
+            optional: true
+            summary: Not every CVE in your tree can be reached. Triage by whether your code calls the vulnerable path.
+            learn:
+              - Reachable vs present vulnerabilities
+              - Accepting risk with an expiry date
+            resources:
+              - { label: "OSV vulnerability database", url: "https://osv.dev/", kind: tool }
 
       - id: least-privilege
         title: Least privilege
         summary: Every user, service and pipeline gets only the access it needs.
-        learn:
-          - IAM roles vs long-lived keys
-          - Scoping policies
-          - Reviewing unused permissions
-        resources:
-          - { label: "AWS IAM best practices", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html", kind: docs }
-          - post: lock-down-bedrock-iam-lambda-data-leak
+        lessons:
+          - id: roles-vs-keys
+            title: IAM roles vs long-lived keys
+            summary: Prefer roles with temporary credentials over access keys that live forever.
+            learn:
+              - Assumed roles and STS
+              - Why static keys leak
+            resources:
+              - { label: "AWS IAM best practices", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html", kind: docs }
+          - id: scoping-policies
+            title: Scoping policies
+            summary: Narrow actions, resources and conditions until a policy grants exactly what is used.
+            learn:
+              - Resource ARNs and conditions
+              - Avoiding wildcards
+            resources:
+              - { label: "AWS IAM best practices", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html", kind: docs }
+              - post: lock-down-bedrock-iam-lambda-data-leak
+          - id: unused-permissions
+            title: Reviewing unused permissions
+            optional: true
+            summary: Find and remove access that nobody has used in months.
+            learn:
+              - IAM Access Analyzer
+              - Last-accessed data
+            resources:
+              - { label: "IAM Access Analyzer", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/what-is-access-analyzer.html", kind: docs }
+
+      - id: cloud-account-baseline
+        title: Cloud account baseline
+        summary: The few settings every new cloud account needs before anything runs in it.
+        lessons:
+          - id: root-and-mfa
+            title: Lock the root user and turn on MFA
+            summary: Protect the account owner login and stop using it for daily work.
+            learn:
+              - MFA on root and on every human user
+              - Billing alerts
+            resources:
+              - post: first-3-things-i-always-do-after-creating-a-new-aws-account
+              - { label: "AWS IAM best practices", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html", kind: docs }
+          - id: audit-trail-on
+            title: Turn on the audit trail
+            summary: Record every API call from day one so an incident has evidence to work with.
+            learn:
+              - CloudTrail in all regions
+              - Protecting the log bucket
+            resources:
+              - { label: "AWS CloudTrail user guide", url: "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html", kind: docs }
+          - id: cis-benchmarks
+            title: CIS benchmarks
+            optional: true
+            summary: A published checklist of hardening settings for cloud accounts and operating systems.
+            learn:
+              - What the benchmarks cover
+              - Automating the checks
+            resources:
+              - { label: "CIS Benchmarks", url: "https://www.cisecurity.org/cis-benchmarks", kind: docs }
 
   - level: intermediate
     title: Security in the pipeline
-    steps:
+    topics:
       - id: sast-dast
         title: SAST and DAST
         summary: Scan source code for risky patterns, and scan the running app from the outside.
-        learn:
-          - Static analysis in CI
-          - Dynamic scans against staging
-          - Handling false positives
-        resources:
-          - { label: "Semgrep docs", url: "https://semgrep.dev/docs/", kind: docs }
-          - { label: "OWASP ZAP getting started", url: "https://www.zaproxy.org/getting-started/", kind: docs }
+        lessons:
+          - id: static-analysis-ci
+            title: Static analysis in CI
+            summary: Run a code scanner on every pull request and fail on high-confidence findings.
+            learn:
+              - Rule-based scanners like Semgrep
+              - Data-flow analysis with CodeQL
+            resources:
+              - { label: "Semgrep docs", url: "https://semgrep.dev/docs/", kind: docs }
+              - { label: "CodeQL docs", url: "https://codeql.github.com/docs/", kind: docs }
+          - id: dynamic-scans
+            title: Dynamic scans against staging
+            summary: Point a scanner at a running copy of the app to find what static analysis cannot.
+            learn:
+              - Baseline vs full scans
+              - Authenticated scanning
+            resources:
+              - { label: "OWASP ZAP getting started", url: "https://www.zaproxy.org/getting-started/", kind: docs }
+          - id: false-positives
+            title: Handling false positives
+            summary: Tune rules and record suppressions so developers keep trusting the scanner.
+            learn:
+              - Suppressions with a reason
+              - Measuring noise per rule
+            resources:
+              - { label: "Semgrep docs", url: "https://semgrep.dev/docs/", kind: docs }
+          - id: ai-pr-review
+            title: AI-assisted security review
+            optional: true
+            summary: Use an AI reviewer as one more check on pull requests, with a human still deciding.
+            learn:
+              - What AI review catches and misses
+              - A pre-merge checklist for AI-written code
+            resources:
+              - post: pre-merge-checklist-ai-generated-prs
+              - { label: "OWASP Cheat Sheet Series", url: "https://cheatsheetseries.owasp.org/", kind: docs }
+
+      - id: ci-pipeline-security
+        title: Securing the CI/CD pipeline
+        summary: The pipeline holds deploy credentials, so it is a target in its own right.
+        lessons:
+          - id: oidc-deploys
+            title: OIDC instead of stored cloud keys
+            summary: Let CI exchange a short-lived token for a cloud role, so no deploy key sits in the repo settings.
+            learn:
+              - OIDC trust between CI and the cloud
+              - Scoping the role to one repo and branch
+            resources:
+              - post: github-actions-lambda-terraform-cicd
+              - { label: "About security hardening with OpenID Connect (GitHub)", url: "https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect", kind: docs }
+          - id: workflow-hardening
+            title: Hardening workflows
+            summary: Limit token permissions, pin third-party actions and keep untrusted input out of scripts.
+            learn:
+              - Least-privilege workflow tokens
+              - Pinning actions to a commit SHA
+              - Risky triggers on forked pull requests
+            resources:
+              - { label: "GitHub Actions docs", url: "https://docs.github.com/en/actions", kind: docs }
+              - { label: "OpenSSF Scorecard", url: "https://github.com/ossf/scorecard", kind: tool }
+          - id: ai-agents-in-repo
+            title: AI coding agents with repo access
+            optional: true
+            summary: Give coding agents the same limits you would give a new contractor.
+            learn:
+              - Scoped credentials for agents
+              - Reviewing agent changes before merge
+            resources:
+              - post: how-i-make-ai-coding-agents-safe-in-a-real-aws-codebase
+              - { label: "OWASP Top 10 for LLM applications", url: "https://genai.owasp.org/llm-top-10/", kind: article }
 
       - id: container-security
         title: Container image security
         summary: Small, patched, non-root images, scanned before they ship.
-        learn:
-          - Image scanning
-          - Minimal base images
-          - Running as non-root
-        resources:
-          - { label: "Trivy", url: "https://trivy.dev/", kind: tool }
-          - { label: "Docker security docs", url: "https://docs.docker.com/engine/security/", kind: docs }
+        lessons:
+          - id: image-scanning
+            title: Image scanning
+            summary: Scan images for known vulnerabilities in CI and in the registry.
+            learn:
+              - OS packages vs language packages
+              - Failing builds on fixable criticals
+            resources:
+              - { label: "Trivy", url: "https://trivy.dev/", kind: tool }
+          - id: minimal-base-images
+            title: Minimal base images
+            summary: Fewer packages in the image means fewer things to patch and fewer tools for an attacker.
+            learn:
+              - Distroless and slim images
+              - Multi-stage builds
+            resources:
+              - { label: "Distroless images", url: "https://github.com/GoogleContainerTools/distroless", kind: tool }
+              - { label: "Docker security docs", url: "https://docs.docker.com/engine/security/", kind: docs }
+          - id: non-root-containers
+            title: Running as non-root
+            summary: Run the process as an unprivileged user with a read-only filesystem where possible.
+            learn:
+              - USER in the Dockerfile
+              - Dropping Linux capabilities
+            resources:
+              - { label: "Docker security docs", url: "https://docs.docker.com/engine/security/", kind: docs }
+              - { label: "Pod Security Standards (Kubernetes)", url: "https://kubernetes.io/docs/concepts/security/pod-security-standards/", kind: docs }
 
       - id: iac-scanning
         title: Infrastructure as code scanning
         summary: Catch public buckets and open security groups in the pull request.
-        learn:
-          - Misconfiguration checks
-          - Reviewing terraform plan
-          - AI review for infra PRs
-        resources:
-          - { label: "Checkov", url: "https://www.checkov.io/", kind: tool }
-          - post: production-ai-code-review-for-terraform-and-lambda-prs
+        lessons:
+          - id: misconfiguration-checks
+            title: Misconfiguration checks
+            summary: Run a policy scanner over Terraform and Kubernetes files on every change.
+            learn:
+              - Common findings such as public buckets and open ports
+              - Skipping a check with a reason
+            resources:
+              - { label: "Checkov", url: "https://www.checkov.io/", kind: tool }
+              - { label: "Trivy", url: "https://trivy.dev/", kind: tool }
+          - id: reviewing-plans
+            title: Reviewing terraform plan
+            summary: Read the plan, not just the code, so you see what will actually be created or destroyed.
+            learn:
+              - Spotting destroys and replacements
+              - Posting the plan on the pull request
+            resources:
+              - post: github-actions-lambda-terraform-cicd
+              - { label: "Checkov", url: "https://www.checkov.io/", kind: tool }
+          - id: ai-infra-review
+            title: AI review for infra PRs
+            optional: true
+            summary: Add an AI review pass that explains risky infrastructure changes before merge.
+            learn:
+              - Feeding the plan to the reviewer
+              - Keeping a human approval
+            resources:
+              - post: production-ai-code-review-for-terraform-and-lambda-prs
 
       - id: edge-protection
         title: Edge protection and WAFs
         summary: Filter bad traffic before it reaches your app.
-        learn:
-          - WAF rules and managed rule sets
-          - Rate limiting
-          - Bot protection
-        resources:
-          - post: aws-waf-cloudfront-solo-dev
-          - { label: "What is a WAF? (Cloudflare)", url: "https://www.cloudflare.com/learning/ddos/glossary/web-application-firewall-waf/", kind: article }
+        lessons:
+          - id: waf-rules
+            title: WAF rules and managed rule sets
+            summary: Block common attack patterns with managed rules, then add your own.
+            learn:
+              - Managed rule groups
+              - Count mode before block mode
+            resources:
+              - post: aws-waf-cloudfront-solo-dev
+              - { label: "What is a WAF? (Cloudflare)", url: "https://www.cloudflare.com/learning/ddos/glossary/web-application-firewall-waf/", kind: article }
+              - { label: "AWS WAF developer guide", url: "https://docs.aws.amazon.com/waf/latest/developerguide/waf-chapter.html", kind: docs }
+          - id: rate-limiting
+            title: Rate limiting
+            summary: Cap requests per client so one bad actor cannot exhaust your app or your bill.
+            learn:
+              - Per-IP vs per-user limits
+              - Trusting the right client IP header
+            resources:
+              - { label: "What is rate limiting? (Cloudflare)", url: "https://www.cloudflare.com/learning/bots/what-is-rate-limiting/", kind: article }
+              - post: aws-waf-cloudfront-solo-dev
+          - id: ddos-and-bots
+            title: DDoS and bot protection
+            optional: true
+            summary: How volumetric attacks and automated bots differ, and which edge features handle each.
+            learn:
+              - Network vs application layer attacks
+              - Bot management and challenges
+            resources:
+              - { label: "What is a DDoS attack? (Cloudflare)", url: "https://www.cloudflare.com/learning/ddos/what-is-a-ddos-attack/", kind: article }
 
   - level: advanced
     title: Defend at scale
-    steps:
+    topics:
       - id: supply-chain
         title: Software supply chain
         summary: Prove where your builds came from, and that nobody tampered with them.
-        learn:
-          - SLSA levels
-          - Signing artifacts with Sigstore
-          - SBOMs
-        resources:
-          - { label: "SLSA", url: "https://slsa.dev/", kind: docs }
-          - { label: "Sigstore docs", url: "https://docs.sigstore.dev/", kind: docs }
+        lessons:
+          - id: slsa-levels
+            title: SLSA levels
+            summary: A framework of increasing guarantees about how an artifact was built.
+            learn:
+              - Provenance and build integrity
+              - What each level asks for
+            resources:
+              - { label: "SLSA", url: "https://slsa.dev/", kind: docs }
+          - id: signing-artifacts
+            title: Signing artifacts with Sigstore
+            summary: Sign images and binaries without managing long-lived signing keys, and verify before deploy.
+            learn:
+              - Keyless signing with cosign
+              - Verifying signatures at deploy time
+            resources:
+              - { label: "Sigstore docs", url: "https://docs.sigstore.dev/", kind: docs }
+          - id: sboms
+            title: SBOMs
+            summary: A machine-readable list of everything inside an artifact, so you can answer "are we affected?" in minutes.
+            learn:
+              - CycloneDX and SPDX formats
+              - Generating SBOMs in CI
+            resources:
+              - { label: "CycloneDX", url: "https://cyclonedx.org/", kind: docs }
+              - { label: "Syft", url: "https://github.com/anchore/syft", kind: tool }
+          - id: dependency-confusion
+            title: Dependency confusion and typosquatting
+            optional: true
+            summary: Attacks that trick your build into installing a malicious package with a familiar name.
+            learn:
+              - Private registry scoping
+              - Checking new dependencies before adding them
+            resources:
+              - { label: "OpenSSF Scorecard", url: "https://github.com/ossf/scorecard", kind: tool }
+              - { label: "SLSA", url: "https://slsa.dev/", kind: docs }
 
       - id: policy-as-code
         title: Policy as code
         summary: Write security rules as code and enforce them in CI and in the cluster.
-        learn:
-          - Rego and OPA
-          - Admission control in Kubernetes
-        resources:
-          - { label: "Open Policy Agent docs", url: "https://www.openpolicyagent.org/docs/latest/", kind: docs }
+        lessons:
+          - id: rego-opa
+            title: Rego and OPA
+            summary: Express rules in Rego and evaluate them with Open Policy Agent anywhere you need a decision.
+            learn:
+              - Policies, input and data
+              - Testing policies
+            resources:
+              - { label: "Open Policy Agent docs", url: "https://www.openpolicyagent.org/docs/latest/", kind: docs }
+              - { label: "Conftest", url: "https://www.conftest.dev/", kind: tool }
+          - id: admission-control
+            title: Admission control in Kubernetes
+            summary: Reject non-compliant workloads at the API server before they run.
+            learn:
+              - Validating and mutating admission
+              - Gatekeeper and Kyverno
+            resources:
+              - { label: "Kyverno docs", url: "https://kyverno.io/docs/", kind: docs }
+              - { label: "Pod Security Standards (Kubernetes)", url: "https://kubernetes.io/docs/concepts/security/pod-security-standards/", kind: docs }
+          - id: policy-rollout
+            title: Rolling out policies safely
+            optional: true
+            summary: Start in audit mode, fix what it finds, then enforce.
+            learn:
+              - Audit vs enforce modes
+              - Exceptions with owners and expiry dates
+            resources:
+              - { label: "Open Policy Agent docs", url: "https://www.openpolicyagent.org/docs/latest/", kind: docs }
 
       - id: runtime-security
         title: Runtime security
         summary: Detect strange behaviour in running containers and hosts.
-        learn:
-          - Syscall-level detection
-          - Kubernetes security model
-        resources:
-          - { label: "Falco docs", url: "https://falco.org/docs/", kind: docs }
-          - { label: "Kubernetes security concepts", url: "https://kubernetes.io/docs/concepts/security/", kind: docs }
+        lessons:
+          - id: syscall-detection
+            title: Syscall-level detection
+            summary: Watch what processes actually do, such as spawning shells or writing to system paths.
+            learn:
+              - Falco rules
+              - Tuning alerts to cut noise
+            resources:
+              - { label: "Falco docs", url: "https://falco.org/docs/", kind: docs }
+          - id: kubernetes-security-model
+            title: Kubernetes security model
+            summary: RBAC, service accounts, network policies and pod security, and how they fit together.
+            learn:
+              - RBAC and service accounts
+              - Network policies
+            resources:
+              - { label: "Kubernetes security concepts", url: "https://kubernetes.io/docs/concepts/security/", kind: docs }
+          - id: cloud-threat-detection
+            title: Cloud threat detection
+            summary: Managed services that flag suspicious API calls and network activity in your account.
+            learn:
+              - GuardDuty findings
+              - Routing findings to on-call
+            resources:
+              - { label: "Amazon GuardDuty", url: "https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html", kind: docs }
+          - id: microvm-isolation
+            title: Stronger isolation with microVMs
+            optional: true
+            summary: When containers do not isolate untrusted code enough, run each workload in its own microVM.
+            learn:
+              - Container vs microVM isolation
+              - Firecracker basics
+            resources:
+              - { label: "Firecracker", url: "https://firecracker-microvm.github.io/", kind: tool }
+              - post: build-instant-server-service-firecracker-microvms
+
+      - id: ai-app-security
+        title: Security for AI applications
+        summary: LLM features add new attack paths, from prompt injection to tools that do too much.
+        lessons:
+          - id: llm-top-ten
+            title: The OWASP Top 10 for LLM applications
+            summary: The main risks in apps built on language models and how each one shows up.
+            learn:
+              - Prompt injection
+              - Sensitive data disclosure
+              - Excessive agency
+            resources:
+              - { label: "OWASP Top 10 for LLM applications", url: "https://genai.owasp.org/llm-top-10/", kind: article }
+          - id: model-access-control
+            title: Limiting what the model can reach
+            summary: Scope the model's credentials and the data it can retrieve, so a manipulated prompt cannot leak more.
+            learn:
+              - IAM scoping for model calls
+              - Re-checking permissions on retrieved data
+            resources:
+              - post: lock-down-bedrock-iam-lambda-data-leak
+              - post: persistence-is-not-permission-rag-citation-reauth-chat-replay
+          - id: mcp-auth
+            title: Securing MCP servers
+            optional: true
+            summary: Authenticate remote MCP servers properly and limit what their tools can do.
+            learn:
+              - OAuth for remote MCP
+              - Least-privilege tools
+            resources:
+              - post: mcp-authentication-fix-401-remote-server
+              - { label: "OWASP Top 10 for LLM applications", url: "https://genai.owasp.org/llm-top-10/", kind: article }
 
       - id: threat-modeling
         title: Threat modeling
         summary: Ask what could go wrong before you build it.
-        learn:
-          - STRIDE
-          - Data flow diagrams
-          - Turning threats into tickets
-        resources:
-          - { label: "OWASP threat modeling", url: "https://owasp.org/www-community/Threat_Modeling", kind: article }
-          - { label: "Threat Modeling Manifesto", url: "https://www.threatmodelingmanifesto.org/", kind: article }
+        lessons:
+          - id: stride
+            title: STRIDE
+            summary: A checklist of six threat types to walk through for each part of a system.
+            learn:
+              - Spoofing, tampering, repudiation, disclosure, denial of service, elevation
+              - Applying STRIDE per component
+            resources:
+              - { label: "OWASP threat modeling cheat sheet", url: "https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html", kind: docs }
+              - { label: "OWASP threat modeling", url: "https://owasp.org/www-community/Threat_Modeling", kind: article }
+          - id: data-flow-diagrams
+            title: Data flow diagrams
+            summary: Draw where data moves and where trust changes, because that is where threats live.
+            learn:
+              - Trust boundaries
+              - Keeping diagrams next to the code
+            resources:
+              - { label: "OWASP Threat Dragon", url: "https://owasp.org/www-project-threat-dragon/", kind: tool }
+          - id: threats-to-tickets
+            title: Turning threats into tickets
+            summary: A threat model only helps if each finding becomes a fix, a test or an accepted risk.
+            learn:
+              - Ranking threats
+              - Tracking mitigations in the backlog
+            resources:
+              - { label: "Threat Modeling Manifesto", url: "https://www.threatmodelingmanifesto.org/", kind: article }
 
       - id: incident-response
         title: Security incident response
         summary: Detect, contain, recover, and learn, with a plan written before you need it.
-        learn:
-          - Incident phases
-          - Evidence and logging
-          - Blameless postmortems
-        resources:
-          - { label: "NIST SP 800-61 incident handling", url: "https://csrc.nist.gov/pubs/sp/800/61/r2/final", kind: docs }
+        lessons:
+          - id: incident-phases
+            title: Incident phases
+            summary: Preparation, detection, containment, eradication, recovery and lessons learned.
+            learn:
+              - Roles during an incident
+              - Containment without destroying evidence
+            resources:
+              - { label: "NIST SP 800-61 incident handling", url: "https://csrc.nist.gov/pubs/sp/800/61/r2/final", kind: docs }
+              - { label: "AWS security incident response guide", url: "https://docs.aws.amazon.com/whitepapers/latest/aws-security-incident-response-guide/welcome.html", kind: docs }
+          - id: evidence-logging
+            title: Evidence and logging
+            summary: Keep the logs an investigation needs, somewhere an attacker cannot delete them.
+            learn:
+              - Log retention and immutability
+              - Snapshotting affected resources
+            resources:
+              - { label: "AWS CloudTrail user guide", url: "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html", kind: docs }
+          - id: blameless-postmortems
+            title: Blameless postmortems
+            summary: Write up what happened and fix the system, not the person.
+            learn:
+              - Timeline and root cause
+              - Action items with owners
+            resources:
+              - { label: "Postmortem culture (Google SRE book)", url: "https://sre.google/sre-book/postmortem-culture/", kind: article }
+          - id: incident-drills
+            title: Incident drills
+            optional: true
+            summary: Practise the plan with tabletop exercises before a real incident tests it.
+            learn:
+              - Tabletop scenarios
+              - Updating runbooks after a drill
+            resources:
+              - { label: "AWS security incident response guide", url: "https://docs.aws.amazon.com/whitepapers/latest/aws-security-incident-response-guide/welcome.html", kind: docs }

@@ -66,6 +66,20 @@
             </td></tr>
             @endif
             @endforeach
+            @if(!empty($roadmaps))
+            <tr><td class="inset" style="padding:30px 42px 12px;">
+                <h2 style="margin:0 0 16px;color:#17212e;font-size:22px;line-height:1.3;">Roadmap updates</h2>
+                @foreach($roadmaps as $roadmap)
+                <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 16px;border-top:1px solid #e3e8ed;">
+                    <tr><td style="padding:16px 0 0;">
+                        <h3 style="margin:0 0 6px;font-size:18px;line-height:1.3;"><a href="{{ $track($roadmap['url']) }}" style="color:#173c5c;text-decoration:none;">{{ $roadmap['title'] }}</a></h3>
+                        <p style="margin:0 0 8px;color:#34485a;font-size:15px;line-height:1.6;">{{ $roadmap['summary'] }}</p>
+                        <a href="{{ $track($roadmap['url']) }}" style="color:#145583;font-size:14px;font-weight:700;">Open the roadmap</a>
+                    </td></tr>
+                </table>
+                @endforeach
+            </td></tr>
+            @endif
             @if(!empty($tweets))
             <tr><td class="inset" style="padding:30px 42px 12px;">
                 <h2 style="margin:0 0 16px;color:#17212e;font-size:22px;line-height:1.3;">From my X feed</h2>

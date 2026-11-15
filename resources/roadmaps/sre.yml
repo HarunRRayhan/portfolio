@@ -1,0 +1,598 @@
+slug: sre
+title: Site Reliability Engineering
+summary: Keep production fast and available on purpose. SLOs, alerting, incidents, capacity and the engineering that makes systems fail less and recover faster.
+order: 4
+updated: '2026-11-15'
+builds_on: devops
+
+stages:
+  - level: beginner
+    title: What reliability means
+    topics:
+      - id: what-is-sre
+        title: What SRE is
+        summary: SRE treats operations as a software problem, with clear targets and a cap on manual work.
+        lessons:
+          - id: sre-origins
+            title: Where SRE came from
+            summary: How Google framed operations as an engineering job and what that changed.
+            learn:
+              - SRE vs traditional operations
+              - The 50 percent cap on ops work
+            resources:
+              - { label: "Introduction (SRE book)", url: "https://sre.google/sre-book/introduction/", kind: article }
+              - { label: "Google SRE books", url: "https://sre.google/books/", kind: course }
+          - id: sre-vs-devops
+            title: SRE and DevOps
+            summary: SRE as one concrete way to do DevOps, and where the two roles overlap.
+            learn:
+              - Shared ownership of production
+              - Where SRE adds targets and budgets
+            resources:
+              - { label: "How SRE relates to DevOps (SRE workbook)", url: "https://sre.google/workbook/how-sre-relates/", kind: article }
+              - { label: "DevOps roadmap", url: "https://harun.dev/roadmaps/devops", kind: course }
+          - id: embracing-risk
+            title: Embracing risk
+            optional: true
+            summary: Why 100 percent reliability is the wrong goal and costs more than it returns.
+            learn:
+              - The cost of each extra nine
+              - Balancing risk and release speed
+            resources:
+              - { label: "Embracing risk (SRE book)", url: "https://sre.google/sre-book/embracing-risk/", kind: article }
+
+      - id: availability-basics
+        title: Availability and latency basics
+        summary: The words and numbers behind every reliability conversation.
+        lessons:
+          - id: nines-of-availability
+            title: The nines of availability
+            summary: What 99.9 percent means in minutes of downtime per month.
+            learn:
+              - Availability as a ratio
+              - Downtime per nine
+            resources:
+              - { label: "Availability table (SRE book appendix)", url: "https://sre.google/sre-book/availability-table/", kind: article }
+          - id: latency-percentiles
+            title: Latency and percentiles
+            summary: Why averages hide slow requests and p99 tells you what users feel.
+            learn:
+              - Mean vs median vs p99
+              - Tail latency
+            resources:
+              - { label: "Service level objectives (SRE book)", url: "https://sre.google/sre-book/service-level-objectives/", kind: article }
+          - id: single-points-of-failure
+            title: Single points of failure
+            summary: Find the one component whose failure takes everything down.
+            learn:
+              - Redundancy across zones
+              - Dependencies you forget about
+            resources:
+              - { label: "AWS Reliability pillar", url: "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html", kind: docs }
+              - post: add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances
+
+      - id: slis-and-slos
+        title: SLIs and SLOs
+        summary: Measure reliability the way users feel it and set a target you can defend.
+        lessons:
+          - id: choosing-slis
+            title: Choosing SLIs
+            summary: Pick indicators such as success rate and latency that track user happiness.
+            learn:
+              - Request-based vs window-based SLIs
+              - Where to measure
+            resources:
+              - { label: "Service level objectives (SRE book)", url: "https://sre.google/sre-book/service-level-objectives/", kind: article }
+          - id: setting-slos
+            title: Setting SLOs
+            summary: Choose a target and a window, and start with what you already achieve.
+            learn:
+              - Targets and windows
+              - SLO vs SLA
+            resources:
+              - { label: "Implementing SLOs (SRE workbook)", url: "https://sre.google/workbook/implementing-slos/", kind: article }
+          - id: slo-documents
+            title: Writing an SLO document
+            optional: true
+            summary: Write the SLO down with its rationale, owner and review date.
+            learn:
+              - What goes in an SLO document
+              - Reviewing SLOs over time
+            resources:
+              - { label: "Example SLO document (SRE workbook)", url: "https://sre.google/workbook/slo-document/", kind: article }
+
+      - id: error-budgets
+        title: Error budgets
+        summary: Use the gap between 100 percent and your SLO as a budget for change.
+        lessons:
+          - id: error-budget-basics
+            title: What an error budget is
+            summary: Turn an SLO into an allowance of failures you can spend on releases and experiments.
+            learn:
+              - Budget from SLO and traffic
+              - Spending and running out
+            resources:
+              - { label: "Embracing risk (SRE book)", url: "https://sre.google/sre-book/embracing-risk/", kind: article }
+          - id: error-budget-policy
+            title: Error budget policies
+            summary: Agree in advance what happens when the budget is gone, such as a release freeze.
+            learn:
+              - Writing a policy
+              - Getting product to sign off
+            resources:
+              - { label: "Example error budget policy (SRE workbook)", url: "https://sre.google/workbook/error-budget-policy/", kind: article }
+
+      - id: monitoring-fundamentals
+        title: Monitoring fundamentals
+        summary: Know what to watch, so the first sign of trouble reaches you and not a customer.
+        lessons:
+          - id: golden-signals
+            title: The four golden signals
+            summary: Latency, traffic, errors and saturation, the minimum every service should expose.
+            learn:
+              - The four signals
+              - RED and USE methods
+            resources:
+              - { label: "Monitoring distributed systems (SRE book)", url: "https://sre.google/sre-book/monitoring-distributed-systems/", kind: article }
+          - id: black-box-and-white-box
+            title: Black-box and white-box monitoring
+            summary: Probe from outside like a user, and read internals to explain why.
+            learn:
+              - Synthetic checks and uptime probes
+              - Instrumented metrics
+            resources:
+              - { label: "Monitoring distributed systems (SRE book)", url: "https://sre.google/sre-book/monitoring-distributed-systems/", kind: article }
+              - post: install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging
+          - id: prometheus-basics
+            title: Prometheus basics
+            summary: Scrape metrics, query them with PromQL and graph them in Grafana.
+            learn:
+              - Scraping and exporters
+              - Basic PromQL
+            resources:
+              - { label: "Prometheus overview", url: "https://prometheus.io/docs/introduction/overview/", kind: docs }
+              - { label: "Grafana docs", url: "https://grafana.com/docs/grafana/latest/", kind: docs }
+
+      - id: on-call-basics
+        title: Being on call
+        summary: What it means to carry the pager and how to do it without burning out.
+        lessons:
+          - id: what-on-call-means
+            title: What on-call means
+            summary: Rotations, response times and what you are expected to do when paged.
+            learn:
+              - Primary and secondary rotations
+              - Response expectations
+            resources:
+              - { label: "Being on-call (SRE book)", url: "https://sre.google/sre-book/being-on-call/", kind: article }
+          - id: runbooks
+            title: Runbooks
+            summary: Write down the steps for known problems so anyone on call can follow them.
+            learn:
+              - What a good runbook contains
+              - Linking runbooks from alerts
+            resources:
+              - { label: "On-call (SRE workbook)", url: "https://sre.google/workbook/on-call/", kind: article }
+          - id: sustainable-on-call
+            title: Sustainable on-call
+            optional: true
+            summary: Keep page volume and hours low enough that people stay.
+            learn:
+              - Page budgets
+              - Handoffs and follow-the-sun
+            resources:
+              - { label: "On-call (SRE workbook)", url: "https://sre.google/workbook/on-call/", kind: article }
+              - { label: "PagerDuty incident response guide", url: "https://response.pagerduty.com/", kind: course }
+
+  - level: intermediate
+    title: Running production
+    topics:
+      - id: alerting
+        title: Alerting on SLOs
+        summary: Page people only when users are hurt, and fast enough to matter.
+        lessons:
+          - id: symptom-alerts
+            title: Alert on symptoms, not causes
+            summary: Page on user-facing failure, and leave CPU and disk to dashboards and tickets.
+            learn:
+              - Symptoms vs causes
+              - Pages vs tickets
+            resources:
+              - { label: "Practical alerting (SRE book)", url: "https://sre.google/sre-book/practical-alerting/", kind: article }
+          - id: burn-rate-alerts
+            title: Burn-rate alerts
+            summary: Alert when you are spending the error budget too fast, over short and long windows.
+            learn:
+              - Burn rate
+              - Multi-window, multi-burn-rate alerts
+            resources:
+              - { label: "Alerting on SLOs (SRE workbook)", url: "https://sre.google/workbook/alerting-on-slos/", kind: article }
+          - id: alert-fatigue
+            title: Reducing alert fatigue
+            summary: Delete noisy alerts and make each page actionable.
+            learn:
+              - Auditing alerts
+              - Grouping and deduplication
+            resources:
+              - { label: "Prometheus Alertmanager", url: "https://prometheus.io/docs/alerting/latest/alertmanager/", kind: docs }
+              - { label: "Monitoring (SRE workbook)", url: "https://sre.google/workbook/monitoring/", kind: article }
+
+      - id: incident-response
+        title: Incident response
+        summary: Run an outage calmly, with clear roles and a focus on stopping the bleeding first.
+        lessons:
+          - id: incident-roles
+            title: Incident roles
+            summary: Incident commander, operations, communications and scribe, and why roles help.
+            learn:
+              - The incident commander
+              - Separating fix from communication
+            resources:
+              - { label: "Managing incidents (SRE book)", url: "https://sre.google/sre-book/managing-incidents/", kind: article }
+              - { label: "PagerDuty incident response guide", url: "https://response.pagerduty.com/", kind: course }
+          - id: mitigate-first
+            title: Mitigate first, then fix
+            summary: Roll back, fail over or shed load before hunting for the root cause.
+            learn:
+              - Generic mitigations
+              - When to roll back
+            resources:
+              - { label: "Incident response (SRE workbook)", url: "https://sre.google/workbook/incident-response/", kind: article }
+          - id: status-communication
+            title: Communicating during an incident
+            summary: Keep users and stakeholders informed with regular, honest updates.
+            learn:
+              - Status pages
+              - Update cadence
+            resources:
+              - { label: "PagerDuty incident response guide", url: "https://response.pagerduty.com/", kind: course }
+          - id: effective-troubleshooting
+            title: Effective troubleshooting
+            optional: true
+            summary: A systematic way to go from symptom to cause under pressure.
+            learn:
+              - Hypothesis and test
+              - Common traps
+            resources:
+              - { label: "Effective troubleshooting (SRE book)", url: "https://sre.google/sre-book/effective-troubleshooting/", kind: article }
+
+      - id: postmortems
+        title: Postmortems
+        summary: Learn from every serious incident without blaming people.
+        lessons:
+          - id: blameless-postmortems
+            title: Blameless postmortems
+            summary: Focus on systems and decisions, so people tell the whole story.
+            learn:
+              - Why blame hides facts
+              - Postmortem triggers
+            resources:
+              - { label: "Postmortem culture (SRE book)", url: "https://sre.google/sre-book/postmortem-culture/", kind: article }
+          - id: writing-a-postmortem
+            title: Writing a postmortem
+            summary: Timeline, impact, causes and action items that actually get done.
+            learn:
+              - A postmortem template
+              - Tracking action items
+            resources:
+              - { label: "Postmortem culture (SRE workbook)", url: "https://sre.google/workbook/postmortem-culture/", kind: article }
+              - { label: "Example postmortem (SRE book)", url: "https://sre.google/sre-book/example-postmortem/", kind: article }
+          - id: learning-from-incidents
+            title: Learning across incidents
+            optional: true
+            summary: Spot patterns across many postmortems and share them widely.
+            learn:
+              - Incident reviews and trends
+              - Contributing factors over root cause
+            resources:
+              - { label: "Postmortem culture (SRE workbook)", url: "https://sre.google/workbook/postmortem-culture/", kind: article }
+
+      - id: reliability-patterns
+        title: Reliability patterns
+        summary: Timeouts, retries and circuit breakers that stop one slow dependency from taking everything down.
+        lessons:
+          - id: timeouts
+            title: Timeouts
+            summary: Set a deadline on every network call so a slow dependency cannot hold your threads.
+            learn:
+              - Connect vs request timeouts
+              - Deadline propagation
+            resources:
+              - { label: "Timeouts, retries and backoff with jitter (Amazon Builders' Library)", url: "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/", kind: article }
+          - id: retries-and-backoff
+            title: Retries with backoff and jitter
+            summary: Retry the right failures, with backoff, so you do not turn a blip into an outage.
+            learn:
+              - Exponential backoff and jitter
+              - Retry budgets
+              - Idempotency
+            resources:
+              - { label: "Timeouts, retries and backoff with jitter (Amazon Builders' Library)", url: "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/", kind: article }
+              - post: running-ai-background-jobs-serverlessly-with-sqs-lambda-bedrock
+          - id: circuit-breakers
+            title: Circuit breakers and bulkheads
+            summary: Stop calling a failing dependency for a while and isolate failures to one part of the system.
+            learn:
+              - Open, half-open, closed
+              - Bulkheads and isolation
+            resources:
+              - { label: "CircuitBreaker (Martin Fowler)", url: "https://martinfowler.com/bliki/CircuitBreaker.html", kind: article }
+          - id: load-shedding
+            title: Load shedding and graceful degradation
+            optional: true
+            summary: Drop or simplify work under overload so the core path keeps working.
+            learn:
+              - Rejecting early
+              - Serving degraded responses
+            resources:
+              - { label: "Handling overload (SRE book)", url: "https://sre.google/sre-book/handling-overload/", kind: article }
+              - { label: "Using load shedding to avoid overload (Amazon Builders' Library)", url: "https://aws.amazon.com/builders-library/using-load-shedding-to-avoid-overload/", kind: article }
+
+      - id: release-engineering
+        title: Release engineering
+        summary: Ship changes safely, since most outages start with a change.
+        lessons:
+          - id: hermetic-builds
+            title: Reproducible builds
+            summary: Build the same artifact from the same source every time.
+            learn:
+              - Hermetic builds
+              - Versioned artifacts
+            resources:
+              - { label: "Release engineering (SRE book)", url: "https://sre.google/sre-book/release-engineering/", kind: article }
+          - id: canary-releases
+            title: Canary releases
+            summary: Send a small share of traffic to the new version and compare before rolling out.
+            learn:
+              - Canary analysis
+              - Automatic rollback
+            resources:
+              - { label: "Canarying releases (SRE workbook)", url: "https://sre.google/workbook/canarying-releases/", kind: article }
+          - id: feature-flags
+            title: Feature flags
+            summary: Separate deploy from release so you can turn a feature off without a rollback.
+            learn:
+              - Flag types
+              - Cleaning up old flags
+            resources:
+              - { label: "Feature toggles (martinfowler.com)", url: "https://martinfowler.com/articles/feature-toggles.html", kind: article }
+          - id: safe-deploy-pipelines
+            title: Safe deployment pipelines
+            optional: true
+            summary: Roll out one zone and region at a time with automated checks between waves.
+            learn:
+              - Waves and bake time
+              - Halting a bad rollout
+            resources:
+              - { label: "Automating safe, hands-off deployments (Amazon Builders' Library)", url: "https://aws.amazon.com/builders-library/automating-safe-hands-off-deployments/", kind: article }
+              - post: github-actions-lambda-terraform-cicd
+
+      - id: toil-reduction
+        title: Toil reduction
+        summary: Find repetitive manual work and automate it away.
+        lessons:
+          - id: what-is-toil
+            title: What toil is
+            summary: Manual, repetitive, automatable work that grows with the service.
+            learn:
+              - The traits of toil
+              - Measuring toil
+            resources:
+              - { label: "Eliminating toil (SRE book)", url: "https://sre.google/sre-book/eliminating-toil/", kind: article }
+          - id: automating-toil
+            title: Automating it away
+            summary: Pick the toil worth automating first and build tools people trust.
+            learn:
+              - Prioritising by time saved
+              - Self-service tooling
+            resources:
+              - { label: "Eliminating toil (SRE workbook)", url: "https://sre.google/workbook/eliminating-toil/", kind: article }
+              - post: multi-agent-claude-code-aws-devops-routines
+          - id: automation-evolution
+            title: The evolution of automation
+            optional: true
+            summary: From scripts to systems that run themselves, and the risks along the way.
+            learn:
+              - Levels of automation
+              - When automation fails badly
+            resources:
+              - { label: "The evolution of automation at Google (SRE book)", url: "https://sre.google/sre-book/automation-at-google/", kind: article }
+
+  - level: advanced
+    title: Reliability at scale
+    topics:
+      - id: capacity-planning
+        title: Capacity planning
+        summary: Have enough headroom for growth and peaks without paying for idle machines.
+        lessons:
+          - id: demand-forecasting
+            title: Forecasting demand
+            summary: Project traffic growth and plan for known peaks like launches.
+            learn:
+              - Organic vs inorganic growth
+              - Headroom targets
+            resources:
+              - { label: "Software engineering in SRE (SRE book)", url: "https://sre.google/sre-book/software-engineering-in-sre/", kind: article }
+          - id: load-testing
+            title: Load testing
+            summary: Find the breaking point before your users do.
+            learn:
+              - Load, stress and soak tests
+              - Finding the bottleneck
+            resources:
+              - { label: "Grafana k6 docs", url: "https://grafana.com/docs/k6/latest/", kind: tool }
+          - id: autoscaling-and-limits
+            title: Autoscaling and quotas
+            summary: Let capacity follow demand and know the limits that will stop it.
+            learn:
+              - Scaling on the right signal
+              - Service quotas
+            resources:
+              - { label: "AWS Reliability pillar", url: "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html", kind: docs }
+              - post: ecs-fargate-spot-capacity-providers
+          - id: load-balancing-at-scale
+            title: Load balancing
+            optional: true
+            summary: Spread traffic across machines and data centres.
+            learn:
+              - Balancing algorithms
+              - Load balancing in the data centre
+            resources:
+              - { label: "Load balancing in the datacenter (SRE book)", url: "https://sre.google/sre-book/load-balancing-datacenter/", kind: article }
+              - post: eight-load-balancer-algorithms
+
+      - id: cascading-failures
+        title: Cascading failures
+        summary: Understand how one overloaded part can bring down the rest, and how to stop it.
+        lessons:
+          - id: how-cascades-happen
+            title: How cascades happen
+            summary: Overload, retries and dropped capacity feed each other until everything fails.
+            learn:
+              - Positive feedback loops
+              - Retry storms
+            resources:
+              - { label: "Addressing cascading failures (SRE book)", url: "https://sre.google/sre-book/addressing-cascading-failures/", kind: article }
+          - id: preventing-cascades
+            title: Preventing cascades
+            summary: Limit queues, cap retries and fail fast to keep failures local.
+            learn:
+              - Queue limits and deadlines
+              - Avoiding fallback overload
+            resources:
+              - { label: "Avoiding fallback in distributed systems (Amazon Builders' Library)", url: "https://aws.amazon.com/builders-library/avoiding-fallback-in-distributed-systems/", kind: article }
+              - { label: "Addressing cascading failures (SRE book)", url: "https://sre.google/sre-book/addressing-cascading-failures/", kind: article }
+          - id: cell-architecture
+            title: Cell-based architecture
+            optional: true
+            summary: Split a system into independent cells so a failure only hits a share of users.
+            learn:
+              - Cells and blast radius
+              - Shuffle sharding
+            resources:
+              - { label: "Workload isolation using shuffle-sharding (Amazon Builders' Library)", url: "https://aws.amazon.com/builders-library/workload-isolation-using-shuffle-sharding/", kind: article }
+
+      - id: chaos-engineering
+        title: Chaos engineering
+        summary: Break things on purpose, in a controlled way, to find weaknesses before an outage does.
+        lessons:
+          - id: chaos-principles
+            title: Principles of chaos engineering
+            summary: Form a hypothesis about steady state, inject a fault and see if it holds.
+            learn:
+              - Steady-state hypothesis
+              - Limiting the blast radius
+            resources:
+              - { label: "Principles of Chaos Engineering", url: "https://principlesofchaos.org/", kind: article }
+          - id: game-days
+            title: Game days
+            summary: Rehearse a failure with the team and check that alerts, runbooks and people work.
+            learn:
+              - Planning a game day
+              - Disaster recovery testing
+            resources:
+              - { label: "AWS Reliability pillar", url: "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html", kind: docs }
+          - id: chaos-tooling
+            title: Fault injection tools
+            optional: true
+            summary: Run experiments with managed and open-source fault injection tools.
+            learn:
+              - AWS Fault Injection Service
+              - Chaos Mesh and LitmusChaos
+            resources:
+              - { label: "AWS Fault Injection Service user guide", url: "https://docs.aws.amazon.com/fis/latest/userguide/what-is.html", kind: docs }
+              - { label: "Chaos Mesh docs", url: "https://chaos-mesh.org/docs/", kind: docs }
+
+      - id: disaster-recovery
+        title: Disaster recovery
+        summary: Plan for losing a zone, a region or your data, and prove you can come back.
+        lessons:
+          - id: rto-and-rpo
+            title: RTO and RPO
+            summary: How long you can be down and how much data you can lose, agreed in advance.
+            learn:
+              - Recovery time and point objectives
+              - DR strategies from backup to active-active
+            resources:
+              - { label: "Disaster recovery of workloads on AWS", url: "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-workloads-on-aws.html", kind: docs }
+          - id: backups-that-restore
+            title: Backups that actually restore
+            summary: A backup you have never restored is a guess. Test restores on a schedule.
+            learn:
+              - Restore testing
+              - Offsite and immutable copies
+            resources:
+              - { label: "Data integrity (SRE book)", url: "https://sre.google/sre-book/data-integrity/", kind: article }
+              - post: snapshot-restore-of-lightsail-instance-to-lightsail-ec2
+          - id: multi-region
+            title: Multi-region designs
+            optional: true
+            summary: When running in several regions is worth its cost and complexity.
+            learn:
+              - Active-passive vs active-active
+              - Data replication trade-offs
+            resources:
+              - { label: "AWS Reliability pillar", url: "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html", kind: docs }
+
+      - id: observability-for-sre
+        title: Observability for SRE
+        summary: Answer new questions about production with traces, wide events and good dashboards.
+        lessons:
+          - id: tracing-for-sre
+            title: Tracing slow requests
+            summary: Use distributed traces to find which service and call made a request slow.
+            learn:
+              - Spans and critical paths
+              - Sampling for tail latency
+            resources:
+              - { label: "OpenTelemetry docs", url: "https://opentelemetry.io/docs/", kind: docs }
+              - post: llm-observability-langfuse-lambda-cloudwatch
+          - id: slo-dashboards
+            title: SLO dashboards
+            summary: Show SLO compliance and remaining budget where teams look every day.
+            learn:
+              - Budget remaining over the window
+              - Per-service views
+            resources:
+              - { label: "Implementing SLOs (SRE workbook)", url: "https://sre.google/workbook/implementing-slos/", kind: article }
+          - id: detecting-silent-failures
+            title: Detecting silent failures
+            optional: true
+            summary: Catch work that reports success but produces nothing.
+            learn:
+              - Output-based checks
+              - Freshness SLIs
+            resources:
+              - post: catch-lambda-jobs-that-succeed-but-write-nothing
+              - { label: "Data processing pipelines (SRE workbook)", url: "https://sre.google/workbook/data-processing/", kind: article }
+
+      - id: sre-practice
+        title: Building an SRE practice
+        summary: Grow SRE in a team or company, from one engineer to an engagement model.
+        lessons:
+          - id: sre-engagement-models
+            title: SRE engagement models
+            summary: Embedded, consulting or platform SREs, and when each fits.
+            learn:
+              - Team structures
+              - Production readiness reviews
+            resources:
+              - { label: "SRE engagement model (SRE workbook)", url: "https://sre.google/workbook/engagement-model/", kind: article }
+              - { label: "Google SRE books", url: "https://sre.google/books/", kind: course }
+          - id: starting-sre
+            title: Starting SRE in an organisation
+            summary: Begin with one service, one SLO and one on-call rotation, then expand.
+            learn:
+              - Picking the first service
+              - Getting buy-in
+            resources:
+              - { label: "Introducing SRE in your organization (SRE workbook)", url: "https://sre.google/workbook/team-lifecycles/", kind: article }
+          - id: secure-reliable-systems
+            title: Security and reliability together
+            optional: true
+            summary: Design systems that stay up and stay secure, from Google's third SRE book.
+            learn:
+              - Least privilege and recovery
+              - Designing for resilience
+            resources:
+              - { label: "Building Secure and Reliable Systems", url: "https://sre.google/books/building-secure-reliable-systems/", kind: course }

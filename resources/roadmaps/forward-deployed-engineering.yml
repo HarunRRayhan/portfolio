@@ -1,0 +1,699 @@
+slug: forward-deployed-engineering
+title: Forward Deployed Engineering
+summary: The engineer who sits with a customer and ships working software on their data and systems. Covers discovery, working inside customer environments, fast prototypes, data and AI delivery, enterprise security, and turning field work into product.
+order: 10
+updated: '2026-11-15'
+
+stages:
+  - level: beginner
+    title: The role and the basics
+    topics:
+      - id: the-fde-role
+        title: The forward deployed role
+        summary: What a forward deployed engineer does, and how it differs from consulting, sales engineering and product work.
+        lessons:
+          - id: what-an-fde-does
+            title: What an FDE does
+            summary: Embed with a customer, find the real problem, and ship code that solves it on their systems.
+            learn:
+              - Origins of the role at Palantir
+              - The role at AI labs like OpenAI and Anthropic
+              - Owning outcomes, not tickets
+            resources:
+              - { label: "Palantir blog", url: "https://blog.palantir.com/", kind: article }
+              - { label: "Building effective agents (Anthropic)", url: "https://www.anthropic.com/research/building-effective-agents", kind: article }
+          - id: fde-vs-other-roles
+            title: FDE vs consultant, SE and SWE
+            summary: Where the role overlaps with solutions engineering and consulting, and where it writes far more production code.
+            learn:
+              - Sales engineer vs forward deployed engineer
+              - Consultant deliverables vs shipped software
+              - The feedback line back to the product team
+            resources:
+              - { label: "StaffEng", url: "https://staffeng.com/", kind: article }
+              - { label: "Will Larson's writing", url: "https://lethain.com/", kind: article }
+          - id: fde-skill-mix
+            title: The skill mix
+            optional: true
+            summary: A wide technical base plus customer skills. Depth comes from the problems you meet.
+            learn:
+              - Backend, data and cloud as the core
+              - Writing and speaking as daily work
+              - Learning a new domain fast
+            resources:
+              - { label: "Will Larson's writing", url: "https://lethain.com/", kind: article }
+
+      - id: discovery-and-scoping
+        title: Discovery and scoping
+        summary: Find out what the customer actually needs before writing code, then cut it to something you can ship.
+        lessons:
+          - id: customer-interviews
+            title: Interviewing customers
+            summary: Ask about past behaviour and real workflows, not opinions about your idea.
+            learn:
+              - Questions that get facts, not compliments
+              - Talking to the people who do the work
+              - Taking notes you can share
+            resources:
+              - { label: "The Mom Test", url: "https://www.momtestbook.com/", kind: article }
+              - { label: "SVPG articles (Marty Cagan)", url: "https://www.svpg.com/articles/", kind: article }
+          - id: problem-statements
+            title: Writing the problem down
+            summary: Turn discovery notes into a one-page problem statement the customer agrees with.
+            learn:
+              - Current workflow, pain and cost
+              - Success measured in their numbers
+              - Working backwards from the outcome
+            resources:
+              - { label: "Working Backwards", url: "https://workingbackwards.com/", kind: article }
+              - { label: "Design docs at Google", url: "https://www.industrialempathy.com/posts/design-docs-at-google/", kind: article }
+          - id: scoping-and-appetite
+            title: Scoping to a fixed time
+            summary: Fix the time box and cut scope to fit, instead of estimating an open-ended wish list.
+            learn:
+              - Appetite instead of estimates
+              - Must-have vs nice-to-have
+              - Writing what is out of scope
+            resources:
+              - { label: "Shape Up (Basecamp)", url: "https://basecamp.com/shapeup", kind: article }
+          - id: stakeholder-mapping
+            title: Mapping stakeholders
+            optional: true
+            summary: Know who sponsors, who uses, who blocks and who signs off before you start.
+            learn:
+              - Sponsor, champion, users, gatekeepers
+              - Security and legal as stakeholders
+              - Keeping the map current
+            resources:
+              - { label: "SVPG articles (Marty Cagan)", url: "https://www.svpg.com/articles/", kind: article }
+
+      - id: customer-environments
+        title: Working in customer environments
+        summary: Get access to someone else's cloud, network and data safely, and leave it as clean as you found it.
+        lessons:
+          - id: cross-account-access
+            title: Cross-account cloud access
+            summary: Use roles the customer controls instead of shared keys, so access is scoped and revocable.
+            learn:
+              - Assumed roles and external IDs on AWS
+              - Least privilege for an engagement
+              - Revoking access at the end
+            resources:
+              - { label: "Third-party access with external IDs (AWS IAM docs)", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_common-scenarios_third-party.html", kind: docs }
+              - post: first-3-things-i-always-do-after-creating-a-new-aws-account
+          - id: vpns-and-private-networks
+            title: VPNs and private networks
+            summary: Many customer systems are only reachable from inside their network. Know the common ways in.
+            learn:
+              - Site-to-site and client VPNs
+              - Bastions and session managers
+              - Private endpoints instead of public ones
+            resources:
+              - { label: "Tailscale knowledge base", url: "https://tailscale.com/kb", kind: docs }
+              - { label: "AWS PrivateLink docs", url: "https://docs.aws.amazon.com/vpc/latest/privatelink/", kind: docs }
+              - post: agentcore-gateway-private-ca-without-the-alb
+          - id: engagement-hygiene
+            title: Engagement hygiene
+            summary: Keep each customer's credentials, data and code separate on your own machine.
+            learn:
+              - One profile and workspace per customer
+              - Never copying data to a laptop without approval
+              - Logging what you touched
+            resources:
+              - post: terraform-state-more-sensitive-than-env
+              - { label: "AWS IAM docs", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/", kind: docs }
+          - id: locked-down-environments
+            title: Locked-down and air-gapped sites
+            optional: true
+            summary: Some customers allow no internet, no SaaS and no outside models. Plan for it early.
+            learn:
+              - Mirroring packages and images
+              - Self-hosted models and tools
+              - Shipping updates through a review gate
+            resources:
+              - { label: "Docker docs", url: "https://docs.docker.com/", kind: docs }
+              - { label: "vLLM docs", url: "https://docs.vllm.ai/", kind: docs }
+
+      - id: fast-prototyping
+        title: Fast prototyping
+        summary: Show a working thing on real data within days, because a demo answers questions a document cannot.
+        lessons:
+          - id: thin-vertical-slice
+            title: A thin vertical slice
+            summary: Build one workflow end to end, from real input to visible result, before widening anything.
+            learn:
+              - Picking the first workflow
+              - Real data over mock data
+              - Hard-coding what does not matter yet
+            resources:
+              - { label: "Shape Up (Basecamp)", url: "https://basecamp.com/shapeup", kind: article }
+          - id: prototype-tools
+            title: Tools for quick UIs
+            summary: Notebook apps and simple web frameworks get a usable interface in front of users fast.
+            learn:
+              - Streamlit and Gradio
+              - When a script is enough
+              - Hosting a prototype safely
+            resources:
+              - { label: "Streamlit docs", url: "https://docs.streamlit.io/", kind: docs }
+              - { label: "Gradio docs", url: "https://www.gradio.app/docs", kind: docs }
+          - id: ai-assisted-building
+            title: Building with coding agents
+            summary: Coding agents speed up prototypes, if you keep the codebase readable and review what they write.
+            learn:
+              - Agents for scaffolding and glue code
+              - Keeping agents away from customer secrets
+              - Reviewing generated changes
+            resources:
+              - post: your-agent-is-only-as-good-as-your-codebase
+              - post: how-i-make-ai-coding-agents-safe-in-a-real-aws-codebase
+          - id: prototype-to-production
+            title: From prototype to production
+            optional: true
+            summary: Know what has to change before a prototype carries real users.
+            learn:
+              - Auth, logging and error handling
+              - Tests around the core workflow
+              - When to rewrite instead of extend
+            resources:
+              - post: when-your-app-outgrows-the-tool-that-built-it
+              - post: pre-merge-checklist-ai-generated-prs
+
+      - id: customer-data
+        title: Working with customer data
+        summary: Find, read and trust data you did not design, often spread across old systems.
+        lessons:
+          - id: exploring-unknown-data
+            title: Exploring unfamiliar data
+            summary: Profile tables and files quickly to learn what is there and how bad it is.
+            learn:
+              - SQL for exploration
+              - Profiling nulls, duplicates and ranges
+              - DuckDB for files on your desk
+            resources:
+              - { label: "DuckDB docs", url: "https://duckdb.org/docs/", kind: docs }
+              - { label: "PostgreSQL docs", url: "https://www.postgresql.org/docs/", kind: docs }
+          - id: data-access-requests
+            title: Requesting data access
+            summary: Ask for the smallest data set you need, in writing, with a reason the data owner can approve.
+            learn:
+              - Read-only and masked access
+              - Sample vs full data
+              - Recording who approved what
+            resources:
+              - { label: "GDPR overview", url: "https://gdpr.eu/", kind: article }
+              - post: why-s3-presigned-urls
+          - id: domain-models
+            title: Learning the domain model
+            optional: true
+            summary: Each business has its own nouns and rules. Write them down before you model them.
+            learn:
+              - A shared glossary with the customer
+              - Entities and relationships
+              - Rules hidden in spreadsheets
+            resources:
+              - { label: "Designing Data-Intensive Applications", url: "https://dataintensive.net/", kind: article }
+
+      - id: field-communication
+        title: Communicating in the field
+        summary: Clear written updates keep customers and your own team aligned when you work remotely from both.
+        lessons:
+          - id: status-updates
+            title: Status updates
+            summary: A short regular update with progress, risks and asks beats a long meeting.
+            learn:
+              - Progress, risks, decisions, asks
+              - Writing for executives and engineers
+              - Bad news early
+            resources:
+              - { label: "Technical writing (Google)", url: "https://developers.google.com/tech-writing", kind: course }
+          - id: meeting-notes-and-decisions
+            title: Meeting notes and decisions
+            summary: Every meeting ends with written decisions and owners, sent the same day.
+            learn:
+              - Decision logs
+              - Action items with owners and dates
+              - Confirming in writing
+            resources:
+              - { label: "Technical writing (Google)", url: "https://developers.google.com/tech-writing", kind: course }
+              - { label: "Will Larson's writing", url: "https://lethain.com/", kind: article }
+
+  - level: intermediate
+    title: Delivering on customer systems
+    topics:
+      - id: data-integration
+        title: Data integration and pipelines
+        summary: Move data out of customer systems into something you can build on, and keep it flowing.
+        lessons:
+          - id: connectors-and-ingestion
+            title: Connectors and ingestion
+            summary: Pull from databases, SaaS APIs and file drops with managed connectors or small scripts.
+            learn:
+              - Batch extracts vs APIs
+              - Managed connectors like Airbyte
+              - Incremental loads
+            resources:
+              - { label: "Airbyte docs", url: "https://docs.airbyte.com/", kind: docs }
+              - post: rag-ingestion-pipeline-step-functions-lambda
+          - id: transformations
+            title: Transformations
+            summary: Clean and reshape raw data in versioned SQL so changes are reviewable.
+            learn:
+              - Staging, clean and serving layers
+              - dbt models and tests
+              - Idempotent reruns
+            resources:
+              - { label: "dbt docs", url: "https://docs.getdbt.com/", kind: docs }
+          - id: change-data-capture
+            title: Change data capture
+            optional: true
+            summary: Stream changes from a customer database without heavy queries on their production system.
+            learn:
+              - Reading the database log
+              - Debezium and managed CDC
+              - Handling schema changes
+            resources:
+              - { label: "Debezium docs", url: "https://debezium.io/documentation/", kind: docs }
+          - id: data-quality-checks
+            title: Data quality checks
+            summary: Catch broken feeds before the customer sees wrong numbers.
+            learn:
+              - Freshness, volume and schema checks
+              - Alerting on silent failures
+              - Quarantining bad records
+            resources:
+              - { label: "Great Expectations docs", url: "https://docs.greatexpectations.io/", kind: docs }
+              - post: catch-lambda-jobs-that-succeed-but-write-nothing
+
+      - id: deploying-ai-solutions
+        title: Deploying AI solutions
+        summary: Put LLM features on customer data, with retrieval, tools and evals the customer can trust.
+        lessons:
+          - id: rag-on-customer-data
+            title: RAG on customer documents
+            summary: Index the customer's documents and answer from them with citations.
+            learn:
+              - Ingesting their document stores
+              - Respecting their permissions
+              - Citations users can check
+            resources:
+              - post: building-a-production-rag-pipeline-on-aws-lambda-pgvector
+              - post: persistence-is-not-permission-rag-citation-reauth-chat-replay
+          - id: agents-on-customer-systems
+            title: Agents on customer systems
+            summary: Connect models to the customer's tools through scoped APIs or MCP servers.
+            learn:
+              - Wrapping internal APIs as tools
+              - Read-only first, writes with approval
+              - Auditing every tool call
+            resources:
+              - { label: "Model Context Protocol", url: "https://modelcontextprotocol.io/", kind: docs }
+              - post: deploying-an-mcp-server-on-aws-lambda
+          - id: evals-with-customers
+            title: Evals with the customer
+            summary: Build the eval set with the customer's experts so "good" means what they mean.
+            learn:
+              - Collecting gold answers from domain experts
+              - Agreeing a pass bar before launch
+              - Reporting quality in their terms
+            resources:
+              - { label: "Hamel Husain on evals", url: "https://hamel.dev/", kind: article }
+              - post: llm-observability-langfuse-lambda-cloudwatch
+          - id: models-in-customer-cloud
+            title: Models inside the customer's cloud
+            optional: true
+            summary: Many enterprises only allow models reachable through their own cloud account.
+            learn:
+              - Bedrock and Azure OpenAI in their account
+              - Locking down model access with IAM
+              - Switching providers without a rewrite
+            resources:
+              - post: lock-down-bedrock-iam-lambda-data-leak
+              - post: migrated-lambda-ai-app-to-bedrock-openai-compatible-apis-without-rewriting-everything
+
+      - id: deploying-into-customer-infra
+        title: Deploying into customer infrastructure
+        summary: Ship software the customer's ops team can run, audit and upgrade without you.
+        lessons:
+          - id: iac-for-handover
+            title: Infrastructure as code
+            summary: Define everything in Terraform or similar so the deployment is repeatable and reviewable.
+            learn:
+              - Modules the customer can read
+              - State stored in their account
+              - Choosing Terraform or Pulumi
+            resources:
+              - post: terraform-or-pulumi
+              - { label: "Terraform docs", url: "https://developer.hashicorp.com/terraform/docs", kind: docs }
+          - id: containers-and-packaging
+            title: Containers and packaging
+            summary: Package the solution as images and charts that fit the customer's platform.
+            learn:
+              - Images with pinned versions
+              - Helm charts for Kubernetes shops
+              - Serverless where they allow it
+            resources:
+              - { label: "Docker docs", url: "https://docs.docker.com/", kind: docs }
+              - { label: "Helm docs", url: "https://helm.sh/docs/", kind: docs }
+          - id: ci-cd-in-their-pipeline
+            title: CI/CD in their pipeline
+            summary: Deploy through the customer's pipeline and approvals, not from your laptop.
+            learn:
+              - Fitting their change process
+              - Pipelines that run in their account
+              - Rollback plans
+            resources:
+              - post: github-actions-lambda-terraform-cicd
+              - post: deploying-a-laravel-application-to-amazon-ec2-using-terraform
+          - id: agentic-infra-work
+            title: Agents for infrastructure work
+            optional: true
+            summary: Coding agents can draft Terraform and runbooks, with plans reviewed by a person before apply.
+            learn:
+              - Agent-drafted plans, human-approved applies
+              - Reviewing plan output
+              - Keeping production credentials out of reach
+            resources:
+              - post: claude-code-for-aws-infrastructure-agentic-devops-workflow-with-terraform
+              - post: production-ai-code-review-for-terraform-and-lambda-prs
+
+      - id: enterprise-security
+        title: Enterprise security
+        summary: Pass the customer's security review and keep their data safe while you work.
+        lessons:
+          - id: sso-and-identity
+            title: SSO and identity
+            summary: Enterprise users sign in through their identity provider. Your app has to fit.
+            learn:
+              - SAML and OIDC basics
+              - Mapping groups to roles
+              - Offboarding through the IdP
+            resources:
+              - { label: "OpenID Connect", url: "https://openid.net/developers/how-connect-works/", kind: docs }
+              - post: multi-tenant-saas-auth-lambda-fastify
+          - id: security-reviews
+            title: Security reviews and questionnaires
+            summary: Answer vendor security questionnaires honestly and with evidence.
+            learn:
+              - Common questionnaire sections
+              - Data flow diagrams
+              - Evidence over promises
+            resources:
+              - { label: "Cloud Security Alliance", url: "https://cloudsecurityalliance.org/", kind: article }
+              - { label: "OWASP Top 10", url: "https://owasp.org/www-project-top-ten/", kind: article }
+          - id: secrets-and-keys
+            title: Secrets and keys
+            summary: Store customer secrets in their vault, rotate them, and never paste them into chat or prompts.
+            learn:
+              - Secrets managers in their cloud
+              - Rotation at the end of an engagement
+              - Keeping secrets out of logs and state
+            resources:
+              - post: terraform-state-more-sensitive-than-env
+              - { label: "AWS Secrets Manager docs", url: "https://docs.aws.amazon.com/secretsmanager/", kind: docs }
+          - id: llm-security-for-enterprises
+            title: LLM security for enterprises
+            optional: true
+            summary: Prompt injection and data leakage are the first questions security teams now ask about AI.
+            learn:
+              - Prompt injection risks
+              - Data retention with model providers
+              - Guardrails and audit logs
+            resources:
+              - { label: "OWASP Top 10 for LLM applications", url: "https://genai.owasp.org/", kind: article }
+              - post: bedrock-agents-production-knowledge-bases
+
+      - id: demos
+        title: Demos
+        summary: A good demo shows the customer's own problem solved on their own data, in their language.
+        lessons:
+          - id: demo-structure
+            title: Structuring a demo
+            summary: Start from the pain, show the outcome, then show how it works only if asked.
+            learn:
+              - Problem, outcome, proof
+              - Using their data and terms
+              - Ending with a clear next step
+            resources:
+              - { label: "SVPG articles (Marty Cagan)", url: "https://www.svpg.com/articles/", kind: article }
+          - id: demo-reliability
+            title: Demos that do not break
+            summary: Rehearse, pin versions and keep a recorded fallback for the live parts that can fail.
+            learn:
+              - A clean demo environment
+              - Seeded data and known inputs
+              - A recording as backup
+            resources:
+              - { label: "Streamlit docs", url: "https://docs.streamlit.io/", kind: docs }
+          - id: demoing-ai
+            title: Demoing AI features
+            optional: true
+            summary: Model output varies between runs. Show the range honestly, including how errors are handled.
+            learn:
+              - Showing sources and confidence
+              - Handling a bad answer live
+              - Avoiding cherry-picked results
+            resources:
+              - { label: "People + AI Guidebook (Google)", url: "https://pair.withgoogle.com/guidebook/", kind: article }
+
+      - id: handover
+        title: Handover and operations
+        summary: Leave the customer able to run, fix and extend what you built.
+        lessons:
+          - id: runbooks
+            title: Runbooks
+            summary: Write down how to deploy, monitor, recover and rotate, step by step.
+            learn:
+              - Deploy and rollback steps
+              - Common failures and fixes
+              - Who to call
+            resources:
+              - { label: "Google SRE books", url: "https://sre.google/books/", kind: article }
+          - id: monitoring-handover
+            title: Monitoring the customer owns
+            summary: Dashboards and alerts in the customer's tools, routed to their on-call.
+            learn:
+              - Health checks and key metrics
+              - Alerts with clear actions
+              - LLM traces for AI features
+            resources:
+              - post: llm-observability-langfuse-lambda-cloudwatch
+              - { label: "Google SRE books", url: "https://sre.google/books/", kind: article }
+          - id: training-the-team
+            title: Training the customer's team
+            optional: true
+            summary: Pair with the engineers who will own it until they can change it without you.
+            learn:
+              - Walkthroughs of the code and infra
+              - Pairing on the first changes
+              - Recorded sessions for later hires
+            resources:
+              - { label: "Technical writing (Google)", url: "https://developers.google.com/tech-writing", kind: course }
+
+  - level: advanced
+    title: Senior field engineering
+    topics:
+      - id: compliance
+        title: Compliance in regulated industries
+        summary: Health, finance and government customers bring legal rules that shape architecture from day one.
+        lessons:
+          - id: compliance-frameworks
+            title: Common frameworks
+            summary: Know what SOC 2, ISO 27001, HIPAA and GDPR ask of the systems you build.
+            learn:
+              - Controls vs certifications
+              - What applies to your deployment
+              - Evidence auditors look for
+            resources:
+              - { label: "ISO/IEC 27001", url: "https://www.iso.org/standard/27001", kind: docs }
+              - { label: "HIPAA (HHS)", url: "https://www.hhs.gov/hipaa/index.html", kind: docs }
+          - id: hipaa-workloads
+            title: Building HIPAA workloads
+            summary: Eligible services, encryption and access logging for health data in the cloud.
+            learn:
+              - Business associate agreements
+              - Eligible services only
+              - Audit logging
+            resources:
+              - post: how-to-use-aws-sagemaker-for-hipaa-compliant-data-a-complete-guide
+          - id: data-residency
+            title: Data residency
+            optional: true
+            summary: Some data cannot leave a country or region, including to model providers.
+            learn:
+              - Region pinning
+              - Cross-region inference risks
+              - Contract terms that override defaults
+            resources:
+              - { label: "GDPR overview", url: "https://gdpr.eu/", kind: article }
+              - { label: "Amazon Bedrock docs", url: "https://docs.aws.amazon.com/bedrock/", kind: docs }
+          - id: ai-risk-frameworks
+            title: AI risk frameworks
+            optional: true
+            summary: Enterprises increasingly ask for AI risk assessments alongside security reviews.
+            learn:
+              - NIST AI RMF
+              - Model and data documentation
+              - Human oversight requirements
+            resources:
+              - { label: "NIST AI Risk Management Framework", url: "https://www.nist.gov/itl/ai-risk-management-framework", kind: docs }
+
+      - id: product-feedback
+        title: Turning field work into product
+        summary: The point of the role is that what you learn in the field changes the product for every customer.
+        lessons:
+          - id: field-notes
+            title: Writing field reports
+            summary: Turn each engagement into a short report on what the product lacked and what you built around it.
+            learn:
+              - Problem, workaround, frequency
+              - Evidence from several customers
+              - Sending it to the right owner
+            resources:
+              - { label: "SVPG articles (Marty Cagan)", url: "https://www.svpg.com/articles/", kind: article }
+              - { label: "Design docs at Google", url: "https://www.industrialempathy.com/posts/design-docs-at-google/", kind: article }
+          - id: bespoke-to-reusable
+            title: From bespoke code to reusable parts
+            summary: Spot the code you wrote three times and turn it into a library, template or product feature.
+            learn:
+              - Rule of three
+              - Internal templates and starter kits
+              - Upstreaming into the core product
+            resources:
+              - { label: "Palantir blog", url: "https://blog.palantir.com/", kind: article }
+              - post: agents-md-is-code
+          - id: influencing-roadmaps
+            title: Influencing the roadmap
+            optional: true
+            summary: Make the case for product changes with data, trade-offs and a clear ask.
+            learn:
+              - Sizing the opportunity
+              - Working with product managers
+              - Saying what you would drop
+            resources:
+              - { label: "Lenny's Newsletter", url: "https://www.lennysnewsletter.com/", kind: article }
+
+      - id: engagement-leadership
+        title: Leading engagements
+        summary: Run an engagement end to end, from kickoff to expansion, with several engineers and stakeholders.
+        lessons:
+          - id: kickoff-and-plans
+            title: Kickoffs and plans
+            summary: Agree goals, milestones, owners and access needs in the first week.
+            learn:
+              - A kickoff agenda
+              - Milestones with demos
+              - Access and data requests up front
+            resources:
+              - { label: "Shape Up (Basecamp)", url: "https://basecamp.com/shapeup", kind: article }
+          - id: managing-scope-creep
+            title: Managing scope changes
+            summary: New asks are normal. Trade them against the plan in the open.
+            learn:
+              - Change requests in writing
+              - Trading scope for time
+              - Saying no with a reason
+            resources:
+              - { label: "Will Larson's writing", url: "https://lethain.com/", kind: article }
+          - id: executive-communication
+            title: Talking to executives
+            summary: Lead with the outcome and the decision you need, in a few sentences.
+            learn:
+              - Bottom line up front
+              - Business impact over technical detail
+              - Escalating without blame
+            resources:
+              - { label: "StaffEng", url: "https://staffeng.com/", kind: article }
+          - id: measuring-impact
+            title: Measuring impact
+            optional: true
+            summary: Show results in the customer's numbers, such as hours saved or errors avoided.
+            learn:
+              - Baseline before you start
+              - Metrics the sponsor cares about
+              - Case studies from engagements
+            resources:
+              - { label: "Working Backwards", url: "https://workingbackwards.com/", kind: article }
+
+      - id: field-incidents
+        title: Incidents in customer environments
+        summary: When something you built breaks at a customer, how you respond decides the relationship.
+        lessons:
+          - id: incident-response-on-site
+            title: Responding to an incident
+            summary: Stabilise first, communicate often, and work within the customer's incident process.
+            learn:
+              - Joining their incident process
+              - Updates on a fixed rhythm
+              - Mitigate before root cause
+            resources:
+              - { label: "Google SRE books", url: "https://sre.google/books/", kind: article }
+          - id: blameless-postmortems
+            title: Blameless postmortems
+            summary: Write what happened, why, and what changes, without blaming people.
+            learn:
+              - Timeline and contributing factors
+              - Action items that stick
+              - Sharing with the customer
+            resources:
+              - { label: "Postmortem culture (Google SRE)", url: "https://sre.google/sre-book/postmortem-culture/", kind: article }
+
+      - id: architecture-for-many-customers
+        title: Architecture across many customers
+        summary: Design solutions that work across very different customer stacks without a fork per customer.
+        lessons:
+          - id: deployment-models
+            title: Deployment models
+            summary: SaaS, single-tenant, customer cloud or on-premises, and what each costs to support.
+            learn:
+              - Multi-tenant SaaS
+              - Deploying into the customer's account
+              - Upgrades across many installs
+            resources:
+              - post: how-i-architected-a-fully-serverless-saas-on-aws-lambda-with-fastify
+              - { label: "AWS Well-Architected", url: "https://aws.amazon.com/architecture/well-architected/", kind: docs }
+          - id: configuration-over-forks
+            title: Configuration over forks
+            summary: Handle customer differences through configuration and plugins, not copies of the code.
+            learn:
+              - Per-customer config
+              - Extension points
+              - Cost of a long-lived fork
+            resources:
+              - { label: "The Twelve-Factor App", url: "https://12factor.net/", kind: article }
+          - id: integration-patterns
+            title: Integration patterns
+            optional: true
+            summary: Webhooks, queues, files and APIs, and which to pick for each customer system.
+            learn:
+              - Push vs pull
+              - Retries and idempotency
+              - Contracts between systems
+            resources:
+              - { label: "Enterprise Integration Patterns", url: "https://www.enterpriseintegrationpatterns.com/", kind: article }
+              - post: running-ai-background-jobs-serverlessly-with-sqs-lambda-bedrock
+
+      - id: career-and-sustainability
+        title: Sustaining the role
+        summary: Travel, context switching and customer pressure wear people down. Plan for a long career in it.
+        lessons:
+          - id: context-switching
+            title: Managing context switching
+            summary: Keep notes and checklists per customer so switching costs minutes, not days.
+            learn:
+              - One notes file per engagement
+              - Checklists for setup and exit
+              - Protecting focus time
+            resources:
+              - { label: "Will Larson's writing", url: "https://lethain.com/", kind: article }
+          - id: career-paths
+            title: Career paths from the field
+            optional: true
+            summary: FDEs move into staff engineering, product, solutions architecture or founding companies.
+            learn:
+              - Staff and principal tracks
+              - Moving into product
+              - Starting a company from field insight
+            resources:
+              - { label: "StaffEng", url: "https://staffeng.com/", kind: article }
+              - { label: "Palantir blog", url: "https://blog.palantir.com/", kind: article }

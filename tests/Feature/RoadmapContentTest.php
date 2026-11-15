@@ -17,31 +17,57 @@ class RoadmapContentTest extends TestCase
         $blog = new BlogRepository;
         $files = glob(resource_path('roadmaps/*.yml'));
         $this->assertNotEmpty($files);
+        $id = '/^[a-z0-9-]{1,64}$/';
 
         foreach ($files as $file) {
+            $name = basename($file);
             $raw = Yaml::parseFile($file);
-            $this->assertSame(basename($file, '.yml'), $raw['slug'], $file);
-            $ids = [];
+            $this->assertSame(basename($file, '.yml'), $raw['slug'], $name);
+            $this->assertNotEmpty($raw['title'] ?? null, $name);
+            $this->assertNotEmpty($raw['summary'] ?? null, $name);
+            $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}$/', (string) ($raw['updated'] ?? ''), "{$name} needs updated: 'YYYY-MM-DD'");
+            $this->assertSame(['beginner', 'intermediate', 'advanced'], array_column($raw['stages'], 'level'), "{$name}: stages must be beginner, intermediate, advanced");
+            $topicIds = [];
+            $lessonIds = [];
             foreach ($raw['stages'] as $stage) {
-                $this->assertContains($stage['level'], RoadmapRepository::LEVELS, $file);
-                foreach ($stage['steps'] as $step) {
-                    $this->assertMatchesRegularExpression('/^[a-z0-9-]{1,64}$/', $step['id']);
-                    $this->assertNotContains($step['id'], $ids, "Duplicate step id {$step['id']}");
-                    $ids[] = $step['id'];
-                    $this->assertNotEmpty($step['title']);
-                    $this->assertNotEmpty($step['summary']);
-                    $this->assertNotEmpty($step['learn'] ?? [], "{$step['id']} has no learn bullets");
-                    $this->assertNotEmpty($step['resources'] ?? [], "{$step['id']} has no resources");
-                    foreach ($step['resources'] as $resource) {
-                        if (isset($resource['post'])) {
-                            $post = $blog->find($resource['post']);
-                            $this->assertNotNull($post, "Unknown post {$resource['post']}");
+                $this->assertNotEmpty($stage['title'] ?? null, "{$name}: stage title");
+                $this->assertNotEmpty($stage['topics'] ?? [], "{$name}: {$stage['level']} has no topics");
+                foreach ($stage['topics'] as $topic) {
+                    $where = "{$name} topic {$topic['id']}";
+                    $this->assertMatchesRegularExpression($id, $topic['id'], $where);
+                    $this->assertNotContains($topic['id'], $topicIds, "{$where}: duplicate topic id");
+                    $this->assertNotContains($topic['id'], ['view', 'start', 'love', 'wishlist', 'lessons'], "{$where}: reserved id");
+                    $topicIds[] = $topic['id'];
+                    $this->assertNotEmpty($topic['title'] ?? null, $where);
+                    $this->assertNotEmpty($topic['summary'] ?? null, $where);
+                    $lessons = $topic['lessons'] ?? [];
+                    $this->assertGreaterThanOrEqual(2, count($lessons), "{$where}: needs at least 2 lessons");
+                    $this->assertNotEmpty(array_filter($lessons, fn ($l) => ! ($l['optional'] ?? false)), "{$where}: needs a required lesson");
+                    foreach ($lessons as $lesson) {
+                        $lw = "{$where} lesson {$lesson['id']}";
+                        $this->assertMatchesRegularExpression($id, $lesson['id'], $lw);
+                        $this->assertNotContains($lesson['id'], $lessonIds, "{$lw}: lesson ids must be unique in the roadmap");
+                        $lessonIds[] = $lesson['id'];
+                        $this->assertNotEmpty($lesson['title'] ?? null, $lw);
+                        $this->assertNotEmpty($lesson['summary'] ?? null, $lw);
+                        $this->assertIsBool($lesson['optional'] ?? false, $lw);
+                        $this->assertNotEmpty($lesson['learn'] ?? [], "{$lw}: no learn bullets");
+                        $this->assertNotEmpty($lesson['resources'] ?? [], "{$lw}: no resources");
+                        $public = 0;
+                        foreach ($lesson['resources'] as $resource) {
+                            if (isset($resource['post'])) {
+                                $post = $blog->find($resource['post']);
+                                $this->assertNotNull($post, "{$lw}: unknown post {$resource['post']}");
+                                $public += $blog->isPublic($post) ? 1 : 0;
 
-                            continue;
+                                continue;
+                            }
+                            $public++;
+                            $this->assertNotEmpty($resource['label'] ?? null, $lw);
+                            $this->assertStringStartsWith('https://', $resource['url'] ?? '', $lw);
+                            $this->assertContains($resource['kind'] ?? 'article', RoadmapRepository::RESOURCE_KINDS, $lw);
                         }
-                        $this->assertNotEmpty($resource['label'] ?? null);
-                        $this->assertStringStartsWith('https://', $resource['url'] ?? '');
-                        $this->assertContains($resource['kind'] ?? 'article', RoadmapRepository::RESOURCE_KINDS);
+                        $this->assertGreaterThan(0, $public, "{$lw}: needs at least one public resource");
                     }
                 }
             }
@@ -76,35 +102,44 @@ class RoadmapContentTest extends TestCase
     {
         $repo = new RoadmapRepository;
         $roadmap = ['title' => 'How the Internet Works'];
-        $step = ['title' => 'DNS', 'summary' => 'How names become addresses.', 'learn' => ['Resolvers', 'Records']];
+        $topic = ['title' => 'DNS'];
+        $lesson = ['title' => 'DNS records', 'summary' => 'How names become addresses.', 'learn' => ['A and AAAA', 'CNAME']];
 
         $this->assertSame(
-            'I\'m learning How the Internet Works, at the beginner stage. Teach me "DNS": How names become addresses. Cover: Resolvers; Records. Explain it simply with a real-world example, then give me 3 questions to check I understood.',
-            $repo->prompt($roadmap, 'beginner', $step),
+            'I\'m learning How the Internet Works, at the beginner stage, on the topic "DNS". Teach me "DNS records": How names become addresses. Cover: A and AAAA; CNAME. Explain it simply with a real-world example, then give me 3 questions to check I understood.',
+            $repo->prompt($roadmap, 'beginner', $topic, $lesson),
         );
-        $this->assertSame('Custom', $repo->prompt($roadmap, 'beginner', $step + ['prompt' => 'Custom']));
-        $this->assertSame('https://www.google.com/search?q='.urlencode('DNS How the Internet Works'), $repo->searchUrl($roadmap, $step));
+        $this->assertSame('Custom', $repo->prompt($roadmap, 'beginner', $topic, $lesson + ['prompt' => 'Custom']));
+        $this->assertSame('https://www.google.com/search?q='.urlencode('DNS records DNS'), $repo->searchUrl($topic, $lesson));
     }
 
-    public function test_post_resources_resolve_to_own_links(): void
+    public function test_own_posts_resolve_and_come_first(): void
     {
-        $roadmap = (new RoadmapRepository)->find('internet-networking');
-        $own = collect($roadmap['stages'])->flatMap(fn ($s) => $s['steps'])->flatMap(fn ($s) => $s['resources'])->where('own', true);
+        $lessons = collect((new RoadmapRepository)->all())
+            ->flatMap(fn ($r) => $r['stages'])->flatMap(fn ($s) => $s['topics'])->flatMap(fn ($t) => $t['lessons']);
+        $own = $lessons->flatMap(fn ($l) => $l['resources'])->where('own', true);
 
         $this->assertNotEmpty($own);
         $this->assertStringContainsString('/blog/', $own->first()['url']);
-        $this->assertNotEmpty($own->first()['label']);
+        foreach ($lessons as $lesson) {
+            $flags = array_column($lesson['resources'], 'own');
+            $sorted = $flags;
+            rsort($sorted);
+            $this->assertSame($sorted, $flags, "{$lesson['id']}: own posts must come first");
+        }
     }
 
     public function test_draft_posts_are_left_out_until_public(): void
     {
-        $roadmap = (new RoadmapRepository)->find('internet-networking');
-        $urls = collect($roadmap['stages'])->flatMap(fn ($s) => $s['steps'])->flatMap(fn ($s) => $s['resources'])->pluck('url');
+        $blog = new BlogRepository;
+        $urls = collect((new RoadmapRepository)->all())
+            ->flatMap(fn ($r) => $r['stages'])->flatMap(fn ($s) => $s['topics'])->flatMap(fn ($t) => $t['lessons'])
+            ->flatMap(fn ($l) => $l['resources'])->pluck('url');
 
-        // eight-load-balancer-algorithms is a draft scheduled in 2099.
-        $this->assertFalse($urls->contains(fn ($u) => str_contains($u, 'eight-load-balancer-algorithms')));
-        foreach (collect($roadmap['stages'])->flatMap(fn ($s) => $s['steps']) as $step) {
-            $this->assertNotEmpty($step['resources'], "{$step['id']} has no public resources");
+        foreach ($urls as $url) {
+            if (preg_match('#/blog/([a-z0-9-]+)$#', $url, $m) && ($post = $blog->find($m[1]))) {
+                $this->assertTrue($blog->isPublic($post), "{$m[1]} is not public but is linked");
+            }
         }
     }
 

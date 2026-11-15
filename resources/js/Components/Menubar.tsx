@@ -4,12 +4,13 @@ import * as React from 'react'
 import { Link, router, usePage } from '@inertiajs/react'
 import { cn } from '@/lib/utils'
 import { Logo } from './Logo'
-import { ArrowRight, Briefcase, Calendar, ChevronDown, Heart, Layers, Link2, LogOut, Mail, Menu, Package, Presentation, SquareTerminal, User, Video } from 'lucide-react'
+import { ArrowRight, Briefcase, Calendar, ChevronDown, Heart, Link2, LogOut, Mail, Menu, Package, Presentation, SquareTerminal, User, Video } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 const MobileNavigation = React.lazy(() => import('@/Components/MobileNavigation'))
 
 const mainNavItems = [
   { name: 'Home', href: '/' },
+  { name: 'Services', href: '/services', accent: true },
   { name: 'Roadmaps', href: '/roadmaps' },
   { name: 'Blog', href: '/blog' },
 ]
@@ -31,7 +32,6 @@ const moreGroups: MoreGroup[] = [
   {
     title: 'Work with me',
     items: [
-      { name: 'Services', href: '/services', icon: Layers, description: 'The problems I take on.' },
       { name: 'Case Studies', href: '/case-studies', icon: Briefcase, description: 'Real engagements, with the client name left out.' },
       { name: 'Sponsor my work', href: '/sponsor-me', icon: Heart, description: 'Help keep the writing and tools free.', featured: true },
     ],
@@ -140,9 +140,12 @@ export function Menubar() {
                     'rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
                     active
                       ? 'bg-slate-900 text-white shadow-sm dark:bg-white dark:text-slate-900'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white',
+                      : item.accent
+                        ? 'inline-flex items-center gap-1.5 text-amber-700 hover:bg-amber-50 hover:text-amber-800 dark:text-amber-400 dark:hover:bg-amber-950/40'
+                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white',
                   )}
                 >
+                  {item.accent && !active && <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-amber-500" />}
                   {item.name}
                 </Link>
               )

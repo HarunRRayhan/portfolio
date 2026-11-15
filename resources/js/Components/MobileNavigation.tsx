@@ -25,7 +25,7 @@ export default function MobileNavigation({ open, onOpenChange, onCloseAutoFocus,
         <SheetTitle className="sr-only">Navigation menu</SheetTitle>
         <SheetDescription className="sr-only">Jump to a page or open the consultation page.</SheetDescription>
         <nav className="flex flex-col gap-1">
-          {[...mainItems, { name: 'Contact', href: '/contact' }].map(item => (
+          {mainItems.map(item => (
             <SheetClose key={item.name} asChild>
               <Link href={item.href} className={cn('rounded-lg px-3 py-3 text-sm font-medium transition', isActive(item.href) ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white')}>
                 {item.name}

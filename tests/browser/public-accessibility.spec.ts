@@ -61,7 +61,7 @@ test('desktop More toggles and dismisses with Escape or focus leaving', async ({
   await expect(more).toHaveAttribute('aria-expanded', 'false')
   await page.keyboard.press('Enter')
   await page.keyboard.press('Tab')
-  await expect(page.getByRole('link', { name: /Services The problems I take on/ })).toBeFocused()
+  await expect(page.getByRole('link', { name: /Case Studies Real engagements/ })).toBeFocused()
   await page.keyboard.press('Escape')
   await expect(more).toHaveAttribute('aria-expanded', 'false')
   await expect(more).toBeFocused()
@@ -153,7 +153,7 @@ test('a new account must agree to the terms once before using account pages', as
 
   const skip = page.getByRole('button', { name: 'Skip passkey' })
   await expect(skip).toBeDisabled()
-  await page.getByRole('checkbox').check()
+  await page.getByRole('checkbox', { name: /I agree to the/ }).check()
   await skip.click()
   await expect(page).toHaveURL(/\/blog$/)
 

@@ -30,7 +30,10 @@ final class PublicSitemap
         ]);
 
         $roadmapRepo = new RoadmapRepository;
-        $roadmapUrls = collect($roadmapRepo->all())->map(fn (array $roadmap) => ['loc' => $roadmapRepo->absoluteUrl($roadmap['slug'])]);
+        $roadmapUrls = collect($roadmapRepo->all())->flatMap(fn (array $roadmap) => collect($roadmap['stages'])
+            ->flatMap(fn (array $stage) => $stage['topics'])
+            ->map(fn (array $topic) => ['loc' => $roadmapRepo->topicUrl($roadmap['slug'], $topic['id'])])
+            ->prepend(['loc' => $roadmapRepo->absoluteUrl($roadmap['slug'])]));
 
         $slideUrls = MediaItem::query()->active()->ofType('slide')->get()->map(fn (MediaItem $item) => self::datedEntry(
             $siteUrl.'/slides/'.$item->slug,

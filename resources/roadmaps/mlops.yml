@@ -1,145 +1,564 @@
 slug: mlops
 title: MLOps
 summary: DevOps for machine learning. Take models from a notebook to production, then keep them honest.
-order: 4
+order: 5
+updated: '2026-11-15'
 builds_on: devops
 
 stages:
   - level: beginner
     title: From notebook to pipeline
-    steps:
+    topics:
       - id: ml-lifecycle
         title: The ML lifecycle
         summary: Data, training, evaluation, deployment and monitoring, and why ML systems decay.
-        learn:
-          - How ML differs from normal software
-          - Training vs inference
-          - Where things break in production
-        resources:
-          - { label: "MLOps principles (ml-ops.org)", url: "https://ml-ops.org/", kind: article }
-          - { label: "Rules of ML (Google)", url: "https://developers.google.com/machine-learning/guides/rules-of-ml", kind: article }
+        lessons:
+          - id: ml-vs-software
+            title: How ML differs from normal software
+            summary: In ML the behaviour comes from data, not only from code, so the same code can produce a different system.
+            learn:
+              - Code, data and model as three moving parts
+              - Why tests alone do not prove a model works
+            resources:
+              - { label: "MLOps principles (ml-ops.org)", url: "https://ml-ops.org/", kind: article }
+              - { label: "Rules of ML (Google)", url: "https://developers.google.com/machine-learning/guides/rules-of-ml", kind: article }
+          - id: training-vs-inference
+            title: Training vs inference
+            summary: Training builds the model offline; inference uses it on live requests. They have very different resource and latency needs.
+            learn:
+              - Batch training jobs vs request-time prediction
+              - Hardware and cost profile of each
+            resources:
+              - { label: "Machine Learning Crash Course (Google)", url: "https://developers.google.com/machine-learning/crash-course", kind: course }
+              - { label: "Made With ML", url: "https://madewithml.com/", kind: course }
+          - id: where-ml-breaks
+            title: Where ML breaks in production
+            summary: The common failure points once a model leaves the notebook, from stale data to silent accuracy loss.
+            learn:
+              - Training/serving skew
+              - Data that changes after launch
+              - Missing feedback loops
+            resources:
+              - { label: "Rules of ML (Google)", url: "https://developers.google.com/machine-learning/guides/rules-of-ml", kind: article }
+              - { label: "Chip Huyen's blog", url: "https://huyenchip.com/blog/", kind: article }
+          - id: mlops-maturity
+            title: MLOps maturity levels
+            optional: true
+            summary: The steps from manual notebooks to fully automated training and delivery pipelines.
+            learn:
+              - Manual process vs automated pipelines
+              - What to automate first
+            resources:
+              - { label: "MLOps: continuous delivery for ML (Google Cloud)", url: "https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning", kind: article }
+
+      - id: model-evaluation
+        title: Model evaluation basics
+        summary: Measure a model the right way before anyone relies on it.
+        lessons:
+          - id: train-test-splits
+            title: Train, validation and test splits
+            summary: Hold data back so your score reflects unseen data, not memorised examples.
+            learn:
+              - Why you never tune on the test set
+              - Cross-validation
+              - Leakage between splits
+            resources:
+              - { label: "Cross-validation (scikit-learn)", url: "https://scikit-learn.org/stable/modules/cross_validation.html", kind: docs }
+          - id: choosing-metrics
+            title: Choosing metrics
+            summary: Accuracy is rarely the right number. Pick the metric that matches the cost of each kind of mistake.
+            learn:
+              - Precision, recall and F1
+              - Regression metrics
+              - Picking a baseline to beat
+            resources:
+              - { label: "Model evaluation (scikit-learn)", url: "https://scikit-learn.org/stable/modules/model_evaluation.html", kind: docs }
+              - { label: "Machine Learning Crash Course (Google)", url: "https://developers.google.com/machine-learning/crash-course", kind: course }
+          - id: slice-evaluation
+            title: Evaluating on slices
+            optional: true
+            summary: A good overall score can hide a model that fails badly for one group of users or inputs.
+            learn:
+              - Breaking metrics down by segment
+              - Finding where the model is weakest
+            resources:
+              - { label: "Made With ML", url: "https://madewithml.com/", kind: course }
 
       - id: data-versioning
         title: Data versioning
         summary: A model is code plus data. Version both, or you can't reproduce anything.
-        learn:
-          - Datasets as artifacts
-          - DVC basics
-          - Reproducible splits
-        resources:
-          - { label: "DVC docs", url: "https://dvc.org/doc", kind: docs }
+        lessons:
+          - id: datasets-as-artifacts
+            title: Datasets as artifacts
+            summary: Treat a dataset like a build artifact with a version, a location and a checksum.
+            learn:
+              - Immutable dataset snapshots
+              - Storing data in object storage, not git
+            resources:
+              - { label: "DVC docs", url: "https://dvc.org/doc", kind: docs }
+          - id: dvc-basics
+            title: DVC basics
+            summary: Track large data files next to your code with DVC, and pull the exact version a commit used.
+            learn:
+              - dvc add, push and pull
+              - Remote storage on S3
+              - Linking data versions to git commits
+            resources:
+              - { label: "DVC get started", url: "https://dvc.org/doc/start", kind: docs }
+          - id: reproducible-splits
+            title: Reproducible splits
+            optional: true
+            summary: Make the same split come out every time, so two runs are actually comparable.
+            learn:
+              - Fixed random seeds
+              - Deterministic, hash-based splits
+            resources:
+              - { label: "Cross-validation (scikit-learn)", url: "https://scikit-learn.org/stable/modules/cross_validation.html", kind: docs }
 
       - id: experiment-tracking
         title: Experiment tracking
         summary: Record every run's parameters, metrics and artifacts so you can compare them.
-        learn:
-          - Runs, params and metrics
-          - Comparing experiments
-          - MLflow tracking
-        resources:
-          - { label: "MLflow docs", url: "https://mlflow.org/docs/latest/index.html", kind: docs }
+        lessons:
+          - id: runs-params-metrics
+            title: Runs, params and metrics
+            summary: The basic record of an experiment, and why a spreadsheet stops working after a week.
+            learn:
+              - What to log for every run
+              - Tagging runs with the code and data version
+            resources:
+              - { label: "MLflow docs", url: "https://mlflow.org/docs/latest/index.html", kind: docs }
+          - id: mlflow-tracking
+            title: MLflow tracking
+            summary: Log runs to an MLflow tracking server and browse them in its UI.
+            learn:
+              - Running a tracking server
+              - Logging models and artifacts
+            resources:
+              - { label: "MLflow docs", url: "https://mlflow.org/docs/latest/index.html", kind: docs }
+          - id: comparing-experiments
+            title: Comparing experiments
+            summary: Compare runs side by side and pick a winner on evidence, not on memory.
+            learn:
+              - Comparing metrics across runs
+              - Hosted trackers such as Weights & Biases
+            resources:
+              - { label: "Weights & Biases docs", url: "https://docs.wandb.ai/", kind: docs }
+              - { label: "MLflow docs", url: "https://mlflow.org/docs/latest/index.html", kind: docs }
 
       - id: packaging-models
         title: Packaging models
         summary: Ship a model as a container or an API that DevOps tooling already knows how to run.
-        learn:
-          - Model serialisation formats
-          - Wrapping a model in an API
-          - Containerising inference
-        resources:
-          - { label: "Made With ML", url: "https://madewithml.com/", kind: course }
-          - { label: "BentoML docs", url: "https://docs.bentoml.com/", kind: docs }
+        lessons:
+          - id: model-serialisation
+            title: Model serialisation formats
+            summary: How models are saved to disk, and which formats are safe and portable.
+            learn:
+              - Pickle and its security risk
+              - ONNX for portable models
+              - safetensors for model weights
+            resources:
+              - { label: "ONNX", url: "https://onnx.ai/", kind: docs }
+          - id: model-api
+            title: Wrapping a model in an API
+            summary: Put a small HTTP service in front of the model so any client can call it.
+            learn:
+              - Loading the model once at startup
+              - Input validation on prediction requests
+            resources:
+              - { label: "FastAPI docs", url: "https://fastapi.tiangolo.com/", kind: docs }
+              - { label: "BentoML docs", url: "https://docs.bentoml.com/", kind: docs }
+              - post: serverless-ai-inference-endpoints-with-aws-bedrock-and-lambda
+          - id: containerising-inference
+            title: Containerising inference
+            summary: Build an image with the model and its runtime pinned, so it runs the same everywhere.
+            learn:
+              - Baking the model into the image vs downloading at start
+              - Keeping images small
+            resources:
+              - { label: "Docker docs", url: "https://docs.docker.com/", kind: docs }
+              - { label: "Made With ML", url: "https://madewithml.com/", kind: course }
+          - id: ci-for-ml-code
+            title: CI for ML code
+            optional: true
+            summary: Run linting, unit tests and a small training smoke test on every pull request.
+            learn:
+              - Tests for data transforms
+              - A tiny training run as a smoke test
+            resources:
+              - { label: "GitHub Actions docs", url: "https://docs.github.com/en/actions", kind: docs }
+              - post: github-actions-lambda-terraform-cicd
 
   - level: intermediate
     title: Pipelines and serving
-    steps:
+    topics:
       - id: training-pipelines
         title: Training pipelines
         summary: Automate data prep, training and evaluation so retraining is one command.
-        learn:
-          - Pipeline steps and orchestration
-          - Continuous training
-          - Evaluation gates before release
-        resources:
-          - { label: "MLOps: continuous delivery for ML (Google Cloud)", url: "https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning", kind: article }
-          - post: rag-ingestion-pipeline-step-functions-lambda
+        lessons:
+          - id: pipeline-steps
+            title: Pipeline steps and orchestration
+            summary: Break training into steps with clear inputs and outputs, and let an orchestrator run them.
+            learn:
+              - Steps as small, rerunnable units
+              - Orchestrators such as Airflow and Kubeflow Pipelines
+            resources:
+              - { label: "Kubeflow Pipelines", url: "https://www.kubeflow.org/docs/components/pipelines/", kind: docs }
+              - { label: "Apache Airflow docs", url: "https://airflow.apache.org/docs/", kind: docs }
+              - post: rag-ingestion-pipeline-step-functions-lambda
+          - id: continuous-training
+            title: Continuous training
+            summary: Retrain on a schedule or on a trigger, without someone running a notebook.
+            learn:
+              - Scheduled vs triggered retraining
+              - Tracking which data each model saw
+            resources:
+              - { label: "MLOps: continuous delivery for ML (Google Cloud)", url: "https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning", kind: article }
+          - id: evaluation-gates
+            title: Evaluation gates before release
+            summary: A new model only ships if it beats the current one on the metrics that matter.
+            learn:
+              - Champion vs challenger
+              - Hard thresholds that fail the pipeline
+            resources:
+              - { label: "Made With ML", url: "https://madewithml.com/", kind: course }
+              - { label: "Rules of ML (Google)", url: "https://developers.google.com/machine-learning/guides/rules-of-ml", kind: article }
+          - id: pipeline-caching
+            title: Caching and resuming pipeline steps
+            optional: true
+            summary: Skip steps whose inputs did not change, and resume a failed run where it stopped.
+            learn:
+              - Content-addressed step caching
+              - Retries and idempotent steps
+            resources:
+              - post: step-functions-llm-orchestration-replacing-lambda-chains
+              - { label: "Kubeflow Pipelines", url: "https://www.kubeflow.org/docs/components/pipelines/", kind: docs }
+
+      - id: data-validation
+        title: Data validation
+        summary: Check every batch of data against what the model expects before you train or predict on it.
+        lessons:
+          - id: data-contracts
+            title: Schemas and expectations
+            summary: Write down what valid data looks like and fail fast when it does not match.
+            learn:
+              - Schema, range and null checks
+              - Running checks as a pipeline step
+            resources:
+              - { label: "Great Expectations", url: "https://greatexpectations.io/", kind: tool }
+          - id: bad-data-handling
+            title: Handling bad data
+            summary: Decide what happens to rows and batches that fail validation.
+            learn:
+              - Quarantine vs drop vs stop the pipeline
+              - Alerting the data owner
+            resources:
+              - { label: "Rules of ML (Google)", url: "https://developers.google.com/machine-learning/guides/rules-of-ml", kind: article }
+              - { label: "Great Expectations", url: "https://greatexpectations.io/", kind: tool }
 
       - id: model-registry
         title: Model registry
         summary: One place that knows which model version is in staging and which is live.
-        learn:
-          - Versions and stages
-          - Promotion and rollback
-          - Lineage back to data and code
-        resources:
-          - { label: "MLflow model registry", url: "https://mlflow.org/docs/latest/model-registry.html", kind: docs }
+        lessons:
+          - id: versions-and-stages
+            title: Versions and stages
+            summary: Register each trained model as a version and mark which one is in staging or production.
+            learn:
+              - Registered models and versions
+              - Aliases for staging and production
+            resources:
+              - { label: "MLflow model registry", url: "https://mlflow.org/docs/latest/model-registry.html", kind: docs }
+          - id: promotion-rollback
+            title: Promotion and rollback
+            summary: Move a model to production with an approval step, and roll back by pointing at the previous version.
+            learn:
+              - Approval before promotion
+              - Rollback as a pointer change
+            resources:
+              - { label: "MLflow model registry", url: "https://mlflow.org/docs/latest/model-registry.html", kind: docs }
+          - id: model-lineage
+            title: Lineage back to data and code
+            optional: true
+            summary: Trace any live model back to the commit, dataset and run that produced it.
+            learn:
+              - Linking runs, data versions and commits
+              - Model cards
+            resources:
+              - { label: "MLflow docs", url: "https://mlflow.org/docs/latest/index.html", kind: docs }
+              - { label: "DVC docs", url: "https://dvc.org/doc", kind: docs }
 
       - id: model-serving
         title: Model serving
         summary: Real-time endpoints, batch jobs and serverless inference, and their trade-offs.
-        learn:
-          - Online vs batch inference
-          - Latency, throughput and autoscaling
-          - Managed endpoints
-        resources:
-          - { label: "Amazon SageMaker overview", url: "https://docs.aws.amazon.com/sagemaker/latest/dg/whatis.html", kind: docs }
-          - post: serverless-ai-inference-endpoints-with-aws-bedrock-and-lambda
-          - post: running-ai-background-jobs-serverlessly-with-sqs-lambda-bedrock
+        lessons:
+          - id: online-vs-batch
+            title: Online vs batch inference
+            summary: Predict on each request, or score everything ahead of time. Pick based on freshness and cost.
+            learn:
+              - When precomputed predictions are enough
+              - Queues for async inference
+            resources:
+              - post: running-ai-background-jobs-serverlessly-with-sqs-lambda-bedrock
+              - { label: "Made With ML", url: "https://madewithml.com/", kind: course }
+          - id: latency-autoscaling
+            title: Latency, throughput and autoscaling
+            summary: Size and scale inference so it stays fast under load without paying for idle capacity.
+            learn:
+              - p50 vs p99 latency
+              - Batching requests
+              - Scaling on queue depth or concurrency
+            resources:
+              - { label: "KServe", url: "https://kserve.github.io/website/", kind: docs }
+              - post: lambda-microvm-long-ai-workloads
+          - id: managed-endpoints
+            title: Managed endpoints
+            summary: Use SageMaker, Bedrock or Lambda when you would rather not run the serving layer yourself.
+            learn:
+              - SageMaker endpoints vs serverless inference
+              - Calling hosted models through Bedrock
+            resources:
+              - { label: "Amazon SageMaker overview", url: "https://docs.aws.amazon.com/sagemaker/latest/dg/whatis.html", kind: docs }
+              - post: serverless-ai-inference-endpoints-with-aws-bedrock-and-lambda
+              - post: migrated-lambda-ai-app-to-bedrock-openai-compatible-apis-without-rewriting-everything
+          - id: safe-model-rollouts
+            title: Shadow and canary rollouts
+            optional: true
+            summary: Send real traffic to a new model before it answers users, then shift traffic slowly.
+            learn:
+              - Shadow traffic
+              - Canary and A/B splits for models
+            resources:
+              - { label: "KServe", url: "https://kserve.github.io/website/", kind: docs }
+              - { label: "Amazon SageMaker overview", url: "https://docs.aws.amazon.com/sagemaker/latest/dg/whatis.html", kind: docs }
 
       - id: feature-stores
         title: Feature stores
         summary: Compute features once and serve the same values to training and inference.
-        learn:
-          - Online vs offline stores
-          - Training/serving skew
-        resources:
-          - { label: "featurestore.org", url: "https://www.featurestore.org/", kind: article }
+        lessons:
+          - id: online-offline-stores
+            title: Online vs offline stores
+            summary: An offline store holds history for training; an online store serves the latest values fast.
+            learn:
+              - Point-in-time correct training data
+              - Low-latency lookups at inference
+            resources:
+              - { label: "Feast docs", url: "https://docs.feast.dev/", kind: docs }
+              - { label: "featurestore.org", url: "https://www.featurestore.org/", kind: article }
+          - id: training-serving-skew
+            title: Training/serving skew
+            summary: When features are computed differently in training and in production, the model sees data it never learned from.
+            learn:
+              - Sources of skew
+              - Sharing one feature definition
+            resources:
+              - { label: "Rules of ML (Google)", url: "https://developers.google.com/machine-learning/guides/rules-of-ml", kind: article }
+          - id: do-you-need-a-feature-store
+            title: Do you need a feature store?
+            optional: true
+            summary: Many teams do fine with a shared SQL view. Know when the extra system pays off.
+            learn:
+              - Signs you have outgrown ad hoc features
+              - Cost of running another stateful system
+            resources:
+              - { label: "featurestore.org", url: "https://www.featurestore.org/", kind: article }
 
   - level: advanced
     title: Production ML and LLMs
-    steps:
+    topics:
       - id: model-monitoring
         title: Monitoring drift
         summary: Data changes, and models quietly get worse. Catch it.
-        learn:
-          - Data drift vs concept drift
-          - Quality metrics without labels
-          - Retraining triggers
-        resources:
-          - { label: "Data drift explained (Evidently)", url: "https://www.evidentlyai.com/ml-in-production/data-drift", kind: article }
+        lessons:
+          - id: data-vs-concept-drift
+            title: Data drift vs concept drift
+            summary: The inputs can change, or the relationship between inputs and the right answer can change. Both hurt.
+            learn:
+              - Measuring distribution shift
+              - Why concept drift is harder to see
+            resources:
+              - { label: "Data drift explained (Evidently)", url: "https://www.evidentlyai.com/ml-in-production/data-drift", kind: article }
+          - id: quality-without-labels
+            title: Quality metrics without labels
+            summary: Ground truth often arrives late or never. Watch proxies until it does.
+            learn:
+              - Prediction distribution as a proxy
+              - Delayed labels and backfilled metrics
+            resources:
+              - { label: "Evidently docs", url: "https://docs.evidentlyai.com/", kind: docs }
+              - { label: "Chip Huyen's blog", url: "https://huyenchip.com/blog/", kind: article }
+          - id: retraining-triggers
+            title: Retraining triggers
+            summary: Turn drift alerts into retraining runs, with a human check where the risk is high.
+            learn:
+              - Threshold-based triggers
+              - Avoiding retraining loops on bad data
+            resources:
+              - { label: "MLOps: continuous delivery for ML (Google Cloud)", url: "https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning", kind: article }
+          - id: silent-pipeline-failures
+            title: Silent pipeline failures
+            optional: true
+            summary: Jobs that report success but write nothing or write garbage, and how to alert on them.
+            learn:
+              - Output-based checks instead of exit codes
+              - Freshness alarms
+            resources:
+              - post: catch-lambda-jobs-that-succeed-but-write-nothing
+              - { label: "Monitoring distributed systems (Google SRE book)", url: "https://sre.google/sre-book/monitoring-distributed-systems/", kind: article }
 
       - id: llmops
         title: LLMOps and observability
         summary: Prompts, traces, evals and cost for apps built on large language models.
-        learn:
-          - Tracing LLM calls
-          - Evals and regression tests
-          - Token cost tracking
-        resources:
-          - { label: "Langfuse docs", url: "https://langfuse.com/docs", kind: docs }
-          - post: llm-observability-langfuse-lambda-cloudwatch
-          - post: step-functions-llm-orchestration-replacing-lambda-chains
+        lessons:
+          - id: tracing-llm-calls
+            title: Tracing LLM calls
+            summary: Record every prompt, response, tool call and latency so you can debug what the model actually did.
+            learn:
+              - Traces and spans for LLM chains
+              - Linking traces to user requests
+            resources:
+              - { label: "Langfuse docs", url: "https://langfuse.com/docs", kind: docs }
+              - post: llm-observability-langfuse-lambda-cloudwatch
+          - id: llm-evals
+            title: Evals and regression tests
+            summary: Test prompts and models against a fixed set of cases before every change ships.
+            learn:
+              - Building an eval set from real traffic
+              - Code checks vs model-graded checks
+              - Running evals in CI
+            resources:
+              - { label: "Your AI product needs evals (Hamel Husain)", url: "https://hamel.dev/blog/posts/evals/", kind: article }
+              - { label: "Anthropic docs", url: "https://docs.anthropic.com/", kind: docs }
+              - post: ai-endpoints-post-generate-validation-lambda-bedrock-fastify
+          - id: token-cost-tracking
+            title: Token cost tracking
+            summary: Track token usage per feature and per tenant so the bill has no surprises.
+            learn:
+              - Logging input and output tokens
+              - Budgets and alerts per tenant
+            resources:
+              - { label: "Langfuse docs", url: "https://langfuse.com/docs", kind: docs }
+              - post: llm-observability-langfuse-lambda-cloudwatch
+          - id: llm-workflow-orchestration
+            title: Orchestrating LLM workflows
+            optional: true
+            summary: Run multi-step LLM work as a state machine with retries, instead of chained functions.
+            learn:
+              - Retries and timeouts per step
+              - Keeping state out of the model call
+            resources:
+              - post: step-functions-llm-orchestration-replacing-lambda-chains
+              - { label: "Building LLM applications for production (Chip Huyen)", url: "https://huyenchip.com/2023/04/11/llm-engineering.html", kind: article }
 
       - id: rag-in-production
         title: RAG in production
         summary: Retrieval-augmented generation that stays fresh, fast and permission-aware.
-        learn:
-          - Ingestion and chunking
-          - Vector search
-          - Access control on retrieved data
-        resources:
-          - post: building-a-production-rag-pipeline-on-aws-lambda-pgvector
-          - post: persistence-is-not-permission-rag-citation-reauth-chat-replay
-          - { label: "pgvector", url: "https://github.com/pgvector/pgvector", kind: tool }
+        lessons:
+          - id: ingestion-chunking
+            title: Ingestion and chunking
+            summary: Turn documents into chunks and embeddings on a pipeline that keeps them up to date.
+            learn:
+              - Chunk size and overlap
+              - Re-indexing on document change
+            resources:
+              - post: rag-ingestion-pipeline-step-functions-lambda
+              - { label: "Contextual retrieval (Anthropic)", url: "https://www.anthropic.com/news/contextual-retrieval", kind: article }
+          - id: vector-search
+            title: Vector search
+            summary: Store embeddings next to your data and query them fast enough for chat.
+            learn:
+              - Distance metrics and indexes
+              - Hybrid keyword plus vector search
+            resources:
+              - post: building-a-production-rag-pipeline-on-aws-lambda-pgvector
+              - { label: "pgvector", url: "https://github.com/pgvector/pgvector", kind: tool }
+          - id: retrieval-access-control
+            title: Access control on retrieved data
+            summary: Only retrieve what the current user is allowed to see, every time, including on replay.
+            learn:
+              - Filtering by tenant and permission at query time
+              - Re-checking access on stored citations
+            resources:
+              - post: persistence-is-not-permission-rag-citation-reauth-chat-replay
+              - { label: "OWASP Top 10 for LLM applications", url: "https://genai.owasp.org/llm-top-10/", kind: article }
+          - id: managed-knowledge-bases
+            title: Managed knowledge bases
+            optional: true
+            summary: Use Bedrock Knowledge Bases when you want retrieval without running the index yourself.
+            learn:
+              - What the managed service handles
+              - Where you lose control
+            resources:
+              - post: bedrock-agents-production-knowledge-bases
+              - { label: "What is Amazon Bedrock?", url: "https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-bedrock.html", kind: docs }
+
+      - id: llm-inference-at-scale
+        title: Serving LLMs at scale
+        summary: Run open models on your own GPUs, or decide when a hosted API is the better deal.
+        lessons:
+          - id: self-hosted-vs-api
+            title: Self-hosted models vs hosted APIs
+            summary: Compare running open models on GPUs with calling a provider, on latency, control and effort.
+            learn:
+              - GPU capacity and utilisation
+              - Data residency and control
+            resources:
+              - { label: "Hugging Face Learn", url: "https://huggingface.co/learn", kind: course }
+              - { label: "What is Amazon Bedrock?", url: "https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-bedrock.html", kind: docs }
+          - id: llm-serving-engines
+            title: LLM serving engines
+            summary: Engines such as vLLM batch requests and manage GPU memory to serve far more users per GPU.
+            learn:
+              - Continuous batching
+              - KV cache and memory limits
+            resources:
+              - { label: "vLLM docs", url: "https://docs.vllm.ai/", kind: docs }
+          - id: quantisation
+            title: Quantisation
+            optional: true
+            summary: Shrink model weights to lower precision to fit on smaller GPUs, at some cost in quality.
+            learn:
+              - 8-bit and 4-bit weights
+              - Measuring the quality loss with evals
+            resources:
+              - { label: "Hugging Face Learn", url: "https://huggingface.co/learn", kind: course }
+              - { label: "vLLM docs", url: "https://docs.vllm.ai/", kind: docs }
 
       - id: ml-compliance
         title: Security and compliance for ML
         summary: Sensitive training data, model access and audit trails.
-        learn:
-          - Data privacy in training sets
-          - Locking down model endpoints
-          - Audit logging
-        resources:
-          - post: how-to-use-aws-sagemaker-for-hipaa-compliant-data-a-complete-guide
-          - post: lock-down-bedrock-iam-lambda-data-leak
-          - { label: "OWASP Top 10 for LLM applications", url: "https://genai.owasp.org/llm-top-10/", kind: article }
+        lessons:
+          - id: training-data-privacy
+            title: Data privacy in training sets
+            summary: Keep personal and regulated data out of training sets, or handle it under the right controls.
+            learn:
+              - De-identification before training
+              - Encryption and access to training data
+            resources:
+              - post: how-to-use-aws-sagemaker-for-hipaa-compliant-data-a-complete-guide
+              - { label: "NIST AI Risk Management Framework", url: "https://www.nist.gov/itl/ai-risk-management-framework", kind: docs }
+          - id: locking-down-endpoints
+            title: Locking down model endpoints
+            summary: Scope who and what can call a model, and what data a model call can reach.
+            learn:
+              - IAM scoping for model invocation
+              - Prompt injection and data leaks through the model
+            resources:
+              - post: lock-down-bedrock-iam-lambda-data-leak
+              - { label: "OWASP Top 10 for LLM applications", url: "https://genai.owasp.org/llm-top-10/", kind: article }
+          - id: ml-audit-logging
+            title: Audit logging
+            summary: Keep a record of who trained, promoted and called each model, for audits and incidents.
+            learn:
+              - What auditors ask for
+              - Logging model invocations
+            resources:
+              - { label: "AWS CloudTrail user guide", url: "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html", kind: docs }
+              - post: how-to-use-aws-sagemaker-for-hipaa-compliant-data-a-complete-guide
+          - id: ai-risk-frameworks
+            title: AI risk frameworks
+            optional: true
+            summary: Use a framework such as the NIST AI RMF to map, measure and manage risk across a model's life.
+            learn:
+              - Govern, map, measure, manage
+              - Turning a framework into checklists
+            resources:
+              - { label: "NIST AI Risk Management Framework", url: "https://www.nist.gov/itl/ai-risk-management-framework", kind: docs }
