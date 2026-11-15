@@ -10,8 +10,8 @@ const MobileNavigation = React.lazy(() => import('@/Components/MobileNavigation'
 
 const mainNavItems = [
   { name: 'Home', href: '/' },
-  { name: 'Blog', href: '/blog' },
   { name: 'Roadmaps', href: '/roadmaps' },
+  { name: 'Blog', href: '/blog' },
 ]
 
 type MoreItem = {
