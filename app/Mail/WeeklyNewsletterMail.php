@@ -4,6 +4,7 @@ namespace App\Mail;
 
 use App\Models\NewsletterDelivery;
 use App\Models\Subscriber;
+use App\Support\NewsletterIssue;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -25,7 +26,14 @@ class WeeklyNewsletterMail extends Mailable
         public array $products,
         public array $tweets = [],
         public ?NewsletterDelivery $delivery = null,
+        public ?array $roadmaps = null,
     ) {}
+
+    /** Roadmaps added or updated this week; worked out at send time unless given. */
+    private function roadmapUpdates(): array
+    {
+        return $this->roadmaps ??= app(NewsletterIssue::class)->recentRoadmaps(now())->all();
+    }
 
     public function build()
     {
@@ -34,6 +42,7 @@ class WeeklyNewsletterMail extends Mailable
                 'posts' => $this->posts,
                 'products' => $this->products,
                 'tweets' => $this->tweets,
+                'roadmaps' => $this->roadmapUpdates(),
                 'blogUrl' => rtrim(config('app.url'), '/').'/blog',
                 'unsubscribeUrl' => $this->unsubscribeUrl(),
                 'track' => $this->trackUrl(...),
@@ -43,6 +52,7 @@ class WeeklyNewsletterMail extends Mailable
                 'posts' => $this->posts,
                 'products' => $this->products,
                 'tweets' => $this->tweets,
+                'roadmaps' => $this->roadmapUpdates(),
                 'blogUrl' => rtrim(config('app.url'), '/').'/blog',
                 'unsubscribeUrl' => $this->unsubscribeUrl(),
                 'track' => $this->trackUrl(...),

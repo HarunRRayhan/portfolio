@@ -40,6 +40,7 @@ class RoadmapPagesTest extends TestCase
         $this->get('/roadmaps/internet-networking')->assertOk()->assertInertia(fn ($page) => $page
             ->component('Roadmaps/Show')
             ->where('hasPaidAccess', false)
+            ->has('roadmap.updatedAt')
             ->where('stages.0.locked', false)
             ->has('stages.0.steps.0.resources')
             ->has('stages.0.steps.0.prompt')

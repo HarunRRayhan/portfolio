@@ -31,6 +31,23 @@ class NewsletterIssue
             ->values();
     }
 
+    /** @return Collection<int, array{slug: string, title: string, summary: string, url: string}> Roadmaps added or updated in the seven days before $now. */
+    public function recentRoadmaps(Carbon $now): Collection
+    {
+        $repo = new RoadmapRepository;
+        $windowStart = $now->copy()->subDays(7)->startOfDay();
+
+        return collect($repo->all())
+            ->filter(fn (array $r): bool => Carbon::parse((string) $r['updated'])->betweenIncluded($windowStart, $now))
+            ->map(fn (array $r): array => [
+                'slug' => $r['slug'],
+                'title' => $r['title'],
+                'summary' => $r['summary'],
+                'url' => $repo->absoluteUrl($r['slug']),
+            ])
+            ->values();
+    }
+
     /**
      * Adds a newsletterExcerpt (the first two paragraphs) to the lead post when it has a brief.
      *

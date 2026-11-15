@@ -26,7 +26,7 @@ type Step = {
 type Stage = { level: string; title: string; locked: boolean; steps: Step[] }
 
 type Props = {
-  roadmap: { slug: string; title: string; summary: string; buildsOn: { slug: string; title: string } | null }
+  roadmap: { slug: string; title: string; summary: string; buildsOn: { slug: string; title: string } | null; updatedAt: string }
   stages: Stage[]
   hasPaidAccess: boolean
   started: boolean
@@ -41,6 +41,10 @@ type Props = {
 const levelLabel: Record<string, string> = { beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced' }
 
 const external = { target: '_blank', rel: 'noopener noreferrer' } as const
+
+// Dates are plain YYYY-MM-DD; format as UTC so no timezone shifts the day.
+export const formatDate = (ymd: string) =>
+  new Date(`${ymd}T00:00:00Z`).toLocaleDateString(undefined, { dateStyle: 'medium', timeZone: 'UTC' })
 
 export default function RoadmapShow({ roadmap, stages, started, loved, saved, loveCount, percent, viewCount, canonicalUrl }: Props) {
   const { auth } = usePage<PageProps>().props
@@ -185,6 +189,9 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
             <Check className="h-4 w-4" /> Finish
           </span>
         </div>
+        <p className="relative z-10 mt-10 text-sm text-slate-500 md:text-center dark:text-slate-400">
+          Last updated <time dateTime={roadmap.updatedAt}>{formatDate(roadmap.updatedAt)}</time>
+        </p>
       </section>
 
       <Sheet open={!!open} onOpenChange={(o) => !o && setOpenId(null)}>

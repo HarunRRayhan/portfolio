@@ -11,8 +11,8 @@ use App\Support\RoadmapRepository;
 use App\Support\SeoCatalog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -60,6 +60,7 @@ class RoadmapController extends Controller
                 'loveCount' => (int) ($loves[$r['slug']] ?? 0),
                 'viewCount' => (int) ($views[$r['slug']] ?? 0),
                 'buildsOn' => $this->buildsOn($r),
+                'updatedAt' => (string) $r['updated'],
             ], $this->repo->all()),
             'mine' => $mine,
             'canonicalUrl' => SeoCatalog::forPath('/roadmaps')?->canonicalUrl ?? url('/roadmaps'),
@@ -112,7 +113,7 @@ class RoadmapController extends Controller
             : [];
 
         return Inertia::render('Roadmaps/Show', [
-            'roadmap' => ['slug' => $slug, 'title' => $roadmap['title'], 'summary' => $roadmap['summary'], 'buildsOn' => $this->buildsOn($roadmap)],
+            'roadmap' => ['slug' => $slug, 'title' => $roadmap['title'], 'summary' => $roadmap['summary'], 'buildsOn' => $this->buildsOn($roadmap), 'updatedAt' => (string) $roadmap['updated']],
             'stages' => $stages,
             'hasPaidAccess' => $paid,
             'started' => $user ? RoadmapStart::where('user_id', $user->id)->where('roadmap_slug', $slug)->exists() : false,

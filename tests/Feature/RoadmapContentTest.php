@@ -21,6 +21,7 @@ class RoadmapContentTest extends TestCase
         foreach ($files as $file) {
             $raw = Yaml::parseFile($file);
             $this->assertSame(basename($file, '.yml'), $raw['slug'], $file);
+            $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}$/', (string) ($raw['updated'] ?? ''), "{$file} needs updated: YYYY-MM-DD");
             $ids = [];
             foreach ($raw['stages'] as $stage) {
                 $this->assertContains($stage['level'], RoadmapRepository::LEVELS, $file);

@@ -11,6 +11,7 @@ type RoadmapCard = {
   loveCount: number
   viewCount: number
   buildsOn: { slug: string; title: string } | null
+  updatedAt: string
 }
 
 type Mine = {
@@ -91,7 +92,7 @@ export default function RoadmapsIndex({ roadmaps, mine }: Props) {
               {r.buildsOn && <p className="mt-1 text-xs font-medium uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Builds on {r.buildsOn.title}</p>}
               <p className="mt-2 flex-1 text-slate-600 dark:text-slate-300">{r.summary}</p>
               <div className="mt-6 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
-                <span>{r.stepCount} topics · {r.levels.length} levels</span>
+                <span>{r.stepCount} topics · Updated <time dateTime={r.updatedAt}>{new Date(`${r.updatedAt}T00:00:00Z`).toLocaleDateString(undefined, { dateStyle: 'medium', timeZone: 'UTC' })}</time></span>
                 <span className="inline-flex items-center gap-3">
                   <span className="inline-flex items-center gap-1" title="Views"><Eye className="h-4 w-4" aria-hidden /> {r.viewCount.toLocaleString()}<span className="sr-only"> views</span></span>
                   <span className="inline-flex items-center gap-1" title="Loves"><Heart className="h-4 w-4" aria-hidden /> {r.loveCount}<span className="sr-only"> loves</span></span>
