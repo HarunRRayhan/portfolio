@@ -3,7 +3,7 @@ import { AlertTriangle, Bookmark, Check, Eye, Heart, Lock, Share2 } from 'lucide
 import { useEffect, useState } from 'react'
 import { ShareButton } from '@/Components/ShareButton'
 import { Comments, type RoadmapComment } from '@/Components/Roadmap/Comments'
-import { ProgressBar, UnlockCard, formatDate, levelLabel } from '@/Components/Roadmap/shared'
+import { ProgressBar, SponsorDialog, UnlockCard, formatDate, levelLabel } from '@/Components/Roadmap/shared'
 import { RoadmapArt, type RoadmapArtData } from '@/Components/Roadmap/RoadmapArt'
 import { cn } from '@/lib/utils'
 import type { PageProps } from '@/types'
@@ -254,9 +254,11 @@ function TopicNode({ number, href, topic, locked, side, isNext }: { number: numb
           topic.done && 'bg-amber-400 dark:bg-amber-600',
         )}
       />
-      {/* Locked topics can't be opened; the card jumps to the sponsor box instead. */}
+      {/* Locked topics can't be opened; the card opens the Sponsor me pop-up instead. */}
       {locked ? (
-        <a href="#unlock" aria-label={`${topic.title} (locked)`} className={className}>{body}</a>
+        <SponsorDialog>
+          <button type="button" aria-label={`${topic.title} (locked, sponsor to unlock)`} className={className}>{body}</button>
+        </SponsorDialog>
       ) : (
         <Link href={href} className={className}>{body}</Link>
       )}

@@ -1,7 +1,7 @@
 import { Link, usePage } from '@inertiajs/react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { ArrowRight, Check, ChevronDown, Copy, ExternalLink, Heart, Lock, Search, Sparkles, X } from 'lucide-react'
-import { useState } from 'react'
+import { useState, type ReactElement } from 'react'
 import { Github } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 
@@ -60,14 +60,18 @@ export function UnlockCard({ className }: { className?: string }) {
 
 const ACCESS_RULE = 'Give $5 in total for a month, $10 for a year, or $100 for life, in one payment or several. Unlocks every roadmap.'
 
-/** "Sponsor me" opens a choice: GitHub Sponsors, or the sponsor page's other-payment section. */
-function SponsorDialog() {
+/** "Sponsor me" opens a choice: GitHub Sponsors, or the sponsor page's other-payment section. Pass `children` for a custom trigger. */
+export function SponsorDialog({ children }: { children?: ReactElement }) {
   const sponsorsUrl = (usePage().props as { sponsorsUrl?: string }).sponsorsUrl ?? '/sponsor-me'
   return (
     <Dialog.Root>
-      <Dialog.Trigger className="mt-3 inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200">
-        <Heart className="h-4 w-4" /> Sponsor me
-      </Dialog.Trigger>
+      {children ? (
+        <Dialog.Trigger asChild>{children}</Dialog.Trigger>
+      ) : (
+        <Dialog.Trigger className="mt-3 inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200">
+          <Heart className="h-4 w-4" /> Sponsor me
+        </Dialog.Trigger>
+      )}
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-[70] bg-slate-950/60 backdrop-blur-sm" />
         <Dialog.Content className="fixed left-1/2 top-1/2 z-[71] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900">
