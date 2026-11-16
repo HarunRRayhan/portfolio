@@ -222,6 +222,8 @@ class RoadmapController extends Controller
             return $base;
         }
         $base += [
+            'summary' => $lesson['summary'],
+            'learn' => $lesson['learn'],
             'resources' => $lesson['resources'],
             'searchUrl' => $this->repo->searchUrl($topic, $lesson),
         ];
