@@ -92,24 +92,22 @@ class RoadmapPagesTest extends TestCase
             ->has('lessons.0.chatgptUrl'));
     }
 
-    public function test_paid_topic_is_locked_without_access(): void
+    public function test_paid_topic_and_lesson_redirect_to_the_unlock_box(): void
     {
-        [$topic] = $this->topicOf('intermediate');
+        [$topic, $lesson] = $this->topicOf('intermediate');
+        $unlock = '/roadmaps/'.self::R.'#unlock';
 
-        $this->actingAs(User::factory()->create())->get('/roadmaps/'.self::R.'/'.$topic['id'])->assertOk()->assertInertia(fn ($page) => $page
-            ->where('locked', true)
-            ->has('lessons.0.title')
-            ->missing('lessons.0.resources')
-            ->missing('lessons.0.learn')
-            ->missing('lessons.0.prompt'));
+        $this->get('/roadmaps/'.self::R.'/'.$topic['id'])->assertRedirect($unlock);
+        $this->actingAs(User::factory()->create())->get('/roadmaps/'.self::R.'/'.$topic['id'])->assertRedirect($unlock);
+        $this->get('/roadmaps/'.self::R.'/'.$topic['id'].'/'.$lesson['id'])->assertRedirect($unlock);
     }
 
-    public function test_locked_resources_are_not_in_the_html(): void
+    public function test_sitemap_lists_only_free_topics(): void
     {
-        [$topic, $lesson] = $this->topicOf('advanced');
-        $url = collect($lesson['resources'])->firstWhere('own', false)['url'];
+        [$free] = $this->topicOf('beginner');
+        [$paid] = $this->topicOf('advanced');
 
-        $this->get('/roadmaps/'.self::R.'/'.$topic['id'])->assertOk()->assertDontSee(e($url), false)->assertDontSee($url, false);
+        $this->get('/sitemap.xml')->assertOk()->assertSee('/'.self::R.'/'.$free['id'], false)->assertDontSee('/'.self::R.'/'.$paid['id'].'<', false);
     }
 
     public function test_sponsor_sees_paid_topics(): void
