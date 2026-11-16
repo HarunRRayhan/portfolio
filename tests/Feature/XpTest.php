@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\RoadmapCommentThread;
+use App\Models\RoadmapProgress;
+use App\Models\Subscriber;
 use App\Models\User;
 use App\Models\XpAward;
 use App\Support\Xp;
@@ -50,6 +53,29 @@ class XpTest extends TestCase
         $this->assertSame(['rank' => 1, 'xp' => 500], Xp::rankOf($hidden, 'week'));
         $this->assertSame(['rank' => 2, 'xp' => 10], Xp::rankOf($a, 'month'));
         $this->assertNull(Xp::rankOf($a, 'week'));
+    }
+
+    public function test_backfill_awards_past_activity_once(): void
+    {
+        $user = User::factory()->create(['created_at' => '2026-01-01']);
+        Subscriber::subscribeVerified($user->email, 'footer');
+        foreach (['why-packets', 'headers-and-payload', 'mtu', 'dhcp', 'gone-lesson'] as $lesson) {
+            RoadmapProgress::create(['user_id' => $user->id, 'roadmap_slug' => 'internet-networking', 'step_id' => $lesson, 'completed_at' => '2026-02-01']);
+        }
+        $thread = RoadmapCommentThread::forKey('internet-networking/packets');
+        $first = $thread->comment('one', $user);
+        $thread->comment('two', $user);
+        $thread->comment('reply', $user, $first);
+        XpAward::query()->delete();
+
+        $migration = require database_path('migrations/2026_11_16_120000_backfill_xp_awards.php');
+        $migration->up();
+        $migration->up();
+
+        // signup 50 + newsletter 25 + 3 required lessons 30 + packets topic 25 + comment 5 + reply 3
+        $this->assertSame(138, (int) XpAward::where('user_id', $user->id)->sum('points'));
+        $this->assertSame('2026-01-01', XpAward::where('key', 'signup')->first()->created_at->toDateString());
+        $this->assertSame($first->id, XpAward::where('key', 'comment:roadmap/internet-networking/packets')->value('comment_id'));
     }
 
     private function rows(string $period): array
