@@ -134,7 +134,43 @@ stages:
 
       - id: ip-addresses
         title: IP addresses
-        summary: Every device on a network needs an address so packets know where to go.
+        summary: Every device on a network needs an address so packets know where to go. Two versions are in use, IPv4 and IPv6.
+        lessons:
+          - id: what-is-an-ip-address
+            title: What an IP address is
+            summary: An IP address names a network interface so packets can find it, the way a street address finds a house.
+            learn:
+              - What an IP address identifies
+              - IP addresses vs MAC addresses vs domain names
+              - Why there are two versions, IPv4 and IPv6
+            resources:
+              - { label: "Internet Protocol (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/internet-protocol/", kind: article }
+              - { label: "IP address (Wikipedia)", url: "https://en.wikipedia.org/wiki/IP_address", kind: article }
+          - id: public-vs-private-ip
+            title: Public vs private addresses
+            summary: Some addresses work only inside your network, others are reachable from the whole internet.
+            learn:
+              - Public addresses vs private addresses
+              - Why your laptop's address differs from what websites see
+              - Both IPv4 and IPv6 have private ranges
+            resources:
+              - { label: "What is my IP address? (Cloudflare)", url: "https://www.cloudflare.com/learning/dns/glossary/what-is-my-ip-address/", kind: article }
+              - { label: "Reserved IP addresses (Wikipedia)", url: "https://en.wikipedia.org/wiki/Reserved_IP_addresses", kind: article }
+          - id: dhcp
+            title: How your device gets an address (DHCP)
+            summary: When you join a Wi-Fi network, a DHCP server hands you an address, a gateway and DNS servers.
+            learn:
+              - Discover, offer, request, acknowledge
+              - Leases and renewals
+              - What else DHCP hands out
+              - IPv6 devices can also set up their own address (SLAAC)
+            resources:
+              - { label: "Dynamic Host Configuration Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol", kind: article }
+              - { label: "RFC 2131: DHCP", url: "https://www.rfc-editor.org/rfc/rfc2131", kind: docs }
+
+      - id: ipv4
+        title: IPv4
+        summary: The original 32-bit addresses, the ranges set aside for private use, and why the world ran out.
         lessons:
           - id: ipv4-format
             title: The IPv4 address format
@@ -145,25 +181,60 @@ stages:
             resources:
               - { label: "Internet Protocol (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/internet-protocol/", kind: article }
               - { label: "RFC 791: Internet Protocol", url: "https://www.rfc-editor.org/rfc/rfc791", kind: docs }
-          - id: public-vs-private-ip
-            title: Public vs private addresses
-            summary: Some address ranges are reserved for private networks and never appear on the public internet.
+          - id: ipv4-special-ranges
+            title: IPv4 private and special ranges
+            summary: The address blocks you will see every day that never route on the public internet.
             learn:
-              - The 10/8, 172.16/12 and 192.168/16 ranges
-              - Why your laptop's address differs from what websites see
+              - The 10/8, 172.16/12 and 192.168/16 private ranges
+              - Loopback (127.0.0.1) and link-local (169.254/16)
+              - The 100.64/10 range used by carrier-grade NAT
             resources:
-              - { label: "What is my IP address? (Cloudflare)", url: "https://www.cloudflare.com/learning/dns/glossary/what-is-my-ip-address/", kind: article }
               - { label: "RFC 1918: private address space", url: "https://www.rfc-editor.org/rfc/rfc1918", kind: docs }
-          - id: dhcp
-            title: How your device gets an address (DHCP)
-            summary: When you join a Wi-Fi network, a DHCP server hands you an address, a gateway and DNS servers.
+              - { label: "RFC 6598: shared address space for CGNAT", url: "https://www.rfc-editor.org/rfc/rfc6598", kind: docs }
+          - id: ipv4-exhaustion
+            title: Running out of IPv4
+            summary: The last free IPv4 blocks were handed out in 2011. NAT, carrier-grade NAT and buying addresses keep IPv4 going.
             learn:
-              - Discover, offer, request, acknowledge
-              - Leases and renewals
-              - What else DHCP hands out
+              - Why 4 billion addresses was not enough
+              - How NAT and carrier-grade NAT stretch IPv4
+              - IPv4 addresses now cost money to buy or rent
             resources:
-              - { label: "Dynamic Host Configuration Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol", kind: article }
-              - { label: "RFC 2131: DHCP", url: "https://www.rfc-editor.org/rfc/rfc2131", kind: docs }
+              - { label: "IPv4 address exhaustion (Wikipedia)", url: "https://en.wikipedia.org/wiki/IPv4_address_exhaustion", kind: article }
+              - { label: "Carrier-grade NAT (Wikipedia)", url: "https://en.wikipedia.org/wiki/Carrier-grade_NAT", kind: article }
+
+      - id: ipv6-basics
+        title: IPv6
+        summary: 128-bit addresses, so every device can have its own public address. How to read them and how devices get one.
+        lessons:
+          - id: ipv6-addresses
+            title: The IPv6 address format
+            summary: Eight groups of hex digits, shortening rules and the common prefixes.
+            learn:
+              - Reading and shortening addresses
+              - Link-local and global addresses
+            resources:
+              - { label: "IPv6 (Wikipedia)", url: "https://en.wikipedia.org/wiki/IPv6", kind: article }
+              - { label: "RFC 4291: IPv6 addressing", url: "https://www.rfc-editor.org/rfc/rfc4291", kind: docs }
+          - id: ipv6-address-types
+            title: IPv6 address types
+            summary: Global, link-local and unique local addresses, loopback, and multicast instead of broadcast.
+            learn:
+              - Global unicast addresses (2000::/3)
+              - Link-local (fe80::/10) and unique local (fc00::/7)
+              - Loopback (::1), multicast, and no broadcast
+            resources:
+              - { label: "IPv6 address (Wikipedia)", url: "https://en.wikipedia.org/wiki/IPv6_address", kind: article }
+              - { label: "RFC 4291: IPv6 addressing", url: "https://www.rfc-editor.org/rfc/rfc4291", kind: docs }
+          - id: slaac
+            title: How a device gets an IPv6 address
+            summary: Routers announce the network prefix and devices build their own address (SLAAC), with DHCPv6 as the other option.
+            learn:
+              - Router advertisements and SLAAC
+              - DHCPv6
+              - Temporary privacy addresses
+            resources:
+              - { label: "RFC 4862: stateless address autoconfiguration", url: "https://www.rfc-editor.org/rfc/rfc4862", kind: docs }
+              - { label: "RFC 8981: temporary IPv6 addresses", url: "https://www.rfc-editor.org/rfc/rfc8981", kind: docs }
 
       - id: packets
         title: Packets
@@ -530,7 +601,7 @@ stages:
 
       - id: nat
         title: NAT
-        summary: How a whole house or office shares one public IP address.
+        summary: How a whole house or office shares one public IPv4 address, and how gateways connect networks to the internet with IPv4 and IPv6.
         lessons:
           - id: source-nat
             title: Source NAT and port mapping
@@ -558,6 +629,16 @@ stages:
               - Why NAT gateway traffic gets expensive
             resources:
               - { label: "NAT gateways (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html", kind: docs }
+          - id: internet-gateways
+            title: Internet gateways and IPv6 egress
+            summary: Public subnets reach the internet through an internet gateway. IPv6 needs no NAT, so private IPv6 subnets use an egress-only internet gateway instead.
+            learn:
+              - Internet gateway vs NAT gateway
+              - Public and private subnets, and their routes
+              - Egress-only internet gateways for outbound-only IPv6
+            resources:
+              - { label: "Internet gateways (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Internet_Gateway.html", kind: docs }
+              - { label: "Egress-only internet gateways (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/egress-only-internet-gateway.html", kind: docs }
 
       - id: routing
         title: Routing
@@ -776,18 +857,9 @@ stages:
               - { label: "Cloudflare blog", url: "https://blog.cloudflare.com/", kind: article }
 
       - id: ipv6
-        title: IPv6
-        summary: 128-bit addresses, why we ran out of IPv4, and how both run side by side.
+        title: IPv6 in practice
+        summary: Running IPv6 next to IPv4, how clients choose between them, and protecting a network without NAT.
         lessons:
-          - id: ipv6-addresses
-            title: The IPv6 address format
-            summary: Eight groups of hex digits, shortening rules and the common prefixes.
-            learn:
-              - Reading and shortening addresses
-              - Link-local and global addresses
-            resources:
-              - { label: "IPv6 (Wikipedia)", url: "https://en.wikipedia.org/wiki/IPv6", kind: article }
-              - { label: "RFC 4291: IPv6 addressing", url: "https://www.rfc-editor.org/rfc/rfc4291", kind: docs }
           - id: dual-stack
             title: Dual stack
             summary: Running IPv4 and IPv6 at the same time, and how clients pick one.
@@ -796,6 +868,7 @@ stages:
               - Happy Eyeballs
             resources:
               - { label: "RFC 8305: Happy Eyeballs v2", url: "https://www.rfc-editor.org/rfc/rfc8305", kind: docs }
+              - { label: "IPv6 adoption statistics (Google)", url: "https://www.google.com/intl/en/ipv6/statistics.html", kind: tool }
           - id: ipv6-no-nat
             title: No NAT by default
             optional: true
