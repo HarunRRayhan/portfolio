@@ -157,7 +157,7 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
 
             {/* One card under the first locked stage is enough. */}
             {stage.locked && !stages[i - 1]?.locked && (
-              <div className="relative z-10 mt-8 flex pl-12 md:justify-center md:pl-0">
+              <div id="unlock" className="relative z-10 mt-8 flex scroll-mt-28 pl-12 md:justify-center md:pl-0">
                 <UnlockCard className="max-w-xl" />
               </div>
             )}
@@ -180,6 +180,35 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
 }
 
 function TopicNode({ number, href, topic, locked, side, isNext }: { number: number; href: string; topic: TopicNodeData; locked: boolean; side: 'left' | 'right'; isNext: boolean }) {
+  const className = cn(
+    'group flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition',
+    side === 'left' && 'md:flex-row-reverse md:text-right',
+    locked
+      ? 'border-dashed border-slate-300 bg-slate-50 text-slate-500 hover:border-slate-400 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-400'
+      : topic.done
+        ? 'border-amber-500 bg-amber-50 text-amber-900 hover:bg-amber-100 dark:bg-amber-950/50 dark:text-amber-200'
+        : 'border-slate-200 bg-white text-slate-900 shadow-sm hover:-translate-y-0.5 hover:border-amber-400 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:text-white',
+    isNext && 'ring-2 ring-amber-400 ring-offset-2 dark:ring-offset-slate-950',
+  )
+  const body = (
+    <>
+    <span
+      className={cn(
+        'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2',
+        locked ? 'border-slate-300 dark:border-slate-600' : topic.done ? 'border-amber-500 bg-amber-500 text-amber-950' : 'border-slate-300 dark:border-slate-600',
+      )}
+    >
+      {locked ? <Lock className="h-3 w-3" /> : topic.done ? <Check className="h-3.5 w-3.5" /> : null}
+    </span>
+    <span className="min-w-0 flex-1">
+      <span className="block font-semibold"><span className="mr-1.5 tabular-nums text-amber-600 dark:text-amber-400">{number}.</span>{topic.title}</span>
+      <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
+        {isNext ? <span className="font-medium text-amber-700 dark:text-amber-400">Up next · </span> : null}
+        {locked ? `${topic.lessonCount} lessons` : `${topic.doneCount}/${topic.requiredCount} lessons`}
+      </span>
+    </span>
+    </>
+  )
   return (
     <li id={topic.id} className={cn('relative scroll-mt-28 pl-12 md:w-[calc(50%-2rem)] md:pl-0 md:[&:not(:first-child)]:-mt-10', side === 'right' && 'md:ml-auto')}>
       {/* Connector from the box to the spine. Phones: spine is 1.1rem into the item, box starts at 3rem. */}
@@ -191,35 +220,12 @@ function TopicNode({ number, href, topic, locked, side, isNext }: { number: numb
           topic.done && 'bg-amber-400 dark:bg-amber-600',
         )}
       />
-      <Link
-        href={href}
-        className={cn(
-          'group flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition',
-          side === 'left' && 'md:flex-row-reverse md:text-right',
-          locked
-            ? 'border-dashed border-slate-300 bg-slate-50 text-slate-500 hover:border-slate-400 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-400'
-            : topic.done
-              ? 'border-amber-500 bg-amber-50 text-amber-900 hover:bg-amber-100 dark:bg-amber-950/50 dark:text-amber-200'
-              : 'border-slate-200 bg-white text-slate-900 shadow-sm hover:-translate-y-0.5 hover:border-amber-400 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:text-white',
-          isNext && 'ring-2 ring-amber-400 ring-offset-2 dark:ring-offset-slate-950',
-        )}
-      >
-        <span
-          className={cn(
-            'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2',
-            locked ? 'border-slate-300 dark:border-slate-600' : topic.done ? 'border-amber-500 bg-amber-500 text-amber-950' : 'border-slate-300 dark:border-slate-600',
-          )}
-        >
-          {locked ? <Lock className="h-3 w-3" /> : topic.done ? <Check className="h-3.5 w-3.5" /> : null}
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block font-semibold"><span className="mr-1.5 tabular-nums text-amber-600 dark:text-amber-400">{number}.</span>{topic.title}</span>
-          <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
-            {isNext ? <span className="font-medium text-amber-700 dark:text-amber-400">Up next · </span> : null}
-            {locked ? `${topic.lessonCount} lessons` : `${topic.doneCount}/${topic.requiredCount} lessons`}
-          </span>
-        </span>
-      </Link>
+      {/* Locked topics can't be opened; the card jumps to the sponsor box instead. */}
+      {locked ? (
+        <a href="#unlock" aria-label={`${topic.title} (locked)`} className={className}>{body}</a>
+      ) : (
+        <Link href={href} className={className}>{body}</Link>
+      )}
     </li>
   )
 }
