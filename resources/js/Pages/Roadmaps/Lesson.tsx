@@ -5,7 +5,8 @@ import { Comments, type RoadmapComment } from '@/Components/Roadmap/Comments'
 import { type Lesson, LessonDetail, OptionalTag, UnlockCard, lessonLetter, levelLabel } from '@/Components/Roadmap/shared'
 import { cn } from '@/lib/utils'
 
-type Neighbour = { id: string; title: string; topicId: string } | null
+type Neighbour = { id: string; title: string; topicId: string; topicTitle: string; topicNumber: number } | null
+type Sibling = { id: string; title: string; optional: boolean; done: boolean }
 
 type Props = {
   roadmap: { slug: string; title: string }
@@ -13,6 +14,7 @@ type Props = {
   lesson: Lesson
   position: number
   lessonCount: number
+  siblings: Sibling[]
   locked: boolean
   hasAccount: boolean
   prev: Neighbour
@@ -21,7 +23,7 @@ type Props = {
   commentCount: number
 }
 
-export default function RoadmapLesson({ roadmap, topic, lesson, position, lessonCount, locked, hasAccount, prev, next, comments, commentCount }: Props) {
+export default function RoadmapLesson({ roadmap, topic, lesson, position, lessonCount, siblings, locked, hasAccount, prev, next, comments, commentCount }: Props) {
   const base = `/roadmaps/${roadmap.slug}`
   const here = `${base}/${topic.id}/${lesson.id}`
   const loginHref = `/login?redirect=${encodeURIComponent(here)}`
@@ -51,9 +53,13 @@ export default function RoadmapLesson({ roadmap, topic, lesson, position, lesson
     <div className="pt-24">
       <section className="mx-auto max-w-3xl px-4 pb-24 pt-8 sm:px-6 lg:px-8">
         <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-sm text-slate-500">
+          <Link href="/roadmaps" className="hover:text-slate-800 dark:hover:text-slate-200">Roadmaps</Link>
+          <ChevronRight className="h-3.5 w-3.5" />
           <Link href={base} className="hover:text-slate-800 dark:hover:text-slate-200">{roadmap.title}</Link>
           <ChevronRight className="h-3.5 w-3.5" />
           <Link href={`${base}/${topic.id}`} className="hover:text-slate-800 dark:hover:text-slate-200">{topic.number}. {topic.title}</Link>
+          <ChevronRight className="h-3.5 w-3.5" />
+          <span aria-current="page" className="font-medium text-slate-800 dark:text-slate-200">{lessonLetter(position - 1)}. {lesson.title}</span>
         </nav>
 
         <p className="mt-6 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -63,6 +69,31 @@ export default function RoadmapLesson({ roadmap, topic, lesson, position, lesson
           <span className="inline-flex h-10 min-w-10 items-center justify-center rounded-xl bg-amber-500 px-2 text-lg font-bold text-amber-950">{topic.number}{lessonLetter(position - 1)}</span>
           {lesson.title}
         </h1>
+
+        {/* Where this lesson sits in its topic: one step per lesson, current highlighted, done ticked. */}
+        <ol aria-label={`Lessons in ${topic.title}`} className="mt-5 flex flex-wrap gap-1.5">
+          {siblings.map((s, i) => {
+            const current = s.id === lesson.id
+            return (
+              <li key={s.id}>
+                <Link
+                  href={`${base}/${topic.id}/${s.id}`}
+                  title={`${lessonLetter(i)}. ${s.title}${s.optional ? ' (optional)' : ''}`}
+                  aria-current={current ? 'step' : undefined}
+                  className={cn(
+                    'inline-flex h-8 min-w-8 items-center justify-center gap-1 rounded-full border px-2.5 text-xs font-semibold transition',
+                    current ? 'border-amber-500 bg-amber-500 text-amber-950' : s.done ? 'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-300' : 'border-slate-200 text-slate-600 hover:border-amber-400 dark:border-slate-700 dark:text-slate-300',
+                    s.optional && !current && 'border-dashed',
+                  )}
+                >
+                  {s.done && !current ? <Check className="h-3 w-3" aria-hidden /> : null}
+                  {lessonLetter(i)}
+                  <span className="sr-only">. {s.title}{s.done ? ', done' : ''}</span>
+                </Link>
+              </li>
+            )
+          })}
+        </ol>
 
         {locked ? (
           <UnlockCard className="mt-8" />
@@ -81,16 +112,24 @@ export default function RoadmapLesson({ roadmap, topic, lesson, position, lesson
         <nav className="mt-10 grid gap-3 sm:grid-cols-2" aria-label="Lessons">
           {prev ? (
             <Link href={link(prev)} className="rounded-xl border border-slate-200 p-4 hover:border-amber-400 dark:border-slate-800">
-              <span className="inline-flex items-center gap-1 text-xs text-slate-500"><ArrowLeft className="h-3.5 w-3.5" /> Previous</span>
+              <span className="inline-flex items-center gap-1 text-xs text-slate-500">
+                <ArrowLeft className="h-3.5 w-3.5" /> {prev.topicId === topic.id ? 'Previous lesson' : `Previous topic · ${prev.topicNumber}. ${prev.topicTitle}`}
+              </span>
               <span className="mt-1 block font-semibold text-slate-900 dark:text-white">{prev.title}</span>
             </Link>
           ) : <span />}
-          {next && (
+          {/* Crossing into a new topic opens that topic's page, the same place "Mark as done and continue" goes. */}
+          {next && (next.topicId === topic.id ? (
             <Link href={link(next)} className="rounded-xl border border-slate-200 p-4 text-right hover:border-amber-400 dark:border-slate-800">
-              <span className="inline-flex items-center gap-1 text-xs text-slate-500">Next <ArrowRight className="h-3.5 w-3.5" /></span>
+              <span className="inline-flex items-center gap-1 text-xs text-slate-500">Next lesson <ArrowRight className="h-3.5 w-3.5" /></span>
               <span className="mt-1 block font-semibold text-slate-900 dark:text-white">{next.title}</span>
             </Link>
-          )}
+          ) : (
+            <Link href={`${base}/${next.topicId}`} className="rounded-xl border border-amber-300 bg-amber-50/50 p-4 text-right hover:border-amber-400 dark:border-amber-900 dark:bg-amber-950/20">
+              <span className="inline-flex items-center gap-1 text-xs text-amber-700 dark:text-amber-400">End of this topic · Next topic <ArrowRight className="h-3.5 w-3.5" /></span>
+              <span className="mt-1 block font-semibold text-slate-900 dark:text-white">{next.topicNumber}. {next.topicTitle}</span>
+            </Link>
+          ))}
         </nav>
 
         {!locked && <Comments comments={comments} count={commentCount} postUrl={`${here}/comments`} loginHref={loginHref} />}
