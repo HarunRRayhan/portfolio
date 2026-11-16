@@ -124,7 +124,7 @@ class RoadmapController extends Controller
             'viewCount' => (int) DB::table('roadmap_views')->where('roadmap_slug', $slug)->value('count'),
             'canonicalUrl' => $canonicalUrl,
             'seo' => SeoCatalog::forMedia($roadmap['title'].' roadmap | Harun R. Rayhan', $roadmap['summary'], $canonicalUrl)->toArray(),
-        ]);
+        ] + $this->comments($slug, false));
     }
 
     public function topic(Request $request, string $slug, string $topicId): Response

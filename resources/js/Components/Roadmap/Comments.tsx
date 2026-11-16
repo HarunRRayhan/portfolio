@@ -46,7 +46,7 @@ function CommentForm({ postUrl, parentId, onDone }: { postUrl: string; parentId?
   const form = useForm({ content: '', parent_id: parentId ?? null })
   const submit = (e: FormEvent) => {
     e.preventDefault()
-    form.post(postUrl, { preserveScroll: true, onSuccess: () => { form.reset('content'); onDone?.() } })
+    form.post(postUrl, { preserveScroll: true, preserveState: true, onSuccess: () => { form.reset('content'); onDone?.() } })
   }
   const id = `comment-${parentId ?? 'new'}`
 
@@ -79,7 +79,7 @@ function CommentItem({ comment, postUrl, depth = 0 }: { comment: RoadmapComment;
   const [replying, setReplying] = useState(false)
   const canDelete = !!auth?.user && (auth.user.id === comment.user?.id || auth.isAdmin)
   const remove = () => {
-    if (confirm('Delete this comment?')) router.delete(`/roadmaps/comments/${comment.id}`, { preserveScroll: true })
+    if (confirm('Delete this comment?')) router.delete(`/roadmaps/comments/${comment.id}`, { preserveScroll: true, preserveState: true })
   }
 
   return (

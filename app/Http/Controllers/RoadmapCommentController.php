@@ -13,6 +13,13 @@ class RoadmapCommentController extends Controller
 {
     public function __construct(private RoadmapRepository $repo) {}
 
+    public function storeRoadmap(Request $request, string $slug): RedirectResponse
+    {
+        abort_unless($this->repo->find($slug), 404);
+
+        return $this->store($request, $slug);
+    }
+
     public function storeTopic(Request $request, string $slug, string $topic): RedirectResponse
     {
         $this->topicOr404($slug, $topic);

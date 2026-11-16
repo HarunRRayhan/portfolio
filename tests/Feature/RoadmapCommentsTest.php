@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\BlogCommentThread;
+use App\Models\RoadmapAccessGrant;
 use App\Models\User;
 use App\Support\RoadmapRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -70,6 +72,20 @@ class RoadmapCommentsTest extends TestCase
         $this->get("/roadmaps/internet-networking/{$topic}")->assertInertia(fn ($p) => $p->where('comments.0.content', 'Topic note'));
     }
 
+    public function test_roadmap_has_its_own_discussion(): void
+    {
+        $this->post('/roadmaps/internet-networking/comments', ['content' => 'Hi'])->assertRedirect('/login');
+        $this->post('/roadmaps/not-a-roadmap/comments', ['content' => 'Hi'])->assertRedirect('/login');
+
+        $user = User::factory()->create(['terms_accepted_at' => now()]);
+        $this->actingAs($user)->post('/roadmaps/internet-networking/comments', ['content' => 'Great path'])->assertRedirect();
+        $this->actingAs($user)->post('/roadmaps/not-a-roadmap/comments', ['content' => 'Hi'])->assertNotFound();
+
+        auth()->logout();
+        $this->get('/roadmaps/internet-networking')->assertInertia(fn ($p) => $p->where('comments.0.content', 'Great path')->where('commentCount', 1));
+        $this->assertDatabaseHas('xp_awards', ['user_id' => $user->id, 'key' => 'comment:roadmap/internet-networking']);
+    }
+
     public function test_comment_validation(): void
     {
         [$topic] = $this->ids();
@@ -112,7 +128,7 @@ class RoadmapCommentsTest extends TestCase
         $this->actingAs($free)->post("{$base}/comments", ['content' => 'Hi'])->assertForbidden();
         $this->actingAs($free)->post("{$base}/{$lesson}/comments", ['content' => 'Hi'])->assertForbidden();
 
-        \App\Models\RoadmapAccessGrant::create(['email' => 'sponsor@example.com', 'expires_at' => now()->addDay()]);
+        RoadmapAccessGrant::create(['email' => 'sponsor@example.com', 'expires_at' => now()->addDay()]);
         $sponsor = User::factory()->create(['email' => 'sponsor@example.com']);
         $this->actingAs($sponsor)->post("{$base}/{$lesson}/comments", ['content' => 'Paid tip'])->assertRedirect();
 
@@ -124,7 +140,7 @@ class RoadmapCommentsTest extends TestCase
     public function test_blog_comments_cannot_be_deleted_through_the_roadmap_route(): void
     {
         $user = User::factory()->create();
-        $thread = \App\Models\BlogCommentThread::resolveForPost('x', 'X', 'https://x', 'https://x');
+        $thread = BlogCommentThread::resolveForPost('x', 'X', 'https://x', 'https://x');
         $comment = $thread->comment('Blog comment', $user);
 
         $this->actingAs($user)->delete("/roadmaps/comments/{$comment->id}")->assertNotFound();
