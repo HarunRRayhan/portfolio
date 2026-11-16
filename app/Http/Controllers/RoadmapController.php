@@ -53,10 +53,12 @@ class RoadmapController extends Controller
         }
 
         return Inertia::render('Roadmaps/Index', [
+            'categories' => RoadmapRepository::CATEGORIES,
             'roadmaps' => array_map(fn (array $r) => [
                 'slug' => $r['slug'],
                 'title' => $r['title'],
                 'summary' => $r['summary'],
+                'category' => $r['category'] ?? null,
                 'topicCount' => array_sum(array_map(fn ($st) => count($st['topics']), $r['stages'])),
                 'lessonCount' => count($this->repo->lessonIndex($r)),
                 'levels' => array_column($r['stages'], 'level'),

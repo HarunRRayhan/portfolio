@@ -1,4 +1,6 @@
 import { Link, usePage } from '@inertiajs/react'
+import { useEffect, useState } from 'react'
+import { cn } from '@/lib/utils'
 import type { PageProps } from '@/types'
 import { ProgressBar, formatDate } from '@/Components/Roadmap/shared'
 import { ArrowRight, Bookmark, Eye, Heart, Trophy } from 'lucide-react'
@@ -8,6 +10,7 @@ type RoadmapCard = {
   slug: string
   title: string
   summary: string
+  category: string | null
   topicCount: number
   lessonCount: number
   levels: string[]
@@ -27,10 +30,24 @@ type Mine = {
   continueTopicId: string | null
 }
 
-type Props = { roadmaps: RoadmapCard[]; mine: Mine[] }
+type Props = { roadmaps: RoadmapCard[]; mine: Mine[]; categories: Record<string, string> }
 
-export default function RoadmapsIndex({ roadmaps, mine }: Props) {
+export default function RoadmapsIndex({ roadmaps, mine, categories }: Props) {
   const { auth } = usePage<PageProps>().props
+  const [category, setCategory] = useState('all')
+  useEffect(() => {
+    const fromUrl = new URLSearchParams(window.location.search).get('category') // after hydration, so SSR markup matches
+    if (fromUrl && fromUrl in categories) setCategory(fromUrl)
+  }, [categories])
+  const pick = (c: string) => {
+    setCategory(c)
+    const url = new URL(window.location.href)
+    if (c === 'all') url.searchParams.delete('category')
+    else url.searchParams.set('category', c)
+    history.replaceState(history.state, '', url)
+  }
+  const filters = [['all', 'All'], ...Object.entries(categories).filter(([id]) => roadmaps.some((r) => r.category === id))]
+  const shown = category === 'all' ? roadmaps : roadmaps.filter((r) => r.category === category)
   return (
     <div className="pt-24">
       <section className="mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
@@ -79,8 +96,28 @@ export default function RoadmapsIndex({ roadmaps, mine }: Props) {
           </div>
         )}
 
-        <div className="mt-12 grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-          {roadmaps.map((r) => (
+        <div role="group" aria-label="Filter roadmaps" className="mt-12 flex flex-wrap gap-2">
+          {filters.map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={category === id}
+              onClick={() => pick(id)}
+              className={cn(
+                'rounded-full border px-4 py-1.5 text-sm font-medium transition',
+                category === id
+                  ? 'border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-amber-400 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300',
+              )}
+            >
+              {label}
+              <span className="ml-1.5 tabular-nums opacity-60">{id === 'all' ? roadmaps.length : roadmaps.filter((r) => r.category === id).length}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-8 grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+          {shown.map((r) => (
             <Link
               key={r.slug}
               href={`/roadmaps/${r.slug}`}

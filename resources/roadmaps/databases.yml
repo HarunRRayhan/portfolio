@@ -2,6 +2,7 @@ slug: databases
 title: Database Engineering
 summary: From your first SQL query to how a database stores pages on disk. Learn modelling, indexes, transactions, replication and scaling, then the internals underneath.
 order: 8
+category: foundations
 updated: '2026-11-15'
 icon: database
 color: blue

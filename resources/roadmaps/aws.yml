@@ -2,6 +2,7 @@ slug: aws
 title: AWS Cloud
 summary: From your first account and EC2 server to multi-account, serverless and AI workloads on AWS, one service at a time.
 order: 2
+category: cloud-devops
 updated: '2026-11-15'
 icon: cloud
 color: amber

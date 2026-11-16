@@ -50,6 +50,14 @@ class RoadmapPagesTest extends TestCase
             ->has('seo.title'));
     }
 
+    public function test_every_roadmap_has_a_known_category(): void
+    {
+        foreach ((new RoadmapRepository)->all() as $roadmap) {
+            $this->assertArrayHasKey($roadmap['category'] ?? '', RoadmapRepository::CATEGORIES, $roadmap['slug']);
+        }
+        $this->get('/roadmaps')->assertInertia(fn ($page) => $page->has('categories.foundations')->where('roadmaps.0.category', 'foundations'));
+    }
+
     public function test_roadmap_page_lists_topics_with_counts(): void
     {
         $this->get('/roadmaps/'.self::R)->assertOk()->assertInertia(fn ($page) => $page
