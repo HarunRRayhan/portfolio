@@ -1,4 +1,6 @@
 import { Link, router } from '@inertiajs/react'
+import { useEffect, useRef } from 'react'
+import { showToast } from '@/Components/ToastHost'
 import { ArrowLeft, ArrowRight, Check, ChevronRight } from 'lucide-react'
 import { Comments, type RoadmapComment } from '@/Components/Roadmap/Comments'
 import { type Lesson, LessonDetail, OptionalTag, UnlockCard, lessonLetter, levelLabel } from '@/Components/Roadmap/shared'
@@ -24,13 +26,32 @@ export default function RoadmapLesson({ roadmap, topic, lesson, position, lesson
   const base = `/roadmaps/${roadmap.slug}`
   const here = `${base}/${topic.id}/${lesson.id}`
   const loginHref = `/login?redirect=${encodeURIComponent(here)}`
+  const lessonUrl = `${base}/lessons/${lesson.id}`
+  const autoTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const setDone = (done: boolean) =>
+    router[done ? 'post' : 'delete'](lessonUrl, {}, {
+      preserveScroll: true,
+      preserveState: true, // keep a half-typed comment when the auto-complete lands
+      onSuccess: () => done
+        ? showToast('success', 'Lesson marked as done', { action: { label: 'Undo', onClick: () => setDone(false) } })
+        : showToast('success', 'Lesson marked as not done'),
+    })
   const toggle = () => {
     if (!hasAccount) {
       router.visit(loginHref)
       return
     }
-    router[lesson.done ? 'delete' : 'post'](`${base}/lessons/${lesson.id}`, {}, { preserveScroll: true })
+    clearTimeout(autoTimer.current)
+    setDone(!lesson.done)
   }
+
+  // Opening a lesson for a few seconds counts as reading it; runs once per lesson so an undo sticks.
+  useEffect(() => {
+    if (!hasAccount || locked || lesson.done) return
+    autoTimer.current = setTimeout(() => setDone(true), 5000)
+    return () => clearTimeout(autoTimer.current)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lesson.id])
   const link = (n: NonNullable<Neighbour>) => `${base}/${n.topicId}/${n.id}`
 
   return (

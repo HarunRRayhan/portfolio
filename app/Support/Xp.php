@@ -15,7 +15,7 @@ class Xp
 {
     public const POINTS = ['signup' => 50, 'newsletter' => 25, 'lesson' => 10, 'topic' => 25, 'comment' => 5, 'reply' => 3];
 
-    public const PERIODS = ['week', 'month', 'all'];
+    public const PERIODS = ['day', 'week', 'month', 'all'];
 
     /** True when a new award was written. Never throws: XP must not break the action it rides on. */
     public static function award(User|int $user, string $key, int $points, ?int $commentId = null, ?Carbon $at = null): bool
@@ -51,6 +51,7 @@ class Xp
     public static function since(string $period): ?Carbon
     {
         return match ($period) {
+            'day' => now()->utc()->startOfDay(),
             'week' => now()->utc()->startOfWeek(Carbon::MONDAY),
             'month' => now()->utc()->startOfMonth(),
             default => null,
