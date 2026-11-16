@@ -8,6 +8,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /** XP ledger: one row per (user, key), so every cap is a unique key. */
 class Xp
@@ -62,7 +63,7 @@ class Xp
         return self::totals($period)->limit($limit)->get()->values()->map(fn ($r, $i) => [
             'rank' => $i + 1,
             'user_id' => (int) $r->user_id,
-            'name' => $r->name,
+            'name' => self::publicName((string) $r->name, (string) $r->email),
             'avatar_url' => $r->avatar_url,
             'xp' => (int) $r->xp,
         ]);
@@ -82,6 +83,12 @@ class Xp
         return ['rank' => $ahead + 1, 'xp' => $xp];
     }
 
+    /** Magic-link accounts are named after their email's local part; don't publish that on the board. */
+    private static function publicName(string $name, string $email): string
+    {
+        return strcasecmp($name, Str::before($email, '@')) === 0 ? mb_substr($name, 0, 2).'•••' : $name;
+    }
+
     private static function totals(string $period)
     {
         return XpAward::query()
@@ -90,8 +97,8 @@ class Xp
             ->where('users.leaderboard_hidden', false)
             ->whereNull('users.deletion_scheduled_at')
             ->where(fn ($q) => $q->whereNull('users.role')->orWhere('users.role', '!=', 'admin'))
-            ->groupBy('users.id', 'users.name', 'users.avatar_url')
-            ->select('users.id as user_id', 'users.name', 'users.avatar_url', DB::raw('sum(xp_awards.points) as xp'))
+            ->groupBy('users.id', 'users.name', 'users.email', 'users.avatar_url')
+            ->select('users.id as user_id', 'users.name', 'users.email', 'users.avatar_url', DB::raw('sum(xp_awards.points) as xp'))
             ->orderByDesc('xp')->orderBy('users.id');
     }
 }

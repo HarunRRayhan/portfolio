@@ -36,4 +36,12 @@ class LeaderboardPageTest extends TestCase
     {
         $this->patch('/leaderboard/visibility', ['hidden' => true])->assertRedirect('/login');
     }
+
+    public function test_name_taken_from_email_is_masked(): void
+    {
+        User::factory()->create(['name' => 'jane.doe', 'email' => 'Jane.Doe@example.com']);
+
+        $this->get('/leaderboard')->assertInertia(fn (Assert $p) => $p->where('rows.0.name', 'ja•••'))
+            ->assertDontSee('jane.doe');
+    }
 }
