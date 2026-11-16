@@ -94,10 +94,11 @@ export default function SharePopover({
 
   if (!open || typeof document === 'undefined') return null
 
+  // z-[60] keeps the panel above the fixed z-50 site header when it flips upward on short windows.
   return createPortal(
     <div
       ref={panelRef}
-      className={`fixed z-40 ${panelClassName}`}
+      className={`fixed z-[60] max-h-[calc(100vh-2rem)] overflow-y-auto ${panelClassName}`}
       style={{
         left: panelPosition.left,
         top: panelPosition.top,
