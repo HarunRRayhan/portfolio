@@ -11,12 +11,12 @@ class LeaderboardPageTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_guest_sees_board_and_bad_period_falls_back_to_week(): void
+    public function test_guest_sees_board_and_bad_period_falls_back_to_all_time(): void
     {
         $user = User::factory()->create(['name' => 'Ada']);
 
         $this->get('/leaderboard?period=forever')->assertOk()->assertInertia(fn (Assert $p) => $p
-            ->component('Leaderboard')->where('period', 'week')->where('me', null)
+            ->component('Leaderboard')->where('period', 'all')->where('me', null)
             ->where('rows.0.name', 'Ada')->where('rows.0.xp', 50));
     }
 

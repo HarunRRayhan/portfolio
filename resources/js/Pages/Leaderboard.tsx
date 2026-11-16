@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 
 type Row = { rank: number; user_id: number; name: string; avatar_url: string | null; xp: number }
 type Props = {
-  period: 'week' | 'month' | 'all'
+  period: 'day' | 'week' | 'month' | 'all'
   rows: Row[]
   me: { rank: number; xp: number } | null
   hidden: boolean
@@ -13,6 +13,7 @@ type Props = {
 }
 
 const tabs = [
+  { id: 'day', label: 'Today' },
   { id: 'week', label: 'This week' },
   { id: 'month', label: 'This month' },
   { id: 'all', label: 'All time' },

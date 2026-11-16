@@ -54,6 +54,9 @@ class XpTest extends TestCase
         $this->assertSame(['rank' => 1, 'xp' => 500], Xp::rankOf($hidden, 'week'));
         $this->assertSame(['rank' => 2, 'xp' => 10], Xp::rankOf($a, 'month'));
         $this->assertNull(Xp::rankOf($a, 'week'));
+
+        Xp::award($a, 'today', 1, null, now());
+        $this->assertSame([[$a->id, 1]], $this->rows('day'));
     }
 
     public function test_backfill_awards_past_activity_once(): void
