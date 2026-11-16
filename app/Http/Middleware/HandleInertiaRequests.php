@@ -82,6 +82,7 @@ class HandleInertiaRequests extends Middleware
             // prop -- add it here so that convention works everywhere,
             // including the new admin/api-keys "here's your token" flash.
             'flash' => fn () => $request->session()->get('flash'),
+            'xp' => fn () => $request->session()->get('xp'),
             'seo' => $seo?->toArray(),
             'siteJsonLd' => [SeoMeta::organizationGraph()],
             'canonicalUrl' => $seo?->canonicalUrl,

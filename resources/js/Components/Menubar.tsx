@@ -4,7 +4,7 @@ import * as React from 'react'
 import { Link, router, usePage } from '@inertiajs/react'
 import { cn } from '@/lib/utils'
 import { Logo } from './Logo'
-import { ArrowRight, Briefcase, Calendar, ChevronDown, Heart, Link2, LogOut, Mail, Menu, Package, Presentation, SquareTerminal, User, Video } from 'lucide-react'
+import { ArrowRight, Briefcase, Calendar, ChevronDown, Heart, Link2, LogOut, Mail, Menu, Package, Presentation, SquareTerminal, Trophy, User, Video } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 const MobileNavigation = React.lazy(() => import('@/Components/MobileNavigation'))
 
@@ -310,6 +310,14 @@ export function Menubar() {
                   >
                     <User className="h-4 w-4" />
                     {isAdmin ? 'Dashboard' : 'Account'}
+                  </Link>
+                  <Link
+                    href="/leaderboard"
+                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                    onClick={() => setProfileOpen(false)}
+                  >
+                    <Trophy className="h-4 w-4" />
+                    Leaderboard
                   </Link>
                   <hr className="my-1 border-slate-100 dark:border-slate-800" />
                   <button

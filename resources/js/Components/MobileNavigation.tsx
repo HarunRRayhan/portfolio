@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from '@inertiajs/react'
-import { ArrowRight, Calendar, ChevronDown, LogOut, User, type LucideIcon } from 'lucide-react'
+import { ArrowRight, Calendar, ChevronDown, LogOut, Trophy, User, type LucideIcon } from 'lucide-react'
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle } from '@/Components/ui/sheet'
 import { cn } from '@/lib/utils'
 
@@ -67,6 +67,11 @@ export default function MobileNavigation({ open, onOpenChange, onCloseAutoFocus,
               <SheetClose asChild>
                 <Link href={route(isAdmin ? 'dashboard' : 'profile.edit')} className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
                   <User className="h-4 w-4" />{isAdmin ? 'Dashboard' : 'Account'}
+                </Link>
+              </SheetClose>
+              <SheetClose asChild>
+                <Link href="/leaderboard" className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                  <Trophy className="h-4 w-4" />Leaderboard
                 </Link>
               </SheetClose>
               <SheetClose asChild>
