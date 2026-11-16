@@ -87,13 +87,15 @@ final class RoadmapRepository
 
     public function prompt(array $roadmap, string $level, array $topic, array $lesson): string
     {
-        if (filled($lesson['prompt'] ?? null)) {
-            return (string) $lesson['prompt'];
-        }
-
-        return sprintf(
+        $ask = filled($lesson['prompt'] ?? null) ? (string) $lesson['prompt'] : sprintf(
             'I\'m learning %s, at the %s stage, on the topic "%s". Teach me "%s": %s Cover: %s. Explain it simply with a real-world example, then give me 3 questions to check I understood.',
             $roadmap['title'], $level, $topic['title'], $lesson['title'], $lesson['summary'], implode('; ', $lesson['learn']),
+        );
+
+        // Tell the AI where this comes from, so it can follow the same path and point back to it.
+        return $ask.sprintf(
+            ' I\'m following the free %s roadmap at %s (this lesson: %s/%s).',
+            $roadmap['title'], $this->absoluteUrl($roadmap['slug']), $this->topicUrl($roadmap['slug'], $topic['id']), $lesson['id'],
         );
     }
 

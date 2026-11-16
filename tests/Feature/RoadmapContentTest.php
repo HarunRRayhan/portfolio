@@ -109,15 +109,17 @@ class RoadmapContentTest extends TestCase
     public function test_default_prompt_matches_template(): void
     {
         $repo = new RoadmapRepository;
-        $roadmap = ['title' => 'How the Internet Works'];
-        $topic = ['title' => 'DNS'];
-        $lesson = ['title' => 'DNS records', 'summary' => 'How names become addresses.', 'learn' => ['A and AAAA', 'CNAME']];
+        $roadmap = ['title' => 'How the Internet Works', 'slug' => 'internet-networking'];
+        $topic = ['id' => 'dns-basics', 'title' => 'DNS'];
+        $site = rtrim(config('app.url'), '/');
+        $tail = " I'm following the free How the Internet Works roadmap at {$site}/roadmaps/internet-networking (this lesson: {$site}/roadmaps/internet-networking/dns-basics/dns-records).";
+        $lesson = ['id' => 'dns-records', 'title' => 'DNS records', 'summary' => 'How names become addresses.', 'learn' => ['A and AAAA', 'CNAME']];
 
         $this->assertSame(
-            'I\'m learning How the Internet Works, at the beginner stage, on the topic "DNS". Teach me "DNS records": How names become addresses. Cover: A and AAAA; CNAME. Explain it simply with a real-world example, then give me 3 questions to check I understood.',
+            'I\'m learning How the Internet Works, at the beginner stage, on the topic "DNS". Teach me "DNS records": How names become addresses. Cover: A and AAAA; CNAME. Explain it simply with a real-world example, then give me 3 questions to check I understood.'.$tail,
             $repo->prompt($roadmap, 'beginner', $topic, $lesson),
         );
-        $this->assertSame('Custom', $repo->prompt($roadmap, 'beginner', $topic, $lesson + ['prompt' => 'Custom']));
+        $this->assertSame('Custom'.$tail, $repo->prompt($roadmap, 'beginner', $topic, $lesson + ['prompt' => 'Custom']));
         $this->assertSame('https://www.google.com/search?q='.urlencode('DNS records DNS'), $repo->searchUrl($topic, $lesson));
     }
 
