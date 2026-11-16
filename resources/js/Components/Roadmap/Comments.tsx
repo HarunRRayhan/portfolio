@@ -27,7 +27,7 @@ export function Comments({ comments, count, postUrl, loginHref }: { comments: Ro
         <CommentForm postUrl={postUrl} />
       ) : (
         <p className="mt-4 rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300">
-          <Link href={loginHref} className="font-semibold text-amber-700 underline underline-offset-2 dark:text-amber-400">Sign in or create a free account</Link> to comment.
+          <Link href={loginHref} className="font-semibold text-amber-700 underline underline-offset-2 dark:text-amber-400">Log in or sign up</Link> to comment.
         </p>
       )}
 
