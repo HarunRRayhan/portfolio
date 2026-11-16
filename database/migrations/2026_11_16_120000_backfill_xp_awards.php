@@ -57,7 +57,7 @@ return new class extends Migration
             (new RoadmapCommentThread)->getMorphClass() => DB::table('roadmap_comment_threads')->pluck('key', 'id')->map(fn ($k) => "roadmap/$k"),
         ];
         // On a fresh database the package's undated comments migration runs after this one.
-        Schema::hasTable('comments') && DB::table('comments')->whereNull('deleted_at')->whereNotNull('user_id')->orderBy('id')
+        Schema::hasTable('comments') && DB::table('comments')->whereNull('deleted_at')->whereIn('user_id', DB::table('users')->select('id'))->orderBy('id')
             ->each(function ($c) use ($pages, $add) {
                 $page = $pages[$c->commentable_type][$c->commentable_id] ?? null;
                 if ($page) {

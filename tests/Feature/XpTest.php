@@ -10,6 +10,7 @@ use App\Models\XpAward;
 use App\Support\Xp;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class XpTest extends TestCase
@@ -66,6 +67,10 @@ class XpTest extends TestCase
         $first = $thread->comment('one', $user);
         $thread->comment('two', $user);
         $thread->comment('reply', $user, $first);
+        DB::table('comments')->insert([ // left behind by a pruned account
+            'user_id' => 999999, 'commentable_type' => $thread->getMorphClass(), 'commentable_id' => $thread->id,
+            'content' => 'orphan', 'created_at' => now(), 'updated_at' => now(),
+        ]);
         XpAward::query()->delete();
 
         $migration = require database_path('migrations/2026_11_16_120000_backfill_xp_awards.php');
