@@ -11,6 +11,8 @@ export type Lesson = {
   title: string
   optional: boolean
   done: boolean
+  summary?: string
+  learn?: string[]
   resources?: Resource[]
   searchUrl?: string
   prompt?: string
@@ -60,24 +62,30 @@ export function UnlockCard({ className }: { className?: string }) {
   )
 }
 
+export function ResourceList({ resources }: { resources: Resource[] }) {
+  return (
+    <ul className="mt-2 space-y-2">
+      {resources.map((r) => (
+        <li key={r.url}>
+          <a href={r.url} {...external} className="inline-flex items-center gap-2 text-sm font-medium text-amber-700 hover:underline dark:text-amber-400">
+            {r.label} <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+          <span className={cn('ml-2 rounded px-1.5 py-0.5 text-[11px] uppercase tracking-wide', r.own ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800')}>
+            {r.own ? "Harun's post" : r.kind}
+          </span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 export function LessonDetail({ lesson, loginHref }: { lesson: Lesson; loginHref: string }) {
   return (
     <div className="mt-5 space-y-5">
       {!!lesson.resources?.length && (
         <section>
           <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Resources</h3>
-          <ul className="mt-2 space-y-2">
-            {lesson.resources.map((r) => (
-              <li key={r.url}>
-                <a href={r.url} {...external} className="inline-flex items-center gap-2 text-sm font-medium text-amber-700 hover:underline dark:text-amber-400">
-                  {r.label} <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-                <span className={cn('ml-2 rounded px-1.5 py-0.5 text-[11px] uppercase tracking-wide', r.own ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800')}>
-                  {r.own ? "Harun's post" : r.kind}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <ResourceList resources={lesson.resources} />
           {lesson.searchUrl && (
             <a href={lesson.searchUrl} {...external} className="mt-3 inline-flex items-center gap-2 text-sm text-slate-600 hover:underline dark:text-slate-300">
               <Search className="h-4 w-4" /> Search the web for this lesson
