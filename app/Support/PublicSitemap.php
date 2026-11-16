@@ -31,6 +31,7 @@ final class PublicSitemap
 
         $roadmapRepo = new RoadmapRepository;
         $roadmapUrls = collect($roadmapRepo->all())->flatMap(fn (array $roadmap) => collect($roadmap['stages'])
+            ->filter(fn (array $stage) => $stage['level'] === RoadmapRepository::FREE_LEVEL) // paid topics redirect
             ->flatMap(fn (array $stage) => $stage['topics'])
             ->map(fn (array $topic) => ['loc' => $roadmapRepo->topicUrl($roadmap['slug'], $topic['id'])])
             ->prepend(['loc' => $roadmapRepo->absoluteUrl($roadmap['slug'])]));

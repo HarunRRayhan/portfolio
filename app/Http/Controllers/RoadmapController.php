@@ -127,7 +127,7 @@ class RoadmapController extends Controller
         ] + $this->comments($slug, false));
     }
 
-    public function topic(Request $request, string $slug, string $topicId): Response
+    public function topic(Request $request, string $slug, string $topicId): Response|RedirectResponse
     {
         $roadmap = $this->roadmapOr404($slug);
         $found = $this->repo->findTopic($roadmap, $topicId);
@@ -136,6 +136,9 @@ class RoadmapController extends Controller
 
         $user = $request->user();
         $locked = $stage['level'] !== RoadmapRepository::FREE_LEVEL && ! RoadmapAccess::canAccessPaid($user);
+        if ($locked) {
+            return redirect()->to("/roadmaps/{$slug}#unlock"); // paid topics and lessons stay fully closed
+        }
         $done = $user ? $this->doneIds($user, $slug) : [];
         $canonicalUrl = $this->repo->topicUrl($slug, $topicId);
 
@@ -158,7 +161,7 @@ class RoadmapController extends Controller
         ] + $this->comments("{$slug}/{$topicId}", $locked));
     }
 
-    public function lesson(Request $request, string $slug, string $topicId, string $lessonId): Response
+    public function lesson(Request $request, string $slug, string $topicId, string $lessonId): Response|RedirectResponse
     {
         $roadmap = $this->roadmapOr404($slug);
         $found = $this->repo->findTopic($roadmap, $topicId);
@@ -169,6 +172,9 @@ class RoadmapController extends Controller
 
         $user = $request->user();
         $locked = $stage['level'] !== RoadmapRepository::FREE_LEVEL && ! RoadmapAccess::canAccessPaid($user);
+        if ($locked) {
+            return redirect()->to("/roadmaps/{$slug}#unlock"); // paid topics and lessons stay fully closed
+        }
         $done = $user ? $this->doneIds($user, $slug) : [];
         $lesson = $topic['lessons'][$position];
         $canonicalUrl = $this->repo->topicUrl($slug, $topicId).'/'.$lessonId;

@@ -133,7 +133,7 @@ class RoadmapCommentsTest extends TestCase
         $this->actingAs($sponsor)->post("{$base}/{$lesson}/comments", ['content' => 'Paid tip'])->assertRedirect();
 
         $this->actingAs($sponsor)->get("{$base}/{$lesson}")->assertInertia(fn ($p) => $p->where('comments.0.content', 'Paid tip'));
-        $this->actingAs($free)->get("{$base}/{$lesson}")->assertInertia(fn ($p) => $p->where('comments', [])->where('commentCount', 0));
+        $this->actingAs($free)->get("{$base}/{$lesson}")->assertRedirect('/roadmaps/internet-networking#unlock');
         $this->get("{$base}/{$lesson}")->assertDontSee('Paid tip');
     }
 
