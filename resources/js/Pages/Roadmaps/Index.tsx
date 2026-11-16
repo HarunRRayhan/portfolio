@@ -1,7 +1,7 @@
 import { Link, usePage } from '@inertiajs/react'
 import type { PageProps } from '@/types'
 import { ProgressBar, formatDate } from '@/Components/Roadmap/shared'
-import { ArrowRight, Bookmark, Eye, Heart } from 'lucide-react'
+import { ArrowRight, Bookmark, Eye, Heart, Trophy } from 'lucide-react'
 import { RoadmapArt, type RoadmapArtData } from '@/Components/Roadmap/RoadmapArt'
 
 type RoadmapCard = {
@@ -39,6 +39,9 @@ export default function RoadmapsIndex({ roadmaps, mine }: Props) {
           <p className="mt-4 text-lg leading-8 text-slate-600 dark:text-slate-300">
             Step-by-step paths from beginner to advanced. Each topic says what to learn, where to read about it, and gives you a prompt to take to your AI.
           </p>
+          <Link href="/leaderboard" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-amber-700 hover:text-amber-600 dark:text-amber-400">
+            <Trophy className="h-4 w-4" aria-hidden /> Earn XP and climb the leaderboard <ArrowRight className="h-4 w-4" aria-hidden />
+          </Link>
         </div>
 
         {!auth?.user && (

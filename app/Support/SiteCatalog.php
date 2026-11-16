@@ -103,6 +103,7 @@ final class SiteCatalog
             '/blog',
             '/case-studies',
             '/roadmaps',
+            '/leaderboard',
             '/slides',
             '/videos',
             '/bio',

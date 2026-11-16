@@ -5,6 +5,7 @@ import { ErrorBoundary } from '@/Components/ErrorBoundary'
 import { ServicePageCaseStudies } from '@/Components/ServicePageCaseStudies'
 import { ServicePageReading } from '@/Components/ServicePageReading'
 import { SeoHead } from '@/Components/SeoHead'
+import { XpToast } from '@/Components/XpToast'
 
 interface PublicLayoutProps {
   /** Override the default slate-50 background. Pages with custom gradients pass their own. */
@@ -27,6 +28,7 @@ export default function PublicLayout({
       <main>
         <ErrorBoundary>{children}</ErrorBoundary>
       </main>
+      <XpToast />
       <ErrorBoundary>
         <ServicePageReading />
       </ErrorBoundary>

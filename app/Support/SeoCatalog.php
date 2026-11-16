@@ -202,6 +202,12 @@ final class SeoCatalog
             canonicalUrl: $siteUrl.'/roadmaps',
         );
 
+        $pages['/leaderboard'] = new SeoMeta(
+            title: 'Leaderboard | Harun R. Rayhan',
+            description: 'Who is learning the most this week, this month and all time. Earn XP by finishing roadmap lessons and joining the discussion.',
+            canonicalUrl: $siteUrl.'/leaderboard',
+        );
+
         $pages['/slides'] = new SeoMeta(
             title: 'Slides | Harun R. Rayhan',
             description: 'Talk decks and presentations on cloud, DevOps, and AWS. Open any deck in the browser, and the matching recorded talk is linked where one exists.',
