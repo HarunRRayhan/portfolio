@@ -87,6 +87,8 @@ class RoadmapPagesTest extends TestCase
         [$topic] = $this->topicOf('beginner');
 
         $this->actingAs(User::factory()->create())->get('/roadmaps/'.self::R.'/'.$topic['id'])->assertInertia(fn ($page) => $page
+            ->has('lessons.0.learn')
+            ->has('lessons.0.summary')
             ->has('lessons.0.prompt')
             ->has('lessons.0.claudeUrl')
             ->has('lessons.0.chatgptUrl'));
