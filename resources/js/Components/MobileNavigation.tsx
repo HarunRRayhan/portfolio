@@ -13,10 +13,11 @@ export type MobileNavigationProps = {
   isActive: (href: string) => boolean
   user: { name?: string; email?: string } | null | undefined
   isAdmin: boolean
+  xp: number
   onLogout: () => void
 }
 
-export default function MobileNavigation({ open, onOpenChange, onCloseAutoFocus, mainItems, moreItems, isActive, user, isAdmin, onLogout }: MobileNavigationProps) {
+export default function MobileNavigation({ open, onOpenChange, onCloseAutoFocus, mainItems, moreItems, isActive, user, isAdmin, xp, onLogout }: MobileNavigationProps) {
   const [moreOpen, setMoreOpen] = useState(false)
 
   return (
@@ -61,7 +62,10 @@ export default function MobileNavigation({ open, onOpenChange, onCloseAutoFocus,
           {user ? (
             <div className="flex flex-col gap-2">
               <div className="px-1 pb-1">
-                <p className="text-sm font-medium text-slate-900 dark:text-white">{user.name ?? 'Account'}</p>
+                <p className="flex items-center gap-2 text-sm font-medium text-slate-900 dark:text-white">
+                  {user.name ?? 'Account'}
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">{xp.toLocaleString()} XP</span>
+                </p>
                 <p className="text-xs text-slate-500">{user.email}</p>
               </div>
               <SheetClose asChild>

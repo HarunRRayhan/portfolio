@@ -13,6 +13,7 @@ export type PageProps<
     auth: {
         isAdmin: boolean;
         user: User;
+        xp?: number | null;
     };
     seo?: SeoPayload | null;
     canonicalUrl?: string;
