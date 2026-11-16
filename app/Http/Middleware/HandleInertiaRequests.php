@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Http\Controllers\Auth\AgreementController;
 use App\Models\Subscriber;
+use App\Models\XpAward;
 use App\Support\CaseStudyRepository;
 use App\Support\ContentLinks;
 use App\Support\SeoCatalog;
@@ -46,6 +47,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
                 'isAdmin' => (bool) $request->user()?->isAdmin(),
+                'xp' => fn () => $request->user() ? (int) XpAward::where('user_id', $request->user()->id)->sum('points') : null,
             ],
             'turnstileSiteKey' => config('services.turnstile.site_key'),
             'caseStudiesByService' => fn () => $request->is('services/*')

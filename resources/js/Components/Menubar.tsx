@@ -68,6 +68,7 @@ export function Menubar() {
   const pathname = url.split('?')[0]
   const user = usePage().props.auth?.user as { name?: string; email?: string } | null | undefined
   const isAdmin = Boolean(usePage().props.auth?.isAdmin)
+  const xp = usePage().props.auth?.xp ?? 0
   const profileRef = React.useRef<HTMLDivElement>(null)
   const moreRef = React.useRef<HTMLDivElement>(null)
   const profileTriggerRef = React.useRef<HTMLButtonElement>(null)
@@ -267,6 +268,12 @@ export function Menubar() {
               <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
           </Link>
 
+          {user && (
+            <Link href="/leaderboard" title="Your XP" className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800 transition hover:bg-amber-100 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300 dark:hover:bg-amber-900/40">
+              <Trophy className="h-3.5 w-3.5" />
+              {xp.toLocaleString()} XP
+            </Link>
+          )}
           {user ? (
             <div
               className="relative"
@@ -371,6 +378,7 @@ export function Menubar() {
                 isActive={isActive}
                 user={user}
                 isAdmin={isAdmin}
+                xp={xp}
                 onLogout={handleLogout}
               />
             </React.Suspense>

@@ -32,6 +32,14 @@ class LeaderboardPageTest extends TestCase
             ->where('me', ['rank' => 1, 'xp' => 50]));
     }
 
+    public function test_own_total_is_shared_for_the_nav(): void
+    {
+        $user = User::factory()->create(['terms_accepted_at' => now()]);
+        $this->actingAs($user)->get('/leaderboard')->assertInertia(fn (Assert $p) => $p->where('auth.xp', 50));
+        auth()->logout();
+        $this->get('/leaderboard')->assertInertia(fn (Assert $p) => $p->where('auth.xp', null));
+    }
+
     public function test_visibility_needs_an_account(): void
     {
         $this->patch('/leaderboard/visibility', ['hidden' => true])->assertRedirect('/login');
