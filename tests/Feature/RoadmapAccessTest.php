@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\GithubSponsorship;
+use App\Models\GithubWebhookEvent;
 use App\Models\RoadmapAccessGrant;
 use App\Models\User;
 use App\Support\RoadmapAccess;
@@ -110,5 +111,22 @@ class RoadmapAccessTest extends TestCase
         $user = User::factory()->unverified()->create(['email' => 'foo@x.com']);
         RoadmapAccessGrant::create(['email' => 'foo@x.com', 'expires_at' => now()->addDay()]);
         $this->assertFalse(RoadmapAccess::canAccessPaid($user));
+    }
+    public function test_backfill_reads_amount_from_latest_stored_webhook(): void
+    {
+        $user = User::factory()->create();
+        $s = $this->sponsor($user, ['monthly_price_cents' => null, 'github_sponsorship_node_id' => 'S_1']);
+        $other = $this->sponsor($user, ['monthly_price_cents' => 300, 'github_sponsorship_node_id' => 'S_2']);
+        foreach ([['created', 'S_1', 300], ['tier_changed', 'S_1', 700], ['created', 'S_2', 900]] as $i => [$action, $node, $cents]) {
+            GithubWebhookEvent::create(['delivery_id' => "d$i", 'event' => 'sponsorship', 'action' => $action,
+                'payload' => ['sponsorship' => ['node_id' => $node, 'tier' => ['monthly_price_in_cents' => $cents]]]]);
+        }
+        $this->assertFalse(RoadmapAccess::canAccessPaid($user->fresh()));
+
+        (require database_path('migrations/2026_11_16_100000_backfill_github_sponsorship_monthly_price.php'))->up();
+
+        $this->assertSame(700, $s->fresh()->monthly_price_cents);
+        $this->assertSame(300, $other->fresh()->monthly_price_cents); // already set: untouched
+        $this->assertTrue(RoadmapAccess::canAccessPaid($user->fresh()));
     }
 }
