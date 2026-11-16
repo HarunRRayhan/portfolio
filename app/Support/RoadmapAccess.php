@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\GithubSponsorship;
+use App\Models\GithubWebhookEvent;
 use App\Models\RoadmapAccessGrant;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -55,17 +56,19 @@ final class RoadmapAccess
             if ($price <= 0) {
                 continue;
             }
-            $payments = 1;
             $paidAt = $s->started_at->copy();
+            $paid = $price;
             if ($s->kind === GithubSponsorship::KIND_MONTHLY) {
-                // GitHub bills on the start day each month until the sponsorship ends.
+                // GitHub bills on the start day each month until the sponsorship ends; the end date itself is not a charge.
                 $end = $s->ended_at && $s->ended_at->isPast() ? $s->ended_at : now();
-                // A charge on the end date itself didn't happen: GitHub ends sponsorships at the paid-through date.
-                $months = (int) floor($s->started_at->diffInMonths($end));
-                $payments = $s->started_at->copy()->addMonthsNoOverflow($months)->lt($end) ? $months + 1 : max(1, $months);
-                $paidAt = $s->started_at->copy()->addMonthsNoOverflow($payments - 1);
+                $prices = self::priceHistory($s, $price);
+                $paid = 0;
+                for ($k = 0, $charge = $s->started_at->copy(); $k === 0 || $charge->lt($end); $charge = $s->started_at->copy()->addMonthsNoOverflow(++$k)) {
+                    $paidAt = $charge;
+                    $paid += self::priceOn($prices, $charge, $price);
+                }
             }
-            $total += $price * $payments;
+            $total += $paid;
             $lastPaid = $lastPaid === null || $paidAt->gt($lastPaid) ? $paidAt : $lastPaid;
         }
 
@@ -75,6 +78,47 @@ final class RoadmapAccess
             $total >= self::MIN_CENTS => $lastPaid->copy()->addMonth(),
             default => null,
         };
+    }
+
+    /**
+     * Tier price over time from the stored webhooks, so an upgrade never re-prices months already paid.
+     *
+     * @return list<array{0: Carbon, 1: int}> [effective from, cents], oldest first
+     */
+    private static function priceHistory(GithubSponsorship $s, int $current): array
+    {
+        if (! $s->github_sponsorship_node_id) {
+            return [];
+        }
+        // payload is a json column: cast it so Postgres can LIKE.
+        $events = GithubWebhookEvent::query()->where('event', 'sponsorship')->where('action', 'tier_changed')
+            ->whereRaw('CAST(payload AS TEXT) LIKE ?', ['%'.$s->github_sponsorship_node_id.'%'])->orderBy('created_at')->orderBy('id')->get();
+        $history = [];
+        foreach ($events as $e) {
+            $body = (array) $e->payload;
+            if (($body['sponsorship']['node_id'] ?? null) !== $s->github_sponsorship_node_id) {
+                continue;
+            }
+            if ($history === [] && isset($body['changes']['tier']['from']['monthly_price_in_cents'])) {
+                $history[] = [$s->started_at->copy(), (int) $body['changes']['tier']['from']['monthly_price_in_cents']];
+            }
+            $history[] = [Carbon::parse($e->created_at), (int) ($body['sponsorship']['tier']['monthly_price_in_cents'] ?? $current)];
+        }
+
+        return $history;
+    }
+
+    /** @param  list<array{0: Carbon, 1: int}>  $history */
+    private static function priceOn(array $history, Carbon $at, int $current): int
+    {
+        $price = null;
+        foreach ($history as [$from, $cents]) {
+            if ($from->lte($at)) {
+                $price = $cents;
+            }
+        }
+
+        return $price ?? ($history[0][1] ?? $current);
     }
 
     /** @return Collection<int, GithubSponsorship> */

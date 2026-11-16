@@ -97,6 +97,22 @@ class RoadmapAccessTest extends TestCase
         $this->assertFalse(RoadmapAccess::canAccessPaid($refunded));
     }
 
+    public function test_upgrade_does_not_reprice_months_already_paid(): void
+    {
+        $user = User::factory()->create();
+        $sponsorship = $this->sponsor($user, ['monthly_price_cents' => 900, 'started_at' => now()->subMonths(12)->subDay(), 'github_sponsorship_node_id' => 'S_up']);
+        $event = GithubWebhookEvent::create([
+            'delivery_id' => 'd-up', 'event' => 'sponsorship', 'action' => 'tier_changed',
+            'payload' => ['sponsorship' => ['node_id' => 'S_up', 'tier' => ['monthly_price_in_cents' => 900]], 'changes' => ['tier' => ['from' => ['monthly_price_in_cents' => 100]]]],
+        ]);
+        $event->forceFill(['created_at' => now()->subDays(2)])->save();
+
+        // 12 charges at $1 plus one at $9 = $21: a year, not lifetime (13 × $9 would be $117).
+        $until = RoadmapAccess::accessUntil([$sponsorship->fresh()]);
+        $this->assertNotTrue($until);
+        $this->assertTrue($until->isFuture());
+    }
+
     public function test_consultation_tier_without_price_unlocks(): void
     {
         $user = User::factory()->create();
