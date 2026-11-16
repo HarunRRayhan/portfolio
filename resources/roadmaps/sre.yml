@@ -2,6 +2,7 @@ slug: sre
 title: Site Reliability Engineering
 summary: Keep production fast and available on purpose. SLOs, alerting, incidents, capacity and the engineering that makes systems fail less and recover faster.
 order: 4
+category: cloud-devops
 updated: '2026-11-15'
 icon: activity
 color: rose

@@ -2,6 +2,7 @@ slug: rag
 title: RAG (Retrieval-Augmented Generation)
 summary: Ground LLM answers in your own documents. Learn embeddings, chunking, vector search, hybrid retrieval, citations, evaluation and permission-aware retrieval, then run it all in production.
 order: 11
+category: ai-ml
 updated: '2026-11-15'
 icon: library
 color: teal

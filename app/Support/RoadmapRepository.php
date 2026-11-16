@@ -20,6 +20,9 @@ final class RoadmapRepository
     /** Accent palettes for the roadmap art. */
     public const COLORS = ['sky', 'amber', 'indigo', 'rose', 'violet', 'emerald', 'cyan', 'blue', 'fuchsia', 'orange', 'teal', 'lime'];
 
+    /** Filter groups on /roadmaps, in display order. */
+    public const CATEGORIES = ['foundations' => 'Foundations', 'cloud-devops' => 'Cloud & DevOps', 'ai-ml' => 'AI & ML', 'career' => 'Career paths'];
+
     public const RESOURCE_KINDS = ['article', 'docs', 'video', 'course', 'tool'];
 
     /** Per instance, not static: a long-lived worker would otherwise keep stale content and draft status. */
