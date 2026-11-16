@@ -2,6 +2,7 @@ slug: devsecops
 title: DevSecOps
 summary: Security built into the DevOps pipeline, from secrets and dependencies to policy as code and incident response.
 order: 6
+category: cloud-devops
 updated: '2026-11-15'
 icon: shield-check
 color: emerald

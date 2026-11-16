@@ -2,6 +2,7 @@ slug: system-design
 title: System Design
 summary: From how a client talks to a server to designing large distributed systems. Learn caching, load balancing, databases, queues and consistency, then put them together on well-known designs.
 order: 7
+category: foundations
 updated: '2026-11-15'
 icon: network
 color: cyan
