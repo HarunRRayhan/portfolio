@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\PersonalAccessToken;
+use App\Observers\XpObserver;
 use App\Support\CachedSsrGateway;
 use App\Support\HomepageStyles;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -31,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        XpObserver::register();
         // Explicit public route allowlist excludes draft previews and authenticated pages.
         Inertia::disableSsr(fn () => ! (request()->routeIs(
             'home',

@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Support\RoadmapAccess;
 use App\Support\RoadmapRepository;
 use App\Support\SeoCatalog;
+use App\Support\Xp;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -274,6 +275,7 @@ class RoadmapController extends Controller
             ['user_id' => $user->id, 'roadmap_slug' => $slug, 'step_id' => $lesson],
             ['completed_at' => now()],
         );
+        $this->awardXp($user->id, $slug, $lesson);
 
         return back();
     }
@@ -305,6 +307,23 @@ class RoadmapController extends Controller
         }
 
         return back();
+    }
+
+    /** Required lessons earn XP once (kept on undo); finishing a topic's required lessons adds a bonus. */
+    private function awardXp(int $userId, string $slug, string $lesson): void
+    {
+        $index = $this->repo->lessonIndex($this->repo->find($slug));
+        if ($index[$lesson]['optional']) {
+            return;
+        }
+        Xp::award($userId, "lesson:$slug/$lesson", Xp::POINTS['lesson']);
+
+        $topic = $index[$lesson]['topic'];
+        $required = array_keys(array_filter($index, fn ($l) => $l['topic'] === $topic && ! $l['optional']));
+        $done = RoadmapProgress::where(['user_id' => $userId, 'roadmap_slug' => $slug])->whereIn('step_id', $required)->count();
+        if ($done === count($required)) {
+            Xp::award($userId, "topic:$slug/$topic", Xp::POINTS['topic']);
+        }
     }
 
     private function openLessonOr404(Request $request, string $slug, string $lesson): void
