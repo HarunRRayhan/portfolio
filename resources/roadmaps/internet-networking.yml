@@ -56,6 +56,82 @@ stages:
               - { label: "MAC address (Wikipedia)", url: "https://en.wikipedia.org/wiki/MAC_address", kind: article }
               - { label: "Address Resolution Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Address_Resolution_Protocol", kind: article }
 
+      - id: fiber-and-undersea-cables
+        title: Fiber and undersea cables
+        summary: The internet is physical. Glass fibers carry light across cities and under oceans, laid and repaired by a small fleet of ships.
+        lessons:
+          - id: how-fiber-works
+            title: How fiber carries light
+            summary: Bits travel as pulses of light inside a hair-thin glass core, bouncing along by total internal reflection.
+            learn:
+              - Core, cladding and total internal reflection
+              - Single-mode vs multimode fiber
+              - Why fiber beats copper for distance and speed
+              - Many colours of light on one fiber (WDM)
+            resources:
+              - { label: "How do fiber optic cables work?", url: "https://www.youtube.com/watch?v=0t7Ina7_dIU", kind: video }
+              - { label: "Optical fiber (Wikipedia)", url: "https://en.wikipedia.org/wiki/Optical_fiber", kind: article }
+              - { label: "Total internal reflection (Wikipedia)", url: "https://en.wikipedia.org/wiki/Total_internal_reflection", kind: article }
+              - { label: "Wavelength-division multiplexing (Wikipedia)", url: "https://en.wikipedia.org/wiki/Wavelength-division_multiplexing", kind: article }
+          - id: fiber-history
+            title: Where fiber optics came from
+            summary: From telegraph cables under the Atlantic to Charles Kao's idea of low-loss glass and the first fiber cable across an ocean.
+            learn:
+              - The 1858 and 1866 transatlantic telegraph cables
+              - Charles Kao's 1966 low-loss glass fiber idea (Nobel Prize 2009)
+              - Corning's first low-loss fiber in 1970
+              - TAT-8, the first transatlantic fiber cable (1988)
+            resources:
+              - { label: "Transatlantic telegraph cable (Wikipedia)", url: "https://en.wikipedia.org/wiki/Transatlantic_telegraph_cable", kind: article }
+              - { label: "Charles K. Kao (Wikipedia)", url: "https://en.wikipedia.org/wiki/Charles_K._Kao", kind: article }
+              - { label: "TAT-8 (Wikipedia)", url: "https://en.wikipedia.org/wiki/TAT-8", kind: article }
+          - id: undersea-cables
+            title: Undersea cables carry the world's traffic
+            summary: Almost all traffic between continents runs on a few hundred cables on the sea floor, not satellites.
+            learn:
+              - What is inside a submarine cable, and repeaters
+              - Cable landing stations
+              - Who owns cables (telcos, and now Google, Meta, Microsoft, Amazon)
+              - Reading the submarine cable map
+            resources:
+              - { label: "Submarine Cable Map (TeleGeography)", url: "https://www.submarinecablemap.com/", kind: tool }
+              - { label: "Submarine communications cable (Wikipedia)", url: "https://en.wikipedia.org/wiki/Submarine_communications_cable", kind: article }
+              - { label: "Cable landing point (Wikipedia)", url: "https://en.wikipedia.org/wiki/Cable_landing_point", kind: article }
+          - id: cable-ships
+            title: The ships that lay and repair cables
+            summary: A small global fleet of cable ships lays new routes and fixes breaks, often kilometres down, without anyone seeing the cable.
+            learn:
+              - How a cable ship lays and buries cable
+              - How a break is found and repaired at sea
+              - Why the repair fleet is small and repairs can take weeks
+            resources:
+              - { label: "How undersea internet cables are made and laid", url: "https://www.youtube.com/watch?v=pkbv4tyQoF0", kind: video }
+              - { label: "How undersea cables get repaired 4 km down", url: "https://www.youtube.com/watch?v=GoPnMffCxuA", kind: video }
+              - { label: "Cable layer (Wikipedia)", url: "https://en.wikipedia.org/wiki/Cable_layer", kind: article }
+          - id: cable-fragility
+            title: How fragile the cables are
+            summary: Around 150 to 200 cable faults happen every year, mostly from anchors and fishing. Real cuts show what breaks when a route goes down.
+            learn:
+              - Common causes of faults (anchors, fishing, earthquakes)
+              - Real outages, such as the Red Sea and Baltic Sea cuts
+              - Why route diversity keeps the internet up
+            resources:
+              - { label: "What happens when submarine cables break (TeleGeography)", url: "https://blog.telegeography.com/what-happens-when-submarine-cables-break", kind: article }
+              - { label: "Damage to submarine cables from dragged anchors (ICPC)", url: "https://iscpc.org/publications/icpc-viewpoints/damage-to-submarine-cables-from-dragged-anchors/", kind: article }
+              - { label: "Subsea cables: how vulnerable are they? (EU JRC)", url: "https://joint-research-centre.ec.europa.eu/jrc-explains/subsea-cables-how-vulnerable-are-they-and-can-we-protect-them_en", kind: article }
+              - { label: "Submarine cable resilience (APNIC)", url: "https://blog.apnic.net/2026/10/14/submarine-cable-resilience/", kind: article }
+          - id: next-generation-fiber
+            title: New kinds of fiber
+            optional: true
+            summary: Hollow-core fiber sends light through air instead of glass, so it is faster and loses less. Chinese labs and others are setting new records.
+            learn:
+              - What hollow-core fiber is and why light is faster in air
+              - Recent hollow-core field trials in China
+              - Multi-core fiber and other ways to fit more data in one cable
+            resources:
+              - { label: "China's hollow-core fiber trial pushes 51.3 Tb/s over 128 miles (Tom's Hardware)", url: "https://www.tomshardware.com/networking/chinas-hollow-core-fiber-trial-pushes-51-3-tb-s-over-128-miles-without-signal-regeneration-milestone-targets-ai-era-networking-bottlenecks", kind: article }
+              - { label: "Photonic-crystal fiber (Wikipedia)", url: "https://en.wikipedia.org/wiki/Photonic-crystal_fiber", kind: article }
+
       - id: ip-addresses
         title: IP addresses
         summary: Every device on a network needs an address so packets know where to go. Two versions are in use, IPv4 and IPv6.
