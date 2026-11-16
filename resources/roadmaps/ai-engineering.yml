@@ -3,7 +3,7 @@ title: AI Engineering
 summary: Build products on top of large language models. Learn how models behave, call them well, ground them in your data, measure them, and run them safely in production.
 order: 9
 category: ai-ml
-updated: '2026-11-15'
+updated: '2026-11-16'
 icon: sparkles
 color: fuchsia
 logos:
@@ -26,9 +26,23 @@ stages:
               - What a token is and how text is split
               - Context window size and what fills it
               - Why tokens drive both cost and latency
+            body: |
+              A model does not read words. It reads **tokens**, which are chunks of text such as a whole common word, part of a rare word, or a single symbol. The tokenizer splits your text into these chunks before the model sees it.
+
+              The **context window** is the most tokens a model can handle in one request. Your system prompt, the chat history, retrieved documents, tool results and the reply all share it.
+
+              ### Key ideas
+              - A token is roughly three quarters of an English word, but code, numbers and non-English text often use more
+              - Input and output both count against the window
+              - You pay per token, and longer inputs also take longer to process
+              - Output tokens usually cost more than input tokens
+
+              ### In practice
+              Before you ship, count tokens for a real request with the provider's tokenizer or token counting endpoint. Then check what fills the window. A long chat history or a large pasted document is often the biggest part, and trimming it is the cheapest speed and cost win.
             resources:
               - { label: "OpenAI tokenizer", url: "https://platform.openai.com/tokenizer", kind: tool }
               - { label: "Andrej Karpathy (YouTube)", url: "https://www.youtube.com/@AndrejKarpathy", kind: video }
+              - { label: "Let's build the GPT Tokenizer (Andrej Karpathy)", url: "https://www.youtube.com/watch?v=zduSFxRajkE", kind: video }
           - id: next-token-prediction
             title: Next-token prediction
             summary: An LLM predicts the next token from probabilities. Sampling settings decide how it picks one.
@@ -36,9 +50,26 @@ stages:
               - Pretraining vs instruction tuning
               - Temperature and top-p
               - Why the same prompt can give different answers
+            body: |
+              An LLM has one core skill: given the text so far, it scores every possible next token. It picks one, adds it to the text, and repeats until it stops.
+
+              **Pretraining** teaches the model to continue text from huge amounts of data. **Instruction tuning** then trains it to follow requests and answer like an assistant instead of just continuing a document.
+
+              ### Key ideas
+              - **Temperature** reshapes the probabilities. Low values pick the likeliest token, high values spread choices out
+              - **Top-p** keeps only the smallest set of tokens whose probabilities add up to p, then samples from them
+              - Sampling is random, so one prompt can give different answers on each run
+              - Temperature 0 is closer to repeatable but not a guarantee
+
+              ### Common mistakes
+              - Raising temperature to get "smarter" answers. It only adds variety
+              - Expecting identical output from two runs and writing tests that assume it
+              - Changing temperature and top-p together, which makes results hard to reason about
             resources:
               - { label: "Neural networks series (3Blue1Brown)", url: "https://www.3blue1brown.com/topics/neural-networks", kind: video }
               - { label: "Hugging Face LLM course", url: "https://huggingface.co/learn", kind: course }
+              - { label: "Large Language Models explained briefly (3Blue1Brown)", url: "https://www.youtube.com/watch?v=LPZh9BOjkQs", kind: video }
+              - { label: "Deep Dive into LLMs like ChatGPT (Andrej Karpathy)", url: "https://www.youtube.com/watch?v=7xTGNNLPyMI", kind: video }
           - id: hallucination-and-limits
             title: Hallucinations and limits
             summary: Models state wrong things with confidence and have a knowledge cutoff. Design around both.
@@ -46,9 +77,23 @@ stages:
               - Why models make things up
               - Knowledge cutoff and stale facts
               - Tasks LLMs do well and badly
+            body: |
+              A model produces text that looks right. It has no built in check that the text is true, so it can state a made up fact in the same calm voice as a real one. This is called a **hallucination**.
+
+              Models also learn from data up to a **knowledge cutoff**. They know nothing about later events unless you put that information in the prompt.
+
+              ### Key ideas
+              - Hallucinations are likeliest on rare facts, exact numbers, quotes, citations and URLs
+              - Stale facts: library versions, prices and news change after the cutoff
+              - Strong tasks: summarising, rewriting, classifying, extracting, drafting code
+              - Weak tasks: exact arithmetic, counting, recalling precise facts, anything needing live data
+
+              ### In practice
+              Give the model the facts it needs and tell it to answer only from them. Let it say "I don't know". Use tools for maths and lookups. Check outputs that matter with code or a person, and never treat a fluent answer as a verified one.
             resources:
               - { label: "Chip Huyen's blog", url: "https://huyenchip.com/blog/", kind: article }
               - { label: "Anthropic docs", url: "https://docs.anthropic.com/", kind: docs }
+              - { label: "Reduce hallucinations (Anthropic docs)", url: "https://docs.anthropic.com/en/docs/test-and-evaluate/strengthen-guardrails/reduce-hallucinations", kind: docs }
           - id: transformer-architecture
             title: The transformer architecture
             optional: true
@@ -57,9 +102,24 @@ stages:
               - Self-attention in plain terms
               - Why context length is expensive
               - Encoder vs decoder models
+            body: |
+              A transformer turns tokens into vectors, then passes them through many layers. Each layer lets every token look at the others and update itself. That looking step is **self-attention**.
+
+              In plain terms, attention asks for each token: which other tokens matter for my meaning here? In "The cat sat because it was tired", attention helps "it" lean toward "cat".
+
+              ### Key ideas
+              - Self-attention compares every token with every other token, so cost grows fast as context grows
+              - That is why long contexts are slow and expensive
+              - **Encoder** models read text both ways and suit embeddings and classification
+              - **Decoder** models generate left to right and power chat LLMs
+              - Embeddings are the vectors tokens start as, and layers refine them
+
+              ### Why it matters to you
+              You do not need the maths to build products. You need the consequences: context length has a cost, tokens are processed in parallel on input but produced one at a time on output, and different model types suit different jobs.
             resources:
               - { label: "The Illustrated Transformer (Jay Alammar)", url: "https://jalammar.github.io/illustrated-transformer/", kind: article }
               - { label: "Practical Deep Learning (fast.ai)", url: "https://course.fast.ai/", kind: course }
+              - { label: "Attention in transformers, step-by-step (3Blue1Brown)", url: "https://www.youtube.com/watch?v=eMlx5fFNoYc", kind: video }
 
       - id: choosing-models
         title: Choosing a model
@@ -72,6 +132,22 @@ stages:
               - Frontier vs small fast models
               - Open-weight vs hosted models
               - Reading a model card
+            body: |
+              Providers sell several sizes of the same model line. A large model is more capable and slower and pricier. A small one is fast and cheap and good enough for many jobs.
+
+              Start with the cheapest model that passes your own tests, and move up only when it fails. Bigger is not better if the task is simple.
+
+              ### Key ideas
+              - **Frontier models**: best at hard reasoning and long tasks, highest price and latency
+              - **Small fast models**: good for classification, extraction, routing and short answers
+              - **Hosted models**: easy to use, you depend on the provider and send them your data
+              - **Open-weight models**: you can run them yourself, with more control and more work
+              - A **model card** lists intended use, limits, context size, languages, training notes and licence
+
+              ### Common mistakes
+              - Picking a model from a leaderboard instead of testing on your own data
+              - Hard coding one model name everywhere
+              - Ignoring the licence of an open-weight model
             resources:
               - { label: "Anthropic models overview", url: "https://docs.anthropic.com/", kind: docs }
               - { label: "OpenAI models", url: "https://platform.openai.com/docs/models", kind: docs }
@@ -82,6 +158,19 @@ stages:
               - Data residency and retention
               - IAM and private networking on AWS
               - Switching providers without a rewrite
+            body: |
+              You can call a model on the maker's own API, or through a cloud such as AWS Bedrock or Azure. The model is similar, but the rules around it differ.
+
+              Using your cloud provider means one bill, one IAM system and often private networking. Going direct often means the newest models and features first.
+
+              ### Key ideas
+              - **Data residency and retention**: check which region handles requests and whether prompts are stored or used for training
+              - **IAM and private networking**: on AWS you can use IAM roles instead of API keys, and VPC endpoints to keep traffic off the public internet
+              - **Billing and quotas** differ per route, and so can rate limits
+              - **Switching providers** is easy if you wrap model calls behind your own small interface
+
+              ### In practice
+              Keep provider code in one module. Your app calls `generate(messages)` and that module talks to Bedrock or a direct API. Then a move later means changing one file and re-running your evals.
             resources:
               - post: migrated-lambda-ai-app-to-bedrock-openai-compatible-apis-without-rewriting-everything
               - { label: "Amazon Bedrock docs", url: "https://docs.aws.amazon.com/bedrock/", kind: docs }
@@ -93,9 +182,23 @@ stages:
               - Inference servers like vLLM
               - GPU memory and quantisation
               - Break-even vs a hosted API
+            body: |
+              Open-weight models can run on your own GPUs. You gain control over data and cost at scale, and you take on the operations work.
+
+              An **inference server** such as vLLM loads the model and serves requests fast, with batching and an API shaped like the big providers.
+
+              ### Key ideas
+              - Model weights must fit in GPU memory, plus extra for the context cache
+              - **Quantisation** stores weights in fewer bits, such as 8 or 4, to save memory with a small quality cost
+              - You manage GPUs, scaling, updates, monitoring and failures
+              - **Break-even**: a hosted API charges per token, a GPU charges per hour whether busy or not
+
+              ### Example
+              A GPU that costs a fixed amount per hour only wins if it stays busy. If your traffic is bursty or small, a hosted API is usually cheaper. Work out tokens per month, then compare the API bill with GPU hours plus the engineer time to run it.
             resources:
               - { label: "vLLM docs", url: "https://docs.vllm.ai/", kind: docs }
               - { label: "Hugging Face Hub", url: "https://huggingface.co/models", kind: tool }
+              - { label: "Quantization (Hugging Face Transformers)", url: "https://huggingface.co/docs/transformers/en/main_classes/quantization", kind: docs }
 
       - id: prompting
         title: Prompting
@@ -108,9 +211,26 @@ stages:
               - Roles in a chat request
               - Writing instructions like a brief to a new colleague
               - Giving the model context and audience
+            body: |
+              A chat request is a list of messages with **roles**. The **system** message holds stable rules: who the model is, tone, limits, output format. **User** messages hold the task. **Assistant** messages are the model's earlier replies.
+
+              Write instructions like a brief to a smart new colleague who knows nothing about your project. Say what the goal is, who the audience is and what a good result looks like.
+
+              ### Key ideas
+              - Put rules that never change in the system prompt
+              - Put the changing task and data in the user turn
+              - Give context: why the task exists and who reads the output
+              - Be specific. "Summarise in three bullets for a busy manager" beats "summarise"
+              - State what to do, not only what to avoid
+
+              ### Common mistakes
+              - Vague asks that leave the model to guess the format
+              - Burying the real task in the middle of a long prompt
+              - Mixing untrusted user text into the system prompt
             resources:
               - { label: "Prompt engineering (Anthropic docs)", url: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview", kind: docs }
               - { label: "Prompt engineering guide", url: "https://www.promptingguide.ai/", kind: article }
+              - { label: "Giving Claude a role with a system prompt (Anthropic docs)", url: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/system-prompts", kind: docs }
           - id: few-shot-examples
             title: Few-shot examples
             summary: A few worked examples show the model the format and judgement you want.
@@ -118,9 +238,34 @@ stages:
               - Choosing representative examples
               - Varying examples to avoid copying
               - Delimiting examples with tags
+            body: |
+              Showing beats telling. A few worked examples of input and the output you want teach the model the format, tone and edge case handling that a description struggles to carry.
+
+              This is called **few-shot prompting**. Even two or three good examples often fix a stubborn format problem.
+
+              ### Key ideas
+              - Pick examples that match the real inputs you will see
+              - Include a hard or odd case, not only easy ones
+              - Vary the examples so the model learns the pattern and does not copy one
+              - Wrap examples in tags so they are clearly separate from the task
+              - More examples cost more tokens on every call
+
+              ```text
+              Classify the ticket as billing, bug or other.
+
+              Ticket: I was charged twice this month.
+              Label: billing
+
+              Ticket: The export button does nothing.
+              Label: bug
+              ```
+
+              ### In practice
+              Start with zero examples, then add them only where the output is wrong. Test again after each change.
             resources:
               - { label: "Prompt engineering guide", url: "https://www.promptingguide.ai/", kind: article }
               - { label: "OpenAI prompting guide", url: "https://platform.openai.com/docs/guides/prompt-engineering", kind: docs }
+              - { label: "Use examples (multishot prompting) (Anthropic docs)", url: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/multishot-prompting", kind: docs }
           - id: step-by-step-reasoning
             title: Letting the model reason
             summary: Asking for reasoning before the answer, or using a reasoning model, improves hard tasks.
@@ -128,9 +273,28 @@ stages:
               - Chain of thought
               - Reasoning models and thinking budgets
               - When reasoning only adds latency
+            body: |
+              Hard tasks go better when the model works through the problem before answering. Asking it to think step by step is **chain of thought**.
+
+              Many models now have a reasoning mode. They spend hidden **thinking tokens** before the visible answer, and you control how many with a budget or effort setting.
+
+              ### Key ideas
+              - Use reasoning for maths, planning, multi-step logic and tricky code
+              - A bigger thinking budget can raise quality, and also raises cost and latency
+              - Ask for the reasoning first and the final answer after, so the answer follows from it
+              - Simple lookups, formatting and classification gain little from reasoning
+
+              ### Common mistakes
+              - Turning reasoning on for every request and paying for slow answers that did not need it
+              - Putting the final answer before the reasoning in the output
+              - Trusting the shown reasoning as a faithful record of how the model decided
+
+              Test with and without reasoning on your own cases. Keep it only where scores improve.
             resources:
               - { label: "Anthropic docs", url: "https://docs.anthropic.com/", kind: docs }
               - { label: "Prompt engineering guide", url: "https://www.promptingguide.ai/", kind: article }
+              - { label: "Extended thinking (Anthropic docs)", url: "https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking", kind: docs }
+              - { label: "Let Claude think (chain of thought) (Anthropic docs)", url: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/chain-of-thought", kind: docs }
           - id: prompt-templates
             title: Prompts as code
             optional: true
@@ -139,6 +303,31 @@ stages:
               - Templates and variables
               - Keeping prompts in the repo
               - Prompt changes as releases
+            body: |
+              A prompt is part of your product. Treat it like code: keep it in the repo, review it, and release it on purpose.
+
+              A **template** is a prompt with variables filled in at run time, such as the user's question or retrieved documents.
+
+              ### Key ideas
+              - Store prompts as files with a clear name, not as strings scattered through code
+              - Use variables for the changing parts and keep the rest fixed
+              - Review prompt changes in pull requests like any change
+              - Run your evals before merging, because a small wording change can shift results
+              - Version prompts so you can roll back
+
+              ```text
+              You are a support assistant for {product}.
+              Answer using only the context below.
+
+              Context:
+              {context}
+
+              Question: {question}
+              ```
+
+              ### Common mistakes
+              - Editing a prompt live in a dashboard with no history
+              - Building prompts by string concatenation that lets user text break the structure
             resources:
               - post: agents-md-is-code
               - { label: "Langfuse prompt management", url: "https://langfuse.com/docs", kind: docs }
@@ -154,9 +343,22 @@ stages:
               - Request fields that matter
               - Stop reasons and max tokens
               - Reading token usage
+            body: |
+              Most chat APIs work the same way. You send a model name, a list of messages and a few settings. You get back the model's reply and a record of how many tokens were used.
+
+              ### Key ideas
+              - Fields that matter: `model`, `messages`, a system prompt, `max_tokens`, `temperature`, and tools if you use them
+              - `max_tokens` caps the reply length. Set it so a runaway answer cannot cost you much
+              - The **stop reason** tells you why generation ended: finished normally, hit the token limit, or asked to call a tool
+              - **Usage** reports input and output tokens, and often cached tokens too
+              - The API is stateless. You resend the history on every call
+
+              ### Example
+              Log the stop reason and usage for every call. If the stop reason is the length limit, the answer was cut off and you should raise `max_tokens` or shorten the task. If a bill jumps, usage logs show which feature caused it.
             resources:
               - { label: "Anthropic API docs", url: "https://docs.anthropic.com/", kind: docs }
               - { label: "OpenAI API docs", url: "https://platform.openai.com/docs", kind: docs }
+              - { label: "Messages API reference (Anthropic docs)", url: "https://docs.anthropic.com/en/api/messages", kind: docs }
           - id: streaming-responses
             title: Streaming responses
             summary: Stream tokens to the user so a slow answer feels fast.
@@ -164,9 +366,26 @@ stages:
               - Server-sent events
               - Streaming through a backend
               - Handling a stream that breaks midway
+            body: |
+              A full answer can take many seconds. **Streaming** sends tokens as they are made, so the user sees text almost at once.
+
+              Most providers stream with **server-sent events** (SSE): one long HTTP response where the server pushes small text events. Browsers read it with `EventSource` or `fetch`.
+
+              ### Key ideas
+              - Streaming does not make generation faster, it makes waiting feel shorter
+              - Your backend usually proxies the stream: provider to your server to the browser
+              - Turn off response buffering in proxies and gateways, or the stream arrives all at once
+              - Streams can break midway from a network drop or a timeout
+
+              ### Common mistakes
+              - Not handling a broken stream. Decide what to do: show the partial text, offer retry, or resume
+              - Saving the message only when the stream ends, and losing it on failure
+              - Forgetting to stop generation when the user closes the page, which keeps billing tokens
             resources:
               - post: real-time-ai-chat-with-lambda-api-gateway-websockets
               - { label: "Server-sent events (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events", kind: docs }
+              - { label: "Streaming Messages (Anthropic docs)", url: "https://docs.anthropic.com/en/api/messages-streaming", kind: docs }
+              - { label: "Using server-sent events (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events", kind: docs }
           - id: rate-limits-and-retries
             title: Rate limits and retries
             summary: Every provider throttles. Retry with backoff and queue work that does not need an instant answer.
@@ -174,9 +393,26 @@ stages:
               - 429 and 529 responses
               - Exponential backoff with jitter
               - Moving long jobs to a queue
+            body: |
+              Providers cap how much you can send. Go over and you get an error instead of an answer.
+
+              Retry the right errors in the right way, and move work that is not urgent onto a queue.
+
+              ### Key ideas
+              - **429** means you hit a rate limit. Wait and retry
+              - **529** (and similar 5xx errors) mean the provider is overloaded
+              - Use **exponential backoff with jitter**: wait 1s, 2s, 4s and so on, plus a random amount, so many clients do not retry together
+              - Respect a `retry-after` header when the API sends one
+              - Cap the number of retries and total time
+              - Do not retry errors like a bad request, because they will fail again
+
+              ### In practice
+              Interactive requests retry briefly and then show an error. Batch work such as summarising 10,000 documents goes on a queue, with a worker that reads at a steady rate and retries failures later.
             resources:
               - post: running-ai-background-jobs-serverlessly-with-sqs-lambda-bedrock
               - { label: "Exponential backoff and jitter (AWS)", url: "https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/", kind: article }
+              - { label: "Rate limits (Anthropic docs)", url: "https://docs.anthropic.com/en/api/rate-limits", kind: docs }
+              - { label: "Rate limits (OpenAI docs)", url: "https://platform.openai.com/docs/guides/rate-limits", kind: docs }
           - id: serverless-inference-endpoint
             title: A first AI endpoint
             summary: Put a model call behind your own API with auth, limits and logging.
@@ -184,6 +420,22 @@ stages:
               - Never call the model from the browser with your key
               - Lambda plus Bedrock as a minimal backend
               - Timeouts for slow generations
+            body: |
+              Your own API sits between the browser and the model. It holds the key, checks who is calling, limits use and logs what happened.
+
+              **Never call a model from the browser with your key.** Anyone can read it from the page and run up your bill.
+
+              ### Key ideas
+              - Authenticate the caller before any model call
+              - Apply a per-user rate limit and a size limit on input
+              - Log the user, model, token usage and latency, but be careful with sensitive prompt text
+              - A small backend such as AWS Lambda calling Bedrock is enough to start, and uses an IAM role instead of a stored key
+              - Set timeouts at each hop. API gateways often cut off sooner than a slow generation needs
+
+              ### Common mistakes
+              - A function timeout shorter than the model's response time
+              - No cap on `max_tokens` or input length
+              - Returning raw provider errors to the client
             resources:
               - post: serverless-ai-inference-endpoints-with-aws-bedrock-and-lambda
 
@@ -198,9 +450,32 @@ stages:
               - Structured output modes
               - Writing a JSON schema
               - Enums and required fields
+            body: |
+              Prose is hard for code to read. If you need data, ask for JSON and describe the exact shape with a **JSON Schema**.
+
+              Many APIs have a structured output mode that makes the model follow the schema, so you do not depend on the model happening to write valid JSON.
+
+              ### Key ideas
+              - A schema lists fields, their types and which are `required`
+              - Use `enum` to limit a field to a fixed set of values
+              - Add a short `description` to each field, because the model reads it
+              - Keep schemas small and flat when you can
+              - Structured modes guarantee shape, not truth: a value can be valid and wrong
+
+              ```json
+              {
+                "type": "object",
+                "properties": {
+                  "sentiment": { "enum": ["positive", "neutral", "negative"] },
+                  "summary": { "type": "string" }
+                },
+                "required": ["sentiment", "summary"]
+              }
+              ```
             resources:
               - { label: "JSON Schema", url: "https://json-schema.org/", kind: docs }
               - { label: "Structured outputs (OpenAI docs)", url: "https://platform.openai.com/docs/guides/structured-outputs", kind: docs }
+              - { label: "Structured outputs (Anthropic docs)", url: "https://docs.anthropic.com/en/docs/build-with-claude/structured-outputs", kind: docs }
           - id: validating-output
             title: Validating what comes back
             summary: Treat model output as untrusted input. Validate it and decide what to do when it fails.
@@ -208,6 +483,18 @@ stages:
               - Schema validation in code
               - Retry, repair or reject
               - Business rules beyond the schema
+            body: |
+              Treat model output like input from a stranger. Even with a schema, check it in your own code before you use it.
+
+              ### Key ideas
+              - Parse and validate with a schema library such as Pydantic or Zod
+              - On failure choose one of three paths: **retry** with the error message, **repair** with a small fix, or **reject** and show a safe fallback
+              - Limit retries so a bad input cannot loop forever
+              - Add **business rules** the schema cannot express, such as a date in the future, a total that matches line items, or an id that exists in your database
+              - Never run output as code or paste it into SQL or HTML without escaping
+
+              ### Example
+              A model returns an `order_id`. The schema says it is a string, and it is. Your code still looks it up and confirms it belongs to the current user before acting. The schema checked the shape. Your rule checked the meaning.
             resources:
               - post: ai-endpoints-post-generate-validation-lambda-bedrock-fastify
               - { label: "Pydantic docs", url: "https://docs.pydantic.dev/", kind: docs }
@@ -219,6 +506,22 @@ stages:
               - Designing label sets
               - Confidence and an "unknown" class
               - Batch processing documents
+            body: |
+              These are the most dependable jobs for an LLM. **Extraction** pulls fields out of messy text, like dates and amounts from an email. **Classification** sorts an input into a label.
+
+              ### Key ideas
+              - Design a small label set where each label is clearly different from the others
+              - Define each label in the prompt, with an example
+              - Add an **unknown** or **other** class so the model does not force a bad guess
+              - Ask for a confidence or a short reason, and send low confidence items to a person
+              - For many documents, process in batches, use a small model and run jobs in parallel within rate limits
+
+              ### Common mistakes
+              - Labels that overlap, so even humans disagree
+              - No way to say "not present", which makes the model invent a value
+              - Skipping a test set. Label 50 to 100 real examples and measure accuracy before you ship
+
+              Start with a small cheap model and move up only if it falls short.
             resources:
               - { label: "Anthropic docs", url: "https://docs.anthropic.com/", kind: docs }
               - { label: "Eugene Yan's writing", url: "https://eugeneyan.com/", kind: article }
@@ -234,9 +537,25 @@ stages:
               - The tool call loop
               - Writing tool descriptions the model understands
               - Returning results and errors
+            body: |
+              With **tool use**, you describe functions to the model. The model does not run them. It replies asking to call one with certain arguments, you run it, and you send the result back.
+
+              ### Key ideas
+              - Each tool has a name, a description and a JSON schema for its inputs
+              - The loop: send messages and tools, the model asks for a call, you run it, you return the result, repeat until it gives a final answer
+              - Good descriptions say what the tool does, when to use it and when not to
+              - Return useful errors as results, so the model can fix its arguments and retry
+              - Validate arguments before you run anything, since the model can send bad values
+
+              ### Common mistakes
+              - Too many tools, which confuses the model
+              - Vague names like `process` or `helper`
+              - Running side effects with no checks or limits
+              - No cap on loop steps, which risks endless calls
             resources:
               - { label: "Tool use (Anthropic docs)", url: "https://docs.anthropic.com/en/docs/build-with-claude/tool-use/overview", kind: docs }
               - { label: "Function calling (OpenAI docs)", url: "https://platform.openai.com/docs/guides/function-calling", kind: docs }
+              - { label: "How to implement tool use (Anthropic docs)", url: "https://docs.anthropic.com/en/docs/build-with-claude/tool-use/implement-tool-use", kind: docs }
           - id: mcp-basics
             title: Model Context Protocol
             summary: MCP is a standard way to expose tools and data to any model client.
@@ -244,9 +563,24 @@ stages:
               - Servers, clients and transports
               - Tools, resources and prompts
               - Hosting an MCP server
+            body: |
+              **Model Context Protocol (MCP)** is an open standard for connecting models to tools and data. Write a server once and any MCP client, such as an IDE or chat app, can use it.
+
+              ### Key ideas
+              - A **server** exposes capabilities. A **client** inside the host app connects to it
+              - **Tools** are actions the model can call
+              - **Resources** are data the client can read, such as files or records
+              - **Prompts** are reusable templates the user can pick
+              - **Transports**: stdio for local servers, and streamable HTTP for remote ones
+              - A remote server is just an HTTP service, so you can host it like any other, for example on a Lambda or a container
+
+              ### In practice
+              Start with a local server that exposes one or two read only tools. Test it in a client. Move to a remote server only when others need it, and add authentication before you do.
             resources:
               - { label: "Model Context Protocol", url: "https://modelcontextprotocol.io/", kind: docs }
               - post: deploying-an-mcp-server-on-aws-lambda
+              - { label: "What is MCP? (Model Context Protocol)", url: "https://modelcontextprotocol.io/docs/getting-started/intro", kind: docs }
+              - { label: "MCP specification", url: "https://modelcontextprotocol.io/specification", kind: docs }
           - id: mcp-auth
             title: Authenticating MCP servers
             optional: true
@@ -255,6 +589,24 @@ stages:
               - OAuth for remote MCP
               - Debugging 401s
               - Stateless transport on Lambda
+            body: |
+              A local MCP server runs as you. A **remote** one is open to the network, so it needs real authentication, or anyone can use your tools.
+
+              The MCP spec uses **OAuth**. The client gets a token from an authorisation server, then sends it to your MCP server with each request.
+
+              ### Key ideas
+              - Your server returns **401** with a pointer to its auth metadata, so clients can start the OAuth flow
+              - Validate the token on every request: signature, expiry, audience and scopes
+              - Scope tokens narrowly, per tool where you can
+              - **Stateless transport** suits Lambda, because each request may land on a different instance, so do not keep sessions in memory
+
+              ### Debugging a 401
+              1. Read the `WWW-Authenticate` header in the response
+              2. Check the metadata URL it points to loads
+              3. Confirm the token audience matches your server
+              4. Check clock skew and expiry
+
+              Log why a token was rejected, but never log the token itself.
             resources:
               - post: mcp-authentication-fix-401-remote-server
               - post: mcp-stateless-spec-broke-my-lambda-mcp-server
@@ -273,9 +625,26 @@ stages:
               - Embedding models vs chat models
               - Cosine similarity
               - Dimensions and cost
+            body: |
+              An **embedding** turns text into a list of numbers, a vector. Texts with similar meaning get vectors that sit close together. That lets you search by meaning instead of exact words.
+
+              An **embedding model** is separate from a chat model. It reads text and returns a vector, and it does not write replies.
+
+              ### Key ideas
+              - Similarity is usually measured with **cosine similarity**: the angle between two vectors, from -1 to 1, where higher means more alike
+              - Vectors have a fixed number of **dimensions**, such as hundreds or thousands
+              - More dimensions can capture more detail but use more storage and slow search
+              - Embedding is cheap per token compared with chat models
+              - Always use the same model for stored documents and queries
+
+              ### Common mistakes
+              - Swapping the embedding model without re-embedding everything
+              - Assuming close vectors mean the answer is correct. They only mean related
             resources:
               - { label: "Sentence Transformers", url: "https://www.sbert.net/", kind: docs }
               - { label: "Embeddings (OpenAI docs)", url: "https://platform.openai.com/docs/guides/embeddings", kind: docs }
+              - { label: "Embeddings (Anthropic docs)", url: "https://docs.anthropic.com/en/docs/build-with-claude/embeddings", kind: docs }
+              - { label: "Cosine similarity (Wikipedia)", url: "https://en.wikipedia.org/wiki/Cosine_similarity", kind: article }
           - id: vector-stores
             title: Vector stores
             summary: Store vectors in Postgres with pgvector or a dedicated database and query nearest neighbours.
@@ -283,6 +652,27 @@ stages:
               - pgvector basics
               - Approximate indexes (HNSW, IVF)
               - Filtering by metadata
+            body: |
+              A **vector store** keeps embeddings and finds the nearest ones to a query vector. You can use a dedicated database or add it to Postgres with **pgvector**.
+
+              ### Key ideas
+              - pgvector adds a `vector` column type and distance operators to Postgres
+              - Exact search compares against every row, which is slow at large scale
+              - **Approximate indexes** trade a little accuracy for speed. **HNSW** is a graph index with fast queries. **IVF** groups vectors into lists and searches the nearest few
+              - **Metadata filters** such as tenant, language or date narrow results before ranking
+              - Postgres keeps your vectors next to your normal data and permissions
+
+              ```sql
+              SELECT id, content
+              FROM chunks
+              WHERE tenant_id = $1
+              ORDER BY cosine_distance(embedding, $2)
+              LIMIT 5;
+              ```
+
+              ### Common mistakes
+              - Forgetting the tenant filter
+              - Building an index before choosing the distance metric you query with
             resources:
               - { label: "pgvector", url: "https://github.com/pgvector/pgvector", kind: tool }
               - post: building-a-production-rag-pipeline-on-aws-lambda-pgvector
@@ -294,9 +684,22 @@ stages:
               - BM25 next to vectors
               - Reciprocal rank fusion
               - Rerankers
+            body: |
+              Vector search finds meaning but can miss exact terms like product codes, names and error strings. Keyword search is the reverse. **Hybrid search** runs both and merges the results.
+
+              ### Key ideas
+              - **BM25** is a classic keyword ranking that scores how rare and frequent a term is in a document
+              - Run BM25 and vector search separately, then merge the two ranked lists
+              - **Reciprocal rank fusion** merges by rank, not score. Each result gets 1 divided by (k plus its rank) from each list, and the scores are added
+              - A **reranker** is a model that reads the query and each candidate together and orders them better. Apply it to the top 20 to 50 results
+              - Rerankers add latency and cost, so measure the gain
+
+              ### In practice
+              Add hybrid search when you see retrieval miss exact matches. Build a small set of failing queries, and check that the change fixes them without breaking others.
             resources:
               - { label: "Contextual retrieval (Anthropic)", url: "https://www.anthropic.com/news/contextual-retrieval", kind: article }
               - { label: "Eugene Yan's writing", url: "https://eugeneyan.com/", kind: article }
+              - { label: "Okapi BM25 (Wikipedia)", url: "https://en.wikipedia.org/wiki/Okapi_BM25", kind: article }
 
       - id: rag
         title: Retrieval-augmented generation
@@ -309,6 +712,20 @@ stages:
               - The five stages of RAG
               - Prompting with retrieved context
               - Asking the model to cite sources
+            body: |
+              **Retrieval-augmented generation (RAG)** answers from your documents. You find relevant pieces and put them in the prompt, so the model can use facts it was never trained on.
+
+              ### Key ideas
+              - Five stages: **ingest** documents, **chunk** them, **embed** and store, **retrieve** for a question, **generate** the answer
+              - Each stage can fail. Bad parsing loses text, bad chunks split ideas, weak retrieval misses the answer, a weak prompt ignores the context
+              - Tell the model to answer only from the context and to say when the context does not contain the answer
+              - Number the chunks and ask for citations, so users can check the source
+              - Debug stage by stage. Look at what was retrieved before blaming the model
+
+              ### Common mistakes
+              - Retrieving too much, which buries the answer
+              - No "I don't know" path
+              - Judging the whole pipeline by the final answer alone
             resources:
               - post: building-a-production-rag-pipeline-on-aws-lambda-pgvector
               - { label: "Patterns for LLM systems (Eugene Yan)", url: "https://eugeneyan.com/writing/llm-patterns/", kind: article }
@@ -319,6 +736,22 @@ stages:
               - Chunk size and overlap
               - Parsing PDFs and HTML
               - Re-ingesting changed documents
+            body: |
+              Retrieval can only find what you stored. How you split and clean documents decides that.
+
+              A **chunk** is one piece of a document that gets embedded. Too small and it loses meaning. Too large and it mixes topics and wastes the context window.
+
+              ### Key ideas
+              - Start with a few hundred tokens per chunk and some overlap, then tune using eval results
+              - Split on structure first: headings, paragraphs, sections, then by size
+              - Keep metadata with each chunk: source, title, section, date, permissions
+              - **PDFs and HTML** need cleaning. Remove menus, headers and footers, and check that tables and columns survive
+              - **Re-ingest** when documents change. Track a hash or timestamp, replace old chunks and delete removed documents
+
+              ### Common mistakes
+              - Splitting mid sentence or mid table
+              - Leaving old chunks in the index after an update, so stale answers appear
+              - Never reading the parsed text to see what was actually extracted
             resources:
               - post: rag-ingestion-pipeline-step-functions-lambda
               - { label: "Contextual retrieval (Anthropic)", url: "https://www.anthropic.com/news/contextual-retrieval", kind: article }
@@ -329,6 +762,18 @@ stages:
               - What a managed knowledge base handles
               - Limits on chunking and retrieval
               - When to build your own
+            body: |
+              Services like **Bedrock Knowledge Bases** run the RAG pipeline for you: they read documents from storage, chunk, embed, index and retrieve through one API.
+
+              ### Key ideas
+              - You gain speed. There is little code to write and nothing to host
+              - You give up control. Chunking, parsing and ranking options are limited to what the service offers
+              - Check what it handles: supported file types, sync schedule, metadata filters, and how it handles permissions
+              - Check its limits on chunk strategy and on how results are ranked
+              - **Build your own** when you need custom parsing, hybrid search, fine permissions or tuning that the managed option cannot do
+
+              ### In practice
+              Start managed to prove the idea. Measure retrieval quality with your own questions. If results are good enough, stay. If you keep hitting limits you cannot change, move to your own pipeline, keeping the same eval set to confirm the move helped.
             resources:
               - post: bedrock-agents-production-knowledge-bases
               - { label: "Amazon Bedrock docs", url: "https://docs.aws.amazon.com/bedrock/", kind: docs }
@@ -340,6 +785,22 @@ stages:
               - Per-user document filters
               - Re-checking access on replay
               - Tenant isolation in the index
+            body: |
+              Retrieval must respect who is asking. If your index holds documents from many users or teams, a search can surface something the current user must not see.
+
+              ### Key ideas
+              - **Filter by user or group** inside the retrieval query, not after the model has seen the text
+              - Store access info with each chunk and enforce it on every search
+              - **Re-check access on replay**: a saved chat that cites a document should check again when it is shown, because permissions can change after it was stored
+              - **Tenant isolation**: filter by tenant id on every query, or use separate indexes for strict separation
+              - Never put text the user cannot access into the prompt
+
+              ### Common mistakes
+              - Filtering results after generation, when the model has already used the hidden text
+              - Treating a stored citation as permission to show the source again
+              - One shared index with an optional tenant filter that a bug can skip
+
+              Write a test where user A asks about user B's document and expect nothing back.
             resources:
               - post: persistence-is-not-permission-rag-citation-reauth-chat-replay
               - { label: "OWASP Top 10 for LLM applications", url: "https://genai.owasp.org/", kind: article }
@@ -355,6 +816,23 @@ stages:
               - Prompt chaining, routing and parallel calls
               - When autonomy is worth it
               - Keeping a human in the loop
+            body: |
+              A **workflow** is a fixed path of model calls that your code controls. An **agent** is a model that decides its own steps in a loop, calling tools until it thinks it is done.
+
+              Most problems need a workflow. It is cheaper, faster and easier to test.
+
+              ### Key ideas
+              - **Prompt chaining**: the output of one call feeds the next
+              - **Routing**: a first call picks which path or model handles the input
+              - **Parallel calls**: run independent calls at once, then combine
+              - Use an agent only when steps cannot be known ahead of time and the value justifies the cost
+              - Agents are slower, costlier and can wander or loop
+              - Keep a **human in the loop** for risky actions, such as sending money or deleting data
+
+              ### Common mistakes
+              - Reaching for an agent first
+              - No step limit or budget on the loop
+              - Letting an agent take irreversible actions without approval
             resources:
               - { label: "Building effective agents (Anthropic)", url: "https://www.anthropic.com/research/building-effective-agents", kind: article }
               - { label: "LLM powered agents (Lilian Weng)", url: "https://lilianweng.github.io/posts/2023-06-23-agent/", kind: article }
@@ -365,6 +843,21 @@ stages:
               - Step Functions for LLM pipelines
               - Passing state between steps
               - Long-running jobs
+            body: |
+              A real AI job often has many steps: fetch, call a model, validate, call another, save. Chained inside one function they break on timeouts and are hard to retry.
+
+              A **workflow engine** such as AWS Step Functions runs each step on its own, keeps state and retries only the failed step.
+
+              ### Key ideas
+              - Make each step small with one job
+              - Pass state between steps as small data. Store large text elsewhere and pass a reference
+              - Set a **timeout and retry policy** per step, with backoff
+              - Use catch paths for failures, so a bad input ends in a clear failed state
+              - Long jobs can run for minutes or hours, well past a single function's limit
+              - Make steps **idempotent**, so a retry does not duplicate work or double charge
+
+              ### In practice
+              For a document pipeline, use separate steps for parse, embed and index. If embedding fails, only that step retries, and the parsed text is not read again.
             resources:
               - post: step-functions-llm-orchestration-replacing-lambda-chains
               - post: lambda-microvm-long-ai-workloads
@@ -375,6 +868,18 @@ stages:
               - Action groups and knowledge bases
               - Agent identity and gateways
               - Lock-in trade-offs
+            body: |
+              Cloud providers offer agents as a service. **Bedrock Agents** and **AgentCore** handle tool routing, memory, identity and gateways, so you do not build that plumbing.
+
+              ### Key ideas
+              - **Action groups** define what an agent can do, usually backed by Lambda functions or APIs
+              - **Knowledge bases** give the agent documents to search
+              - **Agent identity** controls who the agent acts as and what it may call
+              - A **gateway** puts your tools behind one controlled entry point
+              - **Lock-in**: prompts, tool definitions and memory formats may not move to another provider easily
+
+              ### In practice
+              Managed platforms save time on auth, scaling and logging. Before committing, list what you would have to rewrite to leave. Keep your tool logic in plain functions, with a thin layer for the provider, so moving stays possible.
             resources:
               - post: bedrock-agents-production-knowledge-bases
               - post: agentcore-gateway-private-ca-without-the-alb
@@ -386,6 +891,19 @@ stages:
               - The codebase as the agent's context
               - Guardrails for agents with cloud access
               - Reviewing agent output
+            body: |
+              A coding agent reads files, edits code and runs commands. It is a good model of what makes any agent work: the right **context**, the right **tools** and **checks** that tell it when it is wrong.
+
+              ### Key ideas
+              - **The codebase is the context**. Clear names, tests, types and a short guide file help the agent more than a clever prompt
+              - Give it tools to run tests, linters and builds, so it can verify its own work
+              - **Guardrails**: if an agent can reach cloud accounts, use read only roles, no production credentials, and approval before changes
+              - **Review output** like a pull request from a new hire: read the diff, run the tests, check what it did not change
+
+              ### Common mistakes
+              - Giving broad credentials for convenience
+              - Merging because the agent says it works
+              - A messy codebase with no tests, then blaming the model
             resources:
               - post: your-agent-is-only-as-good-as-your-codebase
               - post: how-i-make-ai-coding-agents-safe-in-a-real-aws-codebase
@@ -401,9 +919,25 @@ stages:
               - Sourcing cases from real traffic
               - Labelling expected outputs
               - Covering edge cases and failures
+            body: |
+              An **eval set** is a list of real inputs with the outcome you expect. It lets you change a prompt or model and know whether things got better.
+
+              ### Key ideas
+              - Source cases from **real traffic**, support tickets or logs, not only ones you invent
+              - Label the **expected output** or the rules a good answer must meet
+              - Include **edge cases and past failures**, such as empty input, long input, odd formats and adversarial text
+              - Start small. 50 to 200 honest cases beat thousands of synthetic ones
+              - Keep a few cases held out, so you do not tune only to what you can see
+              - Add every new bug as a case
+
+              ### Common mistakes
+              - Using only easy examples
+              - Letting the model write both the questions and the answers, with no human check
+              - Never updating the set as the product changes
             resources:
               - { label: "Hamel Husain on evals", url: "https://hamel.dev/", kind: article }
               - { label: "Anthropic docs", url: "https://docs.anthropic.com/", kind: docs }
+              - { label: "Create strong empirical evaluations (Anthropic docs)", url: "https://docs.anthropic.com/en/docs/test-and-evaluate/develop-tests", kind: docs }
           - id: grading-methods
             title: Grading outputs
             summary: Use code checks where you can, model graders where you must, and humans to calibrate both.
@@ -411,6 +945,20 @@ stages:
               - Exact match and assertions
               - LLM as a judge
               - Checking the judge against people
+            body: |
+              Grading answers is the hard part of evals. Use the cheapest method that works for each check.
+
+              ### Key ideas
+              - **Code checks first**: exact match, regex, valid JSON, a field equals a value, a function returns the right result. Fast, free and repeatable
+              - **LLM as a judge**: a second model scores answers against a rubric when meaning matters, such as helpfulness or tone
+              - Give the judge a clear rubric with a small scale, and ask for the reason before the score
+              - **Calibrate with people**: have a human grade a sample, compare to the judge, and fix the rubric until they agree
+              - Judges have biases, such as favouring longer answers or their own style
+
+              ### Common mistakes
+              - Using a judge for something code can check
+              - Trusting a judge you never compared with human grades
+              - Using the same model to generate and judge, which can inflate scores
             resources:
               - { label: "Hamel Husain on evals", url: "https://hamel.dev/", kind: article }
               - { label: "OpenAI evals", url: "https://github.com/openai/evals", kind: tool }
@@ -421,6 +969,20 @@ stages:
               - A pass threshold per suite
               - Handling non-determinism
               - Tracking scores over time
+            body: |
+              Run your evals automatically on every prompt, model or retrieval change, just like unit tests. A change that lowers quality should fail the build.
+
+              ### Key ideas
+              - Set a **pass threshold per suite**, such as 90 percent on extraction and no failures on safety cases
+              - Model output varies, so for **non-determinism** use lower temperature, run each case several times, and compare averages instead of one run
+              - Keep a quick small suite for every pull request and a larger one nightly
+              - **Track scores over time** so you can see slow drifts and compare models
+              - Save the failing cases and outputs in the CI log so people can read them
+
+              ### Common mistakes
+              - A threshold so strict that random noise fails builds
+              - Evals that cost too much and get skipped
+              - No baseline, so nobody knows what a good score is
             resources:
               - { label: "Langfuse docs", url: "https://langfuse.com/docs", kind: docs }
               - post: production-ai-code-review-for-terraform-and-lambda-prs
@@ -432,6 +994,18 @@ stages:
               - Recall and precision of retrieval
               - Faithfulness to sources
               - Answer relevance
+            body: |
+              A RAG system has two parts that can fail separately: **retrieval** and **generation**. Score each, so you know which half to fix.
+
+              ### Key ideas
+              - **Retrieval recall**: for each question, was the chunk that holds the answer in the results? Needs questions with known source chunks
+              - **Retrieval precision**: how much of what you retrieved was useful, versus noise
+              - **Faithfulness**: does the answer stick to the retrieved sources, with no invented claims?
+              - **Answer relevance**: does the answer address the question that was asked?
+              - Faithfulness and relevance are often scored with an LLM judge, checked against human grades
+
+              ### In practice
+              If recall is low, fix chunking, embeddings or search. If recall is high but answers are wrong, fix the prompt or the model. Without the split you will tune the wrong half.
             resources:
               - { label: "Ragas docs", url: "https://docs.ragas.io/", kind: docs }
 
@@ -446,9 +1020,24 @@ stages:
               - Traces and spans for LLM apps
               - Langfuse and OpenTelemetry
               - Redacting sensitive data in traces
+            body: |
+              A **trace** records everything that happened for one request: the prompt, retrieved chunks, tool calls, the reply, latency and tokens. When a user says "the answer was wrong", the trace shows why.
+
+              ### Key ideas
+              - A trace holds **spans**, one per step, such as a retrieval, a model call or a tool run
+              - Record inputs, outputs, model name, token counts, cost and timing on each span
+              - **Langfuse** is a tool made for LLM traces. **OpenTelemetry** is the general standard and has conventions for generative AI calls
+              - Link a trace to a user, session and release
+              - **Redact sensitive data** before storing: emails, tokens, personal details. Decide how long traces are kept
+
+              ### Common mistakes
+              - Logging full prompts with secrets or personal data in plain text
+              - Only logging errors, so slow or bad but successful answers are invisible
+              - Traces nobody can search by user or session
             resources:
               - post: llm-observability-langfuse-lambda-cloudwatch
               - { label: "Langfuse docs", url: "https://langfuse.com/docs", kind: docs }
+              - { label: "Semantic conventions for generative AI (OpenTelemetry)", url: "https://opentelemetry.io/docs/specs/semconv/gen-ai/", kind: docs }
           - id: token-cost-control
             title: Controlling token cost
             summary: Prompt caching, smaller models and shorter contexts cut cost without hurting quality.
@@ -456,6 +1045,20 @@ stages:
               - Cost per request and per user
               - Prompt caching
               - Routing easy requests to small models
+            body: |
+              Cost is tokens times price. Control it by sending fewer tokens, using cheaper models where you can, and reusing work.
+
+              ### Key ideas
+              - Measure **cost per request and per user**. Without it you cannot find the expensive feature
+              - **Prompt caching** lets the provider reuse a long stable prefix, such as a system prompt or document, at a lower price and faster. Put fixed content first and changing content last
+              - **Route** easy requests to a small model and send only hard ones to a large model
+              - Shorten context: trim history, send only relevant chunks, limit `max_tokens`
+              - Cache full answers for repeated identical questions
+
+              ### Common mistakes
+              - Putting a changing value, like a timestamp, at the start of the prompt, which breaks caching
+              - Sending the whole chat history forever
+              - Switching to a cheaper model without running evals
             resources:
               - { label: "Prompt caching (Anthropic docs)", url: "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching", kind: docs }
               - post: 5-aws-mistakes-quietly-draining-your-bank-account
@@ -467,6 +1070,18 @@ stages:
               - Time to first token vs total latency
               - Parallel calls
               - Cold starts on serverless
+            body: |
+              Users feel two delays. **Time to first token** is how long until text starts. **Total latency** is how long until it finishes. Streaming improves the first, shorter output improves the second.
+
+              ### Key ideas
+              - Set a **budget** for the whole request and split it across steps: retrieval, model call, validation
+              - Output tokens take the most time, so ask for short answers when you can
+              - Run **independent calls in parallel**, such as retrieval and a permission check
+              - A smaller model is often much faster
+              - **Cold starts** on serverless add delay on the first request after idle. Reduce them with smaller packages, warm capacity or features like SnapStart
+
+              ### In practice
+              Measure each step in your traces. Find the slowest one before you change anything. Often it is a sequential chain of calls that could run side by side.
             resources:
               - post: lambda-snapstart-terraform-cold-starts
               - { label: "Chip Huyen's blog", url: "https://huyenchip.com/blog/", kind: article }
@@ -482,6 +1097,21 @@ stages:
               - Citations and previews
               - Undo and edit before apply
               - Setting expectations in the UI
+            body: |
+              Models are sometimes wrong. A good interface assumes that and gives the user ways to check and fix the result.
+
+              ### Key ideas
+              - **Citations and previews**: show the source of a claim and let the user open it
+              - **Undo and edit before apply**: show a draft and let the person change it before it takes effect. Make AI actions reversible
+              - **Set expectations**: say what the feature can do and where it can be wrong, in plain words near the output
+              - Label AI generated content clearly
+              - Show confidence only if it is meaningful, and not as a made up percentage
+              - Make it easy to report a bad answer
+
+              ### Common mistakes
+              - Auto applying changes with no preview
+              - Hiding that a model wrote the text
+              - A confident tone for uncertain answers
             resources:
               - { label: "People + AI Guidebook (Google)", url: "https://pair.withgoogle.com/guidebook/", kind: article }
               - { label: "Chip Huyen's blog", url: "https://huyenchip.com/blog/", kind: article }
@@ -492,6 +1122,21 @@ stages:
               - Explicit vs implicit feedback
               - Linking feedback to traces
               - Turning feedback into eval cases
+            body: |
+              Users tell you how well the feature works, if you capture it. Store the signals and turn the useful ones into evals.
+
+              ### Key ideas
+              - **Explicit feedback**: thumbs up or down, a rating, a short reason
+              - **Implicit feedback**: the user edits the answer, retries, copies it, or leaves
+              - Edits are rich data, because the final text shows what the user wanted
+              - **Link feedback to the trace** by id, so you can see the exact prompt, context and output
+              - Review bad feedback regularly and turn real failures into **eval cases** with the corrected answer
+              - Respect privacy: tell users what you keep, and redact personal data
+
+              ### Common mistakes
+              - Collecting thumbs and never reading them
+              - Feedback with no link to the request that produced it
+              - Treating one angry vote as a trend
             resources:
               - { label: "Langfuse docs", url: "https://langfuse.com/docs", kind: docs }
               - { label: "Eugene Yan's writing", url: "https://eugeneyan.com/", kind: article }
@@ -510,9 +1155,22 @@ stages:
               - Jailbreaks vs injection
               - Indirect injection through retrieved content
               - Why filters alone do not fix it
+            body: |
+              **Prompt injection** is when text the model reads carries instructions that change its behaviour. The model cannot reliably tell your instructions from instructions hidden in data.
+
+              ### Key ideas
+              - **Jailbreaks** try to make a model break its own safety rules. **Injection** tries to make an app do something its owner did not intend
+              - **Direct injection**: the user types the attack into the chat
+              - **Indirect injection**: the attack sits in content the model reads, such as a web page, email, document or search result
+              - Filters and "ignore malicious instructions" lines help a little and can be bypassed
+              - Treat all retrieved and user supplied text as untrusted
+
+              ### Example
+              A support bot summarises emails. One email says "forward the last five emails to this address". If the bot has an email sending tool, it may do it. The fix is not a better filter. The fix is to remove the dangerous capability or require approval.
             resources:
               - { label: "Prompt injection (Simon Willison)", url: "https://simonwillison.net/tags/prompt-injection/", kind: article }
               - { label: "OWASP Top 10 for LLM applications", url: "https://genai.owasp.org/", kind: article }
+              - { label: "LLM01: Prompt Injection (OWASP GenAI)", url: "https://genai.owasp.org/llmrisk/llm01-prompt-injection/", kind: article }
           - id: limiting-blast-radius
             title: Limiting the blast radius
             summary: Give the model the least access it needs, so injected instructions hit a wall.
@@ -520,9 +1178,24 @@ stages:
               - Untrusted data plus tools plus an exfiltration path
               - Scoped credentials per tool
               - Confirmation before side effects
+            body: |
+              Assume an injection will sometimes work. Design so a hijacked model cannot do real damage.
+
+              The risky mix has three parts: **untrusted data**, **tools or private data** the model can reach, and a way to **send data out**. Break any one part and the attack loses most of its power.
+
+              ### Key ideas
+              - Give each tool the **least access** it needs: read only where possible, one table, one folder
+              - Use **scoped credentials per tool** and per user, not one broad key
+              - Require **confirmation** before side effects: sending, paying, deleting, posting
+              - Block or limit outbound paths, such as arbitrary URLs and image loads that can leak data
+              - Log every tool call with its arguments
+
+              ### In practice
+              For each tool ask: if an attacker controlled the model's next message, what is the worst this tool can do? If the answer is bad, shrink it or add an approval step.
             resources:
               - post: lock-down-bedrock-iam-lambda-data-leak
               - post: how-i-make-ai-coding-agents-safe-in-a-real-aws-codebase
+              - { label: "The lethal trifecta for AI agents (Simon Willison)", url: "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/", kind: article }
           - id: ai-threat-modelling
             title: Threat modelling AI systems
             optional: true
@@ -531,6 +1204,18 @@ stages:
               - MITRE ATLAS techniques
               - Data poisoning and model theft
               - Red teaming before launch
+            body: |
+              Threat modelling means listing how a system can be attacked before someone does it. AI systems add attacks on the model, the data and the tools around it.
+
+              ### Key ideas
+              - **MITRE ATLAS** is a catalogue of attack techniques against AI systems, like ATT&CK for ML. Use it as a checklist
+              - The **NIST AI Risk Management Framework** gives a structure for finding and managing AI risk
+              - **Data poisoning**: an attacker puts bad data into training or retrieval sources
+              - **Model theft**: copying a model through many queries or leaked weights
+              - **Red teaming**: before launch, have people try to break the system, using real attack ideas
+
+              ### In practice
+              Draw the data flow: who sends input, what the model sees, which tools it can call, where output goes. Mark each place where untrusted text enters. List attacks there, rank by impact, and fix the worst first. Repeat after major changes.
             resources:
               - { label: "MITRE ATLAS", url: "https://atlas.mitre.org/", kind: docs }
               - { label: "NIST AI Risk Management Framework", url: "https://www.nist.gov/itl/ai-risk-management-framework", kind: docs }
@@ -546,6 +1231,22 @@ stages:
               - PII detection and redaction
               - Content filters
               - Topic restrictions
+            body: |
+              Put checks before and after the model. Input checks screen what goes in. Output checks screen what comes out.
+
+              ### Key ideas
+              - **PII detection and redaction**: find names, emails, card numbers and ids, then mask them before they reach the model or logs
+              - **Content filters** block hateful, violent or other harmful content, with levels you can set
+              - **Topic restrictions** keep a bot on subject, for example a billing bot that will not give legal advice
+              - Managed options such as **Bedrock Guardrails** cover these with configuration
+              - Output checks also catch leaked system prompts, secrets and banned claims
+
+              ### Common mistakes
+              - Relying on a filter as the only defence
+              - Checking input but not output
+              - Never testing filters, which leads to both missed attacks and blocked real users
+
+              Measure false positives and false negatives on a sample, and tune from there.
             resources:
               - { label: "Bedrock Guardrails (AWS docs)", url: "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html", kind: docs }
               - post: bedrock-agents-production-knowledge-bases
@@ -556,6 +1257,21 @@ stages:
               - What never goes in a prompt
               - Tenant boundaries in context
               - Provider data retention settings
+            body: |
+              Anything in a prompt can show up in an output, a log or a trace. Control what goes in.
+
+              ### Key ideas
+              - **Never put in a prompt**: API keys, passwords, tokens, other users' personal data, or secrets from your config
+              - **Tenant boundaries**: build context from one tenant's data only, and enforce it in code, not by telling the model to behave
+              - Strip or mask personal data before sending it when the task does not need it
+              - **Provider data retention**: read the settings. Check whether prompts are stored, for how long, and whether they train models. Choose zero or short retention where you can
+              - Scrub secrets from logs and traces
+              - Do not let the model see what the user may not see
+
+              ### Common mistakes
+              - Pasting a whole config file into a prompt for debugging
+              - Shared caches that mix tenants
+              - Logging full prompts forever
             resources:
               - post: lock-down-bedrock-iam-lambda-data-leak
               - post: multi-tenant-saas-auth-lambda-fastify
@@ -567,6 +1283,18 @@ stages:
               - HIPAA and eligible services
               - GDPR and data residency
               - Audit trails
+            body: |
+              Health, finance and personal data come with legal rules. They affect which services you can use, where the model runs, and what you must record.
+
+              ### Key ideas
+              - **HIPAA** covers US health data. Use only services your provider lists as HIPAA eligible, sign the required agreement, and limit access
+              - **GDPR** covers personal data of people in the EU. Know the legal basis, keep data in allowed regions, and support deletion and access requests
+              - **Data residency**: pick a region that keeps data where the law needs it, and check that cross region inference does not move it
+              - **Audit trails**: record who accessed what and when, and protect those records
+              - Send as little personal data as you can
+
+              ### In practice
+              Before building, ask legal or compliance which rules apply. This lesson is not legal advice. Treat the model provider as a data processor and confirm its terms.
             resources:
               - post: how-to-use-aws-sagemaker-for-hipaa-compliant-data-a-complete-guide
               - { label: "GDPR overview", url: "https://gdpr.eu/", kind: article }
@@ -582,6 +1310,22 @@ stages:
               - Prompting, RAG, then fine-tuning, in that order
               - Tasks that benefit from tuning
               - Data you need before starting
+            body: |
+              **Fine-tuning** trains a model further on your examples. It is strong for style and format. It is a poor way to add facts.
+
+              ### Key ideas
+              - Try in this order: better **prompting**, then **RAG** for facts, then **fine-tuning**
+              - Good fits: a consistent tone, a strict output format, a narrow task done at high volume where a small tuned model beats a large prompted one
+              - Bad fits: teaching new facts that change, and fixing problems a clearer prompt would fix
+              - **Data needed**: hundreds to thousands of clean, correct examples, plus a held out test set
+              - A tuned model is tied to a base model. When the base is retired you may need to train again
+
+              ### Common mistakes
+              - Fine-tuning before you have evals
+              - Training on messy or wrong examples
+              - Expecting it to remove all errors
+
+              If you cannot measure improvement, you cannot tell whether tuning helped.
             resources:
               - { label: "Chip Huyen's blog", url: "https://huyenchip.com/blog/", kind: article }
               - { label: "Fine-tuning (OpenAI docs)", url: "https://platform.openai.com/docs/guides/fine-tuning", kind: docs }
@@ -593,8 +1337,21 @@ stages:
               - LoRA in plain terms
               - Training on a single GPU
               - Serving adapters
+            body: |
+              Full fine-tuning updates every weight, which needs lots of GPU memory. **LoRA** (low-rank adaptation) freezes the base model and trains small extra matrices called adapters. Only a tiny share of parameters change.
+
+              ### Key ideas
+              - Adapters are small files, often megabytes, not the full model size
+              - Combined with quantisation (as in QLoRA), a decent model can be tuned on a **single GPU**
+              - **PEFT** is the family of parameter-efficient methods, and the Hugging Face `peft` library implements LoRA
+              - **Serving adapters**: load one base model and swap adapters per customer or task. Some inference servers support this
+              - Quality can come close to full fine-tuning on many tasks
+
+              ### In practice
+              Start with a small open model and a few hundred good examples. Compare the tuned model with the base using your evals. If gains are small, better prompts may be the cheaper answer.
             resources:
               - { label: "PEFT docs (Hugging Face)", url: "https://huggingface.co/docs/peft", kind: docs }
+              - { label: "LoRA conceptual guide (Hugging Face PEFT)", url: "https://huggingface.co/docs/peft/conceptual_guides/lora", kind: docs }
           - id: distillation
             title: Distillation to smaller models
             summary: Use a large model's outputs to train a small one that is cheaper and faster for one task.
@@ -602,6 +1359,20 @@ stages:
               - Generating training data with a large model
               - Checking quality with your evals
               - Licence terms on model outputs
+            body: |
+              **Distillation** uses a large model to teach a small one. The large model produces answers for your inputs, and you train the small model on them. The result is cheaper and faster for one task.
+
+              ### Key ideas
+              - **Generate training data** by running a strong model over real, varied inputs
+              - Review a sample by hand. Wrong outputs teach wrong behaviour
+              - **Check quality with your evals**. The small model must match the large one on your cases, and you should compare on a held out set
+              - Works best for narrow tasks such as classification, extraction or a fixed format
+              - **Licence terms**: some providers forbid using their outputs to train competing models. Read the terms before you start
+
+              ### Common mistakes
+              - Training on outputs you never checked
+              - Testing on the same data you trained on
+              - Expecting the small model to match the large one on tasks outside the training range
             resources:
               - { label: "Hugging Face LLM course", url: "https://huggingface.co/learn", kind: course }
               - { label: "Eugene Yan's writing", url: "https://eugeneyan.com/", kind: article }
@@ -617,6 +1388,20 @@ stages:
               - Request timeouts at each hop
               - Queues and job status
               - Detecting jobs that silently write nothing
+            body: |
+              Short calls can answer inside the request. Long generations should go to a queue, with the client checking back for the result.
+
+              ### Key ideas
+              - Count **timeouts at each hop**: browser, CDN, load balancer, API gateway, function. The shortest one wins
+              - A common pattern: the API accepts the job, returns a **job id**, a worker does the work from a queue, and the client polls or gets a push when it is done
+              - Store **job status**: queued, running, succeeded, failed, with timestamps and an error
+              - Make workers **idempotent**, and send repeated failures to a dead letter queue
+              - Watch for jobs that **finish without writing anything**: a success status with empty output. Check output exists and alert on it
+
+              ### Common mistakes
+              - Marking a job done when the function returned, not when the result was saved
+              - No limit on how long a job may stay running
+              - Silent failures nobody sees
             resources:
               - post: running-ai-background-jobs-serverlessly-with-sqs-lambda-bedrock
               - post: catch-lambda-jobs-that-succeed-but-write-nothing
@@ -627,6 +1412,20 @@ stages:
               - Connection management
               - Storing and replaying history
               - Cancelling a generation
+            body: |
+              Chat needs a live connection so the server can push tokens as they come. Choose **WebSockets** for two way messages or **SSE** for one way streaming.
+
+              ### Key ideas
+              - **Connection management**: track open connections, handle idle timeouts, and clean up when clients leave
+              - **Reconnects**: clients drop often. Reconnect with backoff and ask for what they missed
+              - **Store history** in a database, with message ids and order. Replay it when a client returns or when you build the next prompt
+              - **Cancel a generation**: let the user stop, and stop the provider call too, or you keep paying for tokens
+              - Authenticate the connection, and check access to the conversation on every message
+
+              ### Common mistakes
+              - Keeping history only in browser memory
+              - No way to resume after a drop
+              - Letting any client join any conversation id
             resources:
               - post: real-time-ai-chat-with-lambda-api-gateway-websockets
           - id: multi-tenant-ai
@@ -636,6 +1435,18 @@ stages:
               - Usage metering per tenant
               - Quotas and fair use
               - Billing for tokens
+            body: |
+              In a multi-tenant product many customers share one system. Each customer's data, prompts and usage must stay separate.
+
+              ### Key ideas
+              - **Meter usage per tenant**: record input and output tokens, model and feature on each call
+              - **Quotas and fair use**: set limits per tenant and per plan, so one noisy tenant cannot use all your provider capacity
+              - **Bill for tokens**: turn metered usage into invoices or credits. Add a margin for retries and overhead
+              - **Isolate data**: every query filters by tenant, and caches and indexes are keyed by tenant
+              - Keep per tenant prompts and settings separate, and never let one tenant's text reach another's context
+
+              ### In practice
+              Write the usage record at the moment of the model call, with a tenant id, and aggregate later. Alert when a tenant nears a quota. Test isolation with a case where tenant A asks for tenant B's data.
             resources:
               - post: how-i-architected-a-fully-serverless-saas-on-aws-lambda-with-fastify
               - post: multi-tenant-billing-aws-lambda-stripe
@@ -647,6 +1458,20 @@ stages:
               - One interface, several providers
               - Cross-region inference
               - Re-running evals on the fallback
+            body: |
+              Providers have outages, rate limits and retired models. A failover plan means one of those does not take your product down.
+
+              ### Key ideas
+              - **One interface, several providers**: your code calls a small wrapper, and each provider has an adapter
+              - Many providers offer an OpenAI-compatible API, which makes adapters thinner
+              - **Cross-region inference** routes requests across regions of one provider for more capacity and resilience. Check data residency first
+              - **Re-run evals on the fallback**. A different model behaves differently, and prompts may need small changes
+              - Test failover on purpose, with a flag or a drill, not for the first time in an outage
+
+              ### Common mistakes
+              - A fallback that was never tested
+              - Different output formats between providers that break your parser
+              - Retrying the same failing provider forever
             resources:
               - post: migrated-lambda-ai-app-to-bedrock-openai-compatible-apis-without-rewriting-everything
               - { label: "Amazon Bedrock docs", url: "https://docs.aws.amazon.com/bedrock/", kind: docs }
@@ -662,6 +1487,20 @@ stages:
               - Feature flags for prompts and models
               - Shadow traffic
               - Online metrics vs offline evals
+            body: |
+              Release AI changes slowly and be ready to undo them. A new prompt or model can look good offline and behave worse with real users.
+
+              ### Key ideas
+              - **Feature flags** pick the prompt or model per request or per user, so you can roll out to 5 percent first and revert in seconds
+              - **Shadow traffic**: run the new version on real requests, log its output, and do not show it to users. Compare with the live one
+              - **A/B tests**: split users, compare a metric such as task success, edits or thumbs up
+              - **Offline evals** are fast and safe but use a fixed set. **Online metrics** show real behaviour and take longer
+              - Use both, and watch cost and latency, not only quality
+
+              ### Common mistakes
+              - Changing a prompt in production for everyone at once
+              - Deciding from a handful of examples
+              - No rollback path
             resources:
               - { label: "Chip Huyen's blog", url: "https://huyenchip.com/blog/", kind: article }
               - { label: "Langfuse docs", url: "https://langfuse.com/docs", kind: docs }
@@ -672,6 +1511,20 @@ stages:
               - Terraform for Bedrock and Lambda
               - CI/CD for AI services
               - Secrets for provider keys
+            body: |
+              Define the infrastructure for your AI feature in code, such as Terraform, and deploy it through CI. Then it is reviewed, repeatable and easy to rebuild.
+
+              ### Key ideas
+              - Describe in Terraform: Bedrock model access, Lambda functions, queues, IAM roles, API endpoints
+              - Give each function a **least privilege** role that allows only the models and resources it uses
+              - **CI/CD**: on pull request run `terraform plan` and tests. On merge, apply to staging, then production
+              - **Secrets for provider keys**: keep them in a secrets manager and read at run time. Never commit them or put them in plain environment files
+              - Remember that Terraform state can contain secrets, so protect it
+
+              ### Common mistakes
+              - Clicking resources into existence in the console
+              - One wide IAM policy shared by every function
+              - Applying to production from a laptop
             resources:
               - post: github-actions-lambda-terraform-cicd
               - post: terraform-state-more-sensitive-than-env
@@ -683,6 +1536,20 @@ stages:
               - A pre-merge checklist
               - AI-assisted code review
               - What humans must still check
+            body: |
+              AI writes code fast, so more code reaches review. Review and automated checks must keep up, or quality drops.
+
+              ### Key ideas
+              - Use a **pre-merge checklist**: tests pass, types and lint pass, no secrets, no new dependency without a reason, permissions and infra changes read carefully
+              - **AI-assisted review** can catch typos, missing checks and risky patterns, as a first pass before a person
+              - **Humans must still check**: intent (does this solve the right problem), security, data handling, migrations and cost
+              - Keep pull requests small. Large generated diffs get skimmed
+              - Ask the author to explain the change, whether a person or an agent wrote it
+
+              ### Common mistakes
+              - Merging because it looks right and tests are green, when tests are thin
+              - Letting the agent edit its own tests to make them pass
+              - Skipping review on infra code because it is "just config"
             resources:
               - post: pre-merge-checklist-ai-generated-prs
               - post: production-ai-code-review-for-terraform-and-lambda-prs
@@ -698,6 +1565,18 @@ stages:
               - Provider changelogs and model deprecations
               - A short list of practitioners to follow
               - Re-running evals when a new model ships
+            body: |
+              The field changes monthly. Blog posts age fast, so go to the source and keep a few trusted people in your feed.
+
+              ### Key ideas
+              - Read **provider docs and changelogs**. New features, limits and prices appear there first
+              - Watch **model deprecation notices**. A model you use will be retired, with a date
+              - Follow a **short list of practitioners** who test things and show their work, and ignore hype and benchmarks without method
+              - **Re-run your evals when a new model ships**. Do not assume newer means better for your task
+              - Keep notes on what you tried and what you learned
+
+              ### In practice
+              Once a month, skim the changelog of each provider you use. Add one line to your team notes for anything that affects you. When a new model appears, run your eval set against it and compare quality, cost and speed before you switch.
             resources:
               - { label: "Simon Willison's weblog", url: "https://simonwillison.net/", kind: article }
               - { label: "Chip Huyen's blog", url: "https://huyenchip.com/blog/", kind: article }
@@ -709,6 +1588,17 @@ stages:
               - The AI engineering stack
               - Where ML engineering and AI engineering differ
               - Building a career in it
+            body: |
+              **AI engineering** is building applications on top of existing foundation models. It differs from classic ML engineering, which trains models from scratch.
+
+              ### Key ideas
+              - The **AI engineering stack** has layers: the application (prompts, UI), the model layer (APIs, fine-tuning, inference), and infrastructure (data, serving, monitoring)
+              - In **ML engineering** you collect data and train a model first. In **AI engineering** you start from a model that already exists and spend effort on prompts, retrieval, evals and product
+              - Evaluation is a bigger share of the work, because outputs are open ended
+              - The skills are a mix of software engineering, product sense and enough ML knowledge to reason about models
+
+              ### Building a career
+              Build small real projects and ship them. Write evals for them. Learn to read traces and fix failures. Share what you learn. Breadth in backend work, data and security helps as much as model knowledge.
             resources:
               - { label: "AI Engineering (Chip Huyen, O'Reilly)", url: "https://www.oreilly.com/library/view/ai-engineering/9781098166298/", kind: course }
               - { label: "DeepLearning.AI short courses", url: "https://www.deeplearning.ai/short-courses/", kind: course }

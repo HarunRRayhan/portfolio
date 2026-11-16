@@ -3,7 +3,7 @@ title: System Design
 summary: From how a client talks to a server to designing large distributed systems. Learn caching, load balancing, databases, queues and consistency, then put them together on well-known designs.
 order: 7
 category: foundations
-updated: '2026-11-15'
+updated: '2026-11-16'
 icon: network
 color: cyan
 logos:
@@ -26,9 +26,29 @@ stages:
               - DNS lookup, TCP and TLS handshakes
               - HTTP methods, status codes and headers
               - Stateless requests
+            body: |
+              When you type a URL, the browser first finds the server's IP address with **DNS**. It then opens a **TCP** connection and, for HTTPS, a **TLS** handshake to set up encryption. Only then does it send the HTTP request.
+
+              An HTTP request has a method, a path, headers and sometimes a body. The server answers with a status code, headers and a body.
+
+              ### Key ideas
+              - DNS turns a name into an IP address, and answers are cached at several levels
+              - TCP and TLS handshakes cost round trips before any data moves
+              - Methods say what to do: `GET` reads, `POST` creates, `PUT` replaces, `DELETE` removes
+              - Status codes group by first digit: 2xx success, 3xx redirect, 4xx client error, 5xx server error
+              - Headers carry metadata such as `Content-Type`, `Cache-Control` and `Authorization`
+              - HTTP is **stateless**: each request stands alone, so the server keeps no memory of earlier ones unless you add cookies or tokens
+
+              ### Example
+              ```bash
+              curl -i https://example.com/
+              ```
+              The `-i` flag prints the status line and headers before the body.
             resources:
               - { label: "An overview of HTTP (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview", kind: docs }
               - { label: "What is DNS? (Cloudflare)", url: "https://www.cloudflare.com/learning/dns/what-is-dns/", kind: article }
+              - { label: "HTTP response status codes (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status", kind: docs }
+              - { label: "HTTP headers (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers", kind: docs }
           - id: http-versions
             title: HTTP/1.1, HTTP/2 and HTTP/3
             summary: How each HTTP version changes connection reuse and latency, and why it matters at scale.
@@ -36,9 +56,24 @@ stages:
               - Keep-alive and head-of-line blocking
               - Multiplexing in HTTP/2
               - QUIC in HTTP/3
+            body: |
+              HTTP/1.1 sends one request at a time per connection. Browsers worked around this by opening many connections. HTTP/2 and HTTP/3 fix the root problem.
+
+              ### Key ideas
+              - **Keep-alive** reuses one TCP connection for many requests, which saves handshakes
+              - In HTTP/1.1 a slow response blocks the ones behind it. This is **head-of-line blocking**
+              - **HTTP/2** multiplexes many streams over one connection and compresses headers
+              - HTTP/2 still runs on TCP, so one lost packet stalls every stream
+              - **HTTP/3** runs over **QUIC**, which is built on UDP. Streams are independent, so a lost packet only stalls its own stream
+              - QUIC also folds the TLS handshake in, so new connections are faster and survive a network change
+
+              ### In practice
+              Most CDNs and load balancers already speak HTTP/2 and HTTP/3 to browsers, then use HTTP/1.1 or HTTP/2 to your origin. At scale, fewer connections means less memory and fewer handshakes on your servers.
             resources:
               - { label: "Evolution of HTTP (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Evolution_of_HTTP", kind: docs }
               - { label: "What is HTTP/3? (Cloudflare)", url: "https://www.cloudflare.com/learning/performance/what-is-http3/", kind: article }
+              - { label: "Making the web faster with HTTP/2 (web.dev)", url: "https://web.dev/articles/performance-http2", kind: article }
+              - { label: "HTTP/3 explained (Daniel Stenberg)", url: "https://http3-explained.haxx.se/", kind: article }
           - id: latency-numbers
             title: Latency numbers
             optional: true
@@ -46,8 +81,22 @@ stages:
             learn:
               - Memory vs SSD vs network round trip
               - Same region vs cross-region latency
+            body: |
+              You can judge a design before building it if you know roughly how slow each operation is. Exact numbers change with hardware, but the ratios stay close.
+
+              ### Key ideas
+              - Reading from memory takes about 100 nanoseconds
+              - An SSD random read takes tens to hundreds of microseconds
+              - A round trip inside one data centre takes about half a millisecond
+              - A round trip across continents takes 100 milliseconds or more, and light speed sets the floor
+              - Each step is roughly 10 to 1,000 times slower than the one before
+              - So: avoid network calls in loops, cache what you can, and keep users near their data
+
+              ### Example
+              A page needs 50 database lookups. At 0.5 ms each in the same region, that is 25 ms. If the database is in another region at 80 ms per call, it is 4 seconds. Batch the lookups or move the data closer.
             resources:
               - { label: "system-design-primer: latency numbers", url: "https://github.com/donnemartin/system-design-primer#latency-numbers-every-programmer-should-know", kind: article }
+              - { label: "Interactive latency numbers over time (Colin Scott)", url: "https://colin-scott.github.io/personal_website/research/interactive_latency.html", kind: tool }
 
       - id: apis
         title: API styles
@@ -60,9 +109,24 @@ stages:
               - Resources and URLs
               - Idempotent vs non-idempotent methods
               - Pagination and versioning
+            body: |
+              REST models your system as **resources**: things like users or orders, each with a URL. Clients use standard HTTP methods on those URLs. Good design means a new developer can guess the endpoints.
+
+              ### Key ideas
+              - Use nouns in URLs: `/users/42/orders`, not `/getUserOrders`
+              - `GET`, `PUT` and `DELETE` are **idempotent**: repeating them leaves the same result. `POST` usually is not
+              - Use proper status codes: `201` for created, `404` for missing, `409` for a conflict
+              - **Pagination** keeps lists small. Cursor-based pagination stays stable when rows are added, offset-based does not
+              - **Versioning** lets you change the API without breaking clients, for example `/v1/` in the path or a header
+
+              ### Common mistakes
+              - Returning `200` with an error message in the body
+              - Unbounded list endpoints that return every row
+              - Breaking a field's meaning without a new version
             resources:
               - { label: "HTTP request methods (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods", kind: docs }
               - { label: "ByteByteGo blog", url: "https://blog.bytebytego.com/", kind: article }
+              - { label: "HTTP response status codes (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status", kind: docs }
           - id: grpc-graphql
             title: gRPC and GraphQL
             summary: When a binary RPC protocol or a query language fits better than plain REST.
@@ -70,9 +134,23 @@ stages:
               - Protocol buffers and streaming in gRPC
               - Client-shaped queries in GraphQL
               - Trade-offs against REST
+            body: |
+              REST is the default, but two other styles solve real problems. **gRPC** is a fast binary RPC protocol. **GraphQL** lets the client ask for exactly the fields it needs.
+
+              ### Key ideas
+              - gRPC uses **protocol buffers**: you define messages and services in a `.proto` file, and code is generated for each language
+              - Payloads are small and typed, and gRPC runs over HTTP/2 with built-in streaming
+              - gRPC fits service-to-service calls inside your system. Browsers need a proxy layer to use it
+              - GraphQL exposes one endpoint and a typed schema. The client sends a query naming the fields it wants
+              - This avoids over-fetching and many round trips, which helps mobile apps
+              - Costs: GraphQL makes HTTP caching harder, and a deep query can be expensive, so you need depth and cost limits
+
+              ### In practice
+              A common split: REST or GraphQL for public clients, gRPC between internal services.
             resources:
               - { label: "gRPC docs", url: "https://grpc.io/docs/", kind: docs }
               - { label: "Learn GraphQL", url: "https://graphql.org/learn/", kind: docs }
+              - { label: "Protocol Buffers overview (protobuf.dev)", url: "https://protobuf.dev/overview/", kind: docs }
           - id: real-time-connections
             title: Polling, SSE and WebSockets
             summary: How a server pushes data to clients, and what each option costs in open connections.
@@ -80,9 +158,24 @@ stages:
               - Short and long polling
               - Server-sent events
               - WebSockets and connection state
+            body: |
+              HTTP is request first. To push data to a client you need another pattern. Each one trades simplicity against open connections.
+
+              ### Key ideas
+              - **Short polling**: the client asks every few seconds. Simple, but wasteful and delayed
+              - **Long polling**: the server holds the request open until data arrives, then the client asks again
+              - **Server-sent events (SSE)**: one long HTTP response that streams events from server to client. It reconnects on its own
+              - **WebSockets**: a two-way channel on one connection. Best for chat, games and live collaboration
+              - Every open connection uses memory on a server, so 100,000 users means 100,000 connections to hold
+              - WebSocket servers keep state about each connection, so routing and scaling need extra thought
+
+              ### Common mistakes
+              - Using WebSockets when SSE is enough for one-way updates
+              - Forgetting heartbeats, so dead connections pile up
             resources:
               - post: real-time-ai-chat-with-lambda-api-gateway-websockets
               - { label: "WebSockets API (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API", kind: docs }
+              - { label: "Using server-sent events (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events", kind: docs }
 
       - id: scaling-basics
         title: Vertical and horizontal scaling
@@ -94,6 +187,19 @@ stages:
             learn:
               - Vertical scaling and its ceiling
               - Horizontal scaling and coordination cost
+            body: |
+              When load grows you have two options. **Scale up** (vertical): move to a bigger machine. **Scale out** (horizontal): add more machines behind a load balancer.
+
+              ### Key ideas
+              - Scaling up is simple. No code changes, no coordination
+              - But machines have a ceiling, cost rises faster than capacity, and one machine is a single point of failure
+              - Scaling out has no hard ceiling and survives a node failure
+              - It costs complexity: you need a load balancer, shared state and ways to keep data in sync
+              - Stateless services scale out easily. Databases are the hard part
+              - Start simple. Scale up first while it is cheap, then scale out when you hit the ceiling or need availability
+
+              ### Example
+              A web app on one server slows down. Doubling the RAM and CPU fixes it for a year. Later you run four app servers behind a load balancer, with the database still on one larger machine.
             resources:
               - { label: "system-design-primer", url: "https://github.com/donnemartin/system-design-primer", kind: article }
           - id: stateless-services
@@ -103,6 +209,20 @@ stages:
               - Sessions in a shared store
               - Files in object storage
               - The twelve-factor processes rule
+            body: |
+              A **stateless** service keeps nothing about a user between requests. Any instance can serve any request, so you can add, remove or restart instances freely.
+
+              ### Key ideas
+              - Store sessions in a shared store such as Redis or a database, or use signed tokens like JWT, not in server memory
+              - Store uploads in **object storage** like S3, not on the local disk of one server
+              - Local disk and memory are only scratch space that can vanish
+              - The twelve-factor rule: processes are stateless and share nothing, and anything that must last goes into a backing service
+              - Statelessness makes autoscaling, rolling deploys and crash recovery simple
+
+              ### Common mistakes
+              - Sticky sessions used to hide in-memory sessions
+              - Writing user files to the app server's disk
+              - Caching per-user data in process memory without a plan for other instances
             resources:
               - { label: "The Twelve-Factor App: processes", url: "https://12factor.net/processes", kind: article }
               - post: how-i-architected-a-fully-serverless-saas-on-aws-lambda-with-fastify
@@ -113,6 +233,19 @@ stages:
               - Daily active users to peak QPS
               - Storage growth per year
               - Read-to-write ratio
+            body: |
+              Before choosing a design, turn the product numbers into load. Rough math is enough. You want the right order of magnitude.
+
+              ### Key ideas
+              - **Peak QPS**: daily active users times actions per user, divided by 86,400 seconds, then times 2 to 5 for peak
+              - 1 million requests a day is only about 12 requests per second on average
+              - **Storage**: records per day times size per record times 365, then times replication
+              - **Bandwidth**: requests per second times average response size
+              - **Read-to-write ratio** decides the design. A 100 to 1 read-heavy system needs caching and replicas, a write-heavy one needs partitioning and queues
+              - Round numbers freely and state your assumptions out loud
+
+              ### Example
+              10 million DAU, 10 reads each per day: 100 million reads a day, about 1,200 per second on average and maybe 5,000 at peak. A few cached app servers handle that, so you do not need exotic tech.
             resources:
               - { label: "ByteByteGo", url: "https://bytebytego.com/", kind: course }
               - { label: "system-design-primer", url: "https://github.com/donnemartin/system-design-primer", kind: article }
@@ -128,9 +261,22 @@ stages:
               - Health checks
               - Layer 4 vs layer 7 balancing
               - TLS termination
+            body: |
+              A **load balancer** sits in front of a group of servers and shares incoming traffic among them. Clients see one stable address, while servers come and go behind it.
+
+              ### Key ideas
+              - **Health checks**: the balancer probes each server and stops sending traffic to ones that fail
+              - **Layer 4** balancers route by IP and port. They are fast and simple
+              - **Layer 7** balancers read HTTP, so they can route by path, host or header, and rewrite requests
+              - **TLS termination**: the balancer decrypts HTTPS once, so backends can speak plain HTTP inside the private network
+              - The balancer itself must not be a single point of failure, so run it as a pair or use a managed one
+
+              ### In practice
+              Put `/api/*` on one pool and `/static/*` on another with a layer 7 balancer. Use a layer 4 balancer for raw TCP such as databases or game servers.
             resources:
               - { label: "What is load balancing? (Cloudflare)", url: "https://www.cloudflare.com/learning/performance/what-is-load-balancing/", kind: article }
               - post: add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances
+              - { label: "What is load balancing? (AWS)", url: "https://aws.amazon.com/what-is/load-balancing/", kind: article }
           - id: balancing-algorithms
             title: Balancing algorithms
             summary: Round robin, least connections, hashing and weighted variants, and when each fits.
@@ -138,9 +284,24 @@ stages:
               - Round robin and weighted round robin
               - Least connections and least response time
               - IP hash and sticky sessions
+            body: |
+              The algorithm decides which server gets the next request. The right one depends on how uniform your requests are and whether you need affinity.
+
+              ### Key ideas
+              - **Round robin**: take servers in turn. Fine when servers and requests are alike
+              - **Weighted round robin**: bigger servers get a larger share
+              - **Least connections**: pick the server with the fewest open connections. Good when requests vary in length
+              - **Least response time**: favour the server answering fastest right now
+              - **IP hash**: the same client IP always maps to the same server
+              - **Sticky sessions** pin a user to one server with a cookie or hash. They help stateful apps but cause uneven load and break when that server dies
+
+              ### Common mistakes
+              - Using sticky sessions instead of moving session state to a shared store
+              - Plain round robin with long-lived connections like WebSockets, which leaves some servers overloaded
             resources:
               - post: eight-load-balancer-algorithms
               - { label: "system-design-primer: load balancer", url: "https://github.com/donnemartin/system-design-primer#load-balancer", kind: article }
+              - { label: "HTTP load balancing (nginx docs)", url: "https://nginx.org/en/docs/http/load_balancing.html", kind: docs }
           - id: reverse-proxies
             title: Reverse proxies and API gateways
             optional: true
@@ -148,8 +309,22 @@ stages:
             learn:
               - Reverse proxy vs load balancer
               - API gateway duties
+            body: |
+              A **reverse proxy** accepts requests on behalf of your servers and forwards them. A load balancer is a reverse proxy whose main job is spreading traffic. An **API gateway** adds API-specific duties on top.
+
+              ### Key ideas
+              - A reverse proxy hides your backend servers, and can cache, compress and terminate TLS
+              - A load balancer focuses on distributing across many copies of one service
+              - An API gateway is the single entry point to many services
+              - Gateway duties: routing, authentication, rate limiting, request logging and response shaping
+              - Doing these once at the edge keeps each service simple
+              - The cost: the gateway is critical, so it must be highly available and kept thin, with no business logic
+
+              ### Example
+              Requests to `/users` go to the user service and `/orders` to the order service. The gateway checks the API key and applies a rate limit before either service sees the request.
             resources:
               - { label: "What is a reverse proxy? (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/glossary/reverse-proxy/", kind: article }
+              - { label: "API Gateway pattern (microservices.io)", url: "https://microservices.io/patterns/apigateway.html", kind: article }
 
       - id: caching
         title: Caching
@@ -162,9 +337,27 @@ stages:
               - Client and HTTP caching headers
               - CDN edge caches
               - In-memory caches like Redis
+            body: |
+              A cache keeps a copy of data nearer to where it is used. Each layer from browser to database saves a different cost.
+
+              ### Key ideas
+              - **Browser cache**: controlled by headers like `Cache-Control` and `ETag`. The fastest hit is no request at all
+              - **CDN edge cache**: serves static files and some pages from a location near the user
+              - **Application cache**: in-memory stores such as Redis or Memcached hold query results and computed data
+              - **Database cache**: the buffer pool keeps hot pages in RAM, and you get it for free
+              - Closer layers are faster but hold less and are harder to invalidate
+              - Always ask how stale the data is allowed to be
+
+              ### Example
+              ```http
+              Cache-Control: public, max-age=31536000, immutable
+              ```
+              Use this for hashed asset files like `app.3f2a1.js`. Never cache HTML for a year, because it cannot be updated.
             resources:
               - { label: "HTTP caching (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching", kind: docs }
               - post: connect-redis-elasticache-to-application-in-amazon-lightsail-instance
+              - { label: "Caching strategies (AWS)", url: "https://aws.amazon.com/caching/", kind: article }
+              - { label: "Cache-Control header (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control", kind: docs }
           - id: cache-strategies
             title: Cache-aside, write-through and write-back
             summary: Patterns for reading and writing through a cache, and how each one fails.
@@ -172,9 +365,24 @@ stages:
               - Cache-aside reads
               - Write-through vs write-back
               - TTLs and invalidation
+            body: |
+              A strategy says who talks to the cache and the database, and in what order. Each one fails differently.
+
+              ### Key ideas
+              - **Cache-aside**: the app checks the cache, on a miss reads the database, then stores the result. It is the most common pattern
+              - **Write-through**: every write goes to the cache and the database together. Reads stay fresh, writes are slower
+              - **Write-back**: write to the cache first and flush to the database later. Fast, but you can lose data if the cache dies
+              - **TTL** (time to live) bounds how stale an entry can get
+              - **Invalidation**: delete or update the entry when the source changes. This is the hard part of caching
+
+              ### Common mistakes
+              - Updating the database but forgetting to invalidate the cache
+              - Using write-back for data you cannot afford to lose
+              - No TTL, so wrong values live forever
             resources:
               - { label: "system-design-primer: cache", url: "https://github.com/donnemartin/system-design-primer#cache", kind: article }
               - { label: "Redis docs", url: "https://redis.io/docs/latest/", kind: docs }
+              - { label: "Cache-Aside pattern (Microsoft Azure)", url: "https://learn.microsoft.com/en-us/azure/architecture/patterns/cache-aside", kind: docs }
           - id: cache-failure-modes
             title: Cache stampedes and hot keys
             optional: true
@@ -183,8 +391,22 @@ stages:
               - Thundering herd on expiry
               - Request coalescing and jittered TTLs
               - Hot key replication
+            body: |
+              Caches hide load from the database. When they fail in specific ways, all that load lands back at once.
+
+              ### Key ideas
+              - **Thundering herd / stampede**: a popular key expires and thousands of requests miss together, all hitting the database
+              - **Request coalescing**: let one request rebuild the value while others wait for it
+              - **Jittered TTLs**: add a random amount to expiry times so many keys do not expire at the same moment
+              - Another fix is serving the stale value while refreshing in the background
+              - **Hot key**: one key takes most of the traffic and overloads the single cache node that holds it
+              - Fix hot keys by copying the key under several names, or by adding a small in-process cache in front
+
+              ### Example
+              A homepage query is cached for 60 seconds. At expiry, 2,000 requests per second all miss. With a lock so only one rebuilds it, the database sees one query.
             resources:
               - { label: "ByteByteGo blog", url: "https://blog.bytebytego.com/", kind: article }
+              - { label: "Cache stampede (Wikipedia)", url: "https://en.wikipedia.org/wiki/Cache_stampede", kind: article }
 
       - id: cdn-object-storage
         title: CDNs and object storage
@@ -196,18 +418,46 @@ stages:
             learn:
               - Edge, origin and cache hit ratio
               - Push vs pull CDNs
+            body: |
+              A **CDN** (content delivery network) is a set of servers around the world that cache your content. Users get files from a nearby **edge**, and your **origin** server sees far less traffic.
+
+              ### Key ideas
+              - **Edge**: a CDN location close to users. **Origin**: your real server or storage
+              - On a **hit** the edge answers directly. On a **miss** it fetches from the origin and keeps a copy
+              - **Cache hit ratio** is the share of requests served from the edge. Higher is better and cheaper
+              - **Pull CDN**: the edge fetches from the origin on first request. Simple, and the common choice
+              - **Push CDN**: you upload files to the CDN yourself. Useful for large, rarely changing files
+              - Cache headers from the origin decide how long the edge keeps a file
+
+              ### In practice
+              Use hashed file names for assets so they can be cached for a year, and purge by prefix after a deploy when needed.
             resources:
               - { label: "What is a CDN? (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/what-is-a-cdn/", kind: article }
               - post: add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail
+              - { label: "What is a CDN? (AWS)", url: "https://aws.amazon.com/what-is/cdn/", kind: article }
           - id: object-storage
             title: Object storage for files
             summary: Store blobs in a service like S3 and let clients upload directly with signed URLs.
             learn:
               - Objects, buckets and keys
               - Presigned upload and download URLs
+            body: |
+              **Object storage** such as S3 keeps files as objects in flat containers. It is cheap, very durable and scales without you managing disks. App servers should not store user files.
+
+              ### Key ideas
+              - A **bucket** holds objects. Each object has a **key** (its name, like `uploads/2026/photo.jpg`), data and metadata
+              - There are no real folders, only keys with slashes in them
+              - Objects are replaced as a whole. You do not edit part of one
+              - A **presigned URL** is a temporary signed link that lets a client upload or download one object directly
+              - With presigned uploads the file never passes through your server, which saves bandwidth and compute
+              - Keep buckets private by default and give out links only when needed
+
+              ### Example
+              The app checks the user may upload, creates a presigned `PUT` URL valid for 5 minutes, and returns it. The browser uploads straight to S3, then tells the app the key.
             resources:
               - post: why-s3-presigned-urls
               - { label: "What is Amazon S3? (AWS docs)", url: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html", kind: docs }
+              - { label: "Sharing objects with presigned URLs (AWS docs)", url: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-presigned-url.html", kind: docs }
 
       - id: database-choices
         title: Choosing a database
@@ -220,6 +470,20 @@ stages:
               - Schemas and joins
               - Key-value and document models
               - When each fits
+            body: |
+              **SQL** databases store rows in tables with a fixed schema, joins and transactions. **NoSQL** covers several other models, each tuned for a specific access pattern.
+
+              ### Key ideas
+              - Relational databases enforce a **schema**, support **joins** and give strong transactions. Postgres and MySQL are the usual picks
+              - **Key-value** stores (Redis, DynamoDB) give fast lookups by one key
+              - **Document** stores (MongoDB) keep JSON-like records with flexible fields
+              - **Wide-column** stores (Cassandra) handle huge write volumes across many nodes
+              - **Graph** databases (Neo4j) are built for relationships
+              - Pick by access pattern, not by fashion. Most apps do well on Postgres, and you add a specialised store only when a clear need appears
+
+              ### Common mistakes
+              - Choosing NoSQL for scale you do not have
+              - Modelling relational data in a document store, then rebuilding joins in app code
             resources:
               - { label: "system-design-primer: SQL or NoSQL", url: "https://github.com/donnemartin/system-design-primer#sql-or-nosql", kind: article }
               - { label: "Designing Data-Intensive Applications", url: "https://dataintensive.net/", kind: article }
@@ -229,8 +493,27 @@ stages:
             learn:
               - All-or-nothing writes
               - Durability after a crash
+            body: |
+              **ACID** describes the guarantees a transaction gives you. They keep data correct even with crashes and many users at once.
+
+              ### Key ideas
+              - **Atomicity**: all the steps in a transaction happen, or none do
+              - **Consistency**: a transaction moves the database from one valid state to another, respecting constraints
+              - **Isolation**: concurrent transactions do not see each other's half-finished work. Levels range from weak to strict
+              - **Durability**: once committed, data survives a crash, because it is written to a log on disk first
+              - Stronger isolation costs throughput, so databases offer levels to choose from
+
+              ### Example
+              ```sql
+              BEGIN;
+              UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+              UPDATE accounts SET balance = balance + 100 WHERE id = 2;
+              COMMIT;
+              ```
+              If the server crashes between the two updates, neither one is kept.
             resources:
               - { label: "PostgreSQL tutorial: transactions", url: "https://www.postgresql.org/docs/current/tutorial-transactions.html", kind: docs }
+              - { label: "ACID (Wikipedia)", url: "https://en.wikipedia.org/wiki/ACID", kind: article }
 
   - level: intermediate
     title: Scaling the data and the work
@@ -245,9 +528,23 @@ stages:
             learn:
               - Read replicas for read scaling
               - Failover when the leader dies
+            body: |
+              In **leader-follower** replication, one node (the leader) accepts all writes. It streams its changes to followers, which are copies used for reading.
+
+              ### Key ideas
+              - **Read replicas** spread read traffic across many followers, so read capacity grows by adding nodes
+              - Writes still go through one leader, so this does not scale writes
+              - Followers also act as backups and can be placed in other zones
+              - **Failover**: when the leader dies, a follower is promoted to leader and clients are pointed at it
+              - Failover is risky. The promoted node may miss recent writes, and two nodes can both think they are leader (split brain)
+              - Use tested tooling or a managed database for failover instead of scripting it yourself
+
+              ### In practice
+              Send writes and reads that need fresh data to the leader. Send reports, search and read-heavy pages to replicas.
             resources:
               - { label: "system-design-primer: replication", url: "https://github.com/donnemartin/system-design-primer#master-slave-replication", kind: article }
               - { label: "Designing Data-Intensive Applications", url: "https://dataintensive.net/", kind: article }
+              - { label: "Log-shipping standby servers (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/warm-standby.html", kind: docs }
           - id: replication-lag
             title: Replication lag
             summary: Async replicas fall behind, so users can read their own writes as missing.
@@ -255,6 +552,19 @@ stages:
               - Sync vs async replication
               - Read-your-writes consistency
               - Routing reads after a write
+            body: |
+              With **asynchronous** replication, the leader confirms a write before followers have it. Followers trail behind by some delay, called **replication lag**.
+
+              ### Key ideas
+              - **Async** replication is fast, but a follower may be seconds behind, and a leader crash can lose recent writes
+              - **Sync** replication waits for a follower to confirm. It is safer and slower, and one slow follower can stall writes
+              - A user saves a profile, reloads, and sees the old one. That is a **read-your-writes** failure
+              - Fix it by reading from the leader for a short time after a write, or by tracking the write's log position and using a replica that has caught up
+              - Always monitor lag and alert on it
+
+              ### Common mistakes
+              - Sending every read to replicas, including reads right after a write
+              - Ignoring lag until users report missing data
             resources:
               - { label: "High availability and replication (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/high-availability.html", kind: docs }
           - id: multi-leader
@@ -264,8 +574,22 @@ stages:
             learn:
               - Write conflicts and resolution
               - Quorum reads and writes
+            body: |
+              Single-leader replication has one write point. **Multi-leader** and **leaderless** designs accept writes on several nodes, which helps with multiple regions and availability. The price is conflicts.
+
+              ### Key ideas
+              - Multi-leader: each region has a leader, and leaders replicate to each other
+              - Leaderless (Dynamo style): the client writes to several nodes and reads from several
+              - Two users can edit the same record in different places. You need **conflict resolution**
+              - Common rules: last write wins (can lose data), merge values, or use CRDTs designed to merge cleanly
+              - **Quorums**: with N replicas, write to W and read from R. If W plus R is more than N, a read overlaps the latest write
+              - Typical setting: N=3, W=2, R=2
+
+              ### In practice
+              Avoid multi-leader unless you truly need local writes in many regions or offline editing. Its conflict handling is hard to get right.
             resources:
               - { label: "Amazon's Dynamo (All Things Distributed)", url: "https://www.allthingsdistributed.com/2007/10/amazons_dynamo.html", kind: article }
+              - { label: "Dynamo: Amazon's highly available key-value store (Wikipedia)", url: "https://en.wikipedia.org/wiki/Dynamo_(storage_system)", kind: article }
 
       - id: sharding
         title: Partitioning and sharding
@@ -278,15 +602,41 @@ stages:
               - Range vs hash partitioning
               - Hot partitions
               - Cross-shard queries
+            body: |
+              **Sharding** splits data across machines. The **shard key** decides which machine owns each row. A poor key gives you uneven load.
+
+              ### Key ideas
+              - **Range partitioning**: key ranges per shard. Range queries are easy, but sequential keys like timestamps pile onto one shard
+              - **Hash partitioning**: hash the key and map it to a shard. Load spreads evenly, but range queries need every shard
+              - A **hot partition** happens when one key or range gets far more traffic, such as one celebrity user
+              - **Cross-shard queries** and joins are slow and complex, so choose a key that keeps related data together
+              - Changing a shard key later is painful, so think about access patterns first
+
+              ### Example
+              A multi-tenant app shards by `tenant_id`. Each tenant's data lives on one shard, so most queries touch one machine. One huge tenant may need its own shard.
             resources:
               - { label: "system-design-primer: sharding", url: "https://github.com/donnemartin/system-design-primer#sharding", kind: article }
               - { label: "ByteByteGo blog", url: "https://blog.bytebytego.com/", kind: article }
+              - { label: "Sharding pattern (Microsoft Azure)", url: "https://learn.microsoft.com/en-us/azure/architecture/patterns/sharding", kind: docs }
           - id: consistent-hashing
             title: Consistent hashing
             summary: Map keys to nodes so adding or removing a node moves only a small share of the data.
             learn:
               - The hash ring
               - Virtual nodes
+            body: |
+              With simple `hash(key) % N`, changing N remaps almost every key. A cache cluster would lose nearly all its data when you add a node. **Consistent hashing** fixes this.
+
+              ### Key ideas
+              - Imagine the hash space as a circle, called the **hash ring**
+              - Place each node at points on the ring. A key goes to the first node clockwise from its hash
+              - Adding or removing a node moves only the keys next to it, about 1 divided by N of the total
+              - With few nodes, load can be uneven. **Virtual nodes** place each real node at many points on the ring, which evens out the load
+              - A stronger machine can get more virtual nodes
+              - Used in Dynamo-style stores, Cassandra and many caches
+
+              ### In practice
+              Replicas are often the next few nodes clockwise, so a key is stored on several machines.
             resources:
               - { label: "Consistent hashing (Wikipedia)", url: "https://en.wikipedia.org/wiki/Consistent_hashing", kind: article }
               - { label: "ByteByteGo on YouTube", url: "https://www.youtube.com/@ByteByteGo", kind: video }
@@ -297,8 +647,23 @@ stages:
             learn:
               - Double writes and backfill
               - Directory-based shard maps
+            body: |
+              Sooner or later a shard fills up and you must move data, ideally without turning the system off.
+
+              ### Key ideas
+              - Plan for it early. Use many more logical shards than machines, so you move whole shards instead of splitting rows
+              - **Backfill**: copy existing data to the new location in the background
+              - **Double writes**: while copying, write new changes to both old and new shard, so nothing is missed
+              - Then verify the copy, switch reads, and finally remove the old data
+              - **Directory-based sharding**: a lookup table maps keys to shards. It is flexible, but the directory becomes a critical dependency
+              - Do each step so it can be rolled back
+
+              ### Common mistakes
+              - Starting the move without a way to compare old and new data
+              - Cutting over reads and writes in the same step
             resources:
               - { label: "Vitess docs", url: "https://vitess.io/docs/", kind: docs }
+              - { label: "Data partitioning guidance (Microsoft Azure)", url: "https://learn.microsoft.com/en-us/azure/architecture/best-practices/data-partitioning", kind: docs }
 
       - id: queues-async
         title: Queues and async work
@@ -311,9 +676,23 @@ stages:
               - Producers, consumers and visibility timeouts
               - At-least-once delivery
               - Dead-letter queues
+            body: |
+              A **message queue** sits between the part of your system that creates work and the part that does it. Producers add messages, consumers take them. The queue absorbs bursts so slow work stays off the request path.
+
+              ### Key ideas
+              - A **producer** puts a message on the queue and returns at once. A **consumer** processes it later
+              - A **visibility timeout** hides a taken message from others. If the consumer does not finish and delete it in time, the message returns
+              - **At-least-once delivery**: a message can arrive more than once, so handlers must be safe to repeat
+              - A **dead-letter queue** (DLQ) catches messages that fail too many times, so one bad message does not block the rest
+              - Scale by adding consumers, and watch queue depth and message age
+
+              ### Example
+              A user uploads a video. The API stores it, queues a "transcode" message and replies right away. Workers pick up messages and transcode at their own pace.
             resources:
               - post: running-ai-background-jobs-serverlessly-with-sqs-lambda-bedrock
               - { label: "Amazon SQS docs", url: "https://docs.aws.amazon.com/sqs/", kind: docs }
+              - { label: "Message queue (Wikipedia)", url: "https://en.wikipedia.org/wiki/Message_queue", kind: article }
+              - { label: "SQS visibility timeout (AWS docs)", url: "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-visibility-timeout.html", kind: docs }
           - id: pub-sub-streams
             title: Pub/sub and event streams
             summary: Fan one event out to many consumers, or keep an ordered log they can replay.
@@ -321,18 +700,49 @@ stages:
               - Topics and subscriptions
               - Partitions and consumer groups in Kafka
               - Queue vs log
+            body: |
+              A queue gives each message to one consumer. **Pub/sub** gives each event to every subscriber. An **event stream** also keeps events in order so consumers can replay them.
+
+              ### Key ideas
+              - **Topic**: a named channel. Publishers write to it, **subscriptions** read from it
+              - Pub/sub lets you add new consumers without changing the producer
+              - **Kafka** stores events in an append-only log split into **partitions**. Order is kept within a partition
+              - A **consumer group** shares the partitions among its members, so a group scales out and each event is handled once per group
+              - A queue deletes messages once handled. A log keeps them for a set time, so you can replay, rebuild or add a consumer later
+              - Choose the key carefully, since events with the same key go to the same partition and stay in order
+
+              ### In practice
+              Use a queue for jobs. Use a log when many systems need the same events or history matters.
             resources:
               - { label: "Apache Kafka docs", url: "https://kafka.apache.org/documentation/", kind: docs }
               - { label: "RabbitMQ tutorials", url: "https://www.rabbitmq.com/tutorials", kind: course }
+              - { label: "Apache Kafka introduction", url: "https://kafka.apache.org/intro", kind: docs }
           - id: idempotent-consumers
             title: Idempotent consumers
             summary: Make handling a message twice safe, because at-least-once delivery means it will happen.
             learn:
               - Idempotency keys
               - Deduplication tables
+            body: |
+              An operation is **idempotent** if doing it twice has the same effect as doing it once. Since queues deliver at least once, consumers will see repeats, so they must be idempotent.
+
+              ### Key ideas
+              - Give each message or request an **idempotency key**, such as a unique ID
+              - Before acting, check whether that key was already handled. If so, skip it
+              - A **deduplication table** stores processed IDs. Insert the ID and do the work in the same transaction
+              - A unique constraint on the ID makes the database reject the second attempt
+              - Natural idempotence helps too: "set status to paid" is safe to repeat, "add 10 to balance" is not
+              - Expire old keys after a safe window
+
+              ### Example
+              ```sql
+              INSERT INTO processed_messages (id) VALUES ('msg-123');
+              ```
+              If this fails on a duplicate key, the message was already handled, so acknowledge it and move on.
             resources:
               - { label: "Making retries safe with idempotent APIs (Amazon Builders' Library)", url: "https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/", kind: article }
               - { label: "Amazon Builders' Library", url: "https://aws.amazon.com/builders-library/", kind: article }
+              - { label: "Idempotency and the design of REST APIs (Stripe)", url: "https://stripe.com/blog/idempotency", kind: article }
 
       - id: rate-limiting
         title: Rate limiting
@@ -345,9 +755,23 @@ stages:
               - Token bucket and leaky bucket
               - Fixed vs sliding windows
               - Burst allowance
+            body: |
+              A **rate limiter** caps how many requests a client can make in a period. The algorithm decides how it counts and how bursts are handled.
+
+              ### Key ideas
+              - **Token bucket**: a bucket refills at a fixed rate, and each request takes a token. It allows short **bursts** up to the bucket size
+              - **Leaky bucket**: requests drain at a steady rate, smoothing traffic. Excess is queued or dropped
+              - **Fixed window**: count requests per minute. Simple, but a client can send double the limit across a window edge
+              - **Sliding window**: counts over the last N seconds. More accurate, with a bit more memory or maths
+              - Token bucket is the usual default because it is cheap and allows bursts
+
+              ### Common mistakes
+              - Limiting only by IP when many users share one
+              - Using a fixed window and being surprised by edge bursts
             resources:
               - { label: "Scaling your API with rate limiters (Stripe)", url: "https://stripe.com/blog/rate-limiters", kind: article }
               - { label: "What is rate limiting? (Cloudflare)", url: "https://www.cloudflare.com/learning/bots/what-is-rate-limiting/", kind: article }
+              - { label: "Counting things at Cloudflare (Cloudflare blog)", url: "https://blog.cloudflare.com/counting-things-a-lot-of-different-things/", kind: article }
           - id: distributed-rate-limits
             title: Rate limits across many servers
             summary: Share counters in a fast store or enforce limits at the edge.
@@ -355,6 +779,23 @@ stages:
               - Counters in Redis
               - Limits at the CDN or WAF
               - 429 responses and Retry-After
+            body: |
+              With many servers, a counter in each one's memory gives each client N times the limit. You need a shared counter or to enforce at one choke point.
+
+              ### Key ideas
+              - Keep counters in **Redis**. `INCR` plus `EXPIRE`, or a small Lua script, makes the check atomic
+              - Redis adds a network call to each request, so keep it fast and decide what to do if it is down. Failing open keeps the site up
+              - Enforce limits at the **CDN or WAF** to stop abuse before it reaches your servers
+              - Reject with status `429 Too Many Requests`
+              - Add a `Retry-After` header so clients know when to try again
+              - Pick the key carefully: API key, user ID or IP
+
+              ### Example
+              ```text
+              HTTP/1.1 429 Too Many Requests
+              Retry-After: 30
+              ```
+              A well-behaved client waits 30 seconds, then retries.
             resources:
               - post: aws-waf-cloudfront-solo-dev
               - { label: "429 Too Many Requests (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429", kind: docs }
@@ -369,9 +810,23 @@ stages:
             learn:
               - Network partitions are not optional
               - CP vs AP behaviour
+            body: |
+              The **CAP theorem** says that when a network **partition** splits a distributed system, it must choose between **consistency** and **availability**.
+
+              ### Key ideas
+              - **Consistency**: every read sees the latest write, as if there was one copy of the data
+              - **Availability**: every request to a working node gets an answer
+              - **Partition tolerance**: the system keeps working when messages between nodes are lost
+              - Partitions happen in real networks, so you cannot opt out of them. The real choice is C or A during a partition
+              - **CP** systems refuse or delay some requests to stay correct. **AP** systems keep answering and may return stale data, then reconcile later
+              - When there is no partition, you can have both
+
+              ### In practice
+              CAP is a coarse tool. Real databases offer tunable behaviour, so ask what each operation does during a partition, not just "is it CP or AP".
             resources:
               - { label: "system-design-primer: CAP theorem", url: "https://github.com/donnemartin/system-design-primer#cap-theorem", kind: article }
               - { label: "Please stop calling databases CP or AP (Martin Kleppmann)", url: "https://martin.kleppmann.com/2015/05/11/please-stop-calling-databases-cp-or-ap.html", kind: article }
+              - { label: "CAP theorem (Wikipedia)", url: "https://en.wikipedia.org/wiki/CAP_theorem", kind: article }
           - id: consistency-models
             title: Consistency models
             summary: Strong, eventual and causal consistency, and what each one lets a user see.
@@ -379,6 +834,19 @@ stages:
               - Linearizability
               - Eventual consistency
               - Read-your-writes and monotonic reads
+            body: |
+              A **consistency model** is a promise about what a reader may see after writes. Stronger promises are easier to reason about but cost speed and availability.
+
+              ### Key ideas
+              - **Linearizability** (strong): operations appear to happen one at a time in real-time order. Once a write finishes, everyone sees it
+              - **Eventual consistency**: if writes stop, all replicas converge. Meanwhile, reads may be stale
+              - **Causal consistency**: if one event caused another, everyone sees them in that order
+              - **Read-your-writes**: you always see your own updates
+              - **Monotonic reads**: you never see data go back in time after seeing newer data
+              - Weak models are fine for likes and feeds. Use strong ones for money, inventory and unique names
+
+              ### Example
+              You post a comment and refresh. With read-your-writes you see it. With plain eventual consistency from a lagging replica, it may be missing for a moment.
             resources:
               - { label: "Consistency models (Jepsen)", url: "https://jepsen.io/consistency", kind: article }
           - id: pacelc
@@ -388,8 +856,22 @@ stages:
             learn:
               - Latency vs consistency in normal operation
               - Tunable consistency in Dynamo-style stores
+            body: |
+              CAP only talks about partitions, which are rare. **PACELC** adds the everyday case: if there is a **P**artition, choose **A**vailability or **C**onsistency, **E**lse choose **L**atency or **C**onsistency.
+
+              ### Key ideas
+              - Even when the network is healthy, a strongly consistent write must wait for replicas to confirm, which takes time
+              - Skipping that wait makes writes faster but reads can be stale
+              - Across regions the gap is large, since a round trip can cost 100 milliseconds or more
+              - **Tunable consistency** in Dynamo-style stores like Cassandra lets you choose per query how many replicas must answer
+              - Reading one replica is fast and may be stale. Reading a quorum is slower and fresher
+              - Pick the setting per operation, not per system
+
+              ### In practice
+              Use quorum for account balances and single-replica reads for a view counter.
             resources:
               - { label: "Designing Data-Intensive Applications", url: "https://dataintensive.net/", kind: article }
+              - { label: "PACELC theorem (Wikipedia)", url: "https://en.wikipedia.org/wiki/PACELC_theorem", kind: article }
 
       - id: reliability-patterns
         title: Timeouts, retries and backpressure
@@ -402,16 +884,49 @@ stages:
               - Choosing a timeout
               - Exponential backoff and jitter
               - Retry budgets
+            body: |
+              Every network call can hang or fail. Without a timeout, a slow dependency ties up your threads. Without careful retries, a small fault becomes a flood.
+
+              ### Key ideas
+              - Set a **timeout** on every remote call. Base it on the dependency's normal latency, for example a bit above its 99th percentile
+              - Retry only safe, idempotent calls, and only for errors that may pass, such as timeouts and `503`
+              - **Exponential backoff**: wait 1s, 2s, 4s and so on between tries
+              - **Jitter**: add randomness so thousands of clients do not retry in sync
+              - A **retry budget** caps retries, for example at 10% of traffic, so retries cannot multiply load on a struggling service
+              - Retry at one layer only. Retries at every layer multiply
+
+              ### Example
+              ```text
+              delay = random(0, min(cap, base * 2 ** attempt))
+              ```
+              This is "full jitter". Each client waits a random time up to the growing limit.
             resources:
               - { label: "Timeouts, retries and backoff with jitter (Amazon Builders' Library)", url: "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/", kind: article }
+              - { label: "Retry pattern (Microsoft Azure)", url: "https://learn.microsoft.com/en-us/azure/architecture/patterns/retry", kind: docs }
           - id: circuit-breakers
             title: Circuit breakers and bulkheads
             summary: Stop calling a failing dependency and keep one failure from using up every thread.
             learn:
               - Open, half-open and closed states
               - Isolating resource pools
+            body: |
+              A **circuit breaker** wraps calls to a dependency. When the dependency keeps failing, the breaker stops calling it for a while, so you fail fast and the dependency can recover.
+
+              ### Key ideas
+              - **Closed**: calls pass through, and failures are counted
+              - **Open**: after too many failures, calls fail at once without hitting the dependency
+              - **Half-open**: after a wait, a few trial calls go through. If they succeed the breaker closes, if not it opens again
+              - Pair it with a **fallback**, such as cached data or a default
+              - A **bulkhead** gives each dependency its own pool of threads or connections, like watertight compartments in a ship
+              - Then one slow dependency cannot use up every thread and take down the whole service
+
+              ### Common mistakes
+              - No fallback, so the user still sees an error
+              - One shared pool for all dependencies
             resources:
               - { label: "Circuit breaker (Martin Fowler)", url: "https://martinfowler.com/bliki/CircuitBreaker.html", kind: article }
+              - { label: "Circuit Breaker pattern (Microsoft Azure)", url: "https://learn.microsoft.com/en-us/azure/architecture/patterns/circuit-breaker", kind: docs }
+              - { label: "Bulkhead pattern (Microsoft Azure)", url: "https://learn.microsoft.com/en-us/azure/architecture/patterns/bulkhead", kind: docs }
           - id: load-shedding
             title: Load shedding and backpressure
             optional: true
@@ -419,8 +934,22 @@ stages:
             learn:
               - Bounded queues
               - Priority-based shedding
+            body: |
+              When demand is more than capacity, accepting everything makes every request slow and many time out. **Load shedding** rejects some work early so the rest still finishes well.
+
+              ### Key ideas
+              - **Backpressure** pushes the problem upstream: a full buffer tells producers to slow down
+              - Use **bounded queues**. An unbounded queue just hides overload until memory runs out and latency is huge
+              - When the queue is full, reject new work fast with `503` or `429`
+              - **Priority-based shedding** drops low-value work first, like analytics before checkout
+              - Reject early and cheaply, before spending resources on a request that will fail anyway
+              - Clients should back off when they see these errors
+
+              ### Example
+              A service handles 1,000 requests per second. At 1,500 it starts rejecting the extra 500 right away. The 1,000 it accepts keep fast latency, instead of all 1,500 timing out.
             resources:
               - { label: "Amazon Builders' Library", url: "https://aws.amazon.com/builders-library/", kind: article }
+              - { label: "Using load shedding to avoid overload (Amazon Builders' Library)", url: "https://aws.amazon.com/builders-library/using-load-shedding-to-avoid-overload/", kind: article }
 
   - level: advanced
     title: Designing real systems
@@ -436,6 +965,20 @@ stages:
               - Functional vs non-functional requirements
               - Scale estimates
               - What is out of scope
+            body: |
+              Do not start by drawing boxes. First find out what you are building and how big it must be. A design is only good relative to its requirements.
+
+              ### Key ideas
+              - **Functional requirements**: what the system does, such as "create a short link" or "send a message"
+              - **Non-functional requirements**: how well it does it, such as latency, availability, durability and consistency
+              - **Scale estimates**: users, requests per second, data size and read-to-write ratio
+              - **Out of scope**: say what you will not build, such as analytics or admin tools
+              - Ask questions and write down assumptions. If something is vague, pick a sensible default and state it
+              - Agree on the top two or three requirements, since they will drive the key trade-offs
+
+              ### Common mistakes
+              - Jumping straight to a favourite technology
+              - Designing for a billion users when the need is a thousand
             resources:
               - { label: "ByteByteGo", url: "https://bytebytego.com/", kind: course }
               - { label: "system-design-primer: how to approach a question", url: "https://github.com/donnemartin/system-design-primer#how-to-approach-a-system-design-interview-question", kind: article }
@@ -446,6 +989,20 @@ stages:
               - Components and data flow
               - Finding the bottleneck
               - Naming trade-offs out loud
+            body: |
+              After requirements, sketch the whole system at a coarse level, then spend your time on the part that is hardest or riskiest.
+
+              ### Key ideas
+              - Start with the main **components**: clients, load balancer, services, database, cache, queue
+              - Draw the **data flow** for the main use cases, such as one write and one read
+              - Add an API sketch and a simple data model
+              - Find the **bottleneck**: ask what breaks first as load grows, and pick that for the deep dive
+              - Common deep dives: storage and sharding, caching, ID generation, fan-out, consistency
+              - **Name trade-offs out loud**: say what you chose, what you gave up, and when you would choose differently
+              - Revisit failure modes, such as what happens if a node or region dies
+
+              ### In practice
+              There is rarely one right answer. A clear structure and honest trade-offs matter more than naming the trendiest tool.
             resources:
               - { label: "ByteByteGo on YouTube", url: "https://www.youtube.com/@ByteByteGo", kind: video }
 
@@ -460,6 +1017,19 @@ stages:
               - Base62 encoding
               - Hash vs counter approaches
               - Distributed ID generators
+            body: |
+              A URL shortener needs short, unique codes. The common choice is **base62** (a to z, A to Z, 0 to 9), which keeps codes short and URL-safe.
+
+              ### Key ideas
+              - Seven base62 characters give about 3.5 trillion codes
+              - **Hash approach**: hash the long URL and take the first characters. Different URLs can **collide**, so you must check and retry
+              - **Counter approach**: use an incrementing number and encode it in base62. No collisions, but codes are guessable and the counter needs coordination
+              - **Distributed ID generators** such as Snowflake-style IDs, or a database sequence handed out in ranges per server, avoid a single bottleneck
+              - Add a random component or a shuffle if codes must not be guessable
+              - Add a unique index on the code as a final safety net
+
+              ### Example
+              Counter 125 in base62 is `21`. A server that takes a block of 1,000 numbers at a time can encode them without asking the database each time.
             resources:
               - { label: "system-design-primer: Pastebin and bit.ly", url: "https://github.com/donnemartin/system-design-primer/blob/master/solutions/system_design/pastebin/README.md", kind: article }
               - { label: "ByteByteGo", url: "https://bytebytego.com/", kind: course }
@@ -469,8 +1039,22 @@ stages:
             learn:
               - Read-heavy caching
               - 301 vs 302 and analytics
+            body: |
+              A shortener is very read-heavy. Many more people click links than create them, so the redirect path must be fast and cheap.
+
+              ### Key ideas
+              - Look up the code in a **cache** such as Redis first, then in the database on a miss
+              - Hot links get most of the traffic, so a modest cache holds most of the load
+              - The response is an HTTP redirect with a `Location` header
+              - **301** (permanent) lets browsers cache the redirect, which cuts load, but you may stop seeing clicks
+              - **302** (temporary) goes through your server each time, so you can count clicks and change the target
+              - Record click events through a queue so analytics never slow the redirect
+
+              ### In practice
+              Choose `302` if you want analytics or the ability to edit links. Choose `301` if you only care about speed and SEO.
             resources:
               - { label: "Redirections in HTTP (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections", kind: docs }
+              - { label: "301 Moved Permanently (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/301", kind: docs }
 
       - id: design-chat
         title: Design a chat system
@@ -482,6 +1066,21 @@ stages:
             learn:
               - Stateful connection gateways
               - Routing messages across servers
+            body: |
+              Chat needs messages pushed to users the moment they arrive. Users hold a WebSocket open to a **connection server** (gateway), and the system must get each message to the right one.
+
+              ### Key ideas
+              - Gateways are **stateful**: they know which users are connected to them
+              - Keep gateways thin. They handle connections and pass messages on, and the business logic lives in other services
+              - When a message is sent to user B, you must find which gateway holds B's connection
+              - Keep a **session registry** (for example in Redis) that maps user to gateway
+              - Or use **pub/sub**: each gateway subscribes to channels for its users
+              - If the user is offline, store the message and send a push notification instead
+              - Scale by adding gateways, and drain connections gently during deploys
+
+              ### Common mistakes
+              - Assuming one server holds every connection
+              - Putting heavy logic in the gateway, so restarts drop many users
             resources:
               - post: real-time-ai-chat-with-lambda-api-gateway-websockets
               - { label: "ByteByteGo", url: "https://bytebytego.com/", kind: course }
@@ -492,6 +1091,20 @@ stages:
               - Per-conversation partitioning
               - Ordered message IDs
               - Offline delivery and sync
+            body: |
+              Messages are written constantly and read as a recent window of a conversation. The storage design should match that.
+
+              ### Key ideas
+              - **Partition by conversation**: all messages of one chat live together, so loading history reads one partition
+              - Wide-column or key-value stores suit this well
+              - Messages need an order within the chat. Use **ordered IDs**, such as time-sortable IDs or a per-conversation sequence
+              - Do not trust client clocks for ordering
+              - Load history with cursor pagination, newest first
+              - **Offline delivery**: a device keeps the last message ID it saw, then on reconnect asks for everything after it
+              - Acknowledge delivery so the server knows what to resend
+
+              ### Example
+              Table key: `(conversation_id, message_id)`. Fetching the last 50 messages is one range read on one partition.
             resources:
               - { label: "Designing Data-Intensive Applications", url: "https://dataintensive.net/", kind: article }
           - id: presence
@@ -501,6 +1114,21 @@ stages:
             learn:
               - Heartbeats and timeouts
               - Fan-out of status changes
+            body: |
+              Presence shows who is online. It sounds small, but naive designs create a flood of updates.
+
+              ### Key ideas
+              - Clients send a **heartbeat** every few seconds. The server records the last seen time
+              - If no heartbeat arrives within a **timeout**, the user is marked offline
+              - Short disconnects, like a phone switching networks, should not flip status, so use a grace period
+              - Store presence in a fast store with expiry, such as Redis keys with a TTL
+              - **Fan-out** is the cost: one status change must reach all friends who are watching
+              - Limit it: only send updates to people who have the chat open, or fetch presence on demand for large groups
+              - Typing indicators are short-lived, so send them without storing them
+
+              ### Common mistakes
+              - Pushing every change to every contact
+              - Treating a single missed heartbeat as offline
             resources:
               - { label: "ByteByteGo blog", url: "https://blog.bytebytego.com/", kind: article }
 
@@ -515,6 +1143,18 @@ stages:
               - Push model and its write cost
               - Pull model and its read cost
               - Hybrid for celebrity accounts
+            body: |
+              A news feed shows posts from people you follow. You can build each feed when a post is made, or when it is read.
+
+              ### Key ideas
+              - **Fan-out on write (push)**: when someone posts, copy the post ID into each follower's feed. Reads are fast, since the feed is ready
+              - The cost is write amplification: a user with 10 million followers means 10 million writes
+              - **Fan-out on read (pull)**: when you open the feed, fetch recent posts from everyone you follow and merge them. Writes are cheap, reads are heavier
+              - **Hybrid**: push for normal users, pull for celebrity accounts, and merge both at read time
+              - Choose by read-to-write ratio and the follower distribution
+
+              ### Example
+              Most users have a few hundred followers, so their posts are pushed. A celebrity's posts are not pushed. When you open your feed, the app merges your prepared feed with the celebrity posts fetched live.
             resources:
               - { label: "system-design-primer: Twitter timeline", url: "https://github.com/donnemartin/system-design-primer/blob/master/solutions/system_design/twitter/README.md", kind: article }
               - { label: "ByteByteGo", url: "https://bytebytego.com/", kind: course }
@@ -524,6 +1164,20 @@ stages:
             learn:
               - Feed caches in Redis
               - Cursor pagination
+            body: |
+              Feeds are read far more than written, so keep the hot part in memory and decide order at read time.
+
+              ### Key ideas
+              - Store each user's feed as a list of post IDs in **Redis**, capped to the most recent few hundred
+              - Keep post content in a separate cache, so many feeds share one copy
+              - On read, fetch IDs, load the posts, and **rank** them with signals like recency and engagement
+              - Ranking can be simple sorting by time or a scored model
+              - Use **cursor pagination**: the client sends the last item it saw, and the server returns the next page
+              - Cursors stay correct when new items arrive, unlike page numbers, which shift and cause repeats
+
+              ### Common mistakes
+              - Offset pagination on a fast-changing feed
+              - Caching whole post objects in every feed
             resources:
               - { label: "High Scalability", url: "https://highscalability.com/", kind: article }
 
@@ -538,18 +1192,48 @@ stages:
               - Service boundaries
               - Operational cost of many services
               - Modular monolith as a middle step
+            body: |
+              A **monolith** is one deployable unit. **Microservices** split it into many small services owned by teams. Splitting solves some problems and creates others.
+
+              ### Key ideas
+              - Gains: teams deploy independently, services scale separately, and failures can be contained
+              - Costs: network calls instead of function calls, distributed transactions, harder debugging, and more to deploy and monitor
+              - Draw **service boundaries** around business capabilities with their own data, not around technical layers
+              - Do not split a system you do not yet understand. Boundaries drawn too early are expensive to fix
+              - A **modular monolith** has clear internal modules in one deployment. It gives most of the benefit with little of the cost
+              - Split out a piece when a team or its load really needs it
+
+              ### Common mistakes
+              - Many services sharing one database, which is a distributed monolith
+              - Splitting before there is a team or scale reason
             resources:
               - post: when-your-app-outgrows-the-tool-that-built-it
               - { label: "Microservices (Martin Fowler)", url: "https://martinfowler.com/articles/microservices.html", kind: article }
+              - { label: "Microservices guide (microservices.io)", url: "https://microservices.io/patterns/microservices.html", kind: article }
+              - { label: "Monolith First (Martin Fowler)", url: "https://martinfowler.com/bliki/MonolithFirst.html", kind: article }
           - id: sagas-orchestration
             title: Sagas and workflow orchestration
             summary: Run a business process across services with compensating steps instead of one transaction.
             learn:
               - Choreography vs orchestration
               - Compensating actions
+            body: |
+              When one business action spans several services, you cannot wrap it in one database transaction. A **saga** is a sequence of local transactions, with a **compensating action** to undo each step if a later one fails.
+
+              ### Key ideas
+              - Each service does its own step and commits locally
+              - On failure, run compensations for the steps already done, such as "refund payment" or "release stock"
+              - **Choreography**: services react to each other's events. Simple for a few steps, hard to follow as it grows
+              - **Orchestration**: a central coordinator tells each service what to do and tracks state. Easier to see and debug
+              - Compensations must be idempotent, and some steps cannot be undone, so order them with care
+              - Workflow engines such as Step Functions or Temporal handle state and retries for you
+
+              ### Example
+              Order saga: reserve stock, charge card, create shipment. If the charge fails, release the stock.
             resources:
               - post: step-functions-llm-orchestration-replacing-lambda-chains
               - { label: "Saga pattern (microservices.io)", url: "https://microservices.io/patterns/data/saga.html", kind: article }
+              - { label: "Saga pattern (Microsoft Azure)", url: "https://learn.microsoft.com/en-us/azure/architecture/patterns/saga", kind: docs }
           - id: cqrs-event-sourcing
             title: CQRS and event sourcing
             optional: true
@@ -557,9 +1241,23 @@ stages:
             learn:
               - Read models built from events
               - Replaying history
+            body: |
+              **CQRS** (command query responsibility segregation) uses one model to change data and another to read it. **Event sourcing** stores every change as an event, and the current state is derived from the events.
+
+              ### Key ideas
+              - Commands (writes) go through a model built for rules and validation
+              - Queries (reads) use **read models** shaped for the screens that need them, often in a separate store
+              - With event sourcing the event log is the source of truth, and read models are built from it
+              - You can **replay history** to rebuild a model, fix bugs, or create a new view
+              - You also get a full audit trail
+              - Costs: more moving parts, eventual consistency between write and read sides, and event schemas that must evolve carefully
+
+              ### In practice
+              Use these only where the benefit is clear, such as audit-heavy domains or very different read and write needs. Most CRUD apps do not need them.
             resources:
               - { label: "CQRS (Martin Fowler)", url: "https://martinfowler.com/bliki/CQRS.html", kind: article }
               - { label: "Event sourcing (Martin Fowler)", url: "https://martinfowler.com/eaaDev/EventSourcing.html", kind: article }
+              - { label: "CQRS pattern (Microsoft Azure)", url: "https://learn.microsoft.com/en-us/azure/architecture/patterns/cqrs", kind: docs }
 
       - id: serverless-architecture
         title: Serverless architecture
@@ -572,18 +1270,48 @@ stages:
               - Event-driven functions
               - Managed queues and storage
               - Concurrency limits
+            body: |
+              **Serverless** means you run code and use managed services without managing servers. You pay for use, and the platform scales for you.
+
+              ### Key ideas
+              - **Event-driven functions**: code such as AWS Lambda runs in response to a request, a queue message or a file upload
+              - Typical stack: API gateway, functions, a managed queue, object storage and a managed database
+              - Services connect through events, which keeps them loosely coupled
+              - **Concurrency limits** cap how many function copies run at once, per account and per function
+              - Scaling fast can overwhelm a database with connections, so use a proxy or limit concurrency
+              - Functions are short-lived and stateless, so long jobs need queues or workflows
+
+              ### Common mistakes
+              - Letting an unlimited burst of functions hit a small database
+              - Using functions for long-running work with no timeout plan
             resources:
               - post: how-i-architected-a-fully-serverless-saas-on-aws-lambda-with-fastify
               - { label: "AWS Lambda docs", url: "https://docs.aws.amazon.com/lambda/", kind: docs }
+              - { label: "Lambda function scaling and concurrency (AWS docs)", url: "https://docs.aws.amazon.com/lambda/latest/dg/lambda-concurrency.html", kind: docs }
           - id: multi-tenancy
             title: Multi-tenant design
             summary: Isolate tenants' data and limits in one shared system.
             learn:
               - Pooled vs siloed tenants
               - Tenant context on every request
+            body: |
+              A **multi-tenant** system serves many customers (tenants) from one deployment. The design must keep each tenant's data private and stop one tenant from hurting the others.
+
+              ### Key ideas
+              - **Pooled**: all tenants share the same resources, with a `tenant_id` on each row. It is cheapest and simplest to run
+              - **Siloed**: each tenant gets separate resources, such as its own database. Isolation is strongest, and cost and operations grow with tenants
+              - Many systems mix the two: pooled for small tenants, siloed for large or regulated ones
+              - Carry **tenant context** on every request, from the token to every query, and enforce it in one shared layer
+              - Use database features like row-level security as a second line of defence
+              - Apply per-tenant limits to avoid the **noisy neighbour** problem
+
+              ### Common mistakes
+              - Forgetting the tenant filter in one query, which leaks data
+              - Taking the tenant ID from user input instead of the verified token
             resources:
               - post: multi-tenant-saas-auth-lambda-fastify
               - { label: "AWS Well-Architected Framework", url: "https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html", kind: docs }
+              - { label: "Multitenant architecture overview (Microsoft Azure)", url: "https://learn.microsoft.com/en-us/azure/architecture/guide/multitenant/overview", kind: docs }
           - id: cold-starts
             title: Cold starts and limits
             optional: true
@@ -591,8 +1319,23 @@ stages:
             learn:
               - Cold vs warm starts
               - Snapshotting and provisioned concurrency
+            body: |
+              A **cold start** happens when a platform has to create a new function environment before running your code. It adds latency to that request.
+
+              ### Key ideas
+              - **Cold**: no ready environment, so the platform downloads code, starts the runtime and runs your init code
+              - **Warm**: an existing environment is reused, so the request is fast
+              - Cold starts show up after idle periods and during sudden scale-ups
+              - Reduce them by shipping a smaller package, doing less work at init, and choosing a runtime that starts quickly
+              - **Provisioned concurrency** keeps a set number of environments ready, at a cost
+              - **Snapshotting** (Lambda SnapStart) saves an initialised state and restores it, which shortens start for supported runtimes
+              - Measure first. Many apps never notice cold starts
+
+              ### In practice
+              Keep user-facing paths warm or snapshotted, and let background jobs be cold.
             resources:
               - post: lambda-snapstart-terraform-cold-starts
+              - { label: "Lambda SnapStart (AWS docs)", url: "https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html", kind: docs }
 
       - id: distributed-systems
         title: Large-scale distributed systems
@@ -605,17 +1348,47 @@ stages:
               - Leader election
               - Replicated logs
               - Quorums
+            body: |
+              **Consensus** lets a group of nodes agree on a value, such as who the leader is, even if some nodes crash or messages are delayed. It underpins coordination services and replicated databases.
+
+              ### Key ideas
+              - **Raft** is a consensus algorithm made to be understandable
+              - **Leader election**: nodes vote. A candidate that wins a majority becomes leader for a **term**
+              - The leader appends commands to a **replicated log** and sends them to followers
+              - An entry is committed once a **quorum** (a majority) has stored it
+              - With 5 nodes, a quorum is 3, so the cluster survives 2 failures. Use odd node counts
+              - If the leader fails, a new election starts and no committed entry is lost
+              - Etcd and Consul use Raft. Zookeeper uses a similar protocol
+
+              ### In practice
+              You rarely write consensus yourself. You use a system built on it and need to know its limits, such as lower write speed and no progress without a majority.
             resources:
               - { label: "The Raft consensus algorithm", url: "https://raft.github.io/", kind: article }
               - { label: "MIT 6.824 Distributed Systems", url: "https://pdos.csail.mit.edu/6.824/", kind: course }
+              - { label: "Raft (Wikipedia)", url: "https://en.wikipedia.org/wiki/Raft_(algorithm)", kind: article }
           - id: time-and-ordering
             title: Clocks and ordering
             summary: Why wall clocks drift and how logical clocks order events.
             learn:
               - Clock skew
               - Lamport and vector clocks
+            body: |
+              Machines each have their own clock, and the clocks drift. So you cannot trust timestamps from two machines to order events.
+
+              ### Key ideas
+              - **Clock skew**: clocks differ by milliseconds or more, even with NTP syncing
+              - Using wall-clock time for "last write wins" can silently drop the newer write
+              - **Lamport clocks**: each node keeps a counter, increases it on every event, and sends it with messages. The receiver takes the max and adds one. This gives an order consistent with cause and effect
+              - **Vector clocks** keep a counter per node, so you can tell whether two events are ordered or **concurrent**
+              - Concurrent writes need conflict handling
+              - Some systems use special hardware clocks with known error bounds
+
+              ### Example
+              A sends a message with clock 5. B has clock 2, receives it, and sets its own to 6. Any later event on B is now ordered after A's send.
             resources:
               - { label: "Designing Data-Intensive Applications", url: "https://dataintensive.net/", kind: article }
+              - { label: "Lamport timestamp (Wikipedia)", url: "https://en.wikipedia.org/wiki/Lamport_timestamp", kind: article }
+              - { label: "Vector clock (Wikipedia)", url: "https://en.wikipedia.org/wiki/Vector_clock", kind: article }
           - id: multi-region
             title: Multi-region design
             summary: Serve users from several regions and decide where writes go.
@@ -623,6 +1396,20 @@ stages:
               - Active-passive vs active-active
               - Data residency and latency
               - Regional failover
+            body: |
+              Running in several regions lowers latency for far-away users and lets you survive a whole region failing. It also makes data much harder.
+
+              ### Key ideas
+              - **Active-passive**: one region serves traffic, another waits as a standby. Simpler, with a failover step and some data loss if replication is async
+              - **Active-active**: all regions serve traffic. It gives the best latency and uptime, but writes in several places mean conflicts
+              - Decide **where writes go**: one home region per user or tenant is a common, simpler answer
+              - **Data residency** laws may require some data to stay in a country
+              - **Regional failover**: use health checks and DNS or global routing to shift traffic. Practise it, because untested failover tends to fail
+              - Cross-region replication adds lag, so state which operations must be strongly consistent
+
+              ### Common mistakes
+              - A standby region that has never taken real traffic
+              - Hidden dependencies on one region, such as a single auth service
             resources:
               - { label: "Amazon Builders' Library", url: "https://aws.amazon.com/builders-library/", kind: article }
               - { label: "Google SRE books", url: "https://sre.google/books/", kind: article }
@@ -633,6 +1420,19 @@ stages:
             learn:
               - Case studies of scaling
               - What broke and why
+            body: |
+              Reading how real companies built and fixed their systems teaches patterns and mistakes faster than theory.
+
+              ### Key ideas
+              - Look for the **starting point**: what the first version was and why it was fine
+              - Find the **trigger**: the load, outage or cost that forced a change
+              - Note the **trade-offs** they accepted and what they gave up
+              - Many stories repeat: a single database becomes sharded, a monolith gains queues, caches get added in front of hot reads
+              - Outage write-ups (post-mortems) show how failures chain together
+              - Treat any one company's design as an example, not a rule. Your scale and team may be very different
+
+              ### In practice
+              Pick one write-up a week. Sketch its design from memory, then list what you would do differently and why. That is the same skill you use in design discussions.
             resources:
               - { label: "High Scalability", url: "https://highscalability.com/", kind: article }
               - { label: "system-design-primer: real world architectures", url: "https://github.com/donnemartin/system-design-primer#real-world-architectures", kind: article }

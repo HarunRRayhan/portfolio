@@ -4,6 +4,7 @@ import { ArrowRight, Check, Copy, ExternalLink, Heart, Lock, Search, Sparkles, X
 import { useEffect, useState, type ReactElement } from 'react'
 import { Github } from '@/lib/icons'
 import { cn } from '@/lib/utils'
+import { getImageUrl } from '@/lib/imageUtils'
 
 export type Resource = { label: string; url: string; kind: string; own: boolean }
 
@@ -14,6 +15,7 @@ export type Lesson = {
   done: boolean
   summary?: string
   learn?: string[]
+  bodyHtml?: string | null
   resources?: Resource[]
   searchUrl?: string
   prompt?: string
@@ -152,8 +154,15 @@ export function LessonDetail({ lesson, loginHref }: { lesson: Lesson; loginHref:
 
       <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className="mt-6">
         {tab === 'overview' && (
-          <div className="space-y-5">
+          <div className="space-y-6">
             {lesson.summary && <p className="text-base leading-7 text-slate-700 dark:text-slate-200">{lesson.summary}</p>}
+            {lesson.bodyHtml && (
+              // Rendered server-side from the roadmap YAML with raw HTML stripped.
+              <div
+                className="space-y-4 text-[15px] leading-7 text-slate-700 dark:text-slate-300 [&_a]:font-medium [&_a]:text-amber-700 [&_a]:underline dark:[&_a]:text-amber-400 [&_code]:rounded [&_code]:bg-slate-100 [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[13px] dark:[&_code]:bg-slate-800 [&_h3]:mt-6 [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-slate-900 dark:[&_h3]:text-white [&_li]:pl-1 [&_ol]:list-decimal [&_ol]:space-y-1 [&_ol]:pl-5 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-slate-950 [&_pre]:p-4 [&_pre]:text-slate-100 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_strong]:font-semibold [&_strong]:text-slate-900 dark:[&_strong]:text-white [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5"
+                dangerouslySetInnerHTML={{ __html: lesson.bodyHtml }}
+              />
+            )}
             {!!lesson.learn?.length && (
               <section>
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">What you'll learn</h3>
@@ -190,15 +199,15 @@ export function LessonDetail({ lesson, loginHref }: { lesson: Lesson; loginHref:
  * Assistants that accept a prefilled prompt in the URL open with it; the rest (no such link) get it copied
  * to the clipboard first, then open so the reader can paste. "Copy prompt" covers any other model.
  */
-const ASSISTANTS: { name: string; url: (q: string) => string; prefill: boolean }[] = [
-  { name: 'ChatGPT', url: (q) => `https://chatgpt.com/?q=${q}`, prefill: true },
-  { name: 'Claude', url: (q) => `https://claude.ai/new?q=${q}`, prefill: true },
-  { name: 'Gemini', url: () => 'https://gemini.google.com/app', prefill: false },
-  { name: 'Perplexity', url: (q) => `https://www.perplexity.ai/search?q=${q}`, prefill: true },
-  { name: 'Grok', url: (q) => `https://grok.com/?q=${q}`, prefill: true },
-  { name: 'Copilot', url: (q) => `https://copilot.microsoft.com/?q=${q}`, prefill: true },
-  { name: 'Mistral', url: (q) => `https://chat.mistral.ai/chat?q=${q}`, prefill: true },
-  { name: 'DeepSeek', url: () => 'https://chat.deepseek.com/', prefill: false },
+const ASSISTANTS: { name: string; logo: string; url: (q: string) => string; prefill: boolean }[] = [
+  { name: 'ChatGPT', logo: '/images/ai/chatgpt.png', url: (q) => `https://chatgpt.com/?q=${q}`, prefill: true },
+  { name: 'Claude', logo: '/images/ai/claude.png', url: (q) => `https://claude.ai/new?q=${q}`, prefill: true },
+  { name: 'Gemini', logo: '/images/ai/gemini.png', url: () => 'https://gemini.google.com/app', prefill: false },
+  { name: 'Perplexity', logo: '/images/ai/perplexity.png', url: (q) => `https://www.perplexity.ai/search?q=${q}`, prefill: true },
+  { name: 'Grok', logo: '/images/ai/grok.png', url: (q) => `https://grok.com/?q=${q}`, prefill: true },
+  { name: 'Copilot', logo: '/images/ai/copilot.png', url: (q) => `https://copilot.microsoft.com/?q=${q}`, prefill: true },
+  { name: 'Mistral', logo: '/images/ai/mistral.png', url: (q) => `https://chat.mistral.ai/chat?q=${q}`, prefill: true },
+  { name: 'DeepSeek', logo: '/images/ai/deepseek.png', url: () => 'https://chat.deepseek.com/', prefill: false },
 ]
 
 /** Guests see a sign-up button instead of the prompt (the server doesn't send it to them). */
@@ -233,19 +242,26 @@ function AskYourAi({ lesson, loginHref }: { lesson: Lesson; loginHref: string })
 
   return (
     <div>
-      <p className="text-sm text-slate-600 dark:text-slate-300">Take this prompt to any AI. It links back to this roadmap so the AI knows what you're following.</p>
-      <p className="mt-3 rounded-lg bg-slate-50 p-3 font-mono text-xs leading-5 text-slate-700 dark:bg-slate-950 dark:text-slate-300">{lesson.prompt}</p>
-      <div className="mt-4 flex flex-wrap gap-2">
-        <button onClick={() => copy('prompt')} className={cn(button, 'border-slate-900 bg-slate-900 text-white hover:bg-slate-700 dark:border-white dark:bg-white dark:text-slate-900')}>
-          {copied === 'prompt' ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />} {copied === 'prompt' ? 'Copied' : 'Copy prompt'}
-        </button>
+      <p className="text-sm text-slate-600 dark:text-slate-300">Open this lesson in your AI. The prompt is filled in and links back to this roadmap.</p>
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {ASSISTANTS.map((a) => (
-          <button key={a.name} onClick={() => open(a)} className={button} title={a.prefill ? undefined : 'Copies the prompt, then opens the site so you can paste it'}>
-            {copied === a.name ? <Check className="h-3.5 w-3.5" /> : <ExternalLink className="h-3.5 w-3.5" />} {a.name}
+          <button key={a.name} onClick={() => open(a)} className="flex items-center gap-2.5 rounded-xl border border-slate-200 px-3 py-2.5 text-left text-sm font-medium text-slate-800 transition hover:border-amber-400 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800" title={a.prefill ? `Open in ${a.name}` : 'Copies the prompt, then opens the site so you can paste it'}>
+            <img src={getImageUrl(a.logo)} alt="" width={20} height={20} className="h-5 w-5 shrink-0 rounded" loading="lazy" />
+            <span className="min-w-0 flex-1 truncate">{a.name}</span>
+            {copied === a.name ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <ExternalLink className="h-3.5 w-3.5 text-slate-400" />}
           </button>
         ))}
       </div>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <button onClick={() => copy('prompt')} className={cn(button, 'border-slate-900 bg-slate-900 text-white hover:bg-slate-700 dark:border-white dark:bg-white dark:text-slate-900')}>
+          {copied === 'prompt' ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />} {copied === 'prompt' ? 'Copied' : 'Copy prompt for another AI'}
+        </button>
+      </div>
       {copied && copied !== 'prompt' && <p role="status" className="mt-2 text-xs text-slate-500">Prompt copied. Paste it into {copied}.</p>}
+      <details className="mt-4 rounded-xl border border-slate-200 dark:border-slate-800">
+        <summary className="cursor-pointer px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200">Show the prompt</summary>
+        <p className="border-t border-slate-200 p-4 font-mono text-xs leading-5 text-slate-700 dark:border-slate-800 dark:text-slate-300">{lesson.prompt}</p>
+      </details>
     </div>
   )
 }

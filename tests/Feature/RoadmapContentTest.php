@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Support\BlogRepository;
 use App\Support\RoadmapRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Symfony\Component\Yaml\Yaml;
 use Tests\TestCase;
 
@@ -60,6 +61,12 @@ class RoadmapContentTest extends TestCase
                         $this->assertNotEmpty($lesson['summary'] ?? null, $lw);
                         $this->assertIsBool($lesson['optional'] ?? false, $lw);
                         $this->assertNotEmpty($lesson['learn'] ?? [], "{$lw}: no learn bullets");
+                        if (isset($lesson['body'])) {
+                            $this->assertIsString($lesson['body'], "{$lw}: body must be Markdown text");
+                            $this->assertLessThanOrEqual(3000, strlen($lesson['body']), "{$lw}: keep the body short");
+                            // Raw HTML is stripped when rendered (RoadmapRepository), so a `<` in prose or code is safe.
+                            $this->assertStringNotContainsString('<script', (string) Str::markdown($lesson['body'], ['html_input' => 'strip']), $lw);
+                        }
                         $this->assertNotEmpty($lesson['resources'] ?? [], "{$lw}: no resources");
                         $public = 0;
                         foreach ($lesson['resources'] as $resource) {

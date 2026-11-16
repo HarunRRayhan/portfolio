@@ -24,9 +24,23 @@ stages:
             learn:
               - What makes a network local
               - What a WAN connects and who runs it
+            body: |
+              A **LAN** (local area network) connects devices in one place, such as a home or an office. You own the switch and the Wi-Fi, so it is fast and cheap to run.
+
+              A **WAN** (wide area network) joins networks that are far apart, like two offices in different cities. You usually rent the links from a telecom or an ISP.
+
+              ### Key ideas
+              - LAN: one site, high speed, you run it
+              - WAN: many sites, slower and paid for, run by a provider
+              - The internet is the largest WAN
+
+              ### Example
+              Your laptop and printer talk over the office LAN. When you open a website, traffic leaves through the router onto the ISP's WAN.
             resources:
               - { label: "What is a LAN? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-a-lan/", kind: article }
               - { label: "What is a WAN? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-a-wan/", kind: article }
+              - { label: "Local area network (Wikipedia)", url: "https://en.wikipedia.org/wiki/Local_area_network", kind: article }
+              - { label: "Wide area network (Wikipedia)", url: "https://en.wikipedia.org/wiki/Wide_area_network", kind: article }
           - id: network-devices
             title: Routers, switches and modems
             summary: The three boxes that move your traffic, and the job each one does.
@@ -34,17 +48,47 @@ stages:
               - Switches connect devices inside one network
               - Routers move traffic between networks
               - Modems connect you to your ISP
+            body: |
+              Three boxes do most of the work in a small network. Each one works at a different level, and in a home they are often squeezed into one device.
+
+              A **switch** connects devices inside one network and passes frames only to the port where the target device lives. A **router** connects different networks and decides where each packet goes next. A **modem** turns your ISP's signal (cable, DSL or fiber) into Ethernet.
+
+              ### Key ideas
+              - Switch: connects devices in one network, uses MAC addresses
+              - Router: moves traffic between networks, uses IP addresses
+              - Modem: connects you to your ISP
+              - A home "router" is usually a modem, router, switch and Wi-Fi access point in one case
+
+              ### Example
+              Your phone sends a request. The Wi-Fi access point and switch carry it to the router. The router forwards it to the modem, and the modem sends it to the ISP.
             resources:
               - { label: "What is routing? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-routing/", kind: article }
               - { label: "Network switch (Wikipedia)", url: "https://en.wikipedia.org/wiki/Network_switch", kind: article }
+              - { label: "Router (computing) (Wikipedia)", url: "https://en.wikipedia.org/wiki/Router_(computing)", kind: article }
+              - { label: "Modem (Wikipedia)", url: "https://en.wikipedia.org/wiki/Modem", kind: article }
           - id: network-of-networks
             title: The internet as a network of networks
             summary: There is no single internet owner. It is many independent networks agreeing to carry each other's traffic.
             learn:
               - ISPs and how they connect
               - Why no one company runs the internet
+            body: |
+              The internet is not one network. It is tens of thousands of separate networks that agree to pass each other's traffic. Home networks, companies, universities, clouds and ISPs are all part of it.
+
+              An **ISP** connects customers to the rest of the internet. Small ISPs buy access from bigger ones, and big ones connect directly to each other. Everyone uses the same protocols, mainly IP, so the pieces work together.
+
+              ### Key ideas
+              - Each network is run by its own owner
+              - ISPs connect to each other by paying for transit or by swapping traffic (peering)
+              - No company owns the whole internet
+              - Shared standards, not a central boss, keep it working
+
+              ### Why it matters
+              If one network fails, traffic can often take another path. That is why a single company outage rarely takes down the whole internet.
             resources:
               - { label: "What is the Internet? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-the-internet/", kind: article }
+              - { label: "Internet service provider (Wikipedia)", url: "https://en.wikipedia.org/wiki/Internet_service_provider", kind: article }
+              - { label: "How does the Internet work? (MDN)", url: "https://developer.mozilla.org/en-US/docs/Learn_web_development/Howto/Web_mechanics/How_does_the_Internet_work", kind: docs }
           - id: mac-addresses-and-ethernet
             title: MAC addresses and Ethernet
             optional: true
@@ -53,9 +97,29 @@ stages:
               - What a MAC address is
               - Ethernet frames
               - ARP maps IP addresses to MAC addresses
+            body: |
+              A **MAC address** is a 48-bit hardware address burned into a network card, written like `3c:22:fb:12:ab:cd`. It names the card on its local network, not the machine on the wider internet.
+
+              On a LAN, data travels in **Ethernet frames**. A frame has a destination MAC, a source MAC, a type field, the payload and a checksum. Switches read the destination MAC to pick an output port.
+
+              IP addresses are used to find a device, but the last step is by MAC. **ARP** (Address Resolution Protocol) asks the local network "who has this IP?" and the owner replies with its MAC.
+
+              ### Key ideas
+              - MAC addresses work only inside one local network
+              - Frames carry IP packets as their payload
+              - ARP maps an IP address to a MAC address
+              - Routers rewrite the MAC addresses at every hop, but not the IP addresses
+
+              ### In practice
+              ```bash
+              arp -a
+              ```
+              This shows the IP to MAC pairs your machine has learned recently.
             resources:
               - { label: "MAC address (Wikipedia)", url: "https://en.wikipedia.org/wiki/MAC_address", kind: article }
               - { label: "Address Resolution Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Address_Resolution_Protocol", kind: article }
+              - { label: "Ethernet frame (Wikipedia)", url: "https://en.wikipedia.org/wiki/Ethernet_frame", kind: article }
+              - { label: "RFC 826: An Ethernet Address Resolution Protocol", url: "https://www.rfc-editor.org/rfc/rfc826", kind: docs }
 
       - id: fiber-and-undersea-cables
         title: Fiber and undersea cables
@@ -69,6 +133,19 @@ stages:
               - Single-mode vs multimode fiber
               - Why fiber beats copper for distance and speed
               - Many colours of light on one fiber (WDM)
+            body: |
+              A fiber cable is a thin strand of glass. Data goes in as pulses of light from a laser or LED, and a receiver at the other end turns the light back into bits.
+
+              The strand has a **core** in the middle and a **cladding** around it. The cladding bends light back into the core, so the light bounces along by **total internal reflection** and follows the cable around bends.
+
+              ### Key ideas
+              - Single-mode fiber has a very thin core and carries one light path over long distances, even across oceans
+              - Multimode fiber has a wider core and is cheaper, but works only over short runs such as inside a building
+              - Fiber loses far less signal than copper, and is not affected by electrical noise
+              - **WDM** sends many colours (wavelengths) of light down one fiber at once, which multiplies its capacity
+
+              ### Example
+              One pair of fibers with 80 colours of light, each carrying a fast channel, can carry many times the data of a single colour.
             resources:
               - { label: "How do fiber optic cables work?", url: "https://www.youtube.com/watch?v=0t7Ina7_dIU", kind: video }
               - { label: "Optical fiber (Wikipedia)", url: "https://en.wikipedia.org/wiki/Optical_fiber", kind: article }
@@ -82,6 +159,19 @@ stages:
               - Charles Kao's 1966 low-loss glass fiber idea (Nobel Prize 2009)
               - Corning's first low-loss fiber in 1970
               - TAT-8, the first transatlantic fiber cable (1988)
+            body: |
+              Long-distance communication began with the telegraph. The 1858 transatlantic cable worked for only a few weeks. A durable one followed in 1866, and it linked Europe and North America with electrical signals.
+
+              Light was the next step. In 1966 Charles Kao showed that glass fiber could carry light over long distances if the glass were pure enough. He won the Nobel Prize for it in 2009. In 1970 Corning made the first fiber with low enough loss to be useful.
+
+              ### Key ideas
+              - 1858 and 1866: telegraph cables under the Atlantic
+              - 1966: Kao's paper on low-loss glass fiber
+              - 1970: Corning's first low-loss fiber
+              - 1988: TAT-8, the first transatlantic fiber cable
+
+              ### Why it matters
+              Fiber replaced copper cables under the sea. One fiber cable carries far more traffic than the older copper ones, at a much lower cost per bit.
             resources:
               - { label: "Transatlantic telegraph cable (Wikipedia)", url: "https://en.wikipedia.org/wiki/Transatlantic_telegraph_cable", kind: article }
               - { label: "Charles K. Kao (Wikipedia)", url: "https://en.wikipedia.org/wiki/Charles_K._Kao", kind: article }
@@ -94,6 +184,19 @@ stages:
               - Cable landing stations
               - Who owns cables (telcos, and now Google, Meta, Microsoft, Amazon)
               - Reading the submarine cable map
+            body: |
+              Almost all traffic between continents travels through cables on the sea floor, not through satellites. Cables have more capacity and lower delay than satellites.
+
+              A submarine cable is about as thick as a garden hose. Fibers sit in the centre, wrapped in steel wire and plastic for strength and protection. Along the route, **repeaters** (optical amplifiers) boost the light every so often, powered by electricity sent down the cable.
+
+              ### Key ideas
+              - Cables come ashore at **landing stations**, where they connect to land networks
+              - Telecom companies built most cables, and Google, Meta, Microsoft and Amazon now build and own many
+              - Several companies often share one cable, each owning some of its fibers
+              - A map of all cables is public
+
+              ### In practice
+              Open the Submarine Cable Map and pick a country. You can see which cables land there, who owns them, and when they went live. Notice that many countries depend on just a few cables.
             resources:
               - { label: "Submarine Cable Map (TeleGeography)", url: "https://www.submarinecablemap.com/", kind: tool }
               - { label: "Submarine communications cable (Wikipedia)", url: "https://en.wikipedia.org/wiki/Submarine_communications_cable", kind: article }
@@ -105,6 +208,20 @@ stages:
               - How a cable ship lays and buries cable
               - How a break is found and repaired at sea
               - Why the repair fleet is small and repairs can take weeks
+            body: |
+              Cable ships are special vessels that lay and fix cables. A ship carries thousands of kilometres of cable in large tanks and pays it out slowly while it steams along a planned route.
+
+              Near the shore, where anchors and fishing nets can reach, the cable is buried in the sea floor by a plough pulled behind the ship or by a robot. In deep water it just lies on the bottom.
+
+              ### Key ideas
+              - Ships lay cable along a surveyed route and bury it near the coast
+              - To find a break, engineers send test signals from the shore and measure how far they get
+              - At the break, the ship grapples the cable, lifts it, cuts out the damaged part and splices in new cable
+              - The fleet is small, so a repair ship may be far away and need time to arrive
+              - Bad weather and permits can add more delay
+
+              ### Example
+              A break 200 km off a coast is located by a test signal. A ship sails there, recovers both cable ends and joins them on deck. Repairs often take days to weeks.
             resources:
               - { label: "How undersea internet cables are made and laid", url: "https://www.youtube.com/watch?v=pkbv4tyQoF0", kind: video }
               - { label: "How undersea cables get repaired 4 km down", url: "https://www.youtube.com/watch?v=GoPnMffCxuA", kind: video }
@@ -116,6 +233,21 @@ stages:
               - Common causes of faults (anchors, fishing, earthquakes)
               - Real outages, such as the Red Sea and Baltic Sea cuts
               - Why route diversity keeps the internet up
+            body: |
+              Cables are tough but not safe. Around 150 to 200 faults happen each year around the world. Most are caused by people: ships dragging anchors and fishing gear. Earthquakes and underwater landslides cut some others.
+
+              Deep cables rarely break. Most faults happen in shallow water near ports and fishing grounds.
+
+              ### Key ideas
+              - Anchors and fishing cause most faults
+              - Natural events such as earthquakes can cut several cables at once
+              - Real cuts, such as those in the Red Sea and the Baltic Sea, slowed traffic and forced rerouting
+              - **Route diversity** means more than one cable and more than one path, so a single cut does not take a region offline
+
+              ### Common mistakes
+              - Thinking the internet is wireless or satellite-based: it is mostly cables
+              - Thinking a cut means a blackout: traffic usually reroutes, but it gets slower and more expensive
+              - Counting cables instead of routes: two cables in one narrow strait can fail together
             resources:
               - { label: "What happens when submarine cables break (TeleGeography)", url: "https://blog.telegeography.com/what-happens-when-submarine-cables-break", kind: article }
               - { label: "Damage to submarine cables from dragged anchors (ICPC)", url: "https://iscpc.org/publications/icpc-viewpoints/damage-to-submarine-cables-from-dragged-anchors/", kind: article }
@@ -129,6 +261,19 @@ stages:
               - What hollow-core fiber is and why light is faster in air
               - Recent hollow-core field trials in China
               - Multi-core fiber and other ways to fit more data in one cable
+            body: |
+              Normal fiber has a solid glass core. Light slows down in glass, to about two thirds of its speed in a vacuum.
+
+              **Hollow-core fiber** guides light through air inside the glass instead. Light travels faster in air, so delay drops by about a third. The signal also loses less strength and suffers fewer distortions, so it can go farther between amplifiers.
+
+              ### Key ideas
+              - Hollow-core fiber means lower latency, which matters for finance, cloud links and data centres
+              - Labs and operators in China and elsewhere have run field trials with record speeds
+              - **Multi-core fiber** puts several cores in one strand, so one cable carries more
+              - Other approaches add more colours, or better ways to pack bits into the light
+
+              ### Why it matters
+              Capacity demand keeps growing, and laying new cables is slow and expensive. Getting more from each fiber is a cheaper way to keep up.
             resources:
               - { label: "China's hollow-core fiber trial pushes 51.3 Tb/s over 128 miles (Tom's Hardware)", url: "https://www.tomshardware.com/networking/chinas-hollow-core-fiber-trial-pushes-51-3-tb-s-over-128-miles-without-signal-regeneration-milestone-targets-ai-era-networking-bottlenecks", kind: article }
               - { label: "Photonic-crystal fiber (Wikipedia)", url: "https://en.wikipedia.org/wiki/Photonic-crystal_fiber", kind: article }
@@ -144,6 +289,20 @@ stages:
               - What an IP address identifies
               - IP addresses vs MAC addresses vs domain names
               - Why there are two versions, IPv4 and IPv6
+            body: |
+              An **IP address** identifies a network interface, so that packets can be sent to it. Think of it as a street address: it says where to deliver, not who lives there.
+
+              Three kinds of names are easy to mix up. A **MAC address** names a network card on a local link. An **IP address** names an interface on a network and can change when you move. A **domain name** like `harun.dev` is a human-friendly label that DNS turns into an IP address.
+
+              ### Key ideas
+              - IP addresses are used to route packets across networks
+              - MAC addresses work only on the local link
+              - Domain names are looked up with DNS, then the IP is used
+              - **IPv4** has 32-bit addresses and ran short. **IPv6** has 128-bit addresses and is the long-term fix
+              - Both versions are in use together
+
+              ### Example
+              `93.184.216.34` is an IPv4 address. `2606:2800:220:1:248:1893:25c8:1946` is an IPv6 address. A website can have both.
             resources:
               - { label: "Internet Protocol (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/internet-protocol/", kind: article }
               - { label: "IP address (Wikipedia)", url: "https://en.wikipedia.org/wiki/IP_address", kind: article }
@@ -154,9 +313,25 @@ stages:
               - Public addresses vs private addresses
               - Why your laptop's address differs from what websites see
               - Both IPv4 and IPv6 have private ranges
+            body: |
+              A **public** address is reachable from the whole internet and is unique worldwide. A **private** address works only inside one network, and many networks reuse the same ones at the same time.
+
+              Home and office networks use private addresses. The router has one public address on the ISP side, and **NAT** rewrites traffic so many private devices can share it. That is why your laptop shows `192.168.1.20` while websites see your router's public IP.
+
+              ### Key ideas
+              - Public: globally unique, routed on the internet
+              - Private: reused everywhere, never routed on the public internet
+              - Your device's address and the address websites see are usually different
+              - IPv4 private ranges are `10.0.0.0/8`, `172.16.0.0/12` and `192.168.0.0/16`
+              - IPv6 has private ranges too (unique local addresses, `fc00::/7`)
+
+              ### Common mistakes
+              - Assuming the address in your settings is the one the world sees
+              - Using the same private range on two networks you later need to connect
             resources:
               - { label: "What is my IP address? (Cloudflare)", url: "https://www.cloudflare.com/learning/dns/glossary/what-is-my-ip-address/", kind: article }
               - { label: "Reserved IP addresses (Wikipedia)", url: "https://en.wikipedia.org/wiki/Reserved_IP_addresses", kind: article }
+              - { label: "Private network (Wikipedia)", url: "https://en.wikipedia.org/wiki/Private_network", kind: article }
           - id: dhcp
             title: How your device gets an address (DHCP)
             summary: When you join a Wi-Fi network, a DHCP server hands you an address, a gateway and DNS servers.
@@ -165,9 +340,26 @@ stages:
               - Leases and renewals
               - What else DHCP hands out
               - IPv6 devices can also set up their own address (SLAAC)
+            body: |
+              When a device joins a network it has no address. **DHCP** (Dynamic Host Configuration Protocol) is how it gets one. A DHCP server, often built into your router, hands out the settings automatically.
+
+              The exchange has four steps, often called DORA. The client broadcasts a **Discover**. A server replies with an **Offer**. The client sends a **Request** for that offer. The server confirms with an **Acknowledge**.
+
+              ### Key ideas
+              - The address is a **lease**: it expires, and the client asks to renew it before then
+              - DHCP also gives the default gateway, DNS servers and subnet mask
+              - It can hand out the same address to the same device each time (a reservation)
+              - On IPv6, devices can build their own address with **SLAAC**, with DHCPv6 as an option
+
+              ### In practice
+              ```bash
+              ipconfig getifaddr en0
+              ```
+              On macOS this prints the address the DHCP server gave your Wi-Fi interface (use `ip addr` on Linux).
             resources:
               - { label: "Dynamic Host Configuration Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol", kind: article }
               - { label: "RFC 2131: DHCP", url: "https://www.rfc-editor.org/rfc/rfc2131", kind: docs }
+              - { label: "RFC 2132: DHCP Options and BOOTP Vendor Extensions", url: "https://www.rfc-editor.org/rfc/rfc2132", kind: docs }
 
       - id: ipv4
         title: IPv4
@@ -179,9 +371,25 @@ stages:
             learn:
               - Dotted decimal notation
               - 32 bits and the size of the address space
+            body: |
+              An IPv4 address is 32 bits long. To make it readable, it is split into four 8-bit parts, called octets, and each is written as a decimal number from 0 to 255, separated by dots. This is **dotted decimal** notation, for example `192.168.1.10`.
+
+              Each octet has 8 bits, so it can hold 256 values (0 to 255). Four octets give 2 to the power of 32 addresses, which is about 4.3 billion.
+
+              ### Key ideas
+              - 32 bits, four octets, each from 0 to 255
+              - About 4.3 billion possible addresses in total
+              - Part of the address names the network and part names the host
+              - Many addresses are reserved, so fewer are usable on the public internet
+
+              ### Example
+              `192.168.1.10` in binary is `11000000.10101000.00000001.00001010`.
+
+              4.3 billion sounded huge in the 1980s. Today there are more devices than addresses.
             resources:
               - { label: "Internet Protocol (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/internet-protocol/", kind: article }
               - { label: "RFC 791: Internet Protocol", url: "https://www.rfc-editor.org/rfc/rfc791", kind: docs }
+              - { label: "Internet Protocol version 4 (Wikipedia)", url: "https://en.wikipedia.org/wiki/Internet_Protocol_version_4", kind: article }
           - id: ipv4-special-ranges
             title: IPv4 private and special ranges
             summary: The address blocks you will see every day that never route on the public internet.
@@ -189,9 +397,25 @@ stages:
               - The 10/8, 172.16/12 and 192.168/16 private ranges
               - Loopback (127.0.0.1) and link-local (169.254/16)
               - The 100.64/10 range used by carrier-grade NAT
+            body: |
+              Some IPv4 blocks have special meaning and never route on the public internet. You will see them every day in configs and logs.
+
+              ### Key ideas
+              - **Private ranges** (RFC 1918): `10.0.0.0/8`, `172.16.0.0/12` (172.16.0.0 to 172.31.255.255) and `192.168.0.0/16`
+              - **Loopback**: `127.0.0.1` (the whole `127.0.0.0/8`) always means "this machine"
+              - **Link-local**: `169.254.0.0/16`, self-assigned when DHCP fails
+              - **Shared address space** `100.64.0.0/10` is used by ISPs for carrier-grade NAT (CGNAT), and is not private in the same sense as RFC 1918
+              - Cloud networks, VPNs and containers mostly pick from the private ranges
+
+              ### Common mistakes
+              - Treating `172.x.x.x` as all private: only `172.16` to `172.31` is
+              - Seeing a `169.254` address and not realising it means DHCP failed
+              - Picking a private range that clashes with a VPN or another network you will join
             resources:
               - { label: "RFC 1918: private address space", url: "https://www.rfc-editor.org/rfc/rfc1918", kind: docs }
               - { label: "RFC 6598: shared address space for CGNAT", url: "https://www.rfc-editor.org/rfc/rfc6598", kind: docs }
+              - { label: "IPv4 Special-Purpose Address Space (IANA)", url: "https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml", kind: docs }
+              - { label: "RFC 3927: Dynamic Configuration of IPv4 Link-Local Addresses", url: "https://www.rfc-editor.org/rfc/rfc3927", kind: docs }
           - id: ipv4-exhaustion
             title: Running out of IPv4
             summary: The last free IPv4 blocks were handed out in 2011. NAT, carrier-grade NAT and buying addresses keep IPv4 going.
@@ -199,9 +423,23 @@ stages:
               - Why 4 billion addresses was not enough
               - How NAT and carrier-grade NAT stretch IPv4
               - IPv4 addresses now cost money to buy or rent
+            body: |
+              IPv4 has about 4.3 billion addresses, and the world has far more connected devices. The central pool of free blocks ran out in 2011. Regional registries followed over the next years.
+
+              The internet kept growing because of workarounds. **NAT** lets a whole home or office share one public address. **Carrier-grade NAT** lets an ISP share one public address among many customers. IPv6 is the real fix, but moving takes time.
+
+              ### Key ideas
+              - Free blocks ran out because devices outgrew 32 bits
+              - NAT and CGNAT stretch the address space, at the cost of breaking simple inbound connections
+              - Addresses are now a traded asset: you buy or rent them, and prices are per address
+              - Cloud providers also charge for public IPv4 addresses
+
+              ### Why it matters
+              Cost and complexity of IPv4 keep growing. Newer services increasingly use IPv6 first, and mixed setups need both.
             resources:
               - { label: "IPv4 address exhaustion (Wikipedia)", url: "https://en.wikipedia.org/wiki/IPv4_address_exhaustion", kind: article }
               - { label: "Carrier-grade NAT (Wikipedia)", url: "https://en.wikipedia.org/wiki/Carrier-grade_NAT", kind: article }
+              - { label: "Regional Internet registry (Wikipedia)", url: "https://en.wikipedia.org/wiki/Regional_Internet_registry", kind: article }
 
       - id: ipv6-basics
         title: IPv6
@@ -213,9 +451,26 @@ stages:
             learn:
               - Reading and shortening addresses
               - Link-local and global addresses
+            body: |
+              An IPv6 address is 128 bits, written as eight groups of four hex digits separated by colons, for example `2001:0db8:0000:0000:0000:0000:0000:0001`.
+
+              That is long, so there are two shortening rules. You may drop leading zeros in each group. You may replace one run of all-zero groups with `::` (only once per address).
+
+              ### Key ideas
+              - Eight groups of 16 bits each
+              - Drop leading zeros: `0db8` becomes `db8`
+              - Use `::` once for the longest run of zero groups
+              - `2001:0db8:0000:0000:0000:0000:0000:0001` becomes `2001:db8::1`
+              - The first part is the network prefix, written like `2001:db8::/32`
+              - **Link-local** addresses (`fe80::/10`) work only on the local link, and every IPv6 interface has one
+              - **Global** addresses are routable on the internet
+
+              ### Example
+              `::1` is loopback, the IPv6 version of `127.0.0.1`.
             resources:
               - { label: "IPv6 (Wikipedia)", url: "https://en.wikipedia.org/wiki/IPv6", kind: article }
               - { label: "RFC 4291: IPv6 addressing", url: "https://www.rfc-editor.org/rfc/rfc4291", kind: docs }
+              - { label: "RFC 8200: Internet Protocol, Version 6 (IPv6) Specification", url: "https://www.rfc-editor.org/rfc/rfc8200", kind: docs }
           - id: ipv6-address-types
             title: IPv6 address types
             summary: Global, link-local and unique local addresses, loopback, and multicast instead of broadcast.
@@ -223,9 +478,26 @@ stages:
               - Global unicast addresses (2000::/3)
               - Link-local (fe80::/10) and unique local (fc00::/7)
               - Loopback (::1), multicast, and no broadcast
+            body: |
+              IPv6 has several types of address, each for a different job. Most are recognised by their prefix.
+
+              ### Key ideas
+              - **Global unicast** (`2000::/3`): public, routable addresses, like public IPv4
+              - **Link-local** (`fe80::/10`): valid only on one link, used for neighbour discovery and router talk
+              - **Unique local** (`fc00::/7`, in practice `fd00::/8`): private addresses for inside a site, like RFC 1918
+              - **Loopback** (`::1`): this machine
+              - **Multicast** (`ff00::/8`): one packet to a group of devices
+              - There is **no broadcast** in IPv6. Multicast does that job
+
+              ### Example
+              A laptop on a home network may have a link-local `fe80::...` address, a global `2001:...` address from the ISP prefix, and a temporary global address for outgoing connections.
+
+              Seeing the prefix tells you at once how far an address can reach.
             resources:
               - { label: "IPv6 address (Wikipedia)", url: "https://en.wikipedia.org/wiki/IPv6_address", kind: article }
               - { label: "RFC 4291: IPv6 addressing", url: "https://www.rfc-editor.org/rfc/rfc4291", kind: docs }
+              - { label: "RFC 4193: Unique Local IPv6 Unicast Addresses", url: "https://www.rfc-editor.org/rfc/rfc4193", kind: docs }
+              - { label: "IPv6 Special-Purpose Address Space (IANA)", url: "https://www.iana.org/assignments/iana-ipv6-special-registry/iana-ipv6-special-registry.xhtml", kind: docs }
           - id: slaac
             title: How a device gets an IPv6 address
             summary: Routers announce the network prefix and devices build their own address (SLAAC), with DHCPv6 as the other option.
@@ -233,9 +505,25 @@ stages:
               - Router advertisements and SLAAC
               - DHCPv6
               - Temporary privacy addresses
+            body: |
+              In IPv6, a device can get an address without a DHCP server. The router sends **Router Advertisements** (RAs) saying "this is the network prefix". The device adds its own 64-bit interface identifier and has a full address. This is **SLAAC** (stateless address autoconfiguration).
+
+              The device also checks that nobody else is using the address before it takes it.
+
+              ### Key ideas
+              - Routers announce the prefix, devices build their own address
+              - **DHCPv6** is the other option, for sites that want a server to track who has which address
+              - RAs can also tell devices about DNS servers and the default router
+              - **Temporary privacy addresses** are random and change over time, used for outgoing connections so that your device cannot be tracked by a fixed identifier
+
+              ### Common mistakes
+              - Expecting DHCPv6 on every IPv6 network: many use SLAAC only
+              - Blocking ICMPv6 on a firewall, which breaks router advertisements and neighbour discovery
             resources:
               - { label: "RFC 4862: stateless address autoconfiguration", url: "https://www.rfc-editor.org/rfc/rfc4862", kind: docs }
               - { label: "RFC 8981: temporary IPv6 addresses", url: "https://www.rfc-editor.org/rfc/rfc8981", kind: docs }
+              - { label: "IPv6 stateless address autoconfiguration (Wikipedia)", url: "https://en.wikipedia.org/wiki/Stateless_address_autoconfiguration", kind: article }
+              - { label: "RFC 4861: Neighbor Discovery for IP version 6", url: "https://www.rfc-editor.org/rfc/rfc4861", kind: docs }
 
       - id: packets
         title: Packets
@@ -247,8 +535,23 @@ stages:
             learn:
               - Packet switching vs circuit switching
               - Packets can take different paths
+            body: |
+              Data on the internet is cut into small pieces called **packets**. Each packet carries a header with its destination and travels on its own.
+
+              The older approach was **circuit switching**, used by phone networks: a path is reserved for the whole call, and sits idle when nobody talks. **Packet switching** shares links: many conversations send their packets over the same wires, which is far more efficient.
+
+              ### Key ideas
+              - Packet switching lets many users share one link
+              - Each packet is routed on its own, so packets of one message can take different paths
+              - They may arrive out of order, and the receiver puts them back in order
+              - If a packet is lost, only that piece needs to be sent again
+              - One slow transfer does not block everyone else
+
+              ### Example
+              A 5 MB photo becomes thousands of packets of roughly 1,500 bytes. If three of them are lost, only those three are resent.
             resources:
               - { label: "What is a packet? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-a-packet/", kind: article }
+              - { label: "Packet switching (Wikipedia)", url: "https://en.wikipedia.org/wiki/Packet_switching", kind: article }
           - id: headers-and-payload
             title: Headers vs payload
             summary: Each layer wraps the data in its own header. Learn to read what an IP header carries.
@@ -256,9 +559,24 @@ stages:
               - Source and destination address
               - TTL and why packets do not loop forever
               - Encapsulation, layer by layer
+            body: |
+              A packet has two parts. The **header** holds control data such as who it is from and where it is going. The **payload** is the actual data being carried.
+
+              Each layer adds its own header. This is **encapsulation**. An HTTP message is wrapped in a TCP segment, which is wrapped in an IP packet, which is wrapped in an Ethernet frame. The receiver strips the layers off in reverse order.
+
+              ### Key ideas
+              - The IP header has the source and destination address
+              - **TTL** (time to live) is a counter that each router decreases by one. At zero the packet is dropped, so a routing loop cannot keep a packet alive forever (IPv6 calls it hop limit)
+              - The TCP header has ports, sequence numbers and flags
+              - Encapsulation: data, then TCP, then IP, then Ethernet
+
+              ### In practice
+              Open Wireshark, capture some traffic and click one packet. You will see the Ethernet, IP and TCP headers listed one inside the other.
             resources:
               - { label: "What is a packet? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-a-packet/", kind: article }
               - { label: "Wireshark (packet capture tool)", url: "https://www.wireshark.org/", kind: tool }
+              - { label: "Time to live (Wikipedia)", url: "https://en.wikipedia.org/wiki/Time_to_live", kind: article }
+              - { label: "Encapsulation (networking) (Wikipedia)", url: "https://en.wikipedia.org/wiki/Encapsulation_(networking)", kind: article }
           - id: mtu
             title: MTU and fragmentation
             optional: true
@@ -267,8 +585,23 @@ stages:
               - The common 1500-byte MTU
               - Fragmentation and path MTU discovery
               - Why VPNs and tunnels lower the MTU
+            body: |
+              Every link has a maximum packet size, called its **MTU** (maximum transmission unit). For Ethernet it is normally 1500 bytes. A packet bigger than the MTU of a link cannot cross it as it is.
+
+              IPv4 routers can **fragment** a big packet into smaller pieces, which are put together again at the destination. That is slow and fragile, so most traffic avoids it. **Path MTU discovery** finds the smallest MTU on the path: the sender marks packets "do not fragment", and a router that cannot forward one replies with an ICMP message. IPv6 routers never fragment.
+
+              ### Key ideas
+              - 1500 bytes is the common Ethernet MTU
+              - Fragmentation is expensive, and path MTU discovery avoids it
+              - VPNs and tunnels add their own headers, so the usable MTU gets smaller
+
+              ### Common mistakes
+              - Blocking all ICMP, so path MTU discovery breaks
+              - Odd bug: small requests work, large ones hang. Check for an MTU problem on a VPN or tunnel
             resources:
               - { label: "What is MTU? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-mtu/", kind: article }
+              - { label: "Path MTU Discovery (Wikipedia)", url: "https://en.wikipedia.org/wiki/Path_MTU_Discovery", kind: article }
+              - { label: "Path MTU discovery in practice (Cloudflare)", url: "https://blog.cloudflare.com/path-mtu-discovery-in-practice/", kind: article }
 
       - id: ports
         title: Ports
@@ -281,25 +614,72 @@ stages:
               - 80 and 443 for HTTP and HTTPS
               - 22 for SSH, 53 for DNS
               - Ports for common databases
+            body: |
+              A **port** is a 16-bit number that tells the machine which program should get a packet. The IP address finds the machine, and the port finds the program.
+
+              Ports from 0 to 1023 are the **well-known ports**, and standard services use them. You will see a handful of numbers all the time.
+
+              ### Key ideas
+              - `80` is HTTP and `443` is HTTPS
+              - `22` is SSH and `53` is DNS
+              - Databases use their own: PostgreSQL `5432`, MySQL `3306`, Redis `6379`, MongoDB `27017`, SQL Server `1433`
+              - A service can run on any port, but the standard ones save everyone from guessing
+              - TCP and UDP each have their own set of ports, from 0 to 65535
+
+              ### Example
+              Opening `https://harun.dev` means connecting to port 443 by default. `https://harun.dev:8443` points at a different port on the same machine, and it can be a different program.
             resources:
               - { label: "What is a computer port? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-a-computer-port/", kind: article }
               - { label: "List of TCP and UDP port numbers (Wikipedia)", url: "https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers", kind: article }
+              - { label: "Service Name and Transport Protocol Port Number Registry (IANA)", url: "https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml", kind: docs }
           - id: source-and-destination-ports
             title: Source vs destination port
             summary: A connection is identified by two addresses and two ports. The client side picks a random high port.
             learn:
               - Ephemeral ports
               - The connection 4-tuple
+            body: |
+              Every TCP or UDP packet carries two port numbers: the **destination port** (which program on the server) and the **source port** (which program on the client).
+
+              The server's port is fixed and well known, for example 443. The client's port is picked by the operating system from a high range. These are **ephemeral ports**.
+
+              ### Key ideas
+              - The client chooses a random high source port for each new connection
+              - The server replies to that port
+              - A connection is identified by four values, the **4-tuple**: source IP, source port, destination IP and destination port
+              - Two connections from the same laptop to the same server differ by source port
+              - Ephemeral ports are limited, so a busy client or proxy can run out
+
+              ### Example
+              `10.0.0.5:51234` to `93.184.216.34:443`. The next tab opens `10.0.0.5:51235` to the same server. The server sees two separate connections.
             resources:
               - { label: "What is a computer port? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-a-computer-port/", kind: article }
+              - { label: "Ephemeral port (Wikipedia)", url: "https://en.wikipedia.org/wiki/Ephemeral_port", kind: article }
+              - { label: "How to stop running out of ephemeral ports (Cloudflare)", url: "https://blog.cloudflare.com/how-to-stop-running-out-of-ephemeral-ports-and-start-to-love-long-lived-connections/", kind: article }
           - id: firewalls-and-ports
             title: Why firewalls care about ports
             summary: Opening or closing a port decides which services the outside world can reach.
             learn:
               - Inbound vs outbound rules
               - Closing everything you do not serve
+            body: |
+              A **firewall** decides which packets may pass. Most rules are based on the IP address, the protocol and the port, so ports are what separate a service that the world can reach from one that is private.
+
+              Rules apply by direction. **Inbound** rules control traffic coming to your machine. **Outbound** rules control traffic leaving it. Most firewalls are stateful: if an outgoing connection is allowed, replies to it are allowed back in.
+
+              ### Key ideas
+              - Open only the ports you serve, such as 443 for a web server
+              - Deny everything else by default
+              - Never expose databases such as 5432 or 6379 to the open internet
+              - Use private networks, security groups or allow-lists to limit who can reach a port
+
+              ### Common mistakes
+              - Opening a port "to test" and forgetting to close it
+              - Allowing `0.0.0.0/0` on SSH when your own IP would do
+              - Forgetting that a service listening on a port is not the same as the firewall allowing it
             resources:
               - { label: "What is a firewall? (Cloudflare)", url: "https://www.cloudflare.com/learning/security/what-is-a-firewall/", kind: article }
+              - { label: "Firewall (computing) (Wikipedia)", url: "https://en.wikipedia.org/wiki/Firewall_(computing)", kind: article }
 
       - id: client-server
         title: Clients and servers
@@ -311,16 +691,51 @@ stages:
             learn:
               - Who opens the connection
               - Stateless request and response
+            body: |
+              Most of the web follows one pattern. The **client** starts a conversation by sending a **request**. The **server** replies with a **response**. The server does not send anything unasked.
+
+              HTTP, DNS and most APIs work this way. A browser asks for a page, a server returns HTML. A phone app asks for data, an API returns JSON.
+
+              ### Key ideas
+              - The client always opens the connection
+              - Each request carries everything the server needs to answer it
+              - HTTP is **stateless**: the server does not remember the previous request unless you add cookies or tokens
+              - A request has a method, a path, headers and sometimes a body. A response has a status code, headers and a body
+
+              ### Example
+              ```
+              GET /blog HTTP/1.1
+              Host: harun.dev
+              ```
+              The server answers with `200 OK`, headers, and the HTML of the page.
             resources:
               - { label: "An overview of HTTP (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview", kind: docs }
+              - { label: "Client–server model (Wikipedia)", url: "https://en.wikipedia.org/wiki/Client%E2%80%93server_model", kind: article }
+              - { label: "HTTP messages (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Messages", kind: docs }
           - id: client-vs-server-side
             title: Client-side vs server-side work
             summary: Some work runs in the browser, some on the server. Knowing which is which explains a lot of web behaviour.
             learn:
               - What runs in the browser
               - What must stay on the server
+            body: |
+              Web work happens in two places. The **client** is the browser or app on the user's device. The **server** is a machine you run.
+
+              Client-side code (HTML, CSS, JavaScript) runs on the user's device. It draws the page, reacts to clicks and can call APIs. Server-side code runs on your machine. It reads the database, checks who the user is and builds responses.
+
+              ### Key ideas
+              - The client is not trusted: users can change anything that runs in their browser
+              - Secrets, permissions checks and business rules must stay on the server
+              - Client-side work feels fast, since there is no network wait for a click
+              - Server-side work can use data and power that the client cannot reach
+              - Many pages split the work: the server sends data, the client shows it
+
+              ### Common mistakes
+              - Checking a price or a permission only in JavaScript
+              - Putting an API key in front-end code, where anyone can read it
             resources:
               - { label: "Client-side vs server-side (Cloudflare)", url: "https://www.cloudflare.com/learning/serverless/glossary/client-side-vs-server-side/", kind: article }
+              - { label: "How the web works (MDN)", url: "https://developer.mozilla.org/en-US/docs/Learn_web_development/Getting_started/Web_standards/How_the_web_works", kind: docs }
           - id: reverse-proxies
             title: Proxies and reverse proxies
             optional: true
@@ -328,8 +743,24 @@ stages:
             learn:
               - Forward proxy vs reverse proxy
               - Why most sites sit behind one
+            body: |
+              A **proxy** is a server that sits in the middle and forwards requests for someone else.
+
+              A **forward proxy** acts for the client. The client sends requests to the proxy, which fetches them from the internet. Companies use it to filter or log traffic, and VPNs work somewhat like it. A **reverse proxy** acts for the server. Clients talk to the proxy, which passes requests to one or more backend servers.
+
+              ### Key ideas
+              - Forward proxy: hides or controls clients
+              - Reverse proxy: hides or protects servers
+              - Most sites sit behind a reverse proxy such as Nginx, a CDN or a load balancer
+              - It can end TLS, cache responses, balance load and block bad traffic
+              - The backend servers can stay on a private network
+
+              ### Example
+              A request to `harun.dev` reaches Cloudflare first. Cloudflare answers from cache or forwards it to the origin server, which stays hidden from users.
             resources:
               - { label: "What is a reverse proxy? (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/glossary/reverse-proxy/", kind: article }
+              - { label: "Proxy servers and tunneling (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Proxy_servers_and_tunneling", kind: docs }
+              - { label: "Reverse proxy (Wikipedia)", url: "https://en.wikipedia.org/wiki/Reverse_proxy", kind: article }
 
       - id: dns-basics
         title: DNS
@@ -341,10 +772,28 @@ stages:
             learn:
               - Recursive resolvers
               - Root, TLD and authoritative servers
+            body: |
+              People use names, computers use IP addresses. **DNS** is the system that turns `harun.dev` into an address.
+
+              Your device asks a **recursive resolver**, usually run by your ISP or a public service such as 1.1.1.1. If the resolver does not know the answer, it does the work for you. It asks a **root server**, which points to the **TLD server** for `.dev`, which points to the **authoritative server** for `harun.dev`. The authoritative server holds the real answer.
+
+              ### Key ideas
+              - Resolver: asks around on your behalf and caches answers
+              - Root servers: know where each TLD (`.com`, `.dev`) is
+              - TLD servers: know which servers answer for each domain
+              - Authoritative servers: give the final record
+
+              ### In practice
+              ```bash
+              dig harun.dev +trace
+              ```
+              This shows each step from the root down to the answer.
             resources:
               - { label: "What is DNS? (Cloudflare)", url: "https://www.cloudflare.com/learning/dns/what-is-dns/", kind: article }
               - { label: "DNS server types (Cloudflare)", url: "https://www.cloudflare.com/learning/dns/dns-server-types/", kind: article }
               - { label: "How DNS works (comic)", url: "https://howdns.works/", kind: article }
+              - { label: "RFC 1034: Domain names, concepts and facilities", url: "https://www.rfc-editor.org/rfc/rfc1034", kind: docs }
+              - { label: "Domain Name System (Wikipedia)", url: "https://en.wikipedia.org/wiki/Domain_Name_System", kind: article }
           - id: dns-records
             title: Record types
             summary: The records you will set most often and what each one points to.
@@ -352,6 +801,23 @@ stages:
               - A and AAAA
               - CNAME, MX and TXT
               - NS records and delegation
+            body: |
+              A domain's DNS zone is a list of **records**. Each record tells resolvers one thing about a name. These are the ones you will set most often.
+
+              ### Key ideas
+              - **A**: name to IPv4 address
+              - **AAAA**: name to IPv6 address
+              - **CNAME**: name is an alias for another name. It cannot sit at the root of a domain next to other records
+              - **MX**: where to deliver email for the domain, with a priority number
+              - **TXT**: free text, used for email checks (SPF, DKIM, DMARC) and domain ownership proofs
+              - **NS**: which name servers answer for the domain, which is **delegation**: the parent zone points to your name servers
+
+              ### Example
+              ```
+              harun.dev.      A      203.0.113.10
+              www.harun.dev.  CNAME  harun.dev.
+              harun.dev.      MX 10  mail.example.com.
+              ```
             resources:
               - { label: "DNS records (Cloudflare)", url: "https://www.cloudflare.com/learning/dns/dns-records/", kind: article }
               - { label: "Mess With DNS (hands-on)", url: "https://messwithdns.net/", kind: tool }
@@ -361,6 +827,21 @@ stages:
             learn:
               - What TTL controls
               - Lowering TTL before a migration
+            body: |
+              Each DNS record has a **TTL** (time to live), a number of seconds that says how long others may cache the answer. Resolvers, operating systems and browsers all cache.
+
+              Caching makes DNS fast and cuts load on name servers. It is also why a change does not show up everywhere at once: some resolvers still hold the old answer until its TTL runs out.
+
+              ### Key ideas
+              - A TTL of 300 means up to 5 minutes of old answers
+              - A long TTL is fast and cheap but slow to change
+              - A short TTL is flexible but sends more queries
+              - Before a migration, lower the TTL a day or two ahead, then change the record, then raise the TTL again
+
+              ### Common mistakes
+              - Changing a record and expecting it to work everywhere at once
+              - Lowering the TTL on the day of the move, which is too late: the old, long TTL is already cached
+              - Forgetting that operating systems and browsers keep their own DNS cache
             resources:
               - { label: "What is time-to-live (TTL)? (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/glossary/time-to-live-ttl/", kind: article }
           - id: dns-security
@@ -370,10 +851,25 @@ stages:
             learn:
               - What DNSSEC proves and what it does not
               - DNS over HTTPS and DNS over TLS
+            body: |
+              Plain DNS has two weaknesses. Answers can be forged, and queries travel in clear text, so anyone on the path can read which names you look up.
+
+              **DNSSEC** signs DNS records. A resolver can check that an answer really comes from the zone owner and was not changed. It proves that the data is authentic. It does not hide anything and does not protect the content of a site.
+
+              **DNS over HTTPS (DoH)** and **DNS over TLS (DoT)** encrypt the query between you and your resolver, so others on the network cannot read or change it.
+
+              ### Key ideas
+              - DNSSEC: authenticity of answers, not privacy
+              - DoH and DoT: privacy of queries, not authenticity of the zone data
+              - DoT uses port 853, DoH looks like normal HTTPS on port 443
+              - The resolver you choose still sees your queries
             resources:
               - { label: "How DNSSEC works (Cloudflare)", url: "https://www.cloudflare.com/learning/dns/dnssec/how-dnssec-works/", kind: article }
               - { label: "DNS over TLS vs DNS over HTTPS (Cloudflare)", url: "https://www.cloudflare.com/learning/dns/dns-over-tls/", kind: article }
               - { label: "RFC 1035: DNS", url: "https://www.rfc-editor.org/rfc/rfc1035", kind: docs }
+              - { label: "DNSSEC (Wikipedia)", url: "https://en.wikipedia.org/wiki/Domain_Name_System_Security_Extensions", kind: article }
+              - { label: "DNS Encryption Explained (Cloudflare)", url: "https://blog.cloudflare.com/dns-encryption-explained/", kind: article }
+              - { label: "RFC 8484: DNS Queries over HTTPS (DoH)", url: "https://www.rfc-editor.org/rfc/rfc8484", kind: docs }
 
       - id: http-basics
         title: HTTP
@@ -385,8 +881,30 @@ stages:
             learn:
               - GET, POST, PUT, PATCH, DELETE
               - Safe and idempotent methods
+            body: |
+              An HTTP **method** says what the client wants to do with a resource. The most common ones map onto basic data actions.
+
+              ### Key ideas
+              - `GET`: read a resource. It has no body and should not change anything
+              - `POST`: create something or run an action
+              - `PUT`: replace a resource with the one you send
+              - `PATCH`: change part of a resource
+              - `DELETE`: remove a resource
+              - **Safe** methods (GET, HEAD, OPTIONS) do not change server state
+              - **Idempotent** methods (GET, PUT, DELETE and the safe ones) give the same result if repeated. `POST` is not idempotent
+
+              ### Why it matters
+              If a request times out, a client can retry an idempotent request without worry. Retrying a `POST` may create two orders, so use an idempotency key.
+
+              ### Example
+              ```
+              DELETE /posts/42
+              ```
+              Sending it twice leaves the same end state: post 42 is gone.
             resources:
               - { label: "HTTP request methods (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods", kind: docs }
+              - { label: "Idempotent (MDN)", url: "https://developer.mozilla.org/en-US/docs/Glossary/Idempotent", kind: docs }
+              - { label: "Safe (HTTP methods) (MDN)", url: "https://developer.mozilla.org/en-US/docs/Glossary/Safe/HTTP", kind: docs }
           - id: http-status-codes
             title: Status codes
             summary: The three-digit number that says how the request went.
@@ -394,17 +912,53 @@ stages:
               - 2xx success, 3xx redirect
               - 4xx client error, 5xx server error
               - 301 vs 302, 401 vs 403
+            body: |
+              Every HTTP response starts with a three-digit **status code**. The first digit tells you the class, and it is the first thing to check when something goes wrong.
+
+              ### Key ideas
+              - **2xx** success: `200 OK`, `201 Created`, `204 No Content`
+              - **3xx** redirect: the client should look elsewhere
+              - **4xx** client error: the request was wrong
+              - **5xx** server error: the server failed on a valid request
+              - `301` is a permanent redirect, and search engines move to the new URL. `302` is temporary
+              - `401` means "who are you?" (not logged in). `403` means "I know you, but no" (not allowed)
+              - `404` not found, `429` too many requests
+              - `502` and `504` often mean a proxy could not get an answer from the backend
+
+              ### Common mistakes
+              - Returning `200` with an error message in the body
+              - Using `302` for a permanent move
+              - Mixing up `401` and `403`
             resources:
               - { label: "HTTP response status codes (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status", kind: docs }
+              - { label: "Redirections in HTTP (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Redirections", kind: docs }
+              - { label: "HTTP Status Code Registry (IANA)", url: "https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml", kind: docs }
           - id: http-headers-cookies
             title: Headers and cookies
             summary: Headers carry metadata both ways. Cookies are how a stateless protocol remembers you.
             learn:
               - Common request and response headers
               - Set-Cookie and cookie flags
+            body: |
+              **Headers** are key-value lines sent before the body, in requests and in responses. They carry metadata: what the client accepts, what the body is, how long to cache it.
+
+              ### Key ideas
+              - Request headers: `Host`, `User-Agent`, `Accept`, `Authorization`, `Cookie`
+              - Response headers: `Content-Type`, `Cache-Control`, `Location`, `Set-Cookie`
+              - HTTP does not remember you between requests. A **cookie** fixes that: the server sends `Set-Cookie`, and the browser sends it back in `Cookie` on later requests
+              - `HttpOnly` hides the cookie from JavaScript
+              - `Secure` sends it only over HTTPS
+              - `SameSite` limits sending it on cross-site requests, which helps against CSRF
+              - `Max-Age` or `Expires` sets how long it lives
+
+              ### Example
+              ```
+              Set-Cookie: session=abc123; HttpOnly; Secure; SameSite=Lax; Max-Age=3600
+              ```
             resources:
               - { label: "HTTP headers (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers", kind: docs }
               - { label: "Using HTTP cookies (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies", kind: docs }
+              - { label: "RFC 6265: HTTP State Management Mechanism", url: "https://www.rfc-editor.org/rfc/rfc6265", kind: docs }
           - id: http-caching
             title: HTTP caching
             optional: true
@@ -412,9 +966,26 @@ stages:
             learn:
               - Cache-Control directives
               - ETags and conditional requests
+            body: |
+              Caching lets browsers and CDNs reuse a response instead of asking the server again. It saves time and bandwidth.
+
+              The server controls it with the `Cache-Control` header. With `max-age=3600` a copy is fresh for an hour. When it goes stale, the cache can **revalidate**: it sends the stored `ETag` in an `If-None-Match` header. If nothing changed, the server replies `304 Not Modified` with no body.
+
+              ### Key ideas
+              - `max-age=N`: fresh for N seconds
+              - `no-cache`: may store, but must revalidate before use
+              - `no-store`: do not store at all (private data)
+              - `public` and `private`: whether shared caches such as CDNs may keep it
+              - `ETag`: a fingerprint of the content, used for conditional requests
+
+              ### In practice
+              Give files with a hash in their name, like `app.3f9a1c.js`, a long `max-age` and `immutable`. Give HTML a short lifetime so that new deploys show up fast.
             resources:
               - { label: "HTTP caching (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching", kind: docs }
               - { label: "RFC 9110: HTTP semantics", url: "https://www.rfc-editor.org/rfc/rfc9110", kind: docs }
+              - { label: "Prevent unnecessary network requests with the HTTP Cache (web.dev)", url: "https://web.dev/articles/http-cache", kind: article }
+              - { label: "HTTP conditional requests (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Conditional_requests", kind: docs }
+              - { label: "RFC 9111: HTTP Caching", url: "https://www.rfc-editor.org/rfc/rfc9111", kind: docs }
 
       - id: how-a-page-loads
         title: What happens when you open a website
@@ -427,9 +998,25 @@ stages:
               - DNS lookup
               - TCP connect and TLS handshake
               - HTTP request and response
+            body: |
+              When you type `https://harun.dev` and press Enter, a chain of steps runs before the first byte of HTML arrives. Knowing the chain helps you find where a slow page loses its time.
+
+              ### Key ideas
+              1. **DNS lookup**: turn `harun.dev` into an IP address (skipped if cached)
+              2. **TCP connect**: the three-way handshake with the server, one round trip
+              3. **TLS handshake**: agree on keys and check the certificate, one more round trip with TLS 1.3
+              4. **HTTP request**: the browser sends `GET /` with headers and cookies
+              5. **HTTP response**: the server answers with a status, headers and the HTML
+
+              Each step costs at least one round trip, so distance to the server matters. A CDN shortens the trip by answering from a nearby site.
+
+              ### Example
+              If the round trip to a server is 100 ms, DNS, TCP and TLS can cost about 300 ms before the request is even sent. Reusing connections removes most of that on later requests.
             resources:
               - { label: "What happens when... (GitHub)", url: "https://github.com/alex/what-happens-when", kind: article }
               - { label: "High Performance Browser Networking (free book)", url: "https://hpbn.co/", kind: course }
+              - { label: "Time to First Byte (web.dev)", url: "https://web.dev/articles/ttfb", kind: article }
+              - { label: "Primer on Latency and Bandwidth (HPBN)", url: "https://hpbn.co/primer-on-latency-and-bandwidth/", kind: article }
           - id: browser-rendering
             title: How the browser renders the page
             summary: Parsing HTML, fetching CSS and scripts, building the page and painting it.
@@ -437,8 +1024,24 @@ stages:
               - Parsing, the DOM and the CSSOM
               - Layout and paint
               - Why some resources block rendering
+            body: |
+              After the HTML arrives, the browser turns it into pixels in a few steps.
+
+              It **parses** the HTML into the **DOM**, a tree of elements. It fetches and parses CSS into the **CSSOM**. The two are combined into a render tree. Then comes **layout**, which works out the size and position of each box, and **paint**, which draws them on screen.
+
+              ### Key ideas
+              - HTML parsing builds the DOM, and CSS builds the CSSOM
+              - Layout and paint run after both are ready
+              - CSS **blocks rendering**: the browser will not paint until it has the styles
+              - A plain script tag blocks the parser while it downloads and runs. `defer` and `async` avoid that
+              - Images and fonts load without blocking the first paint, but can shift the layout
+
+              ### In practice
+              Keep the critical CSS small, put scripts at the end or mark them `defer`, and set image sizes so the page does not jump when they arrive.
             resources:
               - { label: "How browsers work (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/Performance/How_browsers_work", kind: docs }
+              - { label: "Critical rendering path (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/Performance/Guides/Critical_rendering_path", kind: docs }
+              - { label: "Critical Rendering Path (web.dev)", url: "https://web.dev/articles/critical-rendering-path", kind: article }
           - id: measuring-page-load
             title: Measuring a page load
             optional: true
@@ -446,9 +1049,26 @@ stages:
             learn:
               - Reading a waterfall
               - DNS, connect, TLS and wait times
+            body: |
+              The browser's **Network** tab shows every request of a page load as a bar on a timeline. This is a **waterfall**. It tells you which request is slow and why.
+
+              Open DevTools, choose Network, reload the page, and click a request to see its timing breakdown.
+
+              ### Key ideas
+              - **DNS lookup**: finding the IP
+              - **Connect** and **TLS**: setting up the connection
+              - **Waiting (TTFB)**: time until the first byte of the response, which includes server work
+              - **Content download**: time to receive the body
+              - A long wait means a slow server. A long download means a big file or a slow link
+              - Requests that start late were probably blocked by an earlier file
+
+              ### Common mistakes
+              - Testing with the cache on, then wondering why users are slower. Tick "Disable cache" and try again
+              - Looking only at the total time, not at the step that takes the longest
             resources:
               - { label: "Chrome DevTools: Network panel", url: "https://developer.chrome.com/docs/devtools/network", kind: docs }
               - { label: "High Performance Browser Networking (free book)", url: "https://hpbn.co/", kind: course }
+              - { label: "Network features reference (Chrome DevTools)", url: "https://developer.chrome.com/docs/devtools/network/reference", kind: docs }
 
   - level: intermediate
     title: How the pieces fit
@@ -463,16 +1083,50 @@ stages:
             learn:
               - The job of each of the 7 layers
               - Where common protocols sit
+            body: |
+              The **OSI model** splits networking into seven layers. Each layer does one job and relies on the one below it. It is a shared map, not a real protocol stack.
+
+              ### Key ideas
+              1. **Physical**: cables, light, radio signals
+              2. **Data link**: frames on one local network (Ethernet, Wi-Fi, MAC addresses)
+              3. **Network**: addressing and routing between networks (IP)
+              4. **Transport**: end-to-end delivery between programs (TCP, UDP, ports)
+              5. **Session**: starts, keeps and ends conversations
+              6. **Presentation**: data format, encryption and compression
+              7. **Application**: what the user's program speaks (HTTP, DNS, SMTP)
+
+              ### Example
+              A web request starts at layer 7 as HTTP, goes down through TCP and IP, becomes an Ethernet frame at layer 2, and travels as signals at layer 1. The receiver does the same in reverse.
+
+              In real life, layers 5 to 7 are often blurred together.
             resources:
               - { label: "What is the OSI model? (Cloudflare)", url: "https://www.cloudflare.com/learning/ddos/glossary/open-systems-interconnection-model-osi/", kind: article }
+              - { label: "OSI model (Wikipedia)", url: "https://en.wikipedia.org/wiki/OSI_model", kind: article }
           - id: tcp-ip-model
             title: OSI vs the TCP/IP model
             summary: The real internet uses a simpler four-layer model. Learn how the two map onto each other.
             learn:
               - The four TCP/IP layers
               - Why engineers still say "layer 4" and "layer 7"
+            body: |
+              The real internet runs on the **TCP/IP model**, which has four layers. It is simpler than OSI and is closer to how protocols were actually built.
+
+              ### Key ideas
+              - **Link**: Ethernet, Wi-Fi (OSI layers 1 and 2)
+              - **Internet**: IP, routing (OSI layer 3)
+              - **Transport**: TCP and UDP (OSI layer 4)
+              - **Application**: HTTP, DNS, TLS and more (OSI layers 5 to 7)
+              - Engineers still use OSI numbers as shorthand
+
+              ### Why people say "layer 4" and "layer 7"
+              A **layer 4** device, such as a basic load balancer, sees IPs and ports and moves connections. A **layer 7** device understands the application protocol and can route on the URL or header. A **layer 3** device routes IP packets.
+
+              ### Example
+              "Our WAF works at layer 7" means it reads HTTP requests. "Block it at layer 3" means block by IP address.
             resources:
               - { label: "What is TCP/IP? (Cloudflare)", url: "https://www.cloudflare.com/learning/ddos/glossary/tcp-ip/", kind: article }
+              - { label: "Internet protocol suite (Wikipedia)", url: "https://en.wikipedia.org/wiki/Internet_protocol_suite", kind: article }
+              - { label: "RFC 1122: Requirements for Internet Hosts, Communication Layers", url: "https://www.rfc-editor.org/rfc/rfc1122", kind: docs }
           - id: icmp-and-diagnostics
             title: ICMP, ping and traceroute
             optional: true
@@ -480,9 +1134,27 @@ stages:
             learn:
               - What ICMP carries
               - How ping and traceroute work
+            body: |
+              **ICMP** (Internet Control Message Protocol) is how the network layer reports problems and answers simple questions. It travels inside IP packets and has no ports.
+
+              Common messages include echo request and echo reply, "destination unreachable" and "time exceeded".
+
+              ### Key ideas
+              - `ping` sends an echo request and waits for an echo reply, so it shows whether a host is reachable and how long the round trip takes
+              - `traceroute` sends packets with a TTL of 1, then 2, then 3, and so on. Each router that drops one sends back a "time exceeded" message, which reveals the path
+              - Many hosts and firewalls block or limit ICMP, so a failed ping does not always mean a host is down
+              - ICMP is also needed for path MTU discovery
+
+              ### In practice
+              ```bash
+              ping -c 4 example.com
+              traceroute example.com
+              ```
             resources:
               - { label: "What is ICMP? (Cloudflare)", url: "https://www.cloudflare.com/learning/ddos/glossary/internet-control-message-protocol-icmp/", kind: article }
               - { label: "Traceroute (Wikipedia)", url: "https://en.wikipedia.org/wiki/Traceroute", kind: article }
+              - { label: "Internet Control Message Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol", kind: article }
+              - { label: "RFC 792: Internet Control Message Protocol", url: "https://www.rfc-editor.org/rfc/rfc792", kind: docs }
 
       - id: tcp-vs-udp
         title: TCP vs UDP
@@ -495,27 +1167,74 @@ stages:
               - The handshake step by step
               - Closing a connection
               - Why latency hurts new connections
+            body: |
+              **TCP** gives a program a reliable, ordered stream of bytes. Before data flows, the two sides set up a connection with a **three-way handshake**.
+
+              1. The client sends **SYN** ("let's talk, my sequence number is X")
+              2. The server answers **SYN-ACK** ("OK, mine is Y")
+              3. The client sends **ACK**, and the connection is open
+
+              ### Key ideas
+              - The handshake costs one round trip before the first byte of data
+              - A far-away server means a slow start, so opening many new connections hurts. Reusing one (keep-alive) avoids the cost
+              - To close, each side sends **FIN** and the other acknowledges it. **RST** aborts a connection at once
+              - After closing, the side that closed first keeps the connection in a `TIME_WAIT` state for a while
+
+              ### Example
+              With a 50 ms round trip, a new HTTPS connection spends 50 ms on TCP before TLS even begins.
             resources:
               - { label: "Building blocks of TCP (High Performance Browser Networking)", url: "https://hpbn.co/building-blocks-of-tcp/", kind: course }
               - { label: "RFC 9293: TCP", url: "https://www.rfc-editor.org/rfc/rfc9293", kind: docs }
+              - { label: "Transmission Control Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Transmission_Control_Protocol", kind: article }
           - id: tcp-reliability
             title: Retransmission and congestion control
             summary: How TCP notices lost packets, resends them and slows down when the network is full.
             learn:
               - Acknowledgements and retransmits
               - Slow start and congestion windows
+            body: |
+              TCP numbers every byte it sends. The receiver sends **acknowledgements** saying which bytes arrived. If the sender does not get an ACK in time, or sees repeated ACKs for the same spot, it knows data was lost and **retransmits** it.
+
+              TCP also has to avoid flooding the network. It tracks a **congestion window**, the amount of data allowed in flight at once.
+
+              ### Key ideas
+              - **Slow start**: begin with a small window and roughly double it each round trip
+              - **Congestion avoidance**: after a threshold, grow more slowly
+              - On loss, cut the window and grow again. This is how many senders share a link fairly
+              - **Flow control** is separate: the receiver's window stops a fast sender from overwhelming a slow receiver
+              - Packet loss slows a transfer even when there is spare bandwidth
+
+              ### Why it matters
+              A new connection starts slow. That is one more reason to reuse connections and to keep first-page files small.
             resources:
               - { label: "Building blocks of TCP (High Performance Browser Networking)", url: "https://hpbn.co/building-blocks-of-tcp/", kind: course }
               - { label: "RFC 5681: TCP congestion control", url: "https://www.rfc-editor.org/rfc/rfc5681", kind: docs }
+              - { label: "TCP congestion control (Wikipedia)", url: "https://en.wikipedia.org/wiki/TCP_congestion_control", kind: article }
           - id: udp-use-cases
             title: When UDP wins
             summary: No handshake and no resends. Why DNS, games, video calls and QUIC use UDP.
             learn:
               - What UDP leaves out
               - Apps that prefer late data to no data
+            body: |
+              **UDP** sends independent messages (datagrams) with almost nothing added. There is no handshake, no resending, no ordering and no congestion control. The header is only 8 bytes.
+
+              That sounds worse than TCP, but it is the right tool when speed matters more than perfection, or when the application wants to handle loss itself.
+
+              ### Key ideas
+              - Small and fast: no connection setup
+              - The sender gets no guarantee of delivery or order
+              - Good when late data is worse than lost data: voice and video calls, live streams, online games
+              - **DNS** uses UDP for quick one-packet questions
+              - **QUIC**, the transport under HTTP/3, builds its own reliability on top of UDP
+
+              ### Example
+              In a video call, a frame from half a second ago is useless. It is better to skip it than to wait for a resend, so the app uses UDP and moves on.
             resources:
               - { label: "What is UDP? (Cloudflare)", url: "https://www.cloudflare.com/learning/ddos/glossary/user-datagram-protocol-udp/", kind: article }
               - { label: "Building blocks of UDP (High Performance Browser Networking)", url: "https://hpbn.co/building-blocks-of-udp/", kind: course }
+              - { label: "User Datagram Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/User_Datagram_Protocol", kind: article }
+              - { label: "RFC 768: User Datagram Protocol", url: "https://www.rfc-editor.org/rfc/rfc768", kind: docs }
           - id: socket-programming
             title: Socket programming
             optional: true
@@ -523,8 +1242,30 @@ stages:
             learn:
               - Sockets, bind, listen, accept, connect
               - Reading and writing bytes
+            body: |
+              A **socket** is the endpoint a program uses to send and receive data over a network. You can write a working TCP server in a few lines, and it shows what the earlier lessons describe.
+
+              A server **binds** a socket to an address and port, **listens** for incoming connections, and **accepts** each one. A client **connects** to that address. Both then read and write bytes.
+
+              ### Key ideas
+              - Server: socket, bind, listen, accept, then read and write
+              - Client: socket, connect, then write and read
+              - TCP gives a stream of bytes, with no message boundaries, so you must frame your own messages
+              - The operating system does the handshake and picks the client's source port
+
+              ### In practice
+              ```python
+              import socket
+              s = socket.socket()
+              s.bind(("127.0.0.1", 9000))
+              s.listen()
+              conn, addr = s.accept()
+              print(addr, conn.recv(1024))
+              ```
+              Run it, then connect with `nc 127.0.0.1 9000` and type a line.
             resources:
               - { label: "Beej's Guide to Network Programming", url: "https://beej.us/guide/bgnet/", kind: course }
+              - { label: "Socket Programming HOWTO (Python)", url: "https://docs.python.org/3/howto/sockets.html", kind: docs }
 
       - id: tls-https
         title: TLS and HTTPS
@@ -536,9 +1277,24 @@ stages:
             learn:
               - Client hello and server hello
               - Key exchange
+            body: |
+              **TLS** adds privacy and trust to a TCP connection. Before any HTTP data is sent, the client and server run a **handshake** to agree on how to talk and on a shared secret key.
+
+              With TLS 1.3 this takes one round trip.
+
+              1. **Client hello**: the client lists the ciphers it supports and sends its half of a key exchange
+              2. **Server hello**: the server picks a cipher and sends its half, then sends its certificate and a proof that it holds the private key
+              3. Both sides derive the same session keys and switch to encrypted traffic
+
+              ### Key ideas
+              - The key exchange (ECDHE) creates a fresh secret for each session, so old traffic stays safe if the server's key leaks later (**forward secrecy**)
+              - The certificate proves who the server is
+              - After the handshake, data is encrypted with fast symmetric keys
+              - A resumed session can skip some work
             resources:
               - { label: "What happens in a TLS handshake? (Cloudflare)", url: "https://www.cloudflare.com/learning/ssl/what-happens-in-a-tls-handshake/", kind: article }
               - { label: "The Illustrated TLS 1.3 Connection", url: "https://tls13.xargs.org/", kind: article }
+              - { label: "RFC 8446: The Transport Layer Security (TLS) Protocol Version 1.3", url: "https://www.rfc-editor.org/rfc/rfc8446", kind: docs }
           - id: certificates-and-cas
             title: Certificates and certificate authorities
             summary: A certificate proves a server owns a name. A chain of trust ends at a CA your device already trusts.
@@ -546,9 +1302,25 @@ stages:
               - What a certificate contains
               - Certificate chains and root CAs
               - Free certificates with Let's Encrypt
+            body: |
+              A **certificate** ties a public key to a name such as `harun.dev`. It proves that the server you reached holds the key for that name.
+
+              A certificate contains the domain names it covers, the public key, the issuer, the dates it is valid, and a signature from the issuer. A **certificate authority (CA)** is a company that signs certificates after checking that you control the domain.
+
+              ### Key ideas
+              - Your device trusts a list of **root CAs** that ship with the operating system or browser
+              - A server sends a **chain**: its own certificate, signed by an intermediate CA, which is signed by a root
+              - The browser checks each signature up to a trusted root
+              - **Let's Encrypt** is a free CA. It uses the ACME protocol, so renewals can be automated
+              - A certificate that is expired, for the wrong name, or signed by an unknown CA shows a browser warning
+
+              ### Common mistakes
+              - Forgetting to send the intermediate certificate
+              - Letting a certificate expire because renewal was manual
             resources:
               - { label: "What is HTTPS? (Cloudflare)", url: "https://www.cloudflare.com/learning/ssl/what-is-https/", kind: article }
               - { label: "How Let's Encrypt works", url: "https://letsencrypt.org/how-it-works/", kind: docs }
+              - { label: "Public key certificate (Wikipedia)", url: "https://en.wikipedia.org/wiki/Public_key_certificate", kind: article }
           - id: tls-versions
             title: TLS 1.3 vs older versions
             optional: true
@@ -556,9 +1328,25 @@ stages:
             learn:
               - Fewer round trips
               - Removed weak ciphers
+            body: |
+              TLS has been revised several times. The versions before 1.2 (SSL 3.0, TLS 1.0 and 1.1) are broken or deprecated and should be off. TLS 1.2 is still widely used. **TLS 1.3** (2018) is the current version.
+
+              ### Key ideas
+              - **Fewer round trips**: 1.3 needs one round trip for the handshake, 1.2 needs two. Resumed sessions can be faster
+              - **Weak features removed**: static RSA key exchange, old ciphers such as RC4 and CBC modes, SHA-1 and compression are gone
+              - **Forward secrecy always**: 1.3 requires an ephemeral key exchange
+              - More of the handshake is encrypted, including the certificate
+              - Configure servers for 1.2 and 1.3 only
+
+              ### In practice
+              ```bash
+              curl -v --tlsv1.3 https://harun.dev -o /dev/null
+              ```
+              Look for the negotiated version in the output. Older clients that only speak TLS 1.0 or 1.1 will fail, which is the point.
             resources:
               - { label: "Why use TLS 1.3? (Cloudflare)", url: "https://www.cloudflare.com/learning/ssl/why-use-tls-1.3/", kind: article }
               - { label: "RFC 8446: TLS 1.3", url: "https://www.rfc-editor.org/rfc/rfc8446", kind: docs }
+              - { label: "A Detailed Look at RFC 8446, a.k.a. TLS 1.3 (Cloudflare)", url: "https://blog.cloudflare.com/rfc-8446-aka-tls-1-3/", kind: article }
           - id: private-cas
             title: Private certificate authorities
             optional: true
@@ -566,9 +1354,25 @@ stages:
             learn:
               - When a private CA makes sense
               - Watching certificate expiry
+            body: |
+              A public CA signs certificates for names on the internet. A **private CA** is one you run yourself, for names that exist only inside your network, such as `db.internal`.
+
+              You create a root key and certificate, then issue certificates to your services from it. A client accepts them only if it trusts your root, so you install the root certificate on every machine or container that needs it.
+
+              ### Key ideas
+              - Use a private CA for internal services, service-to-service TLS and mutual TLS
+              - Keep the root key offline or in a managed service, and issue from an intermediate
+              - Prefer short-lived certificates and automate renewal
+              - Distribute the root to every client that needs to trust it
+              - Monitor expiry dates, since an expired internal certificate causes outages
+
+              ### Common mistakes
+              - Putting the private CA's root into the machines of people outside your organisation
+              - No alert on expiry, so the first sign is a production outage
             resources:
               - post: agentcore-gateway-private-ca-without-the-alb
               - { label: "What is an SSL certificate? (Cloudflare)", url: "https://www.cloudflare.com/learning/ssl/what-is-an-ssl-certificate/", kind: article }
+              - { label: "RFC 5280: Internet X.509 Public Key Infrastructure Certificate Profile", url: "https://www.rfc-editor.org/rfc/rfc5280", kind: docs }
 
       - id: subnets-cidr
         title: Subnets and CIDR
@@ -580,25 +1384,71 @@ stages:
             learn:
               - Network and host bits
               - 255.255.255.0 as a /24
+            body: |
+              An IPv4 address has two parts: a **network** part and a **host** part. The **subnet mask** says where the line between them falls.
+
+              A mask is 32 bits: ones for the network part, zeros for the host part. In dotted form, `255.255.255.0` is 24 ones followed by 8 zeros. A device compares an address against its own network using the mask. If the network parts match, the target is on the same local network. If not, the packet goes to the router.
+
+              ### Key ideas
+              - Network bits: identify the subnet
+              - Host bits: identify the device within it
+              - `255.255.255.0` is the same as `/24`
+              - Same network: send directly. Different network: send to the gateway
+
+              ### Example
+              `192.168.1.10` with mask `255.255.255.0`: the network is `192.168.1.0` and the host is `.10`. The address `192.168.1.200` is on the same network. `192.168.2.5` is not.
             resources:
               - { label: "What is a subnet? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-a-subnet/", kind: article }
+              - { label: "Subnet (Wikipedia)", url: "https://en.wikipedia.org/wiki/Subnet", kind: article }
           - id: cidr-notation
             title: CIDR notation
             summary: Read a /16 or a /28 and know how many addresses it holds.
             learn:
               - Prefix length
               - Counting addresses in a block
+            body: |
+              **CIDR** (Classless Inter-Domain Routing) writes a network as an address plus a **prefix length**: `10.0.0.0/16`. The number after the slash is how many bits belong to the network.
+
+              The rest of the bits are for hosts. A block holds 2 to the power of (32 minus prefix) addresses, so a smaller prefix means a bigger block.
+
+              ### Key ideas
+              - `/24` leaves 8 host bits: 256 addresses
+              - `/16` leaves 16 host bits: 65,536 addresses
+              - `/28` leaves 4 host bits: 16 addresses
+              - `/32` is a single address
+              - Each step of one bit doubles or halves the size
+              - Usually a few addresses in each block are reserved (network, broadcast, and in clouds a few more)
+
+              ### Example
+              `10.0.0.0/16` covers `10.0.0.0` to `10.0.255.255`. You could split it into 256 networks of `/24`, such as `10.0.1.0/24`.
             resources:
               - { label: "Subnet calculator", url: "https://www.subnet-calculator.com/cidr.php", kind: tool }
               - { label: "RFC 4632: CIDR", url: "https://www.rfc-editor.org/rfc/rfc4632", kind: docs }
+              - { label: "Classless Inter-Domain Routing (Wikipedia)", url: "https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing", kind: article }
+              - { label: "Interactive CIDR and IP range calculator", url: "https://cidr.xyz/", kind: tool }
           - id: planning-vpc-subnets
             title: Planning subnets for a VPC
             summary: Pick ranges that leave room to grow and do not clash with other networks you will connect to.
             learn:
               - Public and private subnets per zone
               - Avoiding overlapping ranges
+            body: |
+              When you create a cloud network (a VPC), you pick one big private block and split it into subnets. The choices are hard to change later, so plan before you build.
+
+              Typically each availability zone gets a **public** subnet (with a route to an internet gateway) and a **private** subnet (no direct inbound access). Spreading subnets over zones keeps the app up when one zone fails.
+
+              ### Key ideas
+              - Choose a VPC range big enough to grow, such as a `/16`
+              - Use equal-sized subnets per zone and leave unused space for later
+              - Keep databases and app servers in private subnets
+              - **Do not overlap** ranges with other VPCs, offices or VPNs you may connect to, because overlapping networks cannot be routed
+              - Cloud providers reserve a few addresses in every subnet (AWS reserves five)
+
+              ### Example
+              `10.0.0.0/16` for the VPC. Public `10.0.0.0/24` and `10.0.1.0/24`, private `10.0.10.0/24` and `10.0.11.0/24`, across two zones.
             resources:
               - { label: "VPC CIDR blocks (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-cidr-blocks.html", kind: docs }
+              - { label: "Subnets for your VPC (AWS)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/configure-subnets.html", kind: docs }
 
       - id: nat
         title: NAT
@@ -610,6 +1460,19 @@ stages:
             learn:
               - The NAT translation table
               - Port address translation
+            body: |
+              **Source NAT** lets many private devices share one public IPv4 address. The router rewrites the source address of each outgoing packet from the private address to its own public one.
+
+              Many devices may use the same public address, so the router also changes the source port and records the pair in a **translation table**. This is **port address translation (PAT)**. When a reply comes back to that public address and port, the router looks up the table and sends it to the right device.
+
+              ### Key ideas
+              - Outgoing: private IP and port become public IP and a new port
+              - Incoming replies are matched against the table and translated back
+              - Entries expire after a period without traffic
+              - NAT is what kept IPv4 going
+
+              ### Example
+              `192.168.1.20:51000` goes out as `203.0.113.5:40001`. The reply to `203.0.113.5:40001` is sent back to `192.168.1.20:51000`.
             resources:
               - { label: "Network address translation (Wikipedia)", url: "https://en.wikipedia.org/wiki/Network_address_translation", kind: article }
               - { label: "RFC 3022: traditional NAT", url: "https://www.rfc-editor.org/rfc/rfc3022", kind: docs }
@@ -619,8 +1482,25 @@ stages:
             learn:
               - Port forwarding
               - NAT traversal for peer-to-peer apps
+            body: |
+              NAT only creates a table entry when a device inside starts a connection. If someone outside tries to connect first, the router has no entry and drops the packet. This makes NAT act like a simple shield, but it breaks servers and peer-to-peer apps at home.
+
+              ### Key ideas
+              - **Port forwarding** is a manual rule: traffic arriving at the public address on port X goes to a chosen internal device and port
+              - Hosting a game server or a camera at home needs it
+              - Two devices that are both behind NAT cannot reach each other directly
+              - **NAT traversal** tricks fix this: STUN learns your public address and port, then both sides send packets at the same moment to "punch a hole" (hole punching)
+              - When that fails, traffic goes through a **relay** server (TURN)
+              - Video calls and games use these techniques (ICE)
+
+              ### Common mistakes
+              - Treating NAT as a security feature: use a real firewall
+              - Forwarding a port to a device that is not updated
             resources:
               - { label: "Network address translation (Wikipedia)", url: "https://en.wikipedia.org/wiki/Network_address_translation", kind: article }
+              - { label: "Hole punching (networking) (Wikipedia)", url: "https://en.wikipedia.org/wiki/Hole_punching_(networking)", kind: article }
+              - { label: "Port forwarding (Wikipedia)", url: "https://en.wikipedia.org/wiki/Port_forwarding", kind: article }
+              - { label: "RFC 8445: Interactive Connectivity Establishment (ICE)", url: "https://www.rfc-editor.org/rfc/rfc8445", kind: docs }
           - id: cloud-nat-gateways
             title: NAT gateways in the cloud
             optional: true
@@ -628,8 +1508,25 @@ stages:
             learn:
               - Outbound-only access for private subnets
               - Why NAT gateway traffic gets expensive
+            body: |
+              Servers in a private cloud subnet have no public address, but they often need to reach the internet, to download updates or call an API. A **NAT gateway** lets them go out while blocking connections that start outside.
+
+              You put the NAT gateway in a public subnet and point the private subnet's default route at it.
+
+              ### Key ideas
+              - Outbound-only access: private servers start connections, the internet cannot
+              - Managed NAT gateways are billed per hour and **per gigabyte processed**
+              - Traffic to S3 or other cloud services through the NAT gateway adds up quickly
+              - Use **VPC endpoints** for cloud services. In AWS, gateway endpoints for S3 and DynamoDB cost nothing extra
+              - One NAT gateway per zone avoids cross-zone charges and a single point of failure, but costs more
+
+              ### Common mistakes
+              - Pulling large downloads or container images through the NAT gateway every time
+              - Using one gateway for all zones, then losing outbound access when that zone fails
             resources:
               - { label: "NAT gateways (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html", kind: docs }
+              - { label: "Pricing for NAT gateways (AWS)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-pricing.html", kind: docs }
+              - { label: "Cloud NAT overview (Google Cloud)", url: "https://cloud.google.com/nat/docs/overview", kind: docs }
           - id: internet-gateways
             title: Internet gateways and IPv6 egress
             summary: Public subnets reach the internet through an internet gateway. IPv6 needs no NAT, so private IPv6 subnets use an egress-only internet gateway instead.
@@ -637,6 +1534,19 @@ stages:
               - Internet gateway vs NAT gateway
               - Public and private subnets, and their routes
               - Egress-only internet gateways for outbound-only IPv6
+            body: |
+              A cloud network has no internet access by default. An **internet gateway** attaches the VPC to the internet. A subnet is **public** when its route table sends internet-bound traffic (`0.0.0.0/0`) to the internet gateway, and **private** when it does not.
+
+              A public IPv4 instance needs a public address, and the gateway translates between it and the private one. A **NAT gateway** is different: it is for private subnets to start outbound connections.
+
+              ### Key ideas
+              - Internet gateway: two-way access for instances with public addresses
+              - NAT gateway: outbound-only access for private IPv4 instances
+              - IPv6 addresses are public and need no NAT, so private IPv6 subnets use an **egress-only internet gateway**: it allows outbound and blocks inbound
+              - The route table decides which subnet is public or private, not its name
+
+              ### Example
+              Public subnet route: `0.0.0.0/0` to the internet gateway. Private subnet route: `0.0.0.0/0` to the NAT gateway, and `::/0` to the egress-only gateway.
             resources:
               - { label: "Internet gateways (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Internet_Gateway.html", kind: docs }
               - { label: "Egress-only internet gateways (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/egress-only-internet-gateway.html", kind: docs }
@@ -651,14 +1561,51 @@ stages:
             learn:
               - Longest prefix match
               - The default route
+            body: |
+              A router keeps a **routing table**: a list of destination networks and where to send packets for each one (the next hop). For every packet it looks up the destination address and forwards it.
+
+              Several entries can match one address. The router picks the most specific one, the one with the **longest prefix**. A `/24` route beats a `/16` route for an address inside both.
+
+              ### Key ideas
+              - Each route says: destination prefix, next hop, interface
+              - **Longest prefix match** chooses the most specific route
+              - The **default route** (`0.0.0.0/0` for IPv4, `::/0` for IPv6) matches everything else. It usually points to the ISP or a gateway
+              - Your laptop has a small table too, mostly the local network and a default gateway
+
+              ### Example
+              ```
+              10.0.0.0/16   via 10.0.0.1
+              10.0.5.0/24   via 10.0.5.1
+              0.0.0.0/0     via 192.168.1.1
+              ```
+              A packet for `10.0.5.9` takes the `/24` route. A packet for `8.8.8.8` takes the default route.
             resources:
               - { label: "What is routing? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-routing/", kind: article }
+              - { label: "Routing table (Wikipedia)", url: "https://en.wikipedia.org/wiki/Routing_table", kind: article }
+              - { label: "Default route (Wikipedia)", url: "https://en.wikipedia.org/wiki/Default_route", kind: article }
           - id: hops-and-traceroute
             title: Hops and traceroute
             summary: See every router your packets pass through on their way to a server.
             learn:
               - Reading traceroute output
               - Why some hops show as stars
+            body: |
+              Each router a packet passes through is a **hop**. `traceroute` (`tracert` on Windows) shows the list of hops between you and a server, with the round-trip time to each.
+
+              It works by sending packets with TTL 1, then 2, then 3. The first router drops the first packet and replies "time exceeded", the second router replies for the second packet, and so on until the target answers.
+
+              ### Key ideas
+              - Each line is one hop, with three timing samples
+              - Times usually grow with distance, but a single slow hop does not always mean a problem
+              - **Stars** (`* * *`) mean no reply came back. Many routers rate-limit or ignore these probes, so the path may be fine
+              - The path can differ between runs, and the return path can differ from the forward one
+
+              ### In practice
+              ```bash
+              traceroute harun.dev
+              mtr harun.dev
+              ```
+              `mtr` repeats the test and shows loss and delay per hop. A real problem shows as loss or delay that continues to all later hops.
             resources:
               - { label: "Traceroute (Wikipedia)", url: "https://en.wikipedia.org/wiki/Traceroute", kind: article }
           - id: static-vs-dynamic-routing
@@ -668,8 +1615,22 @@ stages:
             learn:
               - When static routes are enough
               - Interior vs exterior routing protocols
+            body: |
+              Routes get into a routing table in two ways. A **static route** is typed in by a person and does not change unless they change it. A **dynamic route** is learned from neighbouring routers using a routing protocol, and it updates when the network changes.
+
+              ### Key ideas
+              - Static routes are simple and predictable. They are enough for small networks or a single exit
+              - They do not adapt: if a link fails, you must fix it by hand
+              - Dynamic protocols share changes automatically and can find another path
+              - **Interior** protocols such as OSPF run inside one organisation's network
+              - **Exterior** protocols such as BGP run between organisations. BGP holds the internet together
+
+              ### Example
+              An office with one internet link needs just a default static route to the ISP. A large company with many sites runs OSPF inside, and BGP to its providers.
             resources:
               - { label: "What is routing? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-routing/", kind: article }
+              - { label: "Static routing (Wikipedia)", url: "https://en.wikipedia.org/wiki/Static_routing", kind: article }
+              - { label: "Open Shortest Path First (Wikipedia)", url: "https://en.wikipedia.org/wiki/Open_Shortest_Path_First", kind: article }
 
       - id: cdns
         title: CDNs
@@ -681,18 +1642,53 @@ stages:
             learn:
               - Cache hits and misses
               - What goes into a cache key
+            body: |
+              A **CDN** keeps copies of your content on servers around the world, called **edge** servers. A user is sent to a nearby one, which answers from its cache if it can.
+
+              A **cache hit** means the edge already has a fresh copy and replies at once. A **cache miss** means it must fetch from your **origin** server, then stores the result for next time.
+
+              The **cache key** decides what counts as the same request. By default it is based on the host, path and query string.
+
+              ### Key ideas
+              - Hits are fast and take load off your origin
+              - A different query string usually means a different cache entry
+              - Extra things in the key (cookies, headers, random parameters) lower your hit rate
+              - Good caching needs correct `Cache-Control` headers from your origin
+
+              ### Common mistakes
+              - Caching personal pages, so one user sees another's data
+              - Tracking parameters like `utm_source` that give every visit its own cache entry
             resources:
               - { label: "What is a CDN? (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/what-is-a-cdn/", kind: article }
               - { label: "What is caching? (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/what-is-caching/", kind: article }
+              - { label: "Content delivery network (Wikipedia)", url: "https://en.wikipedia.org/wiki/Content_delivery_network", kind: article }
+              - { label: "Cache Keys (Cloudflare docs)", url: "https://developers.cloudflare.com/cache/how-to/cache-keys/", kind: docs }
+              - { label: "Understand the cache key (AWS)", url: "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/understanding-the-cache-key.html", kind: docs }
           - id: cdn-setup
             title: Putting a CDN in front of an app
             summary: Point your domain at the CDN, set the origin and choose what gets cached.
             learn:
               - Origins and distributions
               - Caching static files first
+            body: |
+              To put a CDN in front of an app, you point your domain at the CDN, and tell the CDN where your origin is.
+
+              On some CDNs you change the name servers or proxy the DNS record. On others you create a **distribution**, set your server as the origin, and point a `CNAME` at the distribution's address. Visitors then reach the CDN, and the CDN reaches your origin.
+
+              ### Key ideas
+              - **Origin**: your real server, or a storage bucket
+              - **Distribution** (or zone): the CDN's setup for one site
+              - Start by caching **static files**: images, CSS, JavaScript, fonts
+              - Keep HTML and API responses uncached or short-lived until you are sure
+              - Use HTTPS on both legs: user to CDN, and CDN to origin
+              - Check that the origin only accepts traffic from the CDN, or it can be reached around it
+
+              ### In practice
+              Request an image twice and check the response headers. A cache header such as `x-cache: Hit` or `cf-cache-status: HIT` on the second request shows it works.
             resources:
               - post: add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail
               - { label: "What is Amazon CloudFront? (AWS docs)", url: "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Introduction.html", kind: docs }
+              - { label: "Cloud CDN overview (Google Cloud)", url: "https://cloud.google.com/cdn/docs/overview", kind: docs }
           - id: purging-and-shielding
             title: Purging, TTLs and origin shielding
             optional: true
@@ -700,9 +1696,23 @@ stages:
             learn:
               - Purging by URL or prefix
               - Origin shield as a second cache layer
+            body: |
+              Cached content can go stale. **Purging** removes it from the edge so the next request fetches a fresh copy. You can purge one URL, a whole prefix, or everything. Targeted purges are better, because purging everything sends all traffic back to your origin at once.
+
+              Short TTLs also help, and versioned file names avoid the need to purge.
+
+              An **origin shield** (also called tiered cache) adds a middle cache layer. Edge servers that miss ask the shield first, and only the shield goes to your origin. Many edges asking for the same missing file become a single origin request.
+
+              ### Key ideas
+              - Purge by URL or prefix, not everything
+              - File names with a hash need no purging
+              - Shielding cuts origin load and avoids a **miss storm** after a purge or a cold start
+              - It adds a little delay on a miss, and may add cost
             resources:
               - { label: "What is time-to-live (TTL)? (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/glossary/time-to-live-ttl/", kind: article }
               - { label: "Using Origin Shield (AWS docs)", url: "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/origin-shield.html", kind: docs }
+              - { label: "Purge cache (Cloudflare docs)", url: "https://developers.cloudflare.com/cache/how-to/purge-cache/", kind: docs }
+              - { label: "Tiered Cache (Cloudflare docs)", url: "https://developers.cloudflare.com/cache/how-to/tiered-cache/", kind: docs }
 
       - id: load-balancers
         title: Load balancers
@@ -714,9 +1724,25 @@ stages:
             learn:
               - What each layer can see
               - TLS termination at the load balancer
+            body: |
+              A load balancer spreads traffic over several servers. It can work at two levels.
+
+              A **layer 4** balancer sees only IPs, ports and TCP or UDP connections. It passes connections along without reading them, so it is fast and works for any protocol (databases, game servers). A **layer 7** balancer reads the application protocol. For HTTP it can route by host name, path or header, and reuse connections to backends.
+
+              ### Key ideas
+              - Layer 4: fast, simple, protocol-agnostic
+              - Layer 7: smarter routing, such as `/api` to one pool and `/` to another
+              - A layer 7 balancer can add headers, retry, rewrite and apply rules
+              - **TLS termination**: the balancer decrypts HTTPS, so backends handle plain HTTP and certificates live in one place
+              - You can also re-encrypt to backends if the network between is not trusted
+
+              ### Example
+              `harun.dev/api/*` goes to the API servers, and everything else goes to the web servers. Only a layer 7 balancer can do that.
             resources:
               - { label: "What is load balancing? (Cloudflare)", url: "https://www.cloudflare.com/learning/performance/what-is-load-balancing/", kind: article }
               - post: add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances
+              - { label: "What is an Application Load Balancer? (AWS)", url: "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html", kind: docs }
+              - { label: "What is a Network Load Balancer? (AWS)", url: "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/introduction.html", kind: docs }
           - id: lb-algorithms
             title: Balancing algorithms
             summary: Round robin, least connections, hashing and more, and when each one fits.
@@ -724,17 +1750,49 @@ stages:
               - Round robin and weighted round robin
               - Least connections
               - IP hash and consistent hashing
+            body: |
+              The **algorithm** decides which server gets the next request. The right choice depends on how uniform your requests and servers are.
+
+              ### Key ideas
+              - **Round robin**: each server in turn. Simple, works when requests and servers are similar
+              - **Weighted round robin**: bigger servers get a larger share
+              - **Least connections**: send to the server with the fewest active connections. Good when requests vary in length
+              - **IP hash**: hash the client address so the same client lands on the same server
+              - **Consistent hashing**: hash a key onto a ring, so adding or removing a server moves only a few keys
+              - Others include least response time and random choice
+
+              ### Common mistakes
+              - Round robin with long-lived connections, which piles load on early servers
+              - IP hash behind a proxy, where every client shares one address
+              - **Sticky sessions** hide state that should live in a shared store
             resources:
               - post: eight-load-balancer-algorithms
               - { label: "Types of load balancing algorithms (Cloudflare)", url: "https://www.cloudflare.com/learning/performance/types-of-load-balancing-algorithms/", kind: article }
+              - { label: "Load balancing (computing) (Wikipedia)", url: "https://en.wikipedia.org/wiki/Load_balancing_(computing)", kind: article }
           - id: health-checks
             title: Health checks
             summary: The load balancer keeps asking each server if it is alive and stops sending traffic to the ones that fail.
             learn:
               - Active health checks
               - What a good health endpoint checks
+            body: |
+              A load balancer must not send traffic to a server that is down. **Health checks** let it know. It keeps probing every server, and takes the unhealthy ones out of rotation until they pass again.
+
+              An **active** check sends a request on a schedule, for example `GET /health` every 10 seconds, and expects a `200`. Several failures in a row mark the server unhealthy, and several passes bring it back. Some balancers also use **passive** checks that watch real traffic for errors.
+
+              ### Key ideas
+              - A check can be TCP connect, or an HTTP request with an expected status
+              - Set the interval and thresholds so one blip does not remove a server, but real failures are caught fast
+              - A good health endpoint checks what the server needs to serve traffic, such as its database connection
+              - It should be cheap, and must not take the server down under load
+
+              ### Common mistakes
+              - A check that always returns `200`, even when the database is gone
+              - A deep check that fails every server at once when one shared dependency has a short outage
             resources:
               - { label: "Target group health checks (AWS docs)", url: "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html", kind: docs }
+              - { label: "Health checks overview (Google Cloud)", url: "https://cloud.google.com/load-balancing/docs/health-check-concepts", kind: docs }
+              - { label: "Azure Load Balancer health probes (Microsoft Learn)", url: "https://learn.microsoft.com/en-us/azure/load-balancer/load-balancer-custom-probe-overview", kind: docs }
           - id: consistent-hashing
             title: Consistent hashing
             optional: true
@@ -742,6 +1800,19 @@ stages:
             learn:
               - The hash ring
               - Why caches and sticky routing use it
+            body: |
+              With plain hashing, you pick a server with `hash(key) mod N`. When N changes, almost every key moves to a different server. For a cache, that means almost everything is a miss.
+
+              **Consistent hashing** places both servers and keys on a circle, called a **ring**. A key belongs to the first server found going clockwise from the key's position. If you add or remove a server, only the keys next to it move, about 1 divided by N of them.
+
+              ### Key ideas
+              - The hash ring maps keys and servers to the same space
+              - Adding or removing a server moves only a small share of keys
+              - **Virtual nodes** put each server on the ring many times, so load spreads evenly
+              - Used by distributed caches, databases and load balancers that need requests for the same key to reach the same server
+
+              ### Example
+              Five cache servers hold user sessions. One more is added. With consistent hashing about one sixth of the keys move, and the rest stay put.
             resources:
               - { label: "Consistent hashing (Wikipedia)", url: "https://en.wikipedia.org/wiki/Consistent_hashing", kind: article }
 
@@ -758,9 +1829,27 @@ stages:
             learn:
               - Who gets an ASN
               - Looking up the AS behind an IP
+            body: |
+              An **autonomous system (AS)** is a network, or a group of networks, run by one organisation with one routing policy. ISPs, cloud providers, universities and big companies each run one or more. The internet is made of roughly one hundred thousand of them.
+
+              Each AS has an **ASN** (autonomous system number) that identifies it in routing. Cloudflare is AS13335, for example.
+
+              ### Key ideas
+              - An ASN is requested from a **regional internet registry** (ARIN, RIPE NCC, APNIC, LACNIC, AFRINIC), usually by organisations that connect to more than one provider
+              - ASNs started as 16-bit numbers and are now 32-bit
+              - Private ASNs exist for use inside a network and are not seen on the public internet
+              - Every public IP prefix belongs to an AS that announces it
+
+              ### In practice
+              You can find which AS owns an address with a tool like `bgp.he.net` or RIPEstat, or from the command line:
+              ```bash
+              whois -h whois.cymru.com " -v 1.1.1.1"
+              ```
             resources:
               - { label: "What is an autonomous system? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-an-autonomous-system/", kind: article }
               - { label: "Hurricane Electric BGP Toolkit", url: "https://bgp.he.net/", kind: tool }
+              - { label: "Autonomous system (Internet) (Wikipedia)", url: "https://en.wikipedia.org/wiki/Autonomous_system_(Internet)", kind: article }
+              - { label: "Autonomous System Numbers (ARIN)", url: "https://www.arin.net/resources/guide/asn/", kind: docs }
           - id: transit-vs-peering
             title: Transit vs peering
             summary: Networks either pay someone to carry their traffic everywhere, or swap traffic with each other for free.
@@ -768,9 +1857,25 @@ stages:
               - Paid transit
               - Settlement-free peering
               - Tier 1 networks
+            body: |
+              Networks need to reach everywhere, so they connect to others in two ways.
+
+              **Transit** is paid. A smaller network pays a larger one to carry its traffic to the whole internet, and to carry the whole internet's traffic to it. **Peering** is an agreement between two networks to swap traffic that is only for each other's customers, often with no payment (**settlement-free**).
+
+              ### Key ideas
+              - Transit: you pay, you get access to everything
+              - Peering: you swap traffic with one network, and it is usually free if both sides gain
+              - Peering is cheaper and often has a shorter path
+              - A **Tier 1** network can reach every network on the internet through peering alone, without buying transit
+              - Most networks mix both: peer where it is cheap, buy transit for the rest
+
+              ### Example
+              A small ISP buys transit from a large carrier for general access, and peers with a big content network to deliver its video directly.
             resources:
               - { label: "What is an autonomous system? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-an-autonomous-system/", kind: article }
               - { label: "Peering (Wikipedia)", url: "https://en.wikipedia.org/wiki/Peering", kind: article }
+              - { label: "Tier 1 network (Wikipedia)", url: "https://en.wikipedia.org/wiki/Tier_1_network", kind: article }
+              - { label: "PeeringDB", url: "https://www.peeringdb.com/", kind: tool }
 
       - id: bgp
         title: BGP
@@ -782,14 +1887,46 @@ stages:
             learn:
               - Prefixes and the AS path
               - Sessions between neighbours
+            body: |
+              **BGP** (Border Gateway Protocol) is how networks tell each other which IP ranges they can reach. Each network announces its **prefixes**, such as `203.0.113.0/24`, to its neighbours.
+
+              Neighbours form **BGP sessions** over TCP port 179. When an AS receives an announcement, it adds its own ASN to the front of the **AS path** and passes it to its other neighbours, subject to its own policy. The AS path shows the route and the chain of networks to cross.
+
+              ### Key ideas
+              - Prefix: the block of addresses being announced
+              - AS path: the list of ASNs the announcement has passed through
+              - A router rejects a path that already contains its own ASN, which stops loops
+              - Announcements spread outward until most of the internet knows the route
+              - When a prefix is no longer reachable, a withdrawal spreads the same way
+
+              ### Example
+              ```
+              203.0.113.0/24  AS path: 64500 64501 64502
+              ```
+              The prefix is owned by the last AS in the path (64502), and the traffic would cross three networks.
             resources:
               - { label: "What is BGP? (Cloudflare)", url: "https://www.cloudflare.com/learning/security/glossary/what-is-bgp/", kind: article }
+              - { label: "Border Gateway Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Border_Gateway_Protocol", kind: article }
+              - { label: "RFC 4271: A Border Gateway Protocol 4 (BGP-4)", url: "https://www.rfc-editor.org/rfc/rfc4271", kind: docs }
           - id: bgp-path-selection
             title: Path selection
             summary: When a router hears many routes to the same prefix, it picks one by a fixed list of rules.
             learn:
               - Local preference and AS path length
               - Why the shortest path is not always chosen
+            body: |
+              A router often hears several routes for the same prefix. It must pick one. BGP uses a fixed list of rules, checked in order, and the first one that picks a winner decides.
+
+              ### Key ideas
+              - Highest **local preference** wins first. This is set by the network's own policy, for example "prefer customers over peers over transit"
+              - Then the **shortest AS path**
+              - Then lower origin type, lower MED, routes learned over eBGP before iBGP, and the lowest internal cost to the exit
+              - Final tie-breakers such as the lowest router ID
+
+              ### Why the shortest path is not always chosen
+              Local preference comes before path length, so money and policy beat distance. A network prefers to send traffic through a customer, which pays it, rather than a shorter path through a provider, which it pays. The "best" route for BGP is the best by business rules, not by speed.
+
+              This is also why engineers use **AS path prepending** to make a path look longer and steer traffic away.
             resources:
               - { label: "What is BGP? (Cloudflare)", url: "https://www.cloudflare.com/learning/security/glossary/what-is-bgp/", kind: article }
               - { label: "RFC 4271: BGP-4", url: "https://www.rfc-editor.org/rfc/rfc4271", kind: docs }
@@ -799,9 +1936,22 @@ stages:
             learn:
               - BGP hijacks and route leaks
               - Route origin validation with RPKI
+            body: |
+              BGP was built on trust. A network can announce any prefix, and its neighbours often accept it. When someone announces addresses they do not own, by mistake or on purpose, that is a **hijack**. A **route leak** is when a network passes routes on to places it should not, often by a misconfigured filter.
+
+              In 2008 a Pakistani ISP took YouTube offline for hours by announcing its prefix. In 2018 attackers hijacked traffic for an Amazon DNS range to steal cryptocurrency. In 2019 a leak sent a big share of traffic through a small network and caused outages.
+
+              ### Key ideas
+              - A hijack or leak sends traffic to the wrong place, or drops it
+              - **RPKI** lets the owner of a prefix publish a signed record, a **ROA**, saying which ASN may announce it
+              - Networks do **route origin validation**: reject announcements that conflict with a ROA
+              - RPKI checks who started the route, not the whole path
+              - It only helps as far as networks actually deploy it
             resources:
               - { label: "What is BGP hijacking? (Cloudflare)", url: "https://www.cloudflare.com/learning/security/glossary/bgp-hijacking/", kind: article }
               - { label: "Is BGP safe yet? (Cloudflare)", url: "https://isbgpsafeyet.com/", kind: tool }
+              - { label: "BGP hijacking (Wikipedia)", url: "https://en.wikipedia.org/wiki/BGP_hijacking", kind: article }
+              - { label: "Resource Public Key Infrastructure (Wikipedia)", url: "https://en.wikipedia.org/wiki/Resource_Public_Key_Infrastructure", kind: article }
           - id: bgp-rfc
             title: Reading the BGP-4 spec
             optional: true
@@ -809,9 +1959,22 @@ stages:
             learn:
               - OPEN, UPDATE, KEEPALIVE and NOTIFICATION
               - The BGP finite state machine
+            body: |
+              The spec for BGP version 4 is **RFC 4271**. It is the source behind everything in this topic, and it is readable once you know the ideas.
+
+              ### Key ideas
+              - **Message types**: `OPEN` starts a session and sets parameters, `UPDATE` announces or withdraws routes, `KEEPALIVE` shows the peer is still there, and `NOTIFICATION` reports an error and closes the session
+              - The **finite state machine** describes the life of a session: `Idle`, `Connect`, `Active`, `OpenSent`, `OpenConfirm` and `Established`
+              - Routes only flow once the session is `Established`
+              - The **decision process** has three phases: rank each route, choose the best for each prefix, then decide what to advertise to neighbours
+              - Path attributes such as AS_PATH, NEXT_HOP and LOCAL_PREF carry the data used in selection
+
+              ### In practice
+              Read the sections on messages, the state machine and the decision process first. Skip the long tables on the first pass, then return to them when a real question comes up.
             resources:
               - { label: "RFC 4271: BGP-4", url: "https://www.rfc-editor.org/rfc/rfc4271", kind: docs }
               - { label: "RFC 6811: BGP prefix origin validation", url: "https://www.rfc-editor.org/rfc/rfc6811", kind: docs }
+              - { label: "RFC 7454: BGP Operations and Security", url: "https://www.rfc-editor.org/rfc/rfc7454", kind: docs }
 
       - id: internet-exchange-points
         title: Internet exchange points
@@ -823,17 +1986,49 @@ stages:
             learn:
               - The shared switching fabric
               - Local traffic staying local
+            body: |
+              An **internet exchange point (IXP)** is a building, or a group of them, with network switches where many networks plug in and exchange traffic directly. Examples are DE-CIX, AMS-IX and LINX.
+
+              Without an IXP, two networks in the same city might send traffic to each other through a transit provider in another country. With one, they connect to the same switch and swap traffic directly.
+
+              ### Key ideas
+              - A shared **switching fabric** where each member has a port
+              - Members skip paid transit for traffic they exchange, which saves money
+              - Shorter paths mean lower delay
+              - Local traffic stays local, which makes the internet faster and more resilient
+              - Most IXPs are run as non-profits or co-ops
+              - Content networks and CDNs connect to be near many eyeball networks
+
+              ### Example
+              A Kenyan ISP and a local news site that both join a local IXP exchange traffic in the same city, instead of through a link to Europe.
             resources:
               - { label: "What is an IXP? (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/glossary/internet-exchange-point-ixp/", kind: article }
+              - { label: "Internet exchange point (Wikipedia)", url: "https://en.wikipedia.org/wiki/Internet_exchange_point", kind: article }
+              - { label: "Internet Exchange Map (TeleGeography)", url: "https://www.internetexchangemap.com/", kind: tool }
           - id: public-vs-private-peering
             title: Public vs private peering
             summary: Peering over the shared IXP fabric vs a direct cable between two networks.
             learn:
               - Route servers at an IXP
               - Private network interconnects
+            body: |
+              Networks that want to swap traffic have two ways to connect.
+
+              **Public peering** happens over the shared IXP switch. One port gives access to many networks. A network can set up a BGP session with each peer, or use an IXP **route server**, which passes routes between many members through one session. **Private peering** (a private network interconnect, PNI) is a direct cable between two networks, in the same facility.
+
+              ### Key ideas
+              - Public peering: cheap, flexible, easy to add peers. The shared fabric can be congested
+              - Route servers: one session reaches many members
+              - Private peering: dedicated capacity and more control, but a cable and ports per peer
+              - Large networks use private links for big traffic flows and public peering for the long tail
+              - Peers sign agreements, and peering databases help find partners
+
+              ### Example
+              A video service has a PNI with a big ISP because their traffic is huge, and uses the IXP fabric for hundreds of small networks.
             resources:
               - { label: "Internet exchange point (Wikipedia)", url: "https://en.wikipedia.org/wiki/Internet_exchange_point", kind: article }
               - { label: "PeeringDB", url: "https://www.peeringdb.com/", kind: tool }
+              - { label: "The IXP Database (Euro-IX)", url: "https://ixpdb.euro-ix.net/", kind: tool }
 
       - id: anycast
         title: Anycast
@@ -845,17 +2040,50 @@ stages:
             learn:
               - How BGP makes anycast work
               - What "closest" really means
+            body: |
+              With **unicast**, an IP address belongs to one place. Every packet to it goes to the same machine.
+
+              With **anycast**, the same IP address is announced from many places at once. Each location tells BGP "I am the way to this address". Routers send each packet to the best route, which is normally the nearest location.
+
+              ### Key ideas
+              - Unicast: one address, one destination
+              - Anycast: one address, many destinations, and the network picks one
+              - It works because BGP prefers some path to the prefix, and different networks see different best paths
+              - "Closest" means closest in BGP terms (path length, policy), not necessarily the shortest distance or lowest delay
+              - Routes can change mid-conversation, so anycast suits short exchanges (DNS) or needs care for long connections
+
+              ### Example
+              `1.1.1.1` is anycast. Someone in Tokyo and someone in London both use the same address, and each reaches a nearby data centre.
             resources:
               - { label: "What is an anycast network? (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/glossary/anycast-network/", kind: article }
+              - { label: "Anycast (Wikipedia)", url: "https://en.wikipedia.org/wiki/Anycast", kind: article }
+              - { label: "A Brief Primer on Anycast (Cloudflare)", url: "https://blog.cloudflare.com/a-brief-anycast-primer/", kind: article }
           - id: anycast-in-practice
             title: How DNS and CDNs use anycast
             summary: Root DNS servers, public resolvers and CDNs all use anycast for speed and resilience.
             learn:
               - Anycast DNS
               - Failover by withdrawing a route
+            body: |
+              Anycast is used wherever a service wants speed and resilience from a single address.
+
+              **DNS**: the root servers and public resolvers use anycast. Queries are single UDP packets, so it does not matter if the next one reaches a different site. **CDNs**: one IP serves users from the nearest data centre, and an attack on that IP is spread across many sites.
+
+              ### Key ideas
+              - Anycast DNS gives low latency worldwide
+              - **Failover** is automatic: if a site goes down or is taken out for maintenance, it **withdraws** its BGP route, and traffic shifts to the next nearest site
+              - More sites mean more capacity and better spread of load
+              - TCP services can use it too, if routes are stable, or if connections are handled carefully
+
+              ### Common mistakes
+              - Assuming the user is served by the nearest site by distance
+              - Forgetting that all sites need the same data and configuration
+              - Withdrawing a route without checking that the other sites can take the load
             resources:
               - { label: "What is an anycast network? (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/glossary/anycast-network/", kind: article }
               - { label: "Cloudflare blog", url: "https://blog.cloudflare.com/", kind: article }
+              - { label: "RFC 4786: Operation of Anycast Services", url: "https://www.rfc-editor.org/rfc/rfc4786", kind: docs }
+              - { label: "Cloudflare servers don't own IPs anymore (Cloudflare)", url: "https://blog.cloudflare.com/cloudflare-servers-dont-own-ips-anymore/", kind: article }
 
       - id: ipv6
         title: IPv6 in practice
@@ -867,9 +2095,26 @@ stages:
             learn:
               - A and AAAA records together
               - Happy Eyeballs
+            body: |
+              **Dual stack** means a network or server runs IPv4 and IPv6 side by side. It is the most common way to move to IPv6, because old and new clients both work.
+
+              In DNS, a name has an **A** record for IPv4 and an **AAAA** record for IPv6. A client that supports both gets both answers and must choose.
+
+              ### Key ideas
+              - Publish A and AAAA records together
+              - **Happy Eyeballs** (RFC 8305) is how clients choose. The client tries IPv6 first, and if it does not connect within a fraction of a second, it starts IPv4 in parallel and uses whichever succeeds first
+              - A broken IPv6 path then costs a small delay rather than a long timeout
+              - You must secure and monitor both stacks
+
+              ### Common mistakes
+              - Adding an AAAA record for a server that is not really listening on IPv6
+              - Firewall rules written for IPv4 only, leaving IPv6 wide open
+              - Logging and rate limiting that only understand IPv4 addresses
             resources:
               - { label: "RFC 8305: Happy Eyeballs v2", url: "https://www.rfc-editor.org/rfc/rfc8305", kind: docs }
               - { label: "IPv6 adoption statistics (Google)", url: "https://www.google.com/intl/en/ipv6/statistics.html", kind: tool }
+              - { label: "Dual-stack (Wikipedia)", url: "https://en.wikipedia.org/wiki/Dual-stack", kind: article }
+              - { label: "Happy Eyeballs (Wikipedia)", url: "https://en.wikipedia.org/wiki/Happy_Eyeballs", kind: article }
           - id: ipv6-no-nat
             title: No NAT by default
             optional: true
@@ -877,8 +2122,25 @@ stages:
             learn:
               - Global addresses on every device
               - Firewalling without NAT
+            body: |
+              IPv6 has so many addresses that every device can have a global one. There is no need to share addresses, so **NAT is not part of the design**.
+
+              Each device uses a public address, and traffic goes straight from it to the destination with no translation. That brings back direct end-to-end connections, which makes peer-to-peer apps and servers simpler.
+
+              ### Key ideas
+              - Global addresses on every device
+              - Protection comes from a **firewall**, not from NAT. A home router usually blocks unsolicited inbound IPv6 by default
+              - Servers that should be reachable need a firewall rule to allow the port
+              - Temporary addresses help privacy, since a device does not show one fixed identifier
+              - Private IPv6 ranges (unique local) exist but are rare
+
+              ### Common mistakes
+              - Assuming NAT was the security, and leaving devices open
+              - Blocking all ICMPv6, which breaks IPv6 itself
+              - Not allowing the firewall rule for the one service you do want to publish
             resources:
               - { label: "RFC 8200: IPv6", url: "https://www.rfc-editor.org/rfc/rfc8200", kind: docs }
+              - { label: "RFC 4890: Recommendations for Filtering ICMPv6 Messages in Firewalls", url: "https://www.rfc-editor.org/rfc/rfc4890", kind: docs }
 
       - id: quic-http3
         title: QUIC and HTTP/3
@@ -890,17 +2152,50 @@ stages:
             learn:
               - HTTP/1.1 vs HTTP/2
               - Head-of-line blocking
+            body: |
+              HTTP/1.1 sends one request at a time per connection, so browsers open several connections per site. **HTTP/2** fixes this by **multiplexing**: many requests and responses share a single TCP connection as separate streams. It also compresses headers.
+
+              That is faster, but it exposes a limit of TCP. TCP delivers bytes in order. If one packet is lost, TCP holds back everything after it until the packet is resent, even if the later data belongs to a different stream. This is **head-of-line blocking**.
+
+              ### Key ideas
+              - HTTP/1.1: one request per connection at a time, many connections
+              - HTTP/2: many streams on one connection, with header compression
+              - On a lossy network, one lost packet stalls all the streams
+              - The problem is in TCP itself, so fixing it needs a different transport
+              - That is why **HTTP/3** moved to QUIC
+
+              ### Example
+              A page loads 50 files over one HTTP/2 connection. A single lost packet delays all 50 for a round trip or more, on mobile networks.
             resources:
               - { label: "HTTP/2 vs HTTP/1.1 (Cloudflare)", url: "https://www.cloudflare.com/learning/performance/http2-vs-http1.1/", kind: article }
+              - { label: "Head-of-line blocking (Wikipedia)", url: "https://en.wikipedia.org/wiki/Head-of-line_blocking", kind: article }
+              - { label: "RFC 9113: HTTP/2", url: "https://www.rfc-editor.org/rfc/rfc9113", kind: docs }
+              - { label: "HTTP/2 (HPBN)", url: "https://hpbn.co/http2/", kind: article }
           - id: quic-streams
             title: How QUIC streams work
             summary: QUIC runs over UDP with independent streams and TLS 1.3 inside the handshake.
             learn:
               - Independent streams
               - Faster connection setup
+            body: |
+              **QUIC** is a transport protocol built on UDP. It does the jobs of TCP and TLS together, and **HTTP/3** is HTTP running on top of it.
+
+              QUIC has **independent streams**. Each stream has its own ordering, so a lost packet only holds back the stream it belongs to, and the others keep going. That removes the head-of-line blocking of TCP.
+
+              ### Key ideas
+              - Built on UDP, so it can be deployed without changing routers
+              - TLS 1.3 is part of the handshake, so transport and encryption are set up together
+              - A new connection needs one round trip, and a resumed one can send data straight away (0-RTT)
+              - Always encrypted, even much of the transport header
+              - It runs in user space, so it can improve faster than the operating system's TCP
+              - Reliability and congestion control are rebuilt inside QUIC
+
+              ### In practice
+              Browsers learn a server supports HTTP/3 from an `Alt-Svc` header, then try QUIC on UDP port 443.
             resources:
               - { label: "What is HTTP/3? (Cloudflare)", url: "https://www.cloudflare.com/learning/performance/what-is-http3/", kind: article }
               - { label: "RFC 9000: QUIC", url: "https://www.rfc-editor.org/rfc/rfc9000", kind: docs }
+              - { label: "The Road to QUIC (Cloudflare)", url: "https://blog.cloudflare.com/the-road-to-quic/", kind: article }
           - id: connection-migration
             title: Connection migration
             optional: true
@@ -908,9 +2203,25 @@ stages:
             learn:
               - Connection IDs
               - Why TCP cannot do this
+            body: |
+              A TCP connection is tied to a 4-tuple: source and destination IP and port. If your phone moves from Wi-Fi to mobile data, its IP changes, the 4-tuple changes, and every TCP connection breaks. Apps must reconnect and start again.
+
+              A QUIC connection is identified by a **connection ID** instead. The ID is carried in each packet. When the device changes network, it keeps sending with the same ID from the new address, and the server accepts it. The connection **migrates**.
+
+              ### Key ideas
+              - QUIC uses connection IDs, not the address 4-tuple
+              - A downloading video or a call carries on over a network change
+              - The new path is checked first, to prevent others from redirecting traffic
+              - Connection IDs can change over time, to make tracking harder
+              - TCP cannot do it, because its identity is the 4-tuple
+
+              ### Example
+              You walk out of the house while on a video call. The phone leaves your Wi-Fi and joins mobile data. A QUIC call continues, with at most a short glitch.
             resources:
               - { label: "RFC 9000: QUIC", url: "https://www.rfc-editor.org/rfc/rfc9000", kind: docs }
               - { label: "RFC 9114: HTTP/3", url: "https://www.rfc-editor.org/rfc/rfc9114", kind: docs }
+              - { label: "HTTP/3: the past, the present, and the future (Cloudflare)", url: "https://blog.cloudflare.com/http3-the-past-present-and-future/", kind: article }
+              - { label: "QUIC (Wikipedia)", url: "https://en.wikipedia.org/wiki/QUIC", kind: article }
 
       - id: ddos
         title: DDoS and how it is stopped
@@ -923,18 +2234,53 @@ stages:
               - Amplification attacks
               - SYN floods
               - Layer 7 floods
+            body: |
+              A **DDoS** attack uses many machines to flood a target so real users cannot get through. Attacks fall into three groups.
+
+              **Volumetric** attacks fill the pipe with more traffic than the link can carry. **Protocol** attacks exhaust connection state in servers or firewalls. **Application** attacks (layer 7) send requests that look real but overload the app itself.
+
+              ### Key ideas
+              - **Amplification**: the attacker sends small requests with the victim's forged source address to open servers (DNS, NTP, memcached), which send big replies to the victim
+              - **SYN flood**: many half-open TCP connections fill the server's table. SYN cookies defend against it
+              - **Layer 7 floods**: many HTTP requests for expensive pages or searches, often from a botnet
+              - Layer 7 attacks are the hardest to tell from real users
+
+              ### Why it matters
+              Different attacks need different defences, so a firewall alone does not stop a flood that fills the link before it gets there.
             resources:
               - { label: "What is a DDoS attack? (Cloudflare)", url: "https://www.cloudflare.com/learning/ddos/what-is-a-ddos-attack/", kind: article }
               - { label: "SYN flood attack (Cloudflare)", url: "https://www.cloudflare.com/learning/ddos/syn-flood-ddos-attack/", kind: article }
+              - { label: "Denial-of-service attack (Wikipedia)", url: "https://en.wikipedia.org/wiki/Denial-of-service_attack", kind: article }
+              - { label: "SYN flood (Wikipedia)", url: "https://en.wikipedia.org/wiki/SYN_flood", kind: article }
+              - { label: "DDoS attack coverage (Cloudflare docs)", url: "https://developers.cloudflare.com/ddos-protection/about/attack-coverage/", kind: docs }
           - id: rate-limiting-and-wafs
             title: Rate limiting and WAFs
             summary: Block and slow abusive traffic before it reaches your app.
             learn:
               - Rate limits per IP or key
               - Managed WAF rules and bot control
+            body: |
+              You can block and slow bad traffic before it reaches your app. Two tools do most of the work.
+
+              **Rate limiting** caps how many requests a client may send in a time window, such as 100 per minute per IP, per API key, or per user. Extra requests get a `429 Too Many Requests`. It protects login pages, search and APIs from floods and brute-force tries.
+
+              A **WAF** (web application firewall) reads HTTP requests and blocks those that look malicious, such as SQL injection or known exploits. Managed rules are kept up to date by the vendor, and you add your own.
+
+              ### Key ideas
+              - Limit by the right key: IP, token or user, and by path
+              - Return `429` with a `Retry-After` header
+              - Managed WAF rules catch common attacks, and bot control scores or challenges automated clients
+              - Test rules in a log-only mode first
+              - Rate limits at the edge are cheaper than at the app
+
+              ### Common mistakes
+              - Limiting by IP behind a proxy, so everyone shares one limit
+              - Turning on blocking rules without testing, which blocks real users
             resources:
               - post: aws-waf-cloudfront-solo-dev
               - { label: "What is rate limiting? (Cloudflare)", url: "https://www.cloudflare.com/learning/bots/what-is-rate-limiting/", kind: article }
+              - { label: "Rate limiting rules (Cloudflare docs)", url: "https://developers.cloudflare.com/waf/rate-limiting-rules/", kind: docs }
+              - { label: "Web application firewall (Wikipedia)", url: "https://en.wikipedia.org/wiki/Web_application_firewall", kind: article }
           - id: anycast-ddos
             title: Why anycast helps
             optional: true
@@ -942,5 +2288,21 @@ stages:
             learn:
               - Absorbing traffic at the edge
               - Hiding the origin
+            body: |
+              A large attack can easily overwhelm a single site. **Anycast** spreads one IP address over many data centres. Attack traffic follows BGP to the nearest site, so each location receives only the part of the attack that is close to it.
+
+              A 1 Tbps attack from bots all over the world may reach 300 sites and hit each with a few Gbps, which each site can absorb. This is how big edge networks soak up attacks.
+
+              ### Key ideas
+              - Split one big attack into many small ones, near where the bots are
+              - Absorb traffic at the edge, and only pass clean traffic on to the origin
+              - A site under heavy load can withdraw routes, and traffic goes to other sites
+              - **Hide the origin**: keep your server's real IP private and accept traffic only from the edge network
+              - The attacker can still go for the origin directly if its address leaks
+
+              ### Common mistakes
+              - Leaving the origin open to the whole internet, so attackers skip the edge
+              - Using old DNS records or mail servers that reveal the origin IP
             resources:
               - { label: "What is an anycast network? (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/glossary/anycast-network/", kind: article }
+              - { label: "A Brief Primer on Anycast (Cloudflare)", url: "https://blog.cloudflare.com/a-brief-anycast-primer/", kind: article }

@@ -3,7 +3,7 @@ title: MLOps
 summary: DevOps for machine learning. Take models from a notebook to production, then keep them honest.
 order: 5
 category: ai-ml
-updated: '2026-11-15'
+updated: '2026-11-16'
 icon: brain-circuit
 color: violet
 logos:
@@ -26,15 +26,44 @@ stages:
             learn:
               - Code, data and model as three moving parts
               - Why tests alone do not prove a model works
+            body: |
+              In normal software, the code decides what the program does. In ML, the behaviour comes from the code and from the data the model learned from. Change the data and you get a different system, even with the same code.
+
+              So an ML system has three moving parts: **code**, **data** and the **model** that training produces. You need to version and track all three.
+
+              ### Key ideas
+              - Code, data and model each change on their own schedule
+              - The same code on new data gives a different model
+              - Unit tests check the code, not whether predictions are good
+              - A model can pass every test and still be wrong on real inputs
+              - You prove a model works by measuring it on held-out data
+
+              ### Example
+              You fix no bugs, but retrain on last month's data. Accuracy drops three points. The code tests all pass, because the code did not change. Only an evaluation on fresh data shows the problem.
             resources:
               - { label: "MLOps principles (ml-ops.org)", url: "https://ml-ops.org/", kind: article }
               - { label: "Rules of ML (Google)", url: "https://developers.google.com/machine-learning/guides/rules-of-ml", kind: article }
+              - { label: "Hidden Technical Debt in ML Systems (NeurIPS)", url: "https://papers.nips.cc/paper_files/paper/2015/hash/86df7dcfd896fcaf2674f757a2463eba-Abstract.html", kind: article }
           - id: training-vs-inference
             title: Training vs inference
             summary: Training builds the model offline; inference uses it on live requests. They have very different resource and latency needs.
             learn:
               - Batch training jobs vs request-time prediction
               - Hardware and cost profile of each
+            body: |
+              **Training** is the offline job that builds a model from data. **Inference** is using the finished model to answer requests. They look like two different workloads.
+
+              Training runs in batches, takes minutes to days, and needs a lot of compute at once. Nobody waits on it. Inference runs all day, one request or a small batch at a time, and users do wait on it.
+
+              ### Key ideas
+              - Training: batch job, heavy compute, runs now and then, you pay while it runs
+              - Inference: request-time, must be fast, runs continuously, you pay for uptime and capacity
+              - Training often needs big GPUs. Inference can often run on smaller GPUs or even CPUs
+              - Training cost is spiky. Inference cost grows with traffic
+              - Optimise training for throughput and inference for latency
+
+              ### Example
+              A fraud model trains nightly on a GPU node that shuts down when done. The trained model is then served by a small always-on API that answers in under 100 ms. The two run on different hardware and are scaled separately.
             resources:
               - { label: "Machine Learning Crash Course (Google)", url: "https://developers.google.com/machine-learning/crash-course", kind: course }
               - { label: "Made With ML", url: "https://madewithml.com/", kind: course }
@@ -45,9 +74,26 @@ stages:
               - Training/serving skew
               - Data that changes after launch
               - Missing feedback loops
+            body: |
+              A model that scored well in a notebook can fail quietly in production. There is often no error and no crash. The predictions just get worse.
+
+              The usual causes are a small set of problems. Learn them and you can watch for them from day one.
+
+              ### Key ideas
+              - **Training/serving skew**: features are built one way in training and another way in production, so the model sees inputs it never learned from
+              - **Changing data**: users, prices and seasons change after launch, so the live data no longer looks like the training data
+              - **Missing feedback loops**: nobody collects the real outcome, so you cannot tell if predictions were right
+              - Silent failures: wrong output looks like normal output, so no alert fires
+              - Fix: log inputs and predictions, collect labels, and monitor against a baseline
+
+              ### Common mistakes
+              - Testing only on the data you trained with
+              - Computing a feature in Python for training and in SQL for serving
+              - Launching with no plan to measure accuracy after launch
             resources:
               - { label: "Rules of ML (Google)", url: "https://developers.google.com/machine-learning/guides/rules-of-ml", kind: article }
               - { label: "Chip Huyen's blog", url: "https://huyenchip.com/blog/", kind: article }
+              - { label: "Data Distribution Shifts and Monitoring (Chip Huyen)", url: "https://huyenchip.com/2022/02/07/data-distribution-shifts-and-monitoring.html", kind: article }
           - id: mlops-maturity
             title: MLOps maturity levels
             optional: true
@@ -55,8 +101,23 @@ stages:
             learn:
               - Manual process vs automated pipelines
               - What to automate first
+            body: |
+              MLOps maturity describes how much of your ML work is automated. Teams usually move through the same steps.
+
+              At the start, everything is manual: a person runs a notebook, saves a file and hands it over. Next, the training steps become an automated pipeline. At the top, new code and new data both trigger tested, automatic delivery.
+
+              ### Key ideas
+              - Manual: notebooks, hand-copied model files, no repeatable record
+              - Automated training: one pipeline runs data prep, training and evaluation
+              - Automated delivery: CI/CD builds, tests and deploys the pipeline and the model
+              - Do not jump to the top. Each step should pay for itself first
+              - Automate the step that hurts most, usually repeatable training and tracked runs
+
+              ### In practice
+              Start by moving notebook code into scripts and tracking each run. Then wrap the scripts in a pipeline that one command can rerun. Add automatic retraining and deployment only when you retrain often enough to need them.
             resources:
               - { label: "MLOps: continuous delivery for ML (Google Cloud)", url: "https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning", kind: article }
+              - { label: "CD4ML: Continuous Delivery for Machine Learning (Martin Fowler)", url: "https://martinfowler.com/articles/cd4ml.html", kind: article }
 
       - id: model-evaluation
         title: Model evaluation basics
@@ -69,8 +130,26 @@ stages:
               - Why you never tune on the test set
               - Cross-validation
               - Leakage between splits
+            body: |
+              A model can memorise its training data. A score on that same data tells you nothing about new inputs. So you split the data and judge the model only on rows it never trained on.
+
+              Use three parts. **Train** fits the model. **Validation** helps you choose settings. **Test** gives the final score, once.
+
+              ### Key ideas
+              - Never tune on the test set. If you do, it stops being a fair test
+              - Pick hyperparameters on the validation set only
+              - **Cross-validation** rotates the validation fold, which gives a steadier estimate on small data
+              - **Leakage** is when information from the test rows reaches training, and it inflates the score
+              - Split before you do any fitting step such as scaling or encoding
+
+              ### Common mistakes
+              - Scaling the whole dataset first, then splitting
+              - Random-splitting time series data, so the model trains on the future
+              - Keeping duplicate rows or the same user in both train and test
             resources:
               - { label: "Cross-validation (scikit-learn)", url: "https://scikit-learn.org/stable/modules/cross_validation.html", kind: docs }
+              - { label: "Dividing the original dataset (Google ML Crash Course)", url: "https://developers.google.com/machine-learning/crash-course/overfitting/dividing-datasets", kind: course }
+              - { label: "Common pitfalls and recommended practices (scikit-learn)", url: "https://scikit-learn.org/stable/common_pitfalls.html", kind: docs }
           - id: choosing-metrics
             title: Choosing metrics
             summary: Accuracy is rarely the right number. Pick the metric that matches the cost of each kind of mistake.
@@ -78,9 +157,25 @@ stages:
               - Precision, recall and F1
               - Regression metrics
               - Picking a baseline to beat
+            body: |
+              Accuracy counts correct answers. If 99 percent of emails are not spam, a model that says "not spam" every time is 99 percent accurate and useless. Pick a metric that matches the cost of each mistake.
+
+              For classification, **precision** is how many flagged items were truly positive. **Recall** is how many true positives you found. **F1** balances the two.
+
+              ### Key ideas
+              - High precision: few false alarms. Use it when a false alarm is costly
+              - High recall: few misses. Use it when a miss is costly, as in disease screening
+              - F1 is the harmonic mean of precision and recall
+              - Regression metrics: MAE (average error size), RMSE (punishes big errors more), R squared
+              - Always compare to a **baseline**, such as always predicting the majority class or the average
+              - A model that does not beat the baseline is not ready
+
+              ### Example
+              A fraud model flags 100 payments and 80 are fraud: precision is 0.8. There were 200 fraud cases in total, so recall is 0.4. Whether that is good depends on what a missed fraud costs.
             resources:
               - { label: "Model evaluation (scikit-learn)", url: "https://scikit-learn.org/stable/modules/model_evaluation.html", kind: docs }
               - { label: "Machine Learning Crash Course (Google)", url: "https://developers.google.com/machine-learning/crash-course", kind: course }
+              - { label: "Classification: accuracy, recall, precision (Google ML Crash Course)", url: "https://developers.google.com/machine-learning/crash-course/classification/accuracy-precision-recall", kind: course }
           - id: slice-evaluation
             title: Evaluating on slices
             optional: true
@@ -88,8 +183,27 @@ stages:
             learn:
               - Breaking metrics down by segment
               - Finding where the model is weakest
+            body: |
+              An overall score is an average, and averages hide problems. A model can be 95 percent accurate overall and fail badly for one language, device or customer group.
+
+              **Slice evaluation** means computing your metrics separately for each segment of the data.
+
+              ### Key ideas
+              - Choose slices that matter: region, device, new vs returning users, input length, class
+              - Compute the same metric for each slice and compare to the overall number
+              - Small slices give noisy numbers, so check the sample size too
+              - Sort slices by gap to find where the model is weakest
+              - Feed those weak slices back into data collection and test sets
+
+              ### Example
+              ```python
+              df["correct"] = df.pred == df.label
+              print(df.groupby("country").correct.agg(["mean", "count"]))
+              ```
+              If one country scores 70 percent with 40 rows and the rest score 94 percent, you have a lead worth chasing, and a reason to add more data for that country.
             resources:
               - { label: "Made With ML", url: "https://madewithml.com/", kind: course }
+              - { label: "Fairness: evaluating for bias (Google ML Crash Course)", url: "https://developers.google.com/machine-learning/crash-course/fairness/evaluating-for-bias", kind: course }
 
       - id: data-versioning
         title: Data versioning
@@ -101,8 +215,27 @@ stages:
             learn:
               - Immutable dataset snapshots
               - Storing data in object storage, not git
+            body: |
+              Code gets a version and a build. Data should too. If a dataset changes under you, you cannot reproduce a model or explain why it changed.
+
+              Treat each dataset like a build artifact: a fixed version, a known location and a checksum.
+
+              ### Key ideas
+              - **Immutable snapshots**: never edit a published dataset, write a new version
+              - A checksum (hash) proves a file is exactly the one used in a run
+              - Keep big data in object storage such as S3, not in git
+              - Git stores a small pointer file that names the data version
+              - Record the dataset version in every training run
+
+              ### In practice
+              ```text
+              s3://ml-data/churn/v3/train.parquet   (never edited)
+              s3://ml-data/churn/v4/train.parquet   (new snapshot)
+              ```
+              Each training run logs `churn/v3`. Six months later you can load the same bytes and rerun it. Tools such as DVC automate the pointer and the checksum.
             resources:
               - { label: "DVC docs", url: "https://dvc.org/doc", kind: docs }
+              - { label: "Versioning data and models (DVC)", url: "https://dvc.org/doc/use-cases/versioning-data-and-models", kind: docs }
           - id: dvc-basics
             title: DVC basics
             summary: Track large data files next to your code with DVC, and pull the exact version a commit used.
@@ -110,8 +243,31 @@ stages:
               - dvc add, push and pull
               - Remote storage on S3
               - Linking data versions to git commits
+            body: |
+              DVC (Data Version Control) lets git track big files without storing them in git. Git keeps a tiny pointer file. The real data lives in a remote store such as S3.
+
+              The workflow mirrors git, so it feels familiar.
+
+              ### Key ideas
+              - `dvc add data/train.csv` hashes the file and writes `data/train.csv.dvc`
+              - You commit the `.dvc` file to git. The data file itself is ignored by git
+              - `dvc push` uploads the data to the remote. `dvc pull` downloads it
+              - Remote storage can be S3, GCS, Azure or a shared disk
+              - Checking out an old commit and running `dvc pull` restores the data that commit used
+
+              ### Example
+              ```bash
+              dvc remote add -d storage s3://my-bucket/dvc
+              dvc add data/train.csv
+              git add data/train.csv.dvc .gitignore
+              git commit -m "Add training data v1"
+              dvc push
+              ```
+              A teammate clones the repo, runs `dvc pull`, and gets the exact same data.
             resources:
               - { label: "DVC get started", url: "https://dvc.org/doc/start", kind: docs }
+              - { label: "dvc add (DVC)", url: "https://dvc.org/doc/command-reference/add", kind: docs }
+              - { label: "Amazon S3 remote (DVC)", url: "https://dvc.org/doc/user-guide/data-management/remote-storage/amazon-s3", kind: docs }
           - id: reproducible-splits
             title: Reproducible splits
             optional: true
@@ -119,8 +275,30 @@ stages:
             learn:
               - Fixed random seeds
               - Deterministic, hash-based splits
+            body: |
+              If your train and test split changes every run, two scores are not comparable. A better score might just be a luckier split. Make the split repeatable.
+
+              There are two common ways. Fix the random seed, or derive the split from the data itself.
+
+              ### Key ideas
+              - A **fixed seed** makes a random split come out the same each time
+              - Seeds break when the data changes: new rows shift who lands where
+              - A **hash-based split** assigns each row by hashing a stable id, so a row always stays in the same set
+              - Hash splits also keep one user's rows together if you hash the user id
+              - Log the seed or the split rule with the run
+
+              ### Example
+              ```python
+              import hashlib
+
+              def is_test(user_id):
+                  h = int(hashlib.md5(str(user_id).encode()).hexdigest(), 16)
+                  return h % 10 == 0   # about 10 percent
+              ```
+              A user is always in train or always in test, even as new data arrives.
             resources:
               - { label: "Cross-validation (scikit-learn)", url: "https://scikit-learn.org/stable/modules/cross_validation.html", kind: docs }
+              - { label: "train_test_split (scikit-learn)", url: "https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html", kind: docs }
 
       - id: experiment-tracking
         title: Experiment tracking
@@ -132,25 +310,85 @@ stages:
             learn:
               - What to log for every run
               - Tagging runs with the code and data version
+            body: |
+              An **experiment** is a set of runs. A **run** is one training attempt. After a week of tweaking, nobody remembers which settings gave which score, and a spreadsheet does not keep up.
+
+              Log the same fields for every run so any two can be compared.
+
+              ### Key ideas
+              - **Params**: learning rate, model type, features, random seed
+              - **Metrics**: validation score, test score, training time, loss over steps
+              - **Artifacts**: the model file, plots, the confusion matrix
+              - **Tags**: the git commit, the dataset version, who ran it, and where
+              - Log automatically from code. Hand-typed notes get skipped
+
+              ### Common mistakes
+              - Logging the score but not the data version, so the result cannot be reproduced
+              - Running from a dirty git tree, so the commit does not match the code
+              - Changing three settings at once and not knowing which one helped
+
+              A good record answers one question later: what exactly produced this model?
             resources:
               - { label: "MLflow docs", url: "https://mlflow.org/docs/latest/index.html", kind: docs }
+              - { label: "MLflow Tracking (MLflow)", url: "https://mlflow.org/docs/latest/ml/tracking/", kind: docs }
           - id: mlflow-tracking
             title: MLflow tracking
             summary: Log runs to an MLflow tracking server and browse them in its UI.
             learn:
               - Running a tracking server
               - Logging models and artifacts
+            body: |
+              MLflow is an open source tool that records runs. You log from your training code, and a tracking server stores the results and shows them in a web UI.
+
+              You can start with local files, then move to a shared server when a team needs it.
+
+              ### Key ideas
+              - Start a server: `mlflow server --host 0.0.0.0 --port 5000`
+              - Point code at it with `mlflow.set_tracking_uri(...)`
+              - Use `mlflow.start_run()`, then `log_param`, `log_metric` and `log_artifact`
+              - `mlflow.autolog()` logs many frameworks for you
+              - Production setup: a database for metadata and object storage such as S3 for artifacts
+
+              ### Example
+              ```python
+              import mlflow
+              mlflow.set_tracking_uri("http://localhost:5000")
+              with mlflow.start_run():
+                  mlflow.log_param("lr", 0.01)
+                  mlflow.log_metric("val_f1", 0.83)
+                  mlflow.log_artifact("model.pkl")
+              ```
+              Open the UI and the run appears with its params, metric and file.
             resources:
               - { label: "MLflow docs", url: "https://mlflow.org/docs/latest/index.html", kind: docs }
+              - { label: "MLflow Tracking (MLflow)", url: "https://mlflow.org/docs/latest/ml/tracking/", kind: docs }
           - id: comparing-experiments
             title: Comparing experiments
             summary: Compare runs side by side and pick a winner on evidence, not on memory.
             learn:
               - Comparing metrics across runs
               - Hosted trackers such as Weights & Biases
+            body: |
+              Tracking is only useful if you compare runs and pick a winner from the numbers. Experiment trackers give you tables and charts for this.
+
+              Compare on the same data, the same split and the same metric. Otherwise the comparison means nothing.
+
+              ### Key ideas
+              - Sort runs by the target metric and look at the top few
+              - Plot metric against a param, such as learning rate, to see the trend
+              - Overlay loss curves to spot overfitting and unstable runs
+              - Check cost too: a tiny gain that takes ten times longer may not be worth it
+              - Hosted trackers such as **Weights & Biases** add dashboards, sweeps and team sharing
+              - Save the winning run id, because that is what you register and deploy
+
+              ### Common mistakes
+              - Comparing runs that used different data versions
+              - Picking the best test score after trying many runs, which overfits the test set
+              - Trusting a 0.2 point gain that is inside the run to run noise
             resources:
               - { label: "Weights & Biases docs", url: "https://docs.wandb.ai/", kind: docs }
               - { label: "MLflow docs", url: "https://mlflow.org/docs/latest/index.html", kind: docs }
+              - { label: "Experiment tracking (Weights & Biases)", url: "https://docs.wandb.ai/guides/track/", kind: docs }
 
       - id: packaging-models
         title: Packaging models
@@ -163,27 +401,98 @@ stages:
               - Pickle and its security risk
               - ONNX for portable models
               - safetensors for model weights
+            body: |
+              A trained model must be saved to disk so another process can load it. The format you choose affects safety and portability.
+
+              ### Key ideas
+              - **Pickle** is Python's default object format. Loading a pickle can run arbitrary code, so never load one from a source you do not trust
+              - Pickle files also break across Python and library versions
+              - **ONNX** is an open format for models. It runs on many runtimes and languages, so it suits portable serving
+              - **safetensors** stores only the weights as raw tensors. It cannot execute code, loads fast, and is the common choice for large models
+              - Save the preprocessing and the library versions alongside the model
+
+              ### Common mistakes
+              - Downloading a random `.pkl` or `.pt` file and loading it on a production host
+              - Saving a model with one scikit-learn version and loading it with another
+              - Forgetting the tokenizer or scaler, so the model loads but gives wrong answers
+
+              Rule of thumb: pick safetensors for weights, ONNX for portability, and treat pickle as trusted-source only.
             resources:
               - { label: "ONNX", url: "https://onnx.ai/", kind: docs }
+              - { label: "safetensors (Hugging Face)", url: "https://huggingface.co/docs/safetensors/index", kind: docs }
+              - { label: "pickle security warning (Python docs)", url: "https://docs.python.org/3/library/pickle.html", kind: docs }
+              - { label: "Introduction to ONNX (ONNX)", url: "https://onnx.ai/onnx/intro/", kind: docs }
           - id: model-api
             title: Wrapping a model in an API
             summary: Put a small HTTP service in front of the model so any client can call it.
             learn:
               - Loading the model once at startup
               - Input validation on prediction requests
+            body: |
+              The simplest way to share a model is a small HTTP service. Clients send features and get a prediction back. They need not know anything about Python or your model library.
+
+              FastAPI is a common choice because it validates input for you.
+
+              ### Key ideas
+              - **Load the model once at startup**, not on every request. Loading is slow
+              - Define the request shape with a typed model so bad input is rejected with a 422
+              - Check ranges and required fields before the data reaches the model
+              - Add a `/health` route for the load balancer
+              - Return the model version in the response, so you can trace answers
+
+              ### Example
+              ```python
+              from fastapi import FastAPI
+              from pydantic import BaseModel
+
+              app = FastAPI()
+              model = load_model("model.onnx")   # once
+
+              class Req(BaseModel):
+                  age: int
+                  income: float
+
+              @app.post("/predict")
+              def predict(r: Req):
+                  return {"score": model.predict([[r.age, r.income]])[0]}
+              ```
             resources:
               - { label: "FastAPI docs", url: "https://fastapi.tiangolo.com/", kind: docs }
               - { label: "BentoML docs", url: "https://docs.bentoml.com/", kind: docs }
               - post: serverless-ai-inference-endpoints-with-aws-bedrock-and-lambda
+              - { label: "Request Body (FastAPI)", url: "https://fastapi.tiangolo.com/tutorial/body/", kind: docs }
           - id: containerising-inference
             title: Containerising inference
             summary: Build an image with the model and its runtime pinned, so it runs the same everywhere.
             learn:
               - Baking the model into the image vs downloading at start
               - Keeping images small
+            body: |
+              A container image bundles the model, its code and its exact libraries. If it runs on your laptop, it runs the same in production. That removes the "works on my machine" problem.
+
+              The main choice is where the model file lives.
+
+              ### Key ideas
+              - **Baked in**: copy the model into the image. Simple, versioned together, and starts fast, but the image is large
+              - **Download at start**: the image holds only code and fetches the model from storage. Images stay small, but startup is slower and needs credentials
+              - Pin the base image, the Python version and every library version
+              - Keep images small: use a slim base, multi-stage builds, and a `.dockerignore`
+              - Run as a non-root user and do not put secrets in the image
+
+              ### Example
+              ```dockerfile
+              FROM python:3.12-slim
+              WORKDIR /app
+              COPY requirements.txt .
+              RUN pip install --no-cache-dir -r requirements.txt
+              COPY model/ model/
+              COPY app.py .
+              CMD ["uvicorn", "app:app", "--host", "0.0.0.0"]
+              ```
             resources:
               - { label: "Docker docs", url: "https://docs.docker.com/", kind: docs }
               - { label: "Made With ML", url: "https://madewithml.com/", kind: course }
+              - { label: "Building best practices (Docker)", url: "https://docs.docker.com/build/building/best-practices/", kind: docs }
           - id: ci-for-ml-code
             title: CI for ML code
             optional: true
@@ -191,9 +500,34 @@ stages:
             learn:
               - Tests for data transforms
               - A tiny training run as a smoke test
+            body: |
+              Continuous integration runs checks on every pull request. For ML, that means the usual code checks plus a few checks that catch broken training code early.
+
+              You cannot train a full model in CI. Keep the checks small and fast.
+
+              ### Key ideas
+              - Lint and type-check the code
+              - Unit test **data transforms**: given a small known input, assert the exact output
+              - Run a **smoke test**: train for a few steps on a tiny sample and check that loss is a number and the model saves
+              - Check the saved model loads and predicts on one example
+              - Keep the job under a few minutes so people do not skip it
+
+              ### Example
+              ```yaml
+              jobs:
+                test:
+                  runs-on: ubuntu-latest
+                  steps:
+                    - uses: actions/checkout@v4
+                    - run: pip install -r requirements.txt
+                    - run: pytest tests/
+                    - run: python train.py --sample 200 --epochs 1
+              ```
+              The full training and evaluation run in the pipeline, not here.
             resources:
               - { label: "GitHub Actions docs", url: "https://docs.github.com/en/actions", kind: docs }
               - post: github-actions-lambda-terraform-cicd
+              - { label: "Understanding GitHub Actions (GitHub Docs)", url: "https://docs.github.com/en/actions/about-github-actions/understanding-github-actions", kind: docs }
 
   - level: intermediate
     title: Pipelines and serving
@@ -208,16 +542,51 @@ stages:
             learn:
               - Steps as small, rerunnable units
               - Orchestrators such as Airflow and Kubeflow Pipelines
+            body: |
+              A training pipeline splits the work into steps: load data, validate, build features, train, evaluate, register. Each step has clear inputs and outputs, so it can be tested, rerun and swapped.
+
+              An **orchestrator** runs the steps in order, passes data between them, retries failures and shows progress.
+
+              ### Key ideas
+              - A step should do one job and write its output to storage
+              - Steps form a graph (a DAG): a step runs when its inputs are ready
+              - Small steps can be rerun alone, without redoing earlier work
+              - **Airflow** is a general scheduler and workflow tool, popular for data jobs
+              - **Kubeflow Pipelines** runs ML steps as containers on Kubernetes
+              - Cloud options exist too, such as Step Functions and SageMaker Pipelines
+
+              ### Example
+              `validate_data` then `build_features` then `train` then `evaluate` then `register_model`. If `train` fails after an hour, you fix it and rerun from `train`. The validated data and features are reused.
             resources:
               - { label: "Kubeflow Pipelines", url: "https://www.kubeflow.org/docs/components/pipelines/", kind: docs }
               - { label: "Apache Airflow docs", url: "https://airflow.apache.org/docs/", kind: docs }
               - post: rag-ingestion-pipeline-step-functions-lambda
+              - { label: "Kubeflow Pipelines overview (Kubeflow)", url: "https://www.kubeflow.org/docs/components/pipelines/overview/", kind: docs }
+              - { label: "What is Airflow (Apache Airflow)", url: "https://airflow.apache.org/docs/apache-airflow/stable/index.html", kind: docs }
           - id: continuous-training
             title: Continuous training
             summary: Retrain on a schedule or on a trigger, without someone running a notebook.
             learn:
               - Scheduled vs triggered retraining
               - Tracking which data each model saw
+            body: |
+              Continuous training means models retrain on their own, with no one opening a notebook. It keeps a model fresh as data changes.
+
+              You choose what starts a retraining run.
+
+              ### Key ideas
+              - **Scheduled**: retrain every night, week or month. Simple and predictable
+              - **Triggered**: retrain when new data arrives, when drift is detected, or when quality drops
+              - Start with a schedule, and add triggers when you have monitoring to drive them
+              - Record which data each model saw, such as the dataset version and date range
+              - A new model is a candidate, not a release. It still has to pass evaluation
+
+              ### Common mistakes
+              - Retraining often because you can, with no evidence it helps
+              - Retraining on data that includes the model's own mistakes, with no check
+              - Losing track of which data produced which model
+
+              The run should write the dataset version, code commit and metrics into your tracker, so every model has a clear history.
             resources:
               - { label: "MLOps: continuous delivery for ML (Google Cloud)", url: "https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning", kind: article }
           - id: evaluation-gates
@@ -226,6 +595,25 @@ stages:
             learn:
               - Champion vs challenger
               - Hard thresholds that fail the pipeline
+            body: |
+              A retrained model should not ship just because training finished. It ships only if it passes a gate: a check that compares it with what is live now.
+
+              The live model is the **champion**. The new one is the **challenger**.
+
+              ### Key ideas
+              - Evaluate both models on the same fixed test set
+              - Ship only if the challenger beats the champion on the key metric
+              - Add **hard thresholds**: for example recall must stay above 0.80, whatever the average does
+              - Check slices and latency too, not only one overall score
+              - If a check fails, the pipeline fails and nothing is promoted
+              - Log the comparison, so a human can see why a model was blocked
+
+              ### Example
+              ```python
+              if not (new.f1 > old.f1 and new.recall >= 0.80):
+                  raise SystemExit("Gate failed: not promoting")
+              ```
+              A non-zero exit fails the pipeline step, so the registry and production stay on the champion.
             resources:
               - { label: "Made With ML", url: "https://madewithml.com/", kind: course }
               - { label: "Rules of ML (Google)", url: "https://developers.google.com/machine-learning/guides/rules-of-ml", kind: article }
@@ -236,6 +624,22 @@ stages:
             learn:
               - Content-addressed step caching
               - Retries and idempotent steps
+            body: |
+              Some steps are slow and rarely change. Re-running everything wastes time and money. Caching and resuming fix this.
+
+              A step can be skipped when its inputs have not changed. A failed run can restart from the failed step.
+
+              ### Key ideas
+              - **Content-addressed caching**: hash the step's code, params and input data. Same hash means reuse the old output
+              - Change one param and only the steps downstream of it rerun
+              - **Idempotent** steps give the same result if run twice, so a retry is safe
+              - Write outputs to a new location, then mark them done, so a half-written file is never used
+              - Retry transient failures with backoff, and do not retry bad input forever
+
+              ### Common mistakes
+              - Hiding an input, like a date or an env var, outside the cache key, so stale output is reused
+              - A step that appends to a table, so a retry creates duplicate rows
+              - Caching a step that reads live data that keeps changing
             resources:
               - post: step-functions-llm-orchestration-replacing-lambda-chains
               - { label: "Kubeflow Pipelines", url: "https://www.kubeflow.org/docs/components/pipelines/", kind: docs }
@@ -250,14 +654,50 @@ stages:
             learn:
               - Schema, range and null checks
               - Running checks as a pipeline step
+            body: |
+              Data pipelines fail quietly when the data changes shape. A column goes missing, a unit changes, or half the values turn null. A model trained on that gives bad answers with no error.
+
+              Write down what valid data looks like, then check it automatically. Fail fast when it does not match.
+
+              ### Key ideas
+              - **Schema checks**: column names, types, allowed values
+              - **Range checks**: age between 0 and 120, price above zero
+              - **Null checks**: this column must have under 1 percent missing
+              - Distribution checks: the mean and category mix are near what you expect
+              - Run the checks as a pipeline step, before training and before batch scoring
+              - Tools such as Great Expectations let you declare these as readable rules
+
+              ### Example
+              ```python
+              assert set(df.columns) >= {"age", "income", "label"}
+              assert df["age"].between(0, 120).all()
+              assert df["income"].isna().mean() < 0.01
+              ```
+              If any line fails, the pipeline stops before it wastes a training run.
             resources:
               - { label: "Great Expectations", url: "https://greatexpectations.io/", kind: tool }
+              - { label: "Great Expectations docs", url: "https://docs.greatexpectations.io/docs/home/", kind: docs }
           - id: bad-data-handling
             title: Handling bad data
             summary: Decide what happens to rows and batches that fail validation.
             learn:
               - Quarantine vs drop vs stop the pipeline
               - Alerting the data owner
+            body: |
+              Validation will sometimes fail. You need a plan for what happens next, written before the first failure.
+
+              ### Key ideas
+              - **Stop the pipeline**: safest when the whole batch is suspect, such as a missing column. Nothing downstream runs on bad data
+              - **Quarantine**: move failing rows to a separate table to inspect, and continue with the good rows
+              - **Drop**: discard bad rows. Fine for rare noise, risky if it hides a real upstream bug
+              - Set a threshold: quarantine up to 1 percent bad rows, stop beyond that
+              - **Alert the data owner**, with the check name, counts and a sample row
+              - Keep the quarantined data so the cause can be found and fixed upstream
+
+              ### Common mistakes
+              - Silently dropping rows, so the training set shrinks and nobody knows
+              - Alerting a channel nobody reads
+              - Fixing it in the pipeline while the upstream producer keeps sending bad data
             resources:
               - { label: "Rules of ML (Google)", url: "https://developers.google.com/machine-learning/guides/rules-of-ml", kind: article }
               - { label: "Great Expectations", url: "https://greatexpectations.io/", kind: tool }
@@ -272,14 +712,52 @@ stages:
             learn:
               - Registered models and versions
               - Aliases for staging and production
+            body: |
+              A **model registry** is a catalogue of your trained models. Each time you register a model, it gets a new version number. The registry then tells everyone which version is where.
+
+              ### Key ideas
+              - A **registered model** has a name, such as `churn-classifier`
+              - Each registration creates a **version**: v1, v2, v3
+              - A version links back to the run that made it
+              - **Aliases** are movable labels on a version, such as `staging` and `production`. Older MLflow used fixed stages, which are now deprecated in favour of aliases
+              - Serving code loads `models:/churn-classifier@production`, not a file path
+              - Moving an alias changes what production serves, with no code change
+
+              ### Example
+              ```python
+              mlflow.register_model("runs:/<run_id>/model", "churn-classifier")
+              client.set_registered_model_alias("churn-classifier", "staging", 4)
+              ```
+              Version 4 is now the staging model. After checks, you point `production` at it.
             resources:
               - { label: "MLflow model registry", url: "https://mlflow.org/docs/latest/model-registry.html", kind: docs }
+              - { label: "MLflow Model Registry (MLflow)", url: "https://mlflow.org/docs/latest/ml/model-registry/", kind: docs }
+              - { label: "Model Registry (Amazon SageMaker)", url: "https://docs.aws.amazon.com/sagemaker/latest/dg/model-registry.html", kind: docs }
           - id: promotion-rollback
             title: Promotion and rollback
             summary: Move a model to production with an approval step, and roll back by pointing at the previous version.
             learn:
               - Approval before promotion
               - Rollback as a pointer change
+            body: |
+              Promotion moves a model from staging to production. Do it with a clear step, not by copying files.
+
+              ### Key ideas
+              - Require an **approval** before promotion: automated gates, a human sign-off, or both
+              - Higher-risk models, such as credit or health, should have a person approve
+              - Record who promoted, when and why
+              - **Rollback is a pointer change**: point the `production` alias back at the previous version
+              - Keep old versions and their files, so rollback is instant and needs no retraining
+              - Test the rollback path before you need it
+
+              ### Example
+              ```python
+              # promote
+              client.set_registered_model_alias("churn-classifier", "production", 5)
+              # roll back
+              client.set_registered_model_alias("churn-classifier", "production", 4)
+              ```
+              If v5 starts failing at 2 am, one command returns serving to v4. The serving layer picks up the alias on its next reload or restart.
             resources:
               - { label: "MLflow model registry", url: "https://mlflow.org/docs/latest/model-registry.html", kind: docs }
           - id: model-lineage
@@ -289,9 +767,29 @@ stages:
             learn:
               - Linking runs, data versions and commits
               - Model cards
+            body: |
+              Lineage answers one question: where did this model come from? For any live model, you should be able to find the commit, the dataset version and the training run behind it.
+
+              This matters for debugging, audits and trust.
+
+              ### Key ideas
+              - Link each run to the **git commit** of the code
+              - Link each run to the **data version**, such as a DVC hash or snapshot path
+              - Link each registered version to its **run id**
+              - A **model card** is a short document with the model's purpose, training data, metrics, limits and known risks
+              - Write the card at registration and keep it with the version
+              - Auto-generate what you can, so it never goes stale
+
+              ### In practice
+              ```python
+              mlflow.set_tags({"git_commit": sha, "data_version": "churn/v4"})
+              ```
+              With these tags, an auditor or a teammate can start from the production alias and walk back to the exact code and data in minutes.
             resources:
               - { label: "MLflow docs", url: "https://mlflow.org/docs/latest/index.html", kind: docs }
               - { label: "DVC docs", url: "https://dvc.org/doc", kind: docs }
+              - { label: "Model Cards (Hugging Face Hub)", url: "https://huggingface.co/docs/hub/model-cards", kind: docs }
+              - { label: "Model Cards for Model Reporting (arXiv)", url: "https://arxiv.org/abs/1810.03993", kind: article }
 
       - id: model-serving
         title: Model serving
@@ -303,9 +801,24 @@ stages:
             learn:
               - When precomputed predictions are enough
               - Queues for async inference
+            body: |
+              There are two ways to serve predictions. **Online** inference computes a prediction when a request arrives. **Batch** inference scores many items ahead of time and stores the results.
+
+              Choose based on how fresh the answer must be and how much it costs.
+
+              ### Key ideas
+              - Online: fresh, uses the latest input, but needs an always-on, low-latency service
+              - Batch: cheap and simple, runs on a schedule, results sit in a table or cache
+              - If the answer only changes daily, precompute it. A nightly job is enough
+              - **Async inference**: the request goes on a queue, a worker runs the model, and the result comes back later
+              - Queues smooth traffic spikes and suit slow models
+
+              ### Example
+              Product recommendations for each user can be scored nightly and stored. A fraud check on a payment must be online, because it depends on this exact transaction. A document summary taking 30 seconds fits a queue: accept the job, return an id, let the client poll.
             resources:
               - post: running-ai-background-jobs-serverlessly-with-sqs-lambda-bedrock
               - { label: "Made With ML", url: "https://madewithml.com/", kind: course }
+              - { label: "Asynchronous inference (Amazon SageMaker)", url: "https://docs.aws.amazon.com/sagemaker/latest/dg/async-inference.html", kind: docs }
           - id: latency-autoscaling
             title: Latency, throughput and autoscaling
             summary: Size and scale inference so it stays fast under load without paying for idle capacity.
@@ -313,19 +826,54 @@ stages:
               - p50 vs p99 latency
               - Batching requests
               - Scaling on queue depth or concurrency
+            body: |
+              An inference service has to be fast and affordable at once. Too little capacity and requests time out. Too much and you pay for idle machines.
+
+              ### Key ideas
+              - **p50** is the median latency. **p99** is the slowest 1 percent. Users feel p99, so watch it
+              - Averages hide slow tails, so alert on percentiles
+              - **Throughput** is requests handled per second. It rises with batching and falls with big models
+              - **Batching** groups requests so the hardware works on several at once. It raises throughput but adds a short wait
+              - Scale on the right signal: concurrency, queue depth or GPU use, not just CPU
+              - Add a minimum instance count to avoid cold starts, and a maximum to cap the bill
+
+              ### Common mistakes
+              - Load testing with one request at a time
+              - Scaling on CPU when the bottleneck is GPU memory
+              - Ignoring model load time, so new instances are not ready when traffic hits
             resources:
               - { label: "KServe", url: "https://kserve.github.io/website/", kind: docs }
               - post: lambda-microvm-long-ai-workloads
+              - { label: "Autoscaling (KServe)", url: "https://kserve.github.io/website/latest/modelserving/autoscaling/autoscaling/", kind: docs }
           - id: managed-endpoints
             title: Managed endpoints
             summary: Use SageMaker, Bedrock or Lambda when you would rather not run the serving layer yourself.
             learn:
               - SageMaker endpoints vs serverless inference
               - Calling hosted models through Bedrock
+            body: |
+              Running a serving layer means patching, scaling and monitoring it. Managed services do that for you, so you only supply the model or the prompt.
+
+              ### Key ideas
+              - **SageMaker real-time endpoints**: you pick instance types, and they stay up. Good for steady traffic and custom models
+              - **SageMaker serverless inference**: scales to zero, and you pay per use. Good for spiky, low traffic, with cold starts and size limits
+              - **Bedrock**: call hosted foundation models through one API, with no servers to run
+              - **Lambda**: small models or glue code around a hosted model, with pay per call
+              - Trade-off: less control and some lock-in, in exchange for less ops work
+
+              ### Example
+              ```python
+              import boto3
+              rt = boto3.client("sagemaker-runtime")
+              r = rt.invoke_endpoint(EndpointName="churn", ContentType="text/csv", Body="34,52000")
+              ```
+              Your app calls the endpoint by name. AWS handles the machines behind it.
             resources:
               - { label: "Amazon SageMaker overview", url: "https://docs.aws.amazon.com/sagemaker/latest/dg/whatis.html", kind: docs }
               - post: serverless-ai-inference-endpoints-with-aws-bedrock-and-lambda
               - post: migrated-lambda-ai-app-to-bedrock-openai-compatible-apis-without-rewriting-everything
+              - { label: "Serverless Inference (Amazon SageMaker)", url: "https://docs.aws.amazon.com/sagemaker/latest/dg/serverless-endpoints.html", kind: docs }
+              - { label: "Deploy models for inference (Amazon SageMaker)", url: "https://docs.aws.amazon.com/sagemaker/latest/dg/deploy-model.html", kind: docs }
           - id: safe-model-rollouts
             title: Shadow and canary rollouts
             optional: true
@@ -333,9 +881,23 @@ stages:
             learn:
               - Shadow traffic
               - Canary and A/B splits for models
+            body: |
+              A model that passed offline tests can still behave badly on live traffic. Rollout patterns let you check that with limited risk.
+
+              ### Key ideas
+              - **Shadow**: copy live requests to the new model, log its answers, but return only the old model's answer. Users see no change
+              - **Canary**: send a small share, such as 5 percent, to the new model, then raise it step by step
+              - **A/B test**: split users into groups and compare a business metric, not just a model metric
+              - Watch error rate, latency and prediction distribution during the rollout
+              - Keep a fast path back: set the traffic share to zero
+
+              ### Example
+              Shadow the new model for a day. Compare its predictions with the champion's on the same requests. If they agree where they should and latency is fine, move to a 5 percent canary. If metrics hold for a few hours, go to 25, then 100 percent.
             resources:
               - { label: "KServe", url: "https://kserve.github.io/website/", kind: docs }
               - { label: "Amazon SageMaker overview", url: "https://docs.aws.amazon.com/sagemaker/latest/dg/whatis.html", kind: docs }
+              - { label: "Canary rollout (KServe)", url: "https://kserve.github.io/website/latest/modelserving/v1beta1/rollout/canary/", kind: docs }
+              - { label: "Deployment guardrails (Amazon SageMaker)", url: "https://docs.aws.amazon.com/sagemaker/latest/dg/deployment-guardrails.html", kind: docs }
 
       - id: feature-stores
         title: Feature stores
@@ -347,15 +909,45 @@ stages:
             learn:
               - Point-in-time correct training data
               - Low-latency lookups at inference
+            body: |
+              A **feature store** holds computed features, such as "orders in the last 30 days". It has two sides for two jobs.
+
+              The **offline store** keeps full history, usually in a warehouse or files. It builds training sets. The **online store** keeps only the latest value per entity, in a fast key-value store, and serves live requests.
+
+              ### Key ideas
+              - Offline: large, cheap, slow. Used to make training data
+              - Online: small, fast, always on. Used for lookups in milliseconds
+              - A job copies fresh feature values from offline to online (materialisation)
+              - **Point-in-time correctness**: when building training rows, use only the feature values that existed at that row's timestamp. Otherwise future data leaks in
+              - Both stores share one feature definition
+
+              ### Example
+              To train on a purchase from March 3, you need the customer's 30-day order count as of March 3, not today. A feature store joins the history "as of" each timestamp for you. At serving time, the app asks the online store for the current value by customer id.
             resources:
               - { label: "Feast docs", url: "https://docs.feast.dev/", kind: docs }
               - { label: "featurestore.org", url: "https://www.featurestore.org/", kind: article }
+              - { label: "Feast concepts (Feast)", url: "https://docs.feast.dev/getting-started/concepts", kind: docs }
           - id: training-serving-skew
             title: Training/serving skew
             summary: When features are computed differently in training and in production, the model sees data it never learned from.
             learn:
               - Sources of skew
               - Sharing one feature definition
+            body: |
+              Training/serving skew means the model sees different features in production than it saw in training. It is one of the most common causes of a model that tests well and performs badly.
+
+              ### Key ideas
+              - **Different code**: training uses a pandas script, serving uses a rewritten service
+              - **Different data**: training reads a clean warehouse table, serving reads a live source with gaps and delays
+              - **Different time**: a feature is computed with future data in training, but is not available yet at serving
+              - **Different defaults**: missing values filled one way here and another way there
+              - Fix: define each feature once and use the same code or store for both
+              - Detect it: log the features at serving time and compare their distribution with training
+
+              ### Common mistakes
+              - Reimplementing a transform in another language "for speed"
+              - Testing the model but never testing the feature pipeline
+              - Not logging served features, so you cannot compare later
             resources:
               - { label: "Rules of ML (Google)", url: "https://developers.google.com/machine-learning/guides/rules-of-ml", kind: article }
           - id: do-you-need-a-feature-store
@@ -365,6 +957,19 @@ stages:
             learn:
               - Signs you have outgrown ad hoc features
               - Cost of running another stateful system
+            body: |
+              A feature store is another system to run, secure and keep fresh. Many teams do not need one yet.
+
+              ### Key ideas
+              - A **shared SQL view** or a well-tested library of feature code covers many cases
+              - Batch-only models can read features straight from the warehouse
+              - A store helps when several models share features, when you need low-latency online lookups, and when skew keeps hurting
+              - Signs you have outgrown ad hoc: copied feature code in many repos, skew bugs, slow and error-prone training set builds
+              - Costs: a stateful service to run, a sync job, and a new thing for the team to learn
+              - Start small and add the store when the pain is real
+
+              ### In practice
+              Begin with one place in the repo or warehouse where every feature is defined once. Use it for training and serving. If that works, you are done. If you need sub-second lookups for many models, then look at Feast or a managed option.
             resources:
               - { label: "featurestore.org", url: "https://www.featurestore.org/", kind: article }
 
@@ -381,25 +986,74 @@ stages:
             learn:
               - Measuring distribution shift
               - Why concept drift is harder to see
+            body: |
+              Models are trained on a snapshot of the world. The world moves. There are two kinds of change to watch.
+
+              **Data drift** (covariate shift) is when the inputs change. **Concept drift** is when the link between inputs and the right answer changes.
+
+              ### Key ideas
+              - Data drift example: your users get younger, so the age feature shifts
+              - Concept drift example: customers change what they buy after a price rise, so the same features now predict a different outcome
+              - Measure data drift by comparing a recent window with a reference window, per feature
+              - Common tests: PSI, KS test, Jensen-Shannon distance
+              - Data drift is easy to see, because you only need the inputs
+              - Concept drift is hard to see, because you need the true labels, which often come late
+              - Drift does not always hurt accuracy, so treat it as a signal to look, not proof of failure
+
+              ### In practice
+              Run a drift report daily. If several important features drift, check recent accuracy where labels exist, and decide whether to retrain.
             resources:
               - { label: "Data drift explained (Evidently)", url: "https://www.evidentlyai.com/ml-in-production/data-drift", kind: article }
+              - { label: "What is concept drift (Evidently)", url: "https://www.evidentlyai.com/ml-in-production/concept-drift", kind: article }
           - id: quality-without-labels
             title: Quality metrics without labels
             summary: Ground truth often arrives late or never. Watch proxies until it does.
             learn:
               - Prediction distribution as a proxy
               - Delayed labels and backfilled metrics
+            body: |
+              In production, you often do not know if a prediction was right. A loan default shows up months later. A recommendation may never get a clear label. You still need to watch quality in the meantime.
+
+              ### Key ideas
+              - **Prediction distribution**: if the share of "positive" predictions or the score histogram shifts, something changed
+              - Input drift and missing-value rates are cheap early signs
+              - Business proxies, such as click rate or manual overrides, can show trouble sooner
+              - **Delayed labels**: store each prediction with an id, and join the true outcome when it arrives
+              - **Backfilled metrics**: compute accuracy for past days once labels land, and chart it by prediction date
+              - Keep the prediction logs long enough to cover the label delay
+
+              ### Example
+              A churn model usually flags 8 percent of users. Tomorrow it flags 2 percent. No labels exist yet, but the shift alone is enough to raise an alert and look at the inputs.
             resources:
               - { label: "Evidently docs", url: "https://docs.evidentlyai.com/", kind: docs }
               - { label: "Chip Huyen's blog", url: "https://huyenchip.com/blog/", kind: article }
+              - { label: "Model monitoring overview (Evidently)", url: "https://docs.evidentlyai.com/introduction", kind: docs }
           - id: retraining-triggers
             title: Retraining triggers
             summary: Turn drift alerts into retraining runs, with a human check where the risk is high.
             learn:
               - Threshold-based triggers
               - Avoiding retraining loops on bad data
+            body: |
+              A drift alert is a signal, not an order. Decide in advance how alerts become retraining runs, and where a human checks the result.
+
+              ### Key ideas
+              - **Threshold triggers**: retrain when a metric or drift score crosses a set limit for several days in a row
+              - Combine with a schedule as a backstop, such as monthly
+              - Run the normal pipeline, with evaluation gates, so a bad model cannot slip through
+              - Add a **human approval** step where mistakes are costly
+              - **Avoid loops on bad data**: if drift came from a broken upstream feed, retraining just learns the bug
+              - Validate the data first, and cap how often a retrain may fire
+
+              ### Common mistakes
+              - Auto-retraining on a feed that is currently broken
+              - Triggers so sensitive that the model retrains daily on noise
+              - Retraining that succeeds but is never evaluated against the live model
+
+              Alert, validate the data, retrain, gate, then promote.
             resources:
               - { label: "MLOps: continuous delivery for ML (Google Cloud)", url: "https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning", kind: article }
+              - { label: "Data drift explained (Evidently)", url: "https://www.evidentlyai.com/ml-in-production/data-drift", kind: article }
           - id: silent-pipeline-failures
             title: Silent pipeline failures
             optional: true
@@ -407,6 +1061,25 @@ stages:
             learn:
               - Output-based checks instead of exit codes
               - Freshness alarms
+            body: |
+              The worst failure is a job that exits with code 0 and did the wrong thing. It wrote zero rows, wrote yesterday's data, or wrote nulls. Nothing alerts, and downstream models quietly degrade.
+
+              Do not trust the exit code alone. Check the output.
+
+              ### Key ideas
+              - **Output checks**: after the job, assert the row count is above a floor, key columns are not null, and values are in range
+              - **Freshness alarms**: alert when the newest record, or the table's last update, is older than expected
+              - Compare against history, such as today's row count against the last 7 days
+              - Emit a metric for rows written, and alarm when it is zero or drops sharply
+              - Page on "no data", not only on "error"
+
+              ### Example
+              ```python
+              n = write_output(df)
+              if n == 0 or n < 0.5 * last_week_avg:
+                  raise RuntimeError(f"Suspicious output: {n} rows")
+              ```
+              Now a quiet failure becomes a loud one.
             resources:
               - post: catch-lambda-jobs-that-succeed-but-write-nothing
               - { label: "Monitoring distributed systems (Google SRE book)", url: "https://sre.google/sre-book/monitoring-distributed-systems/", kind: article }
@@ -421,9 +1094,23 @@ stages:
             learn:
               - Traces and spans for LLM chains
               - Linking traces to user requests
+            body: |
+              An LLM app does many things in one request: build a prompt, call a model, call tools, call the model again. When the answer is wrong, you need to see exactly what happened. Tracing records it.
+
+              ### Key ideas
+              - A **trace** is one full request. It is made of **spans**, one per step such as a model call, a retrieval or a tool call
+              - Each span stores input, output, latency, token counts and errors
+              - Nest spans, so you can see which step was slow or wrong
+              - Attach a user id, session id and request id, so a support ticket links to a trace
+              - Tools such as Langfuse, or OpenTelemetry based setups, collect and show traces
+              - Redact secrets and personal data before storing prompts
+
+              ### Example
+              A user reports a wrong answer. You search by request id and open the trace. The retrieval span returned an old document, so the prompt was wrong. You fix retrieval, not the prompt.
             resources:
               - { label: "Langfuse docs", url: "https://langfuse.com/docs", kind: docs }
               - post: llm-observability-langfuse-lambda-cloudwatch
+              - { label: "Observability overview (Langfuse)", url: "https://langfuse.com/docs/observability/overview", kind: docs }
           - id: llm-evals
             title: Evals and regression tests
             summary: Test prompts and models against a fixed set of cases before every change ships.
@@ -431,16 +1118,49 @@ stages:
               - Building an eval set from real traffic
               - Code checks vs model-graded checks
               - Running evals in CI
+            body: |
+              Changing a prompt or a model can fix one case and break ten. An **eval** is a fixed set of test cases you run before every change, so you see what moved.
+
+              ### Key ideas
+              - Build the set from **real traffic**: pick real inputs, including failures, and write what a good answer looks like
+              - Start with 20 to 50 cases and grow it from each bug
+              - **Code checks**: exact match, regex, valid JSON, tool called correctly. Cheap and stable
+              - **Model-graded checks**: another model scores the answer against a rubric. Needed for open text, but validate it against human judgement
+              - Track scores per run so changes are comparable
+              - **Run evals in CI**, and fail the build when a key score drops
+
+              ### Common mistakes
+              - Judging by a few cherry-picked examples
+              - Using a grader prompt that was never checked against humans
+              - Evals that never change, while real traffic does
             resources:
               - { label: "Your AI product needs evals (Hamel Husain)", url: "https://hamel.dev/blog/posts/evals/", kind: article }
               - { label: "Anthropic docs", url: "https://docs.anthropic.com/", kind: docs }
               - post: ai-endpoints-post-generate-validation-lambda-bedrock-fastify
+              - { label: "Define your success criteria and test cases (Anthropic)", url: "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests", kind: docs }
           - id: token-cost-tracking
             title: Token cost tracking
             summary: Track token usage per feature and per tenant so the bill has no surprises.
             learn:
               - Logging input and output tokens
               - Budgets and alerts per tenant
+            body: |
+              LLM providers bill by tokens. A small change, such as a longer prompt or a retry loop, can multiply your bill. Track usage so you see it early.
+
+              ### Key ideas
+              - Every API response reports **input tokens** and **output tokens**. Log both
+              - Attach tags: feature, model, tenant or customer, and environment
+              - Convert tokens to money with the current price per model, kept in config
+              - Aggregate by feature and by tenant to see who costs what
+              - Set **budgets and alerts**: warn at 80 percent of a monthly budget, and cap runaway usage
+              - Watch cached tokens and retries, which change the cost per request
+
+              ### Example
+              ```python
+              log.info("llm_usage", feature="summary", tenant=t,
+                       model=m, in_tokens=u.input, out_tokens=u.output)
+              ```
+              A dashboard grouped by `tenant` shows one customer using 60 percent of tokens, and you can act on it before the invoice.
             resources:
               - { label: "Langfuse docs", url: "https://langfuse.com/docs", kind: docs }
               - post: llm-observability-langfuse-lambda-cloudwatch
@@ -451,9 +1171,27 @@ stages:
             learn:
               - Retries and timeouts per step
               - Keeping state out of the model call
+            body: |
+              Real LLM work has many steps: fetch, classify, generate, check, save. Chaining them as functions calling functions is fragile. One timeout and the whole chain is lost.
+
+              A **state machine** runs each step as a unit, with its own retries and timeout, and keeps track of progress.
+
+              ### Key ideas
+              - Each step gets its own **retry policy** and **timeout**, such as 3 tries with backoff for a model call
+              - The orchestrator holds the workflow **state**, not the model call
+              - Pass small data between steps, and store large data in storage
+              - Branch on results: if the check fails, retry the generation or send to a human
+              - Failed runs can be inspected and resumed
+              - Examples: AWS Step Functions, Temporal, Airflow
+
+              ### Common mistakes
+              - A Lambda that calls a model, waits, then calls another function, and hits the time limit
+              - Keeping conversation state only in memory
+              - Retrying a non-idempotent step, such as sending an email, without a guard
             resources:
               - post: step-functions-llm-orchestration-replacing-lambda-chains
               - { label: "Building LLM applications for production (Chip Huyen)", url: "https://huyenchip.com/2023/04/11/llm-engineering.html", kind: article }
+              - { label: "What is AWS Step Functions? (AWS)", url: "https://docs.aws.amazon.com/step-functions/latest/dg/welcome.html", kind: docs }
 
       - id: rag-in-production
         title: RAG in production
@@ -465,15 +1203,48 @@ stages:
             learn:
               - Chunk size and overlap
               - Re-indexing on document change
+            body: |
+              RAG answers questions using your documents. First those documents must be split into **chunks**, turned into **embeddings** and stored. This ingestion runs as a pipeline, and it has to keep up as documents change.
+
+              ### Key ideas
+              - Chunk size: too small loses context, too large dilutes the match. Many teams start near a few hundred tokens
+              - **Overlap** repeats a little text between chunks, so ideas are not cut in half
+              - Split on structure when you can: headings, paragraphs, sections
+              - Store metadata with each chunk: source, title, section, tenant, updated time
+              - **Re-index on change**: detect new, edited and deleted documents, and update only those
+              - Delete the old chunks of an edited document, or stale text will still be retrieved
+
+              ### Example
+              A policy page is edited. The pipeline sees a new content hash, removes the old chunks for that page, re-chunks it, embeds the new chunks and writes them. Unchanged pages are skipped.
             resources:
               - post: rag-ingestion-pipeline-step-functions-lambda
               - { label: "Contextual retrieval (Anthropic)", url: "https://www.anthropic.com/news/contextual-retrieval", kind: article }
+              - { label: "Knowledge bases (Amazon Bedrock)", url: "https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base.html", kind: docs }
           - id: vector-search
             title: Vector search
             summary: Store embeddings next to your data and query them fast enough for chat.
             learn:
               - Distance metrics and indexes
               - Hybrid keyword plus vector search
+            body: |
+              An embedding turns text into a list of numbers. Similar meaning gives nearby vectors. **Vector search** finds the stored chunks closest to a query vector.
+
+              ### Key ideas
+              - **Distance metrics**: cosine similarity, dot product and L2 distance. Use the one your embedding model recommends
+              - An exact scan is simple but slow at scale. **Indexes** such as HNSW and IVFFlat trade a little accuracy for speed
+              - Keep vectors next to your data, for example in Postgres with pgvector, so you can filter with normal SQL
+              - **Hybrid search** mixes keyword search and vector search. Keywords catch exact names and codes that embeddings miss
+              - Measure retrieval quality with a test set, not by feel
+
+              ### Example
+              ```sql
+              SELECT id, content
+              FROM chunks
+              WHERE tenant_id = 42
+              ORDER BY cosine_distance(embedding, $1)
+              LIMIT 5;
+              ```
+              pgvector ships distance operators for this, shown here as a function for clarity. The filter and the ranking happen in one query.
             resources:
               - post: building-a-production-rag-pipeline-on-aws-lambda-pgvector
               - { label: "pgvector", url: "https://github.com/pgvector/pgvector", kind: tool }
@@ -483,6 +1254,23 @@ stages:
             learn:
               - Filtering by tenant and permission at query time
               - Re-checking access on stored citations
+            body: |
+              A RAG system can leak data. If the index holds every document, a clever question may pull something the user must not see. Permission has to be checked every time.
+
+              ### Key ideas
+              - **Filter at query time** by tenant and by user or group permission, before ranking, inside the database query
+              - Never rely on the prompt to hide data. The model has already seen whatever you retrieved
+              - Store the access list or tenant id on each chunk
+              - **Re-check on replay**: a saved chat has citations. When the chat is opened later, check access again, because permissions may have changed
+              - Log which documents were retrieved for which user
+              - Test with two users who should see different results
+
+              ### Common mistakes
+              - Filtering results after the model has read them
+              - Assuming that if a citation was stored, it is still allowed
+              - One shared index with no tenant field
+
+              Persistence is not permission. Check on every read.
             resources:
               - post: persistence-is-not-permission-rag-citation-reauth-chat-replay
               - { label: "OWASP Top 10 for LLM applications", url: "https://genai.owasp.org/llm-top-10/", kind: article }
@@ -493,9 +1281,23 @@ stages:
             learn:
               - What the managed service handles
               - Where you lose control
+            body: |
+              Amazon Bedrock Knowledge Bases is a managed RAG service. You point it at your documents, and it handles chunking, embedding, storage and retrieval. Your app calls an API.
+
+              ### Key ideas
+              - It reads from a data source such as S3 and syncs on demand
+              - It chunks and embeds for you, and stores vectors in a supported vector store
+              - You can retrieve chunks, or retrieve and generate an answer in one call
+              - Less code and less to run, so it is fast to start
+              - **You lose control**: fewer chunking and ranking options, limited visibility into retrieval, and tie-in to AWS
+              - Access control by user needs care. Check what filtering the service supports
+
+              ### In practice
+              Use it for a first version or an internal tool. If retrieval quality or permission rules start to need custom logic, you can move to your own pipeline and keep the same documents. Run your eval set against both, so the choice is based on scores.
             resources:
               - post: bedrock-agents-production-knowledge-bases
               - { label: "What is Amazon Bedrock?", url: "https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-bedrock.html", kind: docs }
+              - { label: "Knowledge bases (Amazon Bedrock)", url: "https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base.html", kind: docs }
 
       - id: llm-inference-at-scale
         title: Serving LLMs at scale
@@ -507,17 +1309,47 @@ stages:
             learn:
               - GPU capacity and utilisation
               - Data residency and control
+            body: |
+              You can call a hosted model through an API, or run an open model on your own GPUs. Neither is always better.
+
+              ### Key ideas
+              - **Hosted API**: no GPUs to manage, the best models, pay per token. Less control, and your data goes to a provider
+              - **Self-hosted**: full control, a fixed GPU cost, and data stays in your network. You carry the ops work: drivers, scaling, updates, failures
+              - **GPU utilisation** decides the cost. A GPU at 10 percent load is expensive per token. A busy one can be cheap
+              - **Data residency**: some rules require data to stay in a region or a private network
+              - Open models may trail the top hosted models in quality, so measure on your task
+
+              ### In practice
+              Start with an API. Move to self-hosting when you have steady, high volume, a hard data rule, or a need to tune the model. Compare the cost per million tokens at your real utilisation, plus the engineer time to run it.
             resources:
               - { label: "Hugging Face Learn", url: "https://huggingface.co/learn", kind: course }
               - { label: "What is Amazon Bedrock?", url: "https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-bedrock.html", kind: docs }
+              - { label: "Model catalogue and invocation (Amazon Bedrock)", url: "https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html", kind: docs }
           - id: llm-serving-engines
             title: LLM serving engines
             summary: Engines such as vLLM batch requests and manage GPU memory to serve far more users per GPU.
             learn:
               - Continuous batching
               - KV cache and memory limits
+            body: |
+              Serving an LLM with a plain loop wastes the GPU. Engines such as **vLLM** are built to share a GPU across many users.
+
+              ### Key ideas
+              - Generation produces one token at a time, and each request has a different length
+              - **Continuous batching** adds new requests into the running batch as others finish, instead of waiting for a full batch. The GPU stays busy
+              - The **KV cache** stores attention data for tokens already seen, so they are not recomputed. It grows with prompt length and number of users
+              - The KV cache lives in GPU memory, so memory, not compute, often limits how many users fit
+              - vLLM manages the cache in pages (PagedAttention) to waste less memory
+              - Engines expose an OpenAI-compatible HTTP API, so clients need few changes
+
+              ### Example
+              ```bash
+              vllm serve my-org/my-model --max-model-len 8192
+              ```
+              Lower the max length or use a smaller model to fit more concurrent requests in memory.
             resources:
               - { label: "vLLM docs", url: "https://docs.vllm.ai/", kind: docs }
+              - { label: "Efficient memory management for LLM serving (vLLM blog)", url: "https://blog.vllm.ai/2023/06/20/vllm.html", kind: article }
           - id: quantisation
             title: Quantisation
             optional: true
@@ -525,9 +1357,25 @@ stages:
             learn:
               - 8-bit and 4-bit weights
               - Measuring the quality loss with evals
+            body: |
+              Model weights are usually stored as 16-bit numbers. **Quantisation** stores them with fewer bits, such as 8 or 4. The model becomes much smaller and fits on cheaper GPUs.
+
+              The cost is some loss of quality.
+
+              ### Key ideas
+              - 8-bit roughly halves the memory of 16-bit. 4-bit roughly quarters it
+              - Smaller weights also mean less memory traffic, which can speed up generation
+              - Common methods include GPTQ, AWQ and bitsandbytes. Check what your serving engine supports
+              - Quality loss is usually small at 8-bit and larger at 4-bit, and varies by model and task
+              - **Measure with your own evals**, not just public benchmarks
+              - Compare quality, latency and cost for each variant
+
+              ### Example
+              A model needs 140 GB at 16-bit and will not fit on one GPU. At 4-bit it needs about a quarter of that and does. Run your eval set on both. If the score drop is small and acceptable, ship the 4-bit one.
             resources:
               - { label: "Hugging Face Learn", url: "https://huggingface.co/learn", kind: course }
               - { label: "vLLM docs", url: "https://docs.vllm.ai/", kind: docs }
+              - { label: "Quantization overview (Hugging Face Transformers)", url: "https://huggingface.co/docs/transformers/main/en/quantization/overview", kind: docs }
 
       - id: ml-compliance
         title: Security and compliance for ML
@@ -539,27 +1387,74 @@ stages:
             learn:
               - De-identification before training
               - Encryption and access to training data
+            body: |
+              Training data often holds personal or regulated information: names, health records, payment details. A model can memorise parts of it. Keep sensitive data out of training sets where you can, and protect it where you cannot.
+
+              ### Key ideas
+              - **Minimise**: use only the fields the model needs
+              - **De-identify** before training: remove direct identifiers such as names and ids, and generalise or mask others
+              - Pseudonymisation replaces ids with tokens, but is not full anonymisation
+              - **Encrypt** data at rest and in transit, with managed keys
+              - **Restrict access**: least privilege roles, separate accounts for data and for experiments, and audit logs
+              - Know your rules: HIPAA, GDPR and others set limits on use, retention and deletion
+
+              ### Common mistakes
+              - Copying production data to a laptop for a quick experiment
+              - Training on free text that still contains names and numbers
+              - No plan to delete a person's data from the training set when they ask
             resources:
               - post: how-to-use-aws-sagemaker-for-hipaa-compliant-data-a-complete-guide
               - { label: "NIST AI Risk Management Framework", url: "https://www.nist.gov/itl/ai-risk-management-framework", kind: docs }
+              - { label: "Security in Amazon SageMaker (AWS)", url: "https://docs.aws.amazon.com/sagemaker/latest/dg/security.html", kind: docs }
           - id: locking-down-endpoints
             title: Locking down model endpoints
             summary: Scope who and what can call a model, and what data a model call can reach.
             learn:
               - IAM scoping for model invocation
               - Prompt injection and data leaks through the model
+            body: |
+              A model endpoint is an API with access to powerful capability and sometimes to private data. Limit who can call it and what it can reach.
+
+              ### Key ideas
+              - Use **IAM scoping**: give each service a role that may invoke only the specific models it needs, with no wildcard on all models
+              - Deny by default, and allow named model ARNs
+              - Keep endpoints private with VPC endpoints where possible, and never expose them to the public internet without auth
+              - **Prompt injection**: text in a document or a user message can try to override your instructions
+              - **Data leaks**: a model with tool or database access may be tricked into returning data the user must not see
+              - Give tools the least access, check permissions in code and not in the prompt, and filter outputs
+
+              ### In practice
+              The Lambda that calls Bedrock gets a role allowing `bedrock:InvokeModel` on one model. Its database access is limited to the calling user's rows. A successful injection then has little to steal.
             resources:
               - post: lock-down-bedrock-iam-lambda-data-leak
               - { label: "OWASP Top 10 for LLM applications", url: "https://genai.owasp.org/llm-top-10/", kind: article }
+              - { label: "Identity and access management for Amazon Bedrock", url: "https://docs.aws.amazon.com/bedrock/latest/userguide/security-iam.html", kind: docs }
+              - { label: "LLM01 Prompt Injection (OWASP)", url: "https://genai.owasp.org/llmrisk/llm01-prompt-injection/", kind: article }
           - id: ml-audit-logging
             title: Audit logging
             summary: Keep a record of who trained, promoted and called each model, for audits and incidents.
             learn:
               - What auditors ask for
               - Logging model invocations
+            body: |
+              After an incident, or during an audit, someone will ask: who trained this model, who approved it, and who called it? If you did not log it, you cannot answer.
+
+              ### Key ideas
+              - Log **control actions**: training runs started, models registered, promoted and rolled back, and who did each
+              - Log **access**: who read training data, and who changed permissions
+              - Log **invocations**: caller, time, model and version, and token counts. Store prompts and outputs only if policy allows, with redaction
+              - Auditors usually ask for tamper-resistant, time-stamped records, kept for a set period
+              - On AWS, CloudTrail records API calls, and Bedrock can log model invocations to S3 or CloudWatch
+              - Send logs to a separate, locked-down account
+
+              ### Common mistakes
+              - Logging full prompts that contain personal data into an open log group
+              - Short retention that ends before the audit window
+              - Logs that anyone with admin on the app can delete
             resources:
               - { label: "AWS CloudTrail user guide", url: "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html", kind: docs }
               - post: how-to-use-aws-sagemaker-for-hipaa-compliant-data-a-complete-guide
+              - { label: "Monitor model invocation using CloudWatch Logs and Amazon S3 (Amazon Bedrock)", url: "https://docs.aws.amazon.com/bedrock/latest/userguide/model-invocation-logging.html", kind: docs }
           - id: ai-risk-frameworks
             title: AI risk frameworks
             optional: true
@@ -567,5 +1462,21 @@ stages:
             learn:
               - Govern, map, measure, manage
               - Turning a framework into checklists
+            body: |
+              A risk framework gives you a shared structure for thinking about what can go wrong with an AI system. The NIST AI Risk Management Framework (AI RMF) is a widely used voluntary example.
+
+              It has four functions that run across the whole life of a model.
+
+              ### Key ideas
+              - **Govern**: set policy, roles and accountability, and a culture of managing risk
+              - **Map**: understand the context, who is affected, and what could go wrong
+              - **Measure**: test and track risks with metrics, evals and monitoring
+              - **Manage**: prioritise risks, act on them, and plan for incidents
+              - Risks include bias, privacy, security, reliability and misuse
+              - Turn each function into checklists your team really uses
+
+              ### In practice
+              Before launch, run a short review: who could be harmed, what does the model not do well, which evals cover that, who owns the alert, and how do we turn it off. Store the answers with the model card. Revisit when the model or data changes.
             resources:
               - { label: "NIST AI Risk Management Framework", url: "https://www.nist.gov/itl/ai-risk-management-framework", kind: docs }
+              - { label: "AI RMF Playbook (NIST)", url: "https://www.nist.gov/itl/ai-risk-management-framework/nist-ai-rmf-playbook", kind: docs }

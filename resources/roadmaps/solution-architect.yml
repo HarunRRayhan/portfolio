@@ -27,6 +27,19 @@ stages:
               - Solution, enterprise and technical architects
               - Breadth over depth, but enough depth to be credible
               - Who you work with day to day
+            body: |
+              A senior engineer goes deep on one system. A solution architect looks across several and decides how they fit together. Both write code or read it, but the architect is judged on whether the whole thing meets the business need.
+
+              There are a few flavours. A **solution architect** designs one solution for one problem. An **enterprise architect** sets direction across the whole company. A **technical architect** goes deep on one platform or stack.
+
+              ### Key ideas
+              - Solution, enterprise and technical architects work at different scopes
+              - Breadth matters most, but you need enough depth to be believed when you say a design will work
+              - You work daily with engineers, product owners, security, operations and the people paying for it
+              - You own the shape of the system and the reasons behind it, not every line
+
+              ### Example
+              A team wants to add real-time notifications. The engineer builds the WebSocket service. The architect decides whether to use a managed push service, checks it fits the security rules and budget, and explains the choice to the product owner.
             resources:
               - { label: "Fundamentals of Software Architecture (O'Reilly)", url: "https://www.oreilly.com/library/view/fundamentals-of-software/9781492043447/", kind: article }
               - { label: "The Architect Elevator (Gregor Hohpe)", url: "https://architectelevator.com/", kind: article }
@@ -37,17 +50,45 @@ stages:
               - Pre-sales vs delivery architects
               - Where designs come from and where they go
               - Why most of the job is talking and writing
+            body: |
+              Most of the week is conversations and documents, not diagrams. You run discovery calls, sketch options on a whiteboard, write a design document, then review what the team builds against it.
+
+              Some architects work **pre-sales**, shaping a proposal before a deal is signed. Others work in **delivery**, staying with the project until it ships. Both need the same skills, but pre-sales is faster and less detailed.
+
+              ### Key ideas
+              - Pre-sales architects scope and price, delivery architects guide the build
+              - A design starts as a business question and ends as tickets, infrastructure code and runbooks
+              - Most of the job is listening, explaining and writing things down
+              - Reviews and check-ins keep the build close to the design
+
+              ### Example
+              Monday: a discovery call with a retail client. Tuesday: draw two options and a rough cost. Wednesday: write the design doc. Thursday: review a team's pull request that changes the database layout.
             resources:
               - { label: "AWS Architecture Center", url: "https://aws.amazon.com/architecture/", kind: docs }
               - post: when-your-app-outgrows-the-tool-that-built-it
+              - { label: "The pillars of the framework (AWS Well-Architected)", url: "https://docs.aws.amazon.com/wellarchitected/latest/framework/the-pillars-of-the-framework.html", kind: docs }
           - id: architecture-is-trade-offs
             title: Architecture is trade-offs
             summary: There is no best design, only one that fits the constraints. Learn to say what you gave up and why.
             learn:
               - Every choice costs something
               - "\"It depends\" followed by what it depends on"
+            body: |
+              Every design choice gives something up. Faster delivery may cost control. Higher availability costs money. A good architect can name what was given up and why that was the right deal for this project.
+
+              There is no best architecture in general, only one that fits the constraints in front of you. Your answer to most questions is "it depends", but it should always be followed by what it depends on.
+
+              ### Key ideas
+              - Every choice has a cost, even if nobody has found it yet
+              - Write the trade-off down: we chose X over Y because of Z
+              - "It depends" is only useful when you finish the sentence
+              - Revisit a trade-off when the constraints change
+
+              ### Example
+              A team picks a managed database over running their own. They give up fine-tuning and pay a higher bill. They gain backups, patching and failover without hiring a database admin. That is a reasonable deal for a team of four.
             resources:
               - { label: "Software Architecture Guide (Martin Fowler)", url: "https://martinfowler.com/architecture/", kind: article }
+              - { label: "The pillars of the framework (AWS Well-Architected)", url: "https://docs.aws.amazon.com/wellarchitected/latest/framework/the-pillars-of-the-framework.html", kind: docs }
 
       - id: requirements
         title: Requirements gathering
@@ -60,8 +101,26 @@ stages:
               - Use cases and user journeys
               - Separating must-have from nice-to-have
               - Writing requirements people can check
+            body: |
+              Functional requirements describe what the system must do. They are written from the user's side: who does what, and what happens next.
+
+              Start with **use cases** and **user journeys**. Then sort them into must-have and nice-to-have, because the deadline and budget will not cover everything. Finally, word each one so a person could check it.
+
+              ### Key ideas
+              - A use case names an actor, a goal and the steps to reach it
+              - Must-have means the launch fails without it
+              - A checkable requirement has a clear pass or fail
+              - Get the business to agree before design starts
+
+              ### Common mistakes
+              - Writing "the system should be fast" as a functional requirement
+              - Mixing the solution into the requirement, such as "use a queue"
+              - Listing features without saying who needs them
+
+              Better: "A customer can reset their password by email and sign in again within 5 minutes of requesting it."
             resources:
               - { label: "Use cases (Martin Fowler)", url: "https://martinfowler.com/bliki/UseCase.html", kind: article }
+              - { label: "Non-functional requirement (Wikipedia)", url: "https://en.wikipedia.org/wiki/Non-functional_requirement", kind: article }
           - id: non-functional-requirements
             title: Non-functional requirements
             summary: How well the system must do it. Availability, latency, scale, security, compliance and cost shape the design more than features do.
@@ -69,6 +128,19 @@ stages:
               - The "-ilities" and how to put numbers on them
               - Peak load, data volume and growth
               - Compliance needs (GDPR, HIPAA, PCI DSS)
+            body: |
+              Non-functional requirements say how well the system must work. They often shape the design more than features do, because they decide whether you need one server or a multi-region setup.
+
+              Common ones are availability, latency, scale, security, durability and cost. These are called the "-ilities". Each needs a number, or it cannot be designed for.
+
+              ### Key ideas
+              - Turn vague words into numbers: 99.9% uptime, 300 ms at the 95th percentile
+              - Ask for peak load, data volume and expected growth, not only averages
+              - Compliance sets hard limits: GDPR for EU personal data, HIPAA for US health data, PCI DSS for card data
+              - Rank them, since you cannot maximise all at once
+
+              ### Example
+              "The checkout API must answer in under 400 ms for 95% of requests at 500 requests per second, and stay available 99.95% of each month." Now you can pick a design and test it.
             resources:
               - { label: "AWS Well-Architected Framework", url: "https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html", kind: docs }
               - post: how-to-use-aws-sagemaker-for-hipaa-compliant-data-a-complete-guide
@@ -79,6 +151,21 @@ stages:
               - Users, data, integrations, deadlines, budget
               - Existing systems and team skills
               - Finding the real constraint
+            body: |
+              Discovery is where you find out what the real project is. A short, repeatable list of questions stops important facts turning up in month three.
+
+              Cover the basics every time: who the users are, what data is involved, which systems it connects to, when it must launch and what the budget is. Then ask about what exists today and what the team knows how to run.
+
+              ### Key ideas
+              - Users: who, how many, where, on what devices
+              - Data: what kind, how much, how sensitive
+              - Integrations: which systems, which formats, who owns them
+              - Deadlines and budget, and which one is really fixed
+              - Existing systems and team skills limit what is realistic
+              - Keep asking "what happens if this fails?" to find the real constraint
+
+              ### In practice
+              Ask the same question two ways. "Do you need multi-region?" gets a yes. "What does one hour of downtime cost you?" gets a number you can design against.
             resources:
               - { label: "Azure Architecture Center", url: "https://learn.microsoft.com/en-us/azure/architecture/", kind: docs }
           - id: constraints-and-assumptions
@@ -88,6 +175,19 @@ stages:
             learn:
               - Hard constraints vs preferences
               - Logging assumptions and risks
+            body: |
+              A **constraint** is a fact you must design around. An **assumption** is a guess you are treating as a fact until someone proves it wrong. Write both down, separately.
+
+              Hard constraints cannot move: a legal rule, a launch date, an existing contract. Preferences can: "we like Python" is not "we can only run Python".
+
+              ### Key ideas
+              - Hard constraints narrow the options, preferences only rank them
+              - List every assumption so reviewers can challenge it
+              - Record risks next to assumptions, with an owner and a date to check
+              - Keep the list in the design doc, not in someone's head
+
+              ### Example
+              Constraint: patient data must stay in the EU. Assumption: peak traffic will be 200 requests per second. Risk: if peak is ten times higher, the chosen database tier may not cope. Owner: product, check by the end of the month.
             resources:
               - { label: "Architecture Decision Records", url: "https://adr.github.io/", kind: docs }
 
@@ -101,9 +201,25 @@ stages:
             learn:
               - VMs vs containers vs serverless
               - Managed platforms and their limits
+            body: |
+              Compute is where your code runs. The three main kinds differ in how much you manage yourself.
+
+              **Virtual machines** give you a full server to patch and size. **Containers** package the app and run on a platform that schedules them. **Functions** run a small piece of code per event and you manage almost nothing, but with limits on run time and control.
+
+              ### Key ideas
+              - VMs: most control, most work, good for legacy and special software
+              - Containers: portable, a good middle for most web services
+              - Serverless functions: pay per use, scale to zero, but time and memory limits apply
+              - Managed platforms hide servers but restrict what you can change
+              - Start with the least you must manage that still meets the need
+
+              ### Example
+              A steady API with predictable load fits a container service. A task that resizes an image after upload fits a function. A vendor's installer that needs a specific OS fits a VM.
             resources:
               - post: serverless-laravel-containers-with-ecs-fargate-app-runner-and-terraform
               - { label: "Overview of Amazon Web Services", url: "https://docs.aws.amazon.com/whitepapers/latest/aws-overview/introduction.html", kind: docs }
+              - { label: "Choosing an AWS storage service (AWS)", url: "https://docs.aws.amazon.com/decision-guides/latest/storage-on-aws-how-to-choose/choosing-aws-storage-service.html", kind: docs }
+              - { label: "Choosing an AWS database service (AWS)", url: "https://docs.aws.amazon.com/decision-guides/latest/databases-on-aws-how-to-choose/databases-on-aws-how-to-choose.html", kind: docs }
           - id: storage-and-databases
             title: Storage and databases
             summary: Object, block and file storage, and the main families of managed databases.
@@ -111,9 +227,25 @@ stages:
               - Object storage as the default for files
               - Relational vs key-value vs document
               - Managed vs self-run databases
+            body: |
+              Cloud storage comes in three shapes. **Object storage** holds files by key and is the default for images, backups and exports. **Block storage** is a disk attached to one server. **File storage** is a shared network drive.
+
+              Databases split into families. **Relational** databases suit structured data and joins. **Key-value** stores suit fast lookups by id. **Document** stores suit flexible records. Most can run as a managed service.
+
+              ### Key ideas
+              - Put files in object storage, not on a server disk
+              - Pick relational unless the access pattern clearly says otherwise
+              - Key-value fits sessions, carts and caches
+              - Managed databases handle backups, patching and failover for you
+              - Self-run gives control, at the price of owning every failure
+
+              ### Common mistakes
+              - Storing user uploads on the app server's disk, then losing them on the next deploy
+              - Using a document store because it feels modern, then needing joins later
             resources:
               - post: why-s3-presigned-urls
               - { label: "AWS decision guides", url: "https://aws.amazon.com/getting-started/decision-guides/", kind: docs }
+              - { label: "Regions and Availability Zones (AWS)", url: "https://aws.amazon.com/about-aws/global-infrastructure/regions_az/", kind: docs }
           - id: networking-building-blocks
             title: Networking building blocks
             summary: Regions, availability zones, virtual networks, subnets, load balancers and CDNs.
@@ -121,6 +253,20 @@ stages:
               - Regions and availability zones
               - Public vs private subnets
               - Where load balancers and CDNs sit
+            body: |
+              Cloud networking starts with geography. A **region** is a geographic area. Inside it are several **availability zones**, separate data centres with their own power and network. Spreading across zones protects you from a single building failing.
+
+              Inside a region you build a **virtual network** and split it into **subnets**. Public subnets can be reached from the internet. Private subnets cannot.
+
+              ### Key ideas
+              - Regions and availability zones set your failure and latency boundaries
+              - Public subnets hold things that must face the internet, such as load balancers
+              - Private subnets hold app servers and databases
+              - A load balancer spreads traffic across healthy targets in several zones
+              - A CDN caches content near users and sits in front of everything public
+
+              ### Example
+              Users reach a CDN, which forwards to a load balancer in public subnets. The load balancer sends requests to app servers in private subnets, which talk to a database in a deeper private subnet.
             resources:
               - { label: "AWS Global Infrastructure", url: "https://aws.amazon.com/about-aws/global-infrastructure/", kind: docs }
           - id: managed-vs-build
@@ -129,6 +275,20 @@ stages:
             learn:
               - Operational burden as a real cost
               - Lock-in and exit cost
+            body: |
+              A managed service means the provider runs it for you. Building it yourself means you run it. The question is where your team's time is best spent.
+
+              Running software has a real cost: patching, scaling, backups, on-call and upgrades. A managed service charges money for that work. Building it yourself charges people's time instead.
+
+              ### Key ideas
+              - Count operational burden as a cost, not as free
+              - Managed services speed you up but can cost more at high volume
+              - Lock-in is how hard it is to leave, so ask what an exit would take
+              - Open standards, such as plain SQL or containers, lower exit cost
+              - Under the shared responsibility model, the provider secures the platform and you secure what you put on it
+
+              ### In practice
+              A five-person team should rarely run its own message broker. A company with a dedicated platform team and heavy, steady load may decide it is cheaper to.
             resources:
               - { label: "Shared responsibility model (AWS)", url: "https://aws.amazon.com/compliance/shared-responsibility-model/", kind: article }
           - id: compare-the-clouds
@@ -138,6 +298,19 @@ stages:
             learn:
               - Mapping services across clouds
               - Where the clouds differ in practice
+            body: |
+              AWS, Azure and Google Cloud sell the same building blocks under different names. A virtual machine is EC2, Virtual Machines or Compute Engine. Object storage is S3, Blob Storage or Cloud Storage.
+
+              Once you know the generic idea, you can read a design on any cloud and find the matching service.
+
+              ### Key ideas
+              - Make a personal cheat sheet that maps compute, storage, database, network and identity services
+              - Concepts carry across clouds, details and limits do not
+              - Differences show up in pricing, regions, managed database options and identity integration
+              - Clients often choose by existing contracts or skills, not features
+
+              ### In practice
+              When a client says they are on Azure, you do not start again. You ask what the equivalent is for the pattern you know, then read that service's limits before you promise anything.
             resources:
               - { label: "Google Cloud Architecture Center", url: "https://cloud.google.com/architecture", kind: docs }
               - { label: "Azure for AWS professionals", url: "https://learn.microsoft.com/en-us/azure/architecture/aws-professional/", kind: docs }
@@ -152,6 +325,23 @@ stages:
             learn:
               - The four levels and who reads each
               - Starting with the system context
+            body: |
+              The C4 model describes software at four zoom levels. Each level suits a different reader.
+
+              1. **System context**: your system as one box, with the users and other systems around it.
+              2. **Container**: the apps, databases and services that make up the system.
+              3. **Component**: the parts inside one container.
+              4. **Code**: classes and functions, usually left to the code itself.
+
+              ### Key ideas
+              - Start with the system context, since everyone can follow it
+              - Executives need level 1, architects and engineers need levels 2 and 3
+              - Each box gets a name, a type and a short description
+              - Label every arrow with what flows and how
+              - Most teams only draw levels 1 and 2
+
+              ### Example
+              Level 1 shows a web shop, its customers, a payment provider and an email service. Level 2 opens the shop into a web app, an API and a database.
             resources:
               - { label: "The C4 model", url: "https://c4model.com/", kind: docs }
           - id: cloud-diagrams
@@ -161,9 +351,26 @@ stages:
               - Official icon sets
               - Showing trust boundaries and data flow
               - Keeping a diagram readable
+            body: |
+              A cloud diagram shows where things run and how data moves. Use the provider's **official icon set** so readers recognise services at a glance.
+
+              Show structure: the cloud account, region, network and subnets. Then show flow: numbered arrows that tell a short story from user to data.
+
+              ### Key ideas
+              - Use official icons and the same size for each
+              - Draw boundaries for regions, networks and trust zones
+              - Mark where traffic crosses a trust boundary, such as internet to private network
+              - Number the arrows and add a short legend
+              - Keep one idea per diagram, split it if it grows past about 15 boxes
+
+              ### Common mistakes
+              - Drawing every resource, so the main point is lost
+              - Arrows with no label, so nobody knows if it is HTTP or a database call
+              - Mixing the network view and the data flow in one picture
             resources:
               - { label: "AWS Architecture Icons", url: "https://aws.amazon.com/architecture/icons/", kind: tool }
               - { label: "AWS Reference Architecture Diagrams", url: "https://aws.amazon.com/architecture/reference-architecture-diagrams/", kind: docs }
+              - { label: "Structurizr DSL", url: "https://docs.structurizr.com/dsl", kind: docs }
           - id: diagrams-as-code
             title: Diagrams as code
             optional: true
@@ -171,8 +378,22 @@ stages:
             learn:
               - Model once, render many views
               - Reviewing diagram changes in pull requests
+            body: |
+              Diagrams drawn in a mouse tool go stale because nobody wants to open them. Diagrams written as text live next to the code and can be changed in the same pull request.
+
+              The better tools let you **model once** and render several views. You define the systems and relationships in a text file, then generate context, container and deployment diagrams from it.
+
+              ### Key ideas
+              - Text files diff well, so reviewers see what changed
+              - One model, many views, keeps diagrams consistent
+              - Generate images in CI so they never drift from the source
+              - Keep it light: use a tool only if the team will really update it
+
+              ### Example
+              Structurizr uses a small text language to describe people, systems and relationships. A pull request that adds a new service also adds three lines to the model, and the container diagram updates itself.
             resources:
               - { label: "Structurizr", url: "https://structurizr.com/", kind: tool }
+              - { label: "Structurizr DSL", url: "https://docs.structurizr.com/dsl", kind: docs }
 
       - id: basic-trade-offs
         title: Basic trade-offs
@@ -184,6 +405,20 @@ stages:
             learn:
               - Single AZ vs multi-AZ vs multi-region
               - What downtime costs the business
+            body: |
+              Each extra "nine" of availability costs more than the last. Going from 99% to 99.9% may mean a second server. Going to 99.99% may mean multiple zones and automated failover. Going further may mean a second region.
+
+              The right level depends on what downtime costs the business, not on what sounds good.
+
+              ### Key ideas
+              - **Single AZ**: cheapest, a zone failure takes you down
+              - **Multi-AZ**: roughly doubles some costs, survives a data centre failure
+              - **Multi-region**: highest cost and complexity, survives a regional outage
+              - Ask: what does one hour of downtime cost in revenue and reputation?
+              - Different parts of a system can have different targets
+
+              ### Example
+              An internal reporting tool used on weekdays can live in one zone with backups. The checkout service of an online shop earning thousands per hour justifies multi-AZ. Neither needs multi-region.
             resources:
               - { label: "Reliability pillar (AWS)", url: "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html", kind: docs }
           - id: simplicity-vs-flexibility
@@ -192,6 +427,21 @@ stages:
             learn:
               - Avoiding speculative generality
               - Monolith first
+            body: |
+              It is tempting to build for every future need. That makes systems harder to understand and slower to change, which defeats the point.
+
+              Build for today's requirements and leave room to change. Add a layer or a service when a real need appears, not before. This is called avoiding speculative generality.
+
+              ### Key ideas
+              - Every extra moving part must be built, run and explained
+              - **Monolith first**: one deployable app with clean modules is easier to start with and split later
+              - Flexibility is cheap when boundaries are clean, expensive when guessed
+              - Ask "what is the simplest design that meets the stated needs?"
+
+              ### Common mistakes
+              - Starting with ten microservices for a team of three
+              - Adding a plugin system "in case" nobody asked for it
+              - Making everything configurable, so the config becomes the program
             resources:
               - { label: "MonolithFirst (Martin Fowler)", url: "https://martinfowler.com/bliki/MonolithFirst.html", kind: article }
               - post: how-i-architected-a-fully-serverless-saas-on-aws-lambda-with-fastify
@@ -201,6 +451,19 @@ stages:
             learn:
               - Team skills as a design input
               - Time to market vs tuning
+            body: |
+              Managed and serverless services get you to market faster. Self-run gives you more control over tuning, cost and behaviour. The team you have decides a lot of the answer.
+
+              A design that needs a Kubernetes expert is a poor fit for a team that has never run it. A design that needs deep database tuning is a poor fit for a fully managed black box.
+
+              ### Key ideas
+              - Treat team skills as a design input, not an afterthought
+              - Early on, speed to learn what customers want often wins
+              - Control matters when you hit a limit the managed service cannot lift
+              - You can start managed and move to self-run later if the numbers justify it
+
+              ### Example
+              A startup launches on a managed container service and managed database in a week. Two years later, with a platform team and heavy steady load, it moves the busiest workload to self-managed instances to cut cost.
             resources:
               - post: terraform-or-pulumi
               - { label: "ByteByteGo blog", url: "https://blog.bytebytego.com/", kind: article }
@@ -215,6 +478,21 @@ stages:
             learn:
               - On-demand, reserved and spot
               - Data transfer as a hidden cost
+            body: |
+              Cloud bills are made of many small meters: compute per second or hour, storage per GB-month, requests per million, and data per GB moved. Your design decides which meters run.
+
+              Three purchase options change the price of the same compute. **On-demand** has no commitment. **Reserved** or **Savings Plan** options give a discount for a one or three year commitment. **Spot** uses spare capacity at a big discount, but can be taken back.
+
+              ### Key ideas
+              - On-demand is flexible and the most expensive
+              - Commitments suit steady, predictable load
+              - Spot suits work that can be interrupted, such as batch jobs
+              - Data transfer out of the cloud, and between zones or regions, is often a surprise
+              - Idle resources still bill
+
+              ### Common mistakes
+              - Forgetting NAT gateway and cross-zone traffic charges
+              - Committing to a size you later move away from
             resources:
               - { label: "How AWS Pricing Works", url: "https://docs.aws.amazon.com/whitepapers/latest/how-aws-pricing-works/welcome.html", kind: docs }
               - post: 5-aws-mistakes-quietly-draining-your-bank-account
@@ -224,17 +502,47 @@ stages:
             learn:
               - Listing every billable component
               - Low, expected and peak estimates
+            body: |
+              A pricing calculator turns a design into a monthly number. Do this before the build, and show the estimate next to the diagram.
+
+              Go through the diagram box by box. Each billable component becomes a line: instance type and count, storage size, requests, data transfer, support plan.
+
+              ### Key ideas
+              - List every billable component, including logging, backups and data transfer
+              - Make three estimates: low, expected and peak
+              - Write down the assumptions behind each number
+              - Save the estimate with the design doc and update it when the design changes
+              - Compare the estimate to the budget early
+
+              ### Example
+              Expected: 2 container tasks, a small database, 500 GB of storage and 2 TB of outbound transfer. Peak: double the tasks and transfer. Low: one task during quiet months. The range tells the client what to budget for.
             resources:
               - { label: "AWS Pricing Calculator", url: "https://calculator.aws/", kind: tool }
+              - { label: "Managing your costs with AWS Budgets (AWS)", url: "https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html", kind: docs }
           - id: budgets-and-alerts
             title: Budgets and alerts
             summary: Set a budget and an alarm on day one so a mistake shows up in hours, not on the invoice.
             learn:
               - Budget alarms per account
               - Tagging for cost allocation
+            body: |
+              Set a budget and an alarm when you create the account. A runaway resource, a leaked key or a forgotten test environment shows up in hours instead of on next month's invoice.
+
+              Alerts are only useful if someone reads them. Send them to a shared channel or a mailbox more than one person watches.
+
+              ### Key ideas
+              - One budget per account, with alerts at, say, 50%, 80% and 100% of the monthly amount
+              - Add a forecast alert so you hear before the limit is reached
+              - **Tag** resources with team, project and environment
+              - Tags make cost allocation possible: who spent what
+              - Review the bill monthly, even when nothing is wrong
+
+              ### In practice
+              A budget alert at 80% fires on day 12 of the month. The cause is a test cluster left running. It is shut down the same day, instead of billing for the rest of the month.
             resources:
               - post: first-3-things-i-always-do-after-creating-a-new-aws-account
               - { label: "AWS Cost Management", url: "https://aws.amazon.com/aws-cost-management/", kind: docs }
+              - { label: "Managing your costs with AWS Budgets (AWS)", url: "https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html", kind: docs }
 
   - level: intermediate
     title: Designing solid cloud solutions
@@ -249,6 +557,24 @@ stages:
             learn:
               - What each pillar asks of a design
               - Where pillars pull against each other
+            body: |
+              The Well-Architected Framework is a set of questions for judging a design. It groups them into six pillars.
+
+              - **Operational excellence**: run and improve the system, with good monitoring and small changes.
+              - **Security**: protect data and control access.
+              - **Reliability**: recover from failures and meet demand.
+              - **Performance efficiency**: use resources well as needs change.
+              - **Cost optimization**: avoid waste and pay for value.
+              - **Sustainability**: reduce the environmental impact.
+
+              ### Key ideas
+              - Each pillar gives a set of design principles and questions
+              - Pillars pull against each other: more redundancy helps reliability and hurts cost
+              - No design maximises all six, so you record the trade-off you chose
+              - Use the pillars as a shared vocabulary in reviews
+
+              ### Example
+              Adding a second region improves reliability. It raises cost and operational work. Writing that down under the right pillars makes the decision visible.
             resources:
               - { label: "AWS Well-Architected", url: "https://aws.amazon.com/architecture/well-architected/", kind: docs }
               - { label: "AWS Well-Architected Framework", url: "https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html", kind: docs }
@@ -258,6 +584,19 @@ stages:
             learn:
               - Azure Well-Architected Framework
               - Google Cloud Architecture Framework
+            body: |
+              Azure and Google Cloud publish their own versions of well-architected guidance. They cover similar ground with different names and groupings.
+
+              The **Azure Well-Architected Framework** has five pillars: reliability, security, cost optimization, operational excellence and performance efficiency. The **Google Cloud Architecture Framework** groups its guidance into similar areas, including system design, operational excellence, security, reliability, cost and performance.
+
+              ### Key ideas
+              - The ideas match, so what you know from one transfers to the others
+              - Learn each provider's terms so you can speak to the client's team
+              - Use the framework of the cloud the client is actually on
+              - The review process is the same: questions, risks, fixes
+
+              ### In practice
+              A client runs on Azure. You open the Azure framework, take its reliability checklist and review their design against it. You already know to ask about zones, failover and tested backups.
             resources:
               - { label: "Azure Well-Architected Framework", url: "https://learn.microsoft.com/en-us/azure/well-architected/", kind: docs }
               - { label: "Google Cloud Architecture Framework", url: "https://cloud.google.com/architecture/framework", kind: docs }
@@ -267,8 +606,24 @@ stages:
             learn:
               - High and medium risk items
               - Turning findings into a backlog
+            body: |
+              A review walks a real workload through the framework's questions, one pillar at a time, with the people who built and run it. The goal is a list of risks and an agreed plan, not a grade.
+
+              Answers are marked as best practice followed or not. Gaps become **high risk** or **medium risk** items.
+
+              ### Key ideas
+              - Review a single workload, not the whole company
+              - Bring the engineers who know the system, not only managers
+              - High risk items could cause serious harm and get fixed first
+              - Medium risk items are improvements to schedule
+              - Turn findings into backlog tickets with owners
+              - Repeat the review after big changes
+
+              ### Example
+              The review finds that backups exist but have never been restored. That is marked high risk. A ticket is created: run a restore test this sprint and record the time it took.
             resources:
               - { label: "AWS Well-Architected Tool", url: "https://docs.aws.amazon.com/wellarchitected/latest/userguide/intro.html", kind: docs }
+              - { label: "Lenses (AWS Well-Architected Tool)", url: "https://docs.aws.amazon.com/wellarchitected/latest/userguide/lenses.html", kind: docs }
           - id: lenses
             title: Well-Architected lenses
             optional: true
@@ -276,8 +631,22 @@ stages:
             learn:
               - Choosing a lens for the workload
               - Custom lenses for your company
+            body: |
+              A **lens** adds extra questions for a specific type of workload on top of the core framework. Examples include serverless, SaaS, machine learning, data analytics and IoT.
+
+              Use a lens when the general questions are not specific enough. A serverless app has different failure modes from a fleet of virtual machines.
+
+              ### Key ideas
+              - Pick the lens that matches the workload type
+              - A lens does not replace the core pillars, it adds to them
+              - You can write a **custom lens** for company standards, such as your own security rules
+              - Keep custom lenses short and checkable
+
+              ### In practice
+              A team builds an event-driven app on functions and queues. You run the main review, then the serverless lens, which asks about concurrency limits, timeouts and dead-letter queues that the main review would skip.
             resources:
               - { label: "AWS Well-Architected", url: "https://aws.amazon.com/architecture/well-architected/", kind: docs }
+              - { label: "Lenses (AWS Well-Architected Tool)", url: "https://docs.aws.amazon.com/wellarchitected/latest/userguide/lenses.html", kind: docs }
 
       - id: ha-and-dr
         title: High availability and disaster recovery
@@ -290,14 +659,44 @@ stages:
               - Recovery time objective
               - Recovery point objective
               - Getting the business to agree on them
+            body: |
+              Two numbers drive every disaster recovery design.
+
+              **Recovery time objective (RTO)** is how long the system can be down. **Recovery point objective (RPO)** is how much data you can afford to lose, measured in time. An RPO of 15 minutes means a restore may lose up to the last 15 minutes of data.
+
+              ### Key ideas
+              - Lower RTO and RPO cost more
+              - RTO is set by how fast you can get a working system back
+              - RPO is set by how often data is copied
+              - The business, not engineering, must agree the numbers
+              - Different systems get different targets
+
+              ### Example
+              For an online shop: RTO 1 hour, RPO 5 minutes. That means failover must finish within an hour, and the database must be replicated continuously or backed up every few minutes. A weekly report tool might accept RTO 24 hours and RPO 1 day.
             resources:
               - { label: "Disaster Recovery of Workloads on AWS", url: "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-workloads-on-aws.html", kind: docs }
+              - { label: "Disaster recovery strategies in the cloud (AWS Architecture Blog)", url: "https://aws.amazon.com/blogs/architecture/disaster-recovery-dr-architecture-on-aws-part-i-strategies-for-recovery-in-the-cloud/", kind: article }
           - id: dr-strategies
             title: DR strategies
             summary: Backup and restore, pilot light, warm standby and multi-site active/active, from cheapest to fastest.
             learn:
               - Cost and recovery time of each strategy
               - Matching a strategy to RTO and RPO
+            body: |
+              There are four common DR strategies, ordered from cheapest and slowest to most expensive and fastest.
+
+              1. **Backup and restore**: copy data elsewhere, rebuild when needed. Hours to recover.
+              2. **Pilot light**: keep core data replicated and a minimal setup ready, scale up on disaster.
+              3. **Warm standby**: a smaller but running copy of the full system.
+              4. **Multi-site active/active**: full capacity in more than one place, serving traffic all the time.
+
+              ### Key ideas
+              - Each step down the list cuts recovery time and raises cost
+              - Pick the cheapest strategy that meets the RTO and RPO
+              - Automate the recovery steps, since manual runbooks fail under stress
+
+              ### Example
+              RTO of 4 hours and RPO of 1 hour: pilot light usually fits. RTO of 5 minutes: you are looking at warm standby or active/active.
             resources:
               - { label: "Disaster Recovery of Workloads on AWS", url: "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-workloads-on-aws.html", kind: docs }
           - id: multi-az-design
@@ -306,6 +705,21 @@ stages:
             learn:
               - Stateless app tiers behind a load balancer
               - Multi-AZ databases and failover
+            body: |
+              Multi-AZ design means each layer survives the loss of one availability zone. One data centre failing becomes a non-event.
+
+              For the app tier, run **stateless** servers in at least two zones behind a load balancer. Stateless means nothing important lives on the server, so any copy can take any request. For data, use a database with a standby in another zone and automatic failover.
+
+              ### Key ideas
+              - Spread app servers across zones and let the load balancer drop unhealthy ones
+              - Keep state in the database, cache or object storage, not on the server
+              - Use managed multi-AZ databases with automatic failover
+              - Size so that losing one zone still leaves enough capacity
+              - Test it by taking an instance or zone out on purpose
+
+              ### Common mistakes
+              - Two zones, but each at 80% load, so losing one overloads the other
+              - A single NAT gateway or single queue that quietly stays in one zone
             resources:
               - { label: "Reliability pillar (AWS)", url: "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html", kind: docs }
           - id: testing-recovery
@@ -315,6 +729,20 @@ stages:
             learn:
               - Game days and restore drills
               - Measuring actual RTO
+            body: |
+              A backup you have never restored is a guess. Recovery plans fail on details nobody checked: missing permissions, expired keys, out-of-date steps.
+
+              Practise on a schedule. Two common methods are **restore drills**, where you restore data into a test environment, and **game days**, where the team rehearses a failure together.
+
+              ### Key ideas
+              - Restore real backups and check the data is usable
+              - Time the exercise, because that is your actual RTO
+              - Compare measured recovery to the target and fix the gap
+              - Run game days with a clear scenario, a facilitator and written notes
+              - Update the runbook after every drill
+
+              ### Example
+              A team restores last night's database snapshot into a test account. It takes 3 hours, but the RTO is 1 hour. They find the restore is slow because of the disk type. They change it, repeat the drill, and now it takes 40 minutes.
             resources:
               - { label: "Google SRE books", url: "https://sre.google/books/", kind: article }
               - post: snapshot-restore-of-lightsail-instance-to-lightsail-ec2
@@ -330,6 +758,22 @@ stages:
               - Single sign-on for staff
               - Roles over long-lived keys
               - Least privilege
+            body: |
+              Identity answers who or what can touch each resource. There are three kinds to design for: **workforce** identity for staff, **customer** identity for users of your product, and **machine** identity for services.
+
+              For staff, use **single sign-on** with a central identity provider, so joiners and leavers are handled in one place. For machines, use **roles** that give short-lived credentials, instead of long-lived access keys.
+
+              ### Key ideas
+              - Single sign-on plus multi-factor authentication for people
+              - Roles over keys: no secret to leak or rotate
+              - **Least privilege**: grant only what is needed, nothing broader
+              - Separate identity for each service and environment
+              - Review access regularly and remove what is unused
+
+              ### Common mistakes
+              - Access keys committed to a repository
+              - One shared admin role for everything
+              - Wildcard permissions "just to get it working", never narrowed afterwards
             resources:
               - { label: "IAM security best practices (AWS)", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html", kind: docs }
               - post: multi-tenant-saas-auth-lambda-fastify
@@ -339,15 +783,46 @@ stages:
             learn:
               - WAF, security groups and private subnets
               - Encryption in transit and at rest
+            body: |
+              Defence in depth means several layers of control, so one mistake does not expose everything.
+
+              Think in rings. The **edge** blocks bad traffic. The **network** limits what can talk to what. The **application** checks every request. The **data** layer is encrypted and access-controlled.
+
+              ### Key ideas
+              - A web application firewall filters common attacks at the edge
+              - Security groups allow only the ports and sources a service needs
+              - Put app servers and databases in private subnets
+              - Encrypt data **in transit** with TLS and **at rest** with managed keys
+              - Assume any layer can fail and make sure the next one still protects you
+
+              ### Example
+              An attacker finds a flaw in a web form. The firewall blocks the common exploit pattern. If it gets through, the database is in a private subnet that only the app can reach, and the data is encrypted anyway.
             resources:
               - post: aws-waf-cloudfront-solo-dev
               - { label: "Security pillar (AWS)", url: "https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/welcome.html", kind: docs }
+              - { label: "What is AWS Secrets Manager? (AWS)", url: "https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html", kind: docs }
+              - { label: "Data Classification whitepaper (AWS)", url: "https://docs.aws.amazon.com/whitepapers/latest/data-classification/data-classification.html", kind: docs }
           - id: data-protection-design
             title: Data protection and secrets
             summary: Classify data, keep secrets out of code and decide who holds the encryption keys.
             learn:
               - Data classification
               - Secrets managers and key management
+            body: |
+              Start by classifying data. Public, internal, confidential and regulated data need different controls. If you do not know what you hold, you cannot protect it.
+
+              Secrets such as database passwords and API keys must stay out of code and images. Store them in a **secrets manager** and give each service permission to read only its own. Encryption keys live in a **key management service**, which lets you control and audit who can use them.
+
+              ### Key ideas
+              - Label data by sensitivity and apply controls per label
+              - Never put secrets in source control or plain environment files
+              - Rotate secrets and keys on a schedule
+              - Decide who holds the keys: provider-managed or customer-managed
+              - Log access to sensitive data
+
+              ### Common mistakes
+              - Treating infrastructure state files as harmless when they can contain secrets
+              - One key for everything
             resources:
               - post: terraform-state-more-sensitive-than-env
               - { label: "Security pillar (AWS)", url: "https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/welcome.html", kind: docs }
@@ -358,6 +833,20 @@ stages:
             learn:
               - Principles of zero trust
               - What changes in a cloud design
+            body: |
+              Older designs trusted anything inside the company network. Zero trust drops that. Every request is verified by who is asking, from what device, and what they want, no matter where it comes from.
+
+              The core principles are: verify explicitly, use least privilege, and assume a breach has already happened.
+
+              ### Key ideas
+              - Network location alone no longer grants access
+              - Check identity and device health on every request
+              - Give narrow, time-limited access
+              - Segment systems so an attacker cannot move freely
+              - Log and monitor everything to spot misuse
+
+              ### In practice
+              In a cloud design this means identity-aware proxies instead of a VPN into the whole network, short-lived credentials for services, and policies that check conditions such as device compliance. NIST SP 800-207 is the standard reference for the model.
             resources:
               - { label: "NIST SP 800-207 Zero Trust Architecture", url: "https://csrc.nist.gov/pubs/sp/800/207/final", kind: docs }
 
@@ -371,15 +860,45 @@ stages:
             learn:
               - Choosing an API style
               - API contracts and versioning
+            body: |
+              Synchronous APIs are request and response: the caller waits for the answer. That is simple, but it couples the two systems. If the callee is slow or down, the caller suffers.
+
+              Three common styles. **REST** uses resources over HTTP and is the default for public APIs. **GraphQL** lets clients ask for exactly the fields they need. **gRPC** uses binary messages and suits fast internal service calls.
+
+              ### Key ideas
+              - Pick REST unless there is a clear reason not to
+              - GraphQL fits many clients with different data needs
+              - gRPC fits internal, high-volume, low-latency calls
+              - Describe the contract in a spec, such as OpenAPI
+              - Plan versioning from the start and avoid breaking changes
+
+              ### Common mistakes
+              - No timeouts or retries on calls to other services
+              - Changing a response field name without warning consumers
             resources:
               - { label: "OpenAPI Initiative", url: "https://www.openapis.org/", kind: docs }
               - { label: "ByteByteGo", url: "https://bytebytego.com/", kind: course }
+              - { label: "Choosing between SNS, SQS and EventBridge (AWS)", url: "https://docs.aws.amazon.com/decision-guides/latest/sns-or-sqs-or-eventbridge/sns-or-sqs-or-eventbridge.html", kind: docs }
           - id: queues-and-events
             title: Queues and events
             summary: Decouple producers and consumers so a slow or failing part does not take down the rest.
             learn:
               - Queues vs pub/sub vs event streams
               - Choosing between them
+            body: |
+              Asynchronous messaging decouples producers from consumers. The producer drops a message and carries on. A slow or failing consumer no longer takes the producer down.
+
+              Three shapes. A **queue** gives each message to one consumer, for work distribution. **Pub/sub** copies each message to every subscriber. An **event stream** keeps an ordered log that consumers can replay.
+
+              ### Key ideas
+              - Queue: background jobs, such as sending email or resizing images
+              - Pub/sub: telling many systems that something happened
+              - Stream: ordering, replay and high volume, such as clickstreams
+              - Add a **dead-letter queue** for messages that keep failing
+              - Make consumers idempotent, because messages can be delivered twice
+
+              ### Example
+              An order is placed. The web app publishes "order placed". Billing, stock and email each subscribe and react on their own. If email is down, the order still goes through.
             resources:
               - post: running-ai-background-jobs-serverlessly-with-sqs-lambda-bedrock
               - { label: "Cloud design patterns (Azure)", url: "https://learn.microsoft.com/en-us/azure/architecture/patterns/", kind: docs }
@@ -389,6 +908,19 @@ stages:
             learn:
               - Workflow engines
               - Tracing a business process across services
+            body: |
+              When a business process spans several services, there are two ways to coordinate it.
+
+              **Orchestration** uses a central workflow that calls each step in order and handles errors. **Choreography** has no centre: each service reacts to events and emits its own.
+
+              ### Key ideas
+              - Orchestration is easy to see, test and change, but the orchestrator is a central dependency
+              - Choreography is loosely coupled, but the full flow is spread across many services
+              - Workflow engines hold state, retries and timeouts for you
+              - In both cases you need a correlation id to trace one business process end to end
+
+              ### Example
+              Order fulfilment: an orchestrator charges the card, reserves stock, then books shipping, and refunds if shipping fails. In choreography, each service listens for the previous event and publishes its own, and the refund logic lives in several places.
             resources:
               - post: step-functions-llm-orchestration-replacing-lambda-chains
               - { label: "What do you mean by Event-Driven? (Martin Fowler)", url: "https://martinfowler.com/articles/201701-event-driven.html", kind: article }
@@ -399,6 +931,21 @@ stages:
             learn:
               - CloudEvents and AsyncAPI
               - Schema evolution
+            body: |
+              An event is a contract between teams. If the shape changes without warning, consumers break. Describe events with a **schema** so everyone knows what to expect.
+
+              **CloudEvents** is a standard envelope for event metadata, such as type, source and time. **AsyncAPI** describes message-based APIs the way OpenAPI describes HTTP ones.
+
+              ### Key ideas
+              - Publish a schema for every event type
+              - Use a common envelope so tooling works across teams
+              - Evolve schemas safely: adding optional fields is usually fine, removing or renaming is not
+              - Keep a schema registry or a shared repository
+              - Version events when a breaking change cannot be avoided
+
+              ### Common mistakes
+              - Putting a whole database row in the event, so every column becomes a public promise
+              - Changing a field type and finding out from a production error
             resources:
               - { label: "CloudEvents", url: "https://cloudevents.io/", kind: docs }
               - { label: "AsyncAPI", url: "https://www.asyncapi.com/", kind: docs }
@@ -413,15 +960,46 @@ stages:
             learn:
               - Relational by default, and when not
               - Purpose-built databases
+            body: |
+              Pick the database from the access pattern, the consistency you need and the skills of the team, not from habit or fashion.
+
+              **Relational** is the default. It handles structured data, joins and transactions, and most teams already know SQL. Move away from it when a clear need appears, using **purpose-built** databases.
+
+              ### Key ideas
+              - Relational: orders, accounts, anything with relationships and transactions
+              - Key-value: sessions, caches, high-speed lookups
+              - Document: flexible records read as a whole
+              - Search engine: full-text search and filtering
+              - Time-series and graph: for those specific shapes
+              - Several databases in one system add cost, so each must earn its place
+
+              ### Example
+              A shop keeps orders in a relational database, sessions in a key-value store and product search in a search engine. Each fits its access pattern.
             resources:
               - { label: "Data Architecture Guide (Azure)", url: "https://learn.microsoft.com/en-us/azure/architecture/data-guide/", kind: docs }
               - { label: "Designing Data-Intensive Applications", url: "https://dataintensive.net/", kind: article }
+              - { label: "OLAP vs OLTP (AWS)", url: "https://aws.amazon.com/compare/the-difference-between-olap-and-oltp/", kind: article }
           - id: operational-vs-analytical
             title: Operational vs analytical data
             summary: Keep reporting off the production database with a warehouse or lake fed by pipelines.
             learn:
               - OLTP vs OLAP
               - Data lakes, warehouses and lakehouses
+            body: |
+              Operational systems and analytics ask different questions. **OLTP** (online transaction processing) handles many small reads and writes: place an order, update a profile. **OLAP** (online analytical processing) scans large amounts of data to answer questions: revenue by region last quarter.
+
+              Running big reports on the production database slows the app. Copy the data elsewhere instead.
+
+              ### Key ideas
+              - Feed a **warehouse** or **lake** with pipelines from the operational systems
+              - A warehouse stores structured, modelled data for SQL reporting
+              - A lake stores raw data in any format, cheaply
+              - A **lakehouse** adds warehouse-style tables on top of lake storage
+              - Keep reporting access separate from production access
+
+              ### Common mistakes
+              - Pointing a BI tool straight at the production database
+              - Building a lake with no catalogue, so nobody can find anything
             resources:
               - { label: "Data Architecture Guide (Azure)", url: "https://learn.microsoft.com/en-us/azure/architecture/data-guide/", kind: docs }
           - id: data-residency
@@ -430,6 +1008,21 @@ stages:
             learn:
               - Region choice for compliance
               - Retention and deletion policies
+            body: |
+              Some laws say where data may be stored and processed. Region choice is therefore a design decision, not just a latency one.
+
+              You also need rules for how long data is kept and how it is deleted. Keeping everything forever raises risk and cost.
+
+              ### Key ideas
+              - Find out which rules apply to which data, such as EU personal data
+              - Choose regions to match, and block resources elsewhere with policy
+              - Remember copies: backups, logs, replicas and analytics data
+              - Define **retention** per data type, such as seven years for invoices
+              - Automate deletion with lifecycle rules
+              - Support deletion requests from users
+
+              ### Example
+              A client's EU customer data must stay in the EU. You deploy in an EU region, set an organisation policy that denies other regions, and make sure cross-region backups go to another EU region.
             resources:
               - { label: "AWS Architecture Center", url: "https://aws.amazon.com/architecture/", kind: docs }
           - id: data-mesh
@@ -439,6 +1032,20 @@ stages:
             learn:
               - Domain-owned data products
               - When it fits and when it is overkill
+            body: |
+              A data mesh moves ownership of analytics data from one central team to the teams that know it best. Each domain team publishes its data as a **product**, with an owner, documentation and quality promises.
+
+              The idea comes from a bottleneck: a central data team cannot understand every domain and becomes a queue for everyone.
+
+              ### Key ideas
+              - Domain-owned data: the team that makes the data publishes it
+              - Data as a product: discoverable, documented, trustworthy
+              - A shared platform makes publishing easy
+              - Federated governance sets common rules, such as naming and privacy
+              - It needs mature teams and good tooling
+
+              ### In practice
+              It fits large organisations with many domains and a stuck central team. It is overkill for a company with a handful of teams, where one well-run warehouse is simpler and cheaper.
             resources:
               - { label: "Data Mesh Principles (Martin Fowler)", url: "https://martinfowler.com/articles/data-mesh-principles.html", kind: article }
 
@@ -452,6 +1059,20 @@ stages:
             learn:
               - Picking a unit that matters to the business
               - Cost at 10x and 100x usage
+            body: |
+              Total cloud cost alone tells you little. **Unit economics** divides cost by something the business cares about: per customer, per request, per order, per active user.
+
+              This tells you whether the design scales with the business. If cost per customer falls as you grow, good. If it rises, trouble.
+
+              ### Key ideas
+              - Pick a unit that matches how the business earns money
+              - Allocate shared costs with tags or usage data
+              - Estimate cost at current usage, then at 10 times and 100 times
+              - Find the line items that grow faster than revenue
+              - Compare cost per unit with price per unit to see margin
+
+              ### Example
+              Cost is 4,000 dollars a month for 2,000 customers, which is 2 dollars each. At 20,000 customers the database tier jumps and cost is 60,000, or 3 dollars each. The design loses margin as it grows, so fix it before then.
             resources:
               - post: multi-tenant-billing-aws-lambda-stripe
               - { label: "Cost optimization pillar (AWS)", url: "https://docs.aws.amazon.com/wellarchitected/latest/cost-optimization-pillar/welcome.html", kind: docs }
@@ -461,9 +1082,26 @@ stages:
             learn:
               - Where the money goes in a typical design
               - Spot and Savings Plans
+            body: |
+              Most money goes to a few places: compute, databases, storage and data transfer. Look there first.
+
+              Right-size resources to the load you actually have. Choose between **serverless**, which scales to zero and suits spiky load, and **always-on**, which is cheaper for steady high load. Move old data to cheaper storage tiers.
+
+              ### Key ideas
+              - Right-size using real usage, not guesses
+              - Spot capacity and Savings Plans cut compute cost when workloads suit them
+              - Use storage tiers and lifecycle rules for data that is rarely read
+              - Keep traffic inside a zone or region where possible
+              - Turn off non-production environments outside working hours
+
+              ### Common mistakes
+              - Large instances "to be safe" that run at 10% load
+              - Cross-zone chatter between services that could sit together
+              - Logs kept forever at the most expensive tier
             resources:
               - post: ecs-fargate-spot-capacity-providers
               - { label: "Cost optimization pillar (AWS)", url: "https://docs.aws.amazon.com/wellarchitected/latest/cost-optimization-pillar/welcome.html", kind: docs }
+              - { label: "What is FinOps? (FinOps Foundation)", url: "https://www.finops.org/introduction/what-is-finops/", kind: docs }
           - id: finops
             title: FinOps
             optional: true
@@ -471,8 +1109,24 @@ stages:
             learn:
               - Inform, optimize, operate
               - Showback and chargeback
+            body: |
+              FinOps is a practice where engineering, finance and product share ownership of cloud spend. It treats cost as something teams manage every week, not a surprise at month end.
+
+              The FinOps Foundation describes three repeating phases: **inform**, **optimize** and **operate**.
+
+              ### Key ideas
+              - **Inform**: make costs visible and allocated to teams through tags and reports
+              - **Optimize**: act on waste, right-size and use commitments
+              - **Operate**: set goals, review regularly and build cost into culture
+              - **Showback** shows each team what it spends
+              - **Chargeback** bills each team for what it spends
+              - Each team owns its costs, with finance and a central group helping
+
+              ### In practice
+              Start small: tag everything, send each team a weekly cost report and pick one saving to fix per sprint.
             resources:
               - { label: "FinOps Framework", url: "https://www.finops.org/framework/", kind: docs }
+              - { label: "What is FinOps? (FinOps Foundation)", url: "https://www.finops.org/introduction/what-is-finops/", kind: docs }
 
       - id: decision-records
         title: Architecture decision records
@@ -484,6 +1138,20 @@ stages:
             learn:
               - The Nygard ADR template
               - What counts as a significant decision
+            body: |
+              An **Architecture Decision Record** captures one significant decision in a short document. Future readers, including you, can see what was decided and why.
+
+              Michael Nygard's template has four parts: **title**, **context**, **decision** and **consequences**, plus a **status** such as proposed, accepted or superseded. Keep records in the code repository, one file each.
+
+              ### Key ideas
+              - Context: the forces and constraints at the time
+              - Decision: stated plainly, such as "We will use PostgreSQL"
+              - Consequences: good and bad, including new work created
+              - Write an ADR when a choice is costly to reverse or affects other teams
+              - Never edit history: supersede an old ADR with a new one
+
+              ### Example
+              Title: Use managed queues for background jobs. Context: three-person team, no ops capacity. Decision: use the cloud provider's queue service. Consequences: no brokers to run, but we depend on the provider's limits.
             resources:
               - { label: "Documenting Architecture Decisions (Michael Nygard)", url: "https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions", kind: article }
               - { label: "Architecture Decision Records", url: "https://adr.github.io/", kind: docs }
@@ -493,6 +1161,23 @@ stages:
             learn:
               - Options considered and why they lost
               - Getting comments before building
+            body: |
+              A design document is a longer write-up for a new system or a big change. It lays out the problem, the options, the chosen one and the reasons.
+
+              The most useful part is the **options considered**. Show what you did not choose and why. Readers then trust the decision, and can point out something you missed.
+
+              ### Key ideas
+              - State goals and non-goals first
+              - Describe two or three real options with trade-offs
+              - Explain why the others lost
+              - Include diagrams, a cost estimate and a rollout plan
+              - Share it early and ask for comments before building
+              - Keep it short enough that people read it
+
+              ### Common mistakes
+              - Writing the document after the decision, as a justification
+              - Listing only one option
+              - Leaving out risks and unknowns
             resources:
               - { label: "Software Architecture Guide (Martin Fowler)", url: "https://martinfowler.com/architecture/", kind: article }
               - post: agents-md-is-code
@@ -503,6 +1188,20 @@ stages:
             learn:
               - The advice process
               - Revisiting and superseding decisions
+            body: |
+              If every decision goes through the architect, the architect becomes a bottleneck. Lightweight processes let teams decide for themselves while still getting good advice.
+
+              The **advice process** works like this: anyone can make a decision, but they must first seek advice from the people affected and from those with expert knowledge. They are not bound to follow it, but they must listen.
+
+              ### Key ideas
+              - The decision maker is the person closest to the work
+              - Advice is required, agreement is not
+              - RFCs and ADRs make the thinking visible and searchable
+              - Decisions are not permanent: revisit when facts change
+              - **Supersede** an old decision with a new record, so history is kept
+
+              ### In practice
+              A team wants to adopt a new queue service. They post a short RFC, collect comments from security and operations for a week, decide, and record the result in an ADR.
             resources:
               - { label: "Scaling the Practice of Architecture, Conversationally (Martin Fowler)", url: "https://martinfowler.com/articles/scaling-architecture-conversationally.html", kind: article }
 
@@ -519,6 +1218,20 @@ stages:
             learn:
               - Organizational units and account structure
               - Shared services and log archive accounts
+            body: |
+              Putting everything in one cloud account is risky. A mistake, a leaked key or a runaway bill affects every workload. Using many accounts limits the **blast radius**.
+
+              Group accounts into **organizational units** (OUs) with common policies, for example Production, Non-production, Security and Infrastructure. Typically each workload gets separate accounts per environment.
+
+              ### Key ideas
+              - Accounts are the strongest isolation boundary for access and billing
+              - Separate dev, test and production
+              - A **log archive** account holds central, protected audit logs
+              - A **shared services** account holds common tools and networking
+              - Policies attach at the OU level and apply to every account below
+
+              ### Example
+              Organisation root, with OUs for Security, Infrastructure and Workloads. Under Workloads, the shop has a dev account and a prod account. A compromised dev account cannot touch production data.
             resources:
               - { label: "Organizing Your AWS Environment Using Multiple Accounts", url: "https://docs.aws.amazon.com/whitepapers/latest/organizing-your-aws-environment/organizing-your-aws-environment.html", kind: docs }
               - { label: "AWS Organizations", url: "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_introduction.html", kind: docs }
@@ -528,9 +1241,24 @@ stages:
             learn:
               - Control Tower vs a custom landing zone
               - Account vending with infrastructure as code
+            body: |
+              A **landing zone** is the ready-made base that new accounts start from. It includes the account structure, central logging, guardrails and a network baseline. Build it once, reuse it for every team.
+
+              Two routes. A **managed service**, such as AWS Control Tower, gives a standard setup quickly. A **custom** landing zone built with infrastructure as code gives full control, but takes more work to run.
+
+              ### Key ideas
+              - Managed is faster and fine for most organisations
+              - Custom suits unusual compliance or network needs
+              - **Account vending**: a team requests an account and gets one with guardrails, logging and network already set up
+              - Define the vending process in code so every account is identical
+              - Central logging and security tooling are on from day one
+
+              ### In practice
+              A team files a request in a pipeline. Ten minutes later they have an account with SSO access, budget alerts and baseline policies.
             resources:
               - { label: "AWS Control Tower", url: "https://docs.aws.amazon.com/controltower/latest/userguide/what-is-control-tower.html", kind: docs }
               - { label: "Azure landing zones (Cloud Adoption Framework)", url: "https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/landing-zone/", kind: docs }
+              - { label: "Building a scalable and secure multi-VPC network infrastructure (AWS)", url: "https://docs.aws.amazon.com/whitepapers/latest/building-scalable-secure-multi-vpc-network-infrastructure/welcome.html", kind: docs }
           - id: network-topology
             title: Enterprise network topology
             summary: Hub and spoke, transit gateways and connecting on-premises networks to many accounts.
@@ -538,6 +1266,21 @@ stages:
               - Hub-and-spoke networking
               - Hybrid connectivity with VPN and dedicated links
               - Central egress and inspection
+            body: |
+              When a company has many accounts and sites, connecting them one by one becomes a mess. A **hub-and-spoke** design fixes this: a central hub network connects to many spoke networks.
+
+              A **transit gateway** or equivalent acts as the hub. Each account's network attaches to it once.
+
+              ### Key ideas
+              - Hub and spoke: fewer connections, central control
+              - **Hybrid connectivity** to on-premises uses a VPN, or a dedicated private link for steady, high-volume traffic
+              - **Central egress**: outbound internet traffic leaves through one inspected point
+              - Central inspection applies firewalls and logging in one place
+              - Plan IP ranges so networks never overlap
+
+              ### Common mistakes
+              - Overlapping address ranges that make connecting later impossible
+              - Funnelling everything through one inspection point and creating a bottleneck or single point of failure
             resources:
               - { label: "AWS Architecture Center", url: "https://aws.amazon.com/architecture/", kind: docs }
           - id: security-reference-architecture
@@ -547,6 +1290,20 @@ stages:
             learn:
               - Delegated security admin accounts
               - Organisation-wide detection
+            body: |
+              Security tools work better when laid out on purpose across the whole organisation, not set up account by account.
+
+              A reference architecture shows where each service lives. A central **security account** runs detection and monitoring for all accounts, and a separate **log archive** account keeps protected audit logs.
+
+              ### Key ideas
+              - **Delegated administrator** accounts run security services for the organisation, so the management account stays untouched
+              - Turn on organisation-wide detection: threat detection, configuration checks and audit logging
+              - New accounts get these automatically
+              - Findings flow to one place where the security team can act on them
+              - Keep production workloads out of the management account
+
+              ### In practice
+              When a new account is created, threat detection and audit logging are enabled by policy. Findings appear in the central security account without the workload team doing anything.
             resources:
               - { label: "AWS Security Reference Architecture", url: "https://docs.aws.amazon.com/prescriptive-guidance/latest/security-reference-architecture/welcome.html", kind: docs }
 
@@ -560,6 +1317,25 @@ stages:
             learn:
               - What each strategy means
               - Effort and benefit of each
+            body: |
+              When you migrate, each application gets its own strategy. The "7 Rs" name the options.
+
+              - **Retire**: switch it off.
+              - **Retain**: leave it where it is for now.
+              - **Rehost**: lift and shift to virtual machines.
+              - **Relocate**: move at the hypervisor level with little change.
+              - **Repurchase**: replace with a SaaS product.
+              - **Replatform**: small changes to use managed services.
+              - **Refactor**: redesign for the cloud.
+
+              ### Key ideas
+              - Effort and benefit both rise as you go from rehost to refactor
+              - Many applications are best retired or retained
+              - Pick per application, based on business value and technical state
+              - Rehost first, improve later, is common when a deadline is fixed
+
+              ### Example
+              An old internal wiki is repurchased as a SaaS tool. A stable billing app is rehosted. The customer portal is refactored, since it drives revenue.
             resources:
               - { label: "Migration strategies (AWS Prescriptive Guidance)", url: "https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html", kind: docs }
           - id: portfolio-assessment
@@ -569,17 +1345,48 @@ stages:
               - Discovery and dependency mapping
               - Planning waves
               - Building the business case
+            body: |
+              Before migrating, you need to know what you have. A portfolio assessment lists every application, its owner, its dependencies and its condition.
+
+              **Discovery** tools help, but people fill the gaps. Then dependencies decide the order: apps that talk to each other usually move together in a **wave**.
+
+              ### Key ideas
+              - Build an inventory: applications, servers, databases, owners, business criticality
+              - Map dependencies so you do not break a link you did not know about
+              - Group applications into waves, starting with simple, low-risk ones
+              - Use early waves to learn and build the team's skills
+              - Build the **business case**: cost to migrate, run cost after, risk reduced, time to value
+
+              ### Common mistakes
+              - Discovering a hidden dependency during cutover
+              - Starting with the most critical system to prove a point
             resources:
               - { label: "AWS Cloud Migration", url: "https://aws.amazon.com/cloud-migration/", kind: docs }
               - { label: "Cloud Adoption Framework (Azure)", url: "https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/", kind: docs }
+              - { label: "Strangler Fig pattern (Azure Architecture Center)", url: "https://learn.microsoft.com/en-us/azure/architecture/patterns/strangler-fig", kind: docs }
           - id: strangler-fig
             title: The strangler fig pattern
             summary: Replace a legacy system piece by piece behind a routing layer instead of a big-bang rewrite.
             learn:
               - Routing traffic between old and new
               - Retiring the old system safely
+            body: |
+              Rewriting a legacy system in one go is risky and often fails. The **strangler fig** pattern replaces it piece by piece. Like the vine that grows around a tree, new code slowly takes over until the old system can be removed.
+
+              Place a routing layer, such as a proxy or API gateway, in front of the old system. Then move one feature at a time to new code and change the routing.
+
+              ### Key ideas
+              - Route traffic between old and new by path, user group or feature
+              - Move small slices, release often
+              - Run both in parallel and compare results where possible
+              - Keep a quick way to route back to the old system
+              - **Retire** the old parts once nothing uses them
+
+              ### Example
+              A proxy sends `/orders` to the old app. The team builds a new orders service, sends 5% of traffic to it, checks it, then raises it to 100% and deletes the old code.
             resources:
               - { label: "StranglerFigApplication (Martin Fowler)", url: "https://martinfowler.com/bliki/StranglerFigApplication.html", kind: article }
+              - { label: "Change data capture with AWS DMS (AWS)", url: "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Task.CDC.html", kind: docs }
           - id: data-migration
             title: Data migration and cutover
             optional: true
@@ -587,8 +1394,25 @@ stages:
             learn:
               - Full load plus change data capture
               - Cutover and rollback plans
+            body: |
+              Moving data is the hardest part of a migration. Downtime must be short, and nothing can be lost.
+
+              A common approach: do a **full load** of the existing data, then use **change data capture** (CDC) to keep replicating new changes. When the two are in sync, you cut over.
+
+              ### Key ideas
+              - Full load copies the bulk, CDC streams the changes made during and after
+              - Validate: row counts, checksums and sample queries
+              - Plan the **cutover**: stop writes, let replication finish, point the app to the new database
+              - Prepare a **rollback plan** before you start
+              - Rehearse the whole process on a copy
+
+              ### Common mistakes
+              - Never rehearsing, so the first real run is the first run
+              - No way back after cutover
+              - Forgetting sequences, permissions or scheduled jobs
             resources:
               - { label: "AWS Database Migration Service", url: "https://docs.aws.amazon.com/dms/latest/userguide/Welcome.html", kind: docs }
+              - { label: "Change data capture with AWS DMS (AWS)", url: "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Task.CDC.html", kind: docs }
 
       - id: multi-region
         title: Multi-region architecture
@@ -600,6 +1424,20 @@ stages:
             learn:
               - Availability, latency and data residency drivers
               - The cost of a second region
+            body: |
+              Most workloads do not need multiple regions. A multi-AZ design already survives a data centre failure. A second region adds cost and complexity in every layer.
+
+              Real reasons exist. **Availability**: a regional outage cannot be tolerated. **Latency**: users are far from the one region. **Data residency**: law requires data in specific places.
+
+              ### Key ideas
+              - Be honest about whether the business needs this
+              - Cost goes up: duplicate infrastructure, data transfer, more testing
+              - Complexity goes up: data replication, failover, configuration drift
+              - Most outages are caused by bad changes, which two regions do not prevent
+              - A tested DR plan often costs far less
+
+              ### In practice
+              Ask what a full regional outage would cost, and how often one realistically happens. Often the answer is a warm standby or pilot light in a second region, not active/active.
             resources:
               - { label: "Amazon Builders' Library", url: "https://aws.amazon.com/builders-library/", kind: article }
           - id: active-active-vs-passive
@@ -608,9 +1446,26 @@ stages:
             learn:
               - Traffic routing and failover
               - Data replication and conflicts
+            body: |
+              There are two main ways to use a second region.
+
+              **Active-passive**: one region serves traffic, the other waits ready to take over. **Active-active**: both serve traffic all the time.
+
+              ### Key ideas
+              - Active-passive is simpler and cheaper, with some failover time
+              - Active-active gives near-zero downtime and lower latency, but costs more
+              - Traffic routing uses DNS or a global load balancer with health checks
+              - Data is the hard part: replication, lag and **write conflicts**
+              - Active-active often needs a design where each user has a home region, or data that merges safely
+
+              ### Common mistakes
+              - Replicating the database but not testing failover
+              - Letting two regions write the same record and having no conflict rule
+              - Forgetting that the passive region's quotas and capacity must be ready
             resources:
               - { label: "Disaster Recovery of Workloads on AWS", url: "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-workloads-on-aws.html", kind: docs }
               - { label: "Designing Data-Intensive Applications", url: "https://dataintensive.net/", kind: article }
+              - { label: "What is a cell-based architecture? (AWS Well-Architected)", url: "https://docs.aws.amazon.com/wellarchitected/latest/reducing-scope-of-impact-with-cell-based-architecture/what-is-a-cell-based-architecture.html", kind: docs }
           - id: cell-based-architecture
             title: Cell-based architecture
             optional: true
@@ -618,8 +1473,23 @@ stages:
             learn:
               - Cells and shuffle sharding
               - Routing customers to cells
+            body: |
+              In a cell-based architecture, you split the system into independent copies called **cells**. Each cell serves a slice of customers and shares nothing with other cells. A failure only affects the customers in that cell.
+
+              This limits the **blast radius**. If one cell has a bad deploy or a runaway customer, the others keep working.
+
+              ### Key ideas
+              - Each cell is a full stack with its own data
+              - A thin **router** maps each customer to a cell
+              - **Shuffle sharding** gives each customer a random small group of resources, so two customers rarely share the same failing set
+              - Cells have a fixed maximum size, so you scale by adding cells
+              - Deploy to one cell first and watch it
+
+              ### Example
+              Ten cells each serve ten percent of customers. A bad release is deployed to cell one, shows errors, and is rolled back. Ninety percent of customers never saw it.
             resources:
               - { label: "Amazon Builders' Library", url: "https://aws.amazon.com/builders-library/", kind: article }
+              - { label: "What is a cell-based architecture? (AWS Well-Architected)", url: "https://docs.aws.amazon.com/wellarchitected/latest/reducing-scope-of-impact-with-cell-based-architecture/what-is-a-cell-based-architecture.html", kind: docs }
 
       - id: enterprise-integration
         title: Enterprise integration
@@ -631,16 +1501,47 @@ stages:
             learn:
               - Message channels, routers and translators
               - Canonical data models
+            body: |
+              Enterprise Integration Patterns is a catalogue of solutions for connecting systems with messages. It was written before the cloud, and its names are still the vocabulary architects use.
+
+              Systems exchange messages over a **channel**. Between sender and receiver you may need a **router** that decides where a message goes, and a **translator** that converts its format.
+
+              ### Key ideas
+              - **Message channel**: the pipe between systems
+              - **Content-based router**: sends a message to different places based on its content
+              - **Message translator**: converts one format to another
+              - **Canonical data model**: one shared format so each system translates once, not to every other system
+              - Many cloud services implement these patterns as features
+
+              ### Example
+              Orders arrive in three formats from three partners. A translator converts each to the canonical order format, and a router sends it to the right fulfilment queue.
             resources:
               - { label: "Enterprise Integration Patterns", url: "https://www.enterpriseintegrationpatterns.com/", kind: article }
+              - { label: "Anti-corruption Layer pattern (Azure Architecture Center)", url: "https://learn.microsoft.com/en-us/azure/architecture/patterns/anti-corruption-layer", kind: docs }
           - id: hybrid-and-legacy
             title: Hybrid and legacy systems
             summary: Integrate with on-premises databases, mainframes and SaaS products without tight coupling.
             learn:
               - Anti-corruption layers
               - Batch file transfer vs APIs vs events
+            body: |
+              Large companies still run mainframes, on-premises databases and many SaaS tools. A cloud solution must connect to them without inheriting their problems.
+
+              An **anti-corruption layer** sits between the new system and the old one. It translates, so the legacy model does not leak into your design.
+
+              ### Key ideas
+              - Do not let the legacy data model shape the new system
+              - Choose the integration style: **batch file transfer**, **APIs** or **events**
+              - Batch is simple and robust for non-urgent data
+              - APIs give real-time answers but couple the systems
+              - Events decouple, but legacy systems may need an adapter to publish them
+              - Expect slow, flaky or limited interfaces and design timeouts and retries
+
+              ### Example
+              A mainframe exports a nightly file. An adapter reads it, converts it to events and publishes them. New services subscribe to events and never see the mainframe format.
             resources:
               - { label: "Cloud design patterns (Azure)", url: "https://learn.microsoft.com/en-us/azure/architecture/patterns/", kind: docs }
+              - { label: "API gateways in microservices (Azure Architecture Center)", url: "https://learn.microsoft.com/en-us/azure/architecture/microservices/design/gateway", kind: docs }
           - id: api-management
             title: API management at scale
             optional: true
@@ -648,8 +1549,23 @@ stages:
             learn:
               - Central vs federated API gateways
               - Rate limits, keys and usage plans
+            body: |
+              When many teams publish APIs, you need central control. An **API gateway** handles authentication, rate limiting, routing and logging in front of the services.
+
+              A **developer portal** lists the APIs, with documentation, and lets consumers get access.
+
+              ### Key ideas
+              - A central gateway is simple to govern, but it can become a bottleneck for change
+              - Federated gateways let each team or domain run its own under shared rules
+              - **Rate limits** protect services from abuse and noisy neighbours
+              - **API keys** and **usage plans** identify consumers and cap their use
+              - Version and deprecate APIs with clear dates
+
+              ### In practice
+              Set standards: every public API has an OpenAPI spec, authentication, a rate limit and an owner. Publish them in the portal so teams find APIs instead of building their own copies.
             resources:
               - { label: "Azure Architecture Center", url: "https://learn.microsoft.com/en-us/azure/architecture/", kind: docs }
+              - { label: "API gateways in microservices (Azure Architecture Center)", url: "https://learn.microsoft.com/en-us/azure/architecture/microservices/design/gateway", kind: docs }
 
       - id: governance
         title: Governance
@@ -661,6 +1577,21 @@ stages:
             learn:
               - Service control policies
               - Config rules and policy as code
+            body: |
+              Guardrails keep many teams safe without a person approving every change. There are two kinds.
+
+              **Preventive** guardrails block a bad action before it happens. **Detective** guardrails find problems after, such as drift or a public bucket, and report or fix them.
+
+              ### Key ideas
+              - **Service control policies** set the maximum permissions for accounts in an organisation, such as denying use of unapproved regions
+              - **Config rules** continuously check resources against a standard
+              - **Policy as code** stores rules in version control, reviewed like any other change
+              - Prefer preventive for serious risks, detective for the rest
+              - Give clear error messages so teams know why something was blocked
+
+              ### Common mistakes
+              - Blocking so much that teams find workarounds
+              - Detecting problems with nobody assigned to fix them
             resources:
               - { label: "AWS Organizations", url: "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_introduction.html", kind: docs }
               - post: how-i-make-ai-coding-agents-safe-in-a-real-aws-codebase
@@ -670,6 +1601,20 @@ stages:
             learn:
               - Reference architectures and modules
               - Tech radar for approved technologies
+            body: |
+              Standards help many teams move fast in the same direction. A **golden path** is a supported, well-documented way to do a common task, so the right way is also the easy way.
+
+              Provide **reference architectures** and reusable modules. A team that needs a web service takes the template and gets logging, security and deployment included.
+
+              ### Key ideas
+              - Templates and modules beat long documents
+              - Golden paths are optional but attractive, not forced
+              - A **tech radar** lists technologies as adopt, trial, assess or hold
+              - Standards need an owner and a way to propose changes
+              - Review and retire paths that no longer fit
+
+              ### Example
+              A platform team publishes an infrastructure module for a container service with a load balancer, alarms and a pipeline. A new team deploys a service in an afternoon and passes the security review without extra work.
             resources:
               - { label: "Thoughtworks Technology Radar", url: "https://www.thoughtworks.com/radar", kind: article }
               - post: deploying-a-laravel-application-to-amazon-ec2-using-terraform
@@ -680,6 +1625,20 @@ stages:
             learn:
               - Control mapping
               - Continuous compliance evidence
+            body: |
+              Compliance frameworks such as ISO 27001, SOC 2 or PCI DSS list many controls. Handling them by hand for each team does not scale.
+
+              **Control mapping** links each framework requirement to a technical control, such as encryption or access logging. One control can satisfy several frameworks. Then evidence is collected by the systems themselves.
+
+              ### Key ideas
+              - Map each requirement once to a control and an owner
+              - Implement controls as guardrails and policies where possible
+              - Collect evidence automatically: configuration checks, logs, reports
+              - **Continuous compliance** shows status all the time, not only before an audit
+              - Keep an audit trail of changes and approvals
+
+              ### In practice
+              Instead of screenshots before an audit, the auditor gets a dashboard that shows encryption is on for every storage resource, and the date each check last passed.
             resources:
               - { label: "Cloud Adoption Framework (Azure)", url: "https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/", kind: docs }
 
@@ -693,6 +1652,20 @@ stages:
             learn:
               - Riding the architect elevator
               - Choosing the right diagram level
+            body: |
+              Different people care about different things. An executive wants **risk, cost and time**. An engineer wants detail and trade-offs. Security wants controls and evidence. Operations wants to know how it runs at 3am.
+
+              Gregor Hohpe calls this the **architect elevator**: you ride between the penthouse, where business decisions are made, and the engine room, where the work happens, and translate in both directions.
+
+              ### Key ideas
+              - Start from what the listener cares about
+              - Use the diagram level that fits: context for executives, containers and components for engineers
+              - Replace jargon with consequences: not "multi-AZ" but "survives a data centre fire"
+              - Say what you need from them
+              - Keep it short, and keep detail ready
+
+              ### Example
+              To an executive: "This option costs 3,000 dollars a month more and cuts the chance of a long outage from once a year to once in five."
             resources:
               - { label: "The Architect Elevator (Gregor Hohpe)", url: "https://architectelevator.com/", kind: article }
           - id: selling-a-design
@@ -701,6 +1674,22 @@ stages:
             learn:
               - Options, recommendation, ask
               - Showing cost and risk side by side
+            body: |
+              A design only gets built if people agree to it. Presenting it well is part of the job.
+
+              Use a simple structure: **options, recommendation, ask**. Show two or three real options, say which you recommend and why, then say what you need, such as a decision, a budget or a team.
+
+              ### Key ideas
+              - Put cost and risk side by side for each option
+              - Be honest about downsides, since reviewers will find them anyway
+              - Lead with the answer, then the support
+              - Expect objections and prepare for them: cost, time, skills, risk
+              - Listen to objections: they often hide a real constraint you missed
+
+              ### Common mistakes
+              - Presenting one option as if there were no alternative
+              - Hiding the cost until the end
+              - Arguing with the objection instead of asking what is behind it
             resources:
               - { label: "Staff Engineer (Will Larson)", url: "https://staffeng.com/", kind: article }
           - id: influence-without-authority
@@ -710,6 +1699,21 @@ stages:
             learn:
               - Building trust through delivery
               - Writing that persuades
+            body: |
+              Architects rarely manage the teams they advise. You cannot order people to follow a direction, so you earn their agreement.
+
+              Trust comes first. Teams listen to people who help them ship, who admit when they are wrong and who do not slow them down for no reason.
+
+              ### Key ideas
+              - Build trust through delivery: solve real problems for teams
+              - Spend time with the teams, not only in meetings about them
+              - Write clearly: a good one-page proposal travels further than you can
+              - Find allies and let teams own the decision
+              - Explain the why, since people follow reasons better than rules
+              - Start small and show a result
+
+              ### In practice
+              Instead of announcing a new standard, you pair with one team to apply it, write down the result and let that team present it to others.
             resources:
               - { label: "Staff Engineer (Will Larson)", url: "https://staffeng.com/", kind: article }
 
@@ -723,6 +1727,21 @@ stages:
             learn:
               - Using the pillars as a checklist
               - Asking about failure, not only success
+            body: |
+              A checklist makes reviews consistent. Go in a fixed order so nothing is missed: requirements, failure modes, security, cost and operations.
+
+              The Well-Architected pillars work as a ready-made list. Take each one and ask the standard questions of the design in front of you.
+
+              ### Key ideas
+              - Confirm the requirements first, since a design for the wrong problem is useless
+              - Ask about **failure**: what happens when this component, zone or dependency fails?
+              - Security: who can access what, and how is data protected?
+              - Cost: what does it cost, and how does that grow?
+              - Operations: how will it be deployed, monitored and fixed?
+              - Write down findings with a severity
+
+              ### Example
+              For each box in the diagram, ask three questions: what if it is slow, what if it is down, and what if it is attacked?
             resources:
               - { label: "AWS Well-Architected Framework", url: "https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html", kind: docs }
               - post: production-ai-code-review-for-terraform-and-lambda-prs
@@ -732,8 +1751,26 @@ stages:
             learn:
               - Blocking vs non-blocking comments
               - Reviewing the decision, not the person
+            body: |
+              Good feedback improves a design and keeps the relationship intact. Separate what must change from what is only your taste.
+
+              Mark each comment as **blocking** or **non-blocking**. A blocking comment names a real risk, such as data loss or a security hole. Everything else is a suggestion the team may take or leave.
+
+              ### Key ideas
+              - Explain the reason behind every comment
+              - Review the decision, not the person
+              - Ask questions before making claims, as you may be missing context
+              - Offer an alternative when you object
+              - Acknowledge what is good
+              - Do not rewrite the design to match your own
+
+              ### Common mistakes
+              - Twenty comments with no priority, so the one important issue is lost
+              - "I would not do it this way" without a reason
+              - Blocking on a preference
             resources:
               - { label: "Scaling the Practice of Architecture, Conversationally (Martin Fowler)", url: "https://martinfowler.com/articles/scaling-architecture-conversationally.html", kind: article }
+              - { label: "Fitness function-driven development (Thoughtworks)", url: "https://www.thoughtworks.com/insights/articles/fitness-function-driven-development", kind: article }
           - id: architecture-fitness
             title: Fitness functions
             optional: true
@@ -741,8 +1778,23 @@ stages:
             learn:
               - Testing architecture rules in CI
               - Tracking quality metrics over time
+            body: |
+              Architecture rules fade over time unless something checks them. A **fitness function** is an automated test for an architectural quality, such as response time, dependency rules or security settings.
+
+              They run in the build pipeline, so drift is caught when it happens, not in a yearly review.
+
+              ### Key ideas
+              - Turn important qualities into checks: latency budgets, no calls from layer A to layer C, no public storage
+              - Run them in CI and fail the build when broken
+              - Track metrics over time: build time, coupling, error rates
+              - Start with two or three that matter most
+              - Review the checks, and delete those that no longer help
+
+              ### Example
+              A test fails the build if any module in the web layer imports from the database layer directly. Another alarm fires if the 95th percentile response time passes the agreed budget.
             resources:
               - { label: "Fundamentals of Software Architecture (O'Reilly)", url: "https://www.oreilly.com/library/view/fundamentals-of-software/9781492043447/", kind: article }
+              - { label: "Fitness function-driven development (Thoughtworks)", url: "https://www.thoughtworks.com/insights/articles/fitness-function-driven-development", kind: article }
 
       - id: certifications
         title: Certification paths
@@ -754,6 +1806,20 @@ stages:
             learn:
               - Exam domains
               - A study plan with hands-on labs
+            body: |
+              The AWS Certified Solutions Architect Associate is the usual first architect certification. It tests whether you can choose services and design solutions that are secure, resilient, performant and cost-aware.
+
+              Check the current exam guide for the exact domains. They cover secure architectures, resilient architectures, high-performing architectures and cost-optimised architectures.
+
+              ### Key ideas
+              - Read the official exam guide first and use it as your syllabus
+              - Mix reading with **hands-on labs**: build a VPC, a load-balanced app, a database with failover
+              - Practise scenario questions, where several answers look valid and one fits the constraints best
+              - Learn why wrong answers are wrong
+              - Take timed practice exams late in your preparation
+
+              ### In practice
+              A simple plan: eight weeks, one domain every two weeks, a small project per week, and practice exams in the last two weeks.
             resources:
               - post: how-to-start-learning-aws-cloud-and-get-certified
               - { label: "AWS Certified Solutions Architect - Associate", url: "https://aws.amazon.com/certification/certified-solutions-architect-associate/", kind: course }
@@ -763,6 +1829,22 @@ stages:
             learn:
               - Long scenario questions
               - Organisation-scale design
+            body: |
+              The Professional exam is the senior step. Questions are long scenarios with many moving parts: multiple accounts, migrations, hybrid networks and strict requirements.
+
+              You need to read carefully and find the one detail that decides the answer, such as a recovery target, a compliance rule or a budget limit.
+
+              ### Key ideas
+              - Expect organisation-scale design: multi-account, networking, governance
+              - Migration and modernisation are heavily tested
+              - Real experience helps a lot
+              - Practise reading long questions: find the requirement, the constraints, then eliminate options
+              - Review whitepapers and the Well-Architected material
+              - Time management matters, so practise at full length
+
+              ### Common mistakes
+              - Picking the technically best answer that ignores a stated constraint
+              - Skipping the networking and hybrid topics
             resources:
               - { label: "AWS Certified Solutions Architect - Professional", url: "https://aws.amazon.com/certification/certified-solutions-architect-professional/", kind: course }
               - { label: "AWS Skill Builder", url: "https://skillbuilder.aws/", kind: course }
@@ -773,6 +1855,19 @@ stages:
             learn:
               - Azure Solutions Architect Expert
               - Google Professional Cloud Architect
+            body: |
+              Azure and Google Cloud have architect certifications of their own. They are useful when clients or employers use those clouds, especially in consulting.
+
+              **Azure Solutions Architect Expert** covers design for identity, data, business continuity and infrastructure on Azure. **Google Professional Cloud Architect** tests designing and managing solutions on Google Cloud.
+
+              ### Key ideas
+              - Check each provider's current certification page, since exam names and prerequisites change
+              - A second cloud shows breadth, but depth on one cloud is worth more first
+              - Your existing knowledge of patterns transfers, learn the service names and limits
+              - Use the provider's free learning paths and sandboxes
+
+              ### In practice
+              If you work for a consulting firm with Azure clients, add the Azure certification after your first AWS one. Map services you know to their equivalents, then fill in identity and governance differences.
             resources:
               - { label: "Microsoft Learn certifications", url: "https://learn.microsoft.com/en-us/credentials/", kind: course }
               - { label: "Google Cloud certifications", url: "https://cloud.google.com/learn/certification", kind: course }

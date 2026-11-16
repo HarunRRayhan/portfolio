@@ -3,7 +3,7 @@ title: Database Engineering
 summary: From your first SQL query to how a database stores pages on disk. Learn modelling, indexes, transactions, replication and scaling, then the internals underneath.
 order: 8
 category: foundations
-updated: '2026-11-15'
+updated: '2026-11-16'
 icon: database
 color: blue
 logos:
@@ -26,26 +26,74 @@ stages:
               - Concurrent readers and writers
               - Surviving a crash mid-write
               - Querying instead of scanning
+            body: |
+              A plain file works for one program and one user. It breaks down fast once several programs share the data.
+
+              A database adds the guarantees a file lacks: safe sharing, crash safety and fast queries.
+
+              ### Key ideas
+              - **Concurrent access:** two writers editing the same file overwrite each other. A database coordinates them with locks and transactions.
+              - **Crash safety:** if the power fails halfway through a file write, you get a half-written file. A database logs changes first, so it recovers to a clean state.
+              - **Querying:** with a file you read everything and filter in code. A database uses indexes to jump straight to the rows you want, and SQL lets you describe what you need, not how to loop.
+
+              ### Example
+              A shop keeps orders in `orders.json`. Two requests add an order at the same moment, and one order vanishes. A crash during a save leaves invalid JSON. Finding one customer's orders means reading the whole file. Moving the orders into a database fixes all three problems.
             resources:
               - { label: "CMU 15-445 Intro to Database Systems", url: "https://15445.courses.cs.cmu.edu/", kind: course }
               - { label: "CMU Database Group on YouTube", url: "https://www.youtube.com/@CMUDatabaseGroup", kind: video }
+              - { label: "Database (Wikipedia)", url: "https://en.wikipedia.org/wiki/Database", kind: article }
           - id: relational-model
             title: The relational model
             summary: Tables, rows, columns and keys, and why relations made databases general purpose.
             learn:
               - Tables and rows
               - Primary and foreign keys
+            body: |
+              The relational model stores data as **tables**, which the theory calls relations. Edgar Codd proposed it in 1970. Its big idea was that you describe the data and ask questions about it, and the database decides how to find the answer.
+
+              ### Key ideas
+              - A **table** holds one kind of thing, such as users or orders.
+              - A **row** is one record. A **column** is one named attribute with a type.
+              - A **primary key** uniquely identifies each row in a table.
+              - A **foreign key** is a column that holds another table's primary key. It links rows across tables.
+              - Because every table works the same way, one query language (SQL) works for any data.
+
+              ### Example
+              ```sql
+              CREATE TABLE users  (id bigint PRIMARY KEY, email text);
+              CREATE TABLE orders (id bigint PRIMARY KEY,
+                                   user_id bigint REFERENCES users(id));
+              ```
+              Each order points at one user through `user_id`.
             resources:
               - { label: "PostgreSQL tutorial: concepts", url: "https://www.postgresql.org/docs/current/tutorial-concepts.html", kind: docs }
+              - { label: "Relational model (Wikipedia)", url: "https://en.wikipedia.org/wiki/Relational_model", kind: article }
           - id: managed-databases
             title: Running a managed database
             summary: Start a hosted database and connect your app to it.
             learn:
               - Connection strings
               - Managed vs self-hosted
+            body: |
+              A managed database is one a provider runs for you. They handle installation, patches, backups and failover. You get an address and credentials, and you connect from your app.
+
+              ### Key ideas
+              - A **connection string** holds everything the app needs: user, password, host, port and database name.
+              - Keep the string in an environment variable or secret store, never in code.
+              - **Managed** services (RDS, Cloud SQL, Neon, Supabase) cost more per hour but save you from running backups and upgrades.
+              - **Self-hosted** gives you full control and a lower bill, but you own every outage and every restore.
+              - Pick managed until you have a clear reason not to.
+
+              ### Example
+              A PostgreSQL connection string looks like this.
+              ```bash
+              DATABASE_URL=postgresql://app_user:secret@db.example.com:5432/shop
+              ```
+              Your app reads `DATABASE_URL` at startup and opens connections with it.
             resources:
               - post: add-database-to-application-hosted-in-amazon-lightsail
               - { label: "What is Amazon RDS? (AWS docs)", url: "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html", kind: docs }
+              - { label: "Connection strings (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/libpq-connect.html", kind: docs }
 
       - id: sql-basics
         title: SQL basics
@@ -57,9 +105,27 @@ stages:
             learn:
               - SELECT, WHERE, ORDER BY, LIMIT
               - NULL and three-valued logic
+            body: |
+              `SELECT` reads rows. `WHERE` keeps only the rows that match a condition. `ORDER BY` sorts the result and `LIMIT` caps how many rows come back.
+
+              ### Key ideas
+              - Order of writing: `SELECT`, `FROM`, `WHERE`, `ORDER BY`, `LIMIT`.
+              - Without `ORDER BY` the row order is not guaranteed, even if it looks stable.
+              - **NULL** means unknown, not zero or empty. Comparing anything to `NULL` gives unknown, not true.
+              - SQL uses three-valued logic: true, false and unknown. `WHERE` keeps only rows where the condition is true.
+              - Test for nulls with `IS NULL` and `IS NOT NULL`, never `= NULL`.
+
+              ### Common mistakes
+              ```sql
+              SELECT name FROM users WHERE deleted_at = NULL;   -- returns nothing
+              SELECT name FROM users WHERE deleted_at IS NULL;  -- correct
+              ```
+              Also remember that a filter like `x != 5` drops rows where `x` is `NULL`, because the result is unknown.
             resources:
               - { label: "SQLBolt", url: "https://sqlbolt.com/", kind: course }
               - { label: "PostgreSQL tutorial: querying a table", url: "https://www.postgresql.org/docs/current/tutorial-select.html", kind: docs }
+              - { label: "SELECT (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/sql-select.html", kind: docs }
+              - { label: "Comparison functions and operators (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/functions-comparison.html", kind: docs }
           - id: insert-update-delete
             title: INSERT, UPDATE and DELETE
             summary: Change data safely and check how many rows you touched.
@@ -67,14 +133,45 @@ stages:
               - Inserting many rows
               - UPDATE and DELETE with WHERE
               - RETURNING clauses
+            body: |
+              These three statements change data. They are easy to write and easy to get wrong, so check what they touch.
+
+              ### Key ideas
+              - `INSERT` can add many rows in one statement. That is much faster than one statement per row.
+              - `UPDATE` and `DELETE` without a `WHERE` change every row in the table.
+              - The database reports how many rows were affected. Compare that to what you expected.
+              - **RETURNING** (PostgreSQL) gives back the changed rows in the same statement, so you can read generated ids without a second query.
+              - Run risky changes inside a transaction so you can roll back.
+
+              ### In practice
+              ```sql
+              INSERT INTO users (email) VALUES ('a@x.com'), ('b@x.com')
+              RETURNING id;
+
+              UPDATE orders SET status = 'shipped' WHERE id = 42;
+              ```
+              Before a big `DELETE`, run the same `WHERE` as a `SELECT count(*)` first and check the number.
             resources:
               - { label: "PostgreSQL docs: data manipulation", url: "https://www.postgresql.org/docs/current/dml.html", kind: docs }
+              - { label: "RETURNING (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/dml-returning.html", kind: docs }
           - id: practice-sql
             title: Practise on real exercises
             optional: true
             summary: Build fluency by solving graded SQL problems.
             learn:
               - Writing queries from a question
+            body: |
+              Reading about SQL helps, but fluency comes from writing queries against real data and checking the result.
+
+              ### Key ideas
+              - Start from a question in plain words, then turn it into a query.
+              - Write the simplest query first. Add joins, filters and grouping one step at a time.
+              - Run each step and look at the rows before moving on.
+              - When a result looks wrong, test small parts of the query alone.
+              - Redo problems you got wrong a week later.
+
+              ### In practice
+              Pick a graded set of exercises and aim for a few each day. Try to write the answer without looking at hints. When you finish one, rewrite it a second way, for example with a join and then with a subquery, and compare.
             resources:
               - { label: "PostgreSQL Exercises", url: "https://pgexercises.com/", kind: course }
 
@@ -89,17 +186,56 @@ stages:
               - Inner vs outer joins
               - Join conditions
               - Self joins
+            body: |
+              A join combines rows from two tables based on a condition, usually a foreign key matching a primary key.
+
+              ### Key ideas
+              - **Inner join:** keeps only rows that have a match on both sides.
+              - **Left join:** keeps every row from the left table. Where the right side has no match, its columns are `NULL`. Right join is the mirror image.
+              - **Full join:** keeps unmatched rows from both sides.
+              - **Join condition:** the `ON` clause says how rows match. A missing or wrong condition multiplies rows.
+              - **Self join:** join a table to itself using two aliases, for example employees and their managers.
+
+              ### Example
+              Find users who have never ordered.
+              ```sql
+              SELECT u.email
+              FROM users u
+              LEFT JOIN orders o ON o.user_id = u.id
+              WHERE o.id IS NULL;
+              ```
             resources:
               - { label: "PostgreSQL tutorial: joins", url: "https://www.postgresql.org/docs/current/tutorial-join.html", kind: docs }
               - { label: "SQLBolt", url: "https://sqlbolt.com/", kind: course }
+              - { label: "Table expressions and joins (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/queries-table-expressions.html", kind: docs }
           - id: group-by
             title: GROUP BY and aggregates
             summary: Count, sum and average per group, and filter groups with HAVING.
             learn:
               - Aggregate functions
               - GROUP BY and HAVING
+            body: |
+              `GROUP BY` collapses rows into groups, and aggregate functions summarise each group.
+
+              ### Key ideas
+              - Common aggregates: `count`, `sum`, `avg`, `min`, `max`.
+              - Every selected column must either be in `GROUP BY` or be inside an aggregate.
+              - `WHERE` filters rows before grouping. `HAVING` filters groups after aggregation.
+              - `count(*)` counts rows. `count(col)` skips `NULL` values.
+              - Aggregates ignore `NULL` inputs, so `avg` can surprise you.
+
+              ### Example
+              Customers with more than five orders, and their total spend.
+              ```sql
+              SELECT user_id, count(*) AS orders, sum(total) AS spent
+              FROM orders
+              WHERE status = 'paid'
+              GROUP BY user_id
+              HAVING count(*) > 5;
+              ```
             resources:
               - { label: "PostgreSQL tutorial: aggregate functions", url: "https://www.postgresql.org/docs/current/tutorial-agg.html", kind: docs }
+              - { label: "Aggregate functions (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/functions-aggregate.html", kind: docs }
           - id: window-functions
             title: Window functions and CTEs
             optional: true
@@ -107,9 +243,29 @@ stages:
             learn:
               - OVER and PARTITION BY
               - WITH queries
+            body: |
+              A window function computes a value across a set of related rows without collapsing them. A CTE gives a subquery a name so a long query reads top to bottom.
+
+              ### Key ideas
+              - `OVER (...)` turns an aggregate or ranking function into a window function.
+              - `PARTITION BY` splits rows into groups, like `GROUP BY` but keeping every row.
+              - `ORDER BY` inside `OVER` sets the order for ranking and running totals.
+              - Useful functions: `row_number`, `rank`, `lag`, `lead` and `sum` as a running total.
+              - `WITH name AS (...)` defines a CTE. You can chain several.
+
+              ### Example
+              Each user's latest order using a CTE and a window.
+              ```sql
+              WITH ranked AS (
+                SELECT *, row_number() OVER (
+                  PARTITION BY user_id ORDER BY created_at DESC) AS rn
+                FROM orders)
+              SELECT * FROM ranked WHERE rn = 1;
+              ```
             resources:
               - { label: "PostgreSQL tutorial: window functions", url: "https://www.postgresql.org/docs/current/tutorial-window.html", kind: docs }
               - { label: "Modern SQL (Markus Winand)", url: "https://modern-sql.com/", kind: article }
+              - { label: "WITH queries (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/queries-with.html", kind: docs }
 
       - id: data-modelling
         title: Data modelling
@@ -121,18 +277,49 @@ stages:
             learn:
               - Entity-relationship diagrams
               - Join tables for many-to-many
+            body: |
+              Data modelling starts by listing the **entities** (the things you store) and how they relate. An entity-relationship diagram (ERD) draws this before you write any SQL.
+
+              ### Key ideas
+              - **One-to-one:** one row links to at most one row. Often it is just a column or a split table.
+              - **One-to-many:** a foreign key on the "many" side. One user has many orders, so `orders.user_id` points at `users.id`.
+              - **Many-to-many:** needs a **join table** with two foreign keys. Students and courses are the classic case.
+              - An ERD shows tables as boxes and relationships as lines, with the count on each end.
+              - Draw it first. Fixing a diagram is cheaper than migrating a live table.
+
+              ### Example
+              ```sql
+              CREATE TABLE enrolments (
+                student_id bigint REFERENCES students(id),
+                course_id  bigint REFERENCES courses(id),
+                PRIMARY KEY (student_id, course_id));
+              ```
             resources:
               - { label: "Designing Data-Intensive Applications", url: "https://dataintensive.net/", kind: article }
               - { label: "CMU 15-445 Intro to Database Systems", url: "https://15445.courses.cs.cmu.edu/", kind: course }
+              - { label: "Entity-relationship model (Wikipedia)", url: "https://en.wikipedia.org/wiki/Entity%E2%80%93relationship_model", kind: article }
           - id: normalisation
             title: Normalisation
             summary: Store each fact once to avoid update anomalies, and know when to denormalise on purpose.
             learn:
               - First, second and third normal form
               - Denormalising for reads
+            body: |
+              Normalisation means storing each fact in one place. If a fact lives in two places, they can drift apart, and that causes update anomalies.
+
+              ### Key ideas
+              - **1NF:** each column holds one value, with no lists or repeating groups.
+              - **2NF:** every non-key column depends on the whole key, not just part of it.
+              - **3NF:** non-key columns depend on the key only, not on other non-key columns.
+              - Rule of thumb: "the key, the whole key, and nothing but the key".
+              - **Denormalising** copies data on purpose to avoid joins on hot reads. You then have to keep the copies in sync.
+
+              ### Example
+              An `orders` table that stores `customer_email` on every row breaks 3NF. Change the email and you must update many rows, or some go stale. Store it once in `customers` and join. Denormalise only after you measure a slow read.
             resources:
               - { label: "Hussein Nasser on YouTube", url: "https://www.youtube.com/@hnasr", kind: video }
               - { label: "CMU Database Group on YouTube", url: "https://www.youtube.com/@CMUDatabaseGroup", kind: video }
+              - { label: "Database normalization (Wikipedia)", url: "https://en.wikipedia.org/wiki/Database_normalization", kind: article }
           - id: multi-tenant-schemas
             title: Multi-tenant schemas
             optional: true
@@ -140,6 +327,22 @@ stages:
             learn:
               - Tenant ID column vs schema per tenant
               - Row-level security
+            body: |
+              A multi-tenant app serves many customers from one system. The core risk is one tenant seeing another's data.
+
+              ### Key ideas
+              - **Tenant ID column:** every table has `tenant_id`, and every query filters on it. Simple and cheap, but one missing `WHERE` leaks data.
+              - **Schema per tenant:** each customer gets their own schema. Isolation is stronger, but migrations run many times and the schema count grows.
+              - **Database per tenant:** strongest isolation, highest cost.
+              - **Row-level security (RLS):** PostgreSQL enforces a policy on every query, so the filter cannot be forgotten.
+
+              ### In practice
+              ```sql
+              ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
+              CREATE POLICY tenant_only ON invoices
+                USING (tenant_id = current_setting('app.tenant_id')::bigint);
+              ```
+              The app sets `app.tenant_id` once per request. Test that a query as tenant A never returns tenant B rows.
             resources:
               - post: multi-tenant-saas-auth-lambda-fastify
               - { label: "Row security policies (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/ddl-rowsecurity.html", kind: docs }
@@ -155,6 +358,24 @@ stages:
               - NOT NULL and UNIQUE
               - CHECK constraints
               - Foreign keys and ON DELETE
+            body: |
+              Constraints are rules the database enforces on every write. They stop bad data at the source, whatever code or script tries to insert it.
+
+              ### Key ideas
+              - `NOT NULL` forbids missing values.
+              - `UNIQUE` forbids duplicates, such as two users with the same email.
+              - `CHECK` tests any condition, such as `price >= 0`.
+              - A **foreign key** makes sure a referenced row exists.
+              - `ON DELETE` says what happens to child rows: `RESTRICT` blocks the delete, `CASCADE` deletes the children, `SET NULL` clears the link.
+
+              ### Example
+              ```sql
+              CREATE TABLE orders (
+                id bigint PRIMARY KEY,
+                user_id bigint NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+                total numeric(10,2) NOT NULL CHECK (total >= 0));
+              ```
+              Adding constraints late is painful because old data may already break them.
             resources:
               - { label: "Constraints (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/ddl-constraints.html", kind: docs }
           - id: data-types
@@ -164,8 +385,26 @@ stages:
               - Numeric vs float for money
               - timestamptz vs timestamp
               - JSONB columns
+            body: |
+              The right type prevents rounding errors, time zone bugs and messy text. Changing a type later on a big table is slow.
+
+              ### Key ideas
+              - **Money:** use `numeric(p,s)` or integer cents. Floats cannot store 0.1 exactly, so sums drift.
+              - **Time:** `timestamptz` stores an exact moment and shows it in the session time zone. Plain `timestamp` has no zone and invites bugs.
+              - **JSONB:** a binary JSON type you can index and query. Good for flexible attributes, but keep core fields as real columns.
+              - `text` is fine for most strings. A length limit belongs in a `CHECK` if the business needs one.
+              - Use `bigint` for ids that may grow large.
+
+              ### Common mistakes
+              ```sql
+              SELECT 0.1::float8 + 0.2::float8;   -- 0.30000000000000004
+              SELECT 0.1::numeric + 0.2::numeric; -- 0.3
+              ```
             resources:
               - { label: "Data types (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/datatype.html", kind: docs }
+              - { label: "Numeric types (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/datatype-numeric.html", kind: docs }
+              - { label: "Date/time types (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/datatype-datetime.html", kind: docs }
+              - { label: "JSON types (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/datatype-json.html", kind: docs }
 
       - id: schema-migrations
         title: Schema migrations
@@ -177,8 +416,25 @@ stages:
             learn:
               - Up and down migrations
               - Running migrations on deploy
+            body: |
+              A migration is a file that changes the schema. Keep them in version control so every environment reaches the same schema in the same order.
+
+              ### Key ideas
+              - Each migration has a unique, ordered id, often a timestamp.
+              - The tool records which migrations ran in a table, so each one runs once.
+              - **Up** applies the change. **Down** undoes it. Down is useful in development, but in production you usually write a new forward migration.
+              - Never edit a migration that has already run elsewhere. Add a new one.
+              - Run migrations as a deploy step, before or alongside the new code, and make them safe for the old code too.
+
+              ### Example
+              ```sql
+              -- 20261116_add_users_phone.sql
+              ALTER TABLE users ADD COLUMN phone text;
+              ```
+              Your tool applies it once and notes it as done.
             resources:
               - { label: "ALTER TABLE (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/sql-altertable.html", kind: docs }
+              - { label: "Altering tables (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/ddl-alter.html", kind: docs }
           - id: zero-downtime-migrations
             title: Zero-downtime changes
             summary: Expand, migrate and contract so old and new code both work during a deploy.
@@ -186,6 +442,21 @@ stages:
               - Expand and contract
               - Adding columns and indexes without long locks
               - Backfilling in batches
+            body: |
+              During a deploy, old and new code run at the same time against one database. A migration must work for both, and it must not lock a busy table.
+
+              ### Key ideas
+              - **Expand and contract:** first add the new column (expand). Deploy code that writes both. Backfill old rows. Switch reads. Then drop the old column (contract).
+              - Adding a nullable column is fast. Adding one with a volatile default or a type rewrite can lock the table.
+              - Create indexes with `CREATE INDEX CONCURRENTLY` so writes keep flowing.
+              - **Backfill in batches** of a few thousand rows, with a short pause, so you do not hold locks or flood replicas.
+              - Set a `lock_timeout` so a migration fails fast instead of queueing behind a long query and blocking everyone.
+
+              ### Example
+              ```sql
+              SET lock_timeout = '3s';
+              CREATE INDEX CONCURRENTLY idx_orders_user ON orders (user_id);
+              ```
             resources:
               - { label: "CREATE INDEX CONCURRENTLY (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/sql-createindex.html", kind: docs }
               - { label: "Hussein Nasser on YouTube", url: "https://www.youtube.com/@hnasr", kind: video }
@@ -203,6 +474,21 @@ stages:
             learn:
               - B-tree leaf and branch nodes
               - Index lookup vs table scan
+            body: |
+              Without an index the database reads every row to find a match. A B-tree index keeps keys in sorted order, so it can find a row in a few page reads.
+
+              ### Key ideas
+              - A B-tree has a **root**, **branch** nodes and **leaf** nodes. Branches guide the search. Leaves hold the keys and pointers to the table rows.
+              - Leaves are linked in order, so range queries and `ORDER BY` can walk along them.
+              - A lookup reads a handful of pages even for millions of rows, because the tree is shallow and wide.
+              - A **table scan** reads everything. It is fine for small tables or when you need most rows.
+              - Each index costs disk space and slows writes, because every insert must update it.
+
+              ### Example
+              ```sql
+              CREATE INDEX idx_users_email ON users (email);
+              SELECT * FROM users WHERE email = 'a@x.com';
+              ```
             resources:
               - { label: "Anatomy of an index (Use The Index, Luke)", url: "https://use-the-index-luke.com/sql/anatomy", kind: article }
               - { label: "Indexes (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/indexes.html", kind: docs }
@@ -213,9 +499,27 @@ stages:
               - Leftmost prefix rule
               - Index-only scans
               - Partial indexes
+            body: |
+              A composite index covers several columns. The column order decides which queries it can serve.
+
+              ### Key ideas
+              - **Leftmost prefix rule:** an index on `(a, b, c)` helps filters on `a`, on `a, b` and on `a, b, c`. It does not help a filter on `b` alone.
+              - Put equality columns first, then the range or sort column.
+              - **Covering index / index-only scan:** if the index holds every column the query needs, the database never touches the table. `INCLUDE` adds extra columns for this.
+              - **Partial index:** index only rows that match a `WHERE`, so it stays small.
+
+              ### Example
+              ```sql
+              CREATE INDEX idx_orders_user_date ON orders (user_id, created_at DESC);
+              CREATE INDEX idx_open ON orders (user_id) WHERE status = 'open';
+              ```
+              The first serves "latest orders for a user". The second serves only queries that also filter on open orders.
             resources:
               - { label: "Use The Index, Luke", url: "https://use-the-index-luke.com/", kind: article }
               - { label: "Hussein Nasser on YouTube", url: "https://www.youtube.com/@hnasr", kind: video }
+              - { label: "Multicolumn indexes (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/indexes-multicolumn.html", kind: docs }
+              - { label: "Index-only scans and covering indexes (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/indexes-index-only-scans.html", kind: docs }
+              - { label: "Partial indexes (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/indexes-partial.html", kind: docs }
           - id: index-types
             title: Other index types
             optional: true
@@ -224,9 +528,27 @@ stages:
               - GIN for JSONB and full-text search
               - BRIN for large ordered tables
               - Vector indexes for embeddings
+            body: |
+              B-trees handle equality and ranges on simple values. Other data needs other index types.
+
+              ### Key ideas
+              - **Hash:** equality only. A B-tree is usually just as good.
+              - **GIN:** an inverted index. It maps each element to the rows that contain it. Use it for `jsonb` containment, arrays and full-text search.
+              - **GiST:** a general tree for geometry, ranges and nearest-neighbour search.
+              - **BRIN:** stores a summary per block range. It is tiny and works when values follow disk order, such as an append-only timestamp column.
+              - **Vector indexes** (HNSW, IVFFlat in pgvector) find nearest neighbours of embeddings for similarity search.
+
+              ### Example
+              ```sql
+              CREATE INDEX idx_docs_data ON docs USING gin (data);
+              SELECT * FROM docs WHERE data @> '{"tag":"db"}';
+              ```
             resources:
               - { label: "Index types (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/indexes-types.html", kind: docs }
               - post: building-a-production-rag-pipeline-on-aws-lambda-pgvector
+              - { label: "GIN indexes (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/gin.html", kind: docs }
+              - { label: "BRIN indexes (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/brin.html", kind: docs }
+              - { label: "pgvector (GitHub)", url: "https://github.com/pgvector/pgvector", kind: tool }
 
       - id: query-plans
         title: Query plans
@@ -239,9 +561,26 @@ stages:
               - Seq scan, index scan, bitmap scan
               - Estimated vs actual rows
               - EXPLAIN ANALYZE and BUFFERS
+            body: |
+              `EXPLAIN` shows the plan the database chose. `EXPLAIN ANALYZE` runs the query and adds what really happened.
+
+              ### Key ideas
+              - A plan is a tree. Read it from the innermost, most indented node outward.
+              - **Seq scan** reads the whole table. **Index scan** follows an index to rows. **Bitmap scan** collects matching row locations first, then reads them in block order.
+              - Each node shows `cost`, estimated `rows` and, with `ANALYZE`, `actual rows` and time.
+              - A big gap between estimated and actual rows means the planner guessed wrong, often from stale statistics.
+              - `BUFFERS` shows pages read from cache versus disk.
+
+              ### In practice
+              ```sql
+              EXPLAIN (ANALYZE, BUFFERS)
+              SELECT * FROM orders WHERE user_id = 7;
+              ```
+              `ANALYZE` really executes the statement. Wrap `UPDATE` or `DELETE` in a transaction and roll back.
             resources:
               - { label: "Using EXPLAIN (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/using-explain.html", kind: docs }
               - { label: "Use The Index, Luke", url: "https://use-the-index-luke.com/", kind: article }
+              - { label: "EXPLAIN (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/sql-explain.html", kind: docs }
           - id: join-algorithms
             title: Join algorithms
             summary: Nested loop, hash join and merge join, and when the planner picks each.
@@ -249,6 +588,17 @@ stages:
               - Nested loop with an index
               - Hash join memory use
               - Merge join on sorted input
+            body: |
+              The planner picks one of three ways to join two row sets. The right choice depends on size, indexes and sort order.
+
+              ### Key ideas
+              - **Nested loop:** for each outer row, look up matches in the inner side. It is best when the outer side is small and the inner side has an index.
+              - **Hash join:** build a hash table from the smaller input, then probe it with the other. It is good for large unsorted inputs, but needs memory. If it does not fit in `work_mem`, it spills to disk.
+              - **Merge join:** walk two sorted inputs together. It is good when both are already sorted, for example from an index.
+              - Bad row estimates lead to the wrong algorithm.
+
+              ### Example
+              Joining 10 orders to `users` by primary key is a nested loop with an index. Joining 5 million orders to 1 million users is usually a hash join. `EXPLAIN` shows which one was used.
             resources:
               - { label: "CMU 15-445 Intro to Database Systems", url: "https://15445.courses.cs.cmu.edu/", kind: course }
           - id: statistics-planner
@@ -258,8 +608,24 @@ stages:
             learn:
               - ANALYZE and histograms
               - Correlated columns
+            body: |
+              The planner does not look at your data when it plans. It uses statistics collected earlier, and bad statistics give bad plans.
+
+              ### Key ideas
+              - `ANALYZE` samples each table and stores row counts, distinct counts, common values and **histograms** per column. Autovacuum runs it for you.
+              - The planner uses these to estimate how many rows a filter returns, and so picks the plan.
+              - After a bulk load or big change, run `ANALYZE` by hand.
+              - **Correlated columns** break the usual assumption that columns are independent. If city and postcode go together, the estimate is too low.
+              - **Extended statistics** (`CREATE STATISTICS`) teach the planner about such links.
+
+              ### In practice
+              ```sql
+              ANALYZE orders;
+              CREATE STATISTICS s1 (dependencies) ON city, postcode FROM addresses;
+              ```
             resources:
               - { label: "Statistics used by the planner (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/planner-stats.html", kind: docs }
+              - { label: "ANALYZE (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/sql-analyze.html", kind: docs }
 
       - id: transactions-isolation
         title: Transactions and isolation
@@ -271,8 +637,28 @@ stages:
             learn:
               - BEGIN, COMMIT, ROLLBACK
               - Savepoints
+            body: |
+              A transaction groups several statements into one unit. Either all of them take effect or none do.
+
+              ### Key ideas
+              - `BEGIN` starts a transaction. `COMMIT` makes the changes permanent. `ROLLBACK` throws them away.
+              - Without `BEGIN`, each statement is its own transaction (autocommit).
+              - This is the **A** in ACID: atomicity. Moving money needs a debit and a credit to succeed together.
+              - If an error happens inside a PostgreSQL transaction, the whole transaction is aborted until you roll back.
+              - A **savepoint** marks a point inside a transaction. You can roll back to it without losing earlier work.
+
+              ### Example
+              ```sql
+              BEGIN;
+              UPDATE accounts SET balance = balance - 50 WHERE id = 1;
+              UPDATE accounts SET balance = balance + 50 WHERE id = 2;
+              COMMIT;
+              ```
+              Keep transactions short. A long one holds locks and blocks cleanup.
             resources:
               - { label: "PostgreSQL tutorial: transactions", url: "https://www.postgresql.org/docs/current/tutorial-transactions.html", kind: docs }
+              - { label: "BEGIN (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/sql-begin.html", kind: docs }
+              - { label: "SAVEPOINT (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/sql-savepoint.html", kind: docs }
           - id: isolation-levels
             title: Isolation levels and anomalies
             summary: Dirty reads, non-repeatable reads, phantoms and write skew, and which level stops each.
@@ -280,6 +666,20 @@ stages:
               - Read committed vs repeatable read
               - Serializable
               - Write skew
+            body: |
+              Isolation controls what one transaction can see of others running at the same time. Stronger levels prevent more anomalies and cost more.
+
+              ### Key ideas
+              - **Dirty read:** seeing uncommitted data. PostgreSQL never allows it.
+              - **Non-repeatable read:** the same row reads differently twice in one transaction.
+              - **Phantom:** a repeated query returns new rows.
+              - **Read committed** (the PostgreSQL default): each statement sees data committed before it started.
+              - **Repeatable read:** the whole transaction sees one snapshot.
+              - **Write skew:** two transactions each read overlapping data, then write different rows, and together break a rule. Only **serializable** stops it.
+              - Serializable can abort transactions, so be ready to retry.
+
+              ### Example
+              Two doctors on call both check that at least two are on duty, then both go off duty. Each saw a valid state, and the result has none on duty.
             resources:
               - { label: "Transaction isolation (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/transaction-iso.html", kind: docs }
               - { label: "Hussein Nasser on YouTube", url: "https://www.youtube.com/@hnasr", kind: video }
@@ -290,6 +690,18 @@ stages:
             learn:
               - Serializability vs linearizability
               - Snapshot isolation
+            body: |
+              Isolation levels are one corner of a bigger family of consistency models. Distributed systems use the same ideas with different names.
+
+              ### Key ideas
+              - **Serializability:** transactions behave as if run one at a time in some order. It is about multi-object transactions, with no real-time promise.
+              - **Linearizability:** each single operation appears to happen at one instant between its start and end, consistent with real time.
+              - **Strict serializability** combines both.
+              - **Snapshot isolation:** each transaction reads from a consistent snapshot. It prevents many anomalies but allows write skew.
+              - Weaker models are faster and easier to scale, but the application must handle odd results.
+
+              ### In practice
+              When a database says "serializable", check which kind. Read the vendor's docs and, if you can, independent test reports to see what it really guarantees under failure.
             resources:
               - { label: "Consistency models (Jepsen)", url: "https://jepsen.io/consistency", kind: article }
 
@@ -304,23 +716,65 @@ stages:
               - Row locks and SELECT FOR UPDATE
               - Table lock modes
               - pg_locks
+            body: |
+              Locks stop two transactions from changing the same thing at once. Knowing which statement takes which lock helps you find why a query is stuck.
+
+              ### Key ideas
+              - `UPDATE` and `DELETE` take a **row lock** on each row they change. Other writers wait for the commit.
+              - `SELECT ... FOR UPDATE` locks rows you read, so you can change them safely afterwards. `SKIP LOCKED` is handy for job queues.
+              - Plain reads take no row locks in PostgreSQL.
+              - **Table locks** have modes. `ALTER TABLE` takes a strong `ACCESS EXCLUSIVE` lock that blocks even reads.
+              - The `pg_locks` view shows held and waited locks. Join it with `pg_stat_activity` to see who blocks whom.
+
+              ### In practice
+              ```sql
+              BEGIN;
+              SELECT * FROM jobs WHERE state = 'new'
+                ORDER BY id LIMIT 1 FOR UPDATE SKIP LOCKED;
+              ```
             resources:
               - { label: "Explicit locking (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/explicit-locking.html", kind: docs }
+              - { label: "pg_locks view (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/view-pg-locks.html", kind: docs }
           - id: mvcc
             title: MVCC
             summary: Keep several versions of a row so readers never block writers.
             learn:
               - Row versions and snapshots
               - Dead tuples
+            body: |
+              MVCC (multi-version concurrency control) keeps several versions of a row. Readers use an older version, so they never wait for writers.
+
+              ### Key ideas
+              - An `UPDATE` in PostgreSQL does not overwrite a row. It writes a new row version and marks the old one as ended.
+              - Each transaction gets a **snapshot** that decides which versions it can see.
+              - So **readers do not block writers, and writers do not block readers**. Writers on the same row still wait for each other.
+              - Old versions that no transaction can see any more are **dead tuples**. They take space until vacuum removes them.
+              - A long-running transaction keeps old versions alive and causes bloat.
+
+              ### Example
+              Transaction A starts a snapshot and reads a balance of 100. Transaction B updates it to 80 and commits. A still reads 100 under repeatable read, because it sees the older version.
             resources:
               - { label: "Concurrency control (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/mvcc.html", kind: docs }
               - { label: "CMU Database Group on YouTube", url: "https://www.youtube.com/@CMUDatabaseGroup", kind: video }
+              - { label: "Multiversion concurrency control (Wikipedia)", url: "https://en.wikipedia.org/wiki/Multiversion_concurrency_control", kind: article }
           - id: deadlocks
             title: Deadlocks
             summary: Why two transactions can wait on each other forever and how to avoid it.
             learn:
               - Lock ordering
               - Deadlock detection and retries
+            body: |
+              A deadlock happens when two transactions each hold a lock the other needs. Neither can continue.
+
+              ### Key ideas
+              - Example: A locks row 1 then wants row 2. B locks row 2 then wants row 1. Both wait forever.
+              - The database **detects** the cycle after a short wait (`deadlock_timeout`, 1 second by default) and aborts one transaction with an error.
+              - Prevention: **lock in a consistent order**. If every code path updates rows in id order, the cycle cannot form.
+              - Keep transactions short and touch as few rows as you can.
+              - The aborted transaction is safe to **retry**, so wrap the work in retry logic.
+
+              ### Common mistakes
+              Updating accounts in the order a user supplied them, instead of sorting by id first. Two transfers in opposite directions then deadlock. Sort the ids before locking.
             resources:
               - { label: "Explicit locking (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/explicit-locking.html", kind: docs }
               - { label: "Hussein Nasser on YouTube", url: "https://www.youtube.com/@hnasr", kind: video }
@@ -331,8 +785,21 @@ stages:
             learn:
               - Autovacuum
               - Transaction ID wraparound
+            body: |
+              Because of MVCC, updates and deletes leave dead row versions behind. VACUUM reclaims their space for reuse.
+
+              ### Key ideas
+              - Dead tuples make tables and indexes **bloated**. Scans read more pages than needed.
+              - **Autovacuum** runs in the background and normally keeps up. Tune it for large, busy tables.
+              - Plain `VACUUM` marks space reusable but usually does not shrink the file. `VACUUM FULL` rewrites the table and locks it.
+              - **Transaction ID wraparound:** transaction ids are 32-bit and wrap around. Vacuum freezes old rows to prevent this. If it cannot, PostgreSQL stops accepting writes to protect data.
+              - Long transactions and unused replication slots stop vacuum from cleaning.
+
+              ### In practice
+              Watch `n_dead_tup` in `pg_stat_user_tables` and the age of your oldest transaction id. Alert before wraparound gets close.
             resources:
               - { label: "Routine vacuuming (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/routine-vacuuming.html", kind: docs }
+              - { label: "Autovacuum settings (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/runtime-config-autovacuum.html", kind: docs }
 
       - id: connection-pooling
         title: Connection pooling
@@ -344,18 +811,44 @@ stages:
             learn:
               - Process per connection in PostgreSQL
               - max_connections
+            body: |
+              Opening a database connection is slow, and each open connection uses memory on the server. Too many of them make the whole database slower.
+
+              ### Key ideas
+              - PostgreSQL starts **one process per connection**. Each uses memory and adds scheduling work.
+              - `max_connections` caps how many can be open. The default is 100.
+              - More connections do not mean more speed. Past a few per CPU core, extra ones just queue and compete.
+              - Each web request opening its own connection wastes time on the handshake and authentication.
+              - Reuse connections from a **pool** instead.
+
+              ### Example
+              You run 20 app servers, each with a pool of 20 connections. That is 400 connections to a database set for 100. The app starts to fail at peak. Smaller pools or a shared pooler fix this.
             resources:
               - { label: "Connections and authentication (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/runtime-config-connection.html", kind: docs }
               - { label: "Hussein Nasser on YouTube", url: "https://www.youtube.com/@hnasr", kind: video }
+              - { label: "Number Of Database Connections (PostgreSQL wiki)", url: "https://wiki.postgresql.org/wiki/Number_Of_Database_Connections", kind: article }
           - id: poolers
             title: PgBouncer and RDS Proxy
             summary: Put a pooler between many app instances and the database.
             learn:
               - Session vs transaction pooling
               - Pooling for serverless functions
+            body: |
+              A pooler sits between your apps and the database. Many client connections share a small set of real server connections.
+
+              ### Key ideas
+              - **Session pooling:** a client keeps one server connection until it disconnects. It is safe but saves the least.
+              - **Transaction pooling:** a client gets a server connection only for one transaction. It packs clients tightly, but session features such as `SET` and some prepared statements may not work.
+              - **Statement pooling:** per statement. Rarely used, as it breaks multi-statement transactions.
+              - **Serverless functions** can open thousands of short connections. A pooler like PgBouncer or RDS Proxy absorbs this.
+              - Size the pool to what the database can handle, not to the number of clients.
+
+              ### In practice
+              Point the app at the pooler's host and port instead of the database. Test that your ORM and migrations work in transaction mode. Many run migrations on a direct connection.
             resources:
               - { label: "PgBouncer", url: "https://www.pgbouncer.org/", kind: tool }
               - { label: "Amazon RDS Proxy (AWS docs)", url: "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-proxy.html", kind: docs }
+              - { label: "PgBouncer configuration", url: "https://www.pgbouncer.org/config.html", kind: docs }
 
       - id: backups-recovery
         title: Backups and recovery
@@ -367,8 +860,26 @@ stages:
             learn:
               - pg_dump and pg_restore
               - Base backups
+            body: |
+              A backup is a copy you can restore from. There are two main kinds.
+
+              ### Key ideas
+              - **Logical backup:** `pg_dump` writes SQL or an archive of the schema and data. `pg_restore` loads it. It is portable across versions and lets you restore a single table. It is slow on large databases.
+              - **Physical backup:** a copy of the data files, made with `pg_basebackup`. It is fast to restore, but only to the same major version and platform.
+              - A physical base backup plus archived WAL gives you point-in-time recovery.
+              - Store backups away from the database server, in another account or region.
+              - Encrypt them and limit who can read them.
+
+              ### In practice
+              ```bash
+              pg_dump -Fc shop > shop.dump
+              pg_restore -d shop_restored shop.dump
+              ```
+              The backup is not real until you have restored it somewhere and checked the data.
             resources:
               - { label: "Backup and restore (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/backup.html", kind: docs }
+              - { label: "pg_dump (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/app-pgdump.html", kind: docs }
+              - { label: "pg_basebackup (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/app-pgbasebackup.html", kind: docs }
           - id: point-in-time-recovery
             title: Point-in-time recovery
             summary: Replay archived WAL to restore the database to any moment.
@@ -376,6 +887,18 @@ stages:
               - WAL archiving
               - RPO and RTO
               - Restore drills
+            body: |
+              A nightly backup loses everything since the last run. Point-in-time recovery (PITR) lets you restore to a chosen moment, such as just before a bad `DELETE`.
+
+              ### Key ideas
+              - Take regular **base backups**.
+              - Archive every **WAL** segment as it fills, to safe storage.
+              - To recover, restore a base backup, then replay archived WAL up to a target time.
+              - **RPO** (recovery point objective) is how much data you can afford to lose. **RTO** (recovery time objective) is how long recovery may take. Set them first, then design backups to meet them.
+              - **Restore drills:** practise on a schedule and time them. Untested backups often fail when you need them.
+
+              ### Example
+              At 14:05 someone drops a table. You restore last night's base backup and replay WAL to 14:04, then promote the copy and recover the table.
             resources:
               - { label: "Continuous archiving and PITR (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/continuous-archiving.html", kind: docs }
 
@@ -393,17 +916,49 @@ stages:
               - Primary and standby
               - Sync vs async replication
               - Failover
+            body: |
+              In streaming replication, a **primary** sends its WAL records to one or more **standbys**. The standbys replay them and stay close copies.
+
+              ### Key ideas
+              - Standbys can serve read-only queries (hot standby) and take over if the primary fails.
+              - **Asynchronous:** the primary commits without waiting for standbys. It is fast, but a failover can lose the last few commits.
+              - **Synchronous:** the primary waits until a standby confirms. No data loss, but slower commits, and a down standby can stall writes.
+              - **Failover:** promote a standby to be the new primary. Tools such as Patroni automate detection and promotion.
+              - Beware split brain, where two servers both think they are primary. Fence the old one.
+
+              ### In practice
+              Decide your tolerance for data loss first. That tells you whether sync or async fits your system.
             resources:
               - { label: "High availability and replication (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/high-availability.html", kind: docs }
               - { label: "Hussein Nasser on YouTube", url: "https://www.youtube.com/@hnasr", kind: video }
+              - { label: "Log-shipping standby servers (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/warm-standby.html", kind: docs }
           - id: logical-replication
             title: Logical replication and CDC
             summary: Replicate row changes to other databases or streams.
             learn:
               - Publications and subscriptions
               - Change data capture
+            body: |
+              Logical replication sends row changes, not raw disk blocks. That allows copies across versions, partial copies and feeds into other systems.
+
+              ### Key ideas
+              - A **publication** on the source lists the tables to share.
+              - A **subscription** on the target connects and applies the changes.
+              - Changes are decoded from the WAL, so the tables need a primary key or replica identity.
+              - It copies data only. Schema changes are not replicated, so you apply them yourself.
+              - **Change data capture (CDC)** streams every insert, update and delete to systems such as Kafka, search or a warehouse. Debezium is a common tool.
+              - It is also a way to do major version upgrades with little downtime.
+
+              ### Example
+              ```sql
+              -- on the source
+              CREATE PUBLICATION pub_orders FOR TABLE orders;
+              -- on the target
+              CREATE SUBSCRIPTION sub CONNECTION '...' PUBLICATION pub_orders;
+              ```
             resources:
               - { label: "Logical replication (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/logical-replication.html", kind: docs }
+              - { label: "Debezium documentation", url: "https://debezium.io/documentation/", kind: docs }
           - id: replica-reads
             title: Reading from replicas
             optional: true
@@ -411,6 +966,18 @@ stages:
             learn:
               - Replication lag
               - Read-your-writes routing
+            body: |
+              Replicas can take read traffic off the primary. The catch is that they lag a little behind it.
+
+              ### Key ideas
+              - **Replication lag** is the delay between a commit on the primary and its appearance on a replica. It is usually small, but spikes under load.
+              - A user saves a profile, then reloads, and the replica still shows the old one. This breaks **read-your-writes**.
+              - Fixes: read from the primary for a short time after a write, route a user's own recent reads to the primary, or wait until the replica passes a known WAL position.
+              - Send only reads that can be a bit stale to replicas, such as reports and feeds.
+              - Monitor lag and fall back to the primary when it is high.
+
+              ### Common mistakes
+              Sending every read to a replica without thinking about which ones must see the latest write, such as the page right after a checkout.
             resources:
               - { label: "Designing Data-Intensive Applications", url: "https://dataintensive.net/", kind: article }
 
@@ -425,6 +992,24 @@ stages:
               - Declarative partitioning
               - Partition pruning
               - Dropping old partitions
+            body: |
+              Partitioning splits one big table into smaller physical pieces that still look like one table to queries.
+
+              ### Key ideas
+              - **Range** partitions split by value ranges, such as one per month. **List** splits by fixed values. **Hash** spreads rows evenly by a hash.
+              - **Declarative partitioning** in PostgreSQL uses `PARTITION BY` and child tables.
+              - **Partition pruning:** when a query filters on the partition key, the planner skips partitions that cannot match.
+              - **Dropping old partitions** is instant, compared to a huge `DELETE` that bloats the table.
+              - The primary key and unique indexes must include the partition key.
+              - Partition only when the table is large and queries use the key. Otherwise it adds complexity.
+
+              ### Example
+              ```sql
+              CREATE TABLE events (id bigint, at timestamptz, data jsonb)
+                PARTITION BY RANGE (at);
+              CREATE TABLE events_2026_11 PARTITION OF events
+                FOR VALUES FROM ('2026-11-01') TO ('2026-12-01');
+              ```
             resources:
               - { label: "Table partitioning (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/ddl-partitioning.html", kind: docs }
           - id: sharding-db
@@ -433,9 +1018,22 @@ stages:
             learn:
               - Shard keys and hot spots
               - Cross-shard queries and transactions
+            body: |
+              Sharding splits data across several database servers. Each shard holds part of the data. It scales writes and storage past one machine, at a high cost in complexity.
+
+              ### Key ideas
+              - The **shard key** decides which shard owns a row. Hash it for even spread, or use ranges for locality.
+              - A bad key creates **hot spots**: one shard gets most of the traffic, such as sharding by date when everyone writes today.
+              - Queries that include the shard key go to one shard. Others must **fan out** to all and merge the results.
+              - **Cross-shard transactions** are hard and slow. Design so that related data lives together.
+              - Resharding later is painful. Exhaust bigger hardware, replicas, caching and partitioning first.
+
+              ### In practice
+              A SaaS app shards by `tenant_id`, so each tenant's data is on one shard and most queries stay local. Tools like Vitess and Citus handle routing.
             resources:
               - { label: "Vitess docs", url: "https://vitess.io/docs/", kind: docs }
               - { label: "Hussein Nasser on YouTube", url: "https://www.youtube.com/@hnasr", kind: video }
+              - { label: "Shard (database architecture) (Wikipedia)", url: "https://en.wikipedia.org/wiki/Shard_(database_architecture)", kind: article }
 
       - id: nosql-tradeoffs
         title: NoSQL trade-offs
@@ -447,15 +1045,44 @@ stages:
             learn:
               - Redis data structures
               - Persistence and eviction
+            body: |
+              A key-value store maps a key to a value and does little else. That simplicity makes lookups very fast, often from memory.
+
+              ### Key ideas
+              - Redis values can be strings, lists, sets, sorted sets, hashes and streams. Each has its own commands.
+              - Common uses: caching, sessions, rate limits, leaderboards and queues.
+              - **Persistence:** RDB takes periodic snapshots. AOF logs every write. With neither, data is lost on restart.
+              - **Eviction:** when memory is full, a policy such as `allkeys-lru` removes old keys. Set `maxmemory` and a policy on purpose.
+              - Use `EXPIRE` or a TTL so cache keys do not live forever.
+              - It is a poor fit for ad hoc queries or joins.
+
+              ### Example
+              ```bash
+              SET session:42 "user-7" EX 3600
+              ZINCRBY leaderboard 10 "alice"
+              ```
             resources:
               - post: connect-redis-elasticache-to-application-in-amazon-lightsail-instance
               - { label: "Redis docs", url: "https://redis.io/docs/latest/", kind: docs }
+              - { label: "Redis data types (Redis docs)", url: "https://redis.io/docs/latest/develop/data-types/", kind: docs }
           - id: document-stores
             title: Document stores
             summary: Store JSON-like documents and design around how they are read.
             learn:
               - Embedding vs referencing
               - Schema flexibility and its cost
+            body: |
+              A document store keeps JSON-like documents. Each document can have its own shape, and related data can live inside it.
+
+              ### Key ideas
+              - **Embedding** nests related data in one document, such as an order with its line items. One read gets everything, and the parts change together.
+              - **Referencing** stores ids and looks the other document up. Use it when data is shared, large or grows without bound.
+              - Choose by how the data is **read**. Design around your queries, not around entities.
+              - **Schema flexibility** is easy at first, but the app still has a schema. Without checks, old and new shapes pile up and code must handle every one.
+              - Joins and multi-document transactions are weaker or costlier than in SQL.
+
+              ### Example
+              A blog post embeds its tags. Comments, which can grow into thousands, go in their own collection and reference the post id.
             resources:
               - { label: "MongoDB docs", url: "https://www.mongodb.com/docs/", kind: docs }
           - id: wide-column-dynamo
@@ -465,9 +1092,22 @@ stages:
               - Partition and sort keys
               - Single-table design
               - Dynamo-style quorums
+            body: |
+              DynamoDB and similar stores spread data by key to scale almost without limit. The price is that you must know your access patterns before you design the table.
+
+              ### Key ideas
+              - The **partition key** decides which partition holds an item. The **sort key** orders items inside it, so one query can fetch a range.
+              - Queries need the partition key. Anything else means a slow, costly scan.
+              - **Single-table design** puts several entity types in one table, with keys that group related items so one query returns them together.
+              - **Quorums:** Dynamo-style systems keep N copies, write to W and read from R. If R plus W is greater than N, reads see the latest write.
+              - Pick keys with many distinct values to avoid hot partitions.
+
+              ### Example
+              Key `PK = USER#7`, `SK = ORDER#2026-11-16#9` stores a user's orders together, sorted by date.
             resources:
               - { label: "What is DynamoDB? (AWS docs)", url: "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html", kind: docs }
               - { label: "Apache Cassandra docs", url: "https://cassandra.apache.org/doc/latest/", kind: docs }
+              - { label: "The What, Why, and When of Single-Table Design with DynamoDB (Alex DeBrie)", url: "https://www.alexdebrie.com/posts/dynamodb-single-table/", kind: article }
 
       - id: storage-engines
         title: Storage engines
@@ -479,6 +1119,19 @@ stages:
             learn:
               - Pages and tuples
               - The buffer pool
+            body: |
+              Databases do not read single rows from disk. They read fixed-size **pages**, in PostgreSQL 8 KB by default, and keep hot ones in memory.
+
+              ### Key ideas
+              - A table is a **heap file**: a list of pages with rows in no particular order.
+              - A page holds a header, an array of item pointers and the **tuples** (rows). Pointers let a row move within a page without changing its address.
+              - A row is addressed by page number and slot, a tuple id.
+              - The **buffer pool** is a cache of pages in memory. A read checks it first and only goes to disk on a miss.
+              - A modified page is **dirty** until written back. Eviction picks a victim page with a policy such as clock or LRU.
+              - A larger buffer pool means fewer disk reads, up to the point your data fits.
+
+              ### Example
+              A query for one row by index reads two or three pages. If they are cached, no disk read happens at all.
             resources:
               - { label: "Database page layout (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/storage-page-layout.html", kind: docs }
               - { label: "CMU 15-445 Intro to Database Systems", url: "https://15445.courses.cs.cmu.edu/", kind: course }
@@ -488,9 +1141,24 @@ stages:
             learn:
               - Page splits
               - Fill factor
+            body: |
+              A B+tree stays balanced as rows are inserted and deleted. It does this by splitting and merging pages.
+
+              ### Key ideas
+              - Data lives in **leaf pages**. Inner pages only hold keys and child pointers. Leaves are linked for range scans.
+              - When an insert hits a full leaf, a **page split** makes two half-full pages and pushes a key up to the parent. Splits can cascade to the root, which then grows the tree by one level.
+              - When pages get too empty, they can **merge**.
+              - **Fill factor** sets how full to pack pages. A lower value leaves room for inserts and updates and so fewer splits, at the cost of more space.
+              - Random keys such as UUIDs split pages all over the tree. Sequential keys append to the right edge.
+
+              ### In practice
+              ```sql
+              CREATE INDEX idx_t ON t (col) WITH (fillfactor = 70);
+              ```
             resources:
               - { label: "CMU Database Group on YouTube", url: "https://www.youtube.com/@CMUDatabaseGroup", kind: video }
               - { label: "Database Internals (Alex Petrov)", url: "https://www.databass.dev/", kind: article }
+              - { label: "B+ tree (Wikipedia)", url: "https://en.wikipedia.org/wiki/B%2B_tree", kind: article }
           - id: lsm-trees
             title: LSM trees
             summary: Buffer writes in memory and merge sorted files on disk for write-heavy loads.
@@ -498,9 +1166,23 @@ stages:
               - Memtables and SSTables
               - Compaction
               - Bloom filters
+            body: |
+              A log-structured merge tree (LSM) turns random writes into sequential ones. It suits write-heavy workloads. RocksDB, Cassandra and LevelDB use it.
+
+              ### Key ideas
+              - Writes go to an in-memory sorted **memtable**, and to a log for safety.
+              - When full, the memtable is flushed to disk as an immutable sorted file, an **SSTable**.
+              - Reads check the memtable, then SSTables from newest to oldest.
+              - **Compaction** merges SSTables in the background, drops overwritten and deleted values and keeps reads fast.
+              - A **Bloom filter** per file says quickly that a key is definitely not there, so most files are skipped.
+              - Trade-off: fast writes, but **write amplification** from compaction and slower reads than a B-tree.
+
+              ### Example
+              Updating a key writes a new value to the memtable. The old value stays in an older SSTable until compaction removes it.
             resources:
               - { label: "RocksDB wiki", url: "https://github.com/facebook/rocksdb/wiki", kind: docs }
               - { label: "Designing Data-Intensive Applications", url: "https://dataintensive.net/", kind: article }
+              - { label: "Log-structured merge-tree (Wikipedia)", url: "https://en.wikipedia.org/wiki/Log-structured_merge-tree", kind: article }
 
       - id: wal-durability
         title: Write-ahead logging
@@ -513,9 +1195,23 @@ stages:
               - Log before data
               - fsync and commit latency
               - Checkpoints
+            body: |
+              The write-ahead log (WAL) is a sequential file of every change. The rule is simple: write the log record before you change the data page.
+
+              ### Key ideas
+              - On commit, the database **flushes the WAL to disk** with `fsync`. The data pages can be written later.
+              - Sequential log writes are fast, and one flush can cover many transactions (group commit).
+              - After a crash, the database **redoes** the logged changes that had not reached the data files.
+              - `fsync` is the main source of commit latency. Turning it off is fast but risks corruption.
+              - A **checkpoint** writes all dirty pages and marks a point in the log. Recovery starts from the last checkpoint, so old WAL can be recycled.
+              - WAL also feeds replication and point-in-time recovery.
+
+              ### Example
+              You commit, and the server loses power a moment later. On restart it reads the WAL from the last checkpoint and replays your commit.
             resources:
               - { label: "Write-ahead logging (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/wal-intro.html", kind: docs }
               - { label: "CMU 15-445 Intro to Database Systems", url: "https://15445.courses.cs.cmu.edu/", kind: course }
+              - { label: "WAL configuration (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/wal-configuration.html", kind: docs }
           - id: crash-recovery
             title: Crash recovery
             optional: true
@@ -523,8 +1219,22 @@ stages:
             learn:
               - Redo and undo
               - Log sequence numbers
+            body: |
+              Crash recovery brings the database back to a consistent state using the log. ARIES, a 1990s algorithm, is the model many systems follow.
+
+              ### Key ideas
+              - Every log record gets a **log sequence number (LSN)**. Each data page stores the LSN of the last change applied to it.
+              - **Redo:** replay changes whose LSN is newer than the page's LSN. This restores all work, including from transactions that had not committed.
+              - **Undo:** roll back transactions that were still running at the crash, using their log records.
+              - ARIES runs in three passes: analysis, redo, then undo.
+              - Undo writes its own log records, so a crash during recovery is also safe.
+              - PostgreSQL does redo from WAL and relies on MVCC, so aborted rows are simply invisible.
+
+              ### In practice
+              You rarely run recovery by hand. It happens at startup, and its time depends on how much WAL sits after the last checkpoint.
             resources:
               - { label: "CMU Database Group on YouTube", url: "https://www.youtube.com/@CMUDatabaseGroup", kind: video }
+              - { label: "ARIES (Wikipedia)", url: "https://en.wikipedia.org/wiki/Algorithms_for_Recovery_and_Isolation_Exploiting_Semantics", kind: article }
 
       - id: query-execution
         title: Query execution
@@ -537,16 +1247,43 @@ stages:
               - The iterator model
               - Vectorised execution
               - Row vs column storage
+            body: |
+              Once a query has a plan, an execution model decides how rows flow through it. The choice affects speed a lot.
+
+              ### Key ideas
+              - **Iterator (Volcano) model:** each operator has a `next()` call that returns one row. Operators chain together. It is simple and flexible, but each row costs several function calls.
+              - **Vectorised execution:** `next()` returns a batch of values, such as 1,000. It cuts call overhead and uses CPU caches and SIMD well.
+              - **Compiled execution:** generate machine code for the whole query.
+              - **Row storage** keeps all columns of a row together, good for transactions. **Column storage** keeps each column together, good for scanning a few columns of many rows and for compression.
+              - Analytics engines such as DuckDB and ClickHouse use columns and vectorised execution.
+
+              ### Example
+              Summing one column of a billion rows reads only that column in a column store, but every column in a row store.
             resources:
               - { label: "CMU 15-721 Advanced Database Systems", url: "https://15721.courses.cs.cmu.edu/", kind: course }
+              - { label: "Column-oriented DBMS (Wikipedia)", url: "https://en.wikipedia.org/wiki/Column-oriented_DBMS", kind: article }
           - id: query-optimizer
             title: The query optimiser
             summary: How cost-based optimisers search join orders and pick a plan.
             learn:
               - Cost models
               - Join order search
+            body: |
+              The optimiser turns a query into the cheapest plan it can find. It does not know the true cost, so it estimates.
+
+              ### Key ideas
+              - A **cost model** gives each operation a number based on estimated rows, page reads and CPU work.
+              - Many plans return the same answer. The optimiser enumerates them and picks the lowest cost.
+              - **Join order search** is the hard part. For n tables there are a huge number of orders. Systems use dynamic programming for small queries and heuristics or genetic search for big ones.
+              - It also picks scan types and join algorithms, and pushes filters down early.
+              - Bad statistics give bad estimates, so the plan can be far from optimal.
+              - You can influence it with indexes, fresh statistics and query rewrites.
+
+              ### Example
+              For three tables, joining the two small ones first may produce few rows, so the big table is joined last and cheaply.
             resources:
               - { label: "CMU 15-445 Intro to Database Systems", url: "https://15445.courses.cs.cmu.edu/", kind: course }
+              - { label: "Planner/Optimizer (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/planner-optimizer.html", kind: docs }
           - id: read-a-database
             title: Read a real database's code
             optional: true
@@ -554,8 +1291,25 @@ stages:
             learn:
               - SQLite's architecture
               - Tracing one query through the code
+            body: |
+              Reading a real engine shows how the parts fit together. SQLite is a good first choice because it is small, well documented and used everywhere.
+
+              ### Key ideas
+              - SQLite works as a pipeline: tokenizer, parser, code generator, then a virtual machine that runs the generated bytecode.
+              - Below that sit the B-tree module, the pager (page cache and transactions) and the OS interface.
+              - `EXPLAIN` in SQLite shows the actual bytecode program for a query.
+              - The whole database is one file, and the code is one portable C library.
+              - Reading in order, from SQL text to a page on disk, makes the layers clear.
+
+              ### In practice
+              ```bash
+              sqlite3 test.db
+              sqlite> EXPLAIN SELECT * FROM t WHERE id = 1;
+              ```
+              Read each opcode in the output, then find where the source implements it. Trace one `INSERT` the same way, down to the pager.
             resources:
               - { label: "Architecture of SQLite", url: "https://www.sqlite.org/arch.html", kind: docs }
+              - { label: "How SQLite Works: query planner", url: "https://www.sqlite.org/queryplanner.html", kind: docs }
 
       - id: operating-databases
         title: Operating databases in production
@@ -567,17 +1321,48 @@ stages:
             learn:
               - pg_stat_statements
               - Cache hit ratio and replication lag
+            body: |
+              You cannot fix slow queries you cannot see. Collect statistics all the time, so you can find the worst offenders and spot trouble early.
+
+              ### Key ideas
+              - **`pg_stat_statements`** is an extension that tracks every normalised query: calls, total time, mean time and rows. Sort by total time to find what costs the most.
+              - A query that is fast but runs a million times can matter more than one slow report.
+              - **Cache hit ratio:** the share of reads served from memory. A drop means the working set no longer fits.
+              - **Replication lag:** how far a replica trails the primary.
+              - Also watch connections, long transactions, dead tuples, disk space and WAL size.
+              - Set alerts on these before users notice.
+
+              ### In practice
+              ```sql
+              SELECT query, calls, total_exec_time, mean_exec_time
+              FROM pg_stat_statements
+              ORDER BY total_exec_time DESC LIMIT 10;
+              ```
             resources:
               - { label: "pg_stat_statements (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/pgstatstatements.html", kind: docs }
               - { label: "Hussein Nasser on YouTube", url: "https://www.youtube.com/@hnasr", kind: video }
+              - { label: "The cumulative statistics system (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/monitoring-stats.html", kind: docs }
           - id: tuning-memory
             title: Memory and configuration tuning
             summary: Size shared buffers, work memory and checkpoints for your workload.
             learn:
               - shared_buffers and work_mem
               - Checkpoint settings
+            body: |
+              PostgreSQL's defaults are safe for small machines. On a real server you should size memory and checkpoints for your workload.
+
+              ### Key ideas
+              - **`shared_buffers`** is the database's own page cache. A common start is about 25 percent of RAM. The OS cache holds the rest.
+              - **`work_mem`** is memory per sort or hash step, per query. A complex query can use several, and many connections multiply it, so raise it carefully.
+              - **`maintenance_work_mem`** speeds up index builds and vacuum.
+              - **Checkpoint settings** such as `max_wal_size` and `checkpoint_timeout` control how often dirty pages are flushed. Too frequent checkpoints cause I/O spikes.
+              - Change one setting at a time and measure with real queries.
+
+              ### Example
+              Sorts spilling to disk show up in `EXPLAIN ANALYZE` as "external merge". Raising `work_mem` for that role or session can remove them.
             resources:
               - { label: "Resource consumption (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/runtime-config-resource.html", kind: docs }
+              - { label: "Tuning Your PostgreSQL Server (PostgreSQL wiki)", url: "https://wiki.postgresql.org/wiki/Tuning_Your_PostgreSQL_Server", kind: article }
           - id: major-upgrades
             title: Major version upgrades
             optional: true
@@ -585,5 +1370,18 @@ stages:
             learn:
               - pg_upgrade
               - Upgrading through a replica
+            body: |
+              Minor PostgreSQL versions are drop-in. Major versions change the on-disk format, so you must migrate the data.
+
+              ### Key ideas
+              - **`pg_upgrade`** converts the old cluster to the new version in place. With `--link` it uses hard links and takes minutes, but you cannot go back once the new cluster runs.
+              - **Logical replication upgrade:** build a new server on the new version, replicate to it, and switch the app over when it has caught up. Downtime is seconds, and the old server stays as a fallback.
+              - After `pg_upgrade`, run `ANALYZE` because statistics are not carried over.
+              - Check extension and driver compatibility first.
+              - Read the release notes for removed features.
+
+              ### In practice
+              Rehearse on a restored copy of production, time it, and write a rollback plan before the real window.
             resources:
               - { label: "Upgrading a PostgreSQL cluster (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/upgrading.html", kind: docs }
+              - { label: "pg_upgrade (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/pgupgrade.html", kind: docs }
