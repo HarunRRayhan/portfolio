@@ -112,6 +112,7 @@ class RoadmapAccessTest extends TestCase
         RoadmapAccessGrant::create(['email' => 'foo@x.com', 'expires_at' => now()->addDay()]);
         $this->assertFalse(RoadmapAccess::canAccessPaid($user));
     }
+
     public function test_backfill_reads_amount_from_latest_stored_webhook(): void
     {
         $user = User::factory()->create();
