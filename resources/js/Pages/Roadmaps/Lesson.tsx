@@ -1,5 +1,4 @@
 import { Link, router } from '@inertiajs/react'
-import { useEffect, useRef } from 'react'
 import { showToast } from '@/Components/ToastHost'
 import { ArrowLeft, ArrowRight, Check, ChevronRight } from 'lucide-react'
 import { Comments, type RoadmapComment } from '@/Components/Roadmap/Comments'
@@ -27,32 +26,26 @@ export default function RoadmapLesson({ roadmap, topic, lesson, position, lesson
   const here = `${base}/${topic.id}/${lesson.id}`
   const loginHref = `/login?redirect=${encodeURIComponent(here)}`
   const lessonUrl = `${base}/lessons/${lesson.id}`
-  const autoTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const link = (n: NonNullable<Neighbour>) => `${base}/${n.topicId}/${n.id}`
+  // After marking done: the next lesson in this topic, or the next topic's page when this was the last lesson.
+  const continueUrl = next ? (next.topicId === topic.id ? link(next) : `${base}/${next.topicId}`) : null
   const setDone = (done: boolean) =>
     router[done ? 'post' : 'delete'](lessonUrl, {}, {
       preserveScroll: true,
-      preserveState: true, // keep a half-typed comment when the auto-complete lands
-      onSuccess: () => done
-        ? showToast('success', 'Lesson marked as done', { action: { label: 'Undo', onClick: () => setDone(false) } })
-        : showToast('success', 'Lesson marked as not done'),
+      preserveState: true, // keep a half-typed comment
+      onSuccess: () => {
+        if (!done) return showToast('success', 'Lesson marked as not done')
+        showToast('success', 'Lesson marked as done', { action: { label: 'Undo', onClick: () => router.delete(lessonUrl, { preserveScroll: true, preserveState: true }) } })
+        if (continueUrl) router.visit(continueUrl)
+      },
     })
   const toggle = () => {
     if (!hasAccount) {
       router.visit(loginHref)
       return
     }
-    clearTimeout(autoTimer.current)
     setDone(!lesson.done)
   }
-
-  // Opening a lesson for a few seconds counts as reading it; runs once per lesson so an undo sticks.
-  useEffect(() => {
-    if (!hasAccount || locked || lesson.done) return
-    autoTimer.current = setTimeout(() => setDone(true), 5000)
-    return () => clearTimeout(autoTimer.current)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lesson.id])
-  const link = (n: NonNullable<Neighbour>) => `${base}/${n.topicId}/${n.id}`
 
   return (
     <div className="pt-24">
@@ -79,7 +72,7 @@ export default function RoadmapLesson({ roadmap, topic, lesson, position, lesson
               onClick={toggle}
               className={cn('mt-6 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold', lesson.done ? 'bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-950 dark:text-amber-300' : 'bg-amber-500 text-amber-950 hover:bg-amber-400')}
             >
-              <Check className="h-4 w-4" /> {lesson.done ? 'Done (click to undo)' : hasAccount ? 'Mark as done' : 'Sign in to track progress'}
+              <Check className="h-4 w-4" /> {lesson.done ? 'Done (click to undo)' : hasAccount ? (continueUrl ? 'Mark as done and continue' : 'Mark as done') : 'Sign in to track progress'}
             </button>
             <LessonDetail lesson={lesson} loginHref={loginHref} />
           </>
