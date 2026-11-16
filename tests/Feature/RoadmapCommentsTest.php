@@ -34,6 +34,9 @@ class RoadmapCommentsTest extends TestCase
             ->missing('lesson.prompt')
             ->where('prev', null)
             ->has('next.id')
+            ->has('next.topicTitle')
+            ->where('siblings.0.id', $lesson)
+            ->where('siblings.0.done', false)
             ->where('comments', [])
             ->has('seo.title'));
 

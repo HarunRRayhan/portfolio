@@ -189,10 +189,10 @@ class RoadmapController extends Controller
             if ($id === null) {
                 return null;
             }
-            $t = $this->repo->findTopic($roadmap, $index[$id]['topic'])['topic'];
-            $l = collect($t['lessons'])->firstWhere('id', $id);
+            $found = $this->repo->findTopic($roadmap, $index[$id]['topic']);
+            $l = collect($found['topic']['lessons'])->firstWhere('id', $id);
 
-            return ['id' => $id, 'title' => $l['title'], 'topicId' => $t['id']];
+            return ['id' => $id, 'title' => $l['title'], 'topicId' => $found['topic']['id'], 'topicTitle' => $found['topic']['title'], 'topicNumber' => $found['number']];
         };
 
         return Inertia::render('Roadmaps/Lesson', [
@@ -201,6 +201,8 @@ class RoadmapController extends Controller
             'lesson' => $this->lessonPayload($roadmap, $stage, $topic, $lesson, $locked, $done, (bool) $user),
             'position' => $position + 1,
             'lessonCount' => count($topic['lessons']),
+            // The topic's lessons, for the step list at the top of the page.
+            'siblings' => array_map(fn (array $l) => ['id' => $l['id'], 'title' => $l['title'], 'optional' => $l['optional'], 'done' => in_array($l['id'], $done, true)], $topic['lessons']),
             'locked' => $locked,
             'hasAccount' => (bool) $user,
             'prev' => $neighbour($order[$i - 1] ?? null),
