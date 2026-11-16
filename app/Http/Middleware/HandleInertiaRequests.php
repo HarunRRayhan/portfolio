@@ -50,6 +50,7 @@ class HandleInertiaRequests extends Middleware
                 'xp' => fn () => $request->user() ? (int) XpAward::where('user_id', $request->user()->id)->sum('points') : null,
             ],
             'turnstileSiteKey' => config('services.turnstile.site_key'),
+            'sponsorsUrl' => config('sponsors.url'),
             'caseStudiesByService' => fn () => $request->is('services/*')
                 ? array_intersect_key($caseStudies->groupedByServiceSlug(), [$request->segment(2) => true])
                 : [],
