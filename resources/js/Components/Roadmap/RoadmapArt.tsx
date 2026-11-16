@@ -1,4 +1,4 @@
-import { Activity, BrainCircuit, Cloud, Database, Globe, Infinity as InfinityIcon, Library, Network, Rocket, ShieldCheck, Sparkles, type LucideIcon } from 'lucide-react'
+import { Activity, BrainCircuit, Cloud, Compass, Database, Globe, Infinity as InfinityIcon, Library, Network, Rocket, ShieldCheck, Sparkles, type LucideIcon } from 'lucide-react'
 import { getImageUrl } from '@/lib/imageUtils'
 import { cn } from '@/lib/utils'
 
@@ -15,6 +15,7 @@ const icons: Record<string, LucideIcon> = {
   sparkles: Sparkles,
   rocket: Rocket,
   library: Library,
+  compass: Compass,
 }
 
 const palettes: Record<string, { bg: string; glow: string; icon: string; path: string }> = {
@@ -29,6 +30,7 @@ const palettes: Record<string, { bg: string; glow: string; icon: string; path: s
   fuchsia: { bg: 'to-fuchsia-700', glow: 'bg-fuchsia-400', icon: 'text-fuchsia-300', path: 'stroke-fuchsia-300' },
   orange: { bg: 'to-orange-700', glow: 'bg-orange-400', icon: 'text-orange-300', path: 'stroke-orange-300' },
   teal: { bg: 'to-teal-700', glow: 'bg-teal-400', icon: 'text-teal-300', path: 'stroke-teal-300' },
+  lime: { bg: 'to-lime-700', glow: 'bg-lime-400', icon: 'text-lime-300', path: 'stroke-lime-300' },
 }
 
 export type RoadmapArtData = { icon: string; color: string; logos: string[] }

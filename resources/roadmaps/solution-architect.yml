@@ -1,0 +1,777 @@
+slug: solution-architect
+title: Solution Architect
+summary: The job of a cloud solution architect, from turning requirements into a first design to running landing zones, migrations and architecture reviews across a company.
+order: 12
+updated: '2026-11-16'
+icon: compass
+color: lime
+logos:
+  - /images/tech/aws.svg
+  - /images/tech/terraform.svg
+  - /images/tech/kubernetes.svg
+builds_on: system-design
+
+stages:
+  - level: beginner
+    title: Thinking like an architect
+    topics:
+      - id: the-role
+        title: What a solution architect does
+        summary: The architect turns a business problem into a design a team can build, run and pay for.
+        lessons:
+          - id: architect-vs-engineer
+            title: Architect vs engineer
+            summary: How the role differs from a senior engineer, and where it overlaps. The architect owns the shape of the system and the reasons behind it.
+            learn:
+              - Solution, enterprise and technical architects
+              - Breadth over depth, but enough depth to be credible
+              - Who you work with day to day
+            resources:
+              - { label: "Fundamentals of Software Architecture (O'Reilly)", url: "https://www.oreilly.com/library/view/fundamentals-of-software/9781492043447/", kind: article }
+              - { label: "The Architect Elevator (Gregor Hohpe)", url: "https://architectelevator.com/", kind: article }
+          - id: day-in-the-life
+            title: The work in practice
+            summary: Discovery calls, whiteboard sessions, design documents, reviews and helping teams through delivery.
+            learn:
+              - Pre-sales vs delivery architects
+              - Where designs come from and where they go
+              - Why most of the job is talking and writing
+            resources:
+              - { label: "AWS Architecture Center", url: "https://aws.amazon.com/architecture/", kind: docs }
+              - post: when-your-app-outgrows-the-tool-that-built-it
+          - id: architecture-is-trade-offs
+            title: Architecture is trade-offs
+            summary: There is no best design, only one that fits the constraints. Learn to say what you gave up and why.
+            learn:
+              - Every choice costs something
+              - "\"It depends\" followed by what it depends on"
+            resources:
+              - { label: "Software Architecture Guide (Martin Fowler)", url: "https://martinfowler.com/architecture/", kind: article }
+
+      - id: requirements
+        title: Requirements gathering
+        summary: A design is only as good as the questions asked before it. Get the needs and the limits down first.
+        lessons:
+          - id: functional-requirements
+            title: Functional requirements
+            summary: What the system must do, written as user flows and use cases the business agrees with.
+            learn:
+              - Use cases and user journeys
+              - Separating must-have from nice-to-have
+              - Writing requirements people can check
+            resources:
+              - { label: "Use cases (Martin Fowler)", url: "https://martinfowler.com/bliki/UseCase.html", kind: article }
+          - id: non-functional-requirements
+            title: Non-functional requirements
+            summary: How well the system must do it. Availability, latency, scale, security, compliance and cost shape the design more than features do.
+            learn:
+              - The "-ilities" and how to put numbers on them
+              - Peak load, data volume and growth
+              - Compliance needs (GDPR, HIPAA, PCI DSS)
+            resources:
+              - { label: "AWS Well-Architected Framework", url: "https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html", kind: docs }
+              - post: how-to-use-aws-sagemaker-for-hipaa-compliant-data-a-complete-guide
+          - id: discovery-questions
+            title: Discovery questions
+            summary: A checklist of questions to ask in the first meetings so nothing important turns up late.
+            learn:
+              - Users, data, integrations, deadlines, budget
+              - Existing systems and team skills
+              - Finding the real constraint
+            resources:
+              - { label: "Azure Architecture Center", url: "https://learn.microsoft.com/en-us/azure/architecture/", kind: docs }
+          - id: constraints-and-assumptions
+            title: Constraints and assumptions
+            optional: true
+            summary: Write down what is fixed and what you are guessing, so a reviewer can challenge the guesses.
+            learn:
+              - Hard constraints vs preferences
+              - Logging assumptions and risks
+            resources:
+              - { label: "Architecture Decision Records", url: "https://adr.github.io/", kind: docs }
+
+      - id: cloud-building-blocks
+        title: Cloud building blocks
+        summary: The handful of service types every cloud design is made of, and when to reach for each.
+        lessons:
+          - id: compute-options
+            title: Compute options
+            summary: Virtual machines, containers and functions, and what each one asks you to manage.
+            learn:
+              - VMs vs containers vs serverless
+              - Managed platforms and their limits
+            resources:
+              - post: serverless-laravel-containers-with-ecs-fargate-app-runner-and-terraform
+              - { label: "Overview of Amazon Web Services", url: "https://docs.aws.amazon.com/whitepapers/latest/aws-overview/introduction.html", kind: docs }
+          - id: storage-and-databases
+            title: Storage and databases
+            summary: Object, block and file storage, and the main families of managed databases.
+            learn:
+              - Object storage as the default for files
+              - Relational vs key-value vs document
+              - Managed vs self-run databases
+            resources:
+              - post: why-s3-presigned-urls
+              - { label: "AWS decision guides", url: "https://aws.amazon.com/getting-started/decision-guides/", kind: docs }
+          - id: networking-building-blocks
+            title: Networking building blocks
+            summary: Regions, availability zones, virtual networks, subnets, load balancers and CDNs.
+            learn:
+              - Regions and availability zones
+              - Public vs private subnets
+              - Where load balancers and CDNs sit
+            resources:
+              - { label: "AWS Global Infrastructure", url: "https://aws.amazon.com/about-aws/global-infrastructure/", kind: docs }
+          - id: managed-vs-build
+            title: Managed service or build it yourself
+            summary: When a managed service saves the team time and when it locks you in or costs too much.
+            learn:
+              - Operational burden as a real cost
+              - Lock-in and exit cost
+            resources:
+              - { label: "Shared responsibility model (AWS)", url: "https://aws.amazon.com/compliance/shared-responsibility-model/", kind: article }
+          - id: compare-the-clouds
+            title: AWS, Azure and Google Cloud side by side
+            optional: true
+            summary: The same building blocks under different names, so you can read a design on any cloud.
+            learn:
+              - Mapping services across clouds
+              - Where the clouds differ in practice
+            resources:
+              - { label: "Google Cloud Architecture Center", url: "https://cloud.google.com/architecture", kind: docs }
+              - { label: "Azure for AWS professionals", url: "https://learn.microsoft.com/en-us/azure/architecture/aws-professional/", kind: docs }
+
+      - id: diagrams
+        title: Architecture diagrams
+        summary: A clear diagram is how most people will understand your design. Draw for the reader, not for yourself.
+        lessons:
+          - id: c4-model
+            title: The C4 model
+            summary: Context, container, component and code diagrams give each audience the level of detail it needs.
+            learn:
+              - The four levels and who reads each
+              - Starting with the system context
+            resources:
+              - { label: "The C4 model", url: "https://c4model.com/", kind: docs }
+          - id: cloud-diagrams
+            title: Cloud provider diagrams
+            summary: Drawing deployment views with the official icons, showing regions, networks and data flow.
+            learn:
+              - Official icon sets
+              - Showing trust boundaries and data flow
+              - Keeping a diagram readable
+            resources:
+              - { label: "AWS Architecture Icons", url: "https://aws.amazon.com/architecture/icons/", kind: tool }
+              - { label: "AWS Reference Architecture Diagrams", url: "https://aws.amazon.com/architecture/reference-architecture-diagrams/", kind: docs }
+          - id: diagrams-as-code
+            title: Diagrams as code
+            optional: true
+            summary: Keep diagrams in version control next to the code so they stay current.
+            learn:
+              - Model once, render many views
+              - Reviewing diagram changes in pull requests
+            resources:
+              - { label: "Structurizr", url: "https://structurizr.com/", kind: tool }
+
+      - id: basic-trade-offs
+        title: Basic trade-offs
+        summary: The common tensions in any design and how to explain which side you picked.
+        lessons:
+          - id: cost-vs-availability
+            title: Cost vs availability
+            summary: Each extra nine of uptime costs more. Match the design to what the business actually needs.
+            learn:
+              - Single AZ vs multi-AZ vs multi-region
+              - What downtime costs the business
+            resources:
+              - { label: "Reliability pillar (AWS)", url: "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html", kind: docs }
+          - id: simplicity-vs-flexibility
+            title: Simplicity vs flexibility
+            summary: Build for today's needs with room to change, not for every future you can imagine.
+            learn:
+              - Avoiding speculative generality
+              - Monolith first
+            resources:
+              - { label: "MonolithFirst (Martin Fowler)", url: "https://martinfowler.com/bliki/MonolithFirst.html", kind: article }
+              - post: how-i-architected-a-fully-serverless-saas-on-aws-lambda-with-fastify
+          - id: speed-vs-control
+            title: Speed vs control
+            summary: Managed and serverless services ship faster. Self-run gives more control. The team you have decides a lot.
+            learn:
+              - Team skills as a design input
+              - Time to market vs tuning
+            resources:
+              - post: terraform-or-pulumi
+              - { label: "ByteByteGo blog", url: "https://blog.bytebytego.com/", kind: article }
+
+      - id: cost-basics
+        title: Cloud cost basics
+        summary: Know what a design will cost before anyone builds it.
+        lessons:
+          - id: pricing-models
+            title: How cloud pricing works
+            summary: Pay per use, per hour, per request and per GB transferred, and the commitments that lower the price.
+            learn:
+              - On-demand, reserved and spot
+              - Data transfer as a hidden cost
+            resources:
+              - { label: "How AWS Pricing Works", url: "https://docs.aws.amazon.com/whitepapers/latest/how-aws-pricing-works/welcome.html", kind: docs }
+              - post: 5-aws-mistakes-quietly-draining-your-bank-account
+          - id: pricing-calculator
+            title: Estimating with a pricing calculator
+            summary: Build a monthly estimate for a design and show it next to the diagram.
+            learn:
+              - Listing every billable component
+              - Low, expected and peak estimates
+            resources:
+              - { label: "AWS Pricing Calculator", url: "https://calculator.aws/", kind: tool }
+          - id: budgets-and-alerts
+            title: Budgets and alerts
+            summary: Set a budget and an alarm on day one so a mistake shows up in hours, not on the invoice.
+            learn:
+              - Budget alarms per account
+              - Tagging for cost allocation
+            resources:
+              - post: first-3-things-i-always-do-after-creating-a-new-aws-account
+              - { label: "AWS Cost Management", url: "https://aws.amazon.com/aws-cost-management/", kind: docs }
+
+  - level: intermediate
+    title: Designing solid cloud solutions
+    topics:
+      - id: well-architected
+        title: Well-Architected frameworks
+        summary: The cloud providers' checklists for good design, and how to use them in real reviews.
+        lessons:
+          - id: six-pillars
+            title: The six pillars
+            summary: Operational excellence, security, reliability, performance efficiency, cost optimization and sustainability.
+            learn:
+              - What each pillar asks of a design
+              - Where pillars pull against each other
+            resources:
+              - { label: "AWS Well-Architected", url: "https://aws.amazon.com/architecture/well-architected/", kind: docs }
+              - { label: "AWS Well-Architected Framework", url: "https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html", kind: docs }
+          - id: azure-gcp-frameworks
+            title: Azure and Google Cloud frameworks
+            summary: The same ideas from the other clouds, useful when a client is not on AWS.
+            learn:
+              - Azure Well-Architected Framework
+              - Google Cloud Architecture Framework
+            resources:
+              - { label: "Azure Well-Architected Framework", url: "https://learn.microsoft.com/en-us/azure/well-architected/", kind: docs }
+              - { label: "Google Cloud Architecture Framework", url: "https://cloud.google.com/architecture/framework", kind: docs }
+          - id: well-architected-review
+            title: Running a Well-Architected review
+            summary: Walk a workload through the questions, record risks and agree on fixes.
+            learn:
+              - High and medium risk items
+              - Turning findings into a backlog
+            resources:
+              - { label: "AWS Well-Architected Tool", url: "https://docs.aws.amazon.com/wellarchitected/latest/userguide/intro.html", kind: docs }
+          - id: lenses
+            title: Well-Architected lenses
+            optional: true
+            summary: Extra question sets for serverless, SaaS, machine learning and other workload types.
+            learn:
+              - Choosing a lens for the workload
+              - Custom lenses for your company
+            resources:
+              - { label: "AWS Well-Architected", url: "https://aws.amazon.com/architecture/well-architected/", kind: docs }
+
+      - id: ha-and-dr
+        title: High availability and disaster recovery
+        summary: Keep the system running through failures and bring it back after a disaster within agreed targets.
+        lessons:
+          - id: rto-rpo
+            title: RTO and RPO
+            summary: How long the business can be down and how much data it can lose. These two numbers drive the DR design.
+            learn:
+              - Recovery time objective
+              - Recovery point objective
+              - Getting the business to agree on them
+            resources:
+              - { label: "Disaster Recovery of Workloads on AWS", url: "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-workloads-on-aws.html", kind: docs }
+          - id: dr-strategies
+            title: DR strategies
+            summary: Backup and restore, pilot light, warm standby and multi-site active/active, from cheapest to fastest.
+            learn:
+              - Cost and recovery time of each strategy
+              - Matching a strategy to RTO and RPO
+            resources:
+              - { label: "Disaster Recovery of Workloads on AWS", url: "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-workloads-on-aws.html", kind: docs }
+          - id: multi-az-design
+            title: Multi-AZ design
+            summary: Spread every layer across availability zones so one data centre failing is a non-event.
+            learn:
+              - Stateless app tiers behind a load balancer
+              - Multi-AZ databases and failover
+            resources:
+              - { label: "Reliability pillar (AWS)", url: "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html", kind: docs }
+          - id: testing-recovery
+            title: Testing recovery
+            optional: true
+            summary: A backup you have never restored is a guess. Practise failover and restores on a schedule.
+            learn:
+              - Game days and restore drills
+              - Measuring actual RTO
+            resources:
+              - { label: "Google SRE books", url: "https://sre.google/books/", kind: article }
+              - post: snapshot-restore-of-lightsail-instance-to-lightsail-ec2
+
+      - id: security-architecture
+        title: Security and identity architecture
+        summary: Design security in from the start, with identity at the centre.
+        lessons:
+          - id: identity-design
+            title: Identity design
+            summary: Who and what can access each resource. Workforce identity, customer identity and machine roles.
+            learn:
+              - Single sign-on for staff
+              - Roles over long-lived keys
+              - Least privilege
+            resources:
+              - { label: "IAM security best practices (AWS)", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html", kind: docs }
+              - post: multi-tenant-saas-auth-lambda-fastify
+          - id: defence-in-depth
+            title: Defence in depth
+            summary: Layers of control at the edge, network, application and data so one mistake does not expose everything.
+            learn:
+              - WAF, security groups and private subnets
+              - Encryption in transit and at rest
+            resources:
+              - post: aws-waf-cloudfront-solo-dev
+              - { label: "Security pillar (AWS)", url: "https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/welcome.html", kind: docs }
+          - id: data-protection-design
+            title: Data protection and secrets
+            summary: Classify data, keep secrets out of code and decide who holds the encryption keys.
+            learn:
+              - Data classification
+              - Secrets managers and key management
+            resources:
+              - post: terraform-state-more-sensitive-than-env
+              - { label: "Security pillar (AWS)", url: "https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/welcome.html", kind: docs }
+          - id: zero-trust
+            title: Zero trust
+            optional: true
+            summary: Stop trusting the network. Verify every request by identity and context.
+            learn:
+              - Principles of zero trust
+              - What changes in a cloud design
+            resources:
+              - { label: "NIST SP 800-207 Zero Trust Architecture", url: "https://csrc.nist.gov/pubs/sp/800/207/final", kind: docs }
+
+      - id: integration-patterns
+        title: Integration patterns
+        summary: How the parts of a solution and other systems talk to each other. System Design covers the internals; here you pick the pattern.
+        lessons:
+          - id: sync-apis
+            title: Synchronous APIs
+            summary: REST, GraphQL and gRPC, and the coupling that request/response creates.
+            learn:
+              - Choosing an API style
+              - API contracts and versioning
+            resources:
+              - { label: "OpenAPI Initiative", url: "https://www.openapis.org/", kind: docs }
+              - { label: "ByteByteGo", url: "https://bytebytego.com/", kind: course }
+          - id: queues-and-events
+            title: Queues and events
+            summary: Decouple producers and consumers so a slow or failing part does not take down the rest.
+            learn:
+              - Queues vs pub/sub vs event streams
+              - Choosing between them
+            resources:
+              - post: running-ai-background-jobs-serverlessly-with-sqs-lambda-bedrock
+              - { label: "Cloud design patterns (Azure)", url: "https://learn.microsoft.com/en-us/azure/architecture/patterns/", kind: docs }
+          - id: orchestration-vs-choreography
+            title: Orchestration vs choreography
+            summary: A central workflow that calls each step, or services reacting to each other's events.
+            learn:
+              - Workflow engines
+              - Tracing a business process across services
+            resources:
+              - post: step-functions-llm-orchestration-replacing-lambda-chains
+              - { label: "What do you mean by Event-Driven? (Martin Fowler)", url: "https://martinfowler.com/articles/201701-event-driven.html", kind: article }
+          - id: event-contracts
+            title: Event contracts
+            optional: true
+            summary: Describe events with a schema so teams can change systems without breaking each other.
+            learn:
+              - CloudEvents and AsyncAPI
+              - Schema evolution
+            resources:
+              - { label: "CloudEvents", url: "https://cloudevents.io/", kind: docs }
+              - { label: "AsyncAPI", url: "https://www.asyncapi.com/", kind: docs }
+
+      - id: data-architecture
+        title: Data architecture choices
+        summary: Pick where data lives, how it moves and who owns it, based on access patterns rather than habit.
+        lessons:
+          - id: choosing-a-database
+            title: Choosing a database
+            summary: Match the database to the access pattern, consistency needs and team skills.
+            learn:
+              - Relational by default, and when not
+              - Purpose-built databases
+            resources:
+              - { label: "Data Architecture Guide (Azure)", url: "https://learn.microsoft.com/en-us/azure/architecture/data-guide/", kind: docs }
+              - { label: "Designing Data-Intensive Applications", url: "https://dataintensive.net/", kind: article }
+          - id: operational-vs-analytical
+            title: Operational vs analytical data
+            summary: Keep reporting off the production database with a warehouse or lake fed by pipelines.
+            learn:
+              - OLTP vs OLAP
+              - Data lakes, warehouses and lakehouses
+            resources:
+              - { label: "Data Architecture Guide (Azure)", url: "https://learn.microsoft.com/en-us/azure/architecture/data-guide/", kind: docs }
+          - id: data-residency
+            title: Data residency and retention
+            summary: Where data may be stored by law, how long you keep it and how you delete it.
+            learn:
+              - Region choice for compliance
+              - Retention and deletion policies
+            resources:
+              - { label: "AWS Architecture Center", url: "https://aws.amazon.com/architecture/", kind: docs }
+          - id: data-mesh
+            title: Data mesh and data ownership
+            optional: true
+            summary: Treat data as a product owned by domain teams instead of one central team.
+            learn:
+              - Domain-owned data products
+              - When it fits and when it is overkill
+            resources:
+              - { label: "Data Mesh Principles (Martin Fowler)", url: "https://martinfowler.com/articles/data-mesh-principles.html", kind: article }
+
+      - id: cost-modelling
+        title: Cost modelling
+        summary: Turn a design into a cost model that holds up as usage grows, and design for lower cost.
+        lessons:
+          - id: unit-economics
+            title: Unit economics
+            summary: Cost per customer, per request or per transaction tells you if the design scales with the business.
+            learn:
+              - Picking a unit that matters to the business
+              - Cost at 10x and 100x usage
+            resources:
+              - post: multi-tenant-billing-aws-lambda-stripe
+              - { label: "Cost optimization pillar (AWS)", url: "https://docs.aws.amazon.com/wellarchitected/latest/cost-optimization-pillar/welcome.html", kind: docs }
+          - id: cost-aware-design
+            title: Cost-aware design
+            summary: Right-sizing, serverless vs always-on, storage tiers and keeping data transfer down.
+            learn:
+              - Where the money goes in a typical design
+              - Spot and Savings Plans
+            resources:
+              - post: ecs-fargate-spot-capacity-providers
+              - { label: "Cost optimization pillar (AWS)", url: "https://docs.aws.amazon.com/wellarchitected/latest/cost-optimization-pillar/welcome.html", kind: docs }
+          - id: finops
+            title: FinOps
+            optional: true
+            summary: The practice of engineering, finance and product sharing ownership of cloud spend.
+            learn:
+              - Inform, optimize, operate
+              - Showback and chargeback
+            resources:
+              - { label: "FinOps Framework", url: "https://www.finops.org/framework/", kind: docs }
+
+      - id: decision-records
+        title: Architecture decision records
+        summary: Write down each significant decision, its context and its consequences so nobody has to guess later.
+        lessons:
+          - id: writing-adrs
+            title: Writing an ADR
+            summary: A short document with context, decision, status and consequences, kept next to the code.
+            learn:
+              - The Nygard ADR template
+              - What counts as a significant decision
+            resources:
+              - { label: "Documenting Architecture Decisions (Michael Nygard)", url: "https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions", kind: article }
+              - { label: "Architecture Decision Records", url: "https://adr.github.io/", kind: docs }
+          - id: design-documents
+            title: Design documents
+            summary: A longer write-up for a new system that lays out options, the chosen one and why.
+            learn:
+              - Options considered and why they lost
+              - Getting comments before building
+            resources:
+              - { label: "Software Architecture Guide (Martin Fowler)", url: "https://martinfowler.com/architecture/", kind: article }
+              - post: agents-md-is-code
+          - id: decision-making-process
+            title: Making decisions as a group
+            optional: true
+            summary: Advice processes and RFCs that let teams decide without the architect becoming a bottleneck.
+            learn:
+              - The advice process
+              - Revisiting and superseding decisions
+            resources:
+              - { label: "Scaling the Practice of Architecture, Conversationally (Martin Fowler)", url: "https://martinfowler.com/articles/scaling-architecture-conversationally.html", kind: article }
+
+  - level: advanced
+    title: Architecture across the organisation
+    topics:
+      - id: landing-zones
+        title: Multi-account and landing zones
+        summary: A secure, governed base of accounts that every workload in the company is built on.
+        lessons:
+          - id: multi-account-strategy
+            title: Multi-account strategy
+            summary: Separate accounts per environment and workload to limit blast radius, billing and access.
+            learn:
+              - Organizational units and account structure
+              - Shared services and log archive accounts
+            resources:
+              - { label: "Organizing Your AWS Environment Using Multiple Accounts", url: "https://docs.aws.amazon.com/whitepapers/latest/organizing-your-aws-environment/organizing-your-aws-environment.html", kind: docs }
+              - { label: "AWS Organizations", url: "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_introduction.html", kind: docs }
+          - id: landing-zone-setup
+            title: Building a landing zone
+            summary: Account vending, central logging, guardrails and network baseline, set up once and reused.
+            learn:
+              - Control Tower vs a custom landing zone
+              - Account vending with infrastructure as code
+            resources:
+              - { label: "AWS Control Tower", url: "https://docs.aws.amazon.com/controltower/latest/userguide/what-is-control-tower.html", kind: docs }
+              - { label: "Azure landing zones (Cloud Adoption Framework)", url: "https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/landing-zone/", kind: docs }
+          - id: network-topology
+            title: Enterprise network topology
+            summary: Hub and spoke, transit gateways and connecting on-premises networks to many accounts.
+            learn:
+              - Hub-and-spoke networking
+              - Hybrid connectivity with VPN and dedicated links
+              - Central egress and inspection
+            resources:
+              - { label: "AWS Architecture Center", url: "https://aws.amazon.com/architecture/", kind: docs }
+          - id: security-reference-architecture
+            title: Security reference architecture
+            optional: true
+            summary: How the security services are laid out across a multi-account organisation.
+            learn:
+              - Delegated security admin accounts
+              - Organisation-wide detection
+            resources:
+              - { label: "AWS Security Reference Architecture", url: "https://docs.aws.amazon.com/prescriptive-guidance/latest/security-reference-architecture/welcome.html", kind: docs }
+
+      - id: migration
+        title: Migration strategies
+        summary: Move existing systems to the cloud with a plan per application instead of one approach for all.
+        lessons:
+          - id: seven-rs
+            title: The 7 Rs
+            summary: Retire, retain, rehost, relocate, repurchase, replatform and refactor, and how to pick one per application.
+            learn:
+              - What each strategy means
+              - Effort and benefit of each
+            resources:
+              - { label: "Migration strategies (AWS Prescriptive Guidance)", url: "https://docs.aws.amazon.com/prescriptive-guidance/latest/large-migration-guide/migration-strategies.html", kind: docs }
+          - id: portfolio-assessment
+            title: Portfolio assessment
+            summary: Inventory applications and dependencies, then group them into migration waves.
+            learn:
+              - Discovery and dependency mapping
+              - Planning waves
+              - Building the business case
+            resources:
+              - { label: "AWS Cloud Migration", url: "https://aws.amazon.com/cloud-migration/", kind: docs }
+              - { label: "Cloud Adoption Framework (Azure)", url: "https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/", kind: docs }
+          - id: strangler-fig
+            title: The strangler fig pattern
+            summary: Replace a legacy system piece by piece behind a routing layer instead of a big-bang rewrite.
+            learn:
+              - Routing traffic between old and new
+              - Retiring the old system safely
+            resources:
+              - { label: "StranglerFigApplication (Martin Fowler)", url: "https://martinfowler.com/bliki/StranglerFigApplication.html", kind: article }
+          - id: data-migration
+            title: Data migration and cutover
+            optional: true
+            summary: Move data with minimal downtime using replication, then cut over with a rollback plan.
+            learn:
+              - Full load plus change data capture
+              - Cutover and rollback plans
+            resources:
+              - { label: "AWS Database Migration Service", url: "https://docs.aws.amazon.com/dms/latest/userguide/Welcome.html", kind: docs }
+
+      - id: multi-region
+        title: Multi-region architecture
+        summary: Run across regions for the strictest availability or latency needs, and know what it costs.
+        lessons:
+          - id: when-multi-region
+            title: When to go multi-region
+            summary: Most workloads do not need it. Know the real reasons and the price in cost and complexity.
+            learn:
+              - Availability, latency and data residency drivers
+              - The cost of a second region
+            resources:
+              - { label: "Amazon Builders' Library", url: "https://aws.amazon.com/builders-library/", kind: article }
+          - id: active-active-vs-passive
+            title: Active-active vs active-passive
+            summary: Serve traffic from every region, or keep one ready to take over.
+            learn:
+              - Traffic routing and failover
+              - Data replication and conflicts
+            resources:
+              - { label: "Disaster Recovery of Workloads on AWS", url: "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-workloads-on-aws.html", kind: docs }
+              - { label: "Designing Data-Intensive Applications", url: "https://dataintensive.net/", kind: article }
+          - id: cell-based-architecture
+            title: Cell-based architecture
+            optional: true
+            summary: Split a system into independent cells so a failure only reaches a slice of customers.
+            learn:
+              - Cells and shuffle sharding
+              - Routing customers to cells
+            resources:
+              - { label: "Amazon Builders' Library", url: "https://aws.amazon.com/builders-library/", kind: article }
+
+      - id: enterprise-integration
+        title: Enterprise integration
+        summary: Connect cloud solutions to the existing systems a large company runs on.
+        lessons:
+          - id: eip-patterns
+            title: Enterprise integration patterns
+            summary: The classic patterns for messaging between systems, still the vocabulary architects use.
+            learn:
+              - Message channels, routers and translators
+              - Canonical data models
+            resources:
+              - { label: "Enterprise Integration Patterns", url: "https://www.enterpriseintegrationpatterns.com/", kind: article }
+          - id: hybrid-and-legacy
+            title: Hybrid and legacy systems
+            summary: Integrate with on-premises databases, mainframes and SaaS products without tight coupling.
+            learn:
+              - Anti-corruption layers
+              - Batch file transfer vs APIs vs events
+            resources:
+              - { label: "Cloud design patterns (Azure)", url: "https://learn.microsoft.com/en-us/azure/architecture/patterns/", kind: docs }
+          - id: api-management
+            title: API management at scale
+            optional: true
+            summary: Gateways, developer portals and policies for many teams publishing APIs.
+            learn:
+              - Central vs federated API gateways
+              - Rate limits, keys and usage plans
+            resources:
+              - { label: "Azure Architecture Center", url: "https://learn.microsoft.com/en-us/azure/architecture/", kind: docs }
+
+      - id: governance
+        title: Governance
+        summary: Guardrails and standards that keep many teams safe and consistent without slowing them down.
+        lessons:
+          - id: guardrails
+            title: Preventive and detective guardrails
+            summary: Policies that block bad changes and checks that find drift after the fact.
+            learn:
+              - Service control policies
+              - Config rules and policy as code
+            resources:
+              - { label: "AWS Organizations", url: "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_introduction.html", kind: docs }
+              - post: how-i-make-ai-coding-agents-safe-in-a-real-aws-codebase
+          - id: standards-and-golden-paths
+            title: Standards and golden paths
+            summary: Approved patterns and templates that make the right way the easy way.
+            learn:
+              - Reference architectures and modules
+              - Tech radar for approved technologies
+            resources:
+              - { label: "Thoughtworks Technology Radar", url: "https://www.thoughtworks.com/radar", kind: article }
+              - post: deploying-a-laravel-application-to-amazon-ec2-using-terraform
+          - id: compliance-at-scale
+            title: Compliance at scale
+            optional: true
+            summary: Map controls to frameworks and collect evidence automatically.
+            learn:
+              - Control mapping
+              - Continuous compliance evidence
+            resources:
+              - { label: "Cloud Adoption Framework (Azure)", url: "https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/", kind: docs }
+
+      - id: stakeholders
+        title: Stakeholder communication
+        summary: A design that nobody buys into does not get built. Explain it to each audience in their terms.
+        lessons:
+          - id: audiences
+            title: Talking to different audiences
+            summary: Executives want risk, cost and time. Engineers want detail. Security wants controls.
+            learn:
+              - Riding the architect elevator
+              - Choosing the right diagram level
+            resources:
+              - { label: "The Architect Elevator (Gregor Hohpe)", url: "https://architectelevator.com/", kind: article }
+          - id: selling-a-design
+            title: Selling a design
+            summary: Present options with their costs and risks, recommend one and handle objections.
+            learn:
+              - Options, recommendation, ask
+              - Showing cost and risk side by side
+            resources:
+              - { label: "Staff Engineer (Will Larson)", url: "https://staffeng.com/", kind: article }
+          - id: influence-without-authority
+            title: Influence without authority
+            optional: true
+            summary: Get teams to adopt a direction you cannot order them to follow.
+            learn:
+              - Building trust through delivery
+              - Writing that persuades
+            resources:
+              - { label: "Staff Engineer (Will Larson)", url: "https://staffeng.com/", kind: article }
+
+      - id: reviewing-architectures
+        title: Reviewing others' architectures
+        summary: Review designs so they get better, not so they get blocked.
+        lessons:
+          - id: review-checklist
+            title: A review checklist
+            summary: Check requirements, failure modes, security, cost and operations in a fixed order.
+            learn:
+              - Using the pillars as a checklist
+              - Asking about failure, not only success
+            resources:
+              - { label: "AWS Well-Architected Framework", url: "https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html", kind: docs }
+              - post: production-ai-code-review-for-terraform-and-lambda-prs
+          - id: giving-feedback
+            title: Giving design feedback
+            summary: Separate must-fix risks from preferences and explain the reason behind each comment.
+            learn:
+              - Blocking vs non-blocking comments
+              - Reviewing the decision, not the person
+            resources:
+              - { label: "Scaling the Practice of Architecture, Conversationally (Martin Fowler)", url: "https://martinfowler.com/articles/scaling-architecture-conversationally.html", kind: article }
+          - id: architecture-fitness
+            title: Fitness functions
+            optional: true
+            summary: Automated checks that keep an architecture's key qualities from drifting over time.
+            learn:
+              - Testing architecture rules in CI
+              - Tracking quality metrics over time
+            resources:
+              - { label: "Fundamentals of Software Architecture (O'Reilly)", url: "https://www.oreilly.com/library/view/fundamentals-of-software/9781492043447/", kind: article }
+
+      - id: certifications
+        title: Certification paths
+        summary: Certifications that prove breadth to employers and clients, and how to prepare for them.
+        lessons:
+          - id: sa-associate
+            title: AWS Solutions Architect Associate
+            summary: The standard first architect certification, covering core services and design trade-offs.
+            learn:
+              - Exam domains
+              - A study plan with hands-on labs
+            resources:
+              - post: how-to-start-learning-aws-cloud-and-get-certified
+              - { label: "AWS Certified Solutions Architect - Associate", url: "https://aws.amazon.com/certification/certified-solutions-architect-associate/", kind: course }
+          - id: sa-professional
+            title: AWS Solutions Architect Professional
+            summary: Multi-account, migration and complex design scenarios at senior level.
+            learn:
+              - Long scenario questions
+              - Organisation-scale design
+            resources:
+              - { label: "AWS Certified Solutions Architect - Professional", url: "https://aws.amazon.com/certification/certified-solutions-architect-professional/", kind: course }
+              - { label: "AWS Skill Builder", url: "https://skillbuilder.aws/", kind: course }
+          - id: other-cloud-certs
+            title: Azure and Google Cloud architect certifications
+            optional: true
+            summary: The equivalent certifications on the other clouds, useful for consulting work.
+            learn:
+              - Azure Solutions Architect Expert
+              - Google Professional Cloud Architect
+            resources:
+              - { label: "Microsoft Learn certifications", url: "https://learn.microsoft.com/en-us/credentials/", kind: course }
+              - { label: "Google Cloud certifications", url: "https://cloud.google.com/learn/certification", kind: course }
