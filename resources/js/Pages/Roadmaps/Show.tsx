@@ -2,6 +2,7 @@ import { Link, router, usePage } from '@inertiajs/react'
 import { AlertTriangle, Bookmark, Check, Eye, Heart, Lock, Share2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { ShareButton } from '@/Components/ShareButton'
+import { Comments, type RoadmapComment } from '@/Components/Roadmap/Comments'
 import { ProgressBar, UnlockCard, formatDate, levelLabel } from '@/Components/Roadmap/shared'
 import { RoadmapArt, type RoadmapArtData } from '@/Components/Roadmap/RoadmapArt'
 import { cn } from '@/lib/utils'
@@ -31,9 +32,11 @@ type Props = {
   nextTopicId: string | null
   viewCount: number
   canonicalUrl: string
+  comments: RoadmapComment[]
+  commentCount: number
 }
 
-export default function RoadmapShow({ roadmap, stages, started, loved, saved, loveCount, percent, nextTopicId, viewCount, canonicalUrl }: Props) {
+export default function RoadmapShow({ roadmap, stages, started, loved, saved, loveCount, percent, nextTopicId, viewCount, canonicalUrl, comments, commentCount }: Props) {
   const { auth } = usePage<PageProps>().props
   const base = `/roadmaps/${roadmap.slug}`
   const loginHref = `/login?redirect=${encodeURIComponent(base)}`
@@ -43,6 +46,16 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
       return
     }
     router[method](`${base}${path}`, {}, { preserveScroll: true })
+  }
+
+  // Overview (the timeline) is the default; #discussion opens the comments, read after hydration so SSR matches.
+  const [tab, setTab] = useState<'overview' | 'discussion'>('overview')
+  useEffect(() => {
+    if (window.location.hash === '#discussion') setTab('discussion')
+  }, [])
+  const pick = (t: typeof tab) => {
+    setTab(t)
+    history.replaceState(history.state, '', t === 'discussion' ? '#discussion' : window.location.pathname + window.location.search)
   }
 
   const [views, setViews] = useState(viewCount)
@@ -120,10 +133,31 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
           </div>
         )}
 
-        <p className="mt-10 text-sm text-slate-500 dark:text-slate-400">Click a topic to see its lessons and resources.</p>
+        <div role="tablist" aria-label="Roadmap sections" className="mt-10 inline-flex rounded-full border border-slate-200 p-1 dark:border-slate-800">
+          {(['overview', 'discussion'] as const).map((t) => (
+            <button
+              key={t}
+              role="tab"
+              id={`tab-${t}`}
+              aria-selected={tab === t}
+              aria-controls={`panel-${t}`}
+              onClick={() => pick(t)}
+              className={cn('rounded-full px-4 py-1.5 text-sm font-medium', tab === t ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'text-slate-600 hover:text-slate-900 dark:text-slate-300')}
+            >
+              {t === 'overview' ? 'Overview' : `Discussion${commentCount ? ` (${commentCount})` : ''}`}
+            </button>
+          ))}
+        </div>
+        {tab === 'overview' && <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">Click a topic to see its lessons and resources.</p>}
+        {tab === 'discussion' && (
+          <div id="panel-discussion" role="tabpanel" aria-labelledby="tab-discussion" className="[&>#comments]:mt-6">
+            <Comments comments={comments} count={commentCount} postUrl={`${base}/comments`} loginHref={`/login?redirect=${encodeURIComponent(`${base}#discussion`)}`} />
+          </div>
+        )}
       </section>
 
-      <section className="relative mx-auto max-w-5xl px-4 pb-24 sm:px-6 lg:px-8">
+
+      <section id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" hidden={tab !== 'overview'} className="relative mx-auto max-w-5xl px-4 pb-24 sm:px-6 lg:px-8">
         {/* The spine: left edge on phones, centre from md up. Starts behind the first stage label. */}
         <div aria-hidden className="absolute bottom-24 left-[2.1rem] top-12 w-0.5 bg-slate-300 sm:left-[2.6rem] md:left-1/2 md:-translate-x-1/2 dark:bg-slate-700" />
 

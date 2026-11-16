@@ -16,10 +16,10 @@ use App\Http\Controllers\Admin\ShortLinkController;
 use App\Http\Controllers\Admin\SponsorshipController as AdminSponsorshipController;
 use App\Http\Controllers\Auth\AgreementController;
 use App\Http\Controllers\BlogCommentController;
-use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\Consultation\BookController;
 use App\Http\Controllers\Consultation\BookingAccessController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\OperationalHealthController;
 use App\Http\Controllers\ProfileController;
@@ -679,6 +679,7 @@ Route::get('/roadmaps/{slug}', [RoadmapController::class, 'show'])->where('slug'
 Route::delete('/roadmaps/comments/{comment}', [RoadmapCommentController::class, 'destroy'])->where('comment', '[0-9]{1,18}')->middleware(['auth', 'throttle:roadmap-actions'])->name('roadmaps.comments.destroy');
 Route::get('/roadmaps/{slug}/{topic}/{lesson}', [RoadmapController::class, 'lesson'])->where(['slug' => '[a-z0-9-]{1,64}', 'topic' => '[a-z0-9-]{1,64}', 'lesson' => '[a-z0-9-]{1,64}'])->name('roadmaps.lesson');
 Route::middleware(['auth', 'throttle:10,1'])->where(['slug' => '[a-z0-9-]{1,64}', 'topic' => '[a-z0-9-]{1,64}', 'lesson' => '[a-z0-9-]{1,64}'])->group(function () {
+    Route::post('/roadmaps/{slug}/comments', [RoadmapCommentController::class, 'storeRoadmap'])->name('roadmaps.comments');
     Route::post('/roadmaps/{slug}/{topic}/comments', [RoadmapCommentController::class, 'storeTopic'])->name('roadmaps.topic.comments');
     Route::post('/roadmaps/{slug}/{topic}/{lesson}/comments', [RoadmapCommentController::class, 'storeLesson'])->name('roadmaps.lesson.comments');
 });
