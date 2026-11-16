@@ -82,8 +82,7 @@ export function ShareSheet({
   // static `href`. Ad blockers' cosmetic filter lists (e.g. Fanboy's Social
   // Blocking List) match and hide anchors whose `href` attribute contains
   // known share-intent hosts like facebook.com/sharer or twitter.com/intent.
-  // Copy-link and native-share ("More") are folded in as the first/last
-  // tiles so the whole row acts like a native OS share sheet.
+  // Copy link and the native share sheet ("More") come first, then the networks.
   //
   // Tile size in the inline dropdown is deliberately wider than the panel can
   // fit in one go, so the row is meant to end mid-tile so it reads as
@@ -117,6 +116,19 @@ export function ShareSheet({
           <span className={`${t.font} ${s.label} font-medium ${t.muted}`}>{copied ? 'Copied' : 'Copy link'}</span>
         </button>
 
+        {canShare && (
+          <button
+            type="button"
+            onClick={share}
+            className={`flex ${s.wrap} shrink-0 flex-col items-center gap-1.5 rounded-xl py-1 ${t.focusRing}`}
+          >
+            <span className={`flex ${s.circle} items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200`}>
+              <Share className={s.iconSm} />
+            </span>
+            <span className={`${t.font} ${s.label} font-medium ${t.muted}`}>More</span>
+          </button>
+        )}
+
         {SOCIAL_SHARE.map(({ name, label, Icon, href, bg, fg }) => (
           <button
             key={name}
@@ -131,19 +143,6 @@ export function ShareSheet({
             <span className={`${t.font} ${s.label} font-medium ${t.muted}`}>{name}</span>
           </button>
         ))}
-
-        {canShare && (
-          <button
-            type="button"
-            onClick={share}
-            className={`flex ${s.wrap} shrink-0 flex-col items-center gap-1.5 rounded-xl py-1 ${t.focusRing}`}
-          >
-            <span className={`flex ${s.circle} items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200`}>
-              <Share className={s.iconSm} />
-            </span>
-            <span className={`${t.font} ${s.label} font-medium ${t.muted}`}>More</span>
-          </button>
-        )}
       </div>
     )
   }
