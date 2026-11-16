@@ -12,7 +12,7 @@ class LeaderboardController extends Controller
 {
     public function index(Request $request): Response
     {
-        $period = in_array($request->query('period'), Xp::PERIODS, true) ? $request->query('period') : 'week';
+        $period = in_array($request->query('period'), Xp::PERIODS, true) ? $request->query('period') : 'all'; // all time first while activity is still low
 
         return Inertia::render('Leaderboard', [
             'period' => $period,

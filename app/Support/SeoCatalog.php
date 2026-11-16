@@ -204,7 +204,7 @@ final class SeoCatalog
 
         $pages['/leaderboard'] = new SeoMeta(
             title: 'Leaderboard | Harun R. Rayhan',
-            description: 'Who is learning the most this week, this month and all time. Earn XP by finishing roadmap lessons and joining the discussion.',
+            description: 'Who is learning the most today, this week, this month and all time. Earn XP by finishing roadmap lessons and joining the discussion.',
             canonicalUrl: $siteUrl.'/leaderboard',
         );
 
