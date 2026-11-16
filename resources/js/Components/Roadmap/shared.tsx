@@ -1,5 +1,6 @@
-import { Link } from '@inertiajs/react'
-import { Check, ChevronDown, Copy, ExternalLink, Lock, Search, Sparkles } from 'lucide-react'
+import { Link, usePage } from '@inertiajs/react'
+import * as Dialog from '@radix-ui/react-dialog'
+import { ArrowRight, Check, ChevronDown, Copy, ExternalLink, Heart, Lock, Search, Sparkles, X } from 'lucide-react'
 import { useState } from 'react'
 import { Github } from '@/lib/icons'
 import { cn } from '@/lib/utils'
@@ -51,14 +52,48 @@ export function UnlockCard({ className }: { className?: string }) {
   return (
     <div className={cn('rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900', className)}>
       <p className="text-sm text-slate-700 dark:text-slate-200">Intermediate and Advanced topics are for sponsors.</p>
-      <Link
-        href="/sponsor-me"
-        className="mt-3 inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
-      >
-        <Github className="h-4 w-4" /> Sponsor on GitHub
-      </Link>
-      <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">Any amount of $5 or more gets you access to every roadmap's Intermediate and Advanced topics.</p>
+      <SponsorDialog />
+      <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">{ACCESS_RULE}</p>
     </div>
+  )
+}
+
+const ACCESS_RULE = 'Give $5 in total for a month, $10 for a year, or $100 for life, in one payment or several. Unlocks every roadmap.'
+
+/** "Sponsor me" opens a choice: GitHub Sponsors, or the sponsor page's other-payment section. */
+function SponsorDialog() {
+  const sponsorsUrl = (usePage().props as { sponsorsUrl?: string }).sponsorsUrl ?? '/sponsor-me'
+  return (
+    <Dialog.Root>
+      <Dialog.Trigger className="mt-3 inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200">
+        <Heart className="h-4 w-4" /> Sponsor me
+      </Dialog.Trigger>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-[70] bg-slate-950/60 backdrop-blur-sm" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-[71] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900">
+          <Dialog.Title className="text-lg font-semibold text-slate-900 dark:text-white">Sponsor me</Dialog.Title>
+          <Dialog.Description className="mt-1 text-sm text-slate-600 dark:text-slate-300">{ACCESS_RULE}</Dialog.Description>
+          <ul className="mt-4 grid grid-cols-3 gap-2 text-center text-sm">
+            {[['$5', 'a month'], ['$10', 'a year'], ['$100', 'for life']].map(([amount, length]) => (
+              <li key={amount} className="rounded-xl border border-slate-200 px-2 py-3 dark:border-slate-700">
+                <span className="block text-base font-bold text-slate-900 dark:text-white">{amount}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">{length}</span>
+              </li>
+            ))}
+          </ul>
+          <a href={sponsorsUrl} target="_blank" rel="noopener noreferrer" className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#bf3989] px-4 py-3 text-sm font-semibold text-white hover:bg-[#a82e78]">
+            <Github className="h-4 w-4" /> Sponsor on GitHub
+          </a>
+          <Link href="/sponsor-me#other-payment-methods" className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+            GitHub Sponsors doesn't work for me <ArrowRight className="h-4 w-4" />
+          </Link>
+          <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">Sponsor with the GitHub account or email you sign in with here, so access unlocks automatically.</p>
+          <Dialog.Close aria-label="Close" className="absolute right-4 top-4 rounded-full p-1 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+            <X className="h-4 w-4" />
+          </Dialog.Close>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }
 

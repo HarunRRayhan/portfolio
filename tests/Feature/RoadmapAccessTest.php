@@ -58,11 +58,43 @@ class RoadmapAccessTest extends TestCase
         $this->assertFalse(RoadmapAccess::canAccessPaid($old));
     }
 
-    public function test_cancelled_monthly_does_not_unlock(): void
+    public function test_cancelled_monthly_keeps_access_until_a_month_after_the_last_charge(): void
     {
-        $user = User::factory()->create();
-        $this->sponsor($user, ['status' => GithubSponsorship::STATUS_CANCELLED]);
-        $this->assertFalse(RoadmapAccess::canAccessPaid($user));
+        $recent = User::factory()->create();
+        $this->sponsor($recent, ['status' => GithubSponsorship::STATUS_CANCELLED, 'started_at' => now()->subDays(3), 'ended_at' => now()->subDay()]);
+        $this->assertTrue(RoadmapAccess::canAccessPaid($recent));
+
+        $old = User::factory()->create();
+        $this->sponsor($old, ['status' => GithubSponsorship::STATUS_CANCELLED, 'started_at' => now()->subDays(70), 'ended_at' => now()->subDays(40)]);
+        $this->assertFalse(RoadmapAccess::canAccessPaid($old));
+    }
+
+    public function test_total_given_sets_the_access_length(): void
+    {
+        $oneTime = ['kind' => GithubSponsorship::KIND_ONE_TIME];
+
+        // $5 + $5 = $10: a year from the latest payment.
+        $twice = User::factory()->create();
+        $this->sponsor($twice, $oneTime + ['started_at' => now()->subDays(300)]);
+        $this->sponsor($twice, $oneTime + ['started_at' => now()->subDays(200), 'github_sponsorship_node_id' => 'b']);
+        $this->assertTrue(RoadmapAccess::canAccessPaid($twice));
+
+        $lapsed = User::factory()->create();
+        $this->sponsor($lapsed, $oneTime + ['monthly_price_cents' => 1000, 'started_at' => now()->subDays(400)]);
+        $this->assertFalse(RoadmapAccess::canAccessPaid($lapsed));
+
+        $lifetime = User::factory()->create();
+        $this->sponsor($lifetime, $oneTime + ['monthly_price_cents' => 10000, 'started_at' => now()->subYears(5)]);
+        $this->assertTrue(RoadmapAccess::canAccessPaid($lifetime));
+
+        // Monthly $5 for two charges, then cancelled: $10 counts as a year.
+        $monthly = User::factory()->create();
+        $this->sponsor($monthly, ['status' => GithubSponsorship::STATUS_CANCELLED, 'started_at' => now()->subDays(100), 'ended_at' => now()->subDays(100)->addMonths(2)]);
+        $this->assertTrue(RoadmapAccess::canAccessPaid($monthly));
+
+        $refunded = User::factory()->create();
+        $this->sponsor($refunded, $oneTime + ['monthly_price_cents' => 10000, 'status' => GithubSponsorship::STATUS_REVOKED]);
+        $this->assertFalse(RoadmapAccess::canAccessPaid($refunded));
     }
 
     public function test_consultation_tier_without_price_unlocks(): void
