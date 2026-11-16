@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use Illuminate\Support\Str;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -130,6 +131,10 @@ final class RoadmapRepository
                     foreach ($topic['lessons'] as &$lesson) {
                         $lesson['optional'] = (bool) ($lesson['optional'] ?? false);
                         $lesson['learn'] = array_values($lesson['learn'] ?? []);
+                        // The short written lesson: Markdown in the YAML, raw HTML and unsafe links stripped.
+                        $lesson['bodyHtml'] = filled($lesson['body'] ?? null)
+                            ? Str::markdown((string) $lesson['body'], ['html_input' => 'strip', 'allow_unsafe_links' => false])
+                            : null;
                         $resources = array_values(array_filter(array_map(
                             fn (array $r) => $this->resource($r, $blog), $lesson['resources'] ?? [],
                         )));
