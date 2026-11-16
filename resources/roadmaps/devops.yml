@@ -3,7 +3,7 @@ title: DevOps
 summary: From the Linux shell to Kubernetes and SLOs. How code gets built, shipped and kept running, one topic at a time.
 order: 3
 category: cloud-devops
-updated: '2026-11-15'
+updated: '2026-11-16'
 icon: infinity
 color: indigo
 logos:
@@ -27,9 +27,31 @@ stages:
               - The directory layout (/etc, /var, /home)
               - rwx permissions, chmod and chown
               - Users, groups and sudo
+            body: |
+              Linux keeps everything in one tree that starts at `/`. Knowing where things live tells you where to look when something breaks.
+
+              Every file has an owner, a group and three sets of permissions: read (`r`), write (`w`) and execute (`x`), for the owner, the group and everyone else. `ls -l` shows them as `-rwxr-xr--`.
+
+              ### Key ideas
+              - `/etc` holds config, `/var` holds changing data like logs, `/home` holds user files
+              - `chmod 640 file` sets permissions as numbers: read is 4, write is 2, execute is 1
+              - `chown user:group file` changes who owns a file
+              - Users belong to groups, and groups share access to files
+              - `sudo` runs one command as root, so you do not stay logged in as root
+
+              ### Common mistakes
+              - Running `chmod 777` to make an error go away. It lets everyone write to the file.
+              - Using `sudo` on a command that creates files, then finding they belong to root.
+
+              ```bash
+              ls -l /var/log/syslog
+              sudo chown deploy:deploy /var/www/app
+              chmod 750 /var/www/app
+              ```
             resources:
               - { label: "Linux Journey", url: "https://linuxjourney.com/", kind: course }
               - { label: "The Art of Command Line", url: "https://github.com/jlevy/the-art-of-command-line", kind: article }
+              - { label: "credentials(7): users and groups (man7.org)", url: "https://man7.org/linux/man-pages/man7/credentials.7.html", kind: docs }
           - id: processes-and-services
             title: Processes, signals and services
             summary: See what is running, stop it cleanly, and keep services running with systemd.
@@ -37,9 +59,32 @@ stages:
               - ps, top and kill
               - SIGTERM vs SIGKILL
               - systemctl and unit files
+            body: |
+              A process is a running program with a number called a PID. When a server misbehaves, your first job is to see what is running and how much it uses.
+
+              `ps aux` lists processes once. `top` shows them live, sorted by CPU. To stop one, send it a signal with `kill`. The default is **SIGTERM**, which asks the program to shut down and lets it clean up. **SIGKILL** (`kill -9`) ends it at once with no cleanup, so use it last.
+
+              Services that must stay up are run by **systemd**. A unit file describes the command, the user and what to do on a crash.
+
+              ### Key ideas
+              - `ps aux | grep nginx` finds a process, `top` watches load
+              - SIGTERM is polite, SIGKILL cannot be caught
+              - `systemctl status|start|stop|restart|enable name` controls a service
+              - Unit files live in `/etc/systemd/system/`
+              - After editing a unit, run `systemctl daemon-reload`
+
+              ### Example
+              ```ini
+              [Service]
+              ExecStart=/usr/bin/node /srv/app/server.js
+              User=deploy
+              Restart=on-failure
+              ```
             resources:
               - { label: "Linux Journey", url: "https://linuxjourney.com/", kind: course }
               - { label: "systemd documentation", url: "https://systemd.io/", kind: docs }
+              - { label: "systemd.service manual (freedesktop.org)", url: "https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html", kind: docs }
+              - { label: "signal(7) manual page (man7.org)", url: "https://man7.org/linux/man-pages/man7/signal.7.html", kind: docs }
           - id: pipes-grep-and-logs
             title: Pipes, grep and reading logs
             summary: Chain small tools together to find the one line in a log that matters.
@@ -47,8 +92,29 @@ stages:
               - Pipes and redirection
               - grep, less, tail -f
               - journalctl
+            body: |
+              Linux tools do one small job each. A pipe (`|`) sends the output of one tool into the next, so you can build a search out of simple parts.
+
+              Redirection sends output to a file instead: `>` overwrites, `>>` appends, and `2>` catches errors. `grep` finds lines that match a pattern. `less` lets you scroll a big file, and `tail -f` follows a log as new lines arrive.
+
+              On systemd machines, many logs live in the journal. `journalctl` reads it.
+
+              ### Key ideas
+              - `cmd1 | cmd2` feeds output of `cmd1` to `cmd2`
+              - `>` and `>>` write to files, `2>&1` merges errors into normal output
+              - `grep -i error file` ignores case, `grep -v` hides matches
+              - `tail -f /var/log/nginx/error.log` watches a log live
+              - `journalctl -u nginx --since "1 hour ago"` shows one service
+
+              ### In practice
+              Count the most common errors in a log:
+
+              ```bash
+              grep ERROR app.log | sort | uniq -c | sort -rn | head
+              ```
             resources:
               - { label: "The Art of Command Line", url: "https://github.com/jlevy/the-art-of-command-line", kind: article }
+              - { label: "journalctl manual (freedesktop.org)", url: "https://www.freedesktop.org/software/systemd/man/latest/journalctl.html", kind: docs }
           - id: package-managers-and-ssh
             title: Package managers and SSH
             optional: true
@@ -57,6 +123,30 @@ stages:
               - apt and dnf basics
               - SSH keys and ~/.ssh/config
               - Copying files with scp and rsync
+            body: |
+              A package manager installs software and its dependencies from trusted sources, and updates it later. Debian and Ubuntu use `apt`. Fedora, RHEL and Amazon Linux use `dnf`.
+
+              SSH lets you log in to a remote machine over an encrypted connection. Keys are safer than passwords. You keep a private key on your laptop and put the matching public key on the server. Nobody can guess it or steal it from a database.
+
+              ### Key ideas
+              - `sudo apt update && sudo apt install nginx` on Debian, `sudo dnf install nginx` on Fedora
+              - `ssh-keygen -t ed25519` creates a key pair
+              - The public key goes in `~/.ssh/authorized_keys` on the server
+              - `~/.ssh/config` gives a host a short name, user and key
+              - `scp` copies files, `rsync` copies only what changed
+
+              ### Example
+              ```bash
+              # ~/.ssh/config
+              Host web1
+                HostName 203.0.113.10
+                User deploy
+                IdentityFile ~/.ssh/id_ed25519
+              ```
+
+              Now `ssh web1` works, and `rsync -av ./dist/ web1:/srv/app/` uploads a build.
+
+              Never share the private key, and set it to mode 600.
             resources:
               - { label: "OpenSSH manual pages", url: "https://www.openssh.com/manual.html", kind: docs }
               - post: first-3-things-i-always-do-after-creating-a-new-aws-account
@@ -72,9 +162,34 @@ stages:
               - The working tree, index and commits
               - Branching and merging
               - Reading git log and git diff
+            body: |
+              Git tracks your project as a series of snapshots called commits. Files move through three places: the **working tree** (your files), the **index** (what you staged) and the **commit** history.
+
+              You stage changes with `git add`, then record them with `git commit`. Small commits with clear messages are easy to review and easy to undo.
+
+              A **branch** is a movable label on a commit. You create one for each task, work freely, then merge it back.
+
+              ### Key ideas
+              - `git status` shows what changed and what is staged
+              - `git add -p` stages part of a file
+              - `git switch -c fix-login` makes a new branch
+              - `git merge fix-login` brings it into the current branch
+              - `git log --oneline --graph` shows history, `git diff` shows changes
+
+              ### Example
+              ```bash
+              git switch -c add-health-check
+              git add app/health.py
+              git commit -m "Add /health endpoint"
+              git switch main
+              git merge add-health-check
+              ```
+
+              Run `git diff --staged` before each commit to see exactly what you are about to record.
             resources:
               - { label: "Pro Git (free book)", url: "https://git-scm.com/book/en/v2", kind: course }
               - { label: "Learn Git Branching (interactive)", url: "https://learngitbranching.js.org/", kind: tool }
+              - { label: "Git tutorial (git-scm.com)", url: "https://git-scm.com/docs/gittutorial", kind: docs }
           - id: rebase-and-conflicts
             title: Rebasing and resolving conflicts
             summary: Keep history readable and fix the conflicts that come with working in a team.
@@ -82,9 +197,32 @@ stages:
               - Rebase vs merge
               - Resolving a conflict by hand
               - Undoing mistakes with reflog
+            body: |
+              Merge and rebase both combine work from two branches. A merge adds a new commit that joins the histories. A rebase replays your commits on top of another branch, so history stays a straight line.
+
+              A conflict happens when two branches changed the same lines. Git stops and marks the file. You choose what the final text should be, stage the file and continue.
+
+              ### Key ideas
+              - `git merge main` keeps true history, `git rebase main` rewrites your branch commits
+              - Never rebase commits other people already pulled
+              - Git marks a conflict with lines of seven equals signs and angle brackets. Edit them out, then `git add` the file
+              - `git rebase --continue` or `git merge --continue` finishes the job
+              - `git reflog` lists where HEAD has been, even after a bad reset
+
+              ### In practice
+              You ran a hard reset and lost commits. They are not gone yet.
+
+              ```bash
+              git reflog
+              git reset --hard HEAD@{2}
+              ```
+
+              Git keeps those entries for a while, so you can usually get back.
             resources:
               - { label: "Pro Git: Rebasing", url: "https://git-scm.com/book/en/v2/Git-Branching-Rebasing", kind: docs }
               - { label: "Learn Git Branching (interactive)", url: "https://learngitbranching.js.org/", kind: tool }
+              - { label: "Merging vs. Rebasing (Atlassian)", url: "https://www.atlassian.com/git/tutorials/merging-vs-rebasing", kind: article }
+              - { label: "git-reflog documentation", url: "https://git-scm.com/docs/git-reflog", kind: docs }
           - id: pull-request-workflow
             title: Pull request workflow
             summary: Propose a change, get it reviewed and merge it, the way every pipeline expects.
@@ -92,9 +230,29 @@ stages:
               - Feature branches and pull requests
               - Code review etiquette
               - Branch protection
+            body: |
+              A pull request (PR) is a request to merge your branch into another one. It gives your team a place to read the change, comment on it and run checks before it lands.
+
+              The usual flow: branch off `main`, make small commits, push, open a PR, fix review comments and merge once checks pass. Short branches that live a day or two cause fewer conflicts than long ones.
+
+              ### Key ideas
+              - One PR, one purpose. Small PRs get faster, better reviews
+              - Describe what changed and why, not just how
+              - Review the code, not the person. Ask questions and give reasons
+              - Reviewers answer in a day, authors answer comments quickly
+              - **Branch protection** blocks direct pushes to `main` and can require reviews and green checks
+
+              ### Common mistakes
+              - Opening a huge PR that nobody wants to read
+              - Merging with failing checks "just this once"
+              - Leaving reviews as a vague "looks fine" with no real read
+
+              Branch protection turns your rules into something the tool enforces, so no one has to remember them.
             resources:
               - { label: "GitHub flow", url: "https://docs.github.com/en/get-started/using-github/github-flow", kind: docs }
               - post: pre-merge-checklist-ai-generated-prs
+              - { label: "About protected branches (GitHub Docs)", url: "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches", kind: docs }
+              - { label: "The Standard of Code Review (Google)", url: "https://google.github.io/eng-practices/review/reviewer/", kind: article }
           - id: git-internals
             title: How Git stores data
             optional: true
@@ -102,8 +260,29 @@ stages:
             learn:
               - Objects and the content-addressed store
               - Refs and HEAD
+            body: |
+              Under the hood, Git is a key-value store. Every piece of content is saved as an **object** and named by a hash of its contents. The same content always gets the same name, which is what content-addressed means.
+
+              There are four kinds of object. A **blob** holds file contents. A **tree** lists files and folders. A **commit** points to a tree, its parent commit, an author and a message. A tag names a commit.
+
+              ### Key ideas
+              - Objects live in `.git/objects` and never change once written
+              - A **ref** is a file holding a commit hash, like `.git/refs/heads/main`
+              - A branch is just a ref that moves forward when you commit
+              - `HEAD` says which branch or commit you are on
+              - A detached HEAD means HEAD points straight at a commit, not at a branch
+
+              ### Example
+              ```bash
+              git cat-file -t HEAD
+              git cat-file -p HEAD
+              git cat-file -p HEAD^{tree}
+              ```
+
+              These show the commit, then the tree it points to. Once you see this, errors like "unable to read tree" or "detached HEAD" make sense.
             resources:
               - { label: "Pro Git: Git Internals", url: "https://git-scm.com/book/en/v2/Git-Internals-Plumbing-and-Porcelain", kind: docs }
+              - { label: "git-hash-object / Git Objects (Pro Git)", url: "https://git-scm.com/book/en/v2/Git-Internals-Git-Objects", kind: docs }
 
       - id: shell-scripting
         title: Shell scripting
@@ -116,8 +295,33 @@ stages:
               - Variables and quoting
               - for, while and if
               - Functions and arguments
+            body: |
+              A shell script is a text file of commands. If you type the same steps twice, a script can do them for you.
+
+              Start with `#!/usr/bin/env bash` on the first line. Set variables with `name=value` (no spaces). Read them with `$name`. **Always quote** expansions, like `"$name"`, or spaces in a value will split it into several words.
+
+              ### Key ideas
+              - `for`, `while` and `if` control flow
+              - `$1`, `$2` are arguments, `$#` is how many
+              - Functions group steps: `deploy() { ... }`
+              - Use `$(command)` to capture output
+              - Make it runnable with `chmod +x script.sh`
+
+              ### Example
+              ```bash
+              #!/usr/bin/env bash
+              backup() {
+                cp "$1" "$1.bak"
+              }
+              for f in /etc/*.conf; do
+                if [ -f "$f" ]; then backup "$f"; fi
+              done
+              ```
+
+              This copies every config file to a `.bak` copy. Quoting `"$f"` keeps file names with spaces safe.
             resources:
               - { label: "Bash reference manual", url: "https://www.gnu.org/software/bash/manual/bash.html", kind: docs }
+              - { label: "Bash FAQ (Wooledge)", url: "https://mywiki.wooledge.org/BashFAQ", kind: article }
           - id: safe-scripts
             title: Exit codes and safe scripts
             summary: Make scripts stop on the first error instead of carrying on and doing damage.
@@ -125,9 +329,33 @@ stages:
               - Exit codes and $?
               - set -euo pipefail
               - Linting with ShellCheck
+            body: |
+              By default Bash keeps going after a failure. A script that fails halfway can then delete the wrong files or deploy half a release.
+
+              Every command returns an **exit code**. `0` means success and anything else means failure. `$?` holds the code of the last command.
+
+              Put this near the top of a script to stop on mistakes:
+
+              ```bash
+              set -euo pipefail
+              ```
+
+              ### Key ideas
+              - `-e` exits when a command fails
+              - `-u` treats an unset variable as an error
+              - `-o pipefail` makes a pipeline fail if any part fails
+              - `trap 'cleanup' EXIT` runs cleanup however the script ends
+              - **ShellCheck** reads a script and flags quoting bugs and common traps
+
+              ### Common mistakes
+              - `rm -rf "$DIR/"` when `$DIR` is empty. With `set -u` the script stops instead of deleting `/`.
+              - Ignoring an error from `cd`. Write `cd "$dir" || exit 1`.
+
+              Run `shellcheck script.sh` before you commit, and add it to CI.
             resources:
               - { label: "ShellCheck", url: "https://www.shellcheck.net/", kind: tool }
               - { label: "Bash reference manual", url: "https://www.gnu.org/software/bash/manual/bash.html", kind: docs }
+              - { label: "ShellCheck wiki", url: "https://www.shellcheck.net/wiki/", kind: docs }
           - id: when-to-leave-bash
             title: When to stop and use a real language
             optional: true
@@ -135,6 +363,22 @@ stages:
             learn:
               - Signs a script has outgrown Bash
               - Data structures and error handling elsewhere
+            body: |
+              Bash is great for gluing commands together. It is poor at anything with structure, and it fails quietly in odd ways.
+
+              Move on when the script grows past a screen or two, or when you start fighting the language instead of solving the task.
+
+              ### Key ideas
+              - Signs it has outgrown Bash: nested loops over data, parsing JSON by hand, many `if` branches, a need for tests
+              - Bash has only strings and simple arrays, with no real objects
+              - Error handling is thin. A failure in the middle of a pipe is easy to miss
+              - Python or Go give you data structures, libraries, exceptions and unit tests
+              - Parse JSON with `jq` in Bash, or use a real JSON library elsewhere
+
+              ### In practice
+              A script that calls an API, loops through the results, retries on failure and writes a report is better in Python. A script that runs `terraform apply` and then restarts a service is fine in Bash.
+
+              Rule of thumb: keep Bash for short glue, about 50 lines. Past that, ask whether a real language would be easier to read and test. Rewriting early is cheap.
             resources:
               - { label: "Google Shell Style Guide", url: "https://google.github.io/styleguide/shellguide.html", kind: docs }
 
@@ -149,18 +393,60 @@ stages:
               - DNS records and resolution
               - Ports and listening sockets
               - HTTP requests and status codes
+            body: |
+              DNS turns a name like `harun.dev` into an IP address. Your computer asks a resolver, which asks other servers until it finds the answer, then caches it.
+
+              Once you have an IP, you need a port to reach the right program. A port is a number on the machine. A server **listens** on a port, such as 80 for HTTP and 443 for HTTPS.
+
+              HTTP is the request and response language. A request has a method, a path and headers. The reply has a status code.
+
+              ### Key ideas
+              - A record maps a name to IPv4, AAAA to IPv6, CNAME is an alias, MX names mail servers
+              - TTL says how long a record may be cached
+              - `ss -tlnp` shows listening ports
+              - 2xx means success, 3xx redirect, 4xx client error, 5xx server error
+              - 502 and 504 usually mean the proxy could not get a good answer from the app
+
+              ### Example
+              ```bash
+              dig +short harun.dev
+              curl -I https://harun.dev
+              ```
             resources:
               - { label: "How the Internet Works roadmap", url: "https://harun.dev/roadmaps/internet-networking", kind: course }
               - { label: "What is DNS? (Cloudflare)", url: "https://www.cloudflare.com/learning/dns/what-is-dns/", kind: article }
+              - { label: "An overview of HTTP (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview", kind: docs }
+              - { label: "HTTP response status codes (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status", kind: docs }
           - id: tls-certificates
             title: TLS certificates
             summary: Why HTTPS needs a certificate, who issues it and what happens when it expires.
             learn:
               - Certificates and certificate authorities
               - Let's Encrypt and automated renewal
+            body: |
+              TLS encrypts traffic between a browser and a server. A **certificate** proves the server really owns the domain, so nobody can pose as it.
+
+              A **certificate authority** (CA) signs the certificate. Browsers ship with a list of CAs they trust. If the signature checks out and the name matches, you see the padlock.
+
+              ### Key ideas
+              - A certificate names the domain, holds a public key and has an expiry date
+              - The chain runs from your cert, through intermediates, to a trusted root
+              - Let's Encrypt issues free certificates and proves you control the domain automatically
+              - Certificates last a short time, so renewal must be automated
+              - `certbot` or your proxy (Caddy, Traefik) renews them
+
+              ### In practice
+              An expired certificate takes a site down for everyone. Check expiry yourself:
+
+              ```bash
+              echo | openssl s_client -connect harun.dev:443 -servername harun.dev 2>/dev/null | openssl x509 -noout -enddate
+              ```
+
+              Alert on certificates that expire in less than 14 days, and test that renewal really runs.
             resources:
               - { label: "What is TLS? (Cloudflare)", url: "https://www.cloudflare.com/learning/ssl/transport-layer-security-tls/", kind: article }
               - { label: "Let's Encrypt: how it works", url: "https://letsencrypt.org/how-it-works/", kind: docs }
+              - { label: "Let's Encrypt documentation", url: "https://letsencrypt.org/docs/", kind: docs }
           - id: debugging-with-curl
             title: Debugging with curl and dig
             summary: Read curl -v and dig output to tell a DNS problem from a TLS or app problem.
@@ -168,8 +454,30 @@ stages:
               - curl -v step by step
               - dig and nslookup
               - Checking open ports
+            body: |
+              When a site is down, the question is where it broke: DNS, the network, TLS or the app. `curl -v` and `dig` answer that quickly.
+
+              `curl -v` prints each step. It resolves the name, connects, does the TLS handshake, sends the request and shows the reply. The first step that fails is your culprit.
+
+              ### Key ideas
+              - Lines starting with `*` are connection details. Lines with a right arrow are what you sent, and a left arrow is what came back
+              - "Could not resolve host" is DNS
+              - "Connection refused" means nothing listens on that port. "Timed out" often means a firewall
+              - A certificate error appears during the TLS step
+              - A 5xx in the reply means the app or proxy failed
+
+              ### Example
+              ```bash
+              dig +short example.com
+              curl -v https://example.com/health
+              curl --resolve example.com:443:203.0.113.10 https://example.com
+              nc -zv 203.0.113.10 443
+              ```
+
+              `--resolve` skips DNS and sends the request to a chosen IP. `nc -zv` checks if a port is open. Together they split a DNS fault from an app fault.
             resources:
               - { label: "Everything curl", url: "https://everything.curl.dev/", kind: course }
+              - { label: "curl manual page", url: "https://curl.se/docs/manpage.html", kind: docs }
 
       - id: how-apps-are-deployed
         title: How an app gets deployed
@@ -182,8 +490,28 @@ stages:
               - Build artifacts
               - Releases as build plus config
               - Running processes
+            body: |
+              Every deploy has three stages, even when a tool hides them. **Build** turns code into something runnable. **Release** joins that build with config. **Run** starts the processes.
+
+              Keeping them apart means you can rebuild without changing config, or change config without rebuilding.
+
+              ### Key ideas
+              - A build artifact is a fixed output: a container image, a zip, a compiled binary
+              - A release is one build plus one set of config, with a version or ID
+              - Releases never change. A rollback just runs an older release
+              - A running process is stateless. It can start, stop and restart at any time
+              - Code goes through the build once. Config changes per environment
+
+              ### Example
+              A Laravel app:
+              1. Build: `composer install --no-dev` and `npm run build`, packed into an image
+              2. Release: that image plus the production `.env` values
+              3. Run: start `php-fpm` and a queue worker from the image
+
+              If the release is bad, start the previous one. You do not need to rebuild.
             resources:
               - { label: "The Twelve-Factor App", url: "https://12factor.net/", kind: article }
+              - { label: "The Twelve-Factor App: Build, release, run", url: "https://12factor.net/build-release-run", kind: article }
           - id: deploy-by-hand
             title: Deploy an app by hand
             summary: Provision a server, install the runtime and put an app behind a web server yourself.
@@ -191,6 +519,24 @@ stages:
               - Installing a runtime and web server
               - Pulling code and running migrations
               - Restarting without downtime
+            body: |
+              Deploying by hand once shows you what every platform automates. You will need a server, a runtime, a web server and a way to get code onto it.
+
+              A typical path for a web app: create a Linux VM, install the runtime (PHP, Node or Python), put a web server such as Nginx in front, pull the code, install dependencies and run database migrations. A process manager keeps the app alive.
+
+              ### Key ideas
+              - Install only what the app needs, and open only ports 22, 80 and 443
+              - Nginx receives requests and passes them to the app
+              - `git pull` or an uploaded artifact brings the new code
+              - Run migrations before the new code serves traffic, and keep them backward compatible
+              - To restart without downtime, start the new version first, then switch traffic or reload gracefully
+
+              ### Common mistakes
+              - Editing files directly on the server so nobody can repeat the setup
+              - Running the app as root
+              - Forgetting that a migration can lock a big table
+
+              Write each step down as you go. That list becomes your first script, and later your pipeline.
             resources:
               - post: deploy-laravel-application-to-amazon-ec2-instance
               - post: deploy-laravel-application-to-amazon-lightsail
@@ -200,6 +546,27 @@ stages:
             learn:
               - Config in the environment
               - Dev, staging and production parity
+            body: |
+              The same build should run in dev, staging and production. What changes is config: database URLs, API keys, feature flags.
+
+              Store config in **environment variables**, outside the code. The app reads them at start. That keeps secrets out of Git and lets you change settings without a rebuild.
+
+              ### Key ideas
+              - Never hard-code a URL or key in source
+              - Use the same variable names in every environment, with different values
+              - Keep a committed `.env.example` listing names but no secrets
+              - **Parity**: keep dev, staging and production as alike as possible, in versions, services and settings
+              - Differences between environments are where "works on my machine" bugs live
+
+              ### Example
+              ```bash
+              DATABASE_URL=postgres://app:secret@db:5432/app
+              APP_ENV=production
+              ```
+
+              Dev uses a local database. Production uses the managed one. The code reads `DATABASE_URL` the same way in both.
+
+              If staging runs SQLite and production runs Postgres, staging will not catch Postgres bugs. Use the same engine.
             resources:
               - { label: "The Twelve-Factor App: Config", url: "https://12factor.net/config", kind: article }
           - id: twelve-factor-in-depth
@@ -210,9 +577,27 @@ stages:
               - Stateless processes and backing services
               - Logs as event streams
               - Disposability
+            body: |
+              The twelve-factor app is a set of rules for building services that are easy to deploy and scale. It was written for cloud platforms and most still follow it.
+
+              Three factors matter most day to day.
+
+              ### Key ideas
+              - **Stateless processes**: the app keeps nothing important in memory or on local disk. Sessions and uploads go to a database, cache or object store
+              - **Backing services**: databases, queues and mail are attached resources, reached by a URL in config. Swapping one needs no code change
+              - **Logs as event streams**: the app writes to standard output and does not manage log files. The platform collects them
+              - **Disposability**: processes start fast and shut down cleanly on SIGTERM, finishing the current request
+              - **Dev/prod parity** and **config in the environment** round out the set
+
+              ### In practice
+              A container writing logs to `/var/log/app.log` loses them when it is replaced. Log to stdout and the platform ships them.
+
+              If a worker takes 10 minutes to start, scaling up during a spike is too slow. If it ignores SIGTERM, every deploy drops jobs. Disposability fixes both.
             resources:
               - { label: "The Twelve-Factor App", url: "https://12factor.net/", kind: article }
               - post: when-your-app-outgrows-the-tool-that-built-it
+              - { label: "The Twelve-Factor App: Disposability", url: "https://12factor.net/disposability", kind: article }
+              - { label: "The Twelve-Factor App: Logs", url: "https://12factor.net/logs", kind: article }
 
       - id: cloud-basics
         title: Cloud basics
@@ -224,6 +609,23 @@ stages:
             learn:
               - Regions vs availability zones
               - Choosing a region
+            body: |
+              A **region** is a geographic area where a cloud provider runs data centres, such as `eu-west-1` (Ireland). An **availability zone** (AZ) is one or more separate data centres inside a region, with their own power and network.
+
+              Zones are close enough for fast links, and far enough apart that one fire or power cut does not take down all of them.
+
+              ### Key ideas
+              - Spread an app across at least two AZs to survive one failing
+              - A whole region failing is rare, but it does happen
+              - Pick a region near your users to cut latency
+              - Check price and service availability. Prices differ by region and new services start in a few
+              - Laws may say where data must stay, such as the EU for personal data
+              - Moving data between zones and regions costs money
+
+              ### Example
+              A web app runs two servers behind a load balancer, one per AZ, and a database with a standby copy in the second AZ. If zone A fails, zone B keeps serving.
+
+              A single server in a single zone is a single point of failure, however big the machine is.
             resources:
               - { label: "AWS global infrastructure", url: "https://aws.amazon.com/about-aws/global-infrastructure/", kind: docs }
               - post: how-to-start-learning-aws-cloud-and-get-certified
@@ -234,9 +636,28 @@ stages:
               - Virtual machines
               - Object storage
               - Managed databases
+            body: |
+              Most cloud apps are built from three pieces: somewhere to run code, somewhere to keep files, and somewhere to keep structured data.
+
+              A **virtual machine** (VM) is a slice of a physical server that you rent, such as an EC2 instance. You choose CPU, memory and image, and you manage the OS yourself.
+
+              **Object storage** (S3) stores files as objects in buckets. It is cheap, holds almost any amount and is accessed over HTTP. It suits images, backups and build artifacts, not a database.
+
+              A **managed database** (RDS, Aurora) is run by the provider. It handles backups, patching and failover.
+
+              ### Key ideas
+              - VM: full control, you patch and scale it
+              - Object storage: durable, cheap, no server, not a file system
+              - Managed database: less work than running your own, costs more per hour
+              - Keep buckets private by default
+
+              ### Common mistakes
+              - Putting a database on the same VM as the app, with no backups
+              - A public bucket holding private data
             resources:
               - { label: "AWS getting started", url: "https://aws.amazon.com/getting-started/", kind: docs }
               - post: add-database-to-application-hosted-in-amazon-lightsail
+              - { label: "What is object storage? (AWS)", url: "https://aws.amazon.com/what-is/object-storage/", kind: article }
           - id: iam-intro
             title: IAM users, roles and policies
             summary: Decide who and what can touch each resource, starting with least privilege.
@@ -244,9 +665,32 @@ stages:
               - Users, roles and policies
               - Least privilege
               - Protecting the root account
+            body: |
+              IAM (identity and access management) decides who or what may do which action on which resource.
+
+              A **user** is a person or a program with long-lived credentials. A **role** is an identity that something assumes for a short time, such as a server or a Lambda function. A **policy** is a JSON document that lists allowed or denied actions.
+
+              ### Key ideas
+              - Start with no access and add only what is needed. This is **least privilege**
+              - Prefer roles with temporary credentials over access keys
+              - Give each app or service its own role
+              - Avoid `"Action": "*"` and `"Resource": "*"`
+              - The **root account** owns everything. Turn on MFA, lock it away and do not use it day to day
+
+              ### Example
+              ```json
+              {
+                "Effect": "Allow",
+                "Action": ["s3:GetObject"],
+                "Resource": "arn:aws:s3:::my-app-uploads/*"
+              }
+              ```
+
+              This lets one service read files from one bucket and nothing else. If its credentials leak, the damage stays small.
             resources:
               - { label: "AWS IAM user guide", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html", kind: docs }
               - post: first-3-things-i-always-do-after-creating-a-new-aws-account
+              - { label: "Security best practices in IAM (AWS)", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html", kind: docs }
           - id: well-architected
             title: The Well-Architected Framework
             optional: true
@@ -254,9 +698,28 @@ stages:
             learn:
               - The six pillars
               - Using it as a review tool
+            body: |
+              The AWS Well-Architected Framework is a set of questions and good practice for reviewing a design. You do not need to use AWS to find it useful.
+
+              It has six pillars. Each one is a lens on the same system.
+
+              ### Key ideas
+              - **Operational excellence**: run, monitor and improve
+              - **Security**: protect data, identities and systems
+              - **Reliability**: recover from failure and meet demand
+              - **Performance efficiency**: use resources well as needs change
+              - **Cost optimization**: avoid waste
+              - **Sustainability**: reduce environmental impact
+              - Every choice trades one pillar against another. More redundancy raises reliability and cost
+
+              ### In practice
+              Use it as a review tool, not a test to pass. Pick one workload, walk through the questions for each pillar and write down the gaps. Rank them by risk and fix the top few.
+
+              Do this before launch and again once a year. The AWS Well-Architected Tool in the console records answers and tracks improvements over time.
             resources:
               - { label: "AWS Well-Architected Framework", url: "https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html", kind: docs }
               - post: 5-aws-mistakes-quietly-draining-your-bank-account
+              - { label: "The pillars of the framework (AWS)", url: "https://docs.aws.amazon.com/wellarchitected/latest/framework/the-pillars-of-the-framework.html", kind: docs }
 
   - level: intermediate
     title: Automate everything
@@ -272,8 +735,34 @@ stages:
               - Containers vs VMs
               - Dockerfile instructions
               - Layer caching
+            body: |
+              A container is a process isolated from the rest of the machine, sharing the host kernel. A VM runs a whole OS on virtual hardware. Containers start in seconds and use far less memory.
+
+              An **image** is a read-only package with your app and its dependencies. A container is a running copy of an image. A **Dockerfile** is the recipe.
+
+              ### Key ideas
+              - `FROM` picks a base image, `COPY` adds files, `RUN` runs a build step, `CMD` sets the start command
+              - Each instruction makes a **layer**
+              - Docker reuses a layer if it and everything above it are unchanged
+              - So put steps that rarely change first, and your source code last
+
+              ### Example
+              ```dockerfile
+              FROM node:22-slim
+              WORKDIR /app
+              COPY package*.json ./
+              RUN npm ci
+              COPY . .
+              CMD ["node", "server.js"]
+              ```
+
+              Copying `package*.json` first means `npm ci` is cached until dependencies change. Copy everything first and every code edit reinstalls all packages.
+
+              Build with `docker build -t app .` and run with `docker run -p 3000:3000 app`.
             resources:
               - { label: "Docker: get started", url: "https://docs.docker.com/get-started/", kind: docs }
+              - { label: "Understanding the Docker build cache", url: "https://docs.docker.com/build/cache/", kind: docs }
+              - { label: "Dockerfile reference", url: "https://docs.docker.com/reference/dockerfile/", kind: docs }
           - id: small-images
             title: Multi-stage builds and small images
             summary: Ship only what runs, for faster pulls and fewer vulnerabilities.
@@ -281,8 +770,34 @@ stages:
               - Multi-stage builds
               - Slim and distroless base images
               - .dockerignore
+            body: |
+              A big image is slow to pull, slow to start and full of tools an attacker could use. Ship only what the app needs at runtime.
+
+              A **multi-stage build** uses one stage to compile and another to run. Only the final stage ends up in the image. Compilers and dev dependencies stay behind.
+
+              ### Key ideas
+              - Start the runtime stage from a small base: `-slim`, Alpine or **distroless** (no shell, no package manager)
+              - Copy only the built output with `COPY --from=build`
+              - Add a `.dockerignore` so `.git`, `node_modules` and `.env` never enter the build context
+              - Fewer packages means fewer vulnerabilities to patch
+              - Pin the base image tag, and rebuild often to get fixes
+
+              ### Example
+              ```dockerfile
+              FROM golang:1.23 AS build
+              WORKDIR /src
+              COPY . .
+              RUN CGO_ENABLED=0 go build -o /app
+
+              FROM gcr.io/distroless/static
+              COPY --from=build /app /app
+              CMD ["/app"]
+              ```
+
+              The Go toolchain is hundreds of MB. The final image holds a few MB.
             resources:
               - { label: "Docker build best practices", url: "https://docs.docker.com/build/building/best-practices/", kind: docs }
+              - { label: "Multi-stage builds (Docker)", url: "https://docs.docker.com/build/building/multi-stage/", kind: docs }
           - id: volumes-and-networking
             title: Volumes, networking and Compose
             summary: Persist data and run several containers together on one machine.
@@ -290,8 +805,35 @@ stages:
               - Volumes and bind mounts
               - Container networks
               - Docker Compose
+            body: |
+              A container's filesystem disappears when the container is removed. To keep data, use a **volume** (managed by Docker) or a **bind mount** (a host folder mapped into the container). Databases need a volume.
+
+              Containers on the same user-defined network find each other by name. A container called `db` is reachable at the host name `db`. You only publish a port to the host (`-p 8080:80`) for traffic from outside.
+
+              **Docker Compose** describes several containers in one `compose.yaml` and starts them together.
+
+              ### Key ideas
+              - Volume: Docker owns it, good for data. Bind mount: your folder, good for live code in dev
+              - A custom network gives name lookup, the default bridge does not
+              - `docker compose up -d` starts everything, `docker compose logs -f` follows logs
+
+              ### Example
+              ```yaml
+              services:
+                app:
+                  build: .
+                  ports: ["8080:80"]
+                  depends_on: [db]
+                db:
+                  image: postgres:17
+                  volumes: [pgdata:/var/lib/postgresql/data]
+              volumes:
+                pgdata:
+              ```
             resources:
               - { label: "Docker Compose docs", url: "https://docs.docker.com/compose/", kind: docs }
+              - { label: "Volumes (Docker)", url: "https://docs.docker.com/engine/storage/volumes/", kind: docs }
+              - { label: "Networking overview (Docker)", url: "https://docs.docker.com/engine/network/", kind: docs }
           - id: running-containers-in-the-cloud
             title: Running containers in the cloud
             optional: true
@@ -299,9 +841,26 @@ stages:
             learn:
               - Container registries
               - Managed container services
+            body: |
+              Once an image works on your laptop, you push it to a **registry** and let a managed service run it. You skip servers, patching and cluster setup.
+
+              A registry stores images with tags. Examples are Amazon ECR, Docker Hub and GitHub Container Registry. The runtime pulls the image by name and tag when it starts a task.
+
+              ### Key ideas
+              - Tag images with a version or commit SHA, not only `latest`
+              - **ECS on Fargate** runs containers with no servers to manage. You define a task (image, CPU, memory, env) and a service that keeps N copies running
+              - **App Runner** is simpler still. Point it at an image and it gives you a URL
+              - Attach an IAM role to the task so the app gets AWS access with no keys
+              - Send logs to CloudWatch, and set health checks so bad tasks are replaced
+
+              ### In practice
+              A common flow: CI builds the image, pushes it to ECR with the commit SHA, then updates the ECS service to use that tag. ECS starts new tasks, waits for health checks and drains the old ones.
+
+              Pick the simplest service that fits. Fargate costs more per CPU than a VM but saves operations work.
             resources:
               - post: serverless-laravel-containers-with-ecs-fargate-app-runner-and-terraform
               - { label: "Amazon ECS developer guide", url: "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html", kind: docs }
+              - { label: "What is Amazon ECR?", url: "https://docs.aws.amazon.com/AmazonECR/latest/userguide/what-is-ecr.html", kind: docs }
 
       - id: ci-cd
         title: CI/CD pipelines
@@ -314,26 +873,91 @@ stages:
               - Continuous integration vs delivery vs deployment
               - Pipeline stages and jobs
               - Fast feedback
+            body: |
+              A pipeline is a script that runs on every push. It builds the code, tests it and, if all is green, ships it.
+
+              Three terms get mixed up. **Continuous integration** merges and tests small changes often. **Continuous delivery** keeps every green build ready to release, with a human pressing the button. **Continuous deployment** releases every green build automatically.
+
+              ### Key ideas
+              - A pipeline has stages (build, test, deploy) made of jobs
+              - Jobs in a stage can run in parallel
+              - A failed stage stops the later ones
+              - Fast feedback is the goal. Aim for minutes, not an hour
+              - Run quick checks first (lint, unit tests), slow ones later
+              - Cache dependencies to save time
+
+              ### Example
+              ```yaml
+              on: push
+              jobs:
+                test:
+                  runs-on: ubuntu-latest
+                  steps:
+                    - uses: actions/checkout@v4
+                    - run: npm ci
+                    - run: npm test
+              ```
+
+              If the pipeline is slow or flaky, people stop trusting it and merge around it. Keep it fast and fix flaky tests.
             resources:
               - { label: "GitHub Actions docs", url: "https://docs.github.com/en/actions", kind: docs }
               - { label: "Continuous Integration (Martin Fowler)", url: "https://martinfowler.com/articles/continuousIntegration.html", kind: article }
+              - { label: "Understanding GitHub Actions", url: "https://docs.github.com/en/actions/get-started/understanding-github-actions", kind: docs }
+              - { label: "Continuous Delivery (Martin Fowler)", url: "https://martinfowler.com/bliki/ContinuousDelivery.html", kind: article }
           - id: artifacts-and-environments
             title: Artifacts and environments
             summary: Build once, promote the same artifact through staging and production.
             learn:
               - Build artifacts and versioning
               - Environments and approvals
+            body: |
+              Build once, deploy many times. If you rebuild for production, the thing you ship is not the thing you tested.
+
+              The pipeline produces an **artifact**: a container image, a zip or a package. Give it a unique version, such as the commit SHA or a semantic version. The same artifact then moves through staging and production.
+
+              ### Key ideas
+              - An artifact is immutable. Never overwrite a version
+              - Environment differences come from config, not from a different build
+              - **Environments** (staging, production) can require approval, restrict who can deploy and hold their own secrets
+              - Promote by deploying the same version to the next environment
+              - Record what version runs where, so you can answer "what is live?"
+
+              ### In practice
+              In GitHub Actions, a job can target `environment: production`. You can require a reviewer to approve before it runs, and the production secrets are only visible to that job.
+
+              ### Common mistakes
+              - Using the `latest` tag in production, so nobody knows what is running
+              - Building a separate image per environment
             resources:
               - post: github-actions-lambda-terraform-cicd
               - { label: "GitHub Actions: environments", url: "https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment", kind: docs }
+              - { label: "Semantic Versioning", url: "https://semver.org/", kind: docs }
           - id: rollbacks-and-blue-green
             title: Rollbacks and blue/green deploys
             summary: Release with a way back, so a bad deploy costs minutes instead of hours.
             learn:
               - Rollback strategies
               - Blue/green and canary releases
+            body: |
+              Every release can go wrong. Plan the way back before you ship, so a bad deploy costs minutes.
+
+              The simplest rollback is redeploying the previous artifact. It works if releases are immutable and database changes are backward compatible. A migration that drops a column cannot be rolled back by code alone.
+
+              ### Key ideas
+              - **Blue/green**: run two identical environments. Deploy to the idle one, test it, then switch traffic. Rolling back means switching back
+              - **Canary**: send a small share of traffic (say 5%) to the new version, watch error rates, then widen it
+              - **Rolling update**: replace instances a few at a time
+              - Feature flags let you turn off a feature without a deploy
+              - Use the expand and contract pattern for schema changes: add first, migrate, remove later
+
+              ### Common mistakes
+              - Never practising a rollback, then fumbling it during an outage
+              - Blue/green with one shared database and a breaking migration
+
+              Decide your rollback trigger in advance, such as "error rate above 2% for five minutes", so no one debates it under stress.
             resources:
               - { label: "BlueGreenDeployment (Martin Fowler)", url: "https://martinfowler.com/bliki/BlueGreenDeployment.html", kind: article }
+              - { label: "CanaryRelease (Martin Fowler)", url: "https://martinfowler.com/bliki/CanaryRelease.html", kind: article }
           - id: pipeline-security
             title: Pipeline security
             optional: true
@@ -341,9 +965,31 @@ stages:
             learn:
               - OIDC instead of long-lived keys
               - Pinning actions and least-privilege tokens
+            body: |
+              A CI runner can reach your cloud, your registry and your production servers. Anyone who controls the pipeline controls those things, so treat it as a target.
+
+              The biggest fix is dropping long-lived keys. With **OIDC**, the CI job proves its identity to the cloud and gets a short-lived token. There is no secret to steal from the repo settings.
+
+              ### Key ideas
+              - Use OIDC to assume a cloud role. Limit the role to one repo and branch
+              - Set `permissions:` on the workflow token to the minimum, such as `contents: read`
+              - **Pin third-party actions** to a full commit SHA, since tags can be moved
+              - Never run untrusted code from forks with access to secrets
+              - Be careful with `pull_request_target` and with putting user input into `run:` lines
+              - Protect the main branch and require review for workflow changes
+
+              ### Example
+              ```yaml
+              permissions:
+                id-token: write
+                contents: read
+              ```
+
+              This allows the job to request an OIDC token and read the repo, and nothing more.
             resources:
               - { label: "GitHub Actions security hardening", url: "https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions", kind: docs }
               - post: production-ai-code-review-for-terraform-and-lambda-prs
+              - { label: "About security hardening with OpenID Connect (GitHub)", url: "https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/about-security-hardening-with-openid-connect", kind: docs }
 
       - id: infrastructure-as-code
         title: Infrastructure as code
@@ -356,24 +1002,100 @@ stages:
               - Providers and resources
               - plan vs apply
               - Variables and outputs
+            body: |
+              Terraform lets you describe infrastructure in files and then create it. You write what you want. Terraform works out the steps.
+
+              A **provider** is a plugin that talks to a platform such as AWS. A **resource** is one thing to create, like a bucket or a server. `terraform init` downloads providers, `terraform plan` shows what would change, and `terraform apply` makes the change.
+
+              ### Key ideas
+              - Always read the plan. Look for `destroy` and `replace`
+              - `+` means create, `~` update in place, `-` destroy
+              - **Variables** are inputs, **outputs** are values you print or pass on
+              - Keep values like region and names in variables, not hard-coded
+              - Run `terraform fmt` and `terraform validate` before you plan
+
+              ### Example
+              ```hcl
+              variable "bucket_name" { type = string }
+
+              resource "aws_s3_bucket" "assets" {
+                bucket = var.bucket_name
+              }
+
+              output "bucket_arn" { value = aws_s3_bucket.assets.arn }
+              ```
+
+              Run `terraform plan -var bucket_name=my-assets-123`. Check the plan says one resource to add before you apply.
             resources:
               - { label: "Terraform tutorials", url: "https://developer.hashicorp.com/terraform/tutorials", kind: course }
               - post: deploying-a-laravel-application-to-amazon-ec2-using-terraform
+              - { label: "What is Terraform?", url: "https://developer.hashicorp.com/terraform/intro", kind: docs }
+              - { label: "Input variables (Terraform)", url: "https://developer.hashicorp.com/terraform/language/values/variables", kind: docs }
           - id: terraform-state
             title: State and why it is sensitive
             summary: Terraform remembers what it built in state, and that file holds secrets.
             learn:
               - Remote state and locking
               - Secrets in state
+            body: |
+              Terraform keeps a **state** file that maps your code to the real resources it created. Without it, Terraform cannot tell what exists, so it would try to create everything again.
+
+              State often holds sensitive values in plain text: database passwords, keys and tokens. Treat the file like a secret.
+
+              ### Key ideas
+              - Do not keep state on a laptop or in Git
+              - Use a **remote backend**, such as an S3 bucket, with encryption and versioning
+              - **Locking** stops two people running `apply` at once and corrupting state
+              - Limit who can read the state bucket. Reading state can mean reading secrets
+              - Marking a variable `sensitive` hides it in output but not in the state file
+              - Never edit state by hand. Use `terraform state` commands
+
+              ### Example
+              ```hcl
+              terraform {
+                backend "s3" {
+                  bucket       = "my-tf-state"
+                  key          = "prod/terraform.tfstate"
+                  region       = "eu-west-1"
+                  encrypt      = true
+                  use_lockfile = true
+                }
+              }
+              ```
+
+              Give CI and engineers only the access they need to this bucket.
             resources:
               - post: terraform-state-more-sensitive-than-env
               - { label: "Terraform state (docs)", url: "https://developer.hashicorp.com/terraform/language/state", kind: docs }
+              - { label: "Backend configuration (Terraform)", url: "https://developer.hashicorp.com/terraform/language/backend", kind: docs }
           - id: modules-and-environments
             title: Modules and environments
             summary: Reuse code across dev, staging and production without copying it.
             learn:
               - Writing and calling modules
               - One state per environment
+            body: |
+              A **module** is a folder of Terraform code you can call many times with different inputs. It is Terraform's version of a function. Use one when you build the same shape twice, such as a network or a service.
+
+              Dev, staging and production should use the same modules with different inputs. That way a change tested in staging is the one you ship to production.
+
+              ### Key ideas
+              - A module has input variables, resources and outputs
+              - Call it with `module "name" { source = "./modules/web" ... }`
+              - Pin versions of modules from a registry
+              - Give **each environment its own state**, so a mistake in dev cannot touch production
+              - Use one folder per environment, or one workspace per environment, and keep the layout simple
+
+              ### Example
+              ```hcl
+              module "web" {
+                source        = "../modules/web"
+                instance_type = "t3.small"
+                environment   = "staging"
+              }
+              ```
+
+              Production calls the same module with `t3.large` and `production`. Do not copy and paste the code between folders. Copies drift apart and then bite you.
             resources:
               - { label: "Terraform modules (docs)", url: "https://developer.hashicorp.com/terraform/language/modules", kind: docs }
           - id: choosing-an-iac-tool
@@ -383,9 +1105,28 @@ stages:
             learn:
               - Declarative vs general-purpose languages
               - Trade-offs by team and cloud
+            body: |
+              All IaC tools aim for the same thing: infrastructure you can review, version and repeat. They differ in language and in which clouds they cover.
+
+              **Declarative** tools, like Terraform (HCL) and CloudFormation (YAML or JSON), describe the end state. **General-purpose** tools, like Pulumi and the AWS CDK, use languages such as TypeScript or Python, so you get loops, functions and tests.
+
+              ### Key ideas
+              - Terraform and OpenTofu: many providers, large community, simple language
+              - CloudFormation: AWS only, built in, no state file for you to manage
+              - CDK: write TypeScript or Python that produces CloudFormation
+              - Pulumi: real languages, many clouds
+              - Pick by team skills and cloud. A team of developers may prefer code. An ops team may prefer plain config
+
+              ### Common mistakes
+              - Choosing a tool because it is new
+              - Mixing three tools in one project
+              - Treating real code as a reason to build clever abstractions that nobody can read
+
+              Whatever you choose, review plans in pull requests and run the tool from CI, not from laptops.
             resources:
               - post: terraform-or-pulumi
               - { label: "Pulumi docs", url: "https://www.pulumi.com/docs/", kind: docs }
+              - { label: "AWS Cloud Development Kit", url: "https://aws.amazon.com/cdk/", kind: docs }
 
       - id: config-and-secrets
         title: Config and secrets
@@ -397,18 +1138,62 @@ stages:
             learn:
               - Env vars and their limits
               - Secrets managers and parameter stores
+            body: |
+              A secret is anything that grants access: passwords, API keys, tokens. They must never be in your code or in Git, even in a private repo. Git history keeps them forever.
+
+              Environment variables are the simplest way to pass secrets to an app, but they have limits. They show up in process listings, crash dumps and debug pages, and they are easy to copy around by accident.
+
+              ### Key ideas
+              - A committed `.env` file is a breach waiting to happen. Add it to `.gitignore`
+              - A **secret store** keeps secrets encrypted, controls who can read them and logs each read
+              - Examples: AWS Secrets Manager, SSM Parameter Store, HashiCorp Vault
+              - The app fetches the secret at start, using its own role, or the platform injects it
+              - Use env vars for plain config and a store for real secrets
+
+              ### Common mistakes
+              - Pasting a key into chat or a ticket
+              - Logging the whole environment on startup
+              - One shared secret used by every service
+
+              If a secret ever reaches Git, treat it as leaked. Rotate it. Deleting the commit is not enough.
             resources:
               - { label: "OWASP secrets management cheat sheet", url: "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html", kind: docs }
               - { label: "AWS Secrets Manager user guide", url: "https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html", kind: docs }
+              - { label: "Systems Manager Parameter Store (AWS)", url: "https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html", kind: docs }
+              - { label: "What is Vault?", url: "https://developer.hashicorp.com/vault/docs/what-is-vault", kind: docs }
           - id: least-privilege-secrets
             title: Least-privilege access to secrets
             summary: Give each service only the secrets it needs, and nothing else.
             learn:
               - Scoping access per service
               - Auditing who read what
+            body: |
+              Not every service needs every secret. If the billing worker can read the mail password, a bug in the billing worker now threatens your mail.
+
+              Give each service its own identity and let that identity read only the secrets it uses. Then a leak stays small.
+
+              ### Key ideas
+              - One role per service, one policy per role
+              - Scope access to specific secrets by name or path, such as `prod/billing/*`
+              - Separate secrets per environment. A dev laptop should never read production secrets
+              - Humans get less access than services, and get it only when needed
+              - Turn on audit logs, such as CloudTrail, so you can see who read what and when
+              - Alert on unusual reads
+
+              ### Example
+              ```json
+              {
+                "Effect": "Allow",
+                "Action": "secretsmanager:GetSecretValue",
+                "Resource": "arn:aws:secretsmanager:eu-west-1:123456789012:secret:prod/billing/*"
+              }
+              ```
+
+              This policy lets the billing role read billing secrets and nothing else. Review these policies like code, and remove access that is no longer used.
             resources:
               - { label: "OWASP secrets management cheat sheet", url: "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html", kind: docs }
               - post: how-i-make-ai-coding-agents-safe-in-a-real-aws-codebase
+              - { label: "Security best practices in IAM (AWS)", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html", kind: docs }
           - id: secret-rotation
             title: Rotation
             optional: true
@@ -416,6 +1201,26 @@ stages:
             learn:
               - Automatic rotation
               - Dual credentials during rollover
+            body: |
+              Rotation means replacing a secret with a new one. Do it on a schedule, so a stolen secret expires, and right away after a leak.
+
+              The risk is breaking production. If you change a password in the database but the app still holds the old one, the app is locked out.
+
+              ### Key ideas
+              - Automatic rotation: the secret store creates a new value and updates the target for you
+              - **Dual credentials**: keep two valid secrets during the change, move every client to the new one, then retire the old one
+              - Apps should re-read secrets, or restart cleanly, to pick up a new value
+              - Short-lived credentials (such as IAM roles) rotate themselves, so prefer them
+              - Test rotation in staging before relying on it
+
+              ### In practice
+              A rollover in four steps:
+              1. Create secret B next to the working secret A
+              2. Deploy so clients use B
+              3. Check that nothing still uses A
+              4. Disable A
+
+              Practise this before an incident. A leak at 2am is a bad time to find out that nobody knows how to rotate the key.
             resources:
               - { label: "Rotate AWS Secrets Manager secrets", url: "https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotating-secrets.html", kind: docs }
 
@@ -429,23 +1234,79 @@ stages:
             learn:
               - Counters, gauges and histograms
               - Structured logs
+            body: |
+              Metrics and logs answer different questions. **Metrics** are numbers over time. They are cheap, small and ideal for dashboards and alerts: "How many errors per minute?" **Logs** are records of single events. They carry detail: "Why did this one request fail?"
+
+              Use metrics to notice a problem, and logs to find the cause.
+
+              ### Key ideas
+              - A **counter** only goes up (requests served, errors)
+              - A **gauge** goes up and down (memory in use, queue length)
+              - A **histogram** buckets values, so you can read p95 or p99 latency
+              - Use **structured logs** (JSON) with fields like `request_id`, `user_id` and `status`, so you can filter and search
+              - Log at the right level: debug, info, warn, error
+              - Never log passwords, tokens or full card numbers
+
+              ### Example
+              ```json
+              {"level":"error","msg":"payment failed","order_id":4821,"status":502,"duration_ms":3100}
+              ```
+
+              A metric shows errors rising at 14:02. This log line shows which order failed and how slowly.
             resources:
               - { label: "Prometheus overview", url: "https://prometheus.io/docs/introduction/overview/", kind: docs }
+              - { label: "Metric types (Prometheus)", url: "https://prometheus.io/docs/concepts/metric_types/", kind: docs }
           - id: dashboards-and-alerts
             title: Dashboards and alerts that matter
             summary: Alert on symptoms users feel, not every CPU spike.
             learn:
               - The four golden signals
               - Alerting on symptoms
+            body: |
+              The aim of alerting is to wake someone only when users are hurt, or soon will be. An alert on every CPU spike trains people to ignore the pager.
+
+              Google's **four golden signals** give you a good start for any service: latency, traffic, errors and saturation.
+
+              ### Key ideas
+              - **Latency**: how long requests take, split into success and failure
+              - **Traffic**: how much demand the service gets
+              - **Errors**: the rate of failed requests
+              - **Saturation**: how full the service is (disk, memory, queue depth)
+              - Alert on **symptoms** ("error rate above 2% for 5 minutes"), not causes ("CPU above 80%")
+              - Every alert needs an owner and a runbook that says what to do
+              - A dashboard answers a question at a glance. Put the golden signals at the top
+
+              ### Common mistakes
+              - Alerts nobody acts on. Delete or fix them
+              - Dashboards with 40 graphs and no story
+              - Paging for something that can wait until morning. Send it to a ticket instead
             resources:
               - { label: "Monitoring distributed systems (SRE book)", url: "https://sre.google/sre-book/monitoring-distributed-systems/", kind: article }
               - { label: "Grafana docs", url: "https://grafana.com/docs/grafana/latest/", kind: docs }
+              - { label: "Practical Alerting from Time-Series Data (SRE book)", url: "https://sre.google/sre-book/practical-alerting/", kind: article }
           - id: centralised-logging
             title: Centralised logging
             summary: Ship logs from every server and service to one place you can search.
             learn:
               - Log agents and shipping
               - Retention and cost
+            body: |
+              With ten servers, logging in to each one to read files does not work. Centralised logging ships every log line to one place you can search.
+
+              A **log agent** runs on each host or sits beside each container. It reads logs and sends them on. In AWS the CloudWatch agent does this. Other common agents are Fluent Bit and Vector.
+
+              ### Key ideas
+              - Apps write to stdout or a file and the agent collects it
+              - Add fields to each line: service, environment, host, request ID
+              - Use JSON logs so the backend can index fields
+              - **Retention** decides how long you keep logs. Keep hot logs for days, archive older ones cheaply
+              - Logs can be the largest line on a bill, so measure volume
+              - Sample or drop noisy debug logs in production
+
+              ### In practice
+              Search for one request across five services by its request ID. This only works if every service logs the same ID. Pass it in a header and add it to every log line.
+
+              Also set alarms on log patterns, such as a burst of `ERROR`, to turn logs into alerts.
             resources:
               - post: install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging
               - { label: "Amazon CloudWatch Logs user guide", url: "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html", kind: docs }
@@ -461,27 +1322,83 @@ stages:
               - The Lambda execution model
               - Event sources
               - Cold starts
+            body: |
+              With serverless functions, you upload code and the platform runs it only when needed. You do not manage servers, and you pay for the time the code runs.
+
+              In Lambda, an **execution environment** is a small sandbox that holds your code. A **trigger**, or event source, starts it: an HTTP request through API Gateway, a message from SQS, a file landing in S3, a schedule.
+
+              ### Key ideas
+              - A function takes an event and returns a result
+              - Functions are stateless. Do not rely on memory or local disk between calls
+              - The first call in a new environment is a **cold start**: Lambda must create the sandbox, load your code and run your init code
+              - Later calls reuse a warm environment and are faster
+              - Cold starts are worse with big packages, heavy frameworks and some runtimes
+              - Do slow setup (database clients, config) outside the handler so warm calls reuse it
+
+              ### Example
+              ```python
+              client = make_client()  # runs once per cold start
+
+              def handler(event, context):
+                  return client.get(event["id"])
+              ```
             resources:
               - { label: "AWS Lambda developer guide", url: "https://docs.aws.amazon.com/lambda/latest/dg/welcome.html", kind: docs }
               - post: serverless-laravel-on-aws-lambda-with-bref-and-terraform
+              - { label: "Understanding the Lambda execution environment lifecycle", url: "https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtime-environment.html", kind: docs }
           - id: queues-and-events
             title: Queues and event-driven design
             summary: Decouple work with queues so slow jobs do not block requests.
             learn:
               - Queues and dead-letter queues
               - Retries and idempotency
+            body: |
+              A queue lets one part of a system hand work to another without waiting. The web request puts a message on the queue and returns at once. A worker takes the message later and does the slow job.
+
+              This keeps requests fast, smooths out spikes and lets parts fail on their own.
+
+              ### Key ideas
+              - Producers send messages, consumers process them
+              - A message that keeps failing goes to a **dead-letter queue** (DLQ) after N tries, so one bad message does not block the rest
+              - Alert when the DLQ has messages
+              - Delivery is usually **at least once**, so a message may arrive twice
+              - Make handlers **idempotent**: running them twice gives the same result as running once
+              - Retries should back off, so you do not hammer a struggling service
+
+              ### Example
+              An order job sends an email. If it runs twice, the customer gets two emails. Store a "sent" flag keyed by the order ID, and check it before sending.
+
+              ### Common mistakes
+              - No DLQ, so a poison message loops forever
+              - A visibility timeout shorter than the job, so two workers take the same message
             resources:
               - post: running-ai-background-jobs-serverlessly-with-sqs-lambda-bedrock
               - { label: "Amazon SQS developer guide", url: "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/welcome.html", kind: docs }
+              - { label: "Amazon SQS dead-letter queues", url: "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html", kind: docs }
           - id: serverless-limits-and-pricing
             title: Limits and pricing
             summary: Timeouts, concurrency and the bill, and when a container is cheaper.
             learn:
               - Timeouts and concurrency limits
               - Pay-per-request vs always-on
+            body: |
+              Serverless is cheap when traffic is small or spiky, and can cost more than a container when traffic is high and steady.
+
+              Lambda bills for requests and for run time multiplied by the memory you set. If nothing runs, you pay nothing. A server running all month costs the same whether busy or idle.
+
+              ### Key ideas
+              - **Timeout**: a function has a maximum run time (15 minutes on Lambda). Longer jobs need another service
+              - **Concurrency**: the number of copies running at once. Accounts have a regional limit, and you can reserve some for one function
+              - A flood of events can exhaust concurrency and throttle other functions, or hammer your database
+              - More memory also gives more CPU, so a bigger setting can be cheaper if it finishes faster
+              - Compare the monthly cost at your real request volume, not at the free tier
+
+              ### In practice
+              A function doing 100 requests a day costs almost nothing. One doing 200 requests a second, all day, may be cheaper on a container. Also count the other bills: API Gateway, NAT, logs and data transfer.
             resources:
               - { label: "AWS Lambda pricing", url: "https://aws.amazon.com/lambda/pricing/", kind: docs }
               - post: how-i-architected-a-fully-serverless-saas-on-aws-lambda-with-fastify
+              - { label: "Understanding Lambda function scaling (concurrency)", url: "https://docs.aws.amazon.com/lambda/latest/dg/lambda-concurrency.html", kind: docs }
           - id: cold-start-tuning
             title: Cold start tuning
             optional: true
@@ -489,8 +1406,27 @@ stages:
             learn:
               - SnapStart
               - Provisioned concurrency
+            body: |
+              A cold start is extra latency on the first request to a new execution environment. If your users notice it, you have a few tools.
+
+              First try the cheap fixes. Shrink the package, remove unused dependencies, lazy-load heavy libraries and move setup out of the hot path.
+
+              ### Key ideas
+              - **SnapStart** takes a snapshot of the initialised environment (supported on certain runtimes, such as Java) and resumes from it, which cuts startup time
+              - **Provisioned concurrency** keeps a set number of environments warm. It removes cold starts for that capacity, and you pay for it all the time
+              - Smaller packages load faster
+              - More memory means more CPU, which can shorten init
+              - Measure first. Look at the `Init Duration` in the logs
+
+              ### Common mistakes
+              - Paying for provisioned concurrency to hide a slow init that a smaller package would fix
+              - Assuming snapshot state is safe. Random seeds and connections made at init may need refreshing after restore
+
+              Only tune cold starts for paths where a user waits. Background jobs rarely care.
             resources:
               - post: lambda-snapstart-terraform-cold-starts
+              - { label: "Improving startup performance with Lambda SnapStart", url: "https://docs.aws.amazon.com/lambda/latest/dg/snapstart.html", kind: docs }
+              - { label: "Configuring provisioned concurrency", url: "https://docs.aws.amazon.com/lambda/latest/dg/provisioned-concurrency.html", kind: docs }
 
   - level: advanced
     title: Run it at scale
@@ -506,16 +1442,57 @@ stages:
               - Pods and ReplicaSets
               - Deployments and rolling updates
               - Services
+            body: |
+              A **Pod** is the smallest thing Kubernetes runs. It holds one or more containers that share a network and storage. Pods are disposable. When one dies, it is replaced with a new one, with a new IP.
+
+              A **ReplicaSet** keeps a set number of identical Pods running. A **Deployment** manages ReplicaSets for you. You change the image in the Deployment and it does a **rolling update**: it starts new Pods, waits until they are ready, then removes old ones. It can also roll back.
+
+              A **Service** gives a group of Pods one stable name and IP, and spreads traffic across them. It finds Pods by label.
+
+              ### Key ideas
+              - You declare the state you want and Kubernetes works to match it
+              - Use Deployments, not bare Pods
+              - Pods and Services are linked by labels
+              - Service types: ClusterIP (inside), NodePort, LoadBalancer (outside)
+
+              ### Example
+              ```bash
+              kubectl create deployment web --image=nginx --replicas=3
+              kubectl expose deployment web --port=80
+              kubectl rollout status deployment/web
+              ```
             resources:
               - { label: "Kubernetes basics tutorial", url: "https://kubernetes.io/docs/tutorials/kubernetes-basics/", kind: course }
+              - { label: "Pods (Kubernetes)", url: "https://kubernetes.io/docs/concepts/workloads/pods/", kind: docs }
+              - { label: "Deployments (Kubernetes)", url: "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/", kind: docs }
+              - { label: "Service (Kubernetes)", url: "https://kubernetes.io/docs/concepts/services-networking/service/", kind: docs }
           - id: ingress-and-config
             title: Ingress, ConfigMaps and Secrets
             summary: Get traffic into the cluster and give pods their configuration.
             learn:
               - Ingress and ingress controllers
               - ConfigMaps and Secrets
+            body: |
+              A Service gives stable access inside the cluster. To bring web traffic in from outside, you use an **Ingress**. It holds routing rules, such as "host `app.example.com` goes to the web Service, and `/api` goes to the API Service".
+
+              An Ingress does nothing on its own. An **ingress controller**, such as NGINX or Traefik, reads the rules and does the routing. Many setups also use the newer Gateway API.
+
+              Pods get settings from outside the image. A **ConfigMap** holds plain config. A **Secret** holds sensitive values.
+
+              ### Key ideas
+              - One controller and load balancer can serve many apps, which saves money
+              - TLS certificates attach to the Ingress, often issued automatically by cert-manager
+              - Inject ConfigMaps and Secrets as env vars or as mounted files
+              - Kubernetes Secrets are only base64 encoded by default. Turn on encryption at rest and limit access with RBAC
+              - Pods do not see config changes in env vars until restarted
+
+              ### Common mistakes
+              - Putting real secrets into Git as YAML
+              - Creating an Ingress with no controller installed
             resources:
               - { label: "Kubernetes concepts", url: "https://kubernetes.io/docs/concepts/", kind: docs }
+              - { label: "Ingress (Kubernetes)", url: "https://kubernetes.io/docs/concepts/services-networking/ingress/", kind: docs }
+              - { label: "ConfigMaps (Kubernetes)", url: "https://kubernetes.io/docs/concepts/configuration/configmap/", kind: docs }
           - id: requests-limits-autoscaling
             title: Requests, limits and autoscaling
             summary: Tell the scheduler what each pod needs and let the cluster grow and shrink.
@@ -523,8 +1500,30 @@ stages:
               - Resource requests and limits
               - Horizontal Pod Autoscaler
               - Cluster autoscaling
+            body: |
+              The scheduler needs to know how much a Pod needs, so it can place it on a node with room. You tell it with resource **requests** and **limits**.
+
+              A **request** is what the Pod is guaranteed and what the scheduler uses to place it. A **limit** is the ceiling. Go over the CPU limit and the Pod is throttled. Go over the memory limit and it is killed (OOMKilled).
+
+              ### Key ideas
+              - Set requests on every container. Without them, scheduling is guesswork
+              - Base them on measured use, not on hopes
+              - The **Horizontal Pod Autoscaler** (HPA) adds or removes Pods based on a metric such as CPU
+              - A **cluster autoscaler** adds or removes nodes when Pods cannot fit, or nodes sit empty
+              - HPA needs requests set, because it works as a percentage of them
+
+              ### Example
+              ```yaml
+              resources:
+                requests: { cpu: "250m", memory: "256Mi" }
+                limits:   { memory: "512Mi" }
+              ```
+
+              `250m` is a quarter of a CPU core. Many teams set a memory limit but leave CPU limits off, to avoid throttling.
             resources:
               - { label: "Kubernetes: resource management", url: "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/", kind: docs }
+              - { label: "Horizontal Pod Autoscaling (Kubernetes)", url: "https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/", kind: docs }
+              - { label: "Node autoscaling (Kubernetes)", url: "https://kubernetes.io/docs/concepts/cluster-administration/cluster-autoscaling/", kind: docs }
           - id: kubernetes-or-not
             title: Do you need Kubernetes?
             optional: true
@@ -532,6 +1531,24 @@ stages:
             learn:
               - Operational cost of a cluster
               - When ECS or a PaaS is enough
+            body: |
+              Kubernetes is powerful, and it is also a lot to run. A cluster needs upgrades, security patching, networking choices, monitoring and people who understand it. Managed offerings like EKS handle the control plane, but the rest is still yours.
+
+              Ask what problem you need it to solve.
+
+              ### Key ideas
+              - Kubernetes shines with many services, many teams, custom scheduling or a need to run the same way on any cloud
+              - **ECS on Fargate** runs containers with far less to learn and operate, but only on AWS
+              - A PaaS or a single VM with Docker Compose is enough for many products
+              - Count the operational cost: upgrades, add-ons, on-call, learning time
+              - You can start simple and move later if containers are already your unit of deploy
+
+              ### Common mistakes
+              - Adopting Kubernetes for one app with two containers
+              - Picking it because a job ad asked for it
+              - Ignoring the team size. Small teams pay the same fixed cost as large ones
+
+              A good test: if you cannot name the feature you need that ECS or a PaaS lacks, you probably do not need a cluster.
             resources:
               - post: ecs-fargate-spot-capacity-providers
               - { label: "Amazon EKS user guide", url: "https://docs.aws.amazon.com/eks/latest/userguide/what-is-eks.html", kind: docs }
@@ -546,6 +1563,26 @@ stages:
             learn:
               - The four GitOps principles
               - Push vs pull deploys
+            body: |
+              In a **push** deploy, your CI pipeline runs `kubectl apply` and needs credentials to your cluster. In a **pull** deploy, an agent inside the cluster watches Git and applies changes itself. CI never touches the cluster.
+
+              This is GitOps. The Git repo is the source of truth for what should run.
+
+              ### Key ideas
+              The four OpenGitOps principles:
+              1. **Declarative**: the system is described by desired state
+              2. **Versioned and immutable**: that state is stored in Git, with history
+              3. **Pulled automatically**: agents fetch the approved state
+              4. **Continuously reconciled**: agents compare actual to desired and fix differences
+
+              - A rollback is a `git revert`
+              - The audit trail is the Git log
+              - The cluster holds no deploy keys that CI can leak, which is a security gain
+              - Someone changing the cluster by hand gets reverted
+
+              ### Common mistakes
+              - Storing app code and deploy manifests in one repo, so each code push triggers a deploy loop
+              - Putting plain secrets in Git. Use sealed secrets or an external secret store
             resources:
               - { label: "OpenGitOps principles", url: "https://opengitops.dev/", kind: article }
           - id: argo-cd-or-flux
@@ -554,9 +1591,25 @@ stages:
             learn:
               - Applications and sync
               - Drift detection and self-healing
+            body: |
+              Argo CD and Flux are the two common GitOps controllers. Both run in the cluster, watch a Git repo and make the cluster match it. Both are CNCF projects.
+
+              In Argo CD, an **Application** says "take the manifests at this repo, path and revision, and deploy them to this namespace". It has a web UI that shows sync state and a resource tree. In Flux, the same job is done by a **GitRepository** source and a **Kustomization** or HelmRelease, driven by CLI and YAML.
+
+              ### Key ideas
+              - **Sync** applies Git state to the cluster. It can be manual or automatic
+              - **Drift** is when the live cluster differs from Git, say after someone ran `kubectl edit`
+              - **Self-healing** reverts drift on its own
+              - **Pruning** deletes resources you removed from Git
+              - Argo CD suits teams who want a UI. Flux suits teams who prefer composable, Git-only workflows
+              - Either handles Helm and Kustomize
+
+              Pick one and learn it well. Both solve the same problem.
             resources:
               - { label: "Argo CD docs", url: "https://argo-cd.readthedocs.io/", kind: docs }
               - { label: "Flux docs", url: "https://fluxcd.io/flux/", kind: docs }
+              - { label: "Argo CD core concepts", url: "https://argo-cd.readthedocs.io/en/stable/core_concepts/", kind: docs }
+              - { label: "Flux core concepts", url: "https://fluxcd.io/flux/concepts/", kind: docs }
           - id: progressive-delivery
             title: Progressive delivery
             optional: true
@@ -564,8 +1617,25 @@ stages:
             learn:
               - Automated canary analysis
               - Argo Rollouts and Flagger
+            body: |
+              Progressive delivery releases a change to a few users first and widens only if things look healthy. It adds automatic checks to canary and blue/green rollouts, so people do not watch graphs by hand.
+
+              A controller shifts traffic in steps, say 5%, 25%, then 100%. At each step it queries metrics. If the error rate or latency is worse than the old version, it rolls back on its own.
+
+              ### Key ideas
+              - **Canary analysis** compares the new version against a baseline using metrics from Prometheus or similar
+              - **Argo Rollouts** replaces the Deployment with a `Rollout` object that supports canary and blue/green
+              - **Flagger** works with a service mesh or ingress to shift traffic and run checks
+              - Good SLIs (error rate, latency) make good gates
+              - Needs enough traffic for the metrics to mean something
+
+              ### Common mistakes
+              - Gating on a metric that is too noisy, so every rollout aborts
+              - Skipping a manual abort path
+              - Canarying a database migration. Schema changes need their own plan
             resources:
               - { label: "Argo Rollouts docs", url: "https://argoproj.github.io/argo-rollouts/", kind: docs }
+              - { label: "Flagger documentation", url: "https://fluxcd.io/flagger/", kind: docs }
 
       - id: observability
         title: Observability
@@ -577,17 +1647,57 @@ stages:
             learn:
               - Traces, spans and context propagation
               - Sampling
+            body: |
+              In a system with many services, one user request touches several of them. Logs from each service sit apart. A **trace** ties them together and shows where the time went.
+
+              A trace is one request's journey. It is made of **spans**, each one a unit of work such as an HTTP call or a database query, with a start, a duration and attributes. Spans nest as a tree.
+
+              ### Key ideas
+              - Every request gets a **trace ID**
+              - **Context propagation** passes the trace ID and parent span ID along in headers (the W3C `traceparent` header), so the next service joins the same trace
+              - Without propagation, you get broken traces
+              - **Sampling** keeps only some traces, because storing all of them is costly
+              - Head sampling decides at the start. Tail sampling decides after the trace is finished, so you can keep slow or failed ones
+
+              ### In practice
+              A checkout takes 4 seconds. The trace shows 3.5 seconds are spent in one call to the payment service, inside one slow query. Without a trace you would guess. With one you can point at the line.
             resources:
               - { label: "OpenTelemetry: traces", url: "https://opentelemetry.io/docs/concepts/signals/traces/", kind: docs }
+              - { label: "Sampling (OpenTelemetry)", url: "https://opentelemetry.io/docs/concepts/sampling/", kind: docs }
           - id: opentelemetry
             title: OpenTelemetry
             summary: One vendor-neutral way to collect metrics, logs and traces.
             learn:
               - SDKs and auto-instrumentation
               - The Collector
+            body: |
+              OpenTelemetry (OTel) is a vendor-neutral standard and set of tools for collecting metrics, logs and traces. You instrument once and can send the data to any backend that accepts it.
+
+              It has three parts: APIs and SDKs in each language, instrumentation libraries, and the Collector.
+
+              ### Key ideas
+              - **Auto-instrumentation** adds traces for common frameworks and libraries (HTTP servers, database clients) with little or no code change
+              - Add manual spans where you need business detail
+              - Use **resource attributes** like `service.name` and `deployment.environment` so data is searchable
+              - The **Collector** is a separate process that receives, processes and exports telemetry
+              - In the Collector you can batch, filter, drop sensitive fields, sample and send to several backends
+              - The protocol is **OTLP**
+              - Switching backends later means changing Collector config, not app code
+
+              ### Example
+              ```yaml
+              receivers:
+                otlp:
+                  protocols: { grpc: {}, http: {} }
+              exporters:
+                otlphttp:
+                  endpoint: https://backend.example.com
+              ```
             resources:
               - { label: "OpenTelemetry docs", url: "https://opentelemetry.io/docs/", kind: docs }
               - post: llm-observability-langfuse-lambda-cloudwatch
+              - { label: "Collector (OpenTelemetry)", url: "https://opentelemetry.io/docs/collector/", kind: docs }
+              - { label: "Observability primer (OpenTelemetry)", url: "https://opentelemetry.io/docs/concepts/observability-primer/", kind: docs }
           - id: high-cardinality
             title: High-cardinality data
             optional: true
@@ -595,6 +1705,23 @@ stages:
             learn:
               - Cardinality and cost
               - Wide events
+            body: |
+              **Cardinality** is the number of distinct values a field can take. `http_method` has a handful. `user_id` or `request_id` has millions. High-cardinality fields are the ones that let you find one bad request among a billion.
+
+              Classic metrics systems store a time series per label combination. Add `user_id` as a label and the series count explodes, which slows queries and raises the bill.
+
+              ### Key ideas
+              - Keep metric labels low-cardinality (service, route, status class)
+              - Put high-cardinality detail in events, logs or traces, not metric labels
+              - A **wide event** is one structured record per request with many fields: user, plan, build ID, feature flags, durations, result
+              - You can then ask questions you did not plan, like "slow requests for users on plan X on build Y"
+              - The price is storage and query cost, so sample and set retention
+
+              ### Common mistakes
+              - Using `user_id` or a URL with an ID inside as a Prometheus label
+              - Logging every field for every health check
+
+              Capture rich detail on every request that matters, and drop the noise.
             resources:
               - { label: "Observability Engineering (O'Reilly)", url: "https://www.oreilly.com/library/view/observability-engineering/9781492076438/", kind: course }
           - id: silent-failures
@@ -604,6 +1731,24 @@ stages:
             learn:
               - Business-level checks
               - Alerting on missing data
+            body: |
+              The worst failures raise no error. A scheduled job runs, exits with code 0 and writes nothing. Dashboards stay green while customers lose data.
+
+              Infrastructure checks tell you the process ran. They do not tell you the work was done. You need checks on the outcome.
+
+              ### Key ideas
+              - **Business-level checks**: "did we process at least 100 orders in the last hour?" or "was a report row written today?"
+              - Alert on **missing data**. For a metric that should arrive every five minutes, no data is itself an alert
+              - A **heartbeat** or dead man's switch: the job pings a monitor on success, and the monitor alerts if no ping arrives on time
+              - Compare output to input, such as records read against records written
+              - Treat a zero count where you expect many as a failure
+
+              ### Example
+              A nightly import reports success but the source API returned an empty list. A check "rows imported greater than 0" catches it.
+
+              ### Common mistakes
+              - Alerting only on exceptions
+              - Treating "no alerts" as "all well"
             resources:
               - post: catch-lambda-jobs-that-succeed-but-write-nothing
               - { label: "Monitoring distributed systems (SRE book)", url: "https://sre.google/sre-book/monitoring-distributed-systems/", kind: article }
@@ -619,26 +1764,82 @@ stages:
               - Choosing SLIs
               - Setting SLOs
               - Error budget policies
+            body: |
+              Reliability should be measured the way users feel it, then given a target. Perfect is not the goal. 100% reliability is very costly and slows everything else.
+
+              A **service level indicator** (SLI) is a measurement, such as the share of requests that succeed or finish under 300 ms. A **service level objective** (SLO) is the target for it, such as 99.9% over 30 days.
+
+              ### Key ideas
+              - Good SLIs come from user journeys: availability, latency, correctness, freshness
+              - Measure at the edge, near the user, where possible
+              - The **error budget** is 100% minus the SLO. At 99.9% over 30 days, you may fail about 43 minutes of requests
+              - While budget remains, ship features. When it is spent, slow down and fix reliability
+              - An **error budget policy** writes down what happens when the budget runs out, and who agreed
+              - SLOs are for a team to decide with product, not set by operations alone
+
+              ### Common mistakes
+              - Picking SLOs from what the system does today, not from what users need
+              - Too many SLOs. Two or three per service is plenty
             resources:
               - { label: "Implementing SLOs (SRE workbook)", url: "https://sre.google/workbook/implementing-slos/", kind: article }
               - { label: "Google SRE book", url: "https://sre.google/sre-book/table-of-contents/", kind: course }
+              - { label: "Service Level Objectives (SRE book)", url: "https://sre.google/sre-book/service-level-objectives/", kind: article }
+              - { label: "Alerting on SLOs (SRE workbook)", url: "https://sre.google/workbook/alerting-on-slos/", kind: article }
           - id: incidents-and-postmortems
             title: Incident response and postmortems
             summary: Run an incident calmly and learn from it without blame.
             learn:
               - Incident roles
               - Blameless postmortems
+            body: |
+              An incident is a time when the service is worse than it should be. A calm, practised response shortens it. The goal during an incident is to restore service, not to find the root cause.
+
+              Name roles so people do not step on each other.
+
+              ### Key ideas
+              - **Incident commander**: coordinates and makes decisions, does not debug
+              - **Operations lead**: does the hands-on fixing
+              - **Communications lead**: updates stakeholders and the status page
+              - Declare early and keep a written timeline in a shared channel
+              - Mitigate first (roll back, fail over), investigate later
+              - After it ends, hold a **blameless postmortem**: describe what happened and why the system allowed it, without blaming people
+              - People do the sensible thing given what they knew. Fix the process and tooling
+
+              ### In practice
+              A good postmortem has a summary, impact, timeline, root causes and **action items** with owners and dates. Without owned actions, the same failure comes back.
+
+              Share postmortems widely. Other teams learn from your outage.
             resources:
               - { label: "Postmortem culture (SRE book)", url: "https://sre.google/sre-book/postmortem-culture/", kind: article }
+              - { label: "Managing Incidents (SRE book)", url: "https://sre.google/workbook/incident-response/", kind: article }
           - id: toil-and-on-call
             title: Toil and on-call
             summary: Keep manual work and pages low enough that on-call stays sustainable.
             learn:
               - What counts as toil
               - Healthy on-call rotations
+            body: |
+              **Toil** is manual, repetitive work that grows with the service and has no lasting value. Restarting a stuck process by hand every week is toil. Writing a fix so it never happens again is engineering.
+
+              SRE teams try to keep toil below about half of their time and spend the rest on projects that remove it.
+
+              ### Key ideas
+              - Toil is manual, repetitive, automatable, tactical and grows with scale
+              - Track it. If you cannot see it, you cannot cut it
+              - Automate the top item first, or remove the cause
+              - On-call should be sustainable: a rotation with enough people, so no one is on duty too often
+              - Limit pages per shift. Too many pages and people burn out and miss real problems
+              - Every page should need a human and be new. Fix or delete noisy alerts
+              - Give engineers time off after a bad night, and pay for the extra load
+
+              ### Common mistakes
+              - A rotation of two people covering every night
+              - No handover notes or runbooks
+              - Treating interrupts as normal work
             resources:
               - { label: "Eliminating toil (SRE book)", url: "https://sre.google/sre-book/eliminating-toil/", kind: article }
               - { label: "Site Reliability Engineering roadmap", url: "https://harun.dev/roadmaps/sre", kind: course }
+              - { label: "Being On-Call (SRE book)", url: "https://sre.google/sre-book/being-on-call/", kind: article }
 
       - id: cloud-cost
         title: Cloud cost (FinOps)
@@ -650,9 +1851,25 @@ stages:
             learn:
               - Compute, storage and data transfer
               - Cost Explorer and budgets
+            body: |
+              Before you cut a bill, learn to read it. A few services usually make up most of the cost, and the surprises often hide in small line items.
+
+              Cloud spend falls into a few groups: **compute** (VMs, containers, functions), **storage** (disks, object storage, snapshots) and **data transfer** (traffic leaving a region or the cloud). Managed databases, NAT gateways and load balancers add steady hourly charges.
+
+              ### Key ideas
+              - Open **Cost Explorer** and group by service, then by account, tag or region
+              - Sort by the biggest line first
+              - Data transfer out and NAT gateway processing often surprise people
+              - Idle resources still bill: stopped-but-attached disks, unused IPs, old snapshots
+              - Set **budgets** with alerts, so you hear about a spike in days, not at month end
+              - Turn on cost anomaly detection
+
+              ### In practice
+              A monthly review takes under an hour. List the top five services, note what changed since last month and ask why. Most waste is found by asking who owns that resource and whether anyone uses it.
             resources:
               - { label: "What is FinOps?", url: "https://www.finops.org/introduction/what-is-finops/", kind: article }
               - post: 5-aws-mistakes-quietly-draining-your-bank-account
+              - { label: "What is AWS Cost Explorer?", url: "https://docs.aws.amazon.com/cost-management/latest/userguide/ce-what-is.html", kind: docs }
           - id: rightsizing-and-commitments
             title: Rightsizing, reserved and spot capacity
             summary: Pay less for the same work by sizing correctly and committing where usage is steady.
@@ -660,9 +1877,28 @@ stages:
               - Rightsizing
               - Savings Plans and reserved instances
               - Spot capacity
+            body: |
+              Two moves cut most compute bills: use the right size, and pay less for what you know you will use.
+
+              **Rightsizing** means matching instance size to real use. Many servers run at 10% CPU. Look at CPU, memory and network over a few weeks, then step down a size, or switch to a newer generation that gives more for less.
+
+              ### Key ideas
+              - Measure first. Memory data needs an agent, since the basic metrics skip it
+              - **Savings Plans** and **Reserved Instances** trade a one or three year commitment for a lower hourly rate
+              - Commit only to your steady baseline, not your peaks
+              - **Spot capacity** uses spare cloud capacity at a deep discount, but it can be taken back with short notice
+              - Spot suits stateless, restartable work: batch jobs, CI runners, many container tasks
+              - Mix on-demand for the base and spot for the extra
+
+              ### Common mistakes
+              - Committing before rightsizing, and locking in waste
+              - Running a database or a single-copy service on spot
+              - Buying a commitment for a workload that is being retired
             resources:
               - { label: "AWS Cost Optimization pillar", url: "https://docs.aws.amazon.com/wellarchitected/latest/cost-optimization-pillar/welcome.html", kind: docs }
               - post: ecs-fargate-spot-capacity-providers
+              - { label: "What are Savings Plans? (AWS)", url: "https://docs.aws.amazon.com/savingsplans/latest/userguide/what-is-savings-plans.html", kind: docs }
+              - { label: "Amazon EC2 Spot Instances", url: "https://aws.amazon.com/ec2/spot/", kind: docs }
           - id: tagging-and-showback
             title: Tagging and showback
             optional: true
@@ -670,8 +1906,27 @@ stages:
             learn:
               - Cost allocation tags
               - Showback vs chargeback
+            body: |
+              Cloud bills arrive as one number. To change behaviour, teams must see their own part of it. **Tags** make that possible.
+
+              A tag is a key and value on a resource, such as `team=payments` and `env=prod`. Once you activate them as **cost allocation tags**, you can split the bill by tag in your cost tool.
+
+              ### Key ideas
+              - Choose a small, required set of tags: team, service, environment, owner
+              - Enforce them at creation, with IaC modules, policies or tag rules, since cleaning up later is slow
+              - **Showback** shows each team what it spends, with no money moving
+              - **Chargeback** bills the cost back to the team's budget
+              - Start with showback. It builds trust in the numbers before they affect budgets
+              - Some costs are shared (networking, monitoring). Agree a rule for splitting them
+              - Untagged spend is a metric. Track its share and push it down
+
+              ### Common mistakes
+              - Tags with inconsistent spelling, such as `Team` and `team`
+              - Letting tags go stale after a team reorg
             resources:
               - { label: "FinOps Framework", url: "https://www.finops.org/framework/", kind: article }
+              - { label: "Using cost allocation tags (AWS)", url: "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/cost-alloc-tags.html", kind: docs }
+              - { label: "Allocation (FinOps Framework)", url: "https://www.finops.org/framework/capabilities/allocation/", kind: article }
 
       - id: platform-engineering
         title: Platform engineering
@@ -683,14 +1938,53 @@ stages:
             learn:
               - Platforms as products
               - Self-service infrastructure
+            body: |
+              An **internal developer platform** (IDP) is a set of tools and workflows that lets developers create, deploy and run services without filing tickets. Platform engineering is the practice of building and running it.
+
+              A DevOps team usually embeds with products and helps them run their systems. A platform team builds shared products for many teams, and treats developers as its customers.
+
+              ### Key ideas
+              - **Platform as a product**: it has users, a roadmap, docs and feedback. If nobody uses it, it failed
+              - **Self-service**: a developer gets a database, a new service or an environment in minutes, with sane defaults
+              - Reduce cognitive load. Developers should not need to learn every cloud detail
+              - Keep the platform optional enough that teams can leave the path with good reason
+              - Include guardrails for security, cost and compliance by default
+              - Measure adoption and developer satisfaction
+
+              ### Common mistakes
+              - Building a platform nobody asked for
+              - A ticket queue renamed "platform"
+              - Forcing one stack on every team
+
+              Start small. Pick the most painful, most repeated task and make it self-service first.
             resources:
               - { label: "What is platform engineering?", url: "https://platformengineering.org/blog/what-is-platform-engineering", kind: article }
+              - { label: "Platforms white paper (CNCF TAG App Delivery)", url: "https://tag-app-delivery.cncf.io/whitepapers/platforms/", kind: article }
           - id: golden-paths
             title: Golden paths and templates
             summary: Give teams a ready-made, supported way to build and ship a new service.
             learn:
               - Service templates
               - Developer portals like Backstage
+            body: |
+              A **golden path** is a supported, ready-made way to do a common task, like starting a new service. It is the easy road. Following it gives you CI, monitoring, security checks and deploys with little effort.
+
+              Teams are not forced onto it. It wins because it is faster than starting from scratch.
+
+              ### Key ideas
+              - A **service template** creates a new repo with code skeleton, Dockerfile, pipeline, alerts and docs already set up
+              - Keep templates current. A stale template spreads old mistakes
+              - A **developer portal** such as Backstage gives one place to find services, owners, docs, APIs and templates
+              - The software catalog answers "who owns this?"
+              - Paths should be opinionated but allow overrides
+              - Collect feedback and fix friction, because paths rot when ignored
+
+              ### Example
+              A developer picks "Node API" in the portal, enters a name and gets a repo, a deployed hello-world, dashboards and an on-call entry within minutes.
+
+              ### Common mistakes
+              - Templates that need ten manual steps afterwards
+              - No owner for the template itself
             resources:
               - { label: "Backstage docs", url: "https://backstage.io/docs/overview/what-is-backstage", kind: docs }
               - post: multi-agent-claude-code-aws-devops-routines
@@ -701,6 +1995,27 @@ stages:
             learn:
               - The four DORA metrics
               - Surveys and feedback loops
+            body: |
+              You cannot improve delivery if you do not measure it. The DORA research found four metrics that predict how well a team delivers.
+
+              Two measure speed and two measure stability.
+
+              ### Key ideas
+              - **Deployment frequency**: how often you ship to production
+              - **Lead time for changes**: time from commit to running in production
+              - **Change failure rate**: share of deploys that cause a problem needing a fix or rollback
+              - **Time to restore service** (failed deployment recovery time): how fast you recover
+              - Speed and stability go up together in strong teams. They are not a trade-off
+              - Metrics show where to look. They are not scores for individuals
+              - Add **surveys**. Ask developers what slows them down: slow builds, flaky tests, unclear docs, waiting for reviews
+
+              ### Common mistakes
+              - Using the numbers to rank people. They will game them
+              - Measuring only what is easy
+              - Collecting data and never acting on it
+
+              Pick one bottleneck, fix it, then measure again.
             resources:
               - { label: "DORA research", url: "https://dora.dev/", kind: article }
               - post: claude-code-for-aws-infrastructure-agentic-devops-workflow-with-terraform
+              - { label: "DORA's software delivery metrics", url: "https://dora.dev/guides/dora-metrics/", kind: article }

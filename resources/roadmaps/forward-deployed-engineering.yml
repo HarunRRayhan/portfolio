@@ -3,7 +3,7 @@ title: Forward Deployed Engineering
 summary: The engineer who sits with a customer and ships working software on their data and systems. Covers discovery, working inside customer environments, fast prototypes, data and AI delivery, enterprise security, and turning field work into product.
 order: 10
 category: career
-updated: '2026-11-15'
+updated: '2026-11-16'
 icon: rocket
 color: orange
 logos:
@@ -26,6 +26,19 @@ stages:
               - Origins of the role at Palantir
               - The role at AI labs like OpenAI and Anthropic
               - Owning outcomes, not tickets
+            body: |
+              A forward deployed engineer (FDE) works inside the customer's world. You sit with their team, learn how they really work, and write code that runs on their data and systems.
+
+              The role started at Palantir, where engineers were sent to customer sites to make the platform fit messy real problems. AI labs such as OpenAI and Anthropic now hire FDEs for the same reason: a model is not a solution until someone wires it to a customer's data, tools and rules.
+
+              ### Key ideas
+              - Origins: Palantir "Delta" engineers embedded with customers and fed what they learned back to the product
+              - AI labs: FDEs build agents, retrieval and evals on customer data, then help the customer run them
+              - Outcomes, not tickets: you are done when the customer's problem is solved, not when a task is closed
+              - You own the whole path: discovery, build, deploy, handover
+
+              ### Example
+              A hospital wants faster discharge summaries. A ticket-taker would build the feature as written. An FDE watches nurses work for a day, finds that the real delay is chasing lab results, and ships a small tool that fixes that.
             resources:
               - { label: "Palantir blog", url: "https://blog.palantir.com/", kind: article }
               - { label: "Building effective agents (Anthropic)", url: "https://www.anthropic.com/research/building-effective-agents", kind: article }
@@ -36,6 +49,21 @@ stages:
               - Sales engineer vs forward deployed engineer
               - Consultant deliverables vs shipped software
               - The feedback line back to the product team
+            body: |
+              FDEs sit between several familiar jobs. The easiest way to tell them apart is to ask what each one hands over at the end.
+
+              A sales engineer helps win the deal, mostly with demos and proofs of concept. A consultant hands over advice, slides and plans. A product software engineer builds one product for many customers. An FDE ships working software for one customer, then carries what they learned back to the product.
+
+              ### Key ideas
+              - Sales engineer: pre-sale, shows what the product can do, rarely owns production code
+              - Consultant: deliverables are documents and recommendations, code is optional
+              - FDE: deliverable is software running in the customer's environment
+              - Product SWE: builds general features, usually far from the customer
+              - The feedback line: FDEs tell the product team what is missing, with evidence
+
+              ### Common mistakes
+              - Treating the role as a cheaper consultant and skipping real engineering
+              - Building one-off code and never telling the product team
             resources:
               - { label: "StaffEng", url: "https://staffeng.com/", kind: article }
               - { label: "Will Larson's writing", url: "https://lethain.com/", kind: article }
@@ -47,6 +75,19 @@ stages:
               - Backend, data and cloud as the core
               - Writing and speaking as daily work
               - Learning a new domain fast
+            body: |
+              FDEs need a wide technical base and strong customer skills. Nobody arrives knowing everything. Depth comes from the problems you meet, so the habit that matters most is learning fast.
+
+              On the technical side, aim for solid backend work, data handling and cloud basics. On the people side, the job is mostly writing and talking: updates, notes, demos and hard conversations.
+
+              ### Key ideas
+              - Core stack: a backend language such as Python or TypeScript, SQL, and one major cloud
+              - Data work: reading, cleaning and moving data you did not design
+              - Writing and speaking: daily updates, decision notes, short calls with executives
+              - Fast domain learning: ask the people who do the work, then write a glossary
+
+              ### In practice
+              Starting at a logistics customer, spend your first days riding along with dispatchers and reading their spreadsheets. Write down every term you did not know. By the end of the week you can explain their process back to them, and they will correct the gaps.
             resources:
               - { label: "Will Larson's writing", url: "https://lethain.com/", kind: article }
 
@@ -61,9 +102,27 @@ stages:
               - Questions that get facts, not compliments
               - Talking to the people who do the work
               - Taking notes you can share
+            body: |
+              Good discovery starts with questions about what people did, not what they think. Ask someone if they would use your idea and they will say yes to be polite. Ask them to walk you through the last time the problem happened and you get facts.
+
+              Talk to the people who do the work, not only the sponsor. They know the workarounds, the spreadsheets and the real delays.
+
+              ### Key ideas
+              - Ask about past behaviour: "Tell me about the last time this went wrong"
+              - Avoid leading questions and pitches during the interview
+              - Interview users, not just managers
+              - Listen for workarounds, costs and what they already tried
+              - Write notes during the call and share them within a day
+
+              ### Example
+              Weak question: "Would a dashboard help you?"
+              Better questions: "How do you find out a shipment is late today?" and "What did you do the last time that happened?"
+
+              Send the notes back with "Did I get this right?" so the customer can correct you in writing.
             resources:
               - { label: "The Mom Test", url: "https://www.momtestbook.com/", kind: article }
               - { label: "SVPG articles (Marty Cagan)", url: "https://www.svpg.com/articles/", kind: article }
+              - { label: "User Interviews 101 (Nielsen Norman Group)", url: "https://www.nngroup.com/articles/user-interviews/", kind: article }
           - id: problem-statements
             title: Writing the problem down
             summary: Turn discovery notes into a one-page problem statement the customer agrees with.
@@ -71,6 +130,19 @@ stages:
               - Current workflow, pain and cost
               - Success measured in their numbers
               - Working backwards from the outcome
+            body: |
+              A problem statement is a one-page document that says what is wrong, for whom, and what better looks like. Writing it forces you to check you understood. When the customer signs off, you have a shared target.
+
+              Describe the current workflow first, then the pain and what it costs. Then say how success will be measured, using the customer's own numbers.
+
+              ### Key ideas
+              - Current workflow: who does what today, step by step
+              - Pain and cost: hours lost, errors, delays, money
+              - Success in their numbers: for example "review time drops from 40 minutes to 10"
+              - Work backwards: start from the outcome and ask what must be true to get there
+
+              ### In practice
+              Keep it to one page with four headings: Context, Problem, Impact, Success measure. Send it to the sponsor and one user. If either disagrees, you found a gap before writing any code.
             resources:
               - { label: "Working Backwards", url: "https://workingbackwards.com/", kind: article }
               - { label: "Design docs at Google", url: "https://www.industrialempathy.com/posts/design-docs-at-google/", kind: article }
@@ -81,8 +153,22 @@ stages:
               - Appetite instead of estimates
               - Must-have vs nice-to-have
               - Writing what is out of scope
+            body: |
+              Open-ended wish lists cannot be estimated well. Instead, decide how much time the problem deserves, then shape a solution that fits. This is called appetite: the time you are willing to spend, set first.
+
+              Once the time box is fixed, scope becomes the thing you adjust. Split the work into must-haves and nice-to-haves, and cut nice-to-haves first.
+
+              ### Key ideas
+              - Appetite: "two weeks for a first version" comes before the design
+              - Must-have: without it the customer gets no value
+              - Nice-to-have: cut it when time runs short
+              - Out of scope: write it down so nobody assumes it is included
+
+              ### Example
+              A customer asks for a full reporting portal. With a two week appetite you ship one report for one team, built on real data. The out of scope list names user management, exports and email alerts. They can be a second time box if the first one proves its value.
             resources:
               - { label: "Shape Up (Basecamp)", url: "https://basecamp.com/shapeup", kind: article }
+              - { label: "Set Boundaries (Shape Up)", url: "https://basecamp.com/shapeup/1.2-chapter-03", kind: article }
           - id: stakeholder-mapping
             title: Mapping stakeholders
             optional: true
@@ -91,6 +177,24 @@ stages:
               - Sponsor, champion, users, gatekeepers
               - Security and legal as stakeholders
               - Keeping the map current
+            body: |
+              Every engagement has people who can help it or stop it. Map them early so you do not find out in week six that someone needed to sign off.
+
+              The usual roles are the sponsor who pays and wants results, the champion who pushes internally, the users who do the work, and gatekeepers who can block you. Security and legal are stakeholders too, and they often have the slowest approvals.
+
+              ### Key ideas
+              - Sponsor: owns the budget and the outcome
+              - Champion: your inside ally, knows how things get done
+              - Users: the people whose day changes
+              - Gatekeepers: IT, security, legal, procurement
+              - Keep the map current: people change roles and priorities shift
+
+              ### Common mistakes
+              - Talking only to the sponsor and discovering the users hate the idea
+              - Meeting security in the last week
+              - Making the map once and never updating it
+
+              A simple list with name, role, what they care about and last contact date is enough.
             resources:
               - { label: "SVPG articles (Marty Cagan)", url: "https://www.svpg.com/articles/", kind: article }
 
@@ -105,9 +209,30 @@ stages:
               - Assumed roles and external IDs on AWS
               - Least privilege for an engagement
               - Revoking access at the end
+            body: |
+              When you work in a customer's cloud, do not ask for shared access keys. Ask them to create a role you can assume. The customer controls the role, can narrow it, and can delete it whenever they like.
+
+              On AWS, your account is trusted by a role in their account. An external ID in the trust policy protects against the confused deputy problem, where someone tricks a service into using its access for the wrong customer.
+
+              ### Key ideas
+              - Assume a role instead of using long-lived keys
+              - Use an external ID when a third party assumes the role
+              - Least privilege: grant only the actions the engagement needs
+              - Time-box access and review it
+              - At the end, the customer deletes the role and you confirm it in writing
+
+              ### Example
+              ```bash
+              aws sts assume-role \
+                --role-arn arn:aws:iam::111122223333:role/acme-engagement \
+                --role-session-name fde-session \
+                --external-id acme-2026
+              ```
             resources:
               - { label: "Third-party access with external IDs (AWS IAM docs)", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_common-scenarios_third-party.html", kind: docs }
               - post: first-3-things-i-always-do-after-creating-a-new-aws-account
+              - { label: "Security best practices in IAM (AWS)", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html", kind: docs }
+              - { label: "The confused deputy problem (AWS IAM docs)", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/confused-deputy.html", kind: docs }
           - id: vpns-and-private-networks
             title: VPNs and private networks
             summary: Many customer systems are only reachable from inside their network. Know the common ways in.
@@ -115,10 +240,25 @@ stages:
               - Site-to-site and client VPNs
               - Bastions and session managers
               - Private endpoints instead of public ones
+            body: |
+              Many customer systems have no public address. You reach them from inside the network, so you need to know the usual doors.
+
+              A site-to-site VPN joins two networks permanently. A client VPN lets one laptop in. A bastion host or a session manager gives controlled shell access to private machines without opening inbound ports.
+
+              ### Key ideas
+              - Site-to-site VPN: links your network to theirs, run by network teams
+              - Client VPN: per-person access, often with SSO and MFA
+              - Bastion or session manager: one audited entry point to private hosts
+              - Private endpoints: reach cloud services over private IPs instead of the internet
+
+              ### In practice
+              Ask early which door the customer prefers. Most security teams already have one. Using it is faster than arguing for a new one, and it keeps access logs in their tools. When a service supports private endpoints, use them so traffic never touches the public internet.
             resources:
               - { label: "Tailscale knowledge base", url: "https://tailscale.com/kb", kind: docs }
               - { label: "AWS PrivateLink docs", url: "https://docs.aws.amazon.com/vpc/latest/privatelink/", kind: docs }
               - post: agentcore-gateway-private-ca-without-the-alb
+              - { label: "AWS Systems Manager Session Manager", url: "https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager.html", kind: docs }
+              - { label: "What is AWS Site-to-Site VPN?", url: "https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html", kind: docs }
           - id: engagement-hygiene
             title: Engagement hygiene
             summary: Keep each customer's credentials, data and code separate on your own machine.
@@ -126,6 +266,23 @@ stages:
               - One profile and workspace per customer
               - Never copying data to a laptop without approval
               - Logging what you touched
+            body: |
+              You will juggle several customers. Keep each one fully separate on your machine so credentials, data and code never mix.
+
+              Use one cloud profile, one browser profile and one folder per customer. Name them clearly so you cannot run a command against the wrong account by accident.
+
+              ### Key ideas
+              - One profile and workspace per customer
+              - Data stays where the customer approved. Do not copy it to a laptop without written permission
+              - Log what you touched: commands run, tables read, changes made
+              - Clean up at the end: delete local copies, revoke tokens
+
+              ### Example
+              ```bash
+              export AWS_PROFILE=acme
+              aws sts get-caller-identity
+              ```
+              Run the second line before anything risky. It prints the account you are in. Keep a short engagement log with dates and actions, and share it with the customer if they ask what you did.
             resources:
               - post: terraform-state-more-sensitive-than-env
               - { label: "AWS IAM docs", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/", kind: docs }
@@ -137,9 +294,27 @@ stages:
               - Mirroring packages and images
               - Self-hosted models and tools
               - Shipping updates through a review gate
+            body: |
+              Some customers, such as defence, banks and hospitals, allow no outbound internet. No package mirrors, no SaaS, no hosted models. If you find out late, the project stalls, so ask in week one.
+
+              You work around it by bringing everything in through a reviewed path.
+
+              ### Key ideas
+              - Mirroring: copy packages and container images into an internal registry
+              - Self-hosted models: run open-weight models on their hardware with a server such as vLLM
+              - Self-hosted tools: logs, CI and docs without calling out
+              - Review gate: updates arrive on approved media or through a scanned transfer, then a person signs off
+
+              ### Common mistakes
+              - Developing with cloud services you cannot use on site
+              - Forgetting transitive dependencies when mirroring
+              - Assuming you can pull an image or download a model on demand
+
+              Test your install steps on a machine with no internet before you travel.
             resources:
               - { label: "Docker docs", url: "https://docs.docker.com/", kind: docs }
               - { label: "vLLM docs", url: "https://docs.vllm.ai/", kind: docs }
+              - { label: "Registry as a pull-through cache (Docker docs)", url: "https://docs.docker.com/docker-hub/image-library/mirror/", kind: docs }
 
       - id: fast-prototyping
         title: Fast prototyping
@@ -152,6 +327,19 @@ stages:
               - Picking the first workflow
               - Real data over mock data
               - Hard-coding what does not matter yet
+            body: |
+              A thin vertical slice is one workflow built end to end: real input, processing, and a visible result. It proves the idea works before you spend time widening it.
+
+              Pick the first workflow that matters most to the user and is small enough to finish in days. Use their real data from the start, because mock data hides the problems that matter.
+
+              ### Key ideas
+              - Pick one workflow, not one layer. Do not build the whole database first
+              - Real data over mock data: real files show messy formats and gaps
+              - Hard-code what does not matter yet, such as a fixed user or a config value
+              - Show it early. A working slice starts better conversations than a plan
+
+              ### Example
+              For an invoice tool, take ten real invoices, extract the total and vendor, and show a table. Skip login, settings and export. The customer will correct you quickly, and you will learn what to build next.
             resources:
               - { label: "Shape Up (Basecamp)", url: "https://basecamp.com/shapeup", kind: article }
           - id: prototype-tools
@@ -161,6 +349,25 @@ stages:
               - Streamlit and Gradio
               - When a script is enough
               - Hosting a prototype safely
+            body: |
+              You can get a usable interface in front of users in an afternoon. Streamlit and Gradio let you build web screens in Python without writing front-end code.
+
+              Streamlit suits dashboards and data apps. Gradio suits model demos with inputs and outputs. Both reload as you edit.
+
+              ### Key ideas
+              - Streamlit: write a Python script, get a web app
+              - Gradio: wrap a function with an interface, good for model demos
+              - A script is enough when only you need the result. Do not build a UI nobody asked for
+              - Hosting safely: put it behind the customer's login or VPN, never on a public URL with real data
+
+              ### In practice
+              ```python
+              import streamlit as st
+              name = st.text_input("Customer ID")
+              if name:
+                  st.write(f"Looking up {name}")
+              ```
+              Run it with `streamlit run app.py`. Before sharing, check who can reach the URL and what data it can read.
             resources:
               - { label: "Streamlit docs", url: "https://docs.streamlit.io/", kind: docs }
               - { label: "Gradio docs", url: "https://www.gradio.app/docs", kind: docs }
@@ -171,6 +378,21 @@ stages:
               - Agents for scaffolding and glue code
               - Keeping agents away from customer secrets
               - Reviewing generated changes
+            body: |
+              Coding agents are good at scaffolding, glue code and boring boilerplate. They help you reach a working prototype in hours. They also write confident mistakes, so you stay responsible for what ships.
+
+              Keep the codebase small and readable so the agent has less to get wrong, and review every change as if a new teammate wrote it.
+
+              ### Key ideas
+              - Use agents for scaffolding, tests, scripts and format conversions
+              - Keep secrets away: do not paste customer credentials or data into prompts, and keep them out of files the agent can read
+              - Review the diff: read what changed, run it, check edge cases
+              - Small steps: ask for one change at a time and commit often
+
+              ### Common mistakes
+              - Accepting large generated changes without reading them
+              - Letting an agent run with production credentials
+              - Skipping tests because "the agent wrote it"
             resources:
               - post: your-agent-is-only-as-good-as-your-codebase
               - post: how-i-make-ai-coding-agents-safe-in-a-real-aws-codebase
@@ -182,6 +404,19 @@ stages:
               - Auth, logging and error handling
               - Tests around the core workflow
               - When to rewrite instead of extend
+            body: |
+              A prototype answers a question. Production carries real users and real consequences. Before moving from one to the other, list what is missing.
+
+              The usual gaps are authentication, logging, error handling and tests. Add them around the core workflow first. You do not need to harden everything at once.
+
+              ### Key ideas
+              - Auth: who can use it, and what each user can see
+              - Logging and errors: failures should be visible and not crash silently
+              - Tests: cover the main workflow so changes do not break it
+              - Rewrite or extend: if the prototype was a pile of shortcuts, a rewrite of the core can be cheaper than patching
+
+              ### In practice
+              Ask three questions. What happens if this fails at 2 a.m.? Who gets told? Can someone else change it safely? If the answers are "nothing", "nobody" and "no", it is still a prototype.
             resources:
               - post: when-your-app-outgrows-the-tool-that-built-it
               - post: pre-merge-checklist-ai-generated-prs
@@ -197,9 +432,28 @@ stages:
               - SQL for exploration
               - Profiling nulls, duplicates and ranges
               - DuckDB for files on your desk
+            body: |
+              Before building on a customer's data, learn what is in it and how reliable it is. A few queries save weeks of wrong assumptions.
+
+              Start with simple SQL: row counts, distinct values, min and max. Then profile each important column for nulls, duplicates and odd ranges.
+
+              ### Key ideas
+              - SQL for exploration: `COUNT(*)`, `GROUP BY`, `LIMIT` on every table you meet
+              - Profiling: share of nulls, duplicate keys, date ranges, impossible values
+              - DuckDB reads CSV and Parquet files directly, so you can query exports without loading a database
+
+              ### Example
+              ```sql
+              SELECT count(*) AS rows,
+                     count(DISTINCT customer_id) AS customers,
+                     sum((email IS NULL)::int) AS missing_email
+              FROM 'customers.csv';
+              ```
+              Note what you find and share it with the data owner. They often know why a column is empty.
             resources:
               - { label: "DuckDB docs", url: "https://duckdb.org/docs/", kind: docs }
               - { label: "PostgreSQL docs", url: "https://www.postgresql.org/docs/", kind: docs }
+              - { label: "CSV Files Overview (DuckDB docs)", url: "https://duckdb.org/docs/stable/data/csv/overview.html", kind: docs }
           - id: data-access-requests
             title: Requesting data access
             summary: Ask for the smallest data set you need, in writing, with a reason the data owner can approve.
@@ -207,6 +461,19 @@ stages:
               - Read-only and masked access
               - Sample vs full data
               - Recording who approved what
+            body: |
+              Ask for the least data that does the job, in writing, with a reason the owner can approve. Broad requests slow down or get refused.
+
+              Often a masked or read-only copy is enough to build the first version. A sample can prove the pipeline before anyone approves the full set.
+
+              ### Key ideas
+              - Read-only access, with sensitive columns masked or removed
+              - Sample first, full data once the approach is proven
+              - Say why: what you will do with it and how long you will keep it
+              - Record who approved what and when, so the trail is clear
+
+              ### Example
+              Instead of "give us the patients table", write: "Read-only access to appointments for 2025 with names and phone numbers removed, to test the no-show model. We will delete local copies on 30 June." Specific requests get faster answers.
             resources:
               - { label: "GDPR overview", url: "https://gdpr.eu/", kind: article }
               - post: why-s3-presigned-urls
@@ -218,6 +485,18 @@ stages:
               - A shared glossary with the customer
               - Entities and relationships
               - Rules hidden in spreadsheets
+            body: |
+              Every business has its own words and rules. "Customer", "account" and "member" may mean three different things. Learn them before you design tables.
+
+              Build a shared glossary with the customer and write each term in one sentence. Then sketch the main entities and how they relate.
+
+              ### Key ideas
+              - Shared glossary: definitions the customer agrees with
+              - Entities and relationships: what exists, and how one thing links to another
+              - Hidden rules: pricing exceptions, approval limits and special cases often live in spreadsheets and in people's heads
+
+              ### In practice
+              Ask for the spreadsheets people actually use. Read the formulas and the cell comments. Each odd rule you find is a requirement nobody wrote down. Put the glossary in a shared page and fix it when you learn something new.
             resources:
               - { label: "Designing Data-Intensive Applications", url: "https://dataintensive.net/", kind: article }
 
@@ -232,6 +511,20 @@ stages:
               - Progress, risks, decisions, asks
               - Writing for executives and engineers
               - Bad news early
+            body: |
+              A short, regular update beats a long meeting. It keeps the customer informed and shows you are in control, even when things are going badly.
+
+              Use the same four parts every time: progress, risks, decisions needed and asks. Keep it to what the reader needs to act on.
+
+              ### Key ideas
+              - Progress: what was done since last time
+              - Risks: what could slip, and what you are doing about it
+              - Decisions and asks: what you need from them, by when
+              - Audience: executives want outcomes and risks, engineers want detail, so write two versions if needed
+              - Bad news early: a problem reported on day two is a plan, on day ten it is a crisis
+
+              ### Example
+              "Done: ingest of orders works on real data. Risk: access to the billing database is still pending. Ask: can IT approve read-only access by Thursday?"
             resources:
               - { label: "Technical writing (Google)", url: "https://developers.google.com/tech-writing", kind: course }
           - id: meeting-notes-and-decisions
@@ -241,9 +534,28 @@ stages:
               - Decision logs
               - Action items with owners and dates
               - Confirming in writing
+            body: |
+              Meetings only count if they leave a record. Send notes the same day with decisions and owners, so nobody has to remember what was agreed.
+
+              Keep notes short. The goal is a clear list of what was decided and what happens next.
+
+              ### Key ideas
+              - Decision log: date, decision, who made it, and why
+              - Action items: each has one owner and a due date
+              - Confirm in writing: end with "Reply if I missed anything"
+              - Keep the log in one shared place so new people can catch up
+
+              ### Example
+              ```text
+              Decision: ship the read-only version first (agreed by Dana, 12 Nov)
+              Action: Sam to request database access, due Fri
+              Action: we send a demo date, due Mon
+              ```
+              When a dispute comes up in week eight, a dated note ends it quickly and politely.
             resources:
               - { label: "Technical writing (Google)", url: "https://developers.google.com/tech-writing", kind: course }
               - { label: "Will Larson's writing", url: "https://lethain.com/", kind: article }
+              - { label: "Architectural Decision Records", url: "https://adr.github.io/", kind: article }
 
   - level: intermediate
     title: Delivering on customer systems
@@ -259,9 +571,25 @@ stages:
               - Batch extracts vs APIs
               - Managed connectors like Airbyte
               - Incremental loads
+            body: |
+              First get the data out of the customer's systems. How you do that depends on the source and how fresh it must be.
+
+              You can take batch extracts such as nightly files, call an API, or use a managed connector tool such as Airbyte that already knows many sources. Small scripts are fine for one-off sources.
+
+              ### Key ideas
+              - Batch extracts: simple, good when daily data is enough
+              - APIs: need paging, rate limits and retries
+              - Managed connectors: save time for common databases and SaaS tools
+              - Incremental loads: fetch only new or changed rows using a cursor such as `updated_at`
+
+              ### Common mistakes
+              - Pulling the full table every run and hammering the customer's production database
+              - Not storing the cursor, so a failed run loses its place
+              - Ignoring deleted rows, which an `updated_at` cursor does not show
             resources:
               - { label: "Airbyte docs", url: "https://docs.airbyte.com/", kind: docs }
               - post: rag-ingestion-pipeline-step-functions-lambda
+              - { label: "Incremental sync modes (Airbyte docs)", url: "https://docs.airbyte.com/platform/using-airbyte/core-concepts/sync-modes/incremental-append", kind: docs }
           - id: transformations
             title: Transformations
             summary: Clean and reshape raw data in versioned SQL so changes are reviewable.
@@ -269,8 +597,29 @@ stages:
               - Staging, clean and serving layers
               - dbt models and tests
               - Idempotent reruns
+            body: |
+              Raw data is rarely ready to use. Transform it in versioned SQL so every change is reviewed and repeatable.
+
+              A common layout is three layers. Staging holds raw tables lightly renamed. Clean models fix types, remove duplicates and apply rules. Serving models are the shapes your application reads.
+
+              ### Key ideas
+              - Layers: staging, clean, serving
+              - dbt models are SQL files in git, with tests such as unique and not null
+              - Idempotent reruns: running the job twice gives the same result, so a retry is safe
+              - Review: changes go through pull requests like any code
+
+              ### Example
+              ```sql
+              -- models/clean_orders.sql
+              select distinct order_id, customer_id, total
+              from {{ ref('stg_orders') }}
+              where total is not null
+              ```
+              A failing test blocks bad data before it reaches the customer.
             resources:
               - { label: "dbt docs", url: "https://docs.getdbt.com/", kind: docs }
+              - { label: "Best practices (dbt docs)", url: "https://docs.getdbt.com/best-practices", kind: docs }
+              - { label: "Data tests (dbt docs)", url: "https://docs.getdbt.com/docs/build/data-tests", kind: docs }
           - id: change-data-capture
             title: Change data capture
             optional: true
@@ -279,8 +628,25 @@ stages:
               - Reading the database log
               - Debezium and managed CDC
               - Handling schema changes
+            body: |
+              Change data capture (CDC) streams inserts, updates and deletes from a database as they happen. It reads the database's own log, so it does not run heavy queries on the customer's production system.
+
+              Tools like Debezium read the log and publish each change as an event. Managed CDC services do the same in the cloud.
+
+              ### Key ideas
+              - Read the log: PostgreSQL logical decoding or the MySQL binlog records every change
+              - Debezium turns log entries into events for Kafka or other sinks
+              - Managed CDC: cloud services handle setup and scaling
+              - Schema changes: columns get added and renamed, so plan how the stream copes
+
+              ### Common mistakes
+              - Not asking the DBA first. CDC needs settings and permissions on their database
+              - Letting an unread replication slot grow until the disk fills
+              - Not handling deletes
             resources:
               - { label: "Debezium docs", url: "https://debezium.io/documentation/", kind: docs }
+              - { label: "Logical Decoding (PostgreSQL docs)", url: "https://www.postgresql.org/docs/current/logicaldecoding.html", kind: docs }
+              - { label: "Debezium connector for PostgreSQL", url: "https://debezium.io/documentation/reference/stable/connectors/postgresql.html", kind: docs }
           - id: data-quality-checks
             title: Data quality checks
             summary: Catch broken feeds before the customer sees wrong numbers.
@@ -288,6 +654,23 @@ stages:
               - Freshness, volume and schema checks
               - Alerting on silent failures
               - Quarantining bad records
+            body: |
+              Wrong numbers destroy trust faster than a missing feature. Check data as it arrives, and catch problems before the customer does.
+
+              Three simple checks cover most failures. Freshness asks if data arrived on time. Volume asks if the row count is in the normal range. Schema asks if the columns and types are what you expect.
+
+              ### Key ideas
+              - Freshness, volume and schema checks on every feed
+              - Alert on silent failures: a job that succeeds but writes nothing is still broken
+              - Quarantine bad records in a separate table so one bad row does not stop the whole load
+              - Tell the owner: alerts should reach someone who can act
+
+              ### Example
+              ```sql
+              select count(*) from orders
+              where created_at > now() - interval '1 day';
+              ```
+              If the count is zero on a normal weekday, raise an alert.
             resources:
               - { label: "Great Expectations docs", url: "https://docs.greatexpectations.io/", kind: docs }
               - post: catch-lambda-jobs-that-succeed-but-write-nothing
@@ -303,9 +686,27 @@ stages:
               - Ingesting their document stores
               - Respecting their permissions
               - Citations users can check
+            body: |
+              Retrieval-augmented generation (RAG) lets a model answer from the customer's own documents. You index the documents, find the passages that match a question, and give them to the model with the question.
+
+              The model should cite its sources, so a user can open the original and check.
+
+              ### Key ideas
+              - Ingest their stores: SharePoint, Drive, wikis and PDFs, each with its own access rules
+              - Respect permissions: a user must only get answers from documents they could open themselves
+              - Citations: link each claim to a source passage and page
+              - Chunk and embed text, store it in a vector index, then retrieve the best chunks per question
+
+              ### Common mistakes
+              - Indexing everything into one pool and leaking restricted files
+              - Answers with no sources
+              - Not refreshing the index when documents change
+
+              Store the source and access list with every chunk, and filter at query time.
             resources:
               - post: building-a-production-rag-pipeline-on-aws-lambda-pgvector
               - post: persistence-is-not-permission-rag-citation-reauth-chat-replay
+              - { label: "What is RAG? (AWS)", url: "https://aws.amazon.com/what-is/retrieval-augmented-generation/", kind: article }
           - id: agents-on-customer-systems
             title: Agents on customer systems
             summary: Connect models to the customer's tools through scoped APIs or MCP servers.
@@ -313,9 +714,23 @@ stages:
               - Wrapping internal APIs as tools
               - Read-only first, writes with approval
               - Auditing every tool call
+            body: |
+              An agent is a model that can call tools. On customer systems, the tools are their APIs. Keep them narrow, safe and logged.
+
+              Wrap each internal API as one clearly named tool. The Model Context Protocol (MCP) is a standard way to expose tools so different models and clients can use them.
+
+              ### Key ideas
+              - Wrap APIs as tools with clear names, typed inputs and short descriptions
+              - Read-only first: start with lookups, add writes later
+              - Approval for writes: a person confirms before an order is changed or an email is sent
+              - Audit every call: who asked, which tool, what inputs, what result
+
+              ### In practice
+              Start with a tool like `get_order_status`. Once users trust it, add `refund_order` behind an approval step. Use the end user's own permissions where you can, not a powerful shared service account.
             resources:
               - { label: "Model Context Protocol", url: "https://modelcontextprotocol.io/", kind: docs }
               - post: deploying-an-mcp-server-on-aws-lambda
+              - { label: "Introduction (Model Context Protocol)", url: "https://modelcontextprotocol.io/docs/getting-started/intro", kind: docs }
           - id: evals-with-customers
             title: Evals with the customer
             summary: Build the eval set with the customer's experts so "good" means what they mean.
@@ -323,9 +738,23 @@ stages:
               - Collecting gold answers from domain experts
               - Agreeing a pass bar before launch
               - Reporting quality in their terms
+            body: |
+              An eval is a set of questions with known good answers. Build it with the customer's experts, so "good" means what they mean, not what you guess.
+
+              Without an eval you cannot tell if a change helped. With one, you can compare models and prompts and show the customer real numbers.
+
+              ### Key ideas
+              - Gold answers: ask domain experts to write or approve the right answers for 50 to 200 real questions
+              - Pass bar: agree before launch, for example "90 percent correct on the core set"
+              - Report in their terms: "correct on 46 of 50 claims" is clearer than a score
+              - Rerun after every change, and add new failures to the set
+
+              ### Example
+              Take real tickets from last month. Have a senior support agent write the ideal reply for each. Score your system against those replies, and review disagreements together.
             resources:
               - { label: "Hamel Husain on evals", url: "https://hamel.dev/", kind: article }
               - post: llm-observability-langfuse-lambda-cloudwatch
+              - { label: "Define success and build evaluations (Anthropic docs)", url: "https://docs.anthropic.com/en/docs/test-and-evaluate/develop-tests", kind: docs }
           - id: models-in-customer-cloud
             title: Models inside the customer's cloud
             optional: true
@@ -334,9 +763,25 @@ stages:
               - Bedrock and Azure OpenAI in their account
               - Locking down model access with IAM
               - Switching providers without a rewrite
+            body: |
+              Many enterprises only allow models that run inside their own cloud account. Their data stays under their controls, and the bill goes to them.
+
+              On AWS that usually means Amazon Bedrock. On Azure it means Azure OpenAI. You call the model through their account, using their identity and network rules.
+
+              ### Key ideas
+              - Bedrock and Azure OpenAI: managed models in the customer's account
+              - IAM controls: allow only the specific models and actions the app needs
+              - Keep it portable: put the provider behind a small interface so switching needs a config change, not a rewrite
+              - Many providers offer OpenAI-compatible APIs, which helps
+
+              ### Common mistakes
+              - Wide permissions such as allowing every model for every role
+              - Hard-coding one provider's SDK across the whole codebase
+              - Forgetting that model availability differs by region
             resources:
               - post: lock-down-bedrock-iam-lambda-data-leak
               - post: migrated-lambda-ai-app-to-bedrock-openai-compatible-apis-without-rewriting-everything
+              - { label: "Identity and access management for Amazon Bedrock", url: "https://docs.aws.amazon.com/bedrock/latest/userguide/security-iam.html", kind: docs }
 
       - id: deploying-into-customer-infra
         title: Deploying into customer infrastructure
@@ -349,9 +794,28 @@ stages:
               - Modules the customer can read
               - State stored in their account
               - Choosing Terraform or Pulumi
+            body: |
+              Infrastructure as code (IaC) means the whole deployment is described in files, not clicked together. The customer can read it, review it and rebuild it.
+
+              Terraform is the most common choice. Pulumi is similar but uses general-purpose languages. Pick what the customer's team can maintain after you leave.
+
+              ### Key ideas
+              - Modules: small, named pieces with clear inputs, easy to read
+              - State in their account: the state file holds real resource data, so store it in their bucket with encryption and locking
+              - Terraform or Pulumi: use the customer's existing tool if they have one
+              - Run plan before apply, and keep it all in git
+
+              ### Example
+              ```bash
+              terraform plan -out=tfplan
+              terraform apply tfplan
+              ```
+              Applying a saved plan means what was reviewed is what runs.
             resources:
               - post: terraform-or-pulumi
               - { label: "Terraform docs", url: "https://developer.hashicorp.com/terraform/docs", kind: docs }
+              - { label: "State (Terraform docs)", url: "https://developer.hashicorp.com/terraform/language/state", kind: docs }
+              - { label: "Modules (Terraform docs)", url: "https://developer.hashicorp.com/terraform/language/modules", kind: docs }
           - id: containers-and-packaging
             title: Containers and packaging
             summary: Package the solution as images and charts that fit the customer's platform.
@@ -359,9 +823,30 @@ stages:
               - Images with pinned versions
               - Helm charts for Kubernetes shops
               - Serverless where they allow it
+            body: |
+              Package your solution so the customer's platform can run it without surprises. Containers are the common unit.
+
+              Pin versions of base images and dependencies, so a build next month gives the same result. If the customer runs Kubernetes, a Helm chart wraps the deployment with values they can set.
+
+              ### Key ideas
+              - Pinned images: use a specific tag or digest, not `latest`
+              - Helm charts: templates plus a `values.yaml` for their settings
+              - Serverless: use Lambda or similar when they allow it and the workload fits
+              - Small images with a non-root user are easier to approve
+
+              ### In practice
+              ```dockerfile
+              FROM python:3.12-slim
+              USER nobody
+              COPY . /app
+              CMD ["python", "/app/main.py"]
+              ```
+              Ask the platform team early what registries, base images and scanners they require.
             resources:
               - { label: "Docker docs", url: "https://docs.docker.com/", kind: docs }
               - { label: "Helm docs", url: "https://helm.sh/docs/", kind: docs }
+              - { label: "Building best practices (Docker docs)", url: "https://docs.docker.com/build/building/best-practices/", kind: docs }
+              - { label: "Chart Template Guide (Helm docs)", url: "https://helm.sh/docs/chart_template_guide/", kind: docs }
           - id: ci-cd-in-their-pipeline
             title: CI/CD in their pipeline
             summary: Deploy through the customer's pipeline and approvals, not from your laptop.
@@ -369,6 +854,21 @@ stages:
               - Fitting their change process
               - Pipelines that run in their account
               - Rollback plans
+            body: |
+              Deploying from your laptop is fast for you and a problem for them. Customers need changes to follow their process, with approvals and an audit trail.
+
+              Learn their pipeline and fit into it. The pipeline should run in their account, with their credentials, so you never hold production keys.
+
+              ### Key ideas
+              - Fit their change process: tickets, reviews, change windows
+              - Pipelines in their account: builds and deploys run there, not from your machine
+              - Rollback plan: know how to return to the last good version before you deploy
+              - Small, frequent changes are easier to approve and undo
+
+              ### Common mistakes
+              - A one-off manual deploy that nobody can repeat
+              - No tested rollback
+              - Using personal credentials for production deploys
             resources:
               - post: github-actions-lambda-terraform-cicd
               - post: deploying-a-laravel-application-to-amazon-ec2-using-terraform
@@ -380,6 +880,19 @@ stages:
               - Agent-drafted plans, human-approved applies
               - Reviewing plan output
               - Keeping production credentials out of reach
+            body: |
+              Coding agents can draft Terraform, scripts and runbooks quickly. The risk is applying a wrong change to a real system. Keep a person between the draft and the apply.
+
+              Let the agent write code and run `plan`. A human reads the plan output and approves the apply.
+
+              ### Key ideas
+              - Agent drafts, human applies: the agent never runs `apply` on its own
+              - Review the plan: look for destroys, replacements and changes you did not expect
+              - No production credentials: give the agent a read-only or sandbox role
+              - Keep everything in pull requests so changes are reviewed and recorded
+
+              ### In practice
+              Look for lines marked as destroy or replace in the plan. If a small request leads to a large plan, stop and ask why. A cheap check before apply is worth more than a fast apply.
             resources:
               - post: claude-code-for-aws-infrastructure-agentic-devops-workflow-with-terraform
               - post: production-ai-code-review-for-terraform-and-lambda-prs
@@ -395,9 +908,26 @@ stages:
               - SAML and OIDC basics
               - Mapping groups to roles
               - Offboarding through the IdP
+            body: |
+              Enterprise users sign in through the company's identity provider (IdP), such as Okta or Entra ID. Your app should trust the IdP, not run its own passwords.
+
+              The two main protocols are SAML, older and common in enterprises, and OpenID Connect (OIDC), newer and built on OAuth 2.0.
+
+              ### Key ideas
+              - SAML and OIDC: both let the IdP tell your app who the user is
+              - Groups to roles: map IdP groups such as "finance-admins" to roles in your app
+              - Offboarding: when someone leaves, disabling them in the IdP should end their access
+              - Use a tested library or service rather than writing the protocol yourself
+
+              ### Common mistakes
+              - Keeping local accounts that survive offboarding
+              - Not validating the token signature, audience and expiry
+              - Giving every signed-in user admin rights by default
             resources:
               - { label: "OpenID Connect", url: "https://openid.net/developers/how-connect-works/", kind: docs }
               - post: multi-tenant-saas-auth-lambda-fastify
+              - { label: "OpenID Connect Core 1.0", url: "https://openid.net/specs/openid-connect-core-1_0.html", kind: docs }
+              - { label: "SAML (Auth0 docs)", url: "https://auth0.com/docs/authenticate/protocols/saml", kind: docs }
           - id: security-reviews
             title: Security reviews and questionnaires
             summary: Answer vendor security questionnaires honestly and with evidence.
@@ -405,6 +935,19 @@ stages:
               - Common questionnaire sections
               - Data flow diagrams
               - Evidence over promises
+            body: |
+              Large customers send security questionnaires before they approve a vendor. They can have hundreds of questions. Answer honestly and with evidence.
+
+              Most questionnaires cover the same areas: access control, encryption, logging, data handling, incident response and subcontractors.
+
+              ### Key ideas
+              - Common sections: identity, encryption at rest and in transit, logging, backups, vulnerability management
+              - Data flow diagram: show where data enters, where it is stored, who can reach it and where it leaves
+              - Evidence over promises: link to a policy, a screenshot of a setting or a report
+              - Say "no" or "planned" when true. A wrong "yes" becomes a contract problem
+
+              ### In practice
+              Keep a library of past answers and update it each time. Draw the data flow diagram once, then reuse it. Review it with the customer's security team early, so surprises come in week one.
             resources:
               - { label: "Cloud Security Alliance", url: "https://cloudsecurityalliance.org/", kind: article }
               - { label: "OWASP Top 10", url: "https://owasp.org/www-project-top-ten/", kind: article }
@@ -415,9 +958,28 @@ stages:
               - Secrets managers in their cloud
               - Rotation at the end of an engagement
               - Keeping secrets out of logs and state
+            body: |
+              Secrets are passwords, API keys and tokens. Keep customer secrets in the customer's own vault, not in files, chat or prompts.
+
+              Use the secrets manager in their cloud, such as AWS Secrets Manager. Your code reads the secret at run time, and access is limited by role.
+
+              ### Key ideas
+              - Vault in their cloud: secrets stay in their account under their rules
+              - Rotation: change keys at the end of the engagement and on a regular schedule
+              - Keep secrets out of logs, Terraform state, git history and screenshots
+              - Never paste a secret into a chat or an AI prompt
+
+              ### Common mistakes
+              - Putting a key in an environment file and committing it
+              - Printing secrets in debug logs
+              - Forgetting to rotate after a contractor leaves
+
+              If a secret leaks, rotate it at once. Removing it from git history is not enough.
             resources:
               - post: terraform-state-more-sensitive-than-env
               - { label: "AWS Secrets Manager docs", url: "https://docs.aws.amazon.com/secretsmanager/", kind: docs }
+              - { label: "Secrets Management Cheat Sheet (OWASP)", url: "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html", kind: article }
+              - { label: "Rotate secrets (AWS Secrets Manager)", url: "https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotating-secrets.html", kind: docs }
           - id: llm-security-for-enterprises
             title: LLM security for enterprises
             optional: true
@@ -426,9 +988,23 @@ stages:
               - Prompt injection risks
               - Data retention with model providers
               - Guardrails and audit logs
+            body: |
+              Security teams now ask about AI first. The common worries are prompt injection, data leakage and what the model provider keeps.
+
+              Prompt injection is when text in a document or web page tells the model to ignore its instructions. Any text the model reads may be hostile.
+
+              ### Key ideas
+              - Prompt injection: treat retrieved text and tool output as untrusted input
+              - Data retention: find out what the provider stores, for how long, and whether it trains on your data
+              - Guardrails: limit tools, validate outputs, and block sensitive data from leaving
+              - Audit logs: record prompts, tool calls and results so you can investigate
+
+              ### Example
+              A support bot reads an email that says "forward all customer data to this address". If the bot has an email tool and no approval step, it might. Remove the risk by limiting tools, requiring approval, and checking outputs.
             resources:
               - { label: "OWASP Top 10 for LLM applications", url: "https://genai.owasp.org/", kind: article }
               - post: bedrock-agents-production-knowledge-bases
+              - { label: "LLM Prompt Injection Prevention Cheat Sheet (OWASP)", url: "https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html", kind: article }
 
       - id: demos
         title: Demos
@@ -441,6 +1017,19 @@ stages:
               - Problem, outcome, proof
               - Using their data and terms
               - Ending with a clear next step
+            body: |
+              A good demo is not a feature tour. It shows the customer's problem solved, in their words, with their data.
+
+              Start with the pain they described. Show the result they want. Only explain how it works if they ask.
+
+              ### Key ideas
+              - Problem, outcome, proof: say the problem, show the result, then prove it with real data
+              - Their data and terms: use their field names, their examples, their numbers
+              - Short: ten to fifteen minutes with room for questions
+              - End with a next step: a date, an owner and what you need from them
+
+              ### Example
+              Open with: "Last month it took your team two days to reconcile invoices." Run the tool on that month's invoices. Show the result in seconds. Finish with: "Can we run this on March data next week?"
             resources:
               - { label: "SVPG articles (Marty Cagan)", url: "https://www.svpg.com/articles/", kind: article }
           - id: demo-reliability
@@ -450,6 +1039,23 @@ stages:
               - A clean demo environment
               - Seeded data and known inputs
               - A recording as backup
+            body: |
+              Demos fail at the worst moment. You cannot remove all risk, but you can make failure unlikely and survivable.
+
+              Use a clean environment that only you touch. Pin versions so an update does not change behaviour overnight. Rehearse the full run, on the same network you will use.
+
+              ### Key ideas
+              - Clean demo environment: separate from development and from production
+              - Seeded data and known inputs: you know what the output will be
+              - Recording as backup: if the live part fails, play the video and keep going
+              - Check access, network and logins an hour before
+
+              ### Common mistakes
+              - Changing code the night before
+              - Relying on a service you do not control with no fallback
+              - Using live data you have not looked at
+
+              Keep a short script of steps, and a reset command that returns the demo to a known state.
             resources:
               - { label: "Streamlit docs", url: "https://docs.streamlit.io/", kind: docs }
           - id: demoing-ai
@@ -460,6 +1066,19 @@ stages:
               - Showing sources and confidence
               - Handling a bad answer live
               - Avoiding cherry-picked results
+            body: |
+              AI features give different answers on different runs. Showing only the best one misleads the customer and costs trust later.
+
+              Show a range. Include a typical answer and a weaker one, and show how the system handles it.
+
+              ### Key ideas
+              - Show sources and confidence: where the answer came from and how sure the system is
+              - Handle a bad answer live: if the model gets it wrong, show the correction path calmly
+              - No cherry-picking: run a pre-agreed set of inputs, not only your favourites
+              - Say what the system does not do
+
+              ### In practice
+              Prepare a few inputs, including one that is likely to fail. Run it on purpose and show that the user sees a source, can flag the problem, and that a person can step in. Customers trust honest limits more than a perfect demo.
             resources:
               - { label: "People + AI Guidebook (Google)", url: "https://pair.withgoogle.com/guidebook/", kind: article }
 
@@ -474,8 +1093,28 @@ stages:
               - Deploy and rollback steps
               - Common failures and fixes
               - Who to call
+            body: |
+              A runbook is a step-by-step guide for running the system. It lets someone who did not build it deploy it, check it and fix it.
+
+              Write it for a tired person at 3 a.m. Use short steps, exact commands and expected output.
+
+              ### Key ideas
+              - Deploy and rollback: numbered steps, with how to check each one worked
+              - Common failures: the symptom, the likely cause, and the fix
+              - Who to call: names, roles and how to reach them
+              - Routine tasks: rotating secrets, restoring from backup, renewing certificates
+
+              ### Example
+              ```text
+              Symptom: ingest job shows zero rows
+              Check: the source API status page
+              Fix: rerun with `./run_ingest.sh --date YYYY-MM-DD`
+              Escalate: data platform on-call
+              ```
+              Test the runbook by having the customer follow it without you.
             resources:
               - { label: "Google SRE books", url: "https://sre.google/books/", kind: article }
+              - { label: "The SRE Workbook (Google)", url: "https://sre.google/workbook/table-of-contents/", kind: article }
           - id: monitoring-handover
             title: Monitoring the customer owns
             summary: Dashboards and alerts in the customer's tools, routed to their on-call.
@@ -483,6 +1122,21 @@ stages:
               - Health checks and key metrics
               - Alerts with clear actions
               - LLM traces for AI features
+            body: |
+              Set up monitoring in the customer's own tools, and route alerts to their on-call. If it lives in your account, it stops working when you leave.
+
+              Start with health checks and a few key metrics. Each alert should tell the reader what is wrong and what to do.
+
+              ### Key ideas
+              - Health checks and key metrics: is it up, how long does it take, how many errors
+              - Alerts with clear actions: link each alert to a runbook step
+              - Use their stack, such as CloudWatch, Datadog or Grafana
+              - LLM traces for AI features: record prompts, responses, latency and cost per request so quality problems can be found
+
+              ### Common mistakes
+              - Too many alerts, so people ignore them all
+              - Alerts that go to your email only
+              - No dashboard showing normal behaviour to compare against
             resources:
               - post: llm-observability-langfuse-lambda-cloudwatch
               - { label: "Google SRE books", url: "https://sre.google/books/", kind: article }
@@ -494,6 +1148,19 @@ stages:
               - Walkthroughs of the code and infra
               - Pairing on the first changes
               - Recorded sessions for later hires
+            body: |
+              Handover is done when the customer's engineers can change the system without you. Pair with them until they can.
+
+              Walk through the code and the infrastructure first. Then let them make the first changes while you watch.
+
+              ### Key ideas
+              - Walkthroughs: architecture, repo layout, how to run it locally, how to deploy
+              - Pairing on first changes: they drive, you advise
+              - Recorded sessions: new hires can watch them later
+              - Leave a short guide to the main decisions and why they were made
+
+              ### In practice
+              Pick a small real change, such as adding a field to a report. Have their engineer do it, with your help only when stuck. Each stuck point shows a missing note in the docs. Fix the docs on the spot.
             resources:
               - { label: "Technical writing (Google)", url: "https://developers.google.com/tech-writing", kind: course }
 
@@ -511,9 +1178,24 @@ stages:
               - Controls vs certifications
               - What applies to your deployment
               - Evidence auditors look for
+            body: |
+              Regulated customers ask about frameworks. Knowing what each one asks for helps you build the right thing early.
+
+              A control is a rule or practice, such as "access is reviewed every quarter". A certification is an auditor's confirmation that the controls exist and work. SOC 2 and ISO 27001 are security frameworks. HIPAA covers US health data. GDPR covers personal data of people in the EU.
+
+              ### Key ideas
+              - Controls vs certifications: you can follow a control without being certified
+              - What applies: it depends on data type, country and industry
+              - Evidence: access logs, change records, policies, and screenshots of settings
+              - Ask the customer's compliance team what they require
+
+              ### Common mistakes
+              - Treating a cloud provider's certification as covering your app
+              - Collecting evidence the week before the audit instead of as you go
             resources:
               - { label: "ISO/IEC 27001", url: "https://www.iso.org/standard/27001", kind: docs }
               - { label: "HIPAA (HHS)", url: "https://www.hhs.gov/hipaa/index.html", kind: docs }
+              - { label: "SOC 2 (AICPA)", url: "https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2", kind: docs }
           - id: hipaa-workloads
             title: Building HIPAA workloads
             summary: Eligible services, encryption and access logging for health data in the cloud.
@@ -521,8 +1203,24 @@ stages:
               - Business associate agreements
               - Eligible services only
               - Audit logging
+            body: |
+              HIPAA applies in the US to health information. If your solution handles it, the cloud provider and your company both have duties.
+
+              Start with a business associate agreement (BAA). It is a contract that sets who is responsible for protecting the data.
+
+              ### Key ideas
+              - BAAs: sign one with the customer, and make sure the cloud provider has one in place
+              - Eligible services only: use only the services the provider lists as HIPAA eligible
+              - Encryption: at rest and in transit
+              - Audit logging: record who accessed which records and when
+              - Minimum necessary: use only the data you need
+
+              ### In practice
+              Before you design, list each service you plan to use and check it against the provider's eligible services list. Turn on CloudTrail or equivalent logging from day one, and keep logs protected from edits.
             resources:
               - post: how-to-use-aws-sagemaker-for-hipaa-compliant-data-a-complete-guide
+              - { label: "HIPAA compliance (AWS)", url: "https://aws.amazon.com/compliance/hipaa-compliance/", kind: docs }
+              - { label: "HIPAA Eligible Services Reference (AWS)", url: "https://aws.amazon.com/compliance/hipaa-eligible-services-reference/", kind: docs }
           - id: data-residency
             title: Data residency
             optional: true
@@ -531,9 +1229,25 @@ stages:
               - Region pinning
               - Cross-region inference risks
               - Contract terms that override defaults
+            body: |
+              Some data cannot leave a country or region. The rule may come from law, such as GDPR transfer limits, or from the customer's contract.
+
+              Pin your resources to the approved region. Then check where data goes, including to model providers.
+
+              ### Key ideas
+              - Region pinning: create storage, databases and compute only in approved regions
+              - Cross-region inference: some model services route requests to other regions for capacity, so check settings and whether data may leave
+              - Contract terms: a customer contract may be stricter than the defaults
+              - Backups, logs and support access can also cross borders
+
+              ### Common mistakes
+              - Pinning the database but sending logs to another region
+              - Using a model feature that routes requests abroad
+              - Assuming the provider default meets the contract
             resources:
               - { label: "GDPR overview", url: "https://gdpr.eu/", kind: article }
               - { label: "Amazon Bedrock docs", url: "https://docs.aws.amazon.com/bedrock/", kind: docs }
+              - { label: "Cross-Region inference (Amazon Bedrock docs)", url: "https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html", kind: docs }
           - id: ai-risk-frameworks
             title: AI risk frameworks
             optional: true
@@ -542,6 +1256,19 @@ stages:
               - NIST AI RMF
               - Model and data documentation
               - Human oversight requirements
+            body: |
+              Enterprises now ask for AI risk assessments next to security reviews. The NIST AI Risk Management Framework (AI RMF) is a common reference in the US.
+
+              It organises work into four functions: govern, map, measure and manage. You do not need to memorise it. You need to be able to answer its questions about your system.
+
+              ### Key ideas
+              - NIST AI RMF: a voluntary framework for finding and managing AI risks
+              - Documentation: write down the model, the data, its limits and known failures
+              - Human oversight: say where a person reviews or can override the system
+              - Monitoring: track quality and drift after launch
+
+              ### In practice
+              Write a short model card per feature: purpose, data used, evaluation results, known limits, who reviews outputs. Reuse it for every customer questionnaire.
             resources:
               - { label: "NIST AI Risk Management Framework", url: "https://www.nist.gov/itl/ai-risk-management-framework", kind: docs }
 
@@ -556,6 +1283,19 @@ stages:
               - Problem, workaround, frequency
               - Evidence from several customers
               - Sending it to the right owner
+            body: |
+              The field gives you information the product team cannot get any other way. A short report turns a single engagement into something the product can use.
+
+              For each gap, write three things. What was the problem? What workaround did you build? How often does it come up?
+
+              ### Key ideas
+              - Problem, workaround, frequency: keep each report to a page
+              - Evidence from several customers: one request is an anecdote, five is a pattern
+              - Right owner: send it to the product manager or team who can act on it
+              - Include quotes and numbers, and a suggested change
+
+              ### Example
+              "Customers A, B and D each needed to export audit logs to their SIEM. We built a custom script three times (about two days each). Suggest a built-in export. Owner: platform PM."
             resources:
               - { label: "SVPG articles (Marty Cagan)", url: "https://www.svpg.com/articles/", kind: article }
               - { label: "Design docs at Google", url: "https://www.industrialempathy.com/posts/design-docs-at-google/", kind: article }
@@ -566,9 +1306,25 @@ stages:
               - Rule of three
               - Internal templates and starter kits
               - Upstreaming into the core product
+            body: |
+              Every engagement tempts you to write custom code. Some of it is worth keeping. When you build the same thing again, turn it into a reusable part.
+
+              A common guide is the rule of three. Write it once. Copy it the second time. Extract it the third time, when you know what really varies.
+
+              ### Key ideas
+              - Rule of three: wait for the third use before you generalise
+              - Internal templates and starter kits: a repo others can copy for a new customer
+              - Upstream into the core product: the best outcome is a feature every customer gets
+              - Remove customer-specific names and data first
+
+              ### Common mistakes
+              - Abstracting too early, from one example
+              - Leaving useful code in a private customer repo
+              - Building a library with no owner or docs
             resources:
               - { label: "Palantir blog", url: "https://blog.palantir.com/", kind: article }
               - post: agents-md-is-code
+              - { label: "Rule of three (Wikipedia)", url: "https://en.wikipedia.org/wiki/Rule_of_three_(computer_programming)", kind: article }
           - id: influencing-roadmaps
             title: Influencing the roadmap
             optional: true
@@ -577,6 +1333,19 @@ stages:
               - Sizing the opportunity
               - Working with product managers
               - Saying what you would drop
+            body: |
+              You see problems the product team cannot. Making the case for change is part of the job. A clear ask backed by data works better than a complaint.
+
+              Size the opportunity: how many customers are affected, what it costs them, and what it could earn or save.
+
+              ### Key ideas
+              - Sizing: number of customers, time or money lost, strategic value
+              - Work with product managers: learn their priorities and speak to them
+              - State trade-offs: say what you would drop to make room
+              - Make a specific request, with an owner and a proposed scope
+
+              ### Example
+              "Six of our ten customers asked for single sign-on. It blocked two deals this quarter. I suggest building SAML support, and pausing the custom theme work to make room."
             resources:
               - { label: "Lenny's Newsletter", url: "https://www.lennysnewsletter.com/", kind: article }
 
@@ -591,6 +1360,19 @@ stages:
               - A kickoff agenda
               - Milestones with demos
               - Access and data requests up front
+            body: |
+              The first week sets the tone. A good kickoff makes goals, milestones, owners and access needs clear, so work can start fast.
+
+              Run a short meeting with the sponsor, the champion and the technical owners. Walk through the problem statement and agree what success looks like.
+
+              ### Key ideas
+              - Agenda: goals, scope, timeline, roles, risks, how you will communicate
+              - Milestones with demos: each one ends with something the customer can see
+              - Access and data requests up front: these take the longest, so ask on day one
+              - Write it all down and send it the same day
+
+              ### In practice
+              Make a one-page plan with dates, owners and the next three milestones. List every access request with a name next to it. Review the list in each weekly update until all are done.
             resources:
               - { label: "Shape Up (Basecamp)", url: "https://basecamp.com/shapeup", kind: article }
           - id: managing-scope-creep
@@ -600,6 +1382,21 @@ stages:
               - Change requests in writing
               - Trading scope for time
               - Saying no with a reason
+            body: |
+              Customers will ask for more. That is normal and often a sign they trust you. The skill is handling new asks without losing the plan.
+
+              Keep a record of the agreed scope. Each new ask is a change request. Write it down, size it, and trade it against the plan in the open.
+
+              ### Key ideas
+              - Change requests in writing: what, why, who asked
+              - Trade scope for time: "we can add this if we drop that, or move the date by a week"
+              - Say no with a reason: explain the impact, and offer a later phase
+              - Keep the sponsor in the loop, so decisions are theirs
+
+              ### Common mistakes
+              - Saying yes to small asks until they add up
+              - Deciding quietly and surprising the customer later
+              - Treating every ask as an attack instead of a signal
             resources:
               - { label: "Will Larson's writing", url: "https://lethain.com/", kind: article }
           - id: executive-communication
@@ -609,8 +1406,22 @@ stages:
               - Bottom line up front
               - Business impact over technical detail
               - Escalating without blame
+            body: |
+              Executives have little time. Lead with the answer and the decision you need, in a few sentences.
+
+              This style is called bottom line up front (BLUF). Put the conclusion first, then the key facts, then the detail only if they ask.
+
+              ### Key ideas
+              - Bottom line up front: start with the outcome or the ask
+              - Business impact over technical detail: say "this saves 200 hours a month", not "we moved to a new queue"
+              - Escalate without blame: describe the problem and options, not who caused it
+              - Offer a recommendation, not just a problem
+
+              ### Example
+              "We will miss the 30 June date by one week. The cause is delayed database access. I need IT to approve it by Friday. If that happens, we land on 7 July."
             resources:
               - { label: "StaffEng", url: "https://staffeng.com/", kind: article }
+              - { label: "BLUF (Wikipedia)", url: "https://en.wikipedia.org/wiki/BLUF_(communication)", kind: article }
           - id: measuring-impact
             title: Measuring impact
             optional: true
@@ -619,6 +1430,19 @@ stages:
               - Baseline before you start
               - Metrics the sponsor cares about
               - Case studies from engagements
+            body: |
+              Show results in the customer's numbers. Hours saved, errors avoided, money recovered. A demo is nice, but a number the sponsor can repeat to their boss is what leads to expansion.
+
+              You need a baseline from before you start. Without one you cannot show change.
+
+              ### Key ideas
+              - Baseline first: measure the current process in week one
+              - Metrics the sponsor cares about: ask what they report upward
+              - Compare like with like: same period, same team, same definition
+              - Case studies: with permission, write up the problem, the solution and the result
+
+              ### In practice
+              If the old process took 40 minutes per invoice and now takes 8, say that, with the sample size and date range. Share the method so the customer can check it. Honest numbers survive a finance review.
             resources:
               - { label: "Working Backwards", url: "https://workingbackwards.com/", kind: article }
 
@@ -633,8 +1457,24 @@ stages:
               - Joining their incident process
               - Updates on a fixed rhythm
               - Mitigate before root cause
+            body: |
+              When something you built breaks at a customer, how you respond decides the relationship. Stay calm, and work inside their process.
+
+              Stabilise first. Restore service or reduce harm, then find the root cause. Mitigation comes before explanation.
+
+              ### Key ideas
+              - Join their incident process: use their channel, roles and severity levels
+              - Updates on a fixed rhythm: every 30 minutes, even if the update is "no change"
+              - Mitigate before root cause: roll back, disable a feature or fail over first
+              - Keep a timeline as you go, to use in the postmortem
+
+              ### Common mistakes
+              - Debugging deeply while users stay down
+              - Going silent while you work
+              - Changing many things at once, so nobody knows what fixed it
             resources:
               - { label: "Google SRE books", url: "https://sre.google/books/", kind: article }
+              - { label: "Managing Incidents (Google SRE book)", url: "https://sre.google/sre-book/managing-incidents/", kind: article }
           - id: blameless-postmortems
             title: Blameless postmortems
             summary: Write what happened, why, and what changes, without blaming people.
@@ -642,8 +1482,22 @@ stages:
               - Timeline and contributing factors
               - Action items that stick
               - Sharing with the customer
+            body: |
+              A postmortem records what happened, why, and what will change. It is blameless: it looks at systems and decisions, not at who to punish.
+
+              People who fear blame hide facts. A blameless review gets the true story, which is the only way to fix the cause.
+
+              ### Key ideas
+              - Timeline and contributing factors: what happened, in order, and what made it possible
+              - Action items that stick: each has an owner and a date, and is tracked
+              - Share with the customer: openness builds trust
+              - Ask "how did the system allow this?" and not "who did this?"
+
+              ### Example
+              Instead of "Sam deployed a bad config", write "The deploy process had no config validation, so an invalid value reached production. Action: add a validation step, owner Priya, due 15 Dec."
             resources:
               - { label: "Postmortem culture (Google SRE)", url: "https://sre.google/sre-book/postmortem-culture/", kind: article }
+              - { label: "Postmortem Culture (SRE Workbook)", url: "https://sre.google/workbook/postmortem-culture/", kind: article }
 
       - id: architecture-for-many-customers
         title: Architecture across many customers
@@ -656,6 +1510,20 @@ stages:
               - Multi-tenant SaaS
               - Deploying into the customer's account
               - Upgrades across many installs
+            body: |
+              You can offer the same product in different ways. Each has a different cost to support.
+
+              In multi-tenant SaaS, many customers share one deployment. It is cheapest to run and easiest to upgrade. In single-tenant, each customer gets their own copy, run by you. In the customer's cloud account or on premises, the customer hosts it.
+
+              ### Key ideas
+              - Multi-tenant SaaS: one system, data separated by tenant, simple upgrades
+              - Single-tenant: stronger isolation, more to operate
+              - Customer account or on premises: meets strict data rules but you lose direct access
+              - Upgrades across many installs: plan versioning, migrations and support for older releases
+
+              ### Common mistakes
+              - Promising on-premises without counting the support cost
+              - Letting versions drift so far apart you cannot support them
             resources:
               - post: how-i-architected-a-fully-serverless-saas-on-aws-lambda-with-fastify
               - { label: "AWS Well-Architected", url: "https://aws.amazon.com/architecture/well-architected/", kind: docs }
@@ -666,8 +1534,22 @@ stages:
               - Per-customer config
               - Extension points
               - Cost of a long-lived fork
+            body: |
+              When one customer needs something different, the easy answer is to copy the code and change it. This works for a month, then every fix has to be made twice.
+
+              Handle differences through configuration and extension points instead. The same code runs for everyone, with different settings.
+
+              ### Key ideas
+              - Per-customer config: feature flags, field mappings, thresholds, branding
+              - Extension points: plugins or hooks where custom logic can attach
+              - Cost of a long-lived fork: missed upgrades, doubled bug fixes, drift from the product
+              - Keep config in files or a database, not in code
+
+              ### In practice
+              Before you fork, ask "what exactly differs?" Often it is a list of field names or a rule threshold. Put those in a config file with a schema, and validate it on load.
             resources:
               - { label: "The Twelve-Factor App", url: "https://12factor.net/", kind: article }
+              - { label: "Config (The Twelve-Factor App)", url: "https://12factor.net/config", kind: article }
           - id: integration-patterns
             title: Integration patterns
             optional: true
@@ -676,9 +1558,27 @@ stages:
               - Push vs pull
               - Retries and idempotency
               - Contracts between systems
+            body: |
+              Customer systems talk to yours in different ways. Pick the pattern that fits each one, not your favourite.
+
+              Webhooks push events as they happen. Polling pulls on a schedule. Queues decouple sender and receiver. File drops suit old systems that only export CSV. APIs suit systems that support real-time requests.
+
+              ### Key ideas
+              - Push vs pull: push is fresher, pull is simpler to control
+              - Retries and idempotency: networks fail, so a repeated message must not create a duplicate
+              - Contracts between systems: agree field names, types and error behaviour in writing, and version them
+
+              ### Example
+              Use an idempotency key so a retried payment request is processed once:
+              ```text
+              POST /payments
+              Idempotency-Key: 7f3c-...
+              ```
+              The server stores the key and returns the same result for repeats.
             resources:
               - { label: "Enterprise Integration Patterns", url: "https://www.enterpriseintegrationpatterns.com/", kind: article }
               - post: running-ai-background-jobs-serverlessly-with-sqs-lambda-bedrock
+              - { label: "Idempotent requests (Stripe API docs)", url: "https://docs.stripe.com/api/idempotent_requests", kind: docs }
 
       - id: career-and-sustainability
         title: Sustaining the role
@@ -691,6 +1591,19 @@ stages:
               - One notes file per engagement
               - Checklists for setup and exit
               - Protecting focus time
+            body: |
+              You may serve several customers at once. Each switch costs you time unless you prepare for it.
+
+              Keep a notes file and a checklist per customer. When you return after a week, you should be productive in minutes.
+
+              ### Key ideas
+              - One notes file per engagement: current state, open questions, next steps, key contacts
+              - Checklists for setup and exit: access, profiles, data, cleanup
+              - Protect focus time: block hours with no meetings and batch messages
+              - End each day by writing what you will do next
+
+              ### In practice
+              Before leaving a customer for the day, write three lines: what I did, what is blocked, what I do first tomorrow. It takes two minutes and saves twenty when you come back.
             resources:
               - { label: "Will Larson's writing", url: "https://lethain.com/", kind: article }
           - id: career-paths
@@ -701,6 +1614,20 @@ stages:
               - Staff and principal tracks
               - Moving into product
               - Starting a company from field insight
+            body: |
+              The skills from the field carry over to many careers. There is no single path.
+
+              Many FDEs become staff or principal engineers, where they lead hard technical work across customers. Some move into product, because they know customer problems well. Others become solutions architects or start companies built on a problem they kept seeing.
+
+              ### Key ideas
+              - Staff and principal tracks: senior technical leadership without managing people
+              - Product: your field evidence is valuable to product teams
+              - Solutions architecture: design for customers, often pre-sale
+              - Founding a company: repeated problems across customers can be a business
+              - Management is also an option, if you like growing people
+
+              ### In practice
+              Keep a record of the results you delivered, with numbers. It helps with promotion, a move to another team, or a pitch to investors.
             resources:
               - { label: "StaffEng", url: "https://staffeng.com/", kind: article }
               - { label: "Palantir blog", url: "https://blog.palantir.com/", kind: article }

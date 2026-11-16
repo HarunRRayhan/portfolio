@@ -3,7 +3,7 @@ title: AWS Cloud
 summary: From your first account and EC2 server to multi-account, serverless and AI workloads on AWS, one service at a time.
 order: 2
 category: cloud-devops
-updated: '2026-11-15'
+updated: '2026-11-16'
 icon: cloud
 color: amber
 logos:
@@ -24,17 +24,53 @@ stages:
             learn:
               - Renting servers vs renting platforms
               - Pay-as-you-go pricing
+            body: |
+              Cloud services come in layers. The higher the layer, the less you manage and the less control you have.
+
+              With **IaaS** (infrastructure as a service) you rent raw servers, disks and networks. You install and patch the operating system yourself. With **PaaS** (platform as a service) you hand over code and the provider runs the servers. With **SaaS** (software as a service) you just use finished software.
+
+              Cloud billing is **pay-as-you-go**. You pay for what you use, by the second, hour or request, with no upfront purchase. Turn it off and the charge stops.
+
+              ### Key ideas
+              - IaaS: you manage the OS, runtime and app. Example: EC2
+              - PaaS: you manage the app and its data. Example: Elastic Beanstalk or App Runner
+              - SaaS: you manage nothing but your own settings. Example: Amazon WorkMail or Amazon Connect
+              - Renting beats buying when load changes, because you stop paying when you stop using
+              - Pay-as-you-go also means a forgotten resource keeps billing you
+
+              ### Example
+              A small team runs a Laravel site on one EC2 instance. They patch Linux and PHP themselves. Later they move to App Runner and AWS handles the servers. They lose some control and gain time.
             resources:
               - { label: "What is cloud computing? (AWS)", url: "https://aws.amazon.com/what-is-cloud-computing/", kind: article }
               - { label: "Overview of Amazon Web Services", url: "https://docs.aws.amazon.com/whitepapers/latest/aws-overview/introduction.html", kind: docs }
+              - { label: "Types of cloud computing (AWS)", url: "https://aws.amazon.com/types-of-cloud-computing/", kind: article }
           - id: shared-responsibility
             title: The shared responsibility model
             summary: AWS secures the hardware and data centres. You secure what you put on them.
             learn:
               - Security of the cloud vs security in the cloud
               - How the split changes for managed services
+            body: |
+              AWS and you split the security work. AWS handles **security of the cloud**. You handle **security in the cloud**.
+
+              AWS looks after the physical data centres, the hardware, the network and the software that runs the services. You look after what you build on top: your data, your accounts, who has access, and how you configure each service.
+
+              The split moves with the service. The more AWS manages, the less you have to secure yourself.
+
+              ### Key ideas
+              - AWS owns: buildings, hardware, hypervisor, the global network
+              - You own: IAM users and roles, data, encryption choices, security group rules
+              - On EC2 you also patch the guest operating system and your own software
+              - On managed services like RDS, AWS patches the database engine and the OS. You still manage users, network access and encryption settings
+              - On serverless like Lambda or S3, AWS runs almost everything. You still own your code, permissions and bucket settings
+
+              ### Common mistakes
+              - Assuming AWS secures a public S3 bucket. It does not. Your settings decide that
+              - Skipping patches on EC2 because "it is the cloud"
+              - Giving broad IAM permissions and then blaming the platform for a leak
             resources:
               - { label: "Shared responsibility model (AWS)", url: "https://aws.amazon.com/compliance/shared-responsibility-model/", kind: article }
+              - { label: "Shared responsibility model (AWS docs)", url: "https://docs.aws.amazon.com/whitepapers/latest/aws-risk-and-compliance/shared-responsibility-model.html", kind: docs }
           - id: learning-path-and-certs
             title: How to learn AWS and get certified
             optional: true
@@ -42,6 +78,20 @@ stages:
             learn:
               - Cloud Practitioner vs Solutions Architect Associate
               - Free training from AWS Skill Builder
+            body: |
+              You do not need to learn every AWS service. There are hundreds. Start with a small core and add the rest when a project needs it.
+
+              A good order: accounts and IAM, then EC2, S3 and VPC, then a database, then Lambda or containers, then monitoring and infrastructure as code. Build something small at each step. Hands-on time teaches more than watching videos.
+
+              ### Key ideas
+              - **Cloud Practitioner** is the entry exam. It covers cloud basics, pricing and the main services. Good for non-engineers or a first test
+              - **Solutions Architect Associate** is the standard engineer exam. It covers design choices across compute, storage, networking and security
+              - If you already build things, you can go straight to the Associate. If AWS is new, Practitioner first is a gentle start
+              - **AWS Skill Builder** offers many free digital courses and exam prep. Some labs and practice exams need a paid subscription
+              - A certificate shows you studied. A running project shows you can build
+
+              ### In practice
+              Pick one small app. Put it on EC2 with a database, then rebuild it with Lambda. You will touch most of what the Associate exam covers.
             resources:
               - post: how-to-start-learning-aws-cloud-and-get-certified
               - { label: "AWS Certification", url: "https://aws.amazon.com/certification/", kind: course }
@@ -58,6 +108,27 @@ stages:
               - Root user vs an admin identity
               - Turning on MFA
               - The first things to do in a new account
+            body: |
+              The **root user** is the identity you create the account with. It uses the account email and can do everything, including closing the account. Nothing can limit it.
+
+              Because of that, you protect it and avoid using it. For daily work, create an admin identity (an IAM Identity Center user, or an IAM user or role with admin rights) and use that instead.
+
+              ### Key ideas
+              - Root user: full, unrestricted access, tied to one email address
+              - Admin identity: powerful but can be limited, logged and removed
+              - **MFA** (multi-factor authentication) adds a second proof at sign-in. Use a passkey, security key or authenticator app
+              - Turn MFA on for root in the console under Security credentials
+              - Do not create access keys for the root user
+
+              ### In practice
+              First steps in a new account:
+              1. Turn on MFA for the root user
+              2. Create an admin identity and sign in with that
+              3. Set a billing budget and alert
+              4. Store the root credentials and MFA device safely
+              5. Use root only for the few tasks that require it, like changing the account plan
+
+              If you lose the MFA device, recovery is slow, so keep a backup method.
             resources:
               - post: first-3-things-i-always-do-after-creating-a-new-aws-account
               - { label: "Root user best practices (AWS docs)", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/root-user-best-practices.html", kind: docs }
@@ -67,17 +138,50 @@ stages:
             learn:
               - Always-free vs trial offers
               - Services that are never free
+            body: |
+              The AWS Free Tier lets you try services at no cost. Its rules have changed over time, so check the current offer page before you rely on it.
+
+              There are two broad kinds of offer. **Always-free** offers have monthly limits that renew, for example a small number of Lambda requests. **Trial** offers last for a short period after you start the service or sign up. Newer accounts may get credits instead of the older 12-month plan, so read what your account shows.
+
+              ### Key ideas
+              - Always-free: limited amounts that reset each month, not time limited
+              - Trial and credit offers: expire after a set time or when the credits run out
+              - Going over a limit means normal prices apply, with no warning by default
+              - Some services have no free option at all, and a few cost money the moment they exist. NAT gateways, load balancers and public IPv4 addresses are common examples
+              - Free usually covers small sizes only, such as a single small instance
+
+              ### Common mistakes
+              - Leaving an instance, database or NAT gateway running after a tutorial
+              - Forgetting resources in other regions
+              - Assuming "free tier" means "never billed". Set a budget alert anyway and check the Billing page each week while you learn
             resources:
               - { label: "AWS Free Tier", url: "https://aws.amazon.com/free/", kind: docs }
+              - { label: "AWS Free Tier FAQs", url: "https://aws.amazon.com/free/free-tier-faqs/", kind: docs }
           - id: budgets-and-alerts
             title: Budgets and billing alerts
             summary: Set a budget with an email alert on day one, so a forgotten resource costs you dollars, not thousands.
             learn:
               - Creating a monthly cost budget
               - Forecasted vs actual alerts
+            body: |
+              **AWS Budgets** lets you set a spending target and get an alert when you approach it. Do this on day one, before you launch anything.
+
+              You create a budget for a period, usually a month, and an amount, say 10 dollars. Then you add alerts at percentages of that amount. Alerts go to email addresses, and can also go to SNS topics or chat.
+
+              ### Key ideas
+              - A **cost budget** tracks spend against a fixed amount for the month
+              - An **actual** alert fires when spend has already reached the threshold
+              - A **forecasted** alert fires when AWS predicts you will reach it by month end. It warns you earlier
+              - A common setup: actual at 50 and 100 percent, forecasted at 100 percent
+              - Budgets alert you. They do not stop spending by themselves. Budget actions can apply a policy, but you must set them up
+              - Billing data can lag by hours, so a fast spike may show late
+
+              ### In practice
+              In the console, open Billing and Cost Management, then Budgets, then Create budget. Pick the monthly cost template. Set the amount and your email. Use the zero spend template if you only want to know the moment any charge appears.
             resources:
               - { label: "Managing costs with AWS Budgets", url: "https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html", kind: docs }
               - post: 5-aws-mistakes-quietly-draining-your-bank-account
+              - { label: "Create a cost budget (AWS docs)", url: "https://docs.aws.amazon.com/cost-management/latest/userguide/create-cost-budget.html", kind: docs }
 
       - id: regions-and-azs
         title: Regions and availability zones
@@ -89,8 +193,23 @@ stages:
             learn:
               - What an AZ is isolated from
               - Spreading across AZs for uptime
+            body: |
+              A **region** is a separate geographic area, such as Frankfurt or Virginia. Each region has several **availability zones** (AZs). An AZ is one or more data centres with their own power, cooling and networking.
+
+              AZs in a region are placed far enough apart that one failure should not hit them all, yet close enough for very fast links between them. Regions are kept separate from each other on purpose.
+
+              ### Key ideas
+              - An AZ is isolated from the others for power, cooling, flooding and most network faults
+              - AZ names like `eu-central-1a` are mapped per account, so your `a` may not be someone else's `a`
+              - A single AZ is a single point of failure
+              - Run at least two AZs: a load balancer, servers in each, and a database with a standby
+              - Traffic between AZs is fast but costs a small fee per GB
+
+              ### Example
+              You run two web servers behind a load balancer, one in `eu-central-1a` and one in `eu-central-1b`. If zone `a` loses power, the load balancer sends all traffic to `b` and the site stays up.
             resources:
               - { label: "Regions and availability zones (AWS)", url: "https://aws.amazon.com/about-aws/global-infrastructure/regions_az/", kind: article }
+              - { label: "Regions and Zones (AWS docs)", url: "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html", kind: docs }
           - id: picking-a-region
             title: Picking a region
             summary: Choose by user latency, service availability, price and data rules.
@@ -98,6 +217,23 @@ stages:
               - Latency to your users
               - Not every service is in every region
               - Data residency
+            body: |
+              Pick the region where your choices cost least in latency, features, money and legal risk. You can usually change later, but moving data is work.
+
+              ### Key ideas
+              - **Latency:** put resources near your users. Distance adds delay to every request
+              - **Service availability:** new services and some instance types appear in a few regions first. Check the regional services list before you commit
+              - **Price:** the same service costs different amounts by region. For example, US regions are often cheaper than some others
+              - **Data residency:** laws or contracts may require data to stay in a country or area. Pick a region that satisfies that, and do not copy data elsewhere by accident
+              - Some features only work in one region. Certificates for CloudFront are one example
+              - Staying close to your other systems cuts data transfer costs
+
+              ### In practice
+              For a European user base with GDPR concerns, choose `eu-central-1` (Frankfurt) or `eu-west-1` (Ireland). Check that every service you plan to use is available there. Then set the region as the default in your CLI profile so you do not create resources in the wrong place.
+
+              ```bash
+              aws configure set region eu-central-1
+              ```
             resources:
               - { label: "AWS services by region", url: "https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/", kind: docs }
           - id: global-vs-regional
@@ -107,8 +243,26 @@ stages:
             learn:
               - Which services are global
               - Why us-east-1 is special
+            body: |
+              Most AWS services work inside one region. Resources you create there are not visible in another region. A few services are global, or have a global control layer.
+
+              Global or mostly global: **IAM**, **Route 53**, **CloudFront**, and AWS Organizations. Their resources are not tied to a single region you pick for your app.
+
+              ### Key ideas
+              - Regional: EC2, S3 buckets (the bucket lives in one region, though names are global), RDS, Lambda, VPC
+              - Global: IAM users and roles, Route 53 hosted zones, CloudFront distributions
+              - The console has a region selector. If a resource seems missing, check the selector first
+              - **us-east-1** (N. Virginia) is special. Global services often manage their data there. CloudFront reads its ACM certificates from it, and billing data is found there
+              - Many new features launch in us-east-1 first
+              - An outage in us-east-1 can touch global control planes, so avoid depending on it for live traffic
+
+              ### Common mistakes
+              - Creating a certificate in the wrong region and not finding it in CloudFront
+              - Thinking an EC2 instance vanished when you are looking at another region
+              - Paying for unused resources left in a region you forgot about
             resources:
               - { label: "AWS global infrastructure", url: "https://aws.amazon.com/about-aws/global-infrastructure/", kind: article }
+              - { label: "AWS Regions and Availability Zones (AWS docs)", url: "https://docs.aws.amazon.com/whitepapers/latest/aws-fault-isolation-boundaries/global-services.html", kind: docs }
 
       - id: iam-basics
         title: IAM basics
@@ -121,25 +275,93 @@ stages:
               - IAM users, groups and roles
               - Temporary credentials
               - IAM Identity Center for people
+            body: |
+              An **IAM user** is a long-lived identity with a password or access keys. A **role** has no permanent credentials. Someone or something **assumes** the role and gets temporary credentials from AWS STS.
+
+              Prefer roles. Long-lived keys leak, get committed to Git, and are hard to rotate. Temporary credentials expire on their own, usually within hours.
+
+              ### Key ideas
+              - Group: a bundle of users that share policies. Groups cannot be assumed or nested
+              - Role: attach it to an EC2 instance, a Lambda function or an ECS task, and the code gets credentials with no keys to manage
+              - Temporary credentials: an access key, secret and session token that expire
+              - For people, use **IAM Identity Center**. You sign in once and get short-lived credentials for each account
+              - Keep real IAM users for rare cases, like a tool that cannot use roles, and rotate their keys
+
+              ### In practice
+              A Lambda function that reads S3 does not need keys in its code. Give it an execution role with read access to one bucket. The AWS SDK picks up the role credentials by itself.
+
+              ```bash
+              aws sts get-caller-identity
+              ```
+
+              This shows which user or role your CLI is using right now.
             resources:
               - { label: "What is IAM?", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html", kind: docs }
               - { label: "IAM roles (AWS docs)", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html", kind: docs }
+              - { label: "What is IAM Identity Center? (AWS docs)", url: "https://docs.aws.amazon.com/singlesignon/latest/userguide/what-is.html", kind: docs }
           - id: policy-json
             title: Reading policy JSON
             summary: Every policy is a list of statements with an effect, actions, resources and optional conditions.
             learn:
               - Effect, Action, Resource, Condition
               - Explicit deny beats allow
+            body: |
+              An IAM policy is a JSON document. It holds a list of **statements**. Each statement says whether to allow or deny certain actions on certain resources.
+
+              ### Key ideas
+              - **Effect:** `Allow` or `Deny`
+              - **Action:** the API calls, like `s3:GetObject`. Wildcards work, like `s3:*`
+              - **Resource:** what the action applies to, written as an ARN
+              - **Condition:** optional extra rules, such as source IP, tag value or MFA present
+              - Everything is denied by default. An allow opens a door
+              - An **explicit deny** always beats an allow, from any policy
+
+              ### Example
+              This policy lets a user read objects in one bucket, only over HTTPS.
+
+              ```json
+              {
+                "Effect": "Allow",
+                "Action": "s3:GetObject",
+                "Resource": "arn:aws:s3:::my-bucket/*",
+                "Condition": { "Bool": { "aws:SecureTransport": "true" } }
+              }
+              ```
+
+              Note `my-bucket/*` targets objects. The bucket itself is `arn:aws:s3:::my-bucket`. Mixing these up is a classic cause of access denied errors.
             resources:
               - { label: "Policies and permissions in IAM (AWS docs)", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html", kind: docs }
+              - { label: "IAM JSON policy reference (AWS docs)", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies.html", kind: docs }
           - id: least-privilege
             title: Least privilege
             summary: Grant only the actions and resources a person or service needs, and tighten from there.
             learn:
               - Starting from managed policies, then narrowing
               - IAM Access Analyzer for unused access
+            body: |
+              **Least privilege** means giving only the permissions needed, on only the resources needed. A bug or stolen key can then do little damage.
+
+              Writing perfect policies on day one is hard. A practical path is to start from an AWS managed policy, then narrow it as you learn what is actually used.
+
+              ### Key ideas
+              - Start with a managed policy that fits the job, such as read-only for a reporting tool
+              - Replace wildcards in `Action` and `Resource` with the exact values you need
+              - Add conditions where they help, for example limit by tag or region
+              - **IAM Access Analyzer** finds unused roles, unused permissions and access granted to outside accounts
+              - Access Analyzer can also generate a policy from the CloudTrail activity of a role
+              - Review permissions on a schedule, since needs change
+
+              ### In practice
+              1. Give a new role a broad managed policy in a test account
+              2. Run the app for a few days
+              3. Use Access Analyzer to generate a policy from what the role really called
+              4. Review it, then apply it in production
+
+              Never leave `"Action": "*"` and `"Resource": "*"` in place for convenience. It tends to stay forever.
             resources:
               - { label: "IAM security best practices", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html", kind: docs }
+              - { label: "Grant least privilege (AWS docs)", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html#grant-least-privilege", kind: docs }
+              - { label: "What is IAM Access Analyzer? (AWS docs)", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/what-is-access-analyzer.html", kind: docs }
           - id: policy-evaluation
             title: How AWS evaluates a request
             optional: true
@@ -147,6 +369,24 @@ stages:
             learn:
               - The policy evaluation logic
               - Permission boundaries
+            body: |
+              When a request arrives, AWS looks at several policy types and decides allow or deny. The result is one answer.
+
+              The default is deny. A request is allowed only if some policy allows it and nothing denies it.
+
+              ### Key ideas
+              - **Identity policies** attach to users, groups and roles
+              - **Resource policies** attach to the resource, like an S3 bucket policy or a KMS key policy
+              - **Permission boundaries** set the maximum permissions an identity can ever have. They grant nothing alone
+              - **Service control policies (SCPs)** from Organizations set the maximum for a whole account
+              - **Session policies** can narrow a role session further
+              - Order of thinking: explicit deny anywhere means deny. Then the SCP and boundary must allow it. Then an identity or resource policy must allow it
+              - Within one account, a resource policy that names your principal can allow access even without an identity policy. Across accounts, both sides must allow
+
+              ### Common mistakes
+              - Adding an allow when an SCP or boundary is the real blocker
+              - Forgetting the bucket or key policy in a cross-account setup
+              - Not reading the error text. It often names the policy type that denied the call
             resources:
               - { label: "Policy evaluation logic (AWS docs)", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html", kind: docs }
 
@@ -161,9 +401,26 @@ stages:
               - Instance families and sizes
               - AMIs as server templates
               - Burstable instances and CPU credits
+            body: |
+              An EC2 instance type is a size and family of virtual machine. An **AMI** (Amazon Machine Image) is the disk template the instance starts from.
+
+              Take the name `t3.micro`. The letter `t` is the **family**, here general purpose burstable. `3` is the **generation**. `micro` is the **size**. Bigger sizes like `large` and `xlarge` have more CPU and memory.
+
+              ### Key ideas
+              - Families: `t` and `m` general purpose, `c` compute heavy, `r` memory heavy, `i` fast local storage, `g` and `p` GPUs
+              - A letter `g` after the generation, like `t4g`, means an ARM-based Graviton chip. It is often cheaper and fast
+              - An AMI holds the operating system and optional software. Pick Amazon Linux or Ubuntu to start
+              - You can build your own AMI from a configured server and launch copies of it
+              - **Burstable** instances (`t` family) earn CPU credits while idle and spend them when busy. If credits run out, CPU is throttled or you pay extra in unlimited mode
+
+              ### Common mistakes
+              - Running a steady heavy workload on a `t` instance and hitting the credit limit
+              - Picking an x86 AMI for an ARM instance. The architecture must match
             resources:
               - { label: "Amazon EC2 concepts", url: "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts.html", kind: docs }
               - { label: "Amazon EC2 instance types", url: "https://aws.amazon.com/ec2/instance-types/", kind: docs }
+              - { label: "Amazon EC2 instance types (AWS docs)", url: "https://docs.aws.amazon.com/ec2/latest/instancetypes/instance-types.html", kind: docs }
+              - { label: "Burstable performance instances (AWS docs)", url: "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances.html", kind: docs }
           - id: key-pairs-and-security-groups
             title: Key pairs and security groups
             summary: Get into your server safely, and open only the ports your app needs.
@@ -171,24 +428,86 @@ stages:
               - SSH key pairs
               - Security group inbound rules
               - Session Manager instead of open SSH
+            body: |
+              Two things control who can reach your EC2 server: a key pair to log in, and a security group to decide which network traffic gets in.
+
+              An **SSH key pair** has a public key stored on the instance and a private key file you keep. You log in with the private key, with no password. Lose the private key and you cannot get back in this way, so store it safely and never commit it.
+
+              A **security group** is a virtual firewall on the instance. Rules are **inbound** and allow only. Everything not allowed is dropped.
+
+              ### Key ideas
+              - Open only what the app needs: 80 and 443 for a web server
+              - Avoid `0.0.0.0/0` on port 22. Limit SSH to your own IP, or close it
+              - **Session Manager** (part of Systems Manager) gives you a shell through the console or CLI with no open port and no key. Access is controlled by IAM and logged
+              - The instance needs the SSM agent and a role with the right managed policy
+
+              ### In practice
+              Connect without opening SSH:
+
+              ```bash
+              aws ssm start-session --target i-0123456789abcdef0
+              ```
+
+              Then remove the port 22 rule from the security group.
             resources:
               - { label: "Amazon EC2 security groups (AWS docs)", url: "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-security-groups.html", kind: docs }
               - { label: "AWS Systems Manager Session Manager", url: "https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager.html", kind: docs }
+              - { label: "Security groups (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-security-groups.html", kind: docs }
           - id: deploy-app-on-ec2
             title: Deploy an app on EC2
             summary: Install a web server and runtime, pull your code and serve it from a real instance.
             learn:
               - Installing the stack on a fresh instance
               - Elastic IPs and pointing a domain
+            body: |
+              Running an app on EC2 means you build the server yourself. The steps are the same as on any Linux machine.
+
+              ### Key ideas
+              - Launch an instance from an Amazon Linux or Ubuntu AMI, with a security group allowing ports 80 and 443
+              - Log in, then install the stack: a web server like Nginx, your runtime (PHP, Node, Python), and any tools you need
+              - Pull your code with Git, install dependencies and set environment variables
+              - Run the app as a service so it restarts on reboot, for example with `systemd`
+              - A public IP changes when the instance stops and starts. An **Elastic IP** is a fixed address you attach to the instance
+              - Point your domain at the Elastic IP with an A record in DNS
+
+              ### In practice
+              A minimal flow on Ubuntu:
+
+              ```bash
+              sudo apt update && sudo apt install -y nginx
+              git clone https://example.com/me/app.git
+              sudo systemctl enable --now nginx
+              ```
+
+              Then add a TLS certificate. Public IPv4 addresses cost money, including Elastic IPs, so release addresses you do not use.
+
+              For anything beyond a test, put the app behind a load balancer and keep the database off this server.
             resources:
               - post: deploy-laravel-application-to-amazon-ec2-instance
               - post: running-openclaw-on-amazon-ec2-with-claude-and-telegram
+              - { label: "Elastic IP addresses (AWS docs)", url: "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html", kind: docs }
           - id: lightsail
             title: Lightsail as the simple option
             summary: Fixed monthly price, simple console, everything bundled. Good for small apps and first projects.
             learn:
               - Lightsail vs EC2
               - Deploying WordPress or Laravel on Lightsail
+            body: |
+              **Amazon Lightsail** is the simple side of AWS. You pick a plan with a fixed monthly price that bundles a small server, storage and data transfer. The console is simple and has one-click blueprints.
+
+              **EC2** is the full toolbox. It has many instance types, flexible networking and billing by usage, but more choices to learn.
+
+              ### Key ideas
+              - Lightsail: predictable bill, simple setup, good for small sites and learning
+              - EC2: more power and control, many sizes, integrates with the whole of AWS
+              - Lightsail blueprints include WordPress and common stacks, plus plain Linux for your own app
+              - Lightsail also offers managed databases, load balancers and a CDN in simple bundles
+              - Lightsail runs in its own simple network. You can peer it with a normal VPC if you need to
+
+              ### Example
+              To run Laravel on Lightsail, create a Linux instance, install PHP, a web server and Composer, deploy the code, then attach a static IP and set up DNS. A WordPress blueprint skips most of that and gives you a working site in minutes.
+
+              When you outgrow it, you can move to EC2 using a snapshot.
             resources:
               - { label: "What is Amazon Lightsail?", url: "https://docs.aws.amazon.com/lightsail/latest/userguide/what-is-amazon-lightsail.html", kind: docs }
               - post: deploy-wordpress-app-to-amazon-lightsail
@@ -200,6 +519,21 @@ stages:
             learn:
               - Instance and disk snapshots
               - Moving from Lightsail to EC2
+            body: |
+              A **snapshot** is a point-in-time backup. It is the quickest way to save a server before a risky change, or to copy it somewhere else.
+
+              ### Key ideas
+              - **Instance snapshot** (Lightsail): saves the whole server, with its system disk and any attached disks
+              - **Disk snapshot:** saves one disk. On EC2 this is an EBS snapshot
+              - Snapshots are stored incrementally. Later ones only store changed blocks
+              - Restore a snapshot by creating a new instance or volume from it. The old one is not changed
+              - You pay for snapshot storage, so delete old ones you do not need
+              - Automatic daily snapshots can be turned on in Lightsail. On EC2 use Data Lifecycle Manager or AWS Backup
+
+              ### In practice
+              To move from Lightsail to EC2, take an instance snapshot, then export it to EC2 from the Lightsail console. Lightsail converts it to an EC2 AMI and you launch an instance from that. After checking it works, point DNS at the new server and delete the old one.
+
+              Test a restore before you need it. A backup you have never restored is only a hope.
             resources:
               - post: snapshot-restore-of-lightsail-instance-to-lightsail-ec2
               - { label: "Amazon EBS snapshots (AWS docs)", url: "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-snapshots.html", kind: docs }
@@ -214,6 +548,29 @@ stages:
             learn:
               - Buckets and object keys
               - Uploading and downloading with the CLI
+            body: |
+              **S3** stores files as **objects** inside **buckets**. A bucket is a container with a globally unique name. An object is the file plus its metadata, found by its **key**.
+
+              S3 is flat. There are no real folders. A key like `photos/2026/cat.jpg` is one string. The console shows `photos/` as a folder because of the slashes, which are called a **prefix**.
+
+              ### Key ideas
+              - Bucket names are unique across all of AWS, and the bucket lives in one region
+              - Object key: the full name, including any prefix
+              - Objects can be up to 5 TB. Use multipart upload for big files
+              - S3 gives strong read-after-write consistency, so a new object is readable at once
+              - S3 is not a file system you can edit in place. You replace whole objects
+
+              ### In practice
+              Use the CLI to upload, list and download.
+
+              ```bash
+              aws s3 cp report.pdf s3://my-bucket/reports/report.pdf
+              aws s3 ls s3://my-bucket/reports/
+              aws s3 sync ./site s3://my-bucket/site
+              aws s3 cp s3://my-bucket/reports/report.pdf .
+              ```
+
+              `sync` copies only changed files. Add `--delete` to remove files in the bucket that no longer exist locally, and be careful with it.
             resources:
               - { label: "What is Amazon S3?", url: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html", kind: docs }
           - id: block-public-access
@@ -222,6 +579,23 @@ stages:
             learn:
               - Block Public Access settings
               - Bucket policies
+            body: |
+              Many data leaks come from an S3 bucket that was made public by mistake. AWS gives you a safety switch for this: **Block Public Access**.
+
+              Block Public Access has four settings that stop public ACLs and public bucket policies. It can be set on a bucket and on the whole account. New buckets have it on by default.
+
+              ### Key ideas
+              - Keep all four Block Public Access settings on, at account level too
+              - A **bucket policy** is a resource policy that says who can access the bucket. Keep it narrow
+              - Public websites should not read from a public bucket. Serve them through CloudFront with a private bucket
+              - Turn off ACLs with the "bucket owner enforced" setting. Control access with policies instead
+              - Use **Access Analyzer for S3** to see which buckets are public or shared with other accounts
+              - S3 encrypts new objects by default
+
+              ### Common mistakes
+              - Turning off Block Public Access to "make it work" and leaving it off
+              - Writing a bucket policy with `"Principal": "*"` and no conditions
+              - Putting sensitive files in the same bucket as public assets
             resources:
               - { label: "Blocking public access to S3 (AWS docs)", url: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html", kind: docs }
           - id: presigned-urls
@@ -230,6 +604,25 @@ stages:
             learn:
               - Generating a presigned URL on the server
               - Direct browser uploads for big files
+            body: |
+              A **presigned URL** gives temporary access to one S3 object without making the bucket public. Your server signs a URL using its own credentials. Whoever holds the URL can do that one action until it expires.
+
+              This is the standard way to let a browser upload or download files directly, without sending the bytes through your server.
+
+              ### Key ideas
+              - The URL is made for one method and one object: GET to download, PUT to upload
+              - It expires after the time you set. Role credentials end when the role session ends, which can cut the URL's life short
+              - The signer's permissions limit what the URL can do
+              - For uploads, the browser sends the file straight to S3. This saves your server bandwidth and avoids timeouts on big files
+              - For very large files, use multipart upload with a presigned URL for each part
+              - Anyone who gets the link can use it, so keep expiry short
+
+              ### Example
+              A user asks to upload an avatar. Your server checks they are logged in, creates a PUT URL for `avatars/user-42.jpg` valid for five minutes, and returns it. The browser uploads straight to S3.
+
+              ```bash
+              aws s3 presign s3://my-bucket/report.pdf --expires-in 300
+              ```
             resources:
               - post: why-s3-presigned-urls
               - { label: "Sharing objects with presigned URLs (AWS docs)", url: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/ShareObjectPreSignedURL.html", kind: docs }
@@ -240,9 +633,34 @@ stages:
             learn:
               - Standard, Infrequent Access, Glacier
               - Lifecycle transitions and expiry
+            body: |
+              S3 has several **storage classes**. Hot data sits in fast, higher-priced classes. Cold data sits in cheaper classes that cost more to read or take longer to fetch.
+
+              ### Key ideas
+              - **Standard:** frequent access, no retrieval fee
+              - **Standard-IA** (Infrequent Access) and One Zone-IA: lower storage price, a retrieval fee, and a minimum storage time
+              - **Intelligent-Tiering:** moves objects between tiers for you when access changes
+              - **Glacier** classes: very cheap archive storage. Retrieval can take minutes to hours, depending on the class
+              - A **lifecycle rule** moves objects to another class after some days, or deletes them after some days
+              - Lifecycle rules can also clean up incomplete multipart uploads and old versions
+
+              ### In practice
+              Application logs: keep 30 days in Standard, move to Glacier after that, delete after a year. You set this once on the bucket, filtered by prefix like `logs/`.
+
+              ```yaml
+              Rules:
+                - ID: archive-logs
+                  Filter: { Prefix: logs/ }
+                  Status: Enabled
+                  Transitions: [{ Days: 30, StorageClass: GLACIER }]
+                  Expiration: { Days: 365 }
+              ```
+
+              Check minimum storage durations and object size minimums before moving many small files.
             resources:
               - { label: "Amazon S3 storage classes", url: "https://aws.amazon.com/s3/storage-classes/", kind: docs }
               - { label: "Managing the lifecycle of objects (AWS docs)", url: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html", kind: docs }
+              - { label: "Amazon S3 storage classes (AWS docs)", url: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html", kind: docs }
 
       - id: managed-databases
         title: Managed databases (RDS)
@@ -254,6 +672,23 @@ stages:
             learn:
               - Managed backups and patching
               - Engines RDS supports
+            body: |
+              You can install a database on an EC2 instance, or use **Amazon RDS**, where AWS runs it for you. RDS does the routine work and you keep the data and the schema.
+
+              ### Key ideas
+              - RDS handles backups, patching, failover setup and monitoring
+              - With a database on EC2, you do all of that yourself, and also manage the disks and the OS
+              - RDS engines: MySQL, PostgreSQL, MariaDB, Oracle, SQL Server and Db2. Aurora is a related AWS-built engine compatible with MySQL and PostgreSQL
+              - A **Multi-AZ** setup keeps a standby in another zone and fails over on its own
+              - **Read replicas** spread read traffic
+              - You give up some control: no OS access, limited server settings, and some extensions are not allowed
+
+              ### Common mistakes
+              - Choosing EC2 for a database "to save money" and then losing time on patching and backups
+              - Choosing RDS and expecting it to scale writes forever on one instance
+              - Forgetting RDS instances are billed while running, even if idle
+
+              For most apps, RDS is the sensible default. Self-managing makes sense when you need unusual extensions or settings.
             resources:
               - { label: "What is Amazon RDS?", url: "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html", kind: docs }
               - post: add-database-to-application-hosted-in-amazon-lightsail
@@ -263,6 +698,28 @@ stages:
             learn:
               - Backup retention and point-in-time recovery
               - Testing a restore
+            body: |
+              RDS has two kinds of backup. **Automated backups** run daily and keep transaction logs, so you can restore to any second inside the retention window. **Manual snapshots** are taken when you ask and stay until you delete them.
+
+              ### Key ideas
+              - Retention for automated backups is 0 to 35 days. Setting it to 0 turns them off
+              - **Point-in-time recovery** restores to a time you pick, within the window
+              - Automated backups are deleted with the database, unless you choose to keep them on delete
+              - Manual snapshots survive after you delete the instance. They also cost storage until removed
+              - A restore always creates a **new** database instance with a new endpoint. You then switch your app over
+              - Snapshots can be copied to another region or shared with another account for safety
+
+              ### In practice
+              Before deleting a database, take a final snapshot. Restore it and confirm the data is there.
+
+              ```bash
+              aws rds restore-db-instance-to-point-in-time \
+                --source-db-instance-identifier prod-db \
+                --target-db-instance-identifier prod-db-restore \
+                --restore-time 2026-11-15T10:00:00Z
+              ```
+
+              Run a restore drill regularly. A backup that fails to restore is not a backup.
             resources:
               - { label: "Backing up and restoring (Amazon RDS docs)", url: "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_CommonTasks.BackupRestore.html", kind: docs }
           - id: private-database
@@ -271,8 +728,26 @@ stages:
             learn:
               - Public accessibility off
               - Security group from the app only
+            body: |
+              A database should not be open to the internet. Put it in **private subnets** and let only your app servers reach it.
+
+              ### Key ideas
+              - Set **Publicly accessible** to No when you create the RDS instance. Then it gets no public IP
+              - Place it in a DB subnet group made of private subnets in at least two AZs
+              - Give the database its own security group
+              - Allow inbound on the database port (3306 for MySQL, 5432 for PostgreSQL) only **from the app's security group**, not from an IP range
+              - To reach it from your laptop, use Session Manager port forwarding, a bastion host or a VPN, not a public endpoint
+              - Add encryption at rest and require TLS for connections
+
+              ### Example
+              The app runs in a security group named `app-sg`. The database security group has one inbound rule: TCP 5432 from `app-sg`. A new app server added to `app-sg` can connect at once. Nothing else can, even from inside the VPC.
+
+              ### Common mistakes
+              - Opening port 5432 to `0.0.0.0/0` for "quick testing"
+              - Using a public subnet for the database
             resources:
               - { label: "Security in Amazon RDS (AWS docs)", url: "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.html", kind: docs }
+              - { label: "Working with a DB instance in a VPC (AWS docs)", url: "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.WorkingWithRDSInstanceinaVPC.html", kind: docs }
           - id: elasticache-redis
             title: Caching with ElastiCache
             optional: true
@@ -280,6 +755,29 @@ stages:
             learn:
               - When a cache helps
               - Connecting an app to ElastiCache
+            body: |
+              **Amazon ElastiCache** runs Redis OSS or Valkey (and Memcached) for you. A cache keeps data in memory, so reads take well under a millisecond instead of a trip to the database.
+
+              ### Key ideas
+              - A cache helps when the same data is read often and changes rarely: sessions, rate limit counters, computed pages, hot rows
+              - It also works as a fast store for queues and locks
+              - Cached data can be lost. The database stays the source of truth
+              - Set a **TTL** (time to live) so stale data expires
+              - Valkey is an open source fork of Redis and is usually cheaper on ElastiCache. Clients speak the same protocol
+              - Run it in private subnets, with a security group that allows the cache port (6379) only from your app
+              - ElastiCache has no public endpoint. Your app must run inside the VPC
+
+              ### In practice
+              In Laravel, point the cache and session drivers at the cluster endpoint.
+
+              ```bash
+              CACHE_STORE=redis
+              SESSION_DRIVER=redis
+              REDIS_HOST=my-cache.abc123.use1.cache.amazonaws.com
+              REDIS_SCHEME=tls
+              ```
+
+              Turn on in-transit encryption and use the TLS scheme.
             resources:
               - post: connect-redis-elasticache-to-application-in-amazon-lightsail-instance
               - { label: "What is Amazon ElastiCache?", url: "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/WhatIs.html", kind: docs }
@@ -294,14 +792,44 @@ stages:
             learn:
               - Public hosted zones
               - Alias records vs CNAME
+            body: |
+              **Route 53** is the AWS DNS service. A **hosted zone** holds the DNS records for one domain. You create a public zone for a domain, then point your registrar's name servers at the four NS values Route 53 gives you.
+
+              ### Key ideas
+              - Public hosted zone: answers DNS for the internet. A private one answers only inside chosen VPCs
+              - Records: A (IPv4), AAAA (IPv6), CNAME (alias to another name), MX (mail), TXT (text, verification)
+              - A **CNAME** cannot sit at the zone apex, the bare `example.com`
+              - An **alias record** is a Route 53 feature. It points a name at an AWS resource like CloudFront, an ALB or an S3 website. It works at the apex and queries to it are free
+              - Prefer alias over CNAME for AWS targets
+              - Lower TTLs before a migration so changes spread fast
+
+              ### In practice
+              To send `example.com` to a load balancer, create an A record, turn on Alias, choose the ALB from the list, and save. Do the same with type AAAA for IPv6 if the target supports it.
+
+              A hosted zone costs a small monthly fee, plus a charge per million queries.
             resources:
               - { label: "What is Amazon Route 53?", url: "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/Welcome.html", kind: docs }
+              - { label: "Working with hosted zones (AWS docs)", url: "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/hosted-zones-working-with.html", kind: docs }
+              - { label: "Choosing between alias and non-alias records (AWS docs)", url: "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-choosing-alias-non-alias.html", kind: docs }
           - id: acm-certificates
             title: TLS certificates with ACM
             summary: Free public certificates that renew themselves, for CloudFront and load balancers.
             learn:
               - DNS validation
               - Why CloudFront certificates live in us-east-1
+            body: |
+              **AWS Certificate Manager (ACM)** issues TLS certificates for HTTPS. Public certificates are free when used with integrated services, and ACM renews them for you.
+
+              ### Key ideas
+              - You can attach ACM certificates to CloudFront, ALB, NLB, API Gateway and some other services. You cannot export a public ACM certificate for use on your own server
+              - ACM proves you own the domain by **validation**
+              - **DNS validation** adds a CNAME record. If the zone is in Route 53, ACM can add it for you. Renewal keeps working as long as the record stays
+              - **Email validation** is older and needs someone to click a link. Avoid it
+              - A wildcard certificate such as `*.example.com` covers all first-level subdomains
+              - A certificate used by a regional service must be in the same region as that service
+
+              ### Why us-east-1
+              CloudFront is a global service, and it reads its certificates from **us-east-1**. To use a custom domain on CloudFront, request the certificate in us-east-1, whatever region your app runs in. An ALB in `eu-west-1` needs its certificate in `eu-west-1`.
             resources:
               - { label: "What is AWS Certificate Manager?", url: "https://docs.aws.amazon.com/acm/latest/userguide/acm-overview.html", kind: docs }
           - id: cloudfront-origins-caching
@@ -310,9 +838,25 @@ stages:
             learn:
               - Origins and behaviors
               - Cache policies and invalidations
+            body: |
+              **CloudFront** is the AWS CDN. It keeps copies of your content at edge locations around the world. Users get responses from a nearby server instead of your origin.
+
+              ### Key ideas
+              - An **origin** is where CloudFront fetches content: an S3 bucket, a load balancer or any HTTP server
+              - A **distribution** is one CloudFront setup, with its own domain name
+              - **Behaviors** match URL paths, like `/images/*` or the default `*`, and decide the origin and caching rules for each
+              - A **cache policy** sets which headers, cookies and query strings are part of the cache key, and the TTLs
+              - Static files can be cached for a long time. Dynamic pages need short TTLs or none
+              - An **invalidation** removes cached files before their TTL ends. A limited number of paths each month is free, then it costs money
+
+              ### In practice
+              Version your file names, like `app.3f2a1b.js`. A new build gets a new name, so you never need to invalidate. Cache them for a year. For HTML, keep the TTL short, or use `Cache-Control` headers from your app.
+
+              Compression, HTTP/3 and TLS are on by default and need little setup.
             resources:
               - { label: "What is Amazon CloudFront?", url: "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Introduction.html", kind: docs }
               - post: add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail
+              - { label: "Understanding the cache key (AWS docs)", url: "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/understanding-the-cache-key.html", kind: docs }
           - id: cloudfront-s3-oac
             title: Private S3 behind CloudFront
             optional: true
@@ -320,6 +864,23 @@ stages:
             learn:
               - Origin access control
               - Bucket policy for CloudFront only
+            body: |
+              If your files are in S3, you can keep the bucket **private** and still serve it through CloudFront. **Origin access control (OAC)** lets CloudFront sign its requests to S3 with its own identity.
+
+              ### Key ideas
+              - Create an OAC and attach it to the S3 origin of your distribution
+              - Keep Block Public Access on for the bucket
+              - Add a bucket policy that allows the CloudFront service principal, limited to your distribution by its ARN
+              - Requests straight to the S3 URL fail. Only CloudFront can read the bucket
+              - This forces all traffic through the CDN, so your caching, WAF rules and logging cannot be skipped
+              - OAC replaces the older origin access identity (OAI) and supports newer features such as SSE-KMS
+
+              ### Example
+              The bucket policy allows `cloudfront.amazonaws.com` to run `s3:GetObject` on `arn:aws:s3:::my-bucket/*`, with a condition that `AWS:SourceArn` equals your distribution ARN. The console can generate this policy for you when you pick OAC.
+
+              ### Common mistakes
+              - Using a public bucket website endpoint as the origin, which needs the bucket to be public
+              - Forgetting the bucket policy, which gives 403 errors
             resources:
               - { label: "Restricting access to an S3 origin (AWS docs)", url: "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html", kind: docs }
 
@@ -337,9 +898,30 @@ stages:
               - CIDR ranges for a VPC
               - Route tables
               - One subnet of each kind per AZ
+            body: |
+              A **VPC** is your own private network in AWS. You split it into **subnets**, each living in one availability zone. What makes a subnet public or private is its **route table**.
+
+              A subnet is **public** when its route table sends internet traffic (`0.0.0.0/0`) to an **internet gateway**. A subnet with no such route is **private**.
+
+              ### Key ideas
+              - A VPC gets a **CIDR range**, such as `10.0.0.0/16`. Subnets take smaller slices, like `10.0.1.0/24`
+              - Pick ranges that do not overlap with other networks you may connect later
+              - Route tables list where traffic goes. Each subnet uses one
+              - Public subnets hold things that must face the internet: load balancers and NAT gateways
+              - Private subnets hold app servers and databases
+              - Make one public and one private subnet in each AZ you use, so each zone can work alone
+
+              ### Example
+              VPC `10.0.0.0/16`, two zones:
+              - `10.0.1.0/24` public in zone a, `10.0.2.0/24` public in zone b
+              - `10.0.11.0/24` private in zone a, `10.0.12.0/24` private in zone b
+
+              Only the public route table has the internet gateway route.
             resources:
               - { label: "What is Amazon VPC?", url: "https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html", kind: docs }
               - { label: "How the Internet Works roadmap", url: "https://harun.dev/roadmaps/internet-networking", kind: course }
+              - { label: "How Amazon VPC works (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/how-it-works.html", kind: docs }
+              - { label: "Route tables (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html", kind: docs }
           - id: internet-and-nat-gateways
             title: Internet and NAT gateways
             summary: Inbound and outbound for public subnets, outbound only for private ones, and what NAT costs.
@@ -347,18 +929,51 @@ stages:
               - Internet gateway
               - NAT gateway per AZ
               - VPC endpoints to skip NAT for AWS services
+            body: |
+              An **internet gateway (IGW)** connects a VPC to the internet in both directions. A resource in a public subnet needs a public IP and a route to the IGW to be reachable.
+
+              Private resources often still need to reach out, for updates or third-party APIs. A **NAT gateway** does that. It sits in a public subnet. Private subnets route `0.0.0.0/0` to it. It lets traffic out and replies in, but allows no new connections from outside.
+
+              ### Key ideas
+              - IGW: two-way, free to attach
+              - NAT gateway: outbound only, billed per hour plus per GB processed
+              - Put one NAT gateway in each AZ. If one NAT serves several zones and its zone fails, the others lose internet, and you pay cross-AZ transfer
+              - **VPC endpoints** reach AWS services without going through NAT
+              - A **gateway endpoint** for S3 and DynamoDB is free
+              - An **interface endpoint** (PrivateLink) works for most other services and has an hourly and data cost
+
+              ### Common mistakes
+              - Sending large S3 traffic through NAT and paying per GB. Add a gateway endpoint instead
+              - Running a NAT gateway in a test account and forgetting it, since it bills hourly
             resources:
               - { label: "NAT gateways (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html", kind: docs }
               - { label: "AWS PrivateLink and VPC endpoints (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/privatelink/what-is-privatelink.html", kind: docs }
+              - { label: "Gateway endpoints (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/privatelink/gateway-endpoints.html", kind: docs }
           - id: sg-vs-nacl
             title: Security groups vs network ACLs
             summary: Stateful rules on each resource vs stateless rules on each subnet.
             learn:
               - Stateful vs stateless
               - Referencing one security group from another
+            body: |
+              A VPC has two firewalls. **Security groups** guard each resource. **Network ACLs (NACLs)** guard each subnet.
+
+              ### Key ideas
+              - Security group: **stateful**. If an inbound request is allowed, the reply goes out automatically
+              - NACL: **stateless**. You must allow the traffic in each direction, including reply ports
+              - Security groups only have allow rules. NACLs have allow and deny rules, checked in number order
+              - Security groups apply to network interfaces. NACLs apply to every resource in a subnet
+              - A security group rule can name **another security group** as the source. Then any resource in that group is allowed, whatever its IP
+              - The default NACL allows all traffic. Many setups never change it
+
+              ### In practice
+              Use security groups for almost everything. Chain them: the load balancer group accepts 443 from anywhere, the app group accepts the app port only from the load balancer group, and the database group accepts its port only from the app group.
+
+              Reach for a NACL when you need an explicit deny, such as blocking a bad IP range for a whole subnet.
             resources:
               - { label: "Control traffic with security groups (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-security-groups.html", kind: docs }
               - { label: "Network ACLs (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-network-acls.html", kind: docs }
+              - { label: "Compare security groups and network ACLs (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/infrastructure-security.html#VPC_Security_Comparison", kind: docs }
           - id: connecting-vpcs
             title: Connecting VPCs
             optional: true
@@ -366,6 +981,21 @@ stages:
             learn:
               - VPC peering limits
               - Transit Gateway hubs
+            body: |
+              Separate VPCs can talk over private IPs when you connect them. The right tool depends on how many networks you have.
+
+              ### Key ideas
+              - **VPC peering** is a one-to-one link between two VPCs, in the same or different accounts and regions. It is simple and cheap
+              - Peering is **not transitive**. If A peers with B and B with C, A cannot reach C through B
+              - CIDR ranges of peered VPCs must not overlap
+              - Many VPCs means many peerings. It becomes hard to manage
+              - **Transit Gateway** is a hub. Each VPC connects to it once, and it routes between them. It also connects VPNs and on-premises networks. It has hourly and per GB costs
+              - **VPC Lattice** connects services, not networks. You publish a service and control who can call it, without handling routes and CIDRs
+
+              ### In practice
+              Two VPCs: use peering. Five to dozens, or hybrid with an office network: use Transit Gateway. Many teams exposing services to each other across accounts: look at VPC Lattice.
+
+              Remember to update route tables and security groups on both sides after you connect.
             resources:
               - { label: "What is a transit gateway? (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/tgw/what-is-transit-gateway.html", kind: docs }
               - { label: "What is VPC peering? (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html", kind: docs }
@@ -380,6 +1010,22 @@ stages:
             learn:
               - Layer 7 vs layer 4
               - Listeners and rules
+            body: |
+              Elastic Load Balancing has several types. Two matter most.
+
+              The **Application Load Balancer (ALB)** works at layer 7. It understands HTTP and HTTPS and routes by what is in the request. The **Network Load Balancer (NLB)** works at layer 4. It passes TCP, UDP and TLS traffic through very fast.
+
+              ### Key ideas
+              - ALB routes by host name, path, header or query string
+              - ALB can send traffic to Lambda, containers and instances. It supports WebSockets, redirects and authentication with OIDC
+              - NLB gives very high throughput and low latency, and static IPs per zone
+              - NLB suits non-HTTP protocols, or cases where you need fixed IPs
+              - A **listener** waits on a port and protocol, like HTTPS on 443
+              - Listener **rules** match conditions and send the request to a target group
+              - ALBs work well with AWS WAF. Attaching WAF to an NLB is not an option
+
+              ### Example
+              One ALB listener on 443 with two rules: `/api/*` goes to the API target group, and everything else goes to the web target group. That is two services behind one domain and one certificate.
             resources:
               - { label: "What is an Application Load Balancer?", url: "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html", kind: docs }
               - { label: "What is a Network Load Balancer?", url: "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/introduction.html", kind: docs }
@@ -389,6 +1035,24 @@ stages:
             learn:
               - Registering targets
               - Healthy and unhealthy thresholds
+            body: |
+              A **target group** is the list of things a load balancer can send traffic to. Targets can be EC2 instances, IP addresses, Lambda functions or containers. A listener rule points at a target group.
+
+              The load balancer checks each target on a schedule. It sends traffic only to **healthy** ones.
+
+              ### Key ideas
+              - Register targets by hand, or let Auto Scaling or ECS register and remove them
+              - A **health check** is an HTTP request to a path, like `/health`, with an expected status code such as 200
+              - **Healthy threshold:** how many passes in a row make a target healthy
+              - **Unhealthy threshold:** how many failures in a row take it out of rotation
+              - Set interval and timeout to fit your app's start time
+              - Make `/health` cheap and honest. If it checks the database, a database blip can mark every target unhealthy at once
+              - **Deregistration delay** lets in-flight requests finish before a target is removed
+
+              ### Common mistakes
+              - A health check path that needs a login and returns 302 or 401
+              - A security group on the targets that blocks the load balancer
+              - A start time longer than the checks allow, so new instances are killed in a loop
             resources:
               - { label: "Target group health checks (AWS docs)", url: "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html", kind: docs }
               - post: add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances
@@ -398,8 +1062,23 @@ stages:
             learn:
               - Launch templates
               - Target tracking policies
+            body: |
+              An **Auto Scaling group (ASG)** keeps a fleet of EC2 instances at the size you want. It replaces instances that fail and adds or removes them as load changes.
+
+              ### Key ideas
+              - A **launch template** says how to build each instance: AMI, type, key, security groups, user data, role
+              - Set a **minimum**, **desired** and **maximum** size
+              - Spread the group across at least two AZs. It rebalances if one zone fails
+              - Attach the group to a load balancer target group. The ASG can then use load balancer health checks to replace bad instances
+              - **Target tracking** is the simplest scaling policy. You choose a metric and a target, like average CPU at 50 percent. AWS adds and removes instances to hold it
+              - **Scheduled** scaling suits known peaks. **Step** scaling reacts in stages
+              - Use warm-up and cooldown settings so new instances get time to start
+
+              ### In practice
+              Bake your app into an AMI, or use user data to install it at launch. Instances should be disposable, with no local state, because the group will delete them when it scales in.
             resources:
               - { label: "What is Amazon EC2 Auto Scaling?", url: "https://docs.aws.amazon.com/autoscaling/ec2/userguide/what-is-amazon-ec2-auto-scaling.html", kind: docs }
+              - { label: "Target tracking scaling policies (AWS docs)", url: "https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-scaling-target-tracking.html", kind: docs }
 
       - id: lambda-serverless
         title: Lambda and serverless
@@ -411,26 +1090,79 @@ stages:
             learn:
               - Synchronous vs asynchronous invokes
               - Event source mappings
+            body: |
+              A Lambda function does nothing until an **event** runs it. The event comes from a **trigger**: an HTTP request, a file landing in S3, a message in a queue, a schedule, and many more.
+
+              ### Key ideas
+              - **Synchronous invoke:** the caller waits for the result. API Gateway and ALB work this way. Errors go back to the caller, who must retry
+              - **Asynchronous invoke:** Lambda queues the event and returns at once. S3 and EventBridge work this way. Lambda retries failures and can send failed events to a dead-letter queue or a failure destination
+              - **Event source mapping:** Lambda polls a source for you and calls the function with batches. It is used for SQS, Kinesis, DynamoDB Streams and Kafka
+              - With SQS, a failed batch returns to the queue. Use partial batch responses so one bad message does not repeat the whole batch
+              - The event is JSON. Its shape depends on the source, so read the docs for the trigger
+
+              ### Example
+              An image uploaded to S3 triggers a function asynchronously. The function creates a thumbnail and writes it to another bucket. Use a different bucket or prefix, or the function triggers itself in a loop.
             resources:
               - { label: "What is AWS Lambda?", url: "https://docs.aws.amazon.com/lambda/latest/dg/welcome.html", kind: docs }
+              - { label: "Invoking Lambda functions (AWS docs)", url: "https://docs.aws.amazon.com/lambda/latest/dg/lambda-invocation.html", kind: docs }
           - id: api-gateway
             title: HTTP APIs with API Gateway
             summary: Put an HTTPS endpoint in front of your functions and build a whole backend on it.
             learn:
               - HTTP APIs vs REST APIs
               - One function per route vs one app function
+            body: |
+              **API Gateway** puts a public HTTPS endpoint in front of your Lambda functions. It handles routing, throttling, auth and TLS, so you do not run servers.
+
+              ### Key ideas
+              - **HTTP APIs** are cheaper and faster, with the features most apps need: JWT auth, CORS, routes to Lambda or other HTTP backends
+              - **REST APIs** cost more but add features such as API keys with usage plans, request validation, caching and WAF
+              - Start with HTTP API unless you need a REST-only feature
+              - A route like `GET /users/{id}` maps to an integration, usually a Lambda function
+              - Option one: **one function per route**. Small functions, tight permissions, more pieces to deploy
+              - Option two: **one app function** with a catch-all route and a router inside, as a framework does. Simpler to deploy, a larger function and cold start
+              - Both have a payload limit of about 10 MB
+
+              ### In practice
+              For a small backend, one function per resource group (users, orders) is a fair middle path. Add a Lambda authorizer or JWT authorizer so unauthenticated calls never reach your code.
             resources:
               - { label: "What is Amazon API Gateway?", url: "https://docs.aws.amazon.com/apigateway/latest/developerguide/welcome.html", kind: docs }
               - post: how-i-architected-a-fully-serverless-saas-on-aws-lambda-with-fastify
+              - { label: "Choose between REST APIs and HTTP APIs (AWS docs)", url: "https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html", kind: docs }
           - id: frameworks-on-lambda
             title: Running a web framework on Lambda
             summary: Run a full Laravel or Node app on Lambda without rewriting it.
             learn:
               - Bref for PHP
               - Packaging and deploying with Terraform
+            body: |
+              You do not have to rewrite an app to run it on Lambda. Tools adapt frameworks to the Lambda event model.
+
+              ### Key ideas
+              - **Bref** runs PHP on Lambda, including Laravel and Symfony. It provides PHP runtime layers and a handler that turns API Gateway events into normal PHP requests
+              - For Node, adapters exist for Express and other frameworks, or you can use the Lambda Web Adapter, which lets a normal web server run unchanged
+              - The app is packaged as a zip or a container image, up to the size limits
+              - Lambda disk is read-only apart from `/tmp`. Send logs to stdout, sessions and cache to a database or Redis, and files to S3
+              - Deploy with Serverless Framework, SAM, or **Terraform**
+
+              ### In practice
+              With Terraform, define the function, the HTTP API, a route to the function and the permission that lets API Gateway invoke it.
+
+              ```hcl
+              resource "aws_lambda_function" "app" {
+                function_name = "laravel-app"
+                runtime       = "provided.al2023"
+                handler       = "public/index.php"
+                filename      = "app.zip"
+                role          = aws_iam_role.app.arn
+              }
+              ```
+
+              Note that layers add the PHP runtime, so list them in the resource too.
             resources:
               - post: serverless-laravel-on-aws-lambda-with-bref-and-terraform
               - { label: "Bref", url: "https://bref.sh/", kind: docs }
+              - { label: "Bref documentation", url: "https://bref.sh/docs/", kind: docs }
           - id: lambda-limits
             title: Cold starts, timeouts and limits
             summary: Know the hard limits before you hit them in production.
@@ -438,9 +1170,23 @@ stages:
               - The 15-minute timeout
               - Memory, payload and concurrency limits
               - What a cold start costs
+            body: |
+              Lambda is flexible, but it has hard limits. Knowing them early stops you from picking it for the wrong job.
+
+              ### Key ideas
+              - **Timeout:** at most 15 minutes per run. Longer jobs need another tool, like ECS, Step Functions or batch processing
+              - **Memory:** 128 MB to 10,240 MB. CPU grows with memory
+              - **Payload:** about 6 MB for a synchronous request or response, and 1 MB for asynchronous. Pass large data through S3
+              - **Concurrency:** the account has a default regional limit on running copies of functions, which you can raise. Reserved concurrency can protect or cap one function
+              - **/tmp:** temporary storage, 512 MB by default and configurable up to 10 GB
+              - A **cold start** is the delay when Lambda creates a new execution environment. It adds time to the first request, from tens of milliseconds to a few seconds, depending on runtime and package size
+
+              ### In practice
+              Cut cold starts by shipping a small package, choosing a fast runtime and keeping initialisation light. Provisioned concurrency keeps environments warm, at a cost. Always set a timeout slightly above normal runtime, not the maximum, so a hung call fails fast.
             resources:
               - { label: "Lambda quotas (AWS docs)", url: "https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html", kind: docs }
               - post: lambda-snapstart-terraform-cold-starts
+              - { label: "Understanding the Lambda execution environment lifecycle (AWS docs)", url: "https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtime-environment.html", kind: docs }
           - id: lambda-websockets
             title: WebSockets on Lambda
             optional: true
@@ -448,9 +1194,24 @@ stages:
             learn:
               - Connect, message and disconnect routes
               - Storing connection ids
+            body: |
+              Lambda cannot hold a connection open by itself. **API Gateway WebSocket APIs** keep the connection to the client open, and call Lambda for each event.
+
+              ### Key ideas
+              - Three standard routes: `$connect` when a client connects, `$disconnect` when it leaves, and `$default` or custom routes for messages
+              - Routes are chosen by a field in the message JSON, using a route selection expression such as `$request.body.action`
+              - Each connection has a **connection id**
+              - Store connection ids in a database like DynamoDB on connect, and remove them on disconnect
+              - To push data to a client, a function calls the API Gateway management API with the connection id
+              - Authenticate during `$connect`, since messages after that are not re-checked by default
+              - Connections last at most a couple of hours and idle ones time out, so clients must reconnect
+
+              ### Example
+              A chat app: `$connect` saves the id in DynamoDB. A `sendMessage` route reads all ids for the room and posts the message to each. `$disconnect` deletes the id. Handle stale ids, since posting to a closed connection returns an error.
             resources:
               - post: real-time-ai-chat-with-lambda-api-gateway-websockets
               - { label: "WebSocket APIs in API Gateway (AWS docs)", url: "https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api.html", kind: docs }
+              - { label: "About WebSocket APIs in API Gateway (AWS docs)", url: "https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-websocket-api-overview.html", kind: docs }
           - id: multi-tenant-serverless
             title: Multi-tenant SaaS on Lambda
             optional: true
@@ -458,9 +1219,25 @@ stages:
             learn:
               - Tenant-aware auth
               - Billing with Stripe webhooks
+            body: |
+              A **multi-tenant** SaaS serves many customers (tenants) from the same code and infrastructure. On Lambda, the hard parts are knowing which tenant a request belongs to, keeping tenants apart, and billing each one.
+
+              ### Key ideas
+              - **Tenant-aware auth:** put the tenant id into the login token, for example a claim in the JWT. Check it on every request, never trust an id sent in the body
+              - **Isolation:** the simplest model is a shared table with a `tenant_id` in every key and every query. Stronger isolation uses separate tables, or separate accounts for large customers
+              - IAM conditions and the tenant id in the key can limit a function's access to one tenant's data
+              - Add the tenant id to logs and metrics so you can see cost and errors per tenant
+              - **Billing with Stripe:** Stripe sends **webhooks** for payments, renewals and failures. A Lambda behind API Gateway receives them
+              - Verify the webhook signature, and make handling idempotent, since events can arrive more than once
+
+              ### Common mistakes
+              - Forgetting the tenant filter in one query, which leaks data between customers
+              - Trusting the webhook without checking its signature
+              - One noisy tenant using all concurrency. Use throttling per tenant or plan
             resources:
               - post: multi-tenant-saas-auth-lambda-fastify
               - post: multi-tenant-billing-aws-lambda-stripe
+              - { label: "SaaS Lens (Well-Architected)", url: "https://docs.aws.amazon.com/wellarchitected/latest/saas-lens/saas-lens.html", kind: docs }
 
       - id: containers-ecs
         title: Containers on ECS and Fargate
@@ -472,17 +1249,55 @@ stages:
             learn:
               - Images in ECR
               - Tasks vs services
+            body: |
+              **Amazon ECS** runs containers. Two ideas to learn first: the task definition and the service.
+
+              A **task definition** is the blueprint. It lists the container images, CPU and memory, ports, environment variables, logging and the IAM roles. A **task** is one running copy of that blueprint. A **service** keeps a chosen number of tasks running and replaces any that fail.
+
+              ### Key ideas
+              - **ECR** (Elastic Container Registry) stores your images. Build, tag and push there, then reference the image in the task definition
+              - Run one-off or scheduled jobs as **standalone tasks**
+              - Run web apps and workers as **services**
+              - A service can attach to a load balancer and register each task as a target
+              - Two roles matter: the **execution role** lets ECS pull images and write logs. The **task role** is what your app code uses to call AWS
+              - Rolling deployments replace tasks a few at a time
+
+              ### In practice
+              Push an image, then update the service.
+
+              ```bash
+              aws ecr get-login-password | docker login --username AWS --password-stdin 123456789012.dkr.ecr.eu-central-1.amazonaws.com
+              docker push 123456789012.dkr.ecr.eu-central-1.amazonaws.com/web:1.4.0
+              aws ecs update-service --cluster app --service web --force-new-deployment
+              ```
             resources:
               - { label: "What is Amazon ECS?", url: "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html", kind: docs }
+              - { label: "Amazon ECS task definitions (AWS docs)", url: "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html", kind: docs }
+              - { label: "Amazon ECS services (AWS docs)", url: "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs_services.html", kind: docs }
           - id: fargate-vs-ec2
             title: Fargate vs EC2 capacity
             summary: Let AWS run the hosts with Fargate, or run your own EC2 instances for more control and lower cost at scale.
             learn:
               - When Fargate is simpler
               - App Runner as an even simpler option
+            body: |
+              ECS tasks need somewhere to run. That place is called **capacity**. You have two main choices.
+
+              With **Fargate**, AWS runs the hosts. You say how much CPU and memory a task needs, and AWS finds it a home. With **EC2 capacity**, you run your own instances in a cluster and ECS packs tasks onto them.
+
+              ### Key ideas
+              - Fargate: no servers to patch or scale, billed per task for vCPU and memory used. Simple, and a good default
+              - EC2: you manage the instances and their scaling. You can pick instance types, use GPUs, use Spot, and pack many tasks tightly for lower cost at scale
+              - EC2 capacity makes sense for steady, large fleets, special hardware, or when you need host-level access
+              - Fargate pays off when workloads are small, spiky or you have no time to run hosts
+              - **App Runner** is an even simpler service. Give it a container image or a code repo, and it builds, runs, scales and gives you an HTTPS URL. You get fewer settings in return
+
+              ### In practice
+              Start on Fargate. Move to EC2 only when your bill or your needs justify the added work. For a simple web app with no special needs, try App Runner first.
             resources:
               - post: serverless-laravel-containers-with-ecs-fargate-app-runner-and-terraform
               - { label: "AWS Fargate (AWS docs)", url: "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html", kind: docs }
+              - { label: "What is AWS App Runner? (AWS docs)", url: "https://docs.aws.amazon.com/apprunner/latest/dg/what-is-apprunner.html", kind: docs }
           - id: fargate-spot
             title: Spot capacity to save money
             optional: true
@@ -490,6 +1305,21 @@ stages:
             learn:
               - Capacity provider strategies
               - Handling interruptions
+            body: |
+              **Fargate Spot** runs tasks on spare AWS capacity at a large discount, often up to about 70 percent. In return, AWS can stop your tasks with short notice when it needs the capacity back.
+
+              ### Key ideas
+              - Spot suits work that can be stopped and restarted: queue workers, batch jobs, dev environments
+              - It does not suit a single task that must always be up
+              - A **capacity provider** tells a service where to place tasks. Fargate and Fargate Spot are both capacity providers
+              - A **strategy** sets a `base` (a number of tasks that always run on one provider) and `weight` (the ratio for the rest)
+              - AWS sends a **SIGTERM** signal two minutes before stopping a Spot task. Your app should catch it, finish or hand back its work, and exit
+              - Set `stopTimeout` high enough for cleanup
+
+              ### Example
+              A web service runs 2 tasks on regular Fargate as a base, then splits extra tasks 1 to 3 between Fargate and Spot. If Spot is reclaimed, the base tasks keep the site up while ECS starts replacements.
+
+              For queue workers, make jobs idempotent and let a task that was stopped mid-job return its message to the queue. SQS does this when the visibility timeout expires.
             resources:
               - post: ecs-fargate-spot-capacity-providers
               - { label: "Fargate capacity providers (AWS docs)", url: "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-capacity-providers.html", kind: docs }
@@ -504,15 +1334,46 @@ stages:
             learn:
               - Visibility timeout
               - Dead-letter queues and redrive
+            body: |
+              **Amazon SQS** is a queue. One part of your system puts messages in. Another takes them out and does the work in the background. The two parts do not have to run at the same speed or at the same time.
+
+              ### Key ideas
+              - Use a queue for slow or bursty work: sending email, resizing images, calling slow APIs
+              - A consumer receives a message, which then becomes hidden for the **visibility timeout**
+              - If the consumer finishes, it deletes the message. If it crashes or is too slow, the message becomes visible again and is retried
+              - Set the visibility timeout longer than your processing time. For Lambda, use at least six times the function timeout
+              - SQS Standard delivers at least once, so a message can arrive twice. Make handlers idempotent
+              - FIFO queues keep order and offer deduplication, with lower throughput
+              - A **dead-letter queue (DLQ)** collects messages that fail too many times, set by `maxReceiveCount`
+              - **Redrive** moves messages from the DLQ back to the source once you fix the bug
+
+              ### In practice
+              Always attach a DLQ and alarm on its depth. A DLQ with messages in it means real work is failing.
             resources:
               - { label: "What is Amazon SQS?", url: "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/welcome.html", kind: docs }
               - post: running-ai-background-jobs-serverlessly-with-sqs-lambda-bedrock
+              - { label: "SQS visibility timeout (AWS docs)", url: "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-visibility-timeout.html", kind: docs }
+              - { label: "SQS dead-letter queues (AWS docs)", url: "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html", kind: docs }
           - id: eventbridge
             title: Event-driven design with EventBridge
             summary: Publish events and let other parts of the system react, without knowing who listens.
             learn:
               - Event buses and rules
               - Scheduled events
+            body: |
+              **Amazon EventBridge** is an event router. A service publishes an event that something happened. EventBridge matches it against **rules** and sends it to the **targets** that care. The publisher does not know who is listening.
+
+              ### Key ideas
+              - An **event bus** receives events. AWS services publish to the default bus. You can make custom buses for your own apps
+              - A **rule** has an event pattern, like "source is `orders` and detail-type is `OrderPlaced`", and one or more targets
+              - Targets include Lambda, SQS, SNS, Step Functions, API destinations and other buses
+              - Adding a new consumer means adding a rule. The publisher does not change
+              - **EventBridge Scheduler** and scheduled rules run things at a time or on a cron or rate, like "every night at 02:00"
+              - Events are JSON. Keep them small and include ids rather than full records
+              - Delivery is at least once, so handle duplicates
+
+              ### Example
+              The orders service puts `OrderPlaced` on a bus. One rule sends it to a Lambda that emails the receipt. Another sends it to an SQS queue for the warehouse. Later you add a third rule for analytics with no change to orders.
             resources:
               - { label: "What is Amazon EventBridge?", url: "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-what-is.html", kind: docs }
           - id: step-functions
@@ -521,9 +1382,25 @@ stages:
             learn:
               - States, retries and catches
               - Standard vs Express workflows
+            body: |
+              **AWS Step Functions** lets you describe a workflow as a **state machine**. Each step is a state. Step Functions runs them in order, keeps track of progress, and handles retries and errors for you.
+
+              Chaining Lambdas by having one call the next is fragile. Step Functions moves the flow out of code and into a visible, testable definition.
+
+              ### Key ideas
+              - Workflows are written in Amazon States Language (JSON), or built in a visual editor
+              - State types: Task (do work), Choice (branch), Parallel, Map (loop over a list), Wait and Succeed or Fail
+              - **Retry** rules repeat a step with backoff on certain errors. **Catch** rules send failures to a fallback state
+              - It calls over 200 AWS services directly, so many steps need no Lambda at all
+              - **Standard** workflows last up to a year, run exactly once per step and keep full history. They are billed per state transition
+              - **Express** workflows last up to five minutes, suit high volume, and are billed by runs and duration. Steps can run at least once
+
+              ### In practice
+              For image processing: validate, then resize and tag in parallel, then save, with a Catch that writes failures to a table and sends an alert. Use Standard for long business flows, Express for short, high-rate streams.
             resources:
               - { label: "What is Step Functions?", url: "https://docs.aws.amazon.com/step-functions/latest/dg/welcome.html", kind: docs }
               - post: rag-ingestion-pipeline-step-functions-lambda
+              - { label: "Standard vs Express workflows (AWS docs)", url: "https://docs.aws.amazon.com/step-functions/latest/dg/choosing-workflow-type.html", kind: docs }
           - id: silent-job-failures
             title: Jobs that succeed but do nothing
             optional: true
@@ -531,6 +1408,27 @@ stages:
             learn:
               - Output checks after a job
               - Alarming on missing writes
+            body: |
+              A job can exit with code 0 and still do nothing. The scheduler says "success". The data never changed. Nobody finds out until a customer asks.
+
+              ### Key ideas
+              - Exit code and "no exception" measure that the code ran, not that the work was done
+              - Common causes: an empty input list, a filter that matches nothing, a swallowed error, a wrong bucket or table, a lock that makes the job skip
+              - Check the **output**: rows written, files created, messages sent, a fresh timestamp
+              - Have the job emit a metric such as `RecordsProcessed`
+              - Alarm when the number is zero, or when the metric is **missing**. Set the alarm's missing-data treatment to breaching
+              - Add a canary check after the job, for example "an object in `reports/` is newer than 26 hours"
+              - Log counts at the end of each run: read, written, skipped, failed
+
+              ### In practice
+              Publish a custom metric at the end of a nightly job, and alarm if it is below the expected floor.
+
+              ```bash
+              aws cloudwatch put-metric-data --namespace Jobs \
+                --metric-name RowsWritten --value 1840 --dimensions Job=nightly-export
+              ```
+
+              A green run proves nothing. Evidence of the output does.
             resources:
               - post: catch-lambda-jobs-that-succeed-but-write-nothing
               - { label: "Using Lambda with Amazon SQS (AWS docs)", url: "https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html", kind: docs }
@@ -546,15 +1444,46 @@ stages:
               - Partition key distribution
               - Sort keys for range queries
               - Global secondary indexes
+            body: |
+              A DynamoDB table is built around its **primary key**. The key decides where data is stored and which queries are fast. You design the key for your queries, not for the data.
+
+              ### Key ideas
+              - The **partition key** is hashed to pick a storage partition. Reads and writes for one key value go to one place
+              - Pick a key with many different values and even traffic, like `user_id`. A key like `status` or a date puts heat on a few partitions
+              - The optional **sort key** orders items inside one partition. It enables `Query` with conditions like `begins_with` and `between`
+              - Example: partition `customer_id`, sort `order_date`. You can then get "the last 10 orders for a customer" in one cheap call
+              - You cannot filter well on other attributes. A `Scan` reads the whole table and is slow and costly
+              - A **global secondary index (GSI)** gives an alternate key for other queries. It has its own key schema and its own capacity cost, and reads from it are eventually consistent
+
+              ### Common mistakes
+              - Designing tables like SQL tables and adding queries later
+              - A hot partition key, such as one tenant that gets most traffic
+              - Using Scan in production paths
             resources:
               - { label: "What is Amazon DynamoDB?", url: "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html", kind: docs }
               - { label: "Best practices for DynamoDB (AWS docs)", url: "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/best-practices.html", kind: docs }
+              - { label: "Choosing the right DynamoDB partition key (AWS blog)", url: "https://aws.amazon.com/blogs/database/choosing-the-right-dynamodb-partition-key/", kind: article }
+              - { label: "DynamoDB primary key (AWS docs)", url: "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.CoreComponents.html", kind: docs }
           - id: capacity-modes
             title: On-demand vs provisioned capacity
             summary: Pay per request, or reserve throughput and save when traffic is steady.
             learn:
               - Read and write capacity units
               - Switching modes
+            body: |
+              DynamoDB has two **capacity modes**. They differ in how you pay for reads and writes.
+
+              ### Key ideas
+              - **On-demand:** pay per request. No planning. The table scales for you. Best for new, spiky or unpredictable traffic
+              - **Provisioned:** you set read capacity units (RCUs) and write capacity units (WCUs). It costs less per request when traffic is steady and predictable
+              - One **RCU** is one strongly consistent read per second of an item up to 4 KB. One **WCU** is one write per second of an item up to 1 KB
+              - Eventually consistent reads cost half as much as strongly consistent ones
+              - Provisioned tables can use **auto scaling** to follow load, within limits you set. If you exceed the capacity, requests are throttled
+              - You can switch a table between modes, but only once every 24 hours
+              - Reserved capacity can cut provisioned cost further for long commitments
+
+              ### In practice
+              Start on-demand. After a few weeks, look at CloudWatch consumption. If load is steady, test provisioned mode with auto scaling and compare the bill.
             resources:
               - { label: "DynamoDB capacity modes (AWS docs)", url: "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/capacity-mode.html", kind: docs }
           - id: single-table-design
@@ -564,9 +1493,28 @@ stages:
             learn:
               - Modelling access patterns first
               - Overloaded keys
+            body: |
+              **Single-table design** keeps several entity types, such as users, orders and items, in one DynamoDB table. Related data sits next to each other, so one `Query` returns it all with no joins.
+
+              ### Key ideas
+              - Start from **access patterns**. List every question the app asks: "get user", "orders for user", "items in order"
+              - Design the keys to answer them, then write down which pattern each query serves
+              - Use generic key names such as `PK` and `SK`, and **overload** them with different entity values
+              - Example: `PK = USER#42, SK = PROFILE` for the user, and `PK = USER#42, SK = ORDER#2026-11-01#1001` for each order
+              - A `Query` on `PK = USER#42` with `SK begins_with ORDER#` returns just the orders
+              - Add GSIs for extra patterns, such as finding orders by status
+              - Store an `entity_type` attribute on every item to keep decoding simple
+
+              ### Common mistakes
+              - Using it when access patterns are unknown or change often. It is hard to change later
+              - Making keys too clever to read
+              - Putting everything in one table when separate tables would be simpler for a small app
+
+              It is a tool, not a rule. Many good apps use several tables.
             resources:
               - { label: "The DynamoDB Book (Alex DeBrie)", url: "https://www.dynamodbbook.com/", kind: course }
               - { label: "Alex DeBrie on DynamoDB", url: "https://www.alexdebrie.com/", kind: article }
+              - { label: "NoSQL design for DynamoDB (AWS docs)", url: "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-general-nosql-design.html", kind: docs }
 
       - id: cloudwatch
         title: CloudWatch monitoring
@@ -578,8 +1526,23 @@ stages:
             learn:
               - Built-in vs custom metrics
               - Alarms to email or chat
+            body: |
+              **Amazon CloudWatch** collects **metrics**: numbers over time, such as CPU, request count and error count. Almost every AWS service sends some by default. An **alarm** watches one metric and acts when it crosses a line.
+
+              ### Key ideas
+              - Built-in metrics are free or cheap and appear on their own, like EC2 CPU, ALB 5xx count or Lambda errors
+              - Memory and disk usage on EC2 are not built in. Use the CloudWatch agent
+              - **Custom metrics** are numbers you publish yourself, such as orders placed
+              - An alarm has a metric, a statistic, a period and a threshold. It is in state OK, ALARM or INSUFFICIENT_DATA
+              - Actions can notify an **SNS** topic, which sends email, SMS or chat messages, or trigger Auto Scaling
+              - Alarm on symptoms users feel: errors, latency, queue age, dead-letter messages. Do not alarm on every graph
+              - Pick thresholds from normal behaviour, and require a few periods in a row to avoid noise
+
+              ### Example
+              Alarm when the ALB `HTTPCode_Target_5XX_Count` is above 10 for three out of five minutes. Send it to an SNS topic subscribed to your email. Add a second alarm on `TargetResponseTime` for slowness.
             resources:
               - { label: "What is Amazon CloudWatch?", url: "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html", kind: docs }
+              - { label: "Using Amazon CloudWatch alarms (AWS docs)", url: "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/AlarmThatSendsEmail.html", kind: docs }
           - id: logs-insights
             title: Logs and Logs Insights
             summary: Ship logs from servers and functions, then query them with Logs Insights.
@@ -587,15 +1550,54 @@ stages:
               - Log groups and retention
               - The CloudWatch agent on servers
               - Logs Insights queries
+            body: |
+              **CloudWatch Logs** stores log lines from your servers and functions. Lambda sends logs here by default. For EC2, you install the CloudWatch agent to ship files like `/var/log/nginx/error.log`.
+
+              ### Key ideas
+              - Logs go into a **log group**, such as `/aws/lambda/my-fn`. Inside it, each source is a **log stream**
+              - Set a **retention** period on every group. The default is to keep logs forever, and you pay for the storage
+              - Write structured logs, one JSON object per line. Logs Insights can then read the fields
+              - **Logs Insights** is a query language for searching and aggregating logs. It runs over a time range and many groups at once
+              - You pay by the amount of data scanned, so narrow the time range and the groups
+
+              ### In practice
+              Find the most common errors in the last hour.
+
+              ```
+              fields @timestamp, @message
+              | filter @message like /ERROR/
+              | stats count() by bin(5m)
+              | sort @timestamp desc
+              ```
+
+              Another common query uses `parse` to pull a field out of text, then `stats avg(duration)` to see slow requests. Save the queries you use often.
             resources:
               - post: install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging
               - { label: "Analyzing logs with CloudWatch Logs Insights (AWS docs)", url: "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html", kind: docs }
+              - { label: "CloudWatch Logs Insights query syntax (AWS docs)", url: "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_QuerySyntax.html", kind: docs }
           - id: dashboards
             title: Dashboards
             summary: One page with the handful of graphs you check when something feels wrong.
             learn:
               - Picking the right graphs
               - Sharing dashboards
+            body: |
+              A **CloudWatch dashboard** puts the graphs you care about on one page. The goal is not to show everything. It is to answer "is something wrong, and where" in a few seconds.
+
+              ### Key ideas
+              - Choose few graphs. Four to eight is plenty
+              - Lead with user-facing signals: request rate, error rate, latency
+              - Then show the saturation signals: CPU, memory, queue depth, database connections
+              - Put related graphs in one row, and add horizontal lines for alarm thresholds
+              - Use text widgets for labels, links to runbooks and the meaning of each graph
+              - Dashboards can mix metrics from different regions and accounts
+              - Share a dashboard with other people through IAM, or share a read-only view using the sharing options
+              - Dashboards cost a small monthly fee beyond the free allowance
+
+              ### Common mistakes
+              - Hundreds of graphs that nobody reads
+              - No threshold lines, so nobody knows what normal is
+              - Building the dashboard during an outage. Build it before, and use it in a calm review
             resources:
               - { label: "Using CloudWatch dashboards (AWS docs)", url: "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Dashboards.html", kind: docs }
           - id: llm-observability
@@ -605,9 +1607,24 @@ stages:
             learn:
               - Tracing LLM calls
               - Cost and latency per request
+            body: |
+              AI features add new things to watch. A model call can be slow, costly or wrong while your normal metrics look fine. You need to see each call, not only the totals.
+
+              ### Key ideas
+              - Log or trace each LLM call: model id, prompt version, input and output **token counts**, latency, and the result status
+              - Tokens are the cost unit. Cost per request is roughly input tokens times input price plus output tokens times output price
+              - Send token counts and latency as **custom CloudWatch metrics** with dimensions like model and feature
+              - Bedrock publishes its own metrics, such as invocation count, latency and token usage, to CloudWatch
+              - Use **X-Ray** or OpenTelemetry to trace a request through API Gateway, Lambda, retrieval and the model
+              - Be careful with logging prompts. They may hold personal data. Mask or sample, and set short retention
+              - Alarm on error rate, throttles, p95 latency and daily token spend
+
+              ### In practice
+              Wrap every model call in one function that records start time, token usage from the response and the outcome. Emit them as one structured log line and a metric. You can then answer "which feature costs the most" and "did the new prompt get slower".
             resources:
               - post: llm-observability-langfuse-lambda-cloudwatch
               - { label: "Langfuse docs", url: "https://langfuse.com/docs", kind: docs }
+              - { label: "Monitor Amazon Bedrock with CloudWatch (AWS docs)", url: "https://docs.aws.amazon.com/bedrock/latest/userguide/monitoring-cw.html", kind: docs }
 
       - id: infrastructure-as-code-aws
         title: Infrastructure as code on AWS
@@ -619,16 +1636,61 @@ stages:
             learn:
               - Declarative config vs real code
               - Multi-cloud vs AWS-only
+            body: |
+              **Infrastructure as code (IaC)** means you describe your AWS resources in files and a tool builds them. You get review, history and repeatable environments.
+
+              ### Key ideas
+              - **CloudFormation** is the AWS-native service. You write templates in YAML or JSON. AWS runs the deployment and tracks stacks. It is AWS-only
+              - **Terraform** (and OpenTofu) use the HCL language. The same tool works across AWS, Cloudflare, GitHub and many other providers. State is kept in a file you manage
+              - **AWS CDK** lets you write infrastructure in a real language such as TypeScript or Python. It generates CloudFormation underneath
+              - Declarative config (CloudFormation, Terraform) says what you want. Real code (CDK) adds loops, functions and tests
+              - Pick Terraform for multi-cloud or a mixed stack with other providers, and wide community modules
+              - Pick CDK if the team prefers programming languages and stays on AWS
+              - Pick CloudFormation if you want no extra tool and no state file to manage
+
+              ### In practice
+              Any of the three beats clicking in the console for anything you need twice. Choose one per team, and stick with it. A small team on AWS and other services often does well with Terraform.
             resources:
               - { label: "AWS CDK developer guide", url: "https://docs.aws.amazon.com/cdk/v2/guide/home.html", kind: docs }
               - { label: "Terraform AWS provider", url: "https://registry.terraform.io/providers/hashicorp/aws/latest/docs", kind: docs }
               - post: terraform-or-pulumi
+              - { label: "What is AWS CloudFormation? (AWS docs)", url: "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/Welcome.html", kind: docs }
           - id: first-terraform-deploy
             title: A first Terraform deploy
             summary: Build a real server and its network from code, end to end.
             learn:
               - Providers, resources and variables
               - Plan, apply and destroy
+            body: |
+              A first Terraform project builds a real, small stack from code: a network, a security group and one server. You write files, preview the change, then apply it.
+
+              ### Key ideas
+              - A **provider** is the plugin that talks to an API. The AWS provider creates AWS resources
+              - A **resource** block describes one thing to create, such as `aws_instance`
+              - **Variables** make the config reusable. **Outputs** print values like an IP address
+              - `terraform init` downloads providers. `terraform plan` shows what would change. `terraform apply` makes the change. `terraform destroy` removes everything
+              - Always read the plan before you apply
+              - Terraform tracks what it built in a **state** file, and compares it to your code on each run
+
+              ### Example
+              ```hcl
+              provider "aws" { region = "eu-central-1" }
+
+              resource "aws_instance" "web" {
+                ami           = var.ami_id
+                instance_type = "t3.micro"
+              }
+
+              output "ip" { value = aws_instance.web.public_ip }
+              ```
+
+              ```bash
+              terraform init && terraform plan
+              terraform apply
+              terraform destroy
+              ```
+
+              Run `destroy` after practice, so test resources do not keep billing.
             resources:
               - post: deploying-a-laravel-application-to-amazon-ec2-using-terraform
               - { label: "Get started with Terraform on AWS (HashiCorp)", url: "https://developer.hashicorp.com/terraform/tutorials/aws-get-started", kind: course }
@@ -638,6 +1700,31 @@ stages:
             learn:
               - S3 backend and locking
               - Who can read the state
+            body: |
+              Terraform's **state** file maps your code to real resources. By default it sits on your laptop. That does not work for a team, and it is easy to lose.
+
+              Use a **remote backend**. On AWS the usual choice is an S3 bucket for the state, with locking so two people cannot apply at once.
+
+              ### Key ideas
+              - Create the bucket first, with versioning on, encryption on and Block Public Access on
+              - Configure the `s3` backend in your Terraform code. Current Terraform versions can lock with S3 itself using `use_lockfile`. Older setups used a DynamoDB table for locks
+              - Versioning lets you roll back a bad state
+              - **State is a secret.** It can contain passwords, keys and database endpoints in plain text
+              - Limit who can read the bucket. Anyone who can read state can read those values
+              - Never commit state files to Git
+              - Split state by environment or by system, so a mistake has a small blast radius
+
+              ### In practice
+              ```hcl
+              terraform {
+                backend "s3" {
+                  bucket       = "acme-tf-state"
+                  key          = "prod/network.tfstate"
+                  region       = "eu-central-1"
+                  use_lockfile = true
+                }
+              }
+              ```
             resources:
               - post: terraform-state-more-sensitive-than-env
               - { label: "S3 backend (Terraform docs)", url: "https://developer.hashicorp.com/terraform/language/backend/s3", kind: docs }
@@ -647,9 +1734,24 @@ stages:
             learn:
               - Plan in PR, apply on merge
               - GitHub OIDC instead of access keys
+            body: |
+              Infrastructure changes should go through review like code. The common pattern: run `plan` on every pull request, and run `apply` automatically after merge.
+
+              ### Key ideas
+              - On a pull request, CI runs `terraform fmt`, `validate` and `plan`, and posts the plan as a comment. Reviewers see exactly what will change
+              - On merge to the main branch, CI runs `apply`, often behind a manual approval for production
+              - Use the saved plan file from the PR so apply does what was reviewed
+              - CI needs AWS access. Do not store long-lived access keys as secrets
+              - **GitHub OIDC** lets a workflow ask AWS for short-lived credentials. You create an IAM role that trusts GitHub's identity provider, limited to your repo and branch
+              - Give the plan role read access and the apply role write access, and limit each one
+              - Lock the state during runs so two pipelines cannot clash
+
+              ### In practice
+              In the role's trust policy, add a condition on the `sub` claim, such as `repo:my-org/my-repo:ref:refs/heads/main`. Without it, any repo on GitHub could try to assume your role. In the workflow, use the AWS credentials action with `role-to-assume` and set `id-token: write` permission.
             resources:
               - post: github-actions-lambda-terraform-cicd
               - { label: "Configuring OpenID Connect in AWS (GitHub docs)", url: "https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services", kind: docs }
+              - { label: "Configuring OpenID Connect in AWS (GitHub docs)", url: "https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-aws", kind: docs }
 
   - level: advanced
     title: Run AWS like a pro
@@ -664,6 +1766,20 @@ stages:
             learn:
               - Organizational units
               - Service control policies
+            body: |
+              **AWS Organizations** lets you manage many AWS accounts together. Separate accounts are the strongest boundary AWS offers, so teams often use one per environment or per workload.
+
+              ### Key ideas
+              - A **management account** creates the organization and pays the bill. Keep workloads out of it
+              - **Member accounts** hold your workloads
+              - **Organizational units (OUs)** group accounts, such as Production, Development and Security. Policies attach to OUs
+              - **Consolidated billing** puts all accounts on one bill and shares discounts
+              - A **service control policy (SCP)** sets the maximum permissions for accounts under it. It grants nothing by itself
+              - SCPs do not affect the management account, and no one in a member account, including its root user, can override one
+              - Use SCPs as guardrails: block leaving the organization, deny unused regions, stop disabling CloudTrail
+
+              ### Example
+              An SCP on the Production OU denies all actions when `aws:RequestedRegion` is not `eu-central-1` or `eu-west-1`, except for global services. Even an admin in a production account cannot launch servers elsewhere.
             resources:
               - { label: "What is AWS Organizations?", url: "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_introduction.html", kind: docs }
               - { label: "Service control policies (AWS docs)", url: "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html", kind: docs }
@@ -673,6 +1789,27 @@ stages:
             learn:
               - Permission sets
               - aws sso login
+            body: |
+              **IAM Identity Center** is the modern way for people to sign in to AWS. You log in once, then pick an account and a role. It replaces creating IAM users in every account.
+
+              ### Key ideas
+              - Users and groups live in Identity Center, or come from an external provider like Okta or Microsoft Entra ID
+              - A **permission set** is a set of policies. You assign a permission set to a group for a specific account. Identity Center creates the matching role there
+              - Access is by assignment, so removing a person from a group removes their access everywhere
+              - Sessions give **short-lived credentials**, not permanent keys
+              - It works with Organizations, and with a single account too
+              - MFA can be required at sign-in
+
+              ### In practice
+              Set up the CLI once, then sign in whenever the session ends.
+
+              ```bash
+              aws configure sso
+              aws sso login --profile prod-admin
+              aws s3 ls --profile prod-admin
+              ```
+
+              No access keys sit in your home folder, so a stolen laptop file is not a permanent key.
             resources:
               - { label: "What is IAM Identity Center?", url: "https://docs.aws.amazon.com/singlesignon/latest/userguide/what-is.html", kind: docs }
           - id: control-tower
@@ -682,6 +1819,19 @@ stages:
             learn:
               - Landing zone layout
               - Account Factory
+            body: |
+              **AWS Control Tower** builds a well-organised multi-account setup for you, following AWS best practice. This is called a **landing zone**. It saves weeks of design and manual setup.
+
+              ### Key ideas
+              - It creates an Organizations structure with OUs, usually a Security OU and a Sandbox or workloads OU
+              - It sets up two key accounts: a **log archive** account that collects CloudTrail and Config logs, and an **audit** account for security tooling
+              - It turns on IAM Identity Center for access
+              - **Controls** (also called guardrails) are rules. Preventive controls use SCPs to block actions. Detective controls use AWS Config to flag problems
+              - **Account Factory** creates new accounts from a template, already enrolled with the right controls and baseline
+              - Account Factory for Terraform lets you create accounts from code
+
+              ### In practice
+              Use Control Tower when you start a multi-account setup, or when you have several teams. For one small account it is more than you need. Pick your home region carefully, since it is hard to change later.
             resources:
               - { label: "What is AWS Control Tower?", url: "https://docs.aws.amazon.com/controltower/latest/userguide/what-is-control-tower.html", kind: docs }
               - { label: "Organizing your AWS environment using multiple accounts", url: "https://docs.aws.amazon.com/whitepapers/latest/organizing-your-aws-environment/organizing-your-aws-environment.html", kind: docs }
@@ -696,6 +1846,23 @@ stages:
             learn:
               - Organization trails
               - GuardDuty findings
+            body: |
+              Two services answer "what happened" and "is something wrong".
+
+              **AWS CloudTrail** records API calls in your account: who did what, when, from where. **Amazon GuardDuty** watches those logs and other data sources, and raises **findings** when behaviour looks like an attack.
+
+              ### Key ideas
+              - CloudTrail Event history keeps recent management events for 90 days, free. For longer, create a **trail** that writes to S3
+              - An **organization trail** from the management account logs every account into one bucket
+              - Protect the log bucket: versioning, restricted access, and log file validation to detect tampering
+              - GuardDuty needs no agents. It analyses CloudTrail, VPC flow logs and DNS logs, and can add protection for S3, EKS, Lambda and malware scanning
+              - Findings have a severity, such as unusual API calls, crypto mining, or credentials used from a strange place
+              - Send findings to EventBridge, then to chat, email or a ticket
+              - Enable both in every region, since an attacker may use one you ignore
+
+              ### Common mistakes
+              - No trail until an incident happens, leaving nothing to investigate
+              - Findings that no one reads
             resources:
               - { label: "What is AWS CloudTrail?", url: "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html", kind: docs }
               - { label: "What is Amazon GuardDuty?", url: "https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html", kind: docs }
@@ -706,18 +1873,56 @@ stages:
               - Managed rule groups
               - Rate-based rules
               - Blocking by IP or country
+            body: |
+              **AWS WAF** is a web application firewall. It inspects HTTP requests and allows, blocks, counts or challenges them against rules you set. You attach it to CloudFront, an ALB, API Gateway or other supported services.
+
+              ### Key ideas
+              - A **web ACL** holds your rules in priority order
+              - **Managed rule groups** are sets of rules from AWS or vendors. The AWS core rule set and known bad inputs help against common attacks like SQL injection and cross-site scripting
+              - **Rate-based rules** block an IP that sends too many requests in a window, such as 1000 in five minutes. Good for login abuse and scraping
+              - **Bot Control** is a managed feature to detect automated traffic, at extra cost
+              - Rules can match IP sets, countries, headers, URI paths and body content
+              - New rules should start in **Count** mode. Check the logs, then switch to Block
+              - Turn on WAF logging, to S3, CloudWatch Logs or Firehose
+
+              ### Common mistakes
+              - Blocking real users with a rule you did not test
+              - Putting WAF on the ALB but leaving the origin reachable directly. Lock the origin to CloudFront or to the ALB security group
+              - Treating WAF as the only defence. It does not fix a vulnerable app
             resources:
               - post: aws-waf-cloudfront-solo-dev
               - { label: "What is AWS WAF?", url: "https://docs.aws.amazon.com/waf/latest/developerguide/waf-chapter.html", kind: docs }
+              - { label: "How AWS WAF works (AWS docs)", url: "https://docs.aws.amazon.com/waf/latest/developerguide/how-aws-waf-works.html", kind: docs }
           - id: secrets-management
             title: Secrets and encryption keys
             summary: Keep credentials in Secrets Manager or Parameter Store, encrypted with KMS, never in code or env files.
             learn:
               - Secrets Manager vs Parameter Store
               - KMS keys and key policies
+            body: |
+              Credentials do not belong in code, Git or plain environment files. Keep them in a secrets service, encrypted, and let your app fetch them at run time.
+
+              ### Key ideas
+              - **Secrets Manager** stores secrets, has built-in **automatic rotation** for services like RDS, and charges per secret per month plus API calls
+              - **Systems Manager Parameter Store** stores config and secrets too. Standard parameters are free. `SecureString` parameters are encrypted. It has no built-in rotation
+              - Use Secrets Manager when you need rotation or cross-account sharing. Use Parameter Store for cheap config
+              - **KMS** (Key Management Service) holds the encryption keys. Both services use it
+              - A **KMS key policy** controls who can use a key. It is required, and works with IAM policies
+              - Give your app's role permission to read one secret and decrypt with one key, no more
+              - Never print secrets to logs
+
+              ### In practice
+              ```bash
+              aws secretsmanager get-secret-value --secret-id prod/db --query SecretString --output text
+              ```
+
+              In ECS, you can inject a secret into the container as an environment variable straight from Secrets Manager, so it is not in the task definition text.
+
+              If a secret leaks, rotate it at once. Removing it from Git history is not enough.
             resources:
               - { label: "What is AWS Secrets Manager?", url: "https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html", kind: docs }
               - { label: "AWS Key Management Service (AWS docs)", url: "https://docs.aws.amazon.com/kms/latest/developerguide/overview.html", kind: docs }
+              - { label: "AWS KMS key policies (AWS docs)", url: "https://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html", kind: docs }
           - id: data-access-lockdown
             title: Locking down data access
             optional: true
@@ -725,6 +1930,20 @@ stages:
             learn:
               - Resource-level IAM conditions
               - VPC endpoints and endpoint policies
+            body: |
+              Apps that use AI or handle sensitive data need tight data boundaries. If a function can read everything and call anything, a bug or a malicious prompt can leak it.
+
+              ### Key ideas
+              - Give each function its own role with only the actions it needs, on named resources
+              - Use **IAM conditions** to narrow access further, such as a tag match, a key prefix like `tenant-42/*`, or a source VPC
+              - Use **resource policies** on S3, KMS and SQS to say who can reach the resource, as a second lock
+              - **VPC endpoints** keep traffic to AWS services off the public internet
+              - **Endpoint policies** limit what can be done through an endpoint, such as only allowing access to your own buckets
+              - Put functions that touch sensitive data in private subnets with no general internet route, so they cannot send data out
+              - Log access with CloudTrail data events for sensitive buckets
+
+              ### Example
+              A function that summarises a customer's documents gets `s3:GetObject` on only that customer's prefix. It runs in a private subnet with an S3 gateway endpoint and no NAT. If an injected prompt tells it to send data to a website, the network offers no route.
             resources:
               - post: lock-down-bedrock-iam-lambda-data-leak
               - { label: "Security best practices in IAM", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html", kind: docs }
@@ -735,9 +1954,29 @@ stages:
             learn:
               - HIPAA-eligible services
               - Encryption and audit requirements
+            body: |
+              Regulated data brings extra rules. **HIPAA** in the United States covers protected health information (PHI). Other rules exist for payment cards, finance and personal data, and the steps are similar.
+
+              ### Key ideas
+              - You are responsible for compliance. AWS provides compliant infrastructure under the shared responsibility model
+              - Sign a **Business Associate Addendum (BAA)** with AWS before you store PHI. You can accept it in AWS Artifact
+              - Use only **HIPAA-eligible services**. AWS keeps a list. A service not on the list must not touch PHI
+              - Encrypt data at rest with KMS and in transit with TLS
+              - Turn on **CloudTrail**, and store logs safely and for the required time. Use AWS Config to watch for drift
+              - Apply least privilege, MFA and access reviews
+              - Use **AWS Artifact** to download AWS audit reports for your own auditors
+              - Keep PHI out of logs, tags, resource names and error messages
+
+              ### Common mistakes
+              - Believing that running on AWS makes you compliant
+              - Sending PHI to a service that is outside the BAA scope, including some AI tools
+              - No tested way to delete data or respond to a breach
+
+              Get qualified compliance help for the actual rules that apply to you.
             resources:
               - post: how-to-use-aws-sagemaker-for-hipaa-compliant-data-a-complete-guide
               - { label: "HIPAA compliance on AWS", url: "https://aws.amazon.com/compliance/hipaa-compliance/", kind: docs }
+              - { label: "HIPAA eligible services reference (AWS)", url: "https://aws.amazon.com/compliance/hipaa-eligible-services-reference/", kind: article }
 
       - id: high-availability-dr
         title: High availability and disaster recovery
@@ -749,25 +1988,75 @@ stages:
             learn:
               - Multi-AZ databases
               - Load balancers across zones
+            body: |
+              A **Multi-AZ** design runs each layer in at least two availability zones. If one zone fails, the others carry on. The failure becomes a non-event instead of an outage.
+
+              ### Key ideas
+              - **Load balancers** spread across zones by default. Enable subnets in at least two zones
+              - **Auto Scaling groups** and ECS services should list subnets in several zones, and keep enough capacity that one zone loss still covers load
+              - **RDS Multi-AZ** keeps a synchronous standby in another zone and fails over on its own, usually in a minute or two. The endpoint name stays the same
+              - **S3** and **DynamoDB** already store data across zones
+              - A cache like ElastiCache can have replicas in other zones
+              - One NAT gateway per zone avoids a hidden single point of failure
+              - Multi-AZ protects against a zone failure, not against region loss or bad data. You still need backups
+
+              ### Common mistakes
+              - Servers in two zones but a single-zone database
+              - Running at 70 percent capacity across two zones, so losing one overloads the other
+              - Never testing a failover
             resources:
               - { label: "Reliability pillar (AWS Well-Architected)", url: "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html", kind: docs }
+              - { label: "Multi-AZ DB instance deployments (AWS docs)", url: "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZSingleStandby.html", kind: docs }
           - id: rpo-rto
             title: RPO and RTO
             summary: How much data you can lose and how long you can be down. Agree on both before picking a design.
             learn:
               - Recovery point objective
               - Recovery time objective
+            body: |
+              Before you design recovery, decide two numbers.
+
+              **RPO** (recovery point objective) is how much data you can afford to lose, measured in time. An RPO of 15 minutes means you accept losing up to 15 minutes of writes. **RTO** (recovery time objective) is how long you can be down before service is back. An RTO of one hour means you must be running again within an hour.
+
+              ### Key ideas
+              - RPO sets how often you back up or replicate. Nightly backups give an RPO of up to 24 hours. Continuous replication can give seconds
+              - RTO sets how ready your standby must be. Restoring from backup is slow. A running standby is fast
+              - Smaller numbers cost more. Moving from hours to minutes can multiply the bill
+              - Agree the numbers with the business. Ask what an hour of downtime costs
+              - Different systems need different targets. Marketing site and payment system are not the same
+              - Write them down, and test that you can meet them
+
+              ### Example
+              An internal tool: RPO 24 hours, RTO 8 hours. Daily snapshots are enough. A checkout system: RPO 1 minute, RTO 15 minutes. That needs Multi-AZ, replication and a warm standby.
             resources:
               - { label: "Disaster recovery of workloads on AWS", url: "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-workloads-on-aws.html", kind: docs }
+              - { label: "Disaster recovery objectives (AWS whitepaper)", url: "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-options-in-the-cloud.html", kind: docs }
           - id: dr-strategies
             title: Backup, pilot light, warm standby, multi-site
             summary: Four disaster recovery strategies, from cheapest and slowest to most expensive and fastest.
             learn:
               - What each strategy keeps running
               - AWS Backup for cross-region copies
+            body: |
+              AWS describes four **disaster recovery** strategies. They trade cost against recovery speed.
+
+              ### Key ideas
+              - **Backup and restore:** keep backups in another region. Rebuild everything after a disaster. Cheapest, slowest. Recovery in hours
+              - **Pilot light:** keep the data replicated and a minimal core of the system ready but switched off or tiny. Scale it up when needed. Recovery in tens of minutes
+              - **Warm standby:** a full but scaled-down copy is always running. Scale it up to take traffic. Recovery in minutes
+              - **Multi-site active/active:** full capacity in two or more regions at once, sharing traffic. Fastest and most expensive, and hardest to build
+              - Pick by your RPO and RTO. Do not buy active/active for a blog
+              - **AWS Backup** manages backups of many services in one place, with schedules, retention and **cross-region** and cross-account copies
+              - Infrastructure as code makes rebuilding in another region far faster
+
+              ### Common mistakes
+              - Backups in the same account and region as the thing they protect
+              - A plan that was never rehearsed
+              - Forgetting DNS and secrets when failing over
             resources:
               - { label: "Disaster recovery of workloads on AWS", url: "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-workloads-on-aws.html", kind: docs }
               - { label: "What is AWS Backup?", url: "https://docs.aws.amazon.com/aws-backup/latest/devguide/whatisbackup.html", kind: docs }
+              - { label: "Disaster recovery options in the cloud (AWS whitepaper)", url: "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-options-in-the-cloud.html", kind: docs }
           - id: game-days
             title: Testing failure on purpose
             optional: true
@@ -775,6 +2064,20 @@ stages:
             learn:
               - Fault Injection Service experiments
               - Running a game day
+            body: |
+              A recovery plan you have never run is a guess. A **game day** is a planned exercise where you break something on purpose, and see whether the team and the system recover as expected.
+
+              ### Key ideas
+              - Start with a hypothesis: "If one AZ fails, the site stays up and error rate stays under 1 percent"
+              - Define a **steady state** with metrics, and a stop condition that ends the test if things go badly
+              - **AWS Fault Injection Service (FIS)** runs controlled experiments: stop EC2 instances, add API errors, slow the network, disrupt an AZ in supported services
+              - FIS experiment templates can include stop conditions tied to CloudWatch alarms
+              - Begin in a test environment. Move to production only with care and sign-off
+              - Tell people when it happens, and have someone ready to cancel it
+              - Write down what you learned and fix the gaps
+
+              ### In practice
+              Run a game day each quarter. Pick one failure: kill a database primary, restore a backup into a new instance, or revoke a key. Time the recovery and compare it with your RTO. Turn each surprise into a ticket.
             resources:
               - { label: "What is AWS Fault Injection Service?", url: "https://docs.aws.amazon.com/fis/latest/userguide/what-is.html", kind: docs }
 
@@ -788,6 +2091,21 @@ stages:
             learn:
               - What each pillar asks
               - Trade-offs between pillars
+            body: |
+              The **AWS Well-Architected Framework** is a set of guidance for judging a cloud design. It has six pillars. Each one has questions you can ask about your own system.
+
+              ### Key ideas
+              - **Operational excellence:** can you run, watch and improve the system? Think automation, runbooks and small safe changes
+              - **Security:** who can access what, is data protected, can you detect problems?
+              - **Reliability:** does it recover from failure and meet demand? Think Multi-AZ, backups, limits
+              - **Performance efficiency:** are you using the right resource types and sizes for the job?
+              - **Cost optimization:** are you paying only for what delivers value?
+              - **Sustainability:** does the design use resources efficiently, and cut waste and energy?
+              - Pillars pull against each other. More redundancy raises reliability and cost. Strict controls raise security and slow delivery
+              - There is no perfect score. You make trade-offs on purpose and write them down
+
+              ### In practice
+              Pick one pillar per review session and ask its questions about your main workload. Start with security and reliability, since failures there hurt most.
             resources:
               - { label: "AWS Well-Architected Framework", url: "https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html", kind: docs }
           - id: running-a-review
@@ -796,6 +2114,25 @@ stages:
             learn:
               - High-risk issues
               - Turning findings into tickets
+            body: |
+              The **AWS Well-Architected Tool** is a free service in the console. You define a workload, answer questions for each pillar, and get a list of risks with advice.
+
+              ### Key ideas
+              - A **workload** is one system you review, like "customer web app, production"
+              - Pick the lenses you want, then answer questions honestly. Most have multiple-choice best practices
+              - Each answer marks the workload with risk levels. **High risk issues (HRIs)** are the ones to fix first
+              - Save a **milestone** to record the state at a point in time, so you can measure progress
+              - Involve people who know the system: developers, ops and the owner
+              - The review is a conversation, not an exam. Disagreement is useful
+
+              ### In practice
+              Turn findings into work.
+              1. List the high-risk issues
+              2. Write each as a ticket with an owner and a due date
+              3. Rank by impact and effort. Fix cheap, high-impact items first
+              4. Re-run the review after a few months and compare milestones
+
+              AWS also offers review sessions with a solutions architect for some customers. A written plan with owners beats a long report no one reads.
             resources:
               - { label: "What is the AWS Well-Architected Tool?", url: "https://docs.aws.amazon.com/wellarchitected/latest/userguide/intro.html", kind: docs }
           - id: well-architected-lenses
@@ -805,8 +2142,23 @@ stages:
             learn:
               - The serverless lens
               - The generative AI lens
+            body: |
+              A **lens** adds a set of questions for a specific type of workload, on top of the six pillars. The base framework is general. Lenses go deeper where your system is unusual.
+
+              ### Key ideas
+              - **Serverless lens:** covers Lambda, API Gateway, event-driven design, concurrency, and how to watch systems made of many small parts
+              - **SaaS lens:** covers tenant isolation, onboarding, metering, and tenant-aware operations
+              - **Machine learning lens:** covers data, training, deployment and monitoring of models
+              - **Generative AI lens:** covers foundation model use, prompt and output safety, data privacy, cost, and responsible AI
+              - Others exist, such as for financial services, data analytics and containers
+              - You can add several lenses to one workload review
+              - You can also create **custom lenses** with your own questions, for rules your company has
+
+              ### In practice
+              For a SaaS built on Lambda and Bedrock, apply the base framework plus the serverless, SaaS and generative AI lenses. Work through one at a time, not all in one sitting. Use the questions as a design checklist before launch.
             resources:
               - { label: "AWS Well-Architected lenses", url: "https://aws.amazon.com/architecture/well-architected/", kind: docs }
+              - { label: "AWS Well-Architected Lenses (AWS docs)", url: "https://docs.aws.amazon.com/wellarchitected/latest/userguide/lenses.html", kind: docs }
 
       - id: cost-optimization
         title: Cost optimization
@@ -818,24 +2170,75 @@ stages:
             learn:
               - Cost allocation tags
               - Grouping and filtering in Cost Explorer
+            body: |
+              You cannot cut a cost you cannot see. **Cost Explorer** shows your spending over time. **Tags** let you split it by team, app or environment.
+
+              ### Key ideas
+              - A **tag** is a key and value on a resource, such as `app=shop` and `env=prod`
+              - Pick a small standard set: `app`, `env`, `team` and `owner`. Write it down
+              - Tags do nothing for billing until you activate them as **cost allocation tags** in the Billing console. Activation takes up to a day to show up
+              - Tags apply from activation onward, not to older usage
+              - Enforce tags with Terraform defaults, tag policies in Organizations, or SCPs that deny creating untagged resources
+              - In Cost Explorer, group by Service, Account, Region, Usage type or a tag. Filter to focus on one app
+              - Daily view helps spot a sudden jump. Monthly view shows the trend
+              - Some costs cannot be tagged, such as support or some data transfer. Treat them as shared
+
+              ### In practice
+              When the bill rises, group by Service first, then by Usage type inside the top service, then by tag. You will often find a single NAT gateway, forgotten volume or log group. Check also **Cost Anomaly Detection**, which alerts on unusual spend.
             resources:
               - { label: "Analyzing costs with Cost Explorer (AWS docs)", url: "https://docs.aws.amazon.com/cost-management/latest/userguide/ce-what-is.html", kind: docs }
               - post: 5-aws-mistakes-quietly-draining-your-bank-account
+              - { label: "Using cost allocation tags (AWS docs)", url: "https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/cost-alloc-tags.html", kind: docs }
           - id: savings-plans-spot
             title: Savings Plans and Spot
             summary: Commit to steady usage for a discount, and run interruptible work on Spot for up to 90% off.
             learn:
               - Compute vs EC2 Instance Savings Plans
               - Workloads that suit Spot
+            body: |
+              There are two big discounts for compute. **Savings Plans** reward a steady commitment. **Spot** gives deep discounts for work that can be interrupted.
+
+              ### Key ideas
+              - A **Savings Plan** is a commitment to spend a set amount per hour for one or three years. In return you pay lower rates
+              - **Compute Savings Plans** are flexible. They apply across EC2 instance families and regions, Fargate and Lambda
+              - **EC2 Instance Savings Plans** give bigger discounts but tie you to one instance family in a region
+              - Commit only to your steady baseline, not your peak. Unused commitment is still billed
+              - Check recommendations in Cost Explorer before buying
+              - **Spot Instances** use spare capacity at up to about 90 percent off. AWS can reclaim them with a two-minute warning
+              - Spot suits batch jobs, CI runners, stateless web workers behind a load balancer, and data processing
+              - It does not suit a single database or anything that cannot stop
+              - Spread across many instance types and zones to lower the chance of interruption
+
+              ### In practice
+              Run your always-on base under a Savings Plan. Run extra capacity in an Auto Scaling group that mixes on-demand and Spot. Start small and grow the commitment as you gain confidence.
             resources:
               - { label: "What are Savings Plans?", url: "https://docs.aws.amazon.com/savingsplans/latest/userguide/what-is-savings-plans.html", kind: docs }
               - { label: "Amazon EC2 Spot Instances", url: "https://aws.amazon.com/ec2/spot/", kind: docs }
+              - { label: "Spot Instances (AWS docs)", url: "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances.html", kind: docs }
           - id: data-transfer-costs
             title: NAT gateway and data transfer costs
             summary: The hidden line items. Traffic through NAT, across AZs and out to the internet all cost money.
             learn:
               - Gateway endpoints for S3 and DynamoDB
               - Cross-AZ traffic charges
+            body: |
+              Data transfer is a hidden cost. Moving data between places can cost more than the servers that do the moving.
+
+              ### Key ideas
+              - Data **into** AWS from the internet is usually free. Data **out** to the internet is charged per GB, after a small free amount
+              - Traffic between **AZs** in a region costs a small fee in each direction
+              - Traffic between regions costs more
+              - A **NAT gateway** charges per hour and per GB it processes. Heavy traffic to S3 or container registries through NAT adds up fast
+              - **Gateway endpoints** for S3 and DynamoDB are free and take that traffic off the NAT gateway
+              - Interface endpoints cost money too, but can be cheaper than NAT for busy services
+              - CloudFront data transfer to users is cheaper than from EC2 directly, and caching cuts the amount
+              - Keep chatty services in the same zone when you can, balancing against availability
+              - Use VPC flow logs, Cost Explorer's usage type and the Cost and Usage Report to find the source
+
+              ### Common mistakes
+              - Pulling large S3 data through NAT
+              - Cross-AZ calls between every microservice
+              - Serving big files from EC2 instead of a CDN
             resources:
               - { label: "Overview of data transfer costs (AWS Architecture Blog)", url: "https://aws.amazon.com/blogs/architecture/overview-of-data-transfer-costs-for-common-architectures/", kind: article }
           - id: rightsizing
@@ -845,8 +2248,23 @@ stages:
             learn:
               - Reading Compute Optimizer findings
               - Graviton for cheaper compute
+            body: |
+              **Rightsizing** means matching resource size to real use. Most teams start too big and never look again. Oversized servers waste money every hour.
+
+              ### Key ideas
+              - **AWS Compute Optimizer** analyses metrics and recommends better sizes for EC2, Auto Scaling groups, EBS volumes, Lambda functions and ECS on Fargate
+              - Each finding says **under-provisioned**, **over-provisioned** or **optimized**, with a risk rating and expected savings
+              - It needs about 30 hours of data at least, and gives better advice with longer history. Turn on memory metrics with the CloudWatch agent for better EC2 results
+              - Treat recommendations as input. Test the change, and make it during a quiet period
+              - **Graviton** (ARM) instances often give better price performance than x86. Many Linux apps run unchanged. Rebuild images for ARM and test
+              - For Lambda, try higher memory. More memory means more CPU and can lower total cost if the run gets much faster
+              - Delete unattached EBS volumes, old snapshots and idle load balancers
+
+              ### In practice
+              Review Compute Optimizer monthly. Pick the top three savings, apply them, and watch the metrics for a week before the next batch.
             resources:
               - { label: "What is AWS Compute Optimizer?", url: "https://docs.aws.amazon.com/compute-optimizer/latest/ug/what-is-compute-optimizer.html", kind: docs }
+              - { label: "AWS Graviton", url: "https://aws.amazon.com/ec2/graviton/", kind: article }
 
       - id: kubernetes-eks
         title: Kubernetes on EKS
@@ -858,15 +2276,49 @@ stages:
             learn:
               - Managed node groups
               - Karpenter for autoscaling
+            body: |
+              **Amazon EKS** is managed Kubernetes. AWS runs the **control plane**, which is the API server and the cluster brain. You choose how to run the **worker nodes** that run your pods.
+
+              ### Key ideas
+              - The control plane is highly available across zones and has a fixed hourly price
+              - **Managed node groups** create and update EC2 instances for you, using Auto Scaling groups. You pick the instance types
+              - **Fargate** profiles run pods on serverless capacity with no nodes to manage. It has some limits, like no DaemonSets
+              - **Karpenter** is a node autoscaler. It watches for pods that cannot be scheduled and launches the right instance for them quickly. It also removes empty or wasteful nodes, and can use Spot
+              - **EKS Auto Mode** lets AWS manage compute, networking and storage add-ons for you, at an added fee
+              - You must plan upgrades. Kubernetes versions leave support after a set time, and the cluster and nodes need regular upgrades
+
+              ### In practice
+              A common modern setup: a small managed node group for system pods, and Karpenter for the application nodes. Define a `NodePool` with allowed instance families and a limit on total CPU, so scaling cannot run away.
             resources:
               - { label: "What is Amazon EKS?", url: "https://docs.aws.amazon.com/eks/latest/userguide/what-is-eks.html", kind: docs }
               - { label: "EKS Best Practices Guide", url: "https://docs.aws.amazon.com/eks/latest/best-practices/introduction.html", kind: docs }
+              - { label: "Managed node groups (AWS docs)", url: "https://docs.aws.amazon.com/eks/latest/userguide/managed-node-groups.html", kind: docs }
+              - { label: "Karpenter documentation", url: "https://karpenter.sh/docs/", kind: docs }
           - id: eks-pod-iam
             title: IAM for pods
             summary: Give each workload its own AWS permissions with Pod Identity or IRSA, not the node's role.
             learn:
               - EKS Pod Identity
               - IAM roles for service accounts
+            body: |
+              Pods that call AWS services, like S3 or DynamoDB, need credentials. Do not give them the node's role. Every pod on the node would share it. Give each workload its own role instead.
+
+              ### Key ideas
+              - **EKS Pod Identity** is the newer, simpler way. You install an agent add-on, then create an association between an IAM role, a Kubernetes namespace and a service account
+              - Pods using that service account get temporary credentials for the role. The AWS SDK finds them on its own
+              - **IRSA** (IAM roles for service accounts) is the older method. It uses the cluster's OIDC provider, and the role trust policy holds the cluster details
+              - Pod Identity roles can be reused across clusters without editing trust policies per cluster
+              - Both give least privilege per workload
+              - Block pods from reaching the node's instance metadata when you can, so they cannot borrow the node role
+
+              ### Example
+              The `reports` service account in namespace `analytics` is linked to a role that can read one S3 bucket. A pod running as that account can read the bucket. A pod using any other service account cannot.
+
+              ```bash
+              aws eks create-pod-identity-association --cluster-name prod \
+                --namespace analytics --service-account reports \
+                --role-arn arn:aws:iam::123456789012:role/reports-s3-read
+              ```
             resources:
               - { label: "EKS Pod Identity (AWS docs)", url: "https://docs.aws.amazon.com/eks/latest/userguide/pod-identities.html", kind: docs }
           - id: eks-vs-ecs
@@ -875,6 +2327,22 @@ stages:
             learn:
               - When ECS is enough
               - What EKS adds
+            body: |
+              Both run containers on AWS. ECS is AWS's own container service. EKS is managed Kubernetes. The choice is mostly about the team and the ecosystem.
+
+              ### Key ideas
+              - **ECS** is simpler. Fewer concepts, tight AWS integration, no control plane fee, and quick to learn. Fargate makes it close to hands-off
+              - **EKS** gives you Kubernetes: a huge ecosystem of tools, Helm charts and operators, a standard API, and skills that carry to other clouds
+              - EKS costs more to learn and operate. There is a control plane charge, add-on upgrades and more moving parts
+              - Choose ECS when you run a modest number of services on AWS and want low overhead
+              - Choose EKS when you already know Kubernetes, need its tools, or want portability across clouds and on-premises
+              - Neither is wrong. Switching later is real work, since manifests and task definitions differ
+
+              ### Common mistakes
+              - Picking EKS because it is popular, for a team of three with two services
+              - Picking ECS and then needing Kubernetes-only tooling
+
+              If you cannot name what Kubernetes gives you that ECS does not, start with ECS.
             resources:
               - { label: "Choosing an AWS container service", url: "https://docs.aws.amazon.com/decision-guides/latest/containers-on-aws-how-to-choose/choosing-aws-container-service.html", kind: docs }
           - id: eks-workshop
@@ -884,6 +2352,20 @@ stages:
             learn:
               - Cluster networking
               - Observability on EKS
+            body: |
+              The **EKS Workshop** is a free, official set of hands-on labs. You work on a real cluster, and learn by doing tasks instead of reading about them.
+
+              ### Key ideas
+              - Labs cover core areas: **networking** (VPC CNI, load balancers, ingress), **autoscaling** (pod and node scaling with Karpenter), **observability** (metrics, logs, tracing) and **security** (pod identity, secrets, policies)
+              - Work in your own AWS account, or in an event account if you attend one
+              - Each lab sets up and tears down what it needs
+              - Do the labs in an account where you are happy to spend a few dollars
+              - Clean up the cluster when you finish, since the control plane and nodes keep billing
+
+              ### In practice
+              Start with the introduction lab and the sample retail app, then pick topics that match your goals. Try one lab, change a setting yourself, and see what breaks. Take notes of the commands you use. Delete the cluster at the end of each session.
+
+              Pair the labs with a small project of your own. Move a simple app onto the cluster and expose it through a load balancer. You learn more when you fix a problem you made.
             resources:
               - { label: "EKS Workshop", url: "https://www.eksworkshop.com/", kind: course }
 
@@ -898,6 +2380,25 @@ stages:
               - Model access and regions
               - The Converse API
               - OpenAI-compatible endpoints
+            body: |
+              **Amazon Bedrock** lets you call foundation models, like Claude and others, through one AWS API. You pay per token, with no model servers to run. Your data stays within AWS under your account's controls.
+
+              ### Key ideas
+              - Open the model catalog in the console and check which models are available in your region. Some models need you to accept terms or request access
+              - Models differ by region. **Cross-region inference profiles** can route requests across regions for more capacity
+              - The **Converse API** is a single request format that works across models. You send messages and get a reply, with the same shape for each model
+              - Billing is by input and output **tokens**. Longer prompts and answers cost more
+              - Bedrock also offers an **OpenAI-compatible endpoint**, so many existing OpenAI client libraries work by changing the base URL and key
+              - Calls are authorised with IAM, so grant `bedrock:InvokeModel` only on the models you need
+
+              ### In practice
+              ```bash
+              aws bedrock-runtime converse \
+                --model-id MODEL_ID \
+                --messages '[{"role":"user","content":[{"text":"Say hello"}]}]'
+              ```
+
+              Use the model id shown in the console for your region. Set a budget alert, because a loop calling a model can spend quickly.
             resources:
               - { label: "What is Amazon Bedrock?", url: "https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-bedrock.html", kind: docs }
               - post: migrated-lambda-ai-app-to-bedrock-openai-compatible-apis-without-rewriting-everything
@@ -907,24 +2408,72 @@ stages:
             learn:
               - Sync endpoints vs background jobs
               - Validating model output
+            body: |
+              A simple pattern for AI features: a client calls API Gateway, which invokes a Lambda function, which calls Bedrock and returns the result. There are no servers to run, and cost follows usage.
+
+              ### Key ideas
+              - **Synchronous** endpoints suit short answers. API Gateway has a 29 second default integration timeout for REST APIs, so long generations may fail. Streaming responses help
+              - For slow work, use a **background job**: the API accepts the request, puts it on a queue, returns a job id, and the client polls or gets a notification
+              - **Validate what the model returns** before you use it. A model may return broken JSON, wrong fields or unsafe text
+              - Ask for structured output, parse it, and check it against a schema. On failure, retry once or fall back
+              - Never run model output as code or as a database query
+              - Set a max token limit, timeouts and concurrency limits to control cost
+              - Authenticate users and rate limit by user, so one client cannot drain your budget
+
+              ### Common mistakes
+              - Trusting a model's JSON blindly
+              - Letting an endpoint run with no per-user limit
+              - Holding a Lambda open for minutes while the model thinks
             resources:
               - post: serverless-ai-inference-endpoints-with-aws-bedrock-and-lambda
               - post: ai-endpoints-post-generate-validation-lambda-bedrock-fastify
+              - { label: "Serverless Land patterns", url: "https://serverlessland.com/patterns", kind: article }
           - id: llm-workflows
             title: Orchestrating LLM workflows
             summary: Multi-step AI jobs with Step Functions, and long-running work without Lambda timeouts.
             learn:
               - Step Functions for LLM chains
               - Handling long workloads
+            body: |
+              Many AI jobs are not one call. They have several steps: fetch data, call a model, check the answer, call another tool, save the result. **Step Functions** is a good fit for orchestrating them.
+
+              ### Key ideas
+              - Each step is a state: retrieve, summarise, classify, validate, store
+              - Step Functions has direct integrations with Bedrock, so a state can invoke a model without a Lambda in between
+              - Built-in **Retry** and **Catch** deal with throttling and flaky calls, and the execution history shows each step's input and output
+              - A **Choice** state can send low-quality answers to a retry or a human review step
+              - The **Map** state runs a step over many items in parallel, with a concurrency limit to respect model quotas
+              - Long work does not fit Lambda's 15 minute limit. Standard workflows can run for up to a year, and can **wait for a callback** or a human approval
+              - Keep state payloads small. Store large text in S3 and pass the key
+
+              ### In practice
+              A document pipeline: read the file from S3, split it into parts, run a Map over the parts to summarise each, combine the summaries, validate the format, then write the result and notify the user. If a part fails three times, record it and continue.
             resources:
               - post: step-functions-llm-orchestration-replacing-lambda-chains
               - post: lambda-microvm-long-ai-workloads
+              - { label: "Invoke Bedrock from Step Functions (AWS docs)", url: "https://docs.aws.amazon.com/step-functions/latest/dg/connect-bedrock.html", kind: docs }
           - id: rag-on-aws
             title: RAG on AWS
             summary: Retrieval-augmented generation with pgvector or Bedrock Knowledge Bases, and keeping access rules on retrieved data.
             learn:
               - Chunking, embedding and indexing
               - Re-checking permissions on citations
+            body: |
+              **Retrieval-augmented generation (RAG)** gives a model your own data at question time. You search your documents for the relevant parts and put them in the prompt, so the answer rests on your content.
+
+              ### Key ideas
+              - **Ingest:** split documents into **chunks**, turn each chunk into an **embedding** (a vector of numbers), and store the vectors in an index
+              - **Query:** embed the question, find the nearest chunks, and add them to the prompt
+              - Vector storage options: **pgvector** in PostgreSQL (RDS or Aurora), OpenSearch, or S3 Vectors
+              - **Bedrock Knowledge Bases** is a managed option. It reads from a data source like S3, chunks, embeds, stores and retrieves for you
+              - Chunk size matters. Too small loses context, too large adds noise
+              - Return **citations** so users can check the source
+              - **Keep access rules.** If a user cannot read a document, they must not get answers from it. Store permissions with each chunk, filter at query time, and re-check access on every cited source before showing it
+
+              ### Common mistakes
+              - Indexing everyone's documents into one index with no filter
+              - Never testing retrieval quality on real questions
+              - Forgetting to re-index when documents change
             resources:
               - post: building-a-production-rag-pipeline-on-aws-lambda-pgvector
               - post: persistence-is-not-permission-rag-citation-reauth-chat-replay
@@ -936,9 +2485,25 @@ stages:
             learn:
               - Action groups
               - Bedrock Guardrails
+            body: |
+              An **agent** is a model that can decide to take actions. **Amazon Bedrock Agents** lets you build one that plans steps, calls your tools and uses your data, with AWS handling orchestration.
+
+              ### Key ideas
+              - An **action group** is a set of tools the agent may call. You describe each with an OpenAPI schema or function details, and back it with a Lambda function
+              - A **knowledge base** gives the agent your documents to search
+              - The agent reads the user request, decides which tool to call, runs it, reads the result and continues until it can answer
+              - **Bedrock Guardrails** filter what goes in and out. They can block topics, filter harmful content, redact personal data and check answers against grounding rules
+              - Guardrails work with agents and with direct model calls
+              - Treat tool Lambdas like public APIs. Validate every input, because the model may send odd values
+              - Give each tool only the permissions it needs
+              - Require a human confirmation before destructive actions
+
+              ### Example
+              A support agent has two actions, `lookup_order` and `create_return`. The first only reads. The second is allowed only for the logged-in customer's own orders, checked inside the Lambda, not in the prompt. A guardrail redacts card numbers in the output.
             resources:
               - post: bedrock-agents-production-knowledge-bases
               - { label: "Amazon Bedrock Guardrails (AWS docs)", url: "https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html", kind: docs }
+              - { label: "Amazon Bedrock Agents (AWS docs)", url: "https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html", kind: docs }
           - id: mcp-on-aws
             title: MCP servers on AWS
             optional: true
@@ -947,10 +2512,28 @@ stages:
               - Streamable HTTP on Lambda
               - Authentication for remote MCP
               - AgentCore Gateway targets
+            body: |
+              The **Model Context Protocol (MCP)** is a standard way for AI apps to use tools and data. An MCP server exposes tools, and a client such as an AI assistant calls them. Remote servers run over HTTP, so you can host them in the cloud.
+
+              ### Key ideas
+              - **Streamable HTTP** is the current transport for remote MCP servers. A client sends requests to one endpoint, and the server can reply with a stream
+              - On Lambda, put the server behind API Gateway or a function URL. Stateless servers fit Lambda well. Long sessions and server-initiated streams need care
+              - **Authentication:** remote MCP uses OAuth 2.1 style flows. The server checks a bearer token on every request. Cognito or another identity provider can issue the tokens
+              - Check the token audience and scopes, and map the user to what tools they may use
+              - **Amazon Bedrock AgentCore Gateway** can turn APIs, Lambda functions and other services into MCP tools, with auth built in. A **target** is one API or function you expose through the gateway
+              - Log every tool call with the caller identity
+
+              ### Common mistakes
+              - An unauthenticated MCP endpoint on the public internet
+              - Tools that run with the server's broad role instead of the caller's rights
+              - Returning huge results that waste the model's context
             resources:
               - post: deploying-an-mcp-server-on-aws-lambda
               - post: mcp-authentication-fix-401-remote-server
               - post: agentcore-gateway-private-ca-without-the-alb
+              - { label: "Model Context Protocol transports", url: "https://modelcontextprotocol.io/specification/2025-06-18/basic/transports", kind: docs }
+              - { label: "MCP authorization", url: "https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization", kind: docs }
+              - { label: "Amazon Bedrock AgentCore Gateway (AWS docs)", url: "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html", kind: docs }
 
       - id: agentic-aws-ops
         title: AI agents for AWS operations
@@ -962,6 +2545,24 @@ stages:
             learn:
               - Read-only profiles for agents
               - Keeping writes behind a human
+            body: |
+              An AI agent that can change your cloud account can also break it, or be tricked into it. Start with the least access that lets it help, and that usually means **read-only**.
+
+              ### Key ideas
+              - Create a separate role or profile for the agent. Never hand it your admin session
+              - Attach a read-only policy, such as the AWS managed `ReadOnlyAccess` policy, or a narrower custom one. Some data services can still expose sensitive data to read-only users, so scope it
+              - Use short-lived credentials from SSO or an assumed role, not long-lived keys
+              - Add a **permission boundary** or an SCP so the role can never write, even if someone adds a policy by mistake
+              - Keep writes behind a human. The agent proposes a command or a plan. A person runs it with their own permissions
+              - Log the agent's role in CloudTrail, so you can see what it read
+
+              ### In practice
+              ```bash
+              aws configure sso --profile agent-readonly
+              aws sts get-caller-identity --profile agent-readonly
+              ```
+
+              Test that a write fails, such as creating a bucket, before you trust the setup. Review how well the agent works with read-only access. Often that is enough for audits, cost reviews and debugging.
             resources:
               - post: how-i-make-ai-coding-agents-safe-in-a-real-aws-codebase
               - { label: "ReadOnlyAccess managed policy (AWS docs)", url: "https://docs.aws.amazon.com/aws-managed-policy/latest/reference/ReadOnlyAccess.html", kind: docs }
@@ -971,18 +2572,53 @@ stages:
             learn:
               - Agent drafts, human applies
               - Checking plans before apply
+            body: |
+              Agents write Terraform quickly, and they also make mistakes. A safe workflow keeps a human in charge of the one step that changes your account: **apply**.
+
+              ### Key ideas
+              - **Agent drafts.** It writes or edits Terraform and runs `fmt` and `validate`
+              - It may run `terraform plan` with a read-only or plan-only role, so it cannot create anything
+              - **You review the plan.** Look at every resource marked for creation, change or destruction
+              - **A human applies**, after approval, ideally from CI with a protected role
+              - Never give the agent credentials that can apply to production
+              - Check the plan for: deletions and replacements, changes to IAM and security groups, public exposure, new costs like NAT gateways, and secrets in output
+              - Compare the plan to what you asked for. Extra resources are a warning sign
+              - Use version control. Every change is a pull request with the plan attached
+
+              ### In practice
+              Ask the agent for a small change, such as adding a bucket with Block Public Access. Read the diff and the plan. If a plan says "1 to destroy" and you did not expect it, stop and ask why. Keep changes small so reviews stay easy.
             resources:
               - post: claude-code-for-aws-infrastructure-agentic-devops-workflow-with-terraform
               - { label: "Claude Code docs", url: "https://docs.anthropic.com/en/docs/claude-code/overview", kind: docs }
+              - { label: "Terraform plan command", url: "https://developer.hashicorp.com/terraform/cli/commands/plan", kind: docs }
           - id: reviewing-agent-prs
             title: Reviewing agent-written changes
             summary: AI review and a checklist for Terraform and Lambda pull requests before they merge.
             learn:
               - What to check in agent PRs
               - Automated AI review in CI
+            body: |
+              Agent-written pull requests look tidy, and they compile and pass tests. That is not the same as being right. Review them with a checklist, and add automated review in CI.
+
+              ### Key ideas
+              - Read the whole diff. Agents may touch files you did not expect
+              - **Terraform:** check IAM wildcards, public access, open security groups, missing encryption, deleted or replaced resources, hard-coded secrets, missing tags
+              - **Lambda:** check the timeout and memory, the role's permissions, error handling, retries and dead-letter queues, logging that leaks data, and input validation
+              - Check that tests test behaviour, not just call the code
+              - Look for invented APIs, outdated options and fake package names
+              - Run the plan, and read it
+              - **Automated review in CI** can add a second pair of eyes: static checks like `tflint`, `checkov` or `trivy`, plus an AI reviewer that comments on the PR
+              - Automated review helps, but a human still approves
+
+              ### Common mistakes
+              - Approving because the checks are green
+              - Accepting a large diff because it looks neat
+              - Letting the agent that wrote the code also approve it
             resources:
               - post: production-ai-code-review-for-terraform-and-lambda-prs
               - post: pre-merge-checklist-ai-generated-prs
+              - { label: "Checkov", url: "https://www.checkov.io/", kind: tool }
+              - { label: "tflint", url: "https://github.com/terraform-linters/tflint", kind: tool }
           - id: multi-agent-routines
             title: Multi-agent routines
             optional: true
@@ -990,6 +2626,21 @@ stages:
             learn:
               - Roles per agent
               - Guardrails for automation
+            body: |
+              A routine that does everything in one agent gets slow and confused. Split ops work across several agents, each with one job, one set of tools and clear limits.
+
+              ### Key ideas
+              - Give each agent a **role**. For example: a cost agent that reads billing data, a security agent that reads findings, a reporter that writes the summary
+              - Each agent gets its own **role in IAM** with only the access it needs. A reader agent cannot write
+              - A coordinator passes tasks and collects results. Keep the messages short and structured
+              - **Guardrails:** set time and spend limits, cap the number of steps, and restrict the tools
+              - Writes need a **human approval** step, such as a pull request or a chat button
+              - Log what each agent did and why. Keep an audit trail
+              - Run routines on a schedule with EventBridge Scheduler, and alert if one fails or reports nothing
+              - Test with dry runs before giving a routine real power
+
+              ### Example
+              Every Monday, one agent lists the top cost increases, another lists new high-severity security findings, and a third combines them into a short report in chat. None of them can change the account. Any fix goes through a pull request that a person reviews.
             resources:
               - post: multi-agent-claude-code-aws-devops-routines
               - { label: "AWS Well-Architected: operational excellence", url: "https://docs.aws.amazon.com/wellarchitected/latest/operational-excellence-pillar/welcome.html", kind: docs }

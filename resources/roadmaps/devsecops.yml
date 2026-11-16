@@ -3,7 +3,7 @@ title: DevSecOps
 summary: Security built into the DevOps pipeline, from secrets and dependencies to policy as code and incident response.
 order: 6
 category: cloud-devops
-updated: '2026-11-15'
+updated: '2026-11-16'
 icon: shield-check
 color: emerald
 logos:
@@ -26,14 +26,45 @@ stages:
             learn:
               - Fast checks early, slow checks later
               - Blocking vs reporting checks
+            body: |
+              Not every check belongs everywhere. Run the cheap, fast ones early, where feedback is quick. Save the slow, deep ones for later stages.
+
+              A common map: at **commit**, secret scanning and linting. In a **pull request**, static analysis and dependency checks. At **build**, image scans and SBOM generation. At **deploy**, policy checks and signature verification. At **runtime**, monitoring and threat detection.
+
+              A check can **block** the merge or only **report**. Block on high-confidence, high-severity findings. Report the rest so developers are not stuck on noise.
+
+              ### Key ideas
+              - Fast checks early, slow checks later
+              - Blocking checks need low false positives
+              - Reporting checks build a backlog you triage on a schedule
+              - Start in report mode, then tighten
+
+              ### Example
+              A secret scan runs in seconds on every push and blocks. A full dynamic scan takes 30 minutes, so it runs nightly against staging and opens tickets.
             resources:
               - { label: "OWASP DevSecOps guideline", url: "https://owasp.org/www-project-devsecops-guideline/", kind: docs }
+              - { label: "OWASP CI/CD Security Cheat Sheet", url: "https://cheatsheetseries.owasp.org/cheatsheets/CI_CD_Security_Cheat_Sheet.html", kind: docs }
           - id: shared-responsibility
             title: Shared responsibility
             summary: Security is a job for developers, operations and the security team together, not a gate at the end.
             learn:
               - Who owns which control
               - Security champions in product teams
+            body: |
+              Security fails when it is one team's job at the end. Developers write the code, operations run the systems, and the security team sets standards and helps. Each group owns the controls closest to its work.
+
+              Developers own input validation, authorization checks and dependency updates. Operations own patching, network rules and access. Security owns the policies, the tooling and the review of risky designs.
+
+              A **security champion** is a developer in a product team who takes extra interest in security. They are the first contact for questions and help spread good habits.
+
+              ### Key ideas
+              - Every control has a named owner
+              - Security gives guardrails, teams do the work
+              - Champions scale a small security team
+              - Shared ownership means shared on-call for incidents
+
+              ### In practice
+              Write a short table of controls and owners in the repo, such as "dependency updates: the team" and "WAF rules: platform". Review it when the team changes.
             resources:
               - { label: "OWASP DevSecOps guideline", url: "https://owasp.org/www-project-devsecops-guideline/", kind: docs }
               - { label: "OWASP Top 10", url: "https://owasp.org/www-project-top-ten/", kind: article }
@@ -44,6 +75,21 @@ stages:
             learn:
               - ASVS levels
               - Turning requirements into tests
+            body: |
+              "Be secure" is not testable. A standard turns it into a list you can check. **OWASP ASVS** (Application Security Verification Standard) is a catalogue of requirements for web apps, grouped by area such as authentication, sessions and access control.
+
+              ASVS has three **levels**. Level 1 is the baseline for every app and can be checked mostly by testing. Level 2 suits apps with sensitive data. Level 3 is for the highest risk, like finance or health systems.
+
+              Pick a level, then copy the relevant requirements into your backlog as acceptance criteria.
+
+              ### Key ideas
+              - ASVS gives a shared definition of "secure enough"
+              - Choose the level by the risk of the app
+              - A requirement is useful when a test can prove it
+              - Review the list when the app changes
+
+              ### Example
+              Requirement: "Verify that sessions are invalidated on logout." Turn it into an automated test that logs in, logs out, then replays the old session cookie and expects a 401.
             resources:
               - { label: "OWASP ASVS", url: "https://owasp.org/www-project-application-security-verification-standard/", kind: docs }
 
@@ -58,15 +104,49 @@ stages:
               - Broken access control
               - Injection
               - Security misconfiguration
+            body: |
+              The **OWASP Top 10** is a ranked list of the most common web application risks, based on real data. Use it as a map of what to look for in code review.
+
+              **Broken access control** is when a user can do or see something they should not, like changing an ID in a URL to read another person's data. **Injection** is when untrusted input is run as code or a query, as in SQL injection. **Security misconfiguration** covers default passwords, open debug pages, public buckets and missing headers.
+
+              ### Key ideas
+              - Check authorization on the server for every request
+              - Pass user input as parameters, never glue it into queries
+              - Turn off what you do not use and change defaults
+              - The list is a starting point, not a full checklist
+
+              ### Common mistakes
+              ```sql
+              -- vulnerable: input becomes part of the query
+              SELECT * FROM users WHERE email = '$email';
+              -- safe: a parameter keeps input as data
+              SELECT * FROM users WHERE email = ?;
+              ```
             resources:
               - { label: "OWASP Top 10", url: "https://owasp.org/www-project-top-ten/", kind: article }
               - { label: "OWASP Cheat Sheet Series", url: "https://cheatsheetseries.owasp.org/", kind: docs }
+              - { label: "SQL Injection Prevention Cheat Sheet (OWASP)", url: "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html", kind: docs }
           - id: hands-on-web-labs
             title: Hands-on web security labs
             summary: Learn by exploiting deliberately vulnerable apps in a safe lab.
             learn:
               - SQL injection and XSS by hand
               - Access control bugs
+            body: |
+              You learn to defend by first attacking, in a place where it is legal. Deliberately vulnerable apps and online labs let you try real exploits safely. Never test against systems you do not own or have written permission to test.
+
+              Start with **SQL injection**: change a query's logic by sending crafted input. Then **XSS** (cross-site scripting): make a page run your script in another user's browser. Then **access control bugs**: view or edit data that belongs to someone else.
+
+              After each lab, find the code fix. Parameterized queries stop SQL injection. Output encoding stops most XSS. Server-side ownership checks stop most access control bugs.
+
+              ### Key ideas
+              - Attack in a lab, defend in your own code
+              - Always map the exploit to its fix
+              - Use an intercepting proxy such as Burp Suite to edit requests by hand
+              - Only test what you are allowed to test
+
+              ### In practice
+              Do one lab per topic, then search your own codebase for the same pattern.
             resources:
               - { label: "PortSwigger Web Security Academy", url: "https://portswigger.net/web-security", kind: course }
           - id: auth-and-access-control
@@ -76,9 +156,30 @@ stages:
             learn:
               - Session handling
               - Insecure direct object references
+            body: |
+              **Authentication** proves who you are. **Authorization** decides what you may do. Many breaches come from getting the second one wrong.
+
+              After sign-in, the app tracks you with a **session**, usually a cookie. Make session IDs long and random, set `HttpOnly`, `Secure` and `SameSite`, expire them, and issue a new one at login.
+
+              An **insecure direct object reference** (IDOR) happens when the app trusts an ID from the client. If `/invoices/42` returns invoice 42 to anyone logged in, changing the number shows other people's invoices.
+
+              ### Key ideas
+              - Check ownership on the server for every object, every time
+              - Cookies need HttpOnly, Secure and SameSite
+              - Rotate the session on login and destroy it on logout
+              - Hiding IDs is not access control
+
+              ### Example
+              ```python
+              invoice = Invoice.get(id)
+              if invoice.owner_id != current_user.id:
+                  abort(404)
+              ```
             resources:
               - { label: "OWASP Cheat Sheet Series", url: "https://cheatsheetseries.owasp.org/", kind: docs }
               - post: multi-tenant-saas-auth-lambda-fastify
+              - { label: "Session Management Cheat Sheet (OWASP)", url: "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html", kind: docs }
+              - { label: "IDOR Prevention Cheat Sheet (OWASP)", url: "https://cheatsheetseries.owasp.org/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.html", kind: docs }
 
       - id: secrets-management
         title: Secrets management
@@ -90,25 +191,79 @@ stages:
             learn:
               - Secrets Manager, Parameter Store and Vault
               - Rotating secrets
+            body: |
+              Secrets such as API keys and database passwords should live in a managed store, not in code or plain environment files. The store encrypts them, controls who can read them and logs every access.
+
+              **AWS Secrets Manager** stores secrets and can rotate some automatically. **Parameter Store** (in Systems Manager) is a simpler, cheaper option for config and secrets. **HashiCorp Vault** can also issue dynamic credentials, such as a database user created on demand.
+
+              **Rotation** means replacing a secret on a schedule or after a leak. Short-lived credentials make rotation automatic, because they expire by themselves.
+
+              ### Key ideas
+              - One store, access by identity, every read logged
+              - Apps fetch secrets at start-up or on demand
+              - Prefer credentials that expire over ones that live forever
+              - Test rotation before you need it in an emergency
+
+              ### Example
+              A Lambda function has an IAM role allowed to read one secret. It calls Secrets Manager on cold start and caches the value. No password is in the code or the config.
             resources:
               - { label: "OWASP secrets management cheat sheet", url: "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html", kind: docs }
               - { label: "AWS Secrets Manager", url: "https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html", kind: docs }
               - { label: "HashiCorp Vault docs", url: "https://developer.hashicorp.com/vault/docs", kind: docs }
+              - { label: "What is AWS Systems Manager Parameter Store", url: "https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html", kind: docs }
           - id: secret-scanning
             title: Secret scanning on commit
             summary: Catch keys before they reach the remote, and scan history for the ones that already did.
             learn:
               - Pre-commit hooks
               - Push protection on the git host
+            body: |
+              Most leaked keys are committed by accident. Scan for them before the commit leaves the laptop, and again on the server.
+
+              A **pre-commit hook** runs a scanner such as Gitleaks on staged changes and stops the commit if it finds a secret. Hooks are local, so a developer can skip them. That is why you also need **push protection** on the git host, which rejects a push that contains a known secret pattern.
+
+              Also scan history. A key deleted last year is still in old commits.
+
+              ### Key ideas
+              - Scan locally and again on the server
+              - Push protection is the check developers cannot skip
+              - Scan full history once, then only new changes
+              - Treat any key found as leaked
+
+              ### Example
+              ```bash
+              gitleaks detect --source . --redact
+              gitleaks protect --staged
+              ```
+              The first command scans history. The second checks only what you are about to commit.
             resources:
               - { label: "Gitleaks", url: "https://gitleaks.io/", kind: tool }
               - { label: "GitHub secret scanning", url: "https://docs.github.com/en/code-security/secret-scanning", kind: docs }
+              - { label: "pre-commit framework", url: "https://pre-commit.com/", kind: docs }
           - id: leaked-key-response
             title: What to do when a key leaks
             summary: Revoke first, then rotate, then look for use. Deleting the commit is not enough.
             learn:
               - Revoke and rotate order
               - Checking logs for misuse
+            body: |
+              When a key leaks, act in a fixed order. Time matters, because bots scan public repos within minutes.
+
+              1. **Revoke** the key so it stops working.
+              2. **Rotate**: create a new key and update the apps that need it.
+              3. **Investigate**: check logs for use of the old key.
+              4. **Clean up** and add a check so it cannot happen again.
+
+              Deleting the commit or rewriting history does not help. Others may have already copied the key, and forks and caches keep it.
+
+              ### Key ideas
+              - Revoke first, then rotate
+              - Assume the key was used until logs show otherwise
+              - Look at access logs, such as CloudTrail, for the key ID
+              - Record what happened and fix the cause
+
+              ### In practice
+              For an AWS access key, deactivate it in IAM, then search CloudTrail for events by that access key ID. Look for new users, new keys and resources you did not create.
             resources:
               - { label: "OWASP secrets management cheat sheet", url: "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html", kind: docs }
           - id: secrets-in-state
@@ -118,9 +273,28 @@ stages:
             learn:
               - Why Terraform state is sensitive
               - Secrets left in image layers
+            body: |
+              Secrets end up in places nobody planned for. **Terraform state** records every attribute of every resource, including database passwords and generated keys, in plain text. Anyone who can read the state can read those values.
+
+              Store state in an encrypted remote backend, lock down who can read it, and keep it out of git. Marking a variable `sensitive` hides it from output, but not from the state file.
+
+              **Image layers** are another leak. If a Dockerfile copies a secret in and deletes it later, the earlier layer still contains it. Build logs can also print secrets.
+
+              ### Key ideas
+              - Treat Terraform state like a secret
+              - Encrypt remote state and restrict access
+              - Never `COPY` or `ARG` secrets into an image
+              - Use build secrets, which are not stored in layers
+
+              ### Example
+              ```bash
+              docker build --secret id=npmrc,src=$HOME/.npmrc .
+              ```
             resources:
               - post: terraform-state-more-sensitive-than-env
               - { label: "OWASP secrets management cheat sheet", url: "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html", kind: docs }
+              - { label: "Build secrets (Docker)", url: "https://docs.docker.com/build/building/secrets/", kind: docs }
+              - { label: "Sensitive data in state (Terraform)", url: "https://developer.hashicorp.com/terraform/language/state/sensitive-data", kind: docs }
 
       - id: dependency-scanning
         title: Dependency scanning
@@ -132,27 +306,85 @@ stages:
             learn:
               - CVE IDs and CVSS scores
               - Advisory databases
+            body: |
+              A **CVE** (Common Vulnerabilities and Exposures) is a public ID for one known vulnerability, such as `CVE-2021-44228`. The ID lets everyone talk about the same flaw.
+
+              A **CVSS** score rates severity from 0 to 10. It is a starting point. It does not know whether your app is exposed, so always add your own context.
+
+              An **advisory** explains the flaw, lists the affected versions and names the fixed version. Advisory databases collect these: the GitHub Advisory Database, OSV and the NVD.
+
+              ### Key ideas
+              - CVE is the ID, CVSS is the severity, an advisory is the detail
+              - Check affected and fixed version ranges
+              - High score with no exposure may rank below a medium one you expose
+              - Subscribe to alerts for what you actually use
+
+              ### Example
+              Your scanner reports a critical CVE in a library. Open the advisory, confirm your version is in the affected range, then upgrade to the fixed version.
             resources:
               - { label: "OSV vulnerability database", url: "https://osv.dev/", kind: tool }
               - { label: "GitHub Advisory Database", url: "https://github.com/advisories", kind: tool }
+              - { label: "CVE Program overview", url: "https://www.cve.org/About/Overview", kind: article }
+              - { label: "Common Vulnerability Scoring System (FIRST)", url: "https://www.first.org/cvss/", kind: docs }
           - id: lockfiles
             title: Lockfiles
             summary: Pin the exact versions you install so scans and builds see the same tree.
             learn:
               - Direct vs transitive dependencies
               - Committing lockfiles
+            body: |
+              Your **direct dependencies** are the ones you list in your manifest. **Transitive dependencies** are the ones those packages pull in. Most of your tree is transitive.
+
+              A **lockfile** (`package-lock.json`, `composer.lock`, `poetry.lock`) records the exact version of every package, direct and transitive. Install from it and every machine and every CI run gets the same tree.
+
+              Without a lockfile, a build can pick up a newer, possibly malicious version without any change in your repo. Scanners also need the lockfile to see what you really run.
+
+              ### Key ideas
+              - Commit the lockfile for applications
+              - Use the strict install command in CI
+              - Review lockfile changes in pull requests
+              - Scanners read lockfiles, not just manifests
+
+              ### Example
+              ```bash
+              npm ci
+              ```
+              `npm ci` installs exactly what the lockfile says and fails if it does not match `package.json`. `npm install` may change the lockfile.
             resources:
               - { label: "OWASP Top 10", url: "https://owasp.org/www-project-top-ten/", kind: article }
               - { label: "OSV vulnerability database", url: "https://osv.dev/", kind: tool }
+              - { label: "package-lock.json (npm docs)", url: "https://docs.npmjs.com/cli/v10/configuring-npm/package-lock-json", kind: docs }
           - id: update-prs
             title: Automated update PRs
             summary: Let a bot open small update pull requests so patching is routine, not a project.
             learn:
               - Dependabot and Renovate
               - Grouping and scheduling updates
+            body: |
+              Patching works best in small steps. A bot watches your dependencies and opens a pull request when a new version appears. CI runs your tests, and you merge if they pass.
+
+              **Dependabot** is built into GitHub. **Renovate** is a separate tool with more options and works on many platforms. Both read a config file in the repo.
+
+              Left alone, bots can flood you with PRs. **Group** related updates into one PR, for example all minor and patch bumps. Set a **schedule**, such as weekly, so updates arrive in a batch. Let security updates skip the schedule.
+
+              ### Key ideas
+              - Small frequent updates are easier than big rare ones
+              - Good tests make automated updates safe
+              - Group and schedule to cut noise
+              - Security fixes should be fast
+
+              ### Example
+              ```yaml
+              version: 2
+              updates:
+                - package-ecosystem: npm
+                  directory: /
+                  schedule: { interval: weekly }
+              ```
             resources:
               - { label: "Dependabot docs", url: "https://docs.github.com/en/code-security/dependabot", kind: docs }
               - { label: "Renovate docs", url: "https://docs.renovatebot.com/", kind: docs }
+              - { label: "Dependabot options reference (GitHub)", url: "https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference", kind: docs }
           - id: reachability
             title: Prioritising by reachability
             optional: true
@@ -160,6 +392,21 @@ stages:
             learn:
               - Reachable vs present vulnerabilities
               - Accepting risk with an expiry date
+            body: |
+              A scanner tells you a vulnerable package is **present**. It does not tell you whether your code can **reach** the vulnerable function. Many CVEs sit in code your app never calls.
+
+              To triage, ask three questions. Does your code call the affected function? Can attacker input reach it? Is the service exposed? Some tools do call-graph analysis to answer the first one. Otherwise read the advisory and search your code.
+
+              If you decide not to fix now, **accept the risk with an expiry date**. Write down the reason, the owner and a review date.
+
+              ### Key ideas
+              - Present is not the same as reachable
+              - Fix reachable and exposed issues first
+              - Document every accepted risk with an owner
+              - Expiry dates stop old exceptions from lasting forever
+
+              ### Example
+              A CVE affects a library's XML parser. Your app only uses its date helpers. Mark it as not reachable, set a 90-day review, and upgrade in the next routine update.
             resources:
               - { label: "OSV vulnerability database", url: "https://osv.dev/", kind: tool }
 
@@ -173,17 +420,55 @@ stages:
             learn:
               - Assumed roles and STS
               - Why static keys leak
+            body: |
+              An **access key** is a long-lived credential. It works until someone deletes it, and it tends to end up in code, laptops and chat logs. A **role** has no permanent secret. A service or person **assumes** it and gets temporary credentials.
+
+              On AWS, the Security Token Service (**STS**) issues these. They include a key, a secret and a session token, and expire after a set time, often one hour. A leaked temporary credential stops working soon.
+
+              Attach roles to compute (Lambda, ECS, EC2) so the platform supplies credentials. For people, use single sign-on.
+
+              ### Key ideas
+              - Prefer roles and temporary credentials
+              - Static keys leak through repos, logs and old laptops
+              - Give each workload its own role
+              - If a static key is unavoidable, rotate it and limit it
+
+              ### Example
+              A Lambda function runs with an execution role that can read one S3 bucket. No access key exists anywhere in the code.
             resources:
               - { label: "AWS IAM best practices", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html", kind: docs }
+              - { label: "Temporary security credentials in IAM (AWS)", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp.html", kind: docs }
           - id: scoping-policies
             title: Scoping policies
             summary: Narrow actions, resources and conditions until a policy grants exactly what is used.
             learn:
               - Resource ARNs and conditions
               - Avoiding wildcards
+            body: |
+              A policy answers four questions: who, which **actions**, on which **resources**, and under what **conditions**. Least privilege means each answer is as narrow as possible.
+
+              Name exact actions such as `s3:GetObject`, not `s3:*`. Name exact **ARNs** for resources, not `*`. Add **conditions** to tighten further, such as requiring MFA or limiting to one network.
+
+              Wildcards are fast to write and hard to take back. Start narrow, test, and widen only when something fails with an access denied error.
+
+              ### Key ideas
+              - Actions, resources and conditions all need limits
+              - Avoid `*` for both actions and resources
+              - One role per job
+              - Read the access denied message to see what is missing
+
+              ### Example
+              ```json
+              {
+                "Effect": "Allow",
+                "Action": "s3:GetObject",
+                "Resource": "arn:aws:s3:::my-app-uploads/reports/*"
+              }
+              ```
             resources:
               - { label: "AWS IAM best practices", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html", kind: docs }
               - post: lock-down-bedrock-iam-lambda-data-leak
+              - { label: "IAM condition context keys (AWS)", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_condition-keys.html", kind: docs }
           - id: unused-permissions
             title: Reviewing unused permissions
             optional: true
@@ -191,8 +476,24 @@ stages:
             learn:
               - IAM Access Analyzer
               - Last-accessed data
+            body: |
+              Permissions pile up. People change jobs, projects end, and roles keep access nobody uses. Unused access is risk with no benefit.
+
+              **IAM Access Analyzer** helps in two ways. It finds resources shared outside your account, and it reports **unused access**: roles, users and permissions that have not been used in a chosen period such as 90 days.
+
+              **Last-accessed data** shows when a service was last used by an identity. If a role has not called a service in months, remove that permission from its policy.
+
+              ### Key ideas
+              - Review access on a schedule
+              - Use last-accessed data to see what is really used
+              - Remove first in a test account if unsure
+              - Delete unused roles and users
+
+              ### In practice
+              Every quarter, list the roles with unused permissions, open the policy, remove what was not touched, and watch for access denied errors for a week.
             resources:
               - { label: "IAM Access Analyzer", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/what-is-access-analyzer.html", kind: docs }
+              - { label: "Findings for unused access (IAM Access Analyzer)", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/access-analyzer-unused-access.html", kind: docs }
 
       - id: cloud-account-baseline
         title: Cloud account baseline
@@ -204,17 +505,52 @@ stages:
             learn:
               - MFA on root and on every human user
               - Billing alerts
+            body: |
+              The **root user** owns the whole AWS account and cannot be restricted by policies. If it is stolen, everything is lost. Protect it, then stop using it.
+
+              Set a long unique password and turn on **MFA** (multi-factor authentication), ideally a hardware key or passkey. Delete any root access keys. Use root only for the few tasks that need it.
+
+              For daily work, create individual users through IAM Identity Center and require MFA for all of them.
+
+              Also set a **billing alert**. A sudden cost spike is often the first sign of stolen credentials running crypto miners.
+
+              ### Key ideas
+              - MFA on root and on every human user
+              - No root access keys
+              - Daily work uses named users or roles
+              - Billing alerts catch abuse early
+
+              ### Common mistakes
+              - Sharing one admin login across the team
+              - Storing the root password and MFA device in the same place
             resources:
               - post: first-3-things-i-always-do-after-creating-a-new-aws-account
               - { label: "AWS IAM best practices", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html", kind: docs }
+              - { label: "Root user best practices (AWS)", url: "https://docs.aws.amazon.com/IAM/latest/UserGuide/root-user-best-practices.html", kind: docs }
           - id: audit-trail-on
             title: Turn on the audit trail
             summary: Record every API call from day one so an incident has evidence to work with.
             learn:
               - CloudTrail in all regions
               - Protecting the log bucket
+            body: |
+              After an incident the first question is "what happened?" You can only answer it if logging was on beforehand. **CloudTrail** records API calls in your account: who did what, from where and when.
+
+              Create a **trail** that covers all regions, including regions you never use, since attackers like unused regions. Send logs to an S3 bucket in a separate, locked-down account if you can.
+
+              Protect the bucket. Block public access, restrict deletes, and enable **log file validation** so tampering is detectable.
+
+              ### Key ideas
+              - Turn it on on day one, in all regions
+              - Keep logs where admins of the main account cannot easily delete them
+              - Enable log file validation
+              - Logs you never read still help after the fact
+
+              ### Example
+              After a leaked key, query CloudTrail for the key's access key ID. You see it listed users and launched instances at 03:12 from an unknown IP.
             resources:
               - { label: "AWS CloudTrail user guide", url: "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html", kind: docs }
+              - { label: "CloudTrail log file integrity validation (AWS)", url: "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-log-file-validation-intro.html", kind: docs }
           - id: cis-benchmarks
             title: CIS benchmarks
             optional: true
@@ -222,6 +558,21 @@ stages:
             learn:
               - What the benchmarks cover
               - Automating the checks
+            body: |
+              The **CIS Benchmarks** are free checklists from the Center for Internet Security. Each lists hardening settings for a product, such as AWS, Linux or Kubernetes, with a reason and a way to check each one.
+
+              Items are grouped into profiles. Level 1 is practical for most systems. Level 2 is stricter and may reduce usability. A sample item for AWS: make sure MFA is on for the root account.
+
+              Do not tick boxes by hand. Tools such as Prowler, AWS Security Hub and kube-bench check the benchmark automatically and report failures.
+
+              ### Key ideas
+              - A benchmark is a vetted list of settings
+              - Start with Level 1
+              - Automate the checks and run them regularly
+              - Document and justify any item you skip
+
+              ### In practice
+              Run a benchmark scanner against a fresh account, fix the failures that are quick, and file tickets for the rest.
             resources:
               - { label: "CIS Benchmarks", url: "https://www.cisecurity.org/cis-benchmarks", kind: docs }
 
@@ -238,23 +589,79 @@ stages:
             learn:
               - Rule-based scanners like Semgrep
               - Data-flow analysis with CodeQL
+            body: |
+              **Static analysis** (SAST) reads source code without running it, looking for risky patterns. Run it on every pull request so problems are found while the change is fresh.
+
+              **Semgrep** is rule-based. A rule describes a code pattern, such as a call to `eval` with user input. Rules are easy to read and write. **CodeQL** turns your code into a database and runs queries. It can follow **data flow** from an untrusted source, like a request parameter, to a dangerous sink, like a SQL call.
+
+              Fail the build only on high-confidence findings. Show the rest as comments.
+
+              ### Key ideas
+              - Run on every pull request
+              - Rules match patterns, data-flow analysis follows values
+              - Block on high severity and high confidence
+              - Write custom rules for your own mistakes
+
+              ### Example
+              ```bash
+              semgrep scan --config auto --error --severity ERROR
+              ```
             resources:
               - { label: "Semgrep docs", url: "https://semgrep.dev/docs/", kind: docs }
               - { label: "CodeQL docs", url: "https://codeql.github.com/docs/", kind: docs }
+              - { label: "Semgrep getting started", url: "https://semgrep.dev/docs/getting-started/", kind: docs }
+              - { label: "About code scanning with CodeQL (GitHub)", url: "https://docs.github.com/en/code-security/code-scanning/introduction-to-code-scanning/about-code-scanning-with-codeql", kind: docs }
           - id: dynamic-scans
             title: Dynamic scans against staging
             summary: Point a scanner at a running copy of the app to find what static analysis cannot.
             learn:
               - Baseline vs full scans
               - Authenticated scanning
+            body: |
+              **Dynamic scanning** (DAST) attacks a running copy of your app from the outside, like a real attacker. It finds problems static analysis cannot see, such as missing headers, bad redirects and misconfigured servers.
+
+              Always scan **staging**, never production by accident, and never someone else's site.
+
+              A **baseline scan** is passive. It reads responses and finds easy issues in minutes, so it suits every pull request. A **full scan** actively sends attacks and takes much longer, so run it nightly.
+
+              An unauthenticated scan only sees the login page. **Authenticated scanning** logs in first, so the scanner reaches the pages behind it.
+
+              ### Key ideas
+              - Scan staging with test data
+              - Baseline often, full on a schedule
+              - Give the scanner a test account
+              - Triage findings, not every one is real
+
+              ### Example
+              ```bash
+              docker run -t zaproxy/zap-stable zap-baseline.py -t https://staging.example.com
+              ```
             resources:
               - { label: "OWASP ZAP getting started", url: "https://www.zaproxy.org/getting-started/", kind: docs }
+              - { label: "ZAP baseline scan", url: "https://www.zaproxy.org/docs/docker/baseline-scan/", kind: docs }
           - id: false-positives
             title: Handling false positives
             summary: Tune rules and record suppressions so developers keep trusting the scanner.
             learn:
               - Suppressions with a reason
               - Measuring noise per rule
+            body: |
+              A scanner that cries wolf gets ignored. A **false positive** is a finding that is not a real problem. Handle them with care, or developers stop reading the results.
+
+              First, tune. Turn off rules that never find anything useful, or narrow them to the right paths. Second, **suppress** single findings on purpose, in code or in a config file, and write the reason next to the suppression.
+
+              Measure noise **per rule**: how many findings it raised and how many were real. A rule that is wrong 9 times out of 10 should be fixed or removed.
+
+              ### Key ideas
+              - Every suppression has a reason and an owner
+              - Track the false positive rate per rule
+              - Fix the rule, not just the finding
+              - Review suppressions now and then
+
+              ### Example
+              ```python
+              query = build(table)  # nosemgrep: table is from a fixed allow-list
+              ```
             resources:
               - { label: "Semgrep docs", url: "https://semgrep.dev/docs/", kind: docs }
           - id: ai-pr-review
@@ -264,6 +671,22 @@ stages:
             learn:
               - What AI review catches and misses
               - A pre-merge checklist for AI-written code
+            body: |
+              An AI reviewer reads the diff and comments on it. It is a useful extra pair of eyes, never the final decision. A human approves the merge.
+
+              AI review is good at spotting obvious bugs, missing validation, copied secrets and unsafe patterns. It misses business logic, context about your system and anything that needs knowledge of other services. It can also be confidently wrong.
+
+              AI-written code needs the same checks as any other code, and a bit more care. Models can invent package names or skip authorization checks.
+
+              ### Key ideas
+              - AI review adds coverage, it does not replace people
+              - Verify every claim before acting
+              - Check that imported packages really exist
+              - Keep secrets out of prompts
+
+              ### Common mistakes
+              - Merging because the AI said "looks good"
+              - Pasting private code or keys into a tool your company has not approved
             resources:
               - post: pre-merge-checklist-ai-generated-prs
               - { label: "OWASP Cheat Sheet Series", url: "https://cheatsheetseries.owasp.org/", kind: docs }
@@ -278,6 +701,26 @@ stages:
             learn:
               - OIDC trust between CI and the cloud
               - Scoping the role to one repo and branch
+            body: |
+              A stored cloud key in CI settings is a long-lived secret. If it leaks, an attacker can deploy as you. **OIDC** (OpenID Connect) removes it.
+
+              Each CI job gets a signed token from the CI provider that says which repo, branch and workflow it is running for. The cloud trusts the provider, checks the token and returns **short-lived credentials** for a role. Nothing permanent is stored.
+
+              The important step is the **trust policy** on the role. Limit it to your repo and branch, otherwise any repo on the same CI platform could assume it.
+
+              ### Key ideas
+              - No stored deploy key
+              - The cloud verifies the token, then issues temporary credentials
+              - Restrict the role to one repo and one branch
+              - Give the role only the permissions the deploy needs
+
+              ### Example
+              ```yaml
+              permissions:
+                id-token: write
+                contents: read
+              ```
+              This workflow setting lets the job request an OIDC token.
             resources:
               - post: github-actions-lambda-terraform-cicd
               - { label: "About security hardening with OpenID Connect (GitHub)", url: "https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect", kind: docs }
@@ -288,9 +731,32 @@ stages:
               - Least-privilege workflow tokens
               - Pinning actions to a commit SHA
               - Risky triggers on forked pull requests
+            body: |
+              A CI workflow runs code with access to secrets, so treat it as production. Three habits cover most of the risk.
+
+              **Least-privilege tokens.** Set `permissions` to read-only at the top and grant more only to the jobs that need it.
+
+              **Pin actions to a commit SHA.** A tag like `v4` can be moved. A full SHA cannot, so a compromised action cannot silently change what you run.
+
+              **Handle untrusted input carefully.** Do not paste values such as a PR title straight into a shell command. Pass them through environment variables. Be careful with triggers such as `pull_request_target`, which run with secrets for code from forks.
+
+              ### Key ideas
+              - Default token permissions to read
+              - Pin third-party actions to full SHAs
+              - Treat PR titles, branch names and issue text as untrusted
+              - Do not run fork code with secrets
+
+              ### Example
+              ```yaml
+              permissions:
+                contents: read
+              steps:
+                - uses: actions/checkout@FULL_COMMIT_SHA
+              ```
             resources:
               - { label: "GitHub Actions docs", url: "https://docs.github.com/en/actions", kind: docs }
               - { label: "OpenSSF Scorecard", url: "https://github.com/ossf/scorecard", kind: tool }
+              - { label: "Security hardening for GitHub Actions", url: "https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions", kind: docs }
           - id: ai-agents-in-repo
             title: AI coding agents with repo access
             optional: true
@@ -298,6 +764,22 @@ stages:
             learn:
               - Scoped credentials for agents
               - Reviewing agent changes before merge
+            body: |
+              A coding agent can read files, run commands and open pull requests. Give it the same limits you would give a new contractor on day one.
+
+              Use **scoped credentials**. A token that can only push to a branch, read one repo and never touch production. Keep deploy keys, cloud admin roles and customer data out of reach. Run the agent in a sandbox or container with no access to your home directory.
+
+              Then **review every change** before merge. Read the diff, run tests, and look for new dependencies, changed CI files and anything touching auth.
+
+              ### Key ideas
+              - Least privilege applies to agents too
+              - Agents propose, humans merge
+              - Protect branches and require reviews
+              - Treat text the agent reads, like issues or web pages, as possible prompt injection
+
+              ### Common mistakes
+              - Letting an agent use your personal admin token
+              - Skipping review because the change is small
             resources:
               - post: how-i-make-ai-coding-agents-safe-in-a-real-aws-codebase
               - { label: "OWASP Top 10 for LLM applications", url: "https://genai.owasp.org/llm-top-10/", kind: article }
@@ -312,6 +794,23 @@ stages:
             learn:
               - OS packages vs language packages
               - Failing builds on fixable criticals
+            body: |
+              An **image scanner** lists the packages inside a container image and matches them against vulnerability databases. Trivy is a popular free scanner.
+
+              It checks **OS packages**, such as those installed by `apt`, and **language packages**, such as npm or pip libraries. Both matter, and they are fixed differently: rebuild on a newer base image for the first, update dependencies for the second.
+
+              Scan in CI before you push, and scan in the registry on a schedule, since new CVEs appear for images you built months ago.
+
+              ### Key ideas
+              - Scan every image build
+              - Rescan stored images regularly
+              - Fail only on critical or high findings that have a fix
+              - Ignore issues with no available fix, but track them
+
+              ### Example
+              ```bash
+              trivy image --severity CRITICAL,HIGH --ignore-unfixed --exit-code 1 myapp:latest
+              ```
             resources:
               - { label: "Trivy", url: "https://trivy.dev/", kind: tool }
           - id: minimal-base-images
@@ -320,18 +819,64 @@ stages:
             learn:
               - Distroless and slim images
               - Multi-stage builds
+            body: |
+              Every package in an image is something to patch and something an attacker might use. A smaller image has less of both.
+
+              **Slim** variants of common images, such as `python:3.13-slim`, drop many extras. **Distroless** images contain only your app and its runtime, with no shell and no package manager. An attacker who gets in has far fewer tools.
+
+              **Multi-stage builds** use a full image to compile and a small one to run. Only the final result is copied across.
+
+              ### Key ideas
+              - Fewer packages, fewer vulnerabilities
+              - No shell means fewer options for attackers
+              - Build in one stage, run in another
+              - Pin base images and rebuild often
+
+              ### Example
+              ```dockerfile
+              FROM golang:1.23 AS build
+              RUN go build -o /app ./...
+
+              FROM gcr.io/distroless/static
+              COPY --from=build /app /app
+              ENTRYPOINT ["/app"]
+              ```
             resources:
               - { label: "Distroless images", url: "https://github.com/GoogleContainerTools/distroless", kind: tool }
               - { label: "Docker security docs", url: "https://docs.docker.com/engine/security/", kind: docs }
+              - { label: "Building best practices (Docker)", url: "https://docs.docker.com/build/building/best-practices/", kind: docs }
           - id: non-root-containers
             title: Running as non-root
             summary: Run the process as an unprivileged user with a read-only filesystem where possible.
             learn:
               - USER in the Dockerfile
               - Dropping Linux capabilities
+            body: |
+              By default, a container process runs as root. If an attacker breaks into the app, they are root inside the container, which makes escapes and damage easier. Run as an unprivileged user instead.
+
+              Add a `USER` line in the Dockerfile. Make the root filesystem **read-only** where the app allows, with a small writable area for temp files. Linux splits root power into **capabilities**. Drop all of them and add back only what you need.
+
+              ### Key ideas
+              - Create a dedicated user and switch to it
+              - Read-only root filesystem
+              - Drop all capabilities, add back the minimum
+              - Disallow privilege escalation
+
+              ### Example
+              ```dockerfile
+              RUN useradd -r -u 10001 app
+              USER 10001
+              ```
+              ```yaml
+              securityContext:
+                runAsNonRoot: true
+                readOnlyRootFilesystem: true
+                capabilities: { drop: ["ALL"] }
+              ```
             resources:
               - { label: "Docker security docs", url: "https://docs.docker.com/engine/security/", kind: docs }
               - { label: "Pod Security Standards (Kubernetes)", url: "https://kubernetes.io/docs/concepts/security/pod-security-standards/", kind: docs }
+              - { label: "Pod Security Admission (Kubernetes)", url: "https://kubernetes.io/docs/concepts/security/pod-security-admission/", kind: docs }
 
       - id: iac-scanning
         title: Infrastructure as code scanning
@@ -343,6 +888,24 @@ stages:
             learn:
               - Common findings such as public buckets and open ports
               - Skipping a check with a reason
+            body: |
+              Most cloud breaches come from settings, not clever exploits. A **policy scanner** reads your Terraform or Kubernetes files and flags risky settings before they are deployed.
+
+              Common findings: a public S3 bucket, a security group open to the whole internet (`0.0.0.0/0`) on SSH, an unencrypted database, a container running as root. Checkov and Trivy cover these with built-in rules.
+
+              Run the scan on every pull request and fail on serious findings. When a finding is intentional, **skip it with a reason** in the code, so reviewers can see and judge it.
+
+              ### Key ideas
+              - Scan the code, not the live cloud
+              - Catch problems at review time
+              - Skips must say why
+              - Start with the default rules, add your own later
+
+              ### Example
+              ```hcl
+              #checkov:skip=CKV_AWS_18:Access logs not needed for this public asset bucket
+              resource "aws_s3_bucket" "assets" {}
+              ```
             resources:
               - { label: "Checkov", url: "https://www.checkov.io/", kind: tool }
               - { label: "Trivy", url: "https://trivy.dev/", kind: tool }
@@ -352,6 +915,25 @@ stages:
             learn:
               - Spotting destroys and replacements
               - Posting the plan on the pull request
+            body: |
+              `terraform plan` shows what Terraform will actually do. The code can look harmless while the plan reveals a destroyed database. Always review the plan, not only the diff.
+
+              Look at the summary line first: how many to add, change and destroy. Then check each resource marked **destroy** or **replace** (shown as `-/+`). A replacement deletes the old resource and creates a new one, which can lose data or cause downtime.
+
+              Post the plan as a comment on the pull request, so reviewers see it next to the code. Apply the **same plan** that was reviewed.
+
+              ### Key ideas
+              - Read the plan, not only the code
+              - Treat destroys and replacements as high risk
+              - Show the plan in the PR
+              - Apply only after approval
+
+              ### Example
+              ```bash
+              terraform plan -out=tfplan
+              terraform show tfplan
+              terraform apply tfplan
+              ```
             resources:
               - post: github-actions-lambda-terraform-cicd
               - { label: "Checkov", url: "https://www.checkov.io/", kind: tool }
@@ -362,6 +944,23 @@ stages:
             learn:
               - Feeding the plan to the reviewer
               - Keeping a human approval
+            body: |
+              Infrastructure changes can be hard to read. An AI reviewer can explain a plan in plain words and point out risky parts, such as a new public endpoint or a widened IAM policy.
+
+              Feed it the **plan output** and the diff, not just the code, so it sees what will really change. Ask for specific things: new network exposure, permission changes, deleted resources, missing encryption. Strip secrets from the input first.
+
+              Keep a **human approval** step. The AI comments, a person decides.
+
+              ### Key ideas
+              - Give the reviewer the plan and the diff
+              - Ask for specific risk categories
+              - Remove secrets before sending anything
+              - A human approves every apply
+
+              ### Common mistakes
+              - Treating a clean AI review as approval
+              - Letting the AI run apply
+              - Sending state files, which may hold secrets
             resources:
               - post: production-ai-code-review-for-terraform-and-lambda-prs
 
@@ -375,16 +974,47 @@ stages:
             learn:
               - Managed rule groups
               - Count mode before block mode
+            body: |
+              A **WAF** (web application firewall) inspects HTTP requests and blocks ones that look like attacks, such as SQL injection or known bad bots. It sits in front of your app, at the CDN or load balancer.
+
+              **Managed rule groups** are sets of rules maintained by the vendor. They give you broad protection without writing rules. Add your own rules for things specific to your app, such as blocking a path or a country you do not serve.
+
+              Roll out carefully. In **count mode** a rule only logs matches. Check the logs for legitimate traffic that would be blocked, then switch to **block mode**.
+
+              ### Key ideas
+              - Start with managed rules
+              - Count first, block after checking logs
+              - A WAF is an extra layer, it does not fix bugs in the app
+              - Review blocked requests regularly
+
+              ### In practice
+              Enable the common rule set in count mode for a week. If nothing real would be blocked, switch it to block.
             resources:
               - post: aws-waf-cloudfront-solo-dev
               - { label: "What is a WAF? (Cloudflare)", url: "https://www.cloudflare.com/learning/ddos/glossary/web-application-firewall-waf/", kind: article }
               - { label: "AWS WAF developer guide", url: "https://docs.aws.amazon.com/waf/latest/developerguide/waf-chapter.html", kind: docs }
+              - { label: "AWS Managed Rules rule groups list", url: "https://docs.aws.amazon.com/waf/latest/developerguide/waf-managed-rule-groups.html", kind: docs }
           - id: rate-limiting
             title: Rate limiting
             summary: Cap requests per client so one bad actor cannot exhaust your app or your bill.
             learn:
               - Per-IP vs per-user limits
               - Trusting the right client IP header
+            body: |
+              **Rate limiting** caps how many requests a client can make in a time window. It slows password guessing, scraping and floods, and protects costly endpoints and your cloud bill.
+
+              Choose the key to count by. **Per-IP** limits work before login, but many users can share one IP. **Per-user** limits are fairer once the user is known. Use both: strict on login and signup, looser elsewhere. Return `429 Too Many Requests` with a `Retry-After` header.
+
+              The IP you count must be real. Behind a CDN or proxy, the socket address is the proxy. Read the client IP from the header your edge sets, such as `CF-Connecting-IP`, and only trust it when traffic really comes through that edge.
+
+              ### Key ideas
+              - Limit sensitive routes tightly
+              - Use per-IP and per-user limits together
+              - Trust a forwarded IP header only from your own proxy
+              - Return 429 with Retry-After
+
+              ### Common mistakes
+              - Trusting `X-Forwarded-For` from the open internet, which lets anyone fake their IP
             resources:
               - { label: "What is rate limiting? (Cloudflare)", url: "https://www.cloudflare.com/learning/bots/what-is-rate-limiting/", kind: article }
               - post: aws-waf-cloudfront-solo-dev
@@ -395,6 +1025,21 @@ stages:
             learn:
               - Network vs application layer attacks
               - Bot management and challenges
+            body: |
+              A **DDoS** (distributed denial of service) attack tries to make a service unavailable by overwhelming it. Two kinds differ in how you defend.
+
+              **Network layer** attacks (layers 3 and 4) flood your bandwidth or connections. A large CDN or DDoS service absorbs these at the edge, far from your origin. **Application layer** attacks (layer 7) send many valid-looking HTTP requests to expensive pages. Rate limits and WAF rules help here.
+
+              **Bots** are automated clients. Some are good, like search crawlers. Others scrape, stuff credentials or abuse signup forms. **Bot management** scores traffic and issues challenges, such as a CAPTCHA or a JavaScript check, to suspicious clients.
+
+              ### Key ideas
+              - Volumetric attacks are absorbed at the edge
+              - Layer 7 attacks need rate limits and rules
+              - Challenge suspicious traffic instead of blocking everything
+              - Keep the origin reachable only through the edge
+
+              ### Example
+              A login page gets 50,000 attempts an hour from many IPs. Rate limiting per IP is not enough, so you add a bot challenge on that route.
             resources:
               - { label: "What is a DDoS attack? (Cloudflare)", url: "https://www.cloudflare.com/learning/ddos/what-is-a-ddos-attack/", kind: article }
 
@@ -411,6 +1056,21 @@ stages:
             learn:
               - Provenance and build integrity
               - What each level asks for
+            body: |
+              **SLSA** (Supply-chain Levels for Software Artifacts, said "salsa") is a framework that describes how trustworthy a build is. Higher levels give stronger guarantees that an artifact came from the source you expect and was not changed on the way.
+
+              The core idea is **provenance**: a signed record of what was built, from which source, by which build system. Consumers can check it before they use the artifact. **Build integrity** means the build runs in a controlled place that developers and attackers cannot tamper with.
+
+              Levels rise step by step. Early levels ask for scripted builds and provenance. Higher levels ask for a hardened, isolated build platform that signs the provenance itself.
+
+              ### Key ideas
+              - Provenance says where an artifact came from
+              - Build on a trusted platform, not a laptop
+              - Verify provenance before you deploy
+              - Climb one level at a time
+
+              ### In practice
+              Start by building only in CI and publishing provenance. Then verify it at deploy.
             resources:
               - { label: "SLSA", url: "https://slsa.dev/", kind: docs }
           - id: signing-artifacts
@@ -419,17 +1079,57 @@ stages:
             learn:
               - Keyless signing with cosign
               - Verifying signatures at deploy time
+            body: |
+              A **signature** proves who published an artifact and that it was not changed. Traditional signing needs a private key that you must store and protect forever.
+
+              **Sigstore** offers **keyless signing**. With the `cosign` tool, a CI job proves its identity through OIDC, gets a short-lived certificate and signs the image. The signature and certificate are logged in a public transparency log. No long-lived key exists to steal.
+
+              Signing alone is not enough. **Verify** at deploy time, and check who signed, such as your CI workflow, not just that a signature exists. A Kubernetes admission policy can reject unsigned images.
+
+              ### Key ideas
+              - Keyless signing removes key management
+              - The signer identity is the important part
+              - Verify before running
+              - Enforce verification in the cluster
+
+              ### Example
+              ```bash
+              cosign sign ghcr.io/acme/app@sha256:DIGEST
+              cosign verify ghcr.io/acme/app@sha256:DIGEST \
+                --certificate-identity-regexp 'github.com/acme/app' \
+                --certificate-oidc-issuer https://token.actions.githubusercontent.com
+              ```
             resources:
               - { label: "Sigstore docs", url: "https://docs.sigstore.dev/", kind: docs }
+              - { label: "Cosign signing overview (Sigstore)", url: "https://docs.sigstore.dev/cosign/signing/overview/", kind: docs }
           - id: sboms
             title: SBOMs
             summary: A machine-readable list of everything inside an artifact, so you can answer "are we affected?" in minutes.
             learn:
               - CycloneDX and SPDX formats
               - Generating SBOMs in CI
+            body: |
+              An **SBOM** (software bill of materials) is a list of every component inside an artifact, with versions. When a new vulnerability like Log4Shell is announced, you can search your SBOMs instead of guessing which apps use the library.
+
+              Two common formats: **CycloneDX**, built for security use, and **SPDX**, popular for licence compliance and now also widely used for security. Tools can read both.
+
+              Generate the SBOM in CI at build time, from the final image or package, using a tool such as Syft. Store it next to the artifact, and attach it to the release or the registry entry.
+
+              ### Key ideas
+              - An SBOM answers "are we affected?" quickly
+              - Pick CycloneDX or SPDX and stay consistent
+              - Generate from the built artifact, not just the manifest
+              - Keep SBOMs searchable
+
+              ### Example
+              ```bash
+              syft myapp:latest -o cyclonedx-json > sbom.cdx.json
+              grype sbom:sbom.cdx.json
+              ```
             resources:
               - { label: "CycloneDX", url: "https://cyclonedx.org/", kind: docs }
               - { label: "Syft", url: "https://github.com/anchore/syft", kind: tool }
+              - { label: "SPDX", url: "https://spdx.dev/", kind: docs }
           - id: dependency-confusion
             title: Dependency confusion and typosquatting
             optional: true
@@ -437,6 +1137,21 @@ stages:
             learn:
               - Private registry scoping
               - Checking new dependencies before adding them
+            body: |
+              **Dependency confusion** happens when your build asks for an internal package name and the public registry also has a package with that name. If the tool prefers the public one, it installs the attacker's code. **Typosquatting** relies on a mistyped name, like `reqeusts` instead of `requests`.
+
+              To defend, **scope private packages**: use a namespace you own, such as `@acme/utils`, and configure the client so that scope only resolves from your private registry. Pin versions with a lockfile and use a private proxy registry as the single source.
+
+              Before adding a new dependency, check it. Look at its age, maintainers, downloads, repository and open issues. Scorecard can score a project's security habits.
+
+              ### Key ideas
+              - Reserve your internal names and scopes
+              - Route all installs through one controlled registry
+              - Check the exact spelling and the project before adding
+              - Review new install scripts
+
+              ### Common mistakes
+              - Adding a package an AI tool suggested without checking it exists and is the real one
             resources:
               - { label: "OpenSSF Scorecard", url: "https://github.com/ossf/scorecard", kind: tool }
               - { label: "SLSA", url: "https://slsa.dev/", kind: docs }
@@ -451,18 +1166,59 @@ stages:
             learn:
               - Policies, input and data
               - Testing policies
+            body: |
+              **Open Policy Agent** (OPA) is a general engine for policy decisions. You write rules in **Rego** and ask OPA a question, such as "may this deployment run?". It answers using your rules.
+
+              A policy works with two things. **Input** is the thing being checked, such as a Kubernetes manifest or a Terraform plan in JSON. **Data** is extra context, such as a list of approved registries. The policy produces a decision, often a set of denial messages.
+
+              Policies are code, so **test** them. Rego has a built-in test runner. Write tests with example inputs that should pass and fail.
+
+              ### Key ideas
+              - Input is what you check, data is what you know
+              - Rules produce deny messages
+              - Unit test every policy
+              - The same policy can run in CI, the cluster and elsewhere
+
+              ### Example
+              ```rego
+              package main
+
+              deny contains msg if {
+                input.kind == "Deployment"
+                not input.spec.template.spec.securityContext.runAsNonRoot
+                msg := "pods must run as non-root"
+              }
+              ```
             resources:
               - { label: "Open Policy Agent docs", url: "https://www.openpolicyagent.org/docs/latest/", kind: docs }
               - { label: "Conftest", url: "https://www.conftest.dev/", kind: tool }
+              - { label: "Policy language (Open Policy Agent)", url: "https://www.openpolicyagent.org/docs/latest/policy-language/", kind: docs }
           - id: admission-control
             title: Admission control in Kubernetes
             summary: Reject non-compliant workloads at the API server before they run.
             learn:
               - Validating and mutating admission
               - Gatekeeper and Kyverno
+            body: |
+              In Kubernetes, an **admission controller** inspects a request to the API server after it is authenticated and before it is saved. This is the last chance to stop a bad workload.
+
+              **Validating** admission accepts or rejects a request, for example rejecting privileged pods. **Mutating** admission changes the request, for example adding default labels or a security context.
+
+              **Gatekeeper** (built on OPA) and **Kyverno** are the two popular policy engines. Gatekeeper uses Rego. Kyverno uses Kubernetes-style YAML, which many teams find easier to read.
+
+              ### Key ideas
+              - Admission runs before objects are stored
+              - Validate to block, mutate to fix defaults
+              - Policies are Kubernetes resources, kept in git
+              - Built-in Pod Security Admission covers the basics
+
+              ### Example
+              Kyverno policy idea: reject any pod whose image does not come from your approved registry, and require `runAsNonRoot`.
             resources:
               - { label: "Kyverno docs", url: "https://kyverno.io/docs/", kind: docs }
               - { label: "Pod Security Standards (Kubernetes)", url: "https://kubernetes.io/docs/concepts/security/pod-security-standards/", kind: docs }
+              - { label: "Admission controllers reference (Kubernetes)", url: "https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/", kind: docs }
+              - { label: "Gatekeeper docs", url: "https://open-policy-agent.github.io/gatekeeper/website/docs/", kind: docs }
           - id: policy-rollout
             title: Rolling out policies safely
             optional: true
@@ -470,6 +1226,21 @@ stages:
             learn:
               - Audit vs enforce modes
               - Exceptions with owners and expiry dates
+            body: |
+              A new policy that blocks on day one will break deployments and make people dislike it. Roll it out in stages.
+
+              First, **audit mode**: the policy reports violations but allows everything. Review the results, and fix real problems. Second, tell teams what is coming and give them a date. Third, switch to **enforce mode**, where violations are rejected.
+
+              Some workloads cannot comply right away. Allow an **exception**, but give each one an **owner** and an **expiry date**, so it does not last forever.
+
+              ### Key ideas
+              - Audit, fix, then enforce
+              - Announce changes before they bite
+              - Exceptions are temporary and owned
+              - Track the number of violations falling over time
+
+              ### In practice
+              Run a "no latest tag" policy in audit for two weeks, share the list of offenders, then enforce.
             resources:
               - { label: "Open Policy Agent docs", url: "https://www.openpolicyagent.org/docs/latest/", kind: docs }
 
@@ -483,24 +1254,86 @@ stages:
             learn:
               - Falco rules
               - Tuning alerts to cut noise
+            body: |
+              Image scans look at what is installed. **Runtime detection** looks at what a process actually does. It watches **system calls**, the requests programs make to the kernel, to spot odd behaviour.
+
+              **Falco** is a common open-source tool. A rule matches events, such as a shell starting inside a container, a process writing under `/etc`, or an unexpected outbound connection. Falco raises an alert you can send to chat or a SIEM.
+
+              New rules are noisy. **Tune** them: add exceptions for known normal activity, limit rules to certain namespaces, and review alerts weekly. An alert people ignore protects nothing.
+
+              ### Key ideas
+              - Detect behaviour, not just known vulnerabilities
+              - Start with a few high-value rules
+              - Tune to reduce noise
+              - Send alerts to a place someone watches
+
+              ### Example
+              ```yaml
+              - rule: Shell in container
+                condition: spawned_process and container and proc.name in (bash, sh)
+                output: Shell started in container (user=%user.name container=%container.name)
+                priority: WARNING
+              ```
             resources:
               - { label: "Falco docs", url: "https://falco.org/docs/", kind: docs }
+              - { label: "Falco rules concepts", url: "https://falco.org/docs/concepts/rules/", kind: docs }
           - id: kubernetes-security-model
             title: Kubernetes security model
             summary: RBAC, service accounts, network policies and pod security, and how they fit together.
             learn:
               - RBAC and service accounts
               - Network policies
+            body: |
+              Kubernetes security has several layers that work together.
+
+              **RBAC** (role-based access control) says which users and service accounts may do which actions on which resources. A **service account** is the identity a pod uses to call the API. Give each app its own, grant it only what it needs, and turn off token mounting if the pod does not call the API.
+
+              **Network policies** limit which pods can talk to each other. By default all pods can reach all pods. A default-deny policy plus specific allows contains an attacker who gets in.
+
+              **Pod security** settings limit what a container may do, such as running as root.
+
+              ### Key ideas
+              - Least privilege RBAC, avoid cluster-admin
+              - One service account per workload
+              - Default-deny network policy
+              - Enforce pod security standards
+
+              ### Example
+              ```yaml
+              kind: NetworkPolicy
+              spec:
+                podSelector: {}
+                policyTypes: [Ingress]
+              ```
+              An empty ingress policy denies all incoming traffic to the selected pods.
             resources:
               - { label: "Kubernetes security concepts", url: "https://kubernetes.io/docs/concepts/security/", kind: docs }
+              - { label: "Using RBAC authorization (Kubernetes)", url: "https://kubernetes.io/docs/reference/access-authn-authz/rbac/", kind: docs }
+              - { label: "Network policies (Kubernetes)", url: "https://kubernetes.io/docs/concepts/services-networking/network-policies/", kind: docs }
           - id: cloud-threat-detection
             title: Cloud threat detection
             summary: Managed services that flag suspicious API calls and network activity in your account.
             learn:
               - GuardDuty findings
               - Routing findings to on-call
+            body: |
+              Cloud providers offer managed detection. **Amazon GuardDuty** analyses CloudTrail events, VPC flow logs and DNS logs, and raises **findings** about suspicious activity. Examples: credentials used from an unusual country, a server talking to a known bad address, or a crypto-mining pattern.
+
+              Turn it on in every account and region. It needs no agents and the setup is small.
+
+              A finding nobody sees is useless. **Route findings** to the people on call. Send them to an event bus, then to chat or a paging tool, and filter by severity so only high-severity findings wake someone.
+
+              ### Key ideas
+              - Enable in all accounts and regions
+              - Findings come with severity levels
+              - Route to on-call, not an unread inbox
+              - Write a short runbook per common finding
+
+              ### Example
+              GuardDuty reports `UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration`. The runbook says: revoke the role's sessions, find the instance, isolate it and check CloudTrail.
             resources:
               - { label: "Amazon GuardDuty", url: "https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html", kind: docs }
+              - { label: "GuardDuty finding types (AWS)", url: "https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_findings.html", kind: docs }
           - id: microvm-isolation
             title: Stronger isolation with microVMs
             optional: true
@@ -508,6 +1341,21 @@ stages:
             learn:
               - Container vs microVM isolation
               - Firecracker basics
+            body: |
+              Containers share the host's kernel. A kernel bug can let code escape from a container. For trusted code that is acceptable. For **untrusted code**, such as customer scripts or AI-generated programs, you want a harder boundary.
+
+              A **microVM** is a very small virtual machine. Each workload gets its own kernel behind hardware virtualization, so an escape needs to break through the hypervisor too. **Firecracker**, made by AWS and used by Lambda, starts a microVM in a fraction of a second with very little memory overhead.
+
+              The trade-off is more setup and a little more overhead than plain containers.
+
+              ### Key ideas
+              - Containers share a kernel, microVMs do not
+              - Use microVMs for untrusted or multi-tenant code
+              - Firecracker is fast and minimal
+              - Still apply least privilege inside the VM
+
+              ### Example
+              A code-running service starts one Firecracker microVM per job, runs the user's script, returns the output and destroys the VM.
             resources:
               - { label: "Firecracker", url: "https://firecracker-microvm.github.io/", kind: tool }
               - post: build-instant-server-service-firecracker-microvms
@@ -523,6 +1371,21 @@ stages:
               - Prompt injection
               - Sensitive data disclosure
               - Excessive agency
+            body: |
+              The **OWASP Top 10 for LLM applications** lists the main risks in apps built on language models. Models follow instructions in text, and they cannot reliably tell your instructions from an attacker's.
+
+              **Prompt injection**: text from a user, a web page or a document tells the model to ignore its rules. **Sensitive information disclosure**: the model reveals data from its prompt, its training or retrieved documents. **Excessive agency**: the model has tools with more power than it needs, so a manipulated model can do real damage.
+
+              ### Key ideas
+              - Treat all model input and output as untrusted
+              - Keep secrets out of prompts
+              - Limit tools to the minimum, require approval for risky actions
+              - Validate output before it reaches a shell, a query or a browser
+
+              ### Common mistakes
+              - Giving an agent a delete tool "just in case"
+              - Rendering model output as HTML without escaping it
+              - Assuming a system prompt can enforce access rules
             resources:
               - { label: "OWASP Top 10 for LLM applications", url: "https://genai.owasp.org/llm-top-10/", kind: article }
           - id: model-access-control
@@ -531,6 +1394,21 @@ stages:
             learn:
               - IAM scoping for model calls
               - Re-checking permissions on retrieved data
+            body: |
+              Do not rely on the model to keep secrets. Restrict what it can reach, so a successful attack gets little.
+
+              For the **model's own credentials**, use a role scoped to the exact model and actions, for example allow invoking one model and nothing else. For **retrieved data**, such as a RAG search over documents, filter by the user's permissions. Check access again at read time, since a document that was allowed yesterday may not be today.
+
+              Search results should be limited to what the current user may see, before the text reaches the prompt.
+
+              ### Key ideas
+              - Scope IAM for model calls
+              - Enforce permissions in code, not in the prompt
+              - Re-check permissions on retrieved data and on replayed chats
+              - Log which documents were used
+
+              ### Example
+              A support bot answers from a knowledge base. The retriever adds a filter `tenant_id = current_user.tenant_id` to every query, so one customer's documents never appear in another's answers.
             resources:
               - post: lock-down-bedrock-iam-lambda-data-leak
               - post: persistence-is-not-permission-rag-citation-reauth-chat-replay
@@ -541,9 +1419,26 @@ stages:
             learn:
               - OAuth for remote MCP
               - Least-privilege tools
+            body: |
+              **MCP** (Model Context Protocol) lets AI clients call tools on a server. A remote MCP server that anyone can call is a risk, because its tools may read data or take actions.
+
+              Use **OAuth** for remote servers. The client gets an access token for a user, and the server checks the token on each request. Return `401` with the right metadata so clients know how to sign in. Check the token audience so a token meant for another service is rejected.
+
+              Then apply **least privilege to tools**. Expose only the tools needed, make read-only tools the default, and require confirmation for anything that changes data.
+
+              ### Key ideas
+              - Authenticate every request
+              - Validate token audience and scopes
+              - Small tool set with narrow permissions
+              - Treat tool arguments as untrusted input
+
+              ### Common mistakes
+              - One shared API key for all users
+              - A tool that runs arbitrary shell commands
             resources:
               - post: mcp-authentication-fix-401-remote-server
               - { label: "OWASP Top 10 for LLM applications", url: "https://genai.owasp.org/llm-top-10/", kind: article }
+              - { label: "MCP authorization specification", url: "https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization", kind: docs }
 
       - id: threat-modeling
         title: Threat modeling
@@ -555,15 +1450,51 @@ stages:
             learn:
               - Spoofing, tampering, repudiation, disclosure, denial of service, elevation
               - Applying STRIDE per component
+            body: |
+              **STRIDE** is a checklist of six kinds of threat, so you do not have to invent categories.
+
+              - **Spoofing**: pretending to be someone else
+              - **Tampering**: changing data or code
+              - **Repudiation**: denying an action when nobody can prove it
+              - **Information disclosure**: leaking data
+              - **Denial of service**: making a service unavailable
+              - **Elevation of privilege**: gaining more access than allowed
+
+              Apply it **per component**. Take each part of your design, such as the API, the database and the queue, and ask the six questions. Write each threat and what stops it.
+
+              ### Key ideas
+              - Six categories give you a repeatable prompt
+              - Go component by component
+              - Note existing controls and gaps
+              - Keep it short, an hour is a good start
+
+              ### Example
+              Component: login API. Spoofing: credential stuffing, mitigated by rate limits and MFA. Repudiation: no audit log of logins, so add one.
             resources:
               - { label: "OWASP threat modeling cheat sheet", url: "https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html", kind: docs }
               - { label: "OWASP threat modeling", url: "https://owasp.org/www-community/Threat_Modeling", kind: article }
+              - { label: "STRIDE threats (Microsoft)", url: "https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool-threats", kind: docs }
           - id: data-flow-diagrams
             title: Data flow diagrams
             summary: Draw where data moves and where trust changes, because that is where threats live.
             learn:
               - Trust boundaries
               - Keeping diagrams next to the code
+            body: |
+              A **data flow diagram** shows the parts of a system and how data moves between them. It has four shapes: external actors, processes, data stores and the arrows for data flows.
+
+              Add **trust boundaries**: lines where the level of trust changes, such as between the internet and your API, or between your app and a third-party service. Threats cluster where data crosses a boundary, so check each crossing for authentication, validation and encryption.
+
+              Keep the diagram **next to the code**, in the repo, in a text format such as Mermaid or a Threat Dragon file. It then changes in the same pull request as the system.
+
+              ### Key ideas
+              - Draw actors, processes, stores and flows
+              - Mark every trust boundary
+              - Review each boundary crossing
+              - Version the diagram with the code
+
+              ### In practice
+              Draw the signup flow in 15 minutes. Circle every arrow that crosses the internet and ask what could go wrong there.
             resources:
               - { label: "OWASP Threat Dragon", url: "https://owasp.org/www-project-threat-dragon/", kind: tool }
           - id: threats-to-tickets
@@ -572,6 +1503,21 @@ stages:
             learn:
               - Ranking threats
               - Tracking mitigations in the backlog
+            body: |
+              A threat model is only useful if something changes afterwards. Each threat ends as one of three things: a **fix**, a **test**, or an **accepted risk**.
+
+              **Rank** threats by likelihood and impact, using a simple high, medium, low scale. Do not chase a perfect score. Work on the top ones first.
+
+              Put each mitigation in the **backlog** as a normal ticket with an owner, linked to the threat. Accepted risks get a name and a review date. Revisit the model when the design changes.
+
+              ### Key ideas
+              - Every threat gets an outcome
+              - Rank simply and start with the biggest
+              - Tickets live where the team already works
+              - Review the model on major changes
+
+              ### Example
+              Threat: uploaded files may contain malware. Outcome: ticket "scan uploads before storing", owner Sam, priority high. Test: upload the EICAR test file and expect rejection.
             resources:
               - { label: "Threat Modeling Manifesto", url: "https://www.threatmodelingmanifesto.org/", kind: article }
 
@@ -585,6 +1531,23 @@ stages:
             learn:
               - Roles during an incident
               - Containment without destroying evidence
+            body: |
+              A common incident lifecycle has six phases.
+
+              1. **Preparation**: plan, tools, contacts and access ready before anything happens.
+              2. **Detection**: notice something is wrong and confirm it.
+              3. **Containment**: stop the damage from spreading.
+              4. **Eradication**: remove the cause, such as malware or a bad credential.
+              5. **Recovery**: restore normal service safely.
+              6. **Lessons learned**: review and improve.
+
+              Assign **roles** up front: an incident lead who makes decisions, someone who investigates, and someone who communicates. When containing, **preserve evidence**. Isolate a server by changing its network rules and snapshot it, rather than deleting or rebooting it.
+
+              ### Key ideas
+              - Write the plan before the incident
+              - One person leads
+              - Isolate before you destroy
+              - Keep a timeline as you go
             resources:
               - { label: "NIST SP 800-61 incident handling", url: "https://csrc.nist.gov/pubs/sp/800/61/r2/final", kind: docs }
               - { label: "AWS security incident response guide", url: "https://docs.aws.amazon.com/whitepapers/latest/aws-security-incident-response-guide/welcome.html", kind: docs }
@@ -594,16 +1557,49 @@ stages:
             learn:
               - Log retention and immutability
               - Snapshotting affected resources
+            body: |
+              An investigation is only as good as its logs. Decide now which logs you will need and keep them long enough. Common ones: cloud audit logs, application logs, load balancer logs and authentication events.
+
+              Attackers try to delete logs. Send them to a separate account or storage with **immutability**, such as S3 Object Lock, so even an admin cannot remove them within the retention period. Set a **retention** period that matches your needs, since many intrusions are found months later.
+
+              When a resource is affected, **snapshot** it, for example a disk, before you change it. You can then study the copy without losing evidence.
+
+              ### Key ideas
+              - Centralize logs outside the affected account
+              - Make them hard to alter or delete
+              - Retain long enough to cover slow discoveries
+              - Snapshot before cleanup
+
+              ### Example
+              An instance is compromised. Take an EBS snapshot, isolate the instance with a deny-all security group, then investigate the snapshot.
             resources:
               - { label: "AWS CloudTrail user guide", url: "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-user-guide.html", kind: docs }
+              - { label: "Object Lock (Amazon S3)", url: "https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lock.html", kind: docs }
           - id: blameless-postmortems
             title: Blameless postmortems
             summary: Write up what happened and fix the system, not the person.
             learn:
               - Timeline and root cause
               - Action items with owners
+            body: |
+              A **postmortem** is a written review after an incident. **Blameless** means it asks how the system allowed the mistake, not who made it. People who fear blame hide facts, and then you cannot fix the real problem.
+
+              A good postmortem has a clear **timeline** of events with times, the **root cause** or causes (often several), what went well, what went badly and where you were lucky. It ends with **action items**, each with an **owner** and a due date.
+
+              Share it widely. Others learn from it too.
+
+              ### Key ideas
+              - Focus on systems and process
+              - Timeline first, then causes
+              - Every action item has an owner and a date
+              - Follow up until the items are done
+
+              ### Common mistakes
+              - Stopping at "human error" as the root cause
+              - Writing action items nobody owns
             resources:
               - { label: "Postmortem culture (Google SRE book)", url: "https://sre.google/sre-book/postmortem-culture/", kind: article }
+              - { label: "Postmortem culture: learning from failure (Google SRE Workbook)", url: "https://sre.google/workbook/postmortem-culture/", kind: article }
           - id: incident-drills
             title: Incident drills
             optional: true
@@ -611,5 +1607,20 @@ stages:
             learn:
               - Tabletop scenarios
               - Updating runbooks after a drill
+            body: |
+              A plan you have never used will have gaps. A **tabletop exercise** is a drill done around a table, with no real systems touched. A facilitator describes a scenario and the team talks through what they would do.
+
+              Pick a realistic **scenario**: a leaked access key, ransomware on a server, a customer data exposure. Reveal new facts step by step. Ask: who is the lead, who do we call, which logs do we check, when do we tell customers?
+
+              Write down what was unclear. Then **update the runbooks**, contact lists and access, and run another drill later.
+
+              ### Key ideas
+              - Practise before a real incident
+              - Use realistic, short scenarios
+              - Capture gaps as action items
+              - Update runbooks right after
+
+              ### In practice
+              Run a 45-minute tabletop each quarter, rotating the scenario and the incident lead.
             resources:
               - { label: "AWS security incident response guide", url: "https://docs.aws.amazon.com/whitepapers/latest/aws-security-incident-response-guide/welcome.html", kind: docs }

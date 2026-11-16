@@ -3,7 +3,7 @@ title: Site Reliability Engineering
 summary: Keep production fast and available on purpose. SLOs, alerting, incidents, capacity and the engineering that makes systems fail less and recover faster.
 order: 4
 category: cloud-devops
-updated: '2026-11-15'
+updated: '2026-11-16'
 icon: activity
 color: rose
 logos:
@@ -26,18 +26,50 @@ stages:
             learn:
               - SRE vs traditional operations
               - The 50 percent cap on ops work
+            body: |
+              Google started SRE in the early 2000s when Ben Treynor Sloss was asked to run production. His idea was to staff operations with software engineers and let them solve problems with code.
+
+              In traditional operations, a separate team runs what developers hand over. Work grows with the service, so the team grows too. SRE aims to keep headcount flat as the service grows by automating.
+
+              ### Key ideas
+              - Traditional ops: manual work, separate from developers, scales with headcount
+              - SRE: engineers write software to run and fix the system
+              - Cap ops work (toil, tickets, pages) at 50 percent of an SRE's time
+              - The other 50 percent goes to engineering that removes future toil
+              - If ops work goes over the cap, the extra work goes back to the developers
+
+              ### In practice
+              A team spends 70 percent of its week on manual deploys and restarts. Under the cap, it must stop taking new services until it automates deploys and brings that work under half.
             resources:
               - { label: "Introduction (SRE book)", url: "https://sre.google/sre-book/introduction/", kind: article }
               - { label: "Google SRE books", url: "https://sre.google/books/", kind: course }
+              - { label: "Site reliability engineering (Wikipedia)", url: "https://en.wikipedia.org/wiki/Site_reliability_engineering", kind: article }
           - id: sre-vs-devops
             title: SRE and DevOps
             summary: SRE as one concrete way to do DevOps, and where the two roles overlap.
             learn:
               - Shared ownership of production
               - Where SRE adds targets and budgets
+            body: |
+              DevOps is a set of ideas: developers and operators share goals, automate delivery and learn from failure. It does not say exactly how to do any of that.
+
+              SRE is one concrete way to do it. A common saying is that class SRE implements interface DevOps. SRE gives you specific tools such as SLOs, error budgets and a cap on toil.
+
+              ### Key ideas
+              - Both reject the wall between developers and operators
+              - Shared ownership: developers care about production, SREs care about the code
+              - Both rely on automation, monitoring and blameless learning
+              - SRE adds numbers: an SLO sets the target, an error budget limits risk
+              - SRE teams often run a service only after it meets a production readiness bar
+
+              ### Common mistakes
+              - Renaming the ops team "SRE" without changing how work is done
+              - Using SRE as a gate that says no, instead of a partner that shares the budget
+              - Treating DevOps and SRE as rivals. Most teams use ideas from both
             resources:
               - { label: "How SRE relates to DevOps (SRE workbook)", url: "https://sre.google/workbook/how-sre-relates/", kind: article }
               - { label: "DevOps roadmap", url: "https://harun.dev/roadmaps/devops", kind: course }
+              - { label: "DevOps & SRE (Google Cloud Blog)", url: "https://cloud.google.com/blog/products/gcp/sre-vs-devops-competing-standards-or-close-friends", kind: article }
           - id: embracing-risk
             title: Embracing risk
             optional: true
@@ -45,6 +77,20 @@ stages:
             learn:
               - The cost of each extra nine
               - Balancing risk and release speed
+            body: |
+              Making a service more reliable costs money and slows down change. Past a point, users cannot tell the difference, because their phone, Wi-Fi and ISP fail more often than your service does.
+
+              So SRE does not chase 100 percent. It picks the right level of reliability for the product and spends the rest of the effort on features.
+
+              ### Key ideas
+              - Each extra nine usually costs far more than the one before
+              - Users only feel reliability up to the point where other failures dominate
+              - Reliability is a trade-off against feature speed and cost
+              - Decide the target from what users need and what the business can pay
+              - Unused reliability is wasted risk budget you could have spent on shipping
+
+              ### Example
+              A photo-sharing app at 99.9 percent is down about 43 minutes a month. Moving to 99.99 percent means about 4 minutes. That needs extra regions and slower releases. If users would not notice, keep 99.9 and ship features.
             resources:
               - { label: "Embracing risk (SRE book)", url: "https://sre.google/sre-book/embracing-risk/", kind: article }
 
@@ -58,25 +104,81 @@ stages:
             learn:
               - Availability as a ratio
               - Downtime per nine
+            body: |
+              Availability is the share of time, or the share of requests, that your service works. You write it as a percentage and count the nines.
+
+              ```text
+              availability = good time / total time
+              ```
+
+              Over a 30 day month (43,200 minutes), each nine cuts allowed downtime by a factor of ten.
+
+              ### Key ideas
+              - 99 percent: about 7 hours of downtime a month
+              - 99.9 percent: about 43 minutes a month
+              - 99.99 percent: about 4 minutes a month
+              - 99.999 percent: about 26 seconds a month
+              - Your service cannot be more reliable than the things it depends on in series
+              - For request-based systems, use good requests divided by all requests
+
+              ### Example
+              Two services each at 99.9 percent, called one after the other, give roughly 99.8 percent together. Every serial dependency lowers your ceiling, so count them.
             resources:
               - { label: "Availability table (SRE book appendix)", url: "https://sre.google/sre-book/availability-table/", kind: article }
+              - { label: "High availability (Wikipedia)", url: "https://en.wikipedia.org/wiki/High_availability", kind: article }
           - id: latency-percentiles
             title: Latency and percentiles
             summary: Why averages hide slow requests and p99 tells you what users feel.
             learn:
               - Mean vs median vs p99
               - Tail latency
+            body: |
+              An average hides slow requests. If 99 requests take 100 ms and one takes 10 seconds, the mean looks fine at about 200 ms. The one user who waited 10 seconds does not feel fine.
+
+              Percentiles show the spread. The median (p50) is the typical request. The p99 is the time that 99 percent of requests beat.
+
+              ### Key ideas
+              - Mean: easy to compute, easy to fool
+              - Median (p50): what a typical user sees
+              - p95 and p99: what your slower users see
+              - Tail latency: the slowest few percent, often the ones that matter most
+              - A page that makes 50 backend calls will often hit at least one slow call
+              - Never average percentiles across servers. Merge histograms instead
+
+              ### In practice
+              Measure latency with histogram buckets, then alert on p99 for user facing paths. Set an SLO like "99 percent of requests finish in under 300 ms".
             resources:
               - { label: "Service level objectives (SRE book)", url: "https://sre.google/sre-book/service-level-objectives/", kind: article }
+              - { label: "Percentile (Wikipedia)", url: "https://en.wikipedia.org/wiki/Percentile", kind: article }
+              - { label: "Histograms and summaries (Prometheus)", url: "https://prometheus.io/docs/practices/histograms/", kind: docs }
           - id: single-points-of-failure
             title: Single points of failure
             summary: Find the one component whose failure takes everything down.
             learn:
               - Redundancy across zones
               - Dependencies you forget about
+            body: |
+              A single point of failure (SPOF) is one component whose failure stops the whole service. Finding them is the first job of reliability work.
+
+              Fix them with redundancy: more than one copy of each part, ideally in separate failure domains such as availability zones.
+
+              ### Key ideas
+              - Ask of every part: if this dies, what breaks?
+              - Run at least two instances across at least two zones
+              - Redundancy needs failover that works and is tested
+              - Hidden dependencies are the worst: DNS, certificates, a shared config store, a single NAT gateway, one third party API
+              - Shared fate counts too, like two replicas on the same host or the same disk
+
+              ### Common mistakes
+              - Adding a second server but keeping one database
+              - Counting a load balancer as redundant while the app behind it is not
+              - Forgetting that an expired TLS certificate or a full disk is also a single point of failure
+              - Never testing failover, so the standby does not work when needed
             resources:
               - { label: "AWS Reliability pillar", url: "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html", kind: docs }
               - post: add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances
+              - { label: "Single point of failure (Wikipedia)", url: "https://en.wikipedia.org/wiki/Single_point_of_failure", kind: article }
+              - { label: "Static stability using Availability Zones (Amazon Builders' Library)", url: "https://aws.amazon.com/builders-library/static-stability-using-availability-zones/", kind: article }
 
       - id: slis-and-slos
         title: SLIs and SLOs
@@ -88,16 +190,50 @@ stages:
             learn:
               - Request-based vs window-based SLIs
               - Where to measure
+            body: |
+              A service level indicator (SLI) is a measurement of how well the service is doing, from the user's view. Good SLIs track what users care about, such as "did my request work, and was it fast enough?".
+
+              Most SLIs are a ratio of good events to valid events, so they land between 0 and 100 percent.
+
+              ### Key ideas
+              - Common SLIs: availability, latency, correctness, freshness, throughput
+              - Request-based SLI: good requests divided by all requests
+              - Window-based SLI: share of time windows (for example minutes) that were good
+              - Measure as close to the user as you can: load balancer logs, then client side data
+              - Start with one or two SLIs per user journey, not twenty
+
+              ### Example
+              For a checkout API:
+              - Availability: share of requests that return anything other than a 5xx
+              - Latency: share of requests that finish in under 400 ms
+
+              Measure both at the load balancer, so you also count requests that never reached the app.
             resources:
               - { label: "Service level objectives (SRE book)", url: "https://sre.google/sre-book/service-level-objectives/", kind: article }
+              - { label: "SRE fundamentals: SLAs vs SLOs vs SLIs (Google Cloud Blog)", url: "https://cloud.google.com/blog/products/devops-sre/sre-fundamentals-slis-slas-and-slos", kind: article }
           - id: setting-slos
             title: Setting SLOs
             summary: Choose a target and a window, and start with what you already achieve.
             learn:
               - Targets and windows
               - SLO vs SLA
+            body: |
+              A service level objective (SLO) is a target for an SLI over a time window. For example, "99.9 percent of requests succeed over 28 days".
+
+              Do not guess a number. Look at what you already achieve and what users tolerate, then pick a target you can keep.
+
+              ### Key ideas
+              - SLO = SLI + target + window
+              - Rolling windows (28 or 30 days) give a smooth view. Calendar windows are easier to report
+              - Start loose and tighten later. Too tight a target blocks all releases
+              - An SLO is an internal goal. An SLA is a contract with consequences, often refunds
+              - Keep the SLO stricter than the SLA so you notice trouble before you pay
+
+              ### Example
+              Last quarter your API succeeded 99.95 percent of the time. Set the SLO at 99.9 percent over 28 days. You keep a small cushion, and the 0.1 percent gap becomes your error budget.
             resources:
               - { label: "Implementing SLOs (SRE workbook)", url: "https://sre.google/workbook/implementing-slos/", kind: article }
+              - { label: "Service-level objective (Wikipedia)", url: "https://en.wikipedia.org/wiki/Service-level_objective", kind: article }
           - id: slo-documents
             title: Writing an SLO document
             optional: true
@@ -105,6 +241,26 @@ stages:
             learn:
               - What goes in an SLO document
               - Reviewing SLOs over time
+            body: |
+              An SLO that lives only in someone's head gets forgotten. An SLO document records the target, why it was chosen and who owns it, so the team can review it later.
+
+              Keep it short. One page per service is enough.
+
+              ### Key ideas
+              - Service overview: what it does and who uses it
+              - The SLIs and how each is measured
+              - The SLO targets and windows
+              - Rationale: why these numbers, based on data and user needs
+              - Owners, reviewers and the date of the next review
+              - Link to the error budget policy and dashboards
+
+              ### In practice
+              Review SLOs every quarter or after a big change. Ask three questions:
+              1. Did we meet the SLO, and did users still complain?
+              2. Are users happy while we miss it? Then the target is too tight
+              3. Did a serious incident happen while we met it? Then the target is too loose
+
+              Update the document and record why.
             resources:
               - { label: "Example SLO document (SRE workbook)", url: "https://sre.google/workbook/slo-document/", kind: article }
 
@@ -118,14 +274,51 @@ stages:
             learn:
               - Budget from SLO and traffic
               - Spending and running out
+            body: |
+              An error budget is the amount of unreliability your SLO allows. It is 100 percent minus the SLO.
+
+              With a 99.9 percent SLO, the budget is 0.1 percent of requests. You can spend it on risky releases, experiments and planned maintenance.
+
+              ### Key ideas
+              - Budget = 1 minus SLO
+              - Count it in requests when you can, or in minutes of downtime
+              - Every failure, planned or not, spends some of it
+              - Plenty of budget left: ship faster and take more risk
+              - Budget gone: slow down and fix reliability
+              - It turns the argument between speed and stability into a shared number
+
+              ### Example
+              SLO: 99.9 percent over 30 days, with 10 million requests a month. The budget is 10,000 failed requests. A bad deploy fails 4,000 of them. You have 6,000 left for the rest of the month.
             resources:
               - { label: "Embracing risk (SRE book)", url: "https://sre.google/sre-book/embracing-risk/", kind: article }
+              - { label: "SRE error budgets and maintenance windows (Google Cloud Blog)", url: "https://cloud.google.com/blog/products/management-tools/sre-error-budgets-and-maintenance-windows", kind: article }
           - id: error-budget-policy
             title: Error budget policies
             summary: Agree in advance what happens when the budget is gone, such as a release freeze.
             learn:
               - Writing a policy
               - Getting product to sign off
+            body: |
+              An error budget policy says what the team does when the budget runs low or runs out. Agreeing on this before an outage keeps the decision calm and fair.
+
+              Without a policy, a spent budget is just a number that nobody acts on.
+
+              ### Key ideas
+              - Write down the actions for each stage, for example under 25 percent left
+              - Typical action when empty: freeze feature releases, only ship fixes and reliability work
+              - Define exceptions, such as security patches
+              - Name who can approve an exception
+              - Product and engineering leads both sign it before it is needed
+              - Review it with the SLO
+
+              ### Example
+              ```text
+              Budget below 25%: review risky changes
+              Budget at 0%: freeze features until back above 0%
+              Single incident over 20% of budget: postmortem required
+              ```
+
+              Product owners agree because the same rule lets them release freely when the budget is healthy.
             resources:
               - { label: "Example error budget policy (SRE workbook)", url: "https://sre.google/workbook/error-budget-policy/", kind: article }
 
@@ -139,26 +332,81 @@ stages:
             learn:
               - The four signals
               - RED and USE methods
+            body: |
+              The four golden signals are the minimum set of metrics for any user facing service. If you can only watch four things, watch these.
+
+              They tell you if the service is working, how busy it is and how close to its limits.
+
+              ### Key ideas
+              - Latency: how long requests take. Track successes and errors separately
+              - Traffic: how much demand, such as requests per second
+              - Errors: the rate of failed requests, including wrong answers
+              - Saturation: how full the service is, such as CPU, memory, queue depth
+              - RED method, for services: Rate, Errors, Duration
+              - USE method, for resources like disks and CPUs: Utilization, Saturation, Errors
+
+              ### In practice
+              Put the four signals on one dashboard for every service. Page on errors and latency (what users feel). Use saturation to predict trouble, and ticket it before it becomes an outage.
             resources:
               - { label: "Monitoring distributed systems (SRE book)", url: "https://sre.google/sre-book/monitoring-distributed-systems/", kind: article }
+              - { label: "The USE Method (Brendan Gregg)", url: "https://www.brendangregg.com/usemethod.html", kind: article }
+              - { label: "The RED Method: How to Instrument Your Services (Grafana Labs)", url: "https://grafana.com/blog/the-red-method-how-to-instrument-your-services/", kind: article }
           - id: black-box-and-white-box
             title: Black-box and white-box monitoring
             summary: Probe from outside like a user, and read internals to explain why.
             learn:
               - Synthetic checks and uptime probes
               - Instrumented metrics
+            body: |
+              Black-box monitoring tests the service from outside, the way a user would. White-box monitoring reads the internal state of the service: metrics, logs and traces.
+
+              You need both. Black-box tells you something is wrong now. White-box helps you find out why.
+
+              ### Key ideas
+              - Black-box: synthetic checks, uptime probes, login and checkout scripts
+              - Run probes from several regions, so you also catch DNS and network problems
+              - White-box: counters, gauges and histograms exposed by the app
+              - Black-box shows symptoms that users see
+              - White-box shows causes and can warn before users are hurt
+              - Probes also cover the case where your own monitoring is down
+
+              ### Example
+              A probe loads the login page and signs in every minute. It fails, and a page goes out. On the white-box dashboard you see database connections at the limit. The probe found it, the metrics explained it.
             resources:
               - { label: "Monitoring distributed systems (SRE book)", url: "https://sre.google/sre-book/monitoring-distributed-systems/", kind: article }
               - post: install-cloud-watch-agent-in-amazon-lightsail-instance-for-monitoring-logging-and-debugging
+              - { label: "Synthetic monitoring (Wikipedia)", url: "https://en.wikipedia.org/wiki/Synthetic_monitoring", kind: article }
           - id: prometheus-basics
             title: Prometheus basics
             summary: Scrape metrics, query them with PromQL and graph them in Grafana.
             learn:
               - Scraping and exporters
               - Basic PromQL
+            body: |
+              Prometheus is a metrics system. It pulls (scrapes) numbers from your services over HTTP on a schedule and stores them as time series. You query them with PromQL and graph them in Grafana.
+
+              Apps expose metrics at a path such as `/metrics`. For things that cannot do this, like a Linux host or a database, you run an exporter next to them.
+
+              ### Key ideas
+              - Scrape: Prometheus fetches `/metrics` from each target
+              - Exporter: a small program that turns another system's stats into Prometheus format
+              - Metric types: counter (only goes up), gauge (up and down), histogram
+              - Use `rate()` on counters, never read a raw counter
+              - Labels split a metric by dimension, like `status` or `route`
+
+              ### Example
+              ```promql
+              sum(rate(http_requests_total{status=~"5.."}[5m]))
+              /
+              sum(rate(http_requests_total[5m]))
+              ```
+
+              This is the share of requests that failed over the last 5 minutes.
             resources:
               - { label: "Prometheus overview", url: "https://prometheus.io/docs/introduction/overview/", kind: docs }
               - { label: "Grafana docs", url: "https://grafana.com/docs/grafana/latest/", kind: docs }
+              - { label: "Querying basics (Prometheus)", url: "https://prometheus.io/docs/prometheus/latest/querying/basics/", kind: docs }
+              - { label: "Exporters and integrations (Prometheus)", url: "https://prometheus.io/docs/instrumenting/exporters/", kind: docs }
 
       - id: on-call-basics
         title: Being on call
@@ -170,14 +418,57 @@ stages:
             learn:
               - Primary and secondary rotations
               - Response expectations
+            body: |
+              Being on call means you are the person who responds when the service has a problem outside normal hours. You carry a pager, which today is an app or phone call.
+
+              A good rotation is predictable, shared and backed by clear expectations.
+
+              ### Key ideas
+              - Primary on-call gets the page first
+              - Secondary is the backup if the primary does not respond, or needs help
+              - Rotations usually last a week, with a fair spread across the team
+              - Response expectations: acknowledge within minutes, start working right away
+              - You do not need to fix everything alone. Escalate early
+              - On-call has a cost, so many teams pay or give time off for it
+
+              ### In practice
+              When paged:
+              1. Acknowledge the page
+              2. Check the alert and its runbook
+              3. Reduce user impact first
+              4. Ask for help if you are stuck for more than a few minutes
+              5. Hand off notes at the end of your shift
             resources:
               - { label: "Being on-call (SRE book)", url: "https://sre.google/sre-book/being-on-call/", kind: article }
+              - { label: "Pros and cons of different approaches to on-call management (Atlassian)", url: "https://www.atlassian.com/incident-management/on-call", kind: article }
           - id: runbooks
             title: Runbooks
             summary: Write down the steps for known problems so anyone on call can follow them.
             learn:
               - What a good runbook contains
               - Linking runbooks from alerts
+            body: |
+              A runbook is a written set of steps for dealing with a known problem. When the pager goes off at 3 am, nobody thinks clearly. A runbook lets any engineer on call take the right action.
+
+              Keep each runbook short and tied to one alert.
+
+              ### Key ideas
+              - Start with what the alert means and how bad it is
+              - List quick checks and commands to run, copy-paste ready
+              - Give clear mitigation steps, then who to escalate to
+              - Link the runbook from the alert itself, so it is one click away
+              - Update it after every incident that used it, or that should have
+
+              ### Example
+              ```text
+              Alert: HighErrorRate on checkout
+              1. Open the checkout dashboard (link)
+              2. Check recent deploys. If one is in the last hour, roll back
+              3. Check database connections. If maxed, restart the pool
+              4. Still failing after 15 min: page the payments team
+              ```
+
+              Over time, automate the steps that never need judgement.
             resources:
               - { label: "On-call (SRE workbook)", url: "https://sre.google/workbook/on-call/", kind: article }
           - id: sustainable-on-call
@@ -187,6 +478,24 @@ stages:
             learn:
               - Page budgets
               - Handoffs and follow-the-sun
+            body: |
+              On-call that burns people out loses the team. The goal is a load that people can carry for years.
+
+              Treat pages as a resource with a budget, and fix the system when the budget is spent.
+
+              ### Key ideas
+              - Page budget: a cap such as two incidents per shift. Over it, fix causes before new features
+              - Count out-of-hours pages as well as total pages
+              - Every page should need a human and be new. Duplicates and noise get deleted
+              - Handoffs: write what happened, what is open and what to watch
+              - Follow-the-sun: teams in different time zones cover their own daytime
+              - Give time off or pay after rough shifts, and make sure someone can swap
+
+              ### Common mistakes
+              - One hero who answers every page
+              - Rotations too small, so each person is on call every other week
+              - Ignoring pages that did not need action instead of removing them
+              - No review of on-call load in team meetings
             resources:
               - { label: "On-call (SRE workbook)", url: "https://sre.google/workbook/on-call/", kind: article }
               - { label: "PagerDuty incident response guide", url: "https://response.pagerduty.com/", kind: course }
@@ -204,14 +513,53 @@ stages:
             learn:
               - Symptoms vs causes
               - Pages vs tickets
+            body: |
+              A symptom is what users feel: errors, slow pages, failed payments. A cause is something inside the system, like high CPU or a full disk. Page people on symptoms.
+
+              Causes often do not hurt anyone. A CPU at 90 percent may be fine. If you page on it, you wake someone for nothing. If a symptom fires, you know users are hurt right now.
+
+              ### Key ideas
+              - Page on: high error rate, high latency, failed probes
+              - Do not page on: CPU, memory, disk, restarts, unless users are already hurt
+              - Cause metrics belong on dashboards and in debugging
+              - Pages need action now. Tickets can wait for working hours
+              - Slow trends, like a disk filling in five days, make good tickets
+
+              ### Example
+              ```yaml
+              - alert: HighErrorRate
+                expr: job:http_errors:ratio5m > 0.02
+                for: 5m
+                labels: { severity: page }
+              ```
+
+              A disk at 85 percent opens a ticket. A checkout error rate of 2 percent pages someone.
             resources:
               - { label: "Practical alerting (SRE book)", url: "https://sre.google/sre-book/practical-alerting/", kind: article }
+              - { label: "Alerting (Prometheus best practices)", url: "https://prometheus.io/docs/practices/alerting/", kind: docs }
           - id: burn-rate-alerts
             title: Burn-rate alerts
             summary: Alert when you are spending the error budget too fast, over short and long windows.
             learn:
               - Burn rate
               - Multi-window, multi-burn-rate alerts
+            body: |
+              Burn rate is how fast you spend the error budget. A burn rate of 1 means you will use exactly the whole budget by the end of the window. A burn rate of 10 means you will run out in a tenth of the time.
+
+              Alerting on burn rate pages you when the SLO is in danger, not on every small blip.
+
+              ### Key ideas
+              - Burn rate = error rate now divided by the error rate the SLO allows
+              - High burn rate, short window: catches big outages fast
+              - Low burn rate, long window: catches slow leaks
+              - Multi-window: alert only when both a long and a short window agree, so alerts reset quickly
+              - Multi-burn-rate: use several rate and window pairs, each with its own severity
+
+              ### Example
+              A common starting setup for a 30 day SLO:
+              - Page: burn rate 14.4 over 1 hour (and over 5 minutes). This spends about 2 percent of budget in an hour
+              - Page: burn rate 6 over 6 hours
+              - Ticket: burn rate 1 over 3 days
             resources:
               - { label: "Alerting on SLOs (SRE workbook)", url: "https://sre.google/workbook/alerting-on-slos/", kind: article }
           - id: alert-fatigue
@@ -220,6 +568,22 @@ stages:
             learn:
               - Auditing alerts
               - Grouping and deduplication
+            body: |
+              When people get too many alerts, they stop trusting them. Real problems then get missed. Reducing fatigue means fewer, better alerts.
+
+              Make a habit of reviewing alerts as you do for code.
+
+              ### Key ideas
+              - Audit: for each alert that fired, was it real, urgent and new?
+              - Delete or downgrade alerts that nobody acted on
+              - Every page needs a clear action and a runbook
+              - Use `for:` durations so short blips do not page
+              - Grouping: send one notification for many related alerts
+              - Deduplication: the same alert from many replicas becomes one
+              - Inhibition: if the whole region is down, silence the alerts for each service in it
+
+              ### In practice
+              Once a week, list last week's pages. Mark each as useful, noisy or missing context. Fix or remove the noisy ones before adding new alerts. Alertmanager can group, route and silence alerts to help.
             resources:
               - { label: "Prometheus Alertmanager", url: "https://prometheus.io/docs/alerting/latest/alertmanager/", kind: docs }
               - { label: "Monitoring (SRE workbook)", url: "https://sre.google/workbook/monitoring/", kind: article }
@@ -234,25 +598,83 @@ stages:
             learn:
               - The incident commander
               - Separating fix from communication
+            body: |
+              In a big outage, everyone wants to help and nobody knows who decides. Clear roles fix that. One person coordinates, others do the work, and someone talks to the outside world.
+
+              Roles are about the incident, not job titles. A junior engineer can be incident commander if they are trained.
+
+              ### Key ideas
+              - Incident commander (IC): holds the big picture, makes decisions, assigns work
+              - Operations lead: the only person who changes production
+              - Communications lead: updates stakeholders and users
+              - Scribe: records the timeline as it happens
+              - The IC does not debug. Separating fix from communication keeps both calm
+              - Say who has each role out loud, and hand it over out loud too
+
+              ### Common mistakes
+              - The most senior engineer fixes things and also runs the call
+              - Ten people change production at once
+              - Nobody writes down what was tried, so the postmortem relies on memory
+              - Stakeholders ping the engineers directly for updates
             resources:
               - { label: "Managing incidents (SRE book)", url: "https://sre.google/sre-book/managing-incidents/", kind: article }
               - { label: "PagerDuty incident response guide", url: "https://response.pagerduty.com/", kind: course }
+              - { label: "The Atlassian Incident Management Handbook", url: "https://www.atlassian.com/incident-management/handbook", kind: article }
+              - { label: "Incident response (SRE book)", url: "https://sre.google/sre-book/emergency-response/", kind: article }
           - id: mitigate-first
             title: Mitigate first, then fix
             summary: Roll back, fail over or shed load before hunting for the root cause.
             learn:
               - Generic mitigations
               - When to roll back
+            body: |
+              During an incident the first goal is to stop user pain, not to understand it. Finding the root cause can wait until the system is stable.
+
+              Use the fastest safe action that reduces impact. Fix properly afterwards.
+
+              ### Key ideas
+              - Generic mitigations: roll back, turn off a feature flag, fail over, add capacity, shed load, drain a bad node
+              - Prefer actions you have used before and can undo
+              - If a change went out shortly before the problem began, roll back first
+              - Keep evidence: save logs and graphs before restarts wipe them
+              - Declare when users are no longer hurt, then switch to finding the cause
+
+              ### In practice
+              Error rate jumps right after a 14:05 deploy. Do not read code. Roll back the deploy, check that errors drop, and tell stakeholders. Investigate the bad build calmly later, and write it up in the postmortem.
+
+              Rolling back is not failure. Staying broken while you debug is.
             resources:
               - { label: "Incident response (SRE workbook)", url: "https://sre.google/workbook/incident-response/", kind: article }
+              - { label: "Incident management guide (Google SRE)", url: "https://sre.google/resources/practices-and-processes/incident-management-guide/", kind: article }
           - id: status-communication
             title: Communicating during an incident
             summary: Keep users and stakeholders informed with regular, honest updates.
             learn:
               - Status pages
               - Update cadence
+            body: |
+              During an outage, silence makes things worse. Users and colleagues want to know that you know, what is affected and when to expect news.
+
+              Updates should be honest, regular and short.
+
+              ### Key ideas
+              - Status page: one public place that shows current state and history
+              - Post early, even if you only know that something is wrong
+              - Update cadence: a fixed rhythm such as every 30 minutes, even with no news
+              - State impact in user terms, not internal jargon
+              - Do not guess a fix time you cannot meet
+              - Internal updates for support and leadership are separate from public ones
+              - Post a final message when it is resolved
+
+              ### Example
+              ```text
+              Investigating: some users cannot log in. We are looking into it.
+              Next update by 14:30 UTC.
+              ```
+              Then: "Identified: a bad deploy. We are rolling back." Then: "Resolved: logins work again."
             resources:
               - { label: "PagerDuty incident response guide", url: "https://response.pagerduty.com/", kind: course }
+              - { label: "The Atlassian Incident Management Handbook", url: "https://www.atlassian.com/incident-management/handbook", kind: article }
           - id: effective-troubleshooting
             title: Effective troubleshooting
             optional: true
@@ -260,6 +682,25 @@ stages:
             learn:
               - Hypothesis and test
               - Common traps
+            body: |
+              Troubleshooting under stress goes wrong when people guess. A simple loop works better: look at the problem, form a hypothesis, test it, and repeat.
+
+              Work from the symptom inward, one layer at a time.
+
+              ### Key ideas
+              - Describe the problem precisely: what is expected, what happens, since when
+              - Check what changed recently: deploys, config, traffic, dependencies
+              - Form a hypothesis and test it with the cheapest check
+              - Bisect: split the system in half and see which side is broken
+              - Change one thing at a time and note the result
+              - Write down what you tried, so others do not repeat it
+
+              ### Common mistakes
+              - Chasing a cause that fits a favourite theory
+              - Seeing a correlation and calling it the cause
+              - Fixing the wrong layer, such as restarting a healthy app
+              - Making several changes at once, so you do not know which one helped
+              - Skipping the obvious checks like disk space, expired certificates and DNS
             resources:
               - { label: "Effective troubleshooting (SRE book)", url: "https://sre.google/sre-book/effective-troubleshooting/", kind: article }
 
@@ -273,14 +714,45 @@ stages:
             learn:
               - Why blame hides facts
               - Postmortem triggers
+            body: |
+              A postmortem is a written review after a serious incident. A blameless one asks how the system allowed the failure, not who caused it.
+
+              If people fear punishment, they hide facts. Then you lose the details you need to prevent the next incident.
+
+              ### Key ideas
+              - Assume everyone acted with good intent and the best information they had
+              - Ask "why did it make sense at the time?"
+              - People are not the root cause. Missing safeguards are
+              - Blame hides facts, and hidden facts mean repeat outages
+              - Postmortem triggers: user visible downtime past a threshold, data loss, manual rescue, a failed rollout, or any time the team wants one
+              - Share the result widely so other teams learn too
+
+              ### Example
+              Instead of "Sam ran the wrong command", write "The tool let a production command run with no confirmation or dry run." The fix is a safer tool, not a warning to Sam.
             resources:
               - { label: "Postmortem culture (SRE book)", url: "https://sre.google/sre-book/postmortem-culture/", kind: article }
+              - { label: "Postmortem documentation (Wikipedia)", url: "https://en.wikipedia.org/wiki/Postmortem_documentation", kind: article }
           - id: writing-a-postmortem
             title: Writing a postmortem
             summary: Timeline, impact, causes and action items that actually get done.
             learn:
               - A postmortem template
               - Tracking action items
+            body: |
+              A good postmortem is short, factual and ends in work that gets done. Write it soon after the incident, while memory is fresh.
+
+              Use the same template each time so people know where to look.
+
+              ### Key ideas
+              - Summary: what happened, in a few lines
+              - Impact: who and what was affected, for how long, how many errors
+              - Timeline: key events with timestamps, from detection to recovery
+              - Causes and contributing factors, with evidence
+              - What went well, what went badly, where you got lucky
+              - Action items: each with an owner, a priority and a due date
+
+              ### In practice
+              Action items die in documents. Put each one in your normal ticket system and review them in a regular meeting. Mark actions as preventing the same incident, speeding detection or speeding recovery. Close the postmortem only when the important ones are done.
             resources:
               - { label: "Postmortem culture (SRE workbook)", url: "https://sre.google/workbook/postmortem-culture/", kind: article }
               - { label: "Example postmortem (SRE book)", url: "https://sre.google/sre-book/example-postmortem/", kind: article }
@@ -291,6 +763,24 @@ stages:
             learn:
               - Incident reviews and trends
               - Contributing factors over root cause
+            body: |
+              One postmortem teaches you about one outage. Reading many together shows patterns: the same service, the same kind of change, the same missing alert.
+
+              Look across incidents regularly and share what you find.
+
+              ### Key ideas
+              - Hold regular reviews of recent incidents, not only the large ones
+              - Tag incidents by cause type, service, detection method and time to recover
+              - Look for repeats: they point to a gap that actions did not close
+              - Prefer contributing factors over a single root cause. Real failures have several causes
+              - Share stories in a newsletter or a talk, so other teams avoid the same trap
+              - Near misses are as useful as outages
+
+              ### Common mistakes
+              - Hunting for one root cause and stopping there
+              - Counting incidents as a score, which tempts people to hide them
+              - Storing postmortems where nobody can search them
+              - Reviewing only the biggest incident and ignoring many small ones
             resources:
               - { label: "Postmortem culture (SRE workbook)", url: "https://sre.google/workbook/postmortem-culture/", kind: article }
 
@@ -304,6 +794,25 @@ stages:
             learn:
               - Connect vs request timeouts
               - Deadline propagation
+            body: |
+              A call with no timeout can wait forever. When a dependency slows down, every caller piles up waiting, uses up threads or connections, and your service stops too.
+
+              Every network call needs a deadline.
+
+              ### Key ideas
+              - Connect timeout: how long to wait to open the connection. Keep it short
+              - Request (read) timeout: how long to wait for the response
+              - Pick timeouts from real latency data, for example a bit above the p99
+              - Many libraries default to no timeout, or a very long one. Check yours
+              - Deadline propagation: pass the remaining time down to each call, so work stops when the user has already given up
+              - Timeouts need a plan: retry, fail fast or return a fallback
+
+              ### Example
+              ```python
+              requests.get(url, timeout=(0.5, 2.0))  # connect, read
+              ```
+
+              If the whole request has 3 seconds left and the first call took 2.5, the next call gets 0.5 seconds, not a fresh 2.
             resources:
               - { label: "Timeouts, retries and backoff with jitter (Amazon Builders' Library)", url: "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/", kind: article }
           - id: retries-and-backoff
@@ -313,17 +822,55 @@ stages:
               - Exponential backoff and jitter
               - Retry budgets
               - Idempotency
+            body: |
+              Many failures are brief: a dropped packet, a node restarting. Retrying fixes these. But careless retries add load to a struggling service and make the outage worse.
+
+              Retry the right failures, wait between tries, and stop early.
+
+              ### Key ideas
+              - Retry only errors that may succeed later: timeouts, 503, connection resets
+              - Do not retry 400 or 404 style errors
+              - Exponential backoff: wait 100 ms, 200 ms, 400 ms and so on
+              - Jitter: add randomness so clients do not retry in sync
+              - Retry budget: cap retries to a share of traffic, for example 10 percent
+              - Idempotency: retrying a payment must not charge twice. Use an idempotency key
+
+              ### Example
+              ```text
+              delay = random(0, min(cap, base * 2^attempt))
+              ```
+
+              This is "full jitter". Give up after a few attempts, and return an error rather than retry for minutes.
             resources:
               - { label: "Timeouts, retries and backoff with jitter (Amazon Builders' Library)", url: "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/", kind: article }
               - post: running-ai-background-jobs-serverlessly-with-sqs-lambda-bedrock
+              - { label: "Exponential backoff (Wikipedia)", url: "https://en.wikipedia.org/wiki/Exponential_backoff", kind: article }
+              - { label: "Retry pattern (Azure Architecture Center)", url: "https://learn.microsoft.com/en-us/azure/architecture/patterns/retry", kind: docs }
           - id: circuit-breakers
             title: Circuit breakers and bulkheads
             summary: Stop calling a failing dependency for a while and isolate failures to one part of the system.
             learn:
               - Open, half-open, closed
               - Bulkheads and isolation
+            body: |
+              A circuit breaker watches calls to a dependency. When too many fail, it opens and fails calls right away for a while, giving the dependency time to recover.
+
+              A bulkhead splits resources, like a ship's compartments, so one failure cannot flood everything.
+
+              ### Key ideas
+              - Closed: calls pass through, failures are counted
+              - Open: calls fail immediately, no load reaches the dependency
+              - Half-open: after a pause, a few trial calls test recovery
+              - If trials succeed, close the breaker. If not, open it again
+              - Bulkheads: separate thread pools, connection pools or instances per dependency or customer
+              - One slow dependency then uses up only its own pool
+
+              ### In practice
+              Your app calls a recommendations service. It slows down. The breaker opens, and the page shows a default list instead. Checkout keeps working because it has its own connection pool.
             resources:
               - { label: "CircuitBreaker (Martin Fowler)", url: "https://martinfowler.com/bliki/CircuitBreaker.html", kind: article }
+              - { label: "Circuit Breaker pattern (Azure Architecture Center)", url: "https://learn.microsoft.com/en-us/azure/architecture/patterns/circuit-breaker", kind: docs }
+              - { label: "Bulkhead pattern (Azure Architecture Center)", url: "https://learn.microsoft.com/en-us/azure/architecture/patterns/bulkhead", kind: docs }
           - id: load-shedding
             title: Load shedding and graceful degradation
             optional: true
@@ -331,9 +878,25 @@ stages:
             learn:
               - Rejecting early
               - Serving degraded responses
+            body: |
+              When demand is more than capacity, trying to serve everything means serving nothing well. Load shedding rejects some work early, so the rest succeeds.
+
+              Graceful degradation keeps the core working by giving up the extras.
+
+              ### Key ideas
+              - Reject early and cheaply, before spending resources on a request
+              - Return a clear error, such as 503 with a Retry-After header
+              - Shed the least important traffic first: batch jobs, bots, free tiers
+              - Protect critical paths like login and checkout
+              - Degraded modes: cached data, no personalisation, read-only mode
+              - Test overload on purpose, so you know how it behaves
+
+              ### Example
+              During a traffic spike, an online shop turns off recommendations and search suggestions, serves product pages from cache and sheds crawler traffic. Orders keep flowing. Users see a plainer site, which beats an outage.
             resources:
               - { label: "Handling overload (SRE book)", url: "https://sre.google/sre-book/handling-overload/", kind: article }
               - { label: "Using load shedding to avoid overload (Amazon Builders' Library)", url: "https://aws.amazon.com/builders-library/using-load-shedding-to-avoid-overload/", kind: article }
+              - { label: "Rate Limiting pattern (Azure Architecture Center)", url: "https://learn.microsoft.com/en-us/azure/architecture/patterns/rate-limiting-pattern", kind: docs }
 
       - id: release-engineering
         title: Release engineering
@@ -345,24 +908,80 @@ stages:
             learn:
               - Hermetic builds
               - Versioned artifacts
+            body: |
+              Most outages begin with a change. Release engineering makes changes boring. The first step is a build you can trust: the same source always produces the same artifact.
+
+              A hermetic build does not depend on what happens to be installed on the build machine.
+
+              ### Key ideas
+              - Pin the compiler, tools and dependencies to exact versions
+              - Use lock files and a private mirror for packages
+              - Build in a clean container or sandbox, not on a laptop
+              - Reproducible: building the same commit twice gives identical output
+              - Build once, then promote the same artifact through test and production
+              - Version and tag every artifact, and keep it so you can roll back
+
+              ### Common mistakes
+              - Using the `latest` tag for base images or packages
+              - Rebuilding for each environment, so what you tested is not what you ship
+              - Builds that fetch from the internet at build time
+              - Overwriting a version tag instead of publishing a new one
             resources:
               - { label: "Release engineering (SRE book)", url: "https://sre.google/sre-book/release-engineering/", kind: article }
+              - { label: "Reproducible Builds", url: "https://reproducible-builds.org/docs/", kind: docs }
+              - { label: "Reproducible Build (martinfowler.com)", url: "https://martinfowler.com/bliki/ReproducibleBuild.html", kind: article }
           - id: canary-releases
             title: Canary releases
             summary: Send a small share of traffic to the new version and compare before rolling out.
             learn:
               - Canary analysis
               - Automatic rollback
+            body: |
+              A canary release sends a small share of traffic to the new version first. You compare it against the old version and only continue if it looks healthy.
+
+              If something is wrong, only a few users saw it and you can roll back fast.
+
+              ### Key ideas
+              - Start small: 1 or 5 percent of traffic or one instance
+              - Compare canary against baseline on the same metrics: errors, latency, saturation
+              - Canary analysis: judge by data, not by a quick look at a dashboard
+              - Wait long enough to see problems that appear slowly
+              - Automatic rollback when metrics cross a limit
+              - Increase in steps, like 5, 25, 50, 100 percent
+
+              ### Example
+              A new build goes to 5 percent of pods. Its error rate is 0.1 percent against 0.1 percent on the old build, so it grows to 25 percent. At 25 percent p99 latency doubles. The pipeline halts and rolls back without a human.
             resources:
               - { label: "Canarying releases (SRE workbook)", url: "https://sre.google/workbook/canarying-releases/", kind: article }
+              - { label: "Canary Release (martinfowler.com)", url: "https://martinfowler.com/bliki/CanaryRelease.html", kind: article }
+              - { label: "Blue Green Deployment (martinfowler.com)", url: "https://martinfowler.com/bliki/BlueGreenDeployment.html", kind: article }
           - id: feature-flags
             title: Feature flags
             summary: Separate deploy from release so you can turn a feature off without a rollback.
             learn:
               - Flag types
               - Cleaning up old flags
+            body: |
+              A feature flag is a switch in code that turns a feature on or off without a new deploy. It separates deploying code from releasing it to users.
+
+              With flags you can ship small changes often and switch off a bad feature in seconds.
+
+              ### Key ideas
+              - Release flags: hide unfinished work, then turn it on gradually
+              - Ops flags (kill switches): turn off a costly feature during overload
+              - Experiment flags: show variants to groups of users
+              - Permission flags: give a feature to certain customers
+              - Roll out by percentage, then by region or user group
+              - Old flags are tech debt. Remove each one once the feature is fully live
+
+              ### Common mistakes
+              - Never deleting flags, so code fills with dead branches
+              - Not testing both states of a flag
+              - A flag service that is a single point of failure. Use safe defaults if it is unreachable
+              - Changing flags with no audit log
             resources:
               - { label: "Feature toggles (martinfowler.com)", url: "https://martinfowler.com/articles/feature-toggles.html", kind: article }
+              - { label: "Feature toggle (Wikipedia)", url: "https://en.wikipedia.org/wiki/Feature_toggle", kind: article }
           - id: safe-deploy-pipelines
             title: Safe deployment pipelines
             optional: true
@@ -370,6 +989,22 @@ stages:
             learn:
               - Waves and bake time
               - Halting a bad rollout
+            body: |
+              A safe pipeline deploys in small waves and checks health between each one. A bad change should hit as few users as possible before it is caught.
+
+              Automation does the checking, so safety does not depend on someone watching.
+
+              ### Key ideas
+              - Waves: one test environment, then one zone, then one region, then the rest
+              - Start with the least busy or least critical places
+              - Bake time: wait between waves so slow problems show up
+              - Automated checks: alarms, canary metrics, synthetic tests
+              - Halt and roll back automatically when a check fails
+              - Avoid deploying to several regions at once, so a bad change cannot take down everything
+              - Keep rollbacks as tested as deploys
+
+              ### In practice
+              A pipeline deploys to one zone and waits 30 minutes with alarms watched. If all is quiet, it moves to the next zone. A failing alarm stops the pipeline and reverts the wave.
             resources:
               - { label: "Automating safe, hands-off deployments (Amazon Builders' Library)", url: "https://aws.amazon.com/builders-library/automating-safe-hands-off-deployments/", kind: article }
               - post: github-actions-lambda-terraform-cicd
@@ -384,6 +1019,22 @@ stages:
             learn:
               - The traits of toil
               - Measuring toil
+            body: |
+              Toil is the work of running a service that is manual, repetitive, automatable and does not leave the service better off. It grows as the service grows.
+
+              Not all ops work is toil. Design reviews, writing automation and planned improvements are engineering.
+
+              ### Key ideas
+              - Manual: a human runs a command or clicks through a console
+              - Repetitive: you do it again and again
+              - Automatable: a machine could do it
+              - Tactical: it reacts to something, not planned
+              - No lasting value: nothing is better afterwards
+              - Scales linearly: twice the users means twice the work
+              - Measure it: tag tickets and pages, then add up the hours each week
+
+              ### Example
+              Resetting a user's access by hand, restarting a stuck job each morning, and copying files between servers are toil. Writing a script that does all three is engineering. Some toil is fine. Too much is the problem, and 50 percent is the usual limit.
             resources:
               - { label: "Eliminating toil (SRE book)", url: "https://sre.google/sre-book/eliminating-toil/", kind: article }
           - id: automating-toil
@@ -392,6 +1043,25 @@ stages:
             learn:
               - Prioritising by time saved
               - Self-service tooling
+            body: |
+              You cannot automate everything at once. Pick the toil that gives the most time back and build tools your team will trust.
+
+              Count the cost: a task that takes five minutes once a quarter is not worth a week of automation.
+
+              ### Key ideas
+              - Rank by time saved: how often, how long, how many people
+              - Weigh the effort and the risk of getting it wrong
+              - Start with a runbook, then a script, then self-service, then fully automatic
+              - Self-service tools let others do things without filing a ticket
+              - Make automation safe: dry runs, limits and logs
+              - Fix the cause when you can. Removing the need for a task beats automating it
+
+              ### Common mistakes
+              - Automating a broken process instead of fixing it
+              - Scripts only one person understands
+              - No tests or documentation for the tool
+              - Building something big when a small script would do
+              - Never reviewing automation, so it slowly rots
             resources:
               - { label: "Eliminating toil (SRE workbook)", url: "https://sre.google/workbook/eliminating-toil/", kind: article }
               - post: multi-agent-claude-code-aws-devops-routines
@@ -402,6 +1072,26 @@ stages:
             learn:
               - Levels of automation
               - When automation fails badly
+            body: |
+              Automation tends to grow in stages. First an operator runs a manual procedure. Then a script helps. Later a system runs it with no human involved.
+
+              Each stage saves time but brings new risks.
+
+              ### Key ideas
+              - Stage one: no automation, a person follows steps
+              - Stage two: shared scripts that people run
+              - Stage three: automation that runs on its own and is triggered by events
+              - Stage four: autonomous systems that detect and repair problems alone
+              - Automation hides knowledge. People forget how the manual way works
+              - Automation can do harm quickly, at full scale
+
+              ### Common mistakes
+              - Fully automated repair without limits, so a bug removes all your machines
+              - No kill switch or rate limit on automation
+              - Automation that assumes the world matches its tests
+              - Skipping drills, so the team cannot step in when automation fails
+
+              Build in safety checks, such as "never take down more than 10 percent at once", and practise manual recovery.
             resources:
               - { label: "The evolution of automation at Google (SRE book)", url: "https://sre.google/sre-book/automation-at-google/", kind: article }
 
@@ -418,6 +1108,21 @@ stages:
             learn:
               - Organic vs inorganic growth
               - Headroom targets
+            body: |
+              Capacity planning starts with a forecast. You need to know how much traffic is coming, so you can have machines ready before it arrives.
+
+              Use past data for the trend and talk to the business about events that data cannot show.
+
+              ### Key ideas
+              - Organic growth: users and usage rise on their own. Fit a trend to past traffic
+              - Inorganic growth: launches, marketing campaigns, new customers, a feature in the news
+              - Ask product and sales for a calendar of planned events
+              - Headroom: spare capacity above the forecast peak, such as 30 percent
+              - Provisioning takes time. Plan far enough ahead to get capacity before you need it
+              - Check forecasts against what really happened, then adjust
+
+              ### Example
+              Traffic grows 5 percent a month. A product launch in six weeks is expected to double peak load for a few days. Plan for the launch peak plus headroom, and use load tests to confirm that the system handles it.
             resources:
               - { label: "Software engineering in SRE (SRE book)", url: "https://sre.google/sre-book/software-engineering-in-sre/", kind: article }
           - id: load-testing
@@ -426,17 +1131,60 @@ stages:
             learn:
               - Load, stress and soak tests
               - Finding the bottleneck
+            body: |
+              A load test sends realistic traffic at your system on purpose to see how it behaves. You want to find the breaking point in a test, not during a real peak.
+
+              Different test types answer different questions.
+
+              ### Key ideas
+              - Load test: expected peak traffic. Does it meet the SLO?
+              - Stress test: push past the limit. How does it fail, and does it recover?
+              - Soak test: normal load for hours. Finds leaks and slow decay
+              - Spike test: a sudden jump in traffic
+              - Test in an environment close to production, with realistic data
+              - Find the bottleneck: watch CPU, connections, queue depth and the database
+              - Fix the first bottleneck, then test again. The next one appears
+
+              ### Example
+              ```javascript
+              export const options = { vus: 100, duration: '10m' };
+              export default function () { http.get('https://test.example.com/'); }
+              ```
+
+              This k6 script runs 100 virtual users for 10 minutes. Watch p99 latency and errors as users grow.
             resources:
               - { label: "Grafana k6 docs", url: "https://grafana.com/docs/k6/latest/", kind: tool }
+              - { label: "Load test types (Grafana k6)", url: "https://grafana.com/docs/k6/latest/testing-guides/test-types/", kind: docs }
+              - { label: "Load testing (Wikipedia)", url: "https://en.wikipedia.org/wiki/Load_testing", kind: article }
           - id: autoscaling-and-limits
             title: Autoscaling and quotas
             summary: Let capacity follow demand and know the limits that will stop it.
             learn:
               - Scaling on the right signal
               - Service quotas
+            body: |
+              Autoscaling adds and removes capacity as demand changes. It saves money and handles surprises, but only if it follows the right signal and nothing blocks it.
+
+              Every cloud has limits. Find them before they stop you.
+
+              ### Key ideas
+              - Scale on the signal that shows load: requests per instance, queue depth, or CPU for CPU-bound work
+              - Scaling takes time to start up. Set a minimum so you can survive a sudden spike
+              - Add a cooldown so the system does not flap up and down
+              - Scale out before saturation, not after
+              - Service quotas cap things like instances, IPs and API rates
+              - Request quota increases ahead of time. They can take days
+              - Dependencies must scale too, such as the database
+
+              ### Common mistakes
+              - Scaling on CPU when the real limit is database connections
+              - Scaling up a stateless tier into a database that cannot cope
+              - Quota limits that nobody tracks until a launch day failure
             resources:
               - { label: "AWS Reliability pillar", url: "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html", kind: docs }
               - post: ecs-fargate-spot-capacity-providers
+              - { label: "Horizontal Pod Autoscaling (Kubernetes)", url: "https://kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/", kind: docs }
+              - { label: "What is Service Quotas? (AWS)", url: "https://docs.aws.amazon.com/servicequotas/latest/userguide/intro.html", kind: docs }
           - id: load-balancing-at-scale
             title: Load balancing
             optional: true
@@ -444,9 +1192,29 @@ stages:
             learn:
               - Balancing algorithms
               - Load balancing in the data centre
+            body: |
+              A load balancer spreads requests across many backends. At large scale it works in layers: across data centres first, then across machines inside each one.
+
+              The goal is even load, no traffic to unhealthy backends, and fast failover.
+
+              ### Key ideas
+              - Round robin: each backend in turn. Simple, ignores load
+              - Least connections: send to the backend with the fewest active requests
+              - Weighted: bigger machines get more traffic
+              - Hashing: the same client or key goes to the same backend, good for caches
+              - Health checks remove a bad backend automatically
+              - Across data centres: DNS or anycast steer users to a nearby healthy site
+              - Inside a data centre: a load balancer or client-side balancing picks a backend
+
+              ### Common mistakes
+              - Round robin across machines of different sizes
+              - Health checks that only test that the process is up, not that it works
+              - One load balancer that is itself a single point of failure
             resources:
               - { label: "Load balancing in the datacenter (SRE book)", url: "https://sre.google/sre-book/load-balancing-datacenter/", kind: article }
               - post: eight-load-balancer-algorithms
+              - { label: "Load balancing (Wikipedia)", url: "https://en.wikipedia.org/wiki/Load_balancing_(computing)", kind: article }
+              - { label: "Load balancing in the frontend (SRE book)", url: "https://sre.google/sre-book/load-balancing-frontend/", kind: article }
 
       - id: cascading-failures
         title: Cascading failures
@@ -458,14 +1226,48 @@ stages:
             learn:
               - Positive feedback loops
               - Retry storms
+            body: |
+              A cascading failure is when a problem in one part spreads and grows until much of the system is down. A small overload becomes a full outage.
+
+              The cause is usually a feedback loop. Less capacity means more load on what remains, which fails too.
+
+              ### Key ideas
+              - Positive feedback loop: failure raises load on the survivors, so they fail
+              - Retry storm: clients retry failed calls, which multiplies traffic on a sick service
+              - Slow instances hold requests longer, which uses more threads and memory
+              - Crashed servers drop capacity, so the rest get more traffic and crash too
+              - Cold caches and cold starts make recovery slower than failure
+              - Recovery itself can overload things, as everyone reconnects at once
+
+              ### Example
+              One of four servers fails. The other three now take a third more traffic each, and one runs out of memory. The load balancer sends its share to the last two, which fail too. In minutes all four are down, though the first failure was small.
             resources:
               - { label: "Addressing cascading failures (SRE book)", url: "https://sre.google/sre-book/addressing-cascading-failures/", kind: article }
+              - { label: "Cascading failure (Wikipedia)", url: "https://en.wikipedia.org/wiki/Cascading_failure", kind: article }
           - id: preventing-cascades
             title: Preventing cascades
             summary: Limit queues, cap retries and fail fast to keep failures local.
             learn:
               - Queue limits and deadlines
               - Avoiding fallback overload
+            body: |
+              Stopping a cascade means making each part fail on its own terms, without dragging neighbours with it. The goal is to keep failures local.
+
+              Most defences are about limits: limit queues, limit retries and limit how long work may take.
+
+              ### Key ideas
+              - Bound queues and use short deadlines, so old work is dropped, not served too late
+              - Fail fast when overloaded, rather than slowing down for everyone
+              - Cap retries with a budget and use backoff with jitter
+              - Avoid fallbacks that need extra capacity. A rarely used fallback path often fails under load
+              - Prefer constant work: do the same thing in good times and bad
+              - Ramp up slowly after recovery, so cold caches are not hit all at once
+              - Test overload before it happens
+
+              ### Common mistakes
+              - Unbounded queues that grow until memory runs out
+              - A fallback to a database that cannot take the full load
+              - Retries at every layer, which multiply (three layers with three tries each means 27 calls)
             resources:
               - { label: "Avoiding fallback in distributed systems (Amazon Builders' Library)", url: "https://aws.amazon.com/builders-library/avoiding-fallback-in-distributed-systems/", kind: article }
               - { label: "Addressing cascading failures (SRE book)", url: "https://sre.google/sre-book/addressing-cascading-failures/", kind: article }
@@ -476,6 +1278,21 @@ stages:
             learn:
               - Cells and blast radius
               - Shuffle sharding
+            body: |
+              A cell-based architecture splits a service into many independent copies, called cells. Each cell serves a part of the users and shares nothing with other cells.
+
+              When one cell fails, only its share of users is affected. This limits the blast radius.
+
+              ### Key ideas
+              - A cell is a full stack: app, cache, database and queues
+              - A thin router sends each user or tenant to one cell
+              - Bad deploys and bad data hit one cell at a time
+              - Roll out changes cell by cell, starting with a small one
+              - Blast radius: with 20 cells, one failure affects about 5 percent of users
+              - Shuffle sharding gives each customer a random small set of workers. A bad customer only hurts the few others that share the same workers
+
+              ### In practice
+              Imagine eight workers and each customer gets two of them. Two customers sharing both workers is rare. If one customer sends poison requests and kills its two workers, most other customers still have a healthy worker and keep going.
             resources:
               - { label: "Workload isolation using shuffle-sharding (Amazon Builders' Library)", url: "https://aws.amazon.com/builders-library/workload-isolation-using-shuffle-sharding/", kind: article }
 
@@ -489,14 +1306,48 @@ stages:
             learn:
               - Steady-state hypothesis
               - Limiting the blast radius
+            body: |
+              Chaos engineering tests a system by causing failure on purpose, in a controlled way. The aim is to find weaknesses before real outages do.
+
+              It is science, not mischief: you state what you expect, run an experiment and compare.
+
+              ### Key ideas
+              - Define steady state: a measurable sign that the system is healthy, like orders per minute
+              - Hypothesis: steady state will continue when we inject this fault
+              - Inject real-world faults: kill an instance, add latency, drop a dependency
+              - Look for a difference between the test group and the control
+              - Limit the blast radius: start small, in a test environment or on a few users
+              - Have a stop button, and run during working hours with the team ready
+              - Fix what you find, then repeat the experiment
+
+              ### Example
+              Hypothesis: if one cache node dies, checkout success stays above 99.9 percent. Kill one node in staging, watch the metric, and learn whether retries and fallbacks work as designed.
             resources:
               - { label: "Principles of Chaos Engineering", url: "https://principlesofchaos.org/", kind: article }
+              - { label: "Chaos engineering (Wikipedia)", url: "https://en.wikipedia.org/wiki/Chaos_engineering", kind: article }
+              - { label: "REL12-BP04 Test resiliency using chaos engineering (AWS)", url: "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_testing_resiliency_failure_injection_resiliency.html", kind: docs }
           - id: game-days
             title: Game days
             summary: Rehearse a failure with the team and check that alerts, runbooks and people work.
             learn:
               - Planning a game day
               - Disaster recovery testing
+            body: |
+              A game day is a planned practice of a failure. The team gathers, a fault is introduced, and everyone responds as in a real incident. You learn whether alerts, runbooks and people work.
+
+              Better to find the gaps in a drill than in a real emergency.
+
+              ### Key ideas
+              - Pick a scenario: loss of a zone, a failing dependency, a bad deploy
+              - Set a goal and a time box, and tell everyone it is a drill
+              - Define a safe stop and who can call it off
+              - Watch: did alerts fire, did runbooks help, who was missing
+              - Record what you learned and file actions as in a postmortem
+              - Disaster recovery testing: practise a real failover and restore, not only read the plan
+              - Repeat on a schedule, and rotate who leads
+
+              ### In practice
+              Run a drill where the primary database becomes unreachable. Time how long it takes to notice, decide and fail over. Note where the runbook was wrong. Update it, and run it again next quarter.
             resources:
               - { label: "AWS Reliability pillar", url: "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html", kind: docs }
           - id: chaos-tooling
@@ -506,9 +1357,27 @@ stages:
             learn:
               - AWS Fault Injection Service
               - Chaos Mesh and LitmusChaos
+            body: |
+              You can run chaos experiments by hand, but tools make them safer and repeatable. They inject a fault, watch conditions and stop if things go too far.
+
+              Pick a tool that fits where your workload runs.
+
+              ### Key ideas
+              - AWS Fault Injection Service (FIS): managed service for faults on AWS, such as stopping instances, throttling APIs, or network disruption
+              - FIS has stop conditions, tied to CloudWatch alarms, that end an experiment if impact is too high
+              - Chaos Mesh: open-source tool for Kubernetes, with faults for pods, network, I/O and time
+              - LitmusChaos: open-source, Kubernetes native, with a library of ready experiments
+              - Define experiments as code so they can run in CI or on a schedule
+              - Use IAM or RBAC to control who can run which fault
+
+              ### Common mistakes
+              - Running a new experiment straight in production with no stop condition
+              - Injecting a fault without watching a steady-state metric
+              - Treating a tool as the goal. The hypothesis and the follow-up matter more
             resources:
               - { label: "AWS Fault Injection Service user guide", url: "https://docs.aws.amazon.com/fis/latest/userguide/what-is.html", kind: docs }
               - { label: "Chaos Mesh docs", url: "https://chaos-mesh.org/docs/", kind: docs }
+              - { label: "LitmusChaos", url: "https://litmuschaos.io/", kind: tool }
 
       - id: disaster-recovery
         title: Disaster recovery
@@ -520,17 +1389,56 @@ stages:
             learn:
               - Recovery time and point objectives
               - DR strategies from backup to active-active
+            body: |
+              Two numbers define a disaster recovery plan. RTO (recovery time objective) is how long you can be down. RPO (recovery point objective) is how much data you can afford to lose, measured as time.
+
+              Agree both with the business before a disaster, because they decide cost.
+
+              ### Key ideas
+              - RTO: the maximum time from outage to service back
+              - RPO: the maximum age of data you can lose. RPO of 5 minutes means backups or replication at least every 5 minutes
+              - Lower RTO and RPO cost more
+              - Backup and restore: cheapest, slowest recovery
+              - Pilot light: core data is replicated and the rest is switched on when needed
+              - Warm standby: a scaled-down copy is always running
+              - Active-active: full capacity in several places, fastest recovery, highest cost
+
+              ### Example
+              An internal wiki can accept RTO of a day and RPO of 24 hours, so nightly backups are enough. A payments system may need RTO of minutes and RPO near zero, which means replication and automatic failover.
             resources:
               - { label: "Disaster recovery of workloads on AWS", url: "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-workloads-on-aws.html", kind: docs }
+              - { label: "IT disaster recovery (Wikipedia)", url: "https://en.wikipedia.org/wiki/Recovery_time_objective", kind: article }
+              - { label: "Disaster recovery options in the cloud (AWS)", url: "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-options-in-the-cloud.html", kind: docs }
           - id: backups-that-restore
             title: Backups that actually restore
             summary: A backup you have never restored is a guess. Test restores on a schedule.
             learn:
               - Restore testing
               - Offsite and immutable copies
+            body: |
+              A backup is only useful if you can restore from it. Many teams find out too late that backups were empty, corrupt or missing a key.
+
+              Treat restoring as a feature you test, not an assumption.
+
+              ### Key ideas
+              - Schedule restore tests, and automate them if you can
+              - Check data after restore: row counts, checksums, a sample query
+              - Time the restore. Is it within your RTO?
+              - Keep copies offsite, in another account or region
+              - Immutable copies cannot be changed or deleted for a set time, which protects against ransomware and mistakes
+              - Follow the 3-2-1 idea: three copies, two kinds of storage, one offsite
+              - Back up configuration and secrets, not only the database
+              - Alert when a backup job fails or is late
+
+              ### Common mistakes
+              - Backups in the same account and region as the data
+              - Never testing a restore until the day of a disaster
+              - Credentials needed for restore that are stored only in the lost system
             resources:
               - { label: "Data integrity (SRE book)", url: "https://sre.google/sre-book/data-integrity/", kind: article }
               - post: snapshot-restore-of-lightsail-instance-to-lightsail-ec2
+              - { label: "REL09-BP04 Perform periodic recovery of the data (AWS)", url: "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_backing_up_data_periodic_recovery_testing_data.html", kind: docs }
+              - { label: "AWS Backup Vault Lock", url: "https://docs.aws.amazon.com/aws-backup/latest/devguide/vault-lock.html", kind: docs }
           - id: multi-region
             title: Multi-region designs
             optional: true
@@ -538,8 +1446,27 @@ stages:
             learn:
               - Active-passive vs active-active
               - Data replication trade-offs
+            body: |
+              Running in more than one region protects you from a whole region failing. It also adds cost, complexity and new failure modes, so it is not always worth it.
+
+              Decide based on your RTO, RPO and how much downtime costs.
+
+              ### Key ideas
+              - Active-passive: one region serves traffic, another waits. Simpler, but failover must be tested
+              - Active-active: several regions serve traffic at once. Faster recovery, harder data design
+              - Data is the hard part. Replication across regions takes time, so some writes can be lost or conflict
+              - Choose the consistency you need: strong across regions is slow, eventual is faster
+              - Keep the control plane for failover out of the region that may fail
+              - Use health checks and DNS or global load balancing to move traffic
+              - Multi-AZ in one region covers many failures at far less cost
+
+              ### Common mistakes
+              - Going multi-region before using multiple zones well
+              - Never rehearsing failover, so it fails when used
+              - Hidden single-region dependencies such as an auth service or a config store
             resources:
               - { label: "AWS Reliability pillar", url: "https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/welcome.html", kind: docs }
+              - { label: "Disaster recovery options in the cloud (AWS)", url: "https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-options-in-the-cloud.html", kind: docs }
 
       - id: observability-for-sre
         title: Observability for SRE
@@ -551,15 +1478,49 @@ stages:
             learn:
               - Spans and critical paths
               - Sampling for tail latency
+            body: |
+              A distributed trace follows one request through all the services it touches. Each step is a span with a start time and duration. Put together, spans show where time went.
+
+              Traces answer "why was this request slow?" in a way metrics cannot.
+
+              ### Key ideas
+              - A trace is a tree of spans, linked by a trace ID passed between services
+              - The critical path is the chain of spans that decides total time
+              - Look for the longest span, serial calls that could run in parallel, and repeated calls
+              - OpenTelemetry is the open standard to create and export traces
+              - Tracing every request is costly, so you sample
+              - Head sampling decides at the start. Tail sampling decides after the request, so it can keep slow and failed traces
+              - Tail latency problems are rare, so keep all the slow traces
+
+              ### In practice
+              A checkout p99 jumps. In a slow trace, one span shows 1.8 seconds waiting on a payment call that retried twice. Metrics told you it was slow. The trace told you where.
             resources:
               - { label: "OpenTelemetry docs", url: "https://opentelemetry.io/docs/", kind: docs }
               - post: llm-observability-langfuse-lambda-cloudwatch
+              - { label: "Traces (OpenTelemetry)", url: "https://opentelemetry.io/docs/concepts/signals/traces/", kind: docs }
+              - { label: "Sampling (OpenTelemetry)", url: "https://opentelemetry.io/docs/concepts/sampling/", kind: docs }
           - id: slo-dashboards
             title: SLO dashboards
             summary: Show SLO compliance and remaining budget where teams look every day.
             learn:
               - Budget remaining over the window
               - Per-service views
+            body: |
+              An SLO that nobody sees is not useful. A good dashboard shows, at a glance, whether you are meeting the SLO and how much budget is left.
+
+              Put it where the team looks every day.
+
+              ### Key ideas
+              - Show current SLI, the target and the compliance over the window
+              - Show budget remaining over the window, as a percentage and as a trend line
+              - Show the burn rate, so people see how fast the budget is going
+              - Per-service views for owners, plus one overview for leadership
+              - Link from the dashboard to alerts, runbooks and recent deploys
+              - Mark deploys and incidents on the graph
+              - Keep it simple. A few clear panels beat a wall of charts
+
+              ### Example
+              A service tile reads: availability 99.93 percent against a target of 99.9, 70 percent of budget left, burn rate 0.6. A glance tells the team they can keep shipping.
             resources:
               - { label: "Implementing SLOs (SRE workbook)", url: "https://sre.google/workbook/implementing-slos/", kind: article }
           - id: detecting-silent-failures
@@ -569,6 +1530,21 @@ stages:
             learn:
               - Output-based checks
               - Freshness SLIs
+            body: |
+              A silent failure is when a job runs, reports success and still does nothing useful. There is no error, so nothing alerts. Users or reports notice days later.
+
+              Catch these by measuring results, not just whether the job ran.
+
+              ### Key ideas
+              - Output-based checks: did the job write rows, files or messages?
+              - Alert when expected output is zero or far below normal
+              - Freshness SLI: how old is the newest data? Alert when it is too old
+              - Heartbeats: the job pings a monitor on success, and the monitor alerts when pings stop
+              - Row counts, checksums and sampling checks catch partial or wrong data
+              - Test the alert by breaking the job on purpose
+
+              ### Example
+              A nightly Lambda copies orders to a report table. It exits with code 0 even when the query returns nothing. Add a check that the table has rows from the last 24 hours, and page if not.
             resources:
               - post: catch-lambda-jobs-that-succeed-but-write-nothing
               - { label: "Data processing pipelines (SRE workbook)", url: "https://sre.google/workbook/data-processing/", kind: article }
@@ -583,17 +1559,53 @@ stages:
             learn:
               - Team structures
               - Production readiness reviews
+            body: |
+              Not every service gets a dedicated SRE team. Organisations pick a model based on how many services they have and how important each one is.
+
+              The right model can change as a service grows.
+
+              ### Key ideas
+              - Embedded SRE: an SRE sits in the product team and works on its service every day
+              - Consulting SRE: an SRE team advises on SLOs, reviews and design, but does not run the service
+              - Platform SRE: builds shared tools and a paved road for many teams
+              - Full ownership: the SRE team runs the service and carries the pager. Used for the most critical systems
+              - Production readiness review (PRR): a checklist review before an SRE team takes on a service
+              - It covers monitoring, capacity, change process, incident handling and data safety
+
+              ### In practice
+              A new service starts with the developers on call and a PRR before launch. If it grows into something critical, an SRE team may join or take over. If the PRR finds gaps, the service waits until they are closed.
             resources:
               - { label: "SRE engagement model (SRE workbook)", url: "https://sre.google/workbook/engagement-model/", kind: article }
               - { label: "Google SRE books", url: "https://sre.google/books/", kind: course }
+              - { label: "Evolving SRE engagement model (SRE book)", url: "https://sre.google/sre-book/evolving-sre-engagement-model/", kind: article }
           - id: starting-sre
             title: Starting SRE in an organisation
             summary: Begin with one service, one SLO and one on-call rotation, then expand.
             learn:
               - Picking the first service
               - Getting buy-in
+            body: |
+              You do not need a big programme to start SRE. Begin with one service, one SLO and one on-call rotation. Prove that it helps, then grow.
+
+              Small wins win trust far better than a big plan.
+
+              ### Key ideas
+              - Pick a first service that matters but is not the most fragile
+              - Choose one or two SLIs and an SLO, based on current data
+              - Set up basic monitoring and a clear page, runbook and rotation
+              - Hold a blameless postmortem for the first real incident
+              - Get buy-in: show leaders and developers the benefit in outages avoided and time saved
+              - Find a sponsor who can back the error budget policy
+              - Grow by adding services, not by adding rules
+
+              ### Common mistakes
+              - Starting with a long list of services and no data
+              - Starting with tools instead of agreeing on goals
+              - Copying Google's set-up exactly. Adapt it to your size
+              - Hiring SREs who then act as a ticket queue for ops
             resources:
               - { label: "Introducing SRE in your organization (SRE workbook)", url: "https://sre.google/workbook/team-lifecycles/", kind: article }
+              - { label: "SRE at Google: How to structure your SRE team (Google Cloud Blog)", url: "https://cloud.google.com/blog/products/devops-sre/how-sre-teams-are-organized-and-how-to-get-started", kind: article }
           - id: secure-reliable-systems
             title: Security and reliability together
             optional: true
@@ -601,5 +1613,21 @@ stages:
             learn:
               - Least privilege and recovery
               - Designing for resilience
+            body: |
+              Security and reliability share a goal: a system that does what it should, even when things go wrong. Whether the cause is a bug, a bad deploy or an attacker, you want to limit damage and recover fast.
+
+              Designing for both from the start costs less than adding either later.
+
+              ### Key ideas
+              - Least privilege: give each person and service only the access it needs
+              - Limits blast radius for both mistakes and attacks
+              - Design for recovery: tested backups, rollbacks, and the ability to rotate secrets fast
+              - Resilience: assume parts fail or are compromised, and contain it
+              - Defence in depth: more than one layer of control
+              - Careful change: review, staging and safe rollouts help with both
+              - Practise: run incident drills for outages and for security events
+
+              ### Example
+              A deploy token can push to production. With least privilege it can only deploy one service, and only from the main branch. A leaked token or a typo now does far less harm, and rotating it is a routine job.
             resources:
               - { label: "Building Secure and Reliable Systems", url: "https://sre.google/books/building-secure-reliable-systems/", kind: course }
