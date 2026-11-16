@@ -1,7 +1,7 @@
 import { Link, usePage } from '@inertiajs/react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { ArrowRight, Check, ChevronDown, Copy, ExternalLink, Heart, Lock, Search, Sparkles, X } from 'lucide-react'
-import { useState, type ReactElement } from 'react'
+import { ArrowRight, Check, Copy, ExternalLink, Heart, Lock, Search, Sparkles, X } from 'lucide-react'
+import { useEffect, useState, type ReactElement } from 'react'
 import { Github } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 
@@ -17,8 +17,6 @@ export type Lesson = {
   resources?: Resource[]
   searchUrl?: string
   prompt?: string
-  claudeUrl?: string
-  chatgptUrl?: string
 }
 
 /** A, B, C … Z, then AA, AB … for lesson positions (0-based). */
@@ -118,67 +116,136 @@ export function ResourceList({ resources }: { resources: Resource[] }) {
   )
 }
 
-export function LessonDetail({ lesson, loginHref }: { lesson: Lesson; loginHref: string }) {
-  return (
-    <div className="mt-5 space-y-5">
-      {!!lesson.resources?.length && (
-        <section>
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Resources</h3>
-          <ResourceList resources={lesson.resources} />
-          {lesson.searchUrl && (
-            <a href={lesson.searchUrl} {...external} className="mt-3 inline-flex items-center gap-2 text-sm text-slate-600 hover:underline dark:text-slate-300">
-              <Search className="h-4 w-4" /> Search the web for this lesson
-            </a>
-          )}
-        </section>
-      )}
+type LessonTab = 'overview' | 'resources' | 'ask-ai'
 
-      <AskYourAi lesson={lesson} loginHref={loginHref} />
+/** Overview, Resources and Ask AI for one lesson. `#resources` / `#ask-ai` open a tab directly. */
+export function LessonDetail({ lesson, loginHref }: { lesson: Lesson; loginHref: string }) {
+  const [tab, setTab] = useState<LessonTab>('overview')
+  useEffect(() => {
+    const fromHash = window.location.hash.slice(1) // after hydration, so SSR markup matches
+    if (fromHash === 'resources' || fromHash === 'ask-ai') setTab(fromHash)
+  }, [lesson.id])
+  const pick = (t: LessonTab) => {
+    setTab(t)
+    history.replaceState(history.state, '', t === 'overview' ? window.location.pathname + window.location.search : `#${t}`)
+  }
+  const tabs: [LessonTab, string][] = [['overview', 'Overview'], ['resources', `Resources${lesson.resources?.length ? ` (${lesson.resources.length})` : ''}`], ['ask-ai', 'Ask AI']]
+
+  return (
+    <div className="mt-8">
+      <div role="tablist" aria-label="Lesson sections" className="inline-flex rounded-full border border-slate-200 p-1 dark:border-slate-800">
+        {tabs.map(([id, label]) => (
+          <button
+            key={id}
+            role="tab"
+            id={`tab-${id}`}
+            aria-selected={tab === id}
+            aria-controls={`panel-${id}`}
+            onClick={() => pick(id)}
+            className={cn('inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium', tab === id ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'text-slate-600 hover:text-slate-900 dark:text-slate-300')}
+          >
+            {id === 'ask-ai' && <Sparkles className="h-3.5 w-3.5" />}
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className="mt-6">
+        {tab === 'overview' && (
+          <div className="space-y-5">
+            {lesson.summary && <p className="text-base leading-7 text-slate-700 dark:text-slate-200">{lesson.summary}</p>}
+            {!!lesson.learn?.length && (
+              <section>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">What you'll learn</h3>
+                <ul className="mt-3 space-y-2">
+                  {lesson.learn.map((item, i) => (
+                    <li key={i} className="flex gap-2 text-sm text-slate-700 dark:text-slate-300">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden />{item}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </div>
+        )}
+
+        {tab === 'resources' && (
+          <section>
+            {lesson.resources?.length ? <ResourceList resources={lesson.resources} /> : <p className="text-sm text-slate-500">No links for this lesson yet.</p>}
+            {lesson.searchUrl && (
+              <a href={lesson.searchUrl} {...external} className="mt-4 inline-flex items-center gap-2 text-sm text-slate-600 hover:underline dark:text-slate-300">
+                <Search className="h-4 w-4" /> Search the web for this lesson
+              </a>
+            )}
+          </section>
+        )}
+
+        {tab === 'ask-ai' && <AskYourAi lesson={lesson} loginHref={loginHref} />}
+      </div>
     </div>
   )
 }
 
-/** Folded by default. Guests see a sign-up button instead of the prompt (the server doesn't send it to them). */
+/**
+ * Assistants that accept a prefilled prompt in the URL open with it; the rest (no such link) get it copied
+ * to the clipboard first, then open so the reader can paste. "Copy prompt" covers any other model.
+ */
+const ASSISTANTS: { name: string; url: (q: string) => string; prefill: boolean }[] = [
+  { name: 'ChatGPT', url: (q) => `https://chatgpt.com/?q=${q}`, prefill: true },
+  { name: 'Claude', url: (q) => `https://claude.ai/new?q=${q}`, prefill: true },
+  { name: 'Gemini', url: () => 'https://gemini.google.com/app', prefill: false },
+  { name: 'Perplexity', url: (q) => `https://www.perplexity.ai/search?q=${q}`, prefill: true },
+  { name: 'Grok', url: (q) => `https://grok.com/?q=${q}`, prefill: true },
+  { name: 'Copilot', url: (q) => `https://copilot.microsoft.com/?q=${q}`, prefill: true },
+  { name: 'Mistral', url: (q) => `https://chat.mistral.ai/chat?q=${q}`, prefill: true },
+  { name: 'DeepSeek', url: () => 'https://chat.deepseek.com/', prefill: false },
+]
+
+/** Guests see a sign-up button instead of the prompt (the server doesn't send it to them). */
 function AskYourAi({ lesson, loginHref }: { lesson: Lesson; loginHref: string }) {
-  const [copied, setCopied] = useState(false)
-  const copy = async () => {
+  const [copied, setCopied] = useState<string | null>(null)
+  const copy = async (label: string) => {
     try {
       await navigator.clipboard.writeText(lesson.prompt ?? '')
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      setCopied(label)
+      setTimeout(() => setCopied(null), 2500)
+      return true
     } catch {
-      setCopied(false)
+      return false
     }
   }
-  const button = 'rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
+  const open = async (a: (typeof ASSISTANTS)[number]) => {
+    if (!a.prefill) await copy(a.name)
+    window.open(a.url(encodeURIComponent(lesson.prompt ?? '')), '_blank', 'noopener,noreferrer')
+  }
+  const button = 'inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:border-amber-400 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
+
+  if (!lesson.prompt) {
+    return (
+      <div className="rounded-xl border border-slate-200 p-4 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-300">
+        <p className="inline-flex items-center gap-2"><Lock className="h-4 w-4" /> You need a free account to use the AI prompt.</p>
+        <Link href={loginHref} className="mt-3 flex w-fit rounded-full bg-amber-500 px-4 py-2 text-sm font-semibold text-amber-950 hover:bg-amber-400">
+          Create a free account
+        </Link>
+      </div>
+    )
+  }
 
   return (
-    <details className="group rounded-xl border border-slate-200 dark:border-slate-800">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-semibold text-slate-800 dark:text-slate-100 [&::-webkit-details-marker]:hidden">
-        <span className="inline-flex items-center gap-2"><Sparkles className="h-4 w-4 text-amber-600" /> Ask your AI</span>
-        <ChevronDown className="h-4 w-4 text-slate-400 transition group-open:rotate-180" />
-      </summary>
-      <div className="border-t border-slate-200 px-4 py-4 dark:border-slate-800">
-        {lesson.prompt ? (
-          <>
-            <p className="rounded-lg bg-slate-50 p-3 font-mono text-xs leading-5 text-slate-700 dark:bg-slate-950 dark:text-slate-300">{lesson.prompt}</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button onClick={copy} className={cn(button, 'inline-flex items-center gap-1.5')}>
-                {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />} {copied ? 'Copied' : 'Copy prompt'}
-              </button>
-              {lesson.claudeUrl && <a href={lesson.claudeUrl} {...external} className={button}>Open in Claude</a>}
-              {lesson.chatgptUrl && <a href={lesson.chatgptUrl} {...external} className={button}>Open in ChatGPT</a>}
-            </div>
-          </>
-        ) : (
-          <div className="text-sm text-slate-600 dark:text-slate-300">
-            <p className="inline-flex items-center gap-2"><Lock className="h-4 w-4" /> You need a free account to use the AI prompt.</p>
-            <Link href={loginHref} className="mt-3 inline-flex rounded-full bg-amber-500 px-4 py-2 text-sm font-semibold text-amber-950 hover:bg-amber-400">
-              Create a free account
-            </Link>
-          </div>
-        )}
+    <div>
+      <p className="text-sm text-slate-600 dark:text-slate-300">Take this prompt to any AI. It links back to this roadmap so the AI knows what you're following.</p>
+      <p className="mt-3 rounded-lg bg-slate-50 p-3 font-mono text-xs leading-5 text-slate-700 dark:bg-slate-950 dark:text-slate-300">{lesson.prompt}</p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button onClick={() => copy('prompt')} className={cn(button, 'border-slate-900 bg-slate-900 text-white hover:bg-slate-700 dark:border-white dark:bg-white dark:text-slate-900')}>
+          {copied === 'prompt' ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />} {copied === 'prompt' ? 'Copied' : 'Copy prompt'}
+        </button>
+        {ASSISTANTS.map((a) => (
+          <button key={a.name} onClick={() => open(a)} className={button} title={a.prefill ? undefined : 'Copies the prompt, then opens the site so you can paste it'}>
+            {copied === a.name ? <Check className="h-3.5 w-3.5" /> : <ExternalLink className="h-3.5 w-3.5" />} {a.name}
+          </button>
+        ))}
       </div>
-    </details>
+      {copied && copied !== 'prompt' && <p role="status" className="mt-2 text-xs text-slate-500">Prompt copied. Paste it into {copied}.</p>}
+    </div>
   )
 }

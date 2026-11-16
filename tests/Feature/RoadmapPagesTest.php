@@ -98,8 +98,7 @@ class RoadmapPagesTest extends TestCase
             ->has('lessons.0.learn')
             ->has('lessons.0.summary')
             ->has('lessons.0.prompt')
-            ->has('lessons.0.claudeUrl')
-            ->has('lessons.0.chatgptUrl'));
+            ->where('lessons.0.prompt', fn ($prompt) => str_contains($prompt, '/roadmaps/'.self::R.' ') && str_contains($prompt, '/roadmaps/'.self::R.'/'.$topic['id'].'/')));
     }
 
     public function test_paid_topic_and_lesson_redirect_to_the_unlock_box(): void

@@ -233,12 +233,7 @@ class RoadmapController extends Controller
         ];
         // The AI prompt is for signed-in readers only.
         if ($signedIn) {
-            $prompt = $this->repo->prompt($roadmap, $stage['level'], $topic, $lesson);
-            $base += [
-                'prompt' => $prompt,
-                'claudeUrl' => 'https://claude.ai/new?q='.urlencode($prompt),
-                'chatgptUrl' => 'https://chatgpt.com/?q='.urlencode($prompt),
-            ];
+            $base += ['prompt' => $this->repo->prompt($roadmap, $stage['level'], $topic, $lesson)];
         }
 
         return $base;
