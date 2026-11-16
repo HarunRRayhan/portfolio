@@ -59,6 +59,7 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_REGION: auto # R2 rejects AWS regions; runners now default to one
         run: |
           echo "Uploading static assets to Cloudflare R2..."
 
@@ -115,6 +116,7 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_REGION: auto # R2 rejects AWS regions; runners now default to one
           R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
           R2_S3_ENDPOINT: ${{ secrets.R2_S3_ENDPOINT }}
         run: |
