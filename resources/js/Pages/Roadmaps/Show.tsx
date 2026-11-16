@@ -124,8 +124,8 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
       </section>
 
       <section className="relative mx-auto max-w-5xl px-4 pb-24 sm:px-6 lg:px-8">
-        {/* The spine: left edge on phones, centre from md up. */}
-        <div aria-hidden className="absolute bottom-24 left-[2.1rem] top-0 w-0.5 bg-slate-300 sm:left-[2.6rem] md:left-1/2 md:-translate-x-1/2 dark:bg-slate-700" />
+        {/* The spine: left edge on phones, centre from md up. Starts behind the first stage label. */}
+        <div aria-hidden className="absolute bottom-24 left-[2.1rem] top-12 w-0.5 bg-slate-300 sm:left-[2.6rem] md:left-1/2 md:-translate-x-1/2 dark:bg-slate-700" />
 
         {stages.map((stage, i) => {
           // Topic numbers run 1, 2, 3 … down the whole roadmap.
@@ -140,7 +140,8 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
               </span>
             </div>
 
-            <ol className="grid gap-y-4 md:grid-cols-2 md:gap-x-16">
+            {/* Zigzag from md up: each topic sits half a card below the one on the other side. */}
+            <ol className="flex flex-col gap-y-4">
               {stage.topics.map((topic, j) => (
                 <TopicNode
                   key={topic.id}
@@ -209,7 +210,7 @@ function TopicNode({ number, href, topic, locked, side, isNext }: { number: numb
     </>
   )
   return (
-    <li id={topic.id} className="relative scroll-mt-28 pl-12 md:pl-0">
+    <li id={topic.id} className={cn('relative scroll-mt-28 pl-12 md:w-[calc(50%-2rem)] md:pl-0 md:[&:not(:first-child)]:-mt-10', side === 'right' && 'md:ml-auto')}>
       {/* Connector from the box to the spine. Phones: spine is 1.1rem into the item, box starts at 3rem. */}
       <span
         aria-hidden
