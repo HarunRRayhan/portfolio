@@ -34,7 +34,6 @@ class BookPageTest extends TestCase
             ->where('contactEmail', config('mail.owner.address'))
             ->has('sponsorTiers', 4)
             ->where('sponsorTiers.3.slug', 'monthly')
-            ->missing('stripeConfigured')
             ->missing('launchPromotion'));
     }
 

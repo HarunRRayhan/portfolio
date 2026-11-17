@@ -15,13 +15,14 @@ class SponsorPageTest extends TestCase
                 ->where('canonicalUrl', rtrim((string) config('app.url'), '/').'/sponsor-me')
                 ->where('sponsorsUrl', config('sponsors.url'))
                 ->where('contactUrl', route('contact'))
-                ->where('contactEmail', config('mail.owner.address'))
-                ->missing('stripeConfigured'));
+                ->where('contactEmail', config('mail.owner.address')));
     }
 
-    public function test_stripe_checkout_route_is_gone(): void
+    public function test_no_stripe_tables_or_columns_remain(): void
     {
-        $this->post('/sponsor-me/checkout', ['amount' => '10.00', 'cadence' => 'once'])->assertNotFound();
+        $this->assertFalse(\Illuminate\Support\Facades\Schema::hasTable('consultation_stripe_webhook_events'));
+        $this->assertFalse(\Illuminate\Support\Facades\Schema::hasTable('consultation_stripe_checkout_attempts'));
+        $this->assertSame([], preg_grep('/^stripe_/', \Illuminate\Support\Facades\Schema::getColumnListing('consultation_bookings')));
     }
 
     public function test_old_sponsor_path_redirects_to_the_new_canonical_path(): void

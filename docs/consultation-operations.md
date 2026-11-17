@@ -52,8 +52,8 @@ message.
 ## Payments
 
 Payments are GitHub Sponsors credits; see
-`docs/checklists/github-sponsors-setup.md`. The old Stripe tables stay in the
-database as history and are no longer read.
+`docs/checklists/github-sponsors-setup.md`. Stripe is fully removed; its old
+records were emailed to the owner and dropped (migration `2026_11_17_100000_drop_stripe_history`).
 
 ## Google Calendar
 

@@ -107,7 +107,6 @@ class SponsorBookingTest extends TestCase
 
         $this->assertSame(ConsultationBooking::STATUS_CONFIRMED, $approved->status);
         $this->assertNotNull($approved->confirmed_at);
-        $this->assertNull($approved->stripe_checkout_session_id);
         $this->assertFalse($booking->events()->where('event', 'approved_awaiting_payment')->exists());
     }
 
@@ -218,7 +217,6 @@ class SponsorBookingTest extends TestCase
             ->where('sponsorsUrl', config('sponsors.url'))
             ->has('sponsorTiers', 4)
             ->has('sponsorTiers.0', fn ($t) => $t->hasAll(['slug', 'url', 'kind']))
-            ->missing('stripeConfigured')
             ->missing('launchPromotion')
             ->where('seo.jsonLd.0.description', 'Sponsor on GitHub, then book a time.'));
 
