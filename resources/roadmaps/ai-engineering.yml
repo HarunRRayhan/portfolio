@@ -400,7 +400,7 @@ stages:
 
               ### Key ideas
               - **429** means you hit a rate limit. Wait and retry
-              - **529** (and similar 5xx errors) mean the provider is overloaded
+              - **529** (Anthropic) and **503** mean the provider is overloaded. Other 5xx errors are usually worth a retry too
               - Use **exponential backoff with jitter**: wait 1s, 2s, 4s and so on, plus a random amount, so many clients do not retry together
               - Respect a `retry-after` header when the API sends one
               - Cap the number of retries and total time
@@ -469,7 +469,8 @@ stages:
                   "sentiment": { "enum": ["positive", "neutral", "negative"] },
                   "summary": { "type": "string" }
                 },
-                "required": ["sentiment", "summary"]
+                "required": ["sentiment", "summary"],
+                "additionalProperties": false
               }
               ```
             resources:
@@ -631,7 +632,7 @@ stages:
               An **embedding model** is separate from a chat model. It reads text and returns a vector, and it does not write replies.
 
               ### Key ideas
-              - Similarity is usually measured with **cosine similarity**: the angle between two vectors, from -1 to 1, where higher means more alike
+              - Similarity is usually measured with **cosine similarity**: the cosine of the angle between two vectors, from -1 to 1, where higher means more alike
               - Vectors have a fixed number of **dimensions**, such as hundreds or thousands
               - More dimensions can capture more detail but use more storage and slow search
               - Embedding is cheap per token compared with chat models
@@ -659,7 +660,7 @@ stages:
               - pgvector adds a `vector` column type and distance operators to Postgres
               - Exact search compares against every row, which is slow at large scale
               - **Approximate indexes** trade a little accuracy for speed. **HNSW** is a graph index with fast queries. **IVF** groups vectors into lists and searches the nearest few
-              - **Metadata filters** such as tenant, language or date narrow results before ranking
+              - **Metadata filters** such as tenant, language or date narrow results. In pgvector an approximate index applies the filter after the scan, so you can get fewer rows than you asked for unless you enable iterative scans
               - Postgres keeps your vectors next to your normal data and permissions
 
               ```sql
@@ -688,7 +689,7 @@ stages:
               Vector search finds meaning but can miss exact terms like product codes, names and error strings. Keyword search is the reverse. **Hybrid search** runs both and merges the results.
 
               ### Key ideas
-              - **BM25** is a classic keyword ranking that scores how rare and frequent a term is in a document
+              - **BM25** is a classic keyword ranking that scores how often a term appears in a document and how rare it is across all documents
               - Run BM25 and vector search separately, then merge the two ranked lists
               - **Reciprocal rank fusion** merges by rank, not score. Each result gets 1 divided by (k plus its rank) from each list, and the scores are added
               - A **reranker** is a model that reads the query and each candidate together and orders them better. Apply it to the top 20 to 50 results
@@ -770,7 +771,7 @@ stages:
               - You give up control. Chunking, parsing and ranking options are limited to what the service offers
               - Check what it handles: supported file types, sync schedule, metadata filters, and how it handles permissions
               - Check its limits on chunk strategy and on how results are ranked
-              - **Build your own** when you need custom parsing, hybrid search, fine permissions or tuning that the managed option cannot do
+              - **Build your own** when you need custom parsing, fine permissions or tuning that the managed option cannot do
 
               ### In practice
               Start managed to prove the idea. Measure retrieval quality with your own questions. If results are good enough, stay. If you keep hitting limits you cannot change, move to your own pipeline, keeping the same eval set to confirm the move helped.
@@ -1515,7 +1516,7 @@ stages:
               Define the infrastructure for your AI feature in code, such as Terraform, and deploy it through CI. Then it is reviewed, repeatable and easy to rebuild.
 
               ### Key ideas
-              - Describe in Terraform: Bedrock model access, Lambda functions, queues, IAM roles, API endpoints
+              - Describe in Terraform: Lambda functions, queues, IAM roles, API endpoints
               - Give each function a **least privilege** role that allows only the models and resources it uses
               - **CI/CD**: on pull request run `terraform plan` and tests. On merge, apply to staging, then production
               - **Secrets for provider keys**: keep them in a secrets manager and read at run time. Never commit them or put them in plain environment files

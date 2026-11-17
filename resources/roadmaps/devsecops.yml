@@ -78,7 +78,7 @@ stages:
             body: |
               "Be secure" is not testable. A standard turns it into a list you can check. **OWASP ASVS** (Application Security Verification Standard) is a catalogue of requirements for web apps, grouped by area such as authentication, sessions and access control.
 
-              ASVS has three **levels**. Level 1 is the baseline for every app and can be checked mostly by testing. Level 2 suits apps with sensitive data. Level 3 is for the highest risk, like finance or health systems.
+              ASVS has three **levels**. Level 1 is the minimum starting point for every app. Level 2 is the target for most apps, especially those with sensitive data. Level 3 is for the highest risk, like finance or health systems.
 
               Pick a level, then copy the relevant requirements into your backlog as acceptance criteria.
 
@@ -226,14 +226,14 @@ stages:
 
               ### Key ideas
               - Scan locally and again on the server
-              - Push protection is the check developers cannot skip
+              - Push protection runs on the server, so skipping a local hook does not avoid it
               - Scan full history once, then only new changes
               - Treat any key found as leaked
 
               ### Example
               ```bash
-              gitleaks detect --source . --redact
-              gitleaks protect --staged
+              gitleaks git --redact .
+              gitleaks git --pre-commit --staged
               ```
               The first command scans history. The second checks only what you are about to commit.
             resources:
@@ -506,7 +506,7 @@ stages:
               - MFA on root and on every human user
               - Billing alerts
             body: |
-              The **root user** owns the whole AWS account and cannot be restricted by policies. If it is stolen, everything is lost. Protect it, then stop using it.
+              The **root user** owns the whole AWS account and cannot be restricted by IAM policies. If it is stolen, everything is lost. Protect it, then stop using it.
 
               Set a long unique password and turn on **MFA** (multi-factor authentication), ideally a hardware key or passkey. Delete any root access keys. Use root only for the few tasks that need it.
 
@@ -738,7 +738,7 @@ stages:
 
               **Pin actions to a commit SHA.** A tag like `v4` can be moved. A full SHA cannot, so a compromised action cannot silently change what you run.
 
-              **Handle untrusted input carefully.** Do not paste values such as a PR title straight into a shell command. Pass them through environment variables. Be careful with triggers such as `pull_request_target`, which run with secrets for code from forks.
+              **Handle untrusted input carefully.** Do not paste values such as a PR title straight into a shell command. Pass them through environment variables. Be careful with triggers such as `pull_request_target`, which runs with secrets even for pull requests from forks.
 
               ### Key ideas
               - Default token permissions to read
@@ -834,8 +834,10 @@ stages:
 
               ### Example
               ```dockerfile
-              FROM golang:1.23 AS build
-              RUN go build -o /app ./...
+              FROM golang:1.27 AS build
+              WORKDIR /src
+              COPY . .
+              RUN CGO_ENABLED=0 go build -o /app .
 
               FROM gcr.io/distroless/static
               COPY --from=build /app /app
@@ -903,8 +905,9 @@ stages:
 
               ### Example
               ```hcl
-              #checkov:skip=CKV_AWS_18:Access logs not needed for this public asset bucket
-              resource "aws_s3_bucket" "assets" {}
+              resource "aws_s3_bucket" "assets" {
+                #checkov:skip=CKV_AWS_18:Access logs not needed for this public asset bucket
+              }
               ```
             resources:
               - { label: "Checkov", url: "https://www.checkov.io/", kind: tool }
@@ -1061,7 +1064,7 @@ stages:
 
               The core idea is **provenance**: a signed record of what was built, from which source, by which build system. Consumers can check it before they use the artifact. **Build integrity** means the build runs in a controlled place that developers and attackers cannot tamper with.
 
-              Levels rise step by step. Early levels ask for scripted builds and provenance. Higher levels ask for a hardened, isolated build platform that signs the provenance itself.
+              Levels rise step by step. Early levels ask for a consistent build process and provenance. Higher levels ask for a hardened, isolated build platform that signs the provenance itself.
 
               ### Key ideas
               - Provenance says where an artifact came from
@@ -1270,6 +1273,7 @@ stages:
               ### Example
               ```yaml
               - rule: Shell in container
+                desc: A shell was started inside a container
                 condition: spawned_process and container and proc.name in (bash, sh)
                 output: Shell started in container (user=%user.name container=%container.name)
                 priority: WARNING
@@ -1330,7 +1334,7 @@ stages:
               - Write a short runbook per common finding
 
               ### Example
-              GuardDuty reports `UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration`. The runbook says: revoke the role's sessions, find the instance, isolate it and check CloudTrail.
+              GuardDuty reports `UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration.OutsideAWS`. The runbook says: revoke the role's sessions, find the instance, isolate it and check CloudTrail.
             resources:
               - { label: "Amazon GuardDuty", url: "https://docs.aws.amazon.com/guardduty/latest/ug/what-is-guardduty.html", kind: docs }
               - { label: "GuardDuty finding types (AWS)", url: "https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_findings.html", kind: docs }
@@ -1560,7 +1564,7 @@ stages:
             body: |
               An investigation is only as good as its logs. Decide now which logs you will need and keep them long enough. Common ones: cloud audit logs, application logs, load balancer logs and authentication events.
 
-              Attackers try to delete logs. Send them to a separate account or storage with **immutability**, such as S3 Object Lock, so even an admin cannot remove them within the retention period. Set a **retention** period that matches your needs, since many intrusions are found months later.
+              Attackers try to delete logs. Send them to a separate account or storage with **immutability**, such as S3 Object Lock in compliance mode, so even an admin cannot remove them within the retention period. Set a **retention** period that matches your needs, since many intrusions are found months later.
 
               When a resource is affected, **snapshot** it, for example a disk, before you change it. You can then study the copy without losing evidence.
 

@@ -79,6 +79,9 @@ stages:
               ExecStart=/usr/bin/node /srv/app/server.js
               User=deploy
               Restart=on-failure
+
+              [Install]
+              WantedBy=multi-user.target
               ```
             resources:
               - { label: "Linux Journey", url: "https://linuxjourney.com/", kind: course }
@@ -348,7 +351,7 @@ stages:
               - **ShellCheck** reads a script and flags quoting bugs and common traps
 
               ### Common mistakes
-              - `rm -rf "$DIR/"` when `$DIR` is empty. With `set -u` the script stops instead of deleting `/`.
+              - `rm -rf "$DIR/"` when `$DIR` is unset. With `set -u` the script stops instead of deleting `/`. An empty value still gets through, so write `"${DIR:?}/"`.
               - Ignoring an error from `cd`. Write `cd "$dir" || exit 1`.
 
               Run `shellcheck script.sh` before you commit, and add it to CI.
@@ -849,7 +852,7 @@ stages:
               ### Key ideas
               - Tag images with a version or commit SHA, not only `latest`
               - **ECS on Fargate** runs containers with no servers to manage. You define a task (image, CPU, memory, env) and a service that keeps N copies running
-              - **App Runner** is simpler still. Point it at an image and it gives you a URL
+              - **App Runner** was simpler still, but it is closed to new customers. AWS now points new users to ECS Express Mode
               - Attach an IAM role to the task so the app gets AWS access with no keys
               - Send logs to CloudWatch, and set health checks so bad tasks are replaced
 
@@ -1475,7 +1478,7 @@ stages:
             body: |
               A Service gives stable access inside the cluster. To bring web traffic in from outside, you use an **Ingress**. It holds routing rules, such as "host `app.example.com` goes to the web Service, and `/api` goes to the API Service".
 
-              An Ingress does nothing on its own. An **ingress controller**, such as NGINX or Traefik, reads the rules and does the routing. Many setups also use the newer Gateway API.
+              An Ingress does nothing on its own. An **ingress controller**, such as Traefik, reads the rules and does the routing. The community Ingress NGINX controller was retired in March 2026, and the newer Gateway API is the recommended path for new setups.
 
               Pods get settings from outside the image. A **ConfigMap** holds plain config. A **Secret** holds sensitive values.
 
@@ -1577,7 +1580,7 @@ stages:
 
               - A rollback is a `git revert`
               - The audit trail is the Git log
-              - The cluster holds no deploy keys that CI can leak, which is a security gain
+              - CI holds no cluster credentials that could leak, which is a security gain
               - Someone changing the cluster by hand gets reverted
 
               ### Common mistakes
@@ -1692,6 +1695,11 @@ stages:
               exporters:
                 otlphttp:
                   endpoint: https://backend.example.com
+              service:
+                pipelines:
+                  traces:
+                    receivers: [otlp]
+                    exporters: [otlphttp]
               ```
             resources:
               - { label: "OpenTelemetry docs", url: "https://opentelemetry.io/docs/", kind: docs }
@@ -1996,15 +2004,16 @@ stages:
               - The four DORA metrics
               - Surveys and feedback loops
             body: |
-              You cannot improve delivery if you do not measure it. The DORA research found four metrics that predict how well a team delivers.
+              You cannot improve delivery if you do not measure it. The DORA research started with four key metrics that predict how well a team delivers, and now adds a fifth.
 
-              Two measure speed and two measure stability.
+              Three measure throughput and two measure instability.
 
               ### Key ideas
               - **Deployment frequency**: how often you ship to production
               - **Lead time for changes**: time from commit to running in production
               - **Change failure rate**: share of deploys that cause a problem needing a fix or rollback
               - **Time to restore service** (failed deployment recovery time): how fast you recover
+              - **Deployment rework rate**: share of deploys that are unplanned fixes for a production incident
               - Speed and stability go up together in strong teams. They are not a trade-off
               - Metrics show where to look. They are not scores for individuals
               - Add **surveys**. Ask developers what slows them down: slow builds, flaky tests, unclear docs, waiting for reviews

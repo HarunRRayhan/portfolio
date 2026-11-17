@@ -454,7 +454,7 @@ stages:
 
               @app.post("/predict")
               def predict(r: Req):
-                  return {"score": model.predict([[r.age, r.income]])[0]}
+                  return {"score": float(model.predict([[r.age, r.income]])[0])}
               ```
             resources:
               - { label: "FastAPI docs", url: "https://fastapi.tiangolo.com/", kind: docs }
@@ -487,6 +487,8 @@ stages:
               RUN pip install --no-cache-dir -r requirements.txt
               COPY model/ model/
               COPY app.py .
+              RUN useradd --create-home app
+              USER app
               CMD ["uvicorn", "app:app", "--host", "0.0.0.0"]
               ```
             resources:
@@ -518,7 +520,10 @@ stages:
                 test:
                   runs-on: ubuntu-latest
                   steps:
-                    - uses: actions/checkout@v4
+                    - uses: actions/checkout@v7
+                    - uses: actions/setup-python@v7
+                      with:
+                        python-version: "3.12"
                     - run: pip install -r requirements.txt
                     - run: pytest tests/
                     - run: python train.py --sample 200 --epochs 1

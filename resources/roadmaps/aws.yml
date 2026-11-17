@@ -141,7 +141,7 @@ stages:
             body: |
               The AWS Free Tier lets you try services at no cost. Its rules have changed over time, so check the current offer page before you rely on it.
 
-              There are two broad kinds of offer. **Always-free** offers have monthly limits that renew, for example a small number of Lambda requests. **Trial** offers last for a short period after you start the service or sign up. Newer accounts may get credits instead of the older 12-month plan, so read what your account shows.
+              There are two broad kinds of offer. **Always-free** offers have monthly limits that renew, for example a small number of Lambda requests. **Trial** offers last for a short period after you start the service or sign up. Accounts created since July 2025 get credits (up to 200 US dollars, for up to six months on the free plan) instead of the older 12-month offers, so read what your account shows.
 
               ### Key ideas
               - Always-free: limited amounts that reset each month, not time limited
@@ -502,7 +502,7 @@ stages:
               - EC2: more power and control, many sizes, integrates with the whole of AWS
               - Lightsail blueprints include WordPress and common stacks, plus plain Linux for your own app
               - Lightsail also offers managed databases, load balancers and a CDN in simple bundles
-              - Lightsail runs in its own simple network. You can peer it with a normal VPC if you need to
+              - Lightsail runs in its own simple network. You can peer it with the default VPC in the same region if you need to
 
               ### Example
               To run Laravel on Lightsail, create a Linux instance, install PHP, a web server and Composer, deploy the code, then attach a static IP and set up DNS. A WordPress blueprint skips most of that and gives you a working site in minutes.
@@ -640,7 +640,7 @@ stages:
               - **Standard:** frequent access, no retrieval fee
               - **Standard-IA** (Infrequent Access) and One Zone-IA: lower storage price, a retrieval fee, and a minimum storage time
               - **Intelligent-Tiering:** moves objects between tiers for you when access changes
-              - **Glacier** classes: very cheap archive storage. Retrieval can take minutes to hours, depending on the class
+              - **Glacier** classes: very cheap archive storage. Retrieval takes from milliseconds (Instant Retrieval) to hours (Deep Archive), depending on the class
               - A **lifecycle rule** moves objects to another class after some days, or deletes them after some days
               - Lifecycle rules can also clean up incomplete multipart uploads and old versions
 
@@ -773,11 +773,10 @@ stages:
               ```bash
               CACHE_STORE=redis
               SESSION_DRIVER=redis
-              REDIS_HOST=my-cache.abc123.use1.cache.amazonaws.com
-              REDIS_SCHEME=tls
+              REDIS_URL=tls://my-cache.abc123.use1.cache.amazonaws.com:6379
               ```
 
-              Turn on in-transit encryption and use the TLS scheme.
+              Turn on in-transit encryption. The `tls://` scheme in the URL makes Laravel connect over TLS.
             resources:
               - post: connect-redis-elasticache-to-application-in-amazon-lightsail-instance
               - { label: "What is Amazon ElastiCache?", url: "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/WhatIs.html", kind: docs }
@@ -821,7 +820,7 @@ stages:
               **AWS Certificate Manager (ACM)** issues TLS certificates for HTTPS. Public certificates are free when used with integrated services, and ACM renews them for you.
 
               ### Key ideas
-              - You can attach ACM certificates to CloudFront, ALB, NLB, API Gateway and some other services. You cannot export a public ACM certificate for use on your own server
+              - You can attach ACM certificates to CloudFront, ALB, NLB, API Gateway and some other services. Free public certificates cannot be exported. For your own server, ACM offers exportable public certificates at an extra charge
               - ACM proves you own the domain by **validation**
               - **DNS validation** adds a CNAME record. If the zone is in Route 53, ACM can add it for you. Renewal keeps working as long as the record stays
               - **Email validation** is older and needs someone to click a link. Avoid it
@@ -852,7 +851,7 @@ stages:
               ### In practice
               Version your file names, like `app.3f2a1b.js`. A new build gets a new name, so you never need to invalidate. Cache them for a year. For HTML, keep the TTL short, or use `Cache-Control` headers from your app.
 
-              Compression, HTTP/3 and TLS are on by default and need little setup.
+              Compression, HTTP/2 and HTTPS need little setup. HTTP/3 is one setting to turn on.
             resources:
               - { label: "What is Amazon CloudFront?", url: "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Introduction.html", kind: docs }
               - post: add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail
@@ -932,12 +931,12 @@ stages:
             body: |
               An **internet gateway (IGW)** connects a VPC to the internet in both directions. A resource in a public subnet needs a public IP and a route to the IGW to be reachable.
 
-              Private resources often still need to reach out, for updates or third-party APIs. A **NAT gateway** does that. It sits in a public subnet. Private subnets route `0.0.0.0/0` to it. It lets traffic out and replies in, but allows no new connections from outside.
+              Private resources often still need to reach out, for updates or third-party APIs. A **NAT gateway** does that. A zonal NAT gateway sits in a public subnet. Private subnets route `0.0.0.0/0` to it. It lets traffic out and replies in, but allows no new connections from outside.
 
               ### Key ideas
               - IGW: two-way, free to attach
               - NAT gateway: outbound only, billed per hour plus per GB processed
-              - Put one NAT gateway in each AZ. If one NAT serves several zones and its zone fails, the others lose internet, and you pay cross-AZ transfer
+              - Put one zonal NAT gateway in each AZ, or use a **regional NAT gateway**, which spans zones by itself. If one zonal NAT serves several zones and its zone fails, the others lose internet, and you pay cross-AZ transfer
               - **VPC endpoints** reach AWS services without going through NAT
               - A **gateway endpoint** for S3 and DynamoDB is free
               - An **interface endpoint** (PrivateLink) works for most other services and has an hourly and data cost
@@ -1479,7 +1478,7 @@ stages:
               - One **RCU** is one strongly consistent read per second of an item up to 4 KB. One **WCU** is one write per second of an item up to 1 KB
               - Eventually consistent reads cost half as much as strongly consistent ones
               - Provisioned tables can use **auto scaling** to follow load, within limits you set. If you exceed the capacity, requests are throttled
-              - You can switch a table between modes, but only once every 24 hours
+              - You can switch from provisioned to on-demand up to four times in 24 hours, and from on-demand to provisioned at any time
               - Reserved capacity can cut provisioned cost further for long commitments
 
               ### In practice
@@ -1561,13 +1560,13 @@ stages:
               - You pay by the amount of data scanned, so narrow the time range and the groups
 
               ### In practice
-              Find the most common errors in the last hour.
+              Count errors per five minutes over the last hour, busiest first.
 
               ```
               fields @timestamp, @message
               | filter @message like /ERROR/
-              | stats count() by bin(5m)
-              | sort @timestamp desc
+              | stats count() as errors by bin(5m)
+              | sort errors desc
               ```
 
               Another common query uses `parse` to pull a field out of text, then `stats avg(duration)` to see slow requests. Save the queries you use often.
@@ -1997,7 +1996,7 @@ stages:
               - **RDS Multi-AZ** keeps a synchronous standby in another zone and fails over on its own, usually in a minute or two. The endpoint name stays the same
               - **S3** and **DynamoDB** already store data across zones
               - A cache like ElastiCache can have replicas in other zones
-              - One NAT gateway per zone avoids a hidden single point of failure
+              - One NAT gateway per zone, or a regional NAT gateway, avoids a hidden single point of failure
               - Multi-AZ protects against a zone failure, not against region loss or bad data. You still need backups
 
               ### Common mistakes
@@ -2177,7 +2176,7 @@ stages:
               - A **tag** is a key and value on a resource, such as `app=shop` and `env=prod`
               - Pick a small standard set: `app`, `env`, `team` and `owner`. Write it down
               - Tags do nothing for billing until you activate them as **cost allocation tags** in the Billing console. Activation takes up to a day to show up
-              - Tags apply from activation onward, not to older usage
+              - Tags apply from activation onward. You can request a backfill of up to 12 months, for usage where the tag was already on the resource
               - Enforce tags with Terraform defaults, tag policies in Organizations, or SCPs that deny creating untagged resources
               - In Cost Explorer, group by Service, Account, Region, Usage type or a tag. Filter to focus on one app
               - Daily view helps spot a sudden jump. Monthly view shows the trend

@@ -1147,11 +1147,12 @@ stages:
 
               ### Example
               ```javascript
+              import http from 'k6/http';
               export const options = { vus: 100, duration: '10m' };
               export default function () { http.get('https://test.example.com/'); }
               ```
 
-              This k6 script runs 100 virtual users for 10 minutes. Watch p99 latency and errors as users grow.
+              This k6 script runs 100 virtual users for 10 minutes. Watch p99 latency and errors during the run.
             resources:
               - { label: "Grafana k6 docs", url: "https://grafana.com/docs/k6/latest/", kind: tool }
               - { label: "Load test types (Grafana k6)", url: "https://grafana.com/docs/k6/latest/testing-guides/test-types/", kind: docs }
@@ -1544,7 +1545,7 @@ stages:
               - Test the alert by breaking the job on purpose
 
               ### Example
-              A nightly Lambda copies orders to a report table. It exits with code 0 even when the query returns nothing. Add a check that the table has rows from the last 24 hours, and page if not.
+              A nightly Lambda copies orders to a report table. It reports success even when the query returns nothing. Add a check that the table has rows from the last 24 hours, and page if not.
             resources:
               - post: catch-lambda-jobs-that-succeed-but-write-nothing
               - { label: "Data processing pipelines (SRE workbook)", url: "https://sre.google/workbook/data-processing/", kind: article }
