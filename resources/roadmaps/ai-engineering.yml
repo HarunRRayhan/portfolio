@@ -666,7 +666,7 @@ stages:
               SELECT id, content
               FROM chunks
               WHERE tenant_id = $1
-              ORDER BY cosine_distance(embedding, $2)
+              ORDER BY embedding <=> $2
               LIMIT 5;
               ```
 
