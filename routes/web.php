@@ -491,6 +491,10 @@ Route::get('/about', function () {
 
 Route::redirect('/sponsor', '/sponsor-me', 301)->name('sponsor.legacy');
 
+// Short links for sharing. 302, so they can be pointed elsewhere later without caches holding the old target.
+Route::redirect('/r', '/roadmaps')->name('short.roadmaps');
+Route::redirect('/rs', '/raystack')->name('short.raystack');
+
 Route::get('/sponsor-me', function () {
     return Inertia::render('Sponsor', [
         'canonicalUrl' => rtrim(config('app.url', url('/')), '/').'/sponsor-me',
