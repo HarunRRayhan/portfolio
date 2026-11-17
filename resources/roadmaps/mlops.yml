@@ -1241,10 +1241,10 @@ stages:
               SELECT id, content
               FROM chunks
               WHERE tenant_id = 42
-              ORDER BY cosine_distance(embedding, $1)
+              ORDER BY embedding <=> $1
               LIMIT 5;
               ```
-              pgvector ships distance operators for this, shown here as a function for clarity. The filter and the ranking happen in one query.
+              `<=>` is pgvector's cosine distance operator. Use the operator, not the `cosine_distance()` function, so the index can serve the query. The filter and the ranking happen in one query.
             resources:
               - post: building-a-production-rag-pipeline-on-aws-lambda-pgvector
               - { label: "pgvector", url: "https://github.com/pgvector/pgvector", kind: tool }

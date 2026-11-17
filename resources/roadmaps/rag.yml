@@ -345,7 +345,7 @@ stages:
                 embedding vector(1536));
 
               SELECT id, body FROM chunks WHERE doc_id = 7
-              ORDER BY cosine_distance(embedding, $1) LIMIT 5;
+              ORDER BY embedding <=> $1 LIMIT 5;
               ```
             resources:
               - post: building-a-production-rag-pipeline-on-aws-lambda-pgvector
