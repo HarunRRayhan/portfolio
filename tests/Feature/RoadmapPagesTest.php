@@ -198,4 +198,12 @@ class RoadmapPagesTest extends TestCase
             ->assertSee(url('/roadmaps/'.self::R), false)
             ->assertSee(url('/roadmaps/'.self::R.'/'.$topic['id']), false);
     }
+
+    public function test_short_links_redirect(): void
+    {
+        $this->get('/r')->assertRedirect('/roadmaps');
+        $this->get('/r/')->assertRedirect('/roadmaps');
+        $this->get('/rs')->assertRedirect('/raystack');
+        $this->get('/rs/')->assertRedirect('/raystack');
+    }
 }
