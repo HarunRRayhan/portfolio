@@ -1034,7 +1034,7 @@ stages:
               - Layout and paint run after both are ready
               - CSS **blocks rendering**: the browser will not paint until it has the styles
               - A plain script tag blocks the parser while it downloads and runs. `defer` and `async` avoid that
-              - Images and fonts load without blocking the first paint, but can shift the layout
+              - Images load without blocking the first paint, but can shift the layout. Web fonts can briefly hide or swap text
 
               ### In practice
               Keep the critical CSS small, put scripts at the end or mark them `defer`, and set image sizes so the page does not jump when they arrive.
@@ -1518,7 +1518,7 @@ stages:
               - Managed NAT gateways are billed per hour and **per gigabyte processed**
               - Traffic to S3 or other cloud services through the NAT gateway adds up quickly
               - Use **VPC endpoints** for cloud services. In AWS, gateway endpoints for S3 and DynamoDB cost nothing extra
-              - One NAT gateway per zone avoids cross-zone charges and a single point of failure, but costs more
+              - One NAT gateway per zone avoids cross-zone charges and a single point of failure, but costs more. AWS also offers a regional NAT gateway that spans zones
 
               ### Common mistakes
               - Pulling large downloads or container images through the NAT gateway every time
