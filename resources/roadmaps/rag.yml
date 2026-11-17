@@ -673,7 +673,7 @@ stages:
               - BM25 rewards a term that appears often in a chunk (term frequency), with diminishing returns
               - It rewards **rare** terms more than common ones, so "kubelet" counts for more than "the"
               - It adjusts for document length, so long chunks do not win just by size
-              - Postgres full-text search is a good start: `tsvector`, `tsquery` and `ts_rank`. Its ranking is not exactly BM25, but it is close enough to begin
+              - Postgres full-text search is a good start: `tsvector`, `tsquery` and `ts_rank`. Its `ts_rank` is not BM25: it uses no corpus-wide statistics, so rare terms get no extra weight. It is still enough to begin
               - Tokenisation and stemming matter. Stemming "running" to "run" helps recall, but it can break codes and names
 
               ### Example
@@ -986,7 +986,7 @@ stages:
               ### Key ideas
               - **Faithfulness**: is each claim in the answer supported by the retrieved context? A faithful answer can still be wrong if the context was wrong
               - **Correctness** compares the answer to a known right answer. **Answer relevance** asks whether the answer addresses the question
-              - **Context precision and context recall**: did the retrieved context contain the needed facts, and was it free of noise?
+              - **Context precision and context recall**: were the relevant chunks ranked above the noise, and did the retrieved context contain the needed facts?
               - **LLM-as-judge** scales these checks, but judges have biases: they favour longer answers, their own style, and the first option shown. Calibrate against human labels on a sample
               - Use a different, strong model as judge where you can, and pin its version
 
@@ -1117,13 +1117,14 @@ stages:
               ### Key ideas
               - **Index per tenant**: strongest separation, but costly with many tenants
               - **Shared index with a mandatory filter**: cheaper, and safe only if the filter can never be skipped
-              - **Row-level security** in Postgres enforces the rule in the database. The policy applies to every query, even if application code forgets
+              - **Row-level security** in Postgres enforces the rule in the database. The policy applies to every query, even if application code forgets. Superusers, `BYPASSRLS` roles and the table owner skip it, so connect as a separate app role or use `FORCE ROW LEVEL SECURITY`
               - Set the tenant from the authenticated session, never from user input
               - **Test for leaks**: write tests that search as tenant A for text only tenant B has, and assert nothing is returned
 
               ### Example
               ```sql
               ALTER TABLE chunks ENABLE ROW LEVEL SECURITY;
+              ALTER TABLE chunks FORCE ROW LEVEL SECURITY;
               CREATE POLICY tenant_only ON chunks
                 USING (tenant_id = current_setting('app.tenant_id')::bigint);
               ```

@@ -783,7 +783,7 @@ stages:
               With many servers, a counter in each one's memory gives each client N times the limit. You need a shared counter or to enforce at one choke point.
 
               ### Key ideas
-              - Keep counters in **Redis**. `INCR` plus `EXPIRE`, or a small Lua script, makes the check atomic
+              - Keep counters in **Redis**. Run `INCR` and `EXPIRE` together in a `MULTI` transaction or a small Lua script, so a key never misses its expiry
               - Redis adds a network call to each request, so keep it fast and decide what to do if it is down. Failing open keeps the site up
               - Enforce limits at the **CDN or WAF** to stop abuse before it reaches your servers
               - Reject with status `429 Too Many Requests`
@@ -1018,7 +1018,7 @@ stages:
               - Hash vs counter approaches
               - Distributed ID generators
             body: |
-              A URL shortener needs short, unique codes. The common choice is **base62** (a to z, A to Z, 0 to 9), which keeps codes short and URL-safe.
+              A URL shortener needs short, unique codes. The common choice is **base62** (0 to 9, a to z, A to Z), which keeps codes short and URL-safe.
 
               ### Key ideas
               - Seven base62 characters give about 3.5 trillion codes

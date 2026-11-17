@@ -1830,7 +1830,7 @@ stages:
               - Who gets an ASN
               - Looking up the AS behind an IP
             body: |
-              An **autonomous system (AS)** is a network, or a group of networks, run by one organisation with one routing policy. ISPs, cloud providers, universities and big companies each run one or more. The internet is made of roughly one hundred thousand of them.
+              An **autonomous system (AS)** is a network, or a group of networks, run by one organisation with one routing policy. ISPs, cloud providers, universities and big companies each run one or more. The global routing table holds about 80,000 of them.
 
               Each AS has an **ASN** (autonomous system number) that identifies it in routing. Cloudflare is AS13335, for example.
 

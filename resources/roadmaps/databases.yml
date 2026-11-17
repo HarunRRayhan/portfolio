@@ -503,7 +503,7 @@ stages:
               A composite index covers several columns. The column order decides which queries it can serve.
 
               ### Key ideas
-              - **Leftmost prefix rule:** an index on `(a, b, c)` helps filters on `a`, on `a, b` and on `a, b, c`. It does not help a filter on `b` alone.
+              - **Leftmost prefix rule:** an index on `(a, b, c)` helps filters on `a`, on `a, b` and on `a, b, c`. It usually does not help a filter on `b` alone. PostgreSQL 18 can skip-scan it, which pays off only when `a` has few distinct values.
               - Put equality columns first, then the range or sort column.
               - **Covering index / index-only scan:** if the index holds every column the query needs, the database never touches the table. `INCLUDE` adds extra columns for this.
               - **Partial index:** index only rows that match a `WHERE`, so it stays small.
@@ -723,7 +723,7 @@ stages:
               - `UPDATE` and `DELETE` take a **row lock** on each row they change. Other writers wait for the commit.
               - `SELECT ... FOR UPDATE` locks rows you read, so you can change them safely afterwards. `SKIP LOCKED` is handy for job queues.
               - Plain reads take no row locks in PostgreSQL.
-              - **Table locks** have modes. `ALTER TABLE` takes a strong `ACCESS EXCLUSIVE` lock that blocks even reads.
+              - **Table locks** have modes. Most `ALTER TABLE` forms take a strong `ACCESS EXCLUSIVE` lock that blocks even reads.
               - The `pg_locks` view shows held and waited locks. Join it with `pg_stat_activity` to see who blocks whom.
 
               ### In practice
@@ -944,7 +944,7 @@ stages:
               ### Key ideas
               - A **publication** on the source lists the tables to share.
               - A **subscription** on the target connects and applies the changes.
-              - Changes are decoded from the WAL, so the tables need a primary key or replica identity.
+              - Changes are decoded from the WAL, so tables need a primary key or replica identity to replicate updates and deletes.
               - It copies data only. Schema changes are not replicated, so you apply them yourself.
               - **Change data capture (CDC)** streams every insert, update and delete to systems such as Kafka, search or a warehouse. Debezium is a common tool.
               - It is also a way to do major version upgrades with little downtime.
@@ -1058,8 +1058,8 @@ stages:
 
               ### Example
               ```bash
-              SET session:42 "user-7" EX 3600
-              ZINCRBY leaderboard 10 "alice"
+              redis-cli SET session:42 "user-7" EX 3600
+              redis-cli ZINCRBY leaderboard 10 "alice"
               ```
             resources:
               - post: connect-redis-elasticache-to-application-in-amazon-lightsail-instance
@@ -1376,7 +1376,7 @@ stages:
               ### Key ideas
               - **`pg_upgrade`** converts the old cluster to the new version in place. With `--link` it uses hard links and takes minutes, but you cannot go back once the new cluster runs.
               - **Logical replication upgrade:** build a new server on the new version, replicate to it, and switch the app over when it has caught up. Downtime is seconds, and the old server stays as a fallback.
-              - After `pg_upgrade`, run `ANALYZE` because statistics are not carried over.
+              - After `pg_upgrade`, run `ANALYZE`. Before PostgreSQL 18 no statistics carry over, and extended statistics still do not.
               - Check extension and driver compatibility first.
               - Read the release notes for removed features.
 

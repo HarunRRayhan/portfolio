@@ -587,7 +587,7 @@ stages:
             body: |
               Azure and Google Cloud publish their own versions of well-architected guidance. They cover similar ground with different names and groupings.
 
-              The **Azure Well-Architected Framework** has five pillars: reliability, security, cost optimization, operational excellence and performance efficiency. The **Google Cloud Architecture Framework** groups its guidance into similar areas, including system design, operational excellence, security, reliability, cost and performance.
+              The **Azure Well-Architected Framework** has five pillars: reliability, security, cost optimization, operational excellence and performance efficiency. The **Google Cloud Well-Architected Framework** (formerly the Architecture Framework) has six pillars: operational excellence, security, reliability, cost optimization, performance optimization and sustainability.
 
               ### Key ideas
               - The ideas match, so what you know from one transfers to the others
