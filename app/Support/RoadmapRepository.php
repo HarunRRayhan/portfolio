@@ -105,6 +105,52 @@ final class RoadmapRepository
         return 'https://www.google.com/search?q='.urlencode($lesson['title'].' '.$topic['title']);
     }
 
+    /**
+     * Lessons whose title, topic, summary or learn bullets contain every word of the query, best match first.
+     * Paid-level lessons are left out unless the caller may open them.
+     *
+     * @return list<array{title: string, summary: string, roadmap: string, topic: string, url: string}>
+     */
+    public function searchLessons(string $query, bool $includePaid, int $limit = 20): array
+    {
+        $words = array_values(array_unique(preg_split('/\s+/', mb_strtolower(trim($query)), -1, PREG_SPLIT_NO_EMPTY) ?: []));
+        if ($words === []) {
+            return [];
+        }
+
+        $hits = [];
+        foreach ($this->all() as $roadmap) {
+            foreach ($roadmap['stages'] as $stage) {
+                if ($stage['level'] !== self::FREE_LEVEL && ! $includePaid) {
+                    continue;
+                }
+                foreach ($stage['topics'] as $topic) {
+                    foreach ($topic['lessons'] as $lesson) {
+                        $title = mb_strtolower($lesson['title']);
+                        $rest = mb_strtolower($topic['title'].' '.$lesson['summary'].' '.implode(' ', $lesson['learn']).' '.$roadmap['title']);
+                        $score = 0;
+                        foreach ($words as $w) {
+                            if (str_contains($title, $w)) {
+                                $score += 3 + (str_starts_with($title, $w) ? 1 : 0);
+                            } elseif (str_contains($rest, $w)) {
+                                $score += 1;
+                            } else {
+                                continue 2; // every word must match somewhere
+                            }
+                        }
+                        $hits[] = [$score, [
+                            'title' => $lesson['title'], 'summary' => $lesson['summary'], 'roadmap' => $roadmap['title'], 'topic' => $topic['title'],
+                            'url' => '/roadmaps/'.$roadmap['slug'].'/'.$topic['id'].'/'.$lesson['id'],
+                        ]];
+                    }
+                }
+            }
+        }
+        usort($hits, fn ($a, $b) => $b[0] <=> $a[0]); // stable: ties keep roadmap order
+
+        return array_map(fn ($h) => $h[1], array_slice($hits, 0, $limit));
+    }
+
     public function topicUrl(string $slug, string $topicId): string
     {
         return $this->absoluteUrl($slug).'/'.$topicId;
