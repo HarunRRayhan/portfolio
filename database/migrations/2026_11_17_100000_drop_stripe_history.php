@@ -34,8 +34,11 @@ return new class extends Migration
             $export[$t] = Schema::hasTable($t) ? DB::table($t)->orderBy('id')->get()->all() : [];
         }
 
-        // A failed send throws, so nothing is dropped without a copy.
-        if (array_filter($export) !== [] && config('mail.owner.address')) {
+        // Nothing is dropped without a delivered copy: a failed send throws, and so does a mailer that only logs.
+        if (array_filter($export) !== []) {
+            if (! config('mail.owner.address') || in_array(config('mail.default'), ['log', 'array'], true)) {
+                throw new RuntimeException('Stripe history needs a real mailer and MAIL_TO_ADDRESS before it can be dropped.');
+            }
             Mail::raw('The old Stripe payment records from harun.dev are attached. The database no longer keeps them.', fn ($m) => $m
                 ->to(config('mail.owner.address'), config('mail.owner.name'))
                 ->subject('harun.dev: Stripe history export')
