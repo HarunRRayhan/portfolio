@@ -14,12 +14,14 @@ class LeaderboardController extends Controller
     {
         $period = in_array($request->query('period'), Xp::PERIODS, true) ? $request->query('period') : 'all'; // all time first while activity is still low
 
+        $previous = $period !== 'all' && $request->query('when') === 'previous';
+
         return Inertia::render('Leaderboard', [
             'period' => $period,
-            'rows' => Xp::board($period),
-            'me' => $request->user() ? Xp::rankOf($request->user(), $period) : null,
+            'when' => $previous ? 'previous' : 'current',
+            'rows' => Xp::board($period, $previous),
+            'me' => $request->user() ? Xp::rankOf($request->user(), $period, $previous) : null,
             'hidden' => (bool) $request->user()?->leaderboard_hidden,
-            'points' => Xp::POINTS,
         ]);
     }
 
@@ -29,5 +31,10 @@ class LeaderboardController extends Controller
         $request->user()->forceFill(['leaderboard_hidden' => $data['hidden']])->save();
 
         return back();
+    }
+
+    public function earn(): Response
+    {
+        return Inertia::render('Earn', ['points' => Xp::POINTS]);
     }
 }

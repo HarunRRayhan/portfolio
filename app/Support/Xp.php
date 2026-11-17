@@ -15,7 +15,7 @@ class Xp
 {
     public const POINTS = ['signup' => 50, 'newsletter' => 25, 'lesson' => 10, 'topic' => 25, 'comment' => 5, 'reply' => 3];
 
-    public const PERIODS = ['day', 'week', 'month', 'all'];
+    public const PERIODS = ['day', 'week', 'month', 'year', 'all'];
 
     /** True when a new award was written. Never throws: XP must not break the action it rides on. */
     public static function award(User|int $user, string $key, int $points, ?int $commentId = null, ?Carbon $at = null): bool
@@ -48,20 +48,29 @@ class Xp
         XpAward::where('comment_id', $commentId)->delete();
     }
 
-    public static function since(string $period): ?Carbon
+    /** The UTC window [start, end) of a period: the current one, or the one before it. All time has none. */
+    public static function window(string $period, bool $previous = false): ?array
     {
-        return match ($period) {
-            'day' => now()->utc()->startOfDay(),
-            'week' => now()->utc()->startOfWeek(Carbon::MONDAY),
-            'month' => now()->utc()->startOfMonth(),
+        $now = now()->utc();
+        $start = match ($period) {
+            'day' => $now->copy()->startOfDay(),
+            'week' => $now->copy()->startOfWeek(Carbon::MONDAY),
+            'month' => $now->copy()->startOfMonth(),
+            'year' => $now->copy()->startOfYear(),
             default => null,
         };
+        if ($start === null) {
+            return null;
+        }
+        $unit = ['day' => 'subDay', 'week' => 'subWeek', 'month' => 'subMonth', 'year' => 'subYear'][$period];
+
+        return $previous ? [$start->copy()->{$unit}(), $start] : [$start, $start->copy()->{str_replace('sub', 'add', $unit)}()];
     }
 
     /** @return Collection<int, array{rank:int,user_id:int,name:string,avatar_url:?string,xp:int}> */
-    public static function board(string $period, int $limit = 50): Collection
+    public static function board(string $period, bool $previous = false, int $limit = 50): Collection
     {
-        return self::totals($period)->limit($limit)->get()->values()->map(fn ($r, $i) => [
+        return self::totals($period, $previous)->limit($limit)->get()->values()->map(fn ($r, $i) => [
             'rank' => $i + 1,
             'user_id' => (int) $r->user_id,
             'name' => self::publicName((string) $r->name, (string) $r->email),
@@ -71,15 +80,15 @@ class Xp
     }
 
     /** The user's own rank among visible users, counted even when they hide themselves. */
-    public static function rankOf(User $user, string $period): ?array
+    public static function rankOf(User $user, string $period, bool $previous = false): ?array
     {
         $xp = (int) XpAward::where('user_id', $user->id)
-            ->when(self::since($period), fn ($q, $since) => $q->where('created_at', '>=', $since))
+            ->when(self::window($period, $previous), fn ($q, $w) => $q->where('created_at', '>=', $w[0])->where('created_at', '<', $w[1]))
             ->sum('points');
         if ($xp === 0) {
             return null;
         }
-        $ahead = DB::query()->fromSub(self::totals($period)->where('users.id', '!=', $user->id), 't')->where('xp', '>', $xp)->count();
+        $ahead = DB::query()->fromSub(self::totals($period, $previous)->where('users.id', '!=', $user->id), 't')->where('xp', '>', $xp)->count();
 
         return ['rank' => $ahead + 1, 'xp' => $xp];
     }
@@ -90,11 +99,11 @@ class Xp
         return strcasecmp($name, Str::before($email, '@')) === 0 ? mb_substr($name, 0, 2).'•••' : $name;
     }
 
-    private static function totals(string $period)
+    private static function totals(string $period, bool $previous = false)
     {
         return XpAward::query()
             ->join('users', 'users.id', '=', 'xp_awards.user_id')
-            ->when(self::since($period), fn ($q, $since) => $q->where('xp_awards.created_at', '>=', $since))
+            ->when(self::window($period, $previous), fn ($q, $w) => $q->where('xp_awards.created_at', '>=', $w[0])->where('xp_awards.created_at', '<', $w[1]))
             ->where('users.leaderboard_hidden', false)
             ->whereNull('users.deletion_scheduled_at')
             ->where(fn ($q) => $q->whereNull('users.role')->orWhere('users.role', '!=', 'admin'))

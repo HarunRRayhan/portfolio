@@ -1,38 +1,32 @@
 import { Link, router, usePage } from '@inertiajs/react'
-import { Trophy } from 'lucide-react'
+import { ArrowRight, Trophy } from 'lucide-react'
 import type { PageProps } from '@/types'
 import { cn } from '@/lib/utils'
 
 type Row = { rank: number; user_id: number; name: string; avatar_url: string | null; xp: number }
 type Props = {
-  period: 'day' | 'week' | 'month' | 'all'
+  period: 'day' | 'week' | 'month' | 'year' | 'all'
+  when: 'current' | 'previous'
   rows: Row[]
   me: { rank: number; xp: number } | null
   hidden: boolean
-  points: Record<'signup' | 'newsletter' | 'lesson' | 'topic' | 'comment' | 'reply', number>
 }
 
 const tabs = [
-  { id: 'day', label: 'Today' },
-  { id: 'week', label: 'This week' },
-  { id: 'month', label: 'This month' },
+  { id: 'day', label: 'Daily', now: 'Today', before: 'Yesterday' },
+  { id: 'week', label: 'Weekly', now: 'This week', before: 'Previous week' },
+  { id: 'month', label: 'Monthly', now: 'This month', before: 'Previous month' },
+  { id: 'year', label: 'Yearly', now: 'This year', before: 'Previous year' },
   { id: 'all', label: 'All time' },
 ] as const
 
 const medal = ['bg-amber-400 text-amber-950', 'bg-slate-300 text-slate-900', 'bg-orange-300 text-orange-950']
 
-export default function Leaderboard({ period, rows, me, hidden, points }: Props) {
+export default function Leaderboard({ period, when, rows, me, hidden }: Props) {
   const { auth } = usePage<PageProps>().props
   const setHidden = (value: boolean) => router.patch('/leaderboard/visibility', { hidden: value }, { preserveScroll: true })
 
-  const earn = [
-    ['Create an account', points.signup, 'once'],
-    ['Subscribe to the newsletter', points.newsletter, 'once'],
-    ['Finish a roadmap lesson', points.lesson, 'per lesson'],
-    ['Finish every lesson in a topic', points.topic, 'bonus'],
-    ['Comment on a post, topic or lesson', points.comment, 'one per page'],
-    ['Reply to a comment', points.reply, 'one per page'],
-  ] as const
+  const tab = tabs.find((t) => t.id === period)!
 
   return (
     <div className="pt-24">
@@ -42,7 +36,7 @@ export default function Leaderboard({ period, rows, me, hidden, points }: Props)
         </h1>
         <p className="mt-3 text-slate-600 dark:text-slate-300">Earn XP by learning on the <Link href="/roadmaps" className="font-medium text-amber-700 underline underline-offset-2 dark:text-amber-400">roadmaps</Link> and joining the discussion.</p>
 
-        <nav aria-label="Period" className="mt-8 inline-flex rounded-full border border-slate-200 bg-white p-1 dark:border-slate-800 dark:bg-slate-900">
+        <nav aria-label="Period" className="mt-8 flex flex-wrap gap-1 rounded-3xl border border-slate-200 bg-white p-1 sm:inline-flex sm:rounded-full dark:border-slate-800 dark:bg-slate-900">
           {tabs.map((t) => (
             <Link
               key={t.id}
@@ -55,6 +49,23 @@ export default function Leaderboard({ period, rows, me, hidden, points }: Props)
             </Link>
           ))}
         </nav>
+
+        {'now' in tab && (
+          <nav aria-label="Which one" className="mt-3 flex gap-2">
+            {([['current', tab.now], ['previous', tab.before]] as const).map(([w, label]) => (
+              <Link
+                key={w}
+                href={`/leaderboard?period=${period}${w === 'previous' ? '&when=previous' : ''}`}
+                preserveScroll
+                aria-current={when === w ? 'page' : undefined}
+                className={cn('rounded-full border px-3 py-1 text-sm', when === w ? 'border-amber-400 bg-amber-50 font-semibold text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200' : 'border-slate-200 text-slate-600 hover:text-slate-900 dark:border-slate-800 dark:text-slate-300')}
+              >
+                {label}
+              </Link>
+            ))}
+            <span className="self-center text-xs text-slate-400">UTC</span>
+          </nav>
+        )}
 
         {auth?.user && (
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 dark:border-amber-900 dark:bg-amber-950/40">
@@ -88,15 +99,9 @@ export default function Leaderboard({ period, rows, me, hidden, points }: Props)
           </ol>
         )}
 
-        <h2 className="mt-12 text-lg font-semibold text-slate-900 dark:text-white">How to earn XP</h2>
-        <ul className="mt-3 divide-y divide-slate-100 text-sm dark:divide-slate-800">
-          {earn.map(([what, xp, limit]) => (
-            <li key={what} className="flex items-center justify-between gap-4 py-2">
-              <span className="text-slate-700 dark:text-slate-200">{what} <span className="text-slate-400">· {limit}</span></span>
-              <span className="font-semibold tabular-nums text-amber-700 dark:text-amber-400">+{xp}</span>
-            </li>
-          ))}
-        </ul>
+        <Link href="/earn" className="mt-10 inline-flex items-center gap-2 text-sm font-semibold text-amber-700 hover:text-amber-600 dark:text-amber-400">
+          How to earn XP <ArrowRight className="h-4 w-4" aria-hidden />
+        </Link>
         {!auth?.user && (
           <p className="mt-6 text-sm text-slate-600 dark:text-slate-300">
             <Link href="/login?redirect=%2Fleaderboard" className="font-semibold text-amber-700 underline underline-offset-2 dark:text-amber-400">Create a free account</Link> to start earning XP.
