@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Auth\AgreementController;
 use App\Models\RoadmapCommentThread;
 use App\Models\RoadmapProgress;
 use App\Models\RoadmapReaction;
 use App\Models\RoadmapStart;
+use App\Models\Subscriber;
 use App\Models\User;
 use App\Support\RoadmapAccess;
 use App\Support\RoadmapRepository;
@@ -278,7 +280,13 @@ class RoadmapController extends Controller
     public function start(Request $request, string $slug): RedirectResponse
     {
         $this->roadmapOr404($slug);
-        RoadmapStart::firstOrCreate(['user_id' => $request->user()->id, 'roadmap_slug' => $slug]);
+        $user = $request->user();
+        $start = RoadmapStart::firstOrCreate(['user_id' => $user->id, 'roadmap_slug' => $slug]);
+
+        // Starting is the moment to offer the newsletter (it carries the weekly progress email). The reader opts in with one click.
+        if ($start->wasRecentlyCreated && $user->email_verified_at && $user->email && ! Subscriber::isSubscribed($user->email)) {
+            $request->session()->put(AgreementController::NEWSLETTER_OFFER_KEY, true);
+        }
 
         return back();
     }

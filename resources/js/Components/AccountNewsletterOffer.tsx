@@ -40,7 +40,7 @@ export function AccountNewsletterOffer({ onClose }: { onClose: () => void }) {
             <>
               <Dialog.Title className="mt-4 text-xl font-semibold text-slate-950 dark:text-white">Get the weekly newsletter?</Dialog.Title>
               <Dialog.Description className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                New posts and roadmap updates, once a week, to the email you signed in with. Unsubscribe anytime.
+                New posts and roadmap updates, plus your weekly progress and next lesson, once a week, to the email you signed in with. Unsubscribe anytime.
               </Dialog.Description>
               <div className="mt-6 flex flex-col gap-2 sm:flex-row-reverse">
                 <button

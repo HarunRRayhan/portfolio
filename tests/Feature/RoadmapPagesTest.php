@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\Auth\AgreementController;
 use App\Models\GithubSponsorship;
 use App\Models\RoadmapProgress;
 use App\Models\RoadmapStart;
+use App\Models\Subscriber;
 use App\Models\User;
 use App\Support\RoadmapRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -205,5 +207,26 @@ class RoadmapPagesTest extends TestCase
         $this->get('/r/')->assertRedirect('/roadmaps');
         $this->get('/rs')->assertRedirect('/raystack');
         $this->get('/rs/')->assertRedirect('/raystack');
+    }
+
+    public function test_starting_a_roadmap_offers_the_newsletter_once_and_never_subscribes_silently(): void
+    {
+        $user = User::factory()->create(['email_verified_at' => now()]);
+        $key = AgreementController::NEWSLETTER_OFFER_KEY;
+
+        $this->actingAs($user)->post('/roadmaps/'.self::R.'/start')->assertSessionHas($key, true);
+        $this->assertFalse(Subscriber::isSubscribed($user->email)); // an offer, not an opt-in
+
+        $this->flushSession();
+        $this->actingAs($user)->post('/roadmaps/'.self::R.'/start')->assertSessionMissing($key); // already started: no second offer
+    }
+
+    public function test_no_offer_for_someone_who_already_gets_the_newsletter(): void
+    {
+        $user = User::factory()->create(['email_verified_at' => now()]);
+        Subscriber::factory()->create(['email' => $user->email, 'status' => 'subscribed']);
+
+        $this->actingAs($user)->post('/roadmaps/'.self::R.'/start')
+            ->assertSessionMissing(AgreementController::NEWSLETTER_OFFER_KEY);
     }
 }
