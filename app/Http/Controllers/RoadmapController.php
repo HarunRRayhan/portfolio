@@ -74,6 +74,15 @@ class RoadmapController extends Controller
         ]);
     }
 
+    /** Lesson search for the roadmaps page: JSON, at most 20 hits. */
+    public function search(Request $request)
+    {
+        $q = mb_substr(trim((string) $request->query('q')), 0, 80);
+        $results = mb_strlen($q) < 2 ? [] : $this->repo->searchLessons($q, RoadmapAccess::canAccessPaid($request->user()));
+
+        return response()->json(['results' => $results])->header('Cache-Control', 'private, no-store');
+    }
+
     public function show(Request $request, string $slug): Response
     {
         $roadmap = $this->roadmapOr404($slug);

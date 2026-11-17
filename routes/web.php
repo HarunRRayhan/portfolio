@@ -675,6 +675,7 @@ Route::get('/newsletter/c/{delivery}', [NewsletterController::class, 'click'])
 Route::get('/roadmaps', [RoadmapController::class, 'index'])->name('roadmaps.index');
 Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
 Route::patch('/leaderboard/visibility', [LeaderboardController::class, 'visibility'])->middleware(['auth', 'throttle:roadmap-actions'])->name('leaderboard.visibility');
+Route::get('/roadmaps/search', [RoadmapController::class, 'search'])->middleware('throttle:60,1')->name('roadmaps.search');
 Route::get('/roadmaps/{slug}', [RoadmapController::class, 'show'])->where('slug', '[a-z0-9-]{1,64}')->name('roadmaps.show');
 Route::delete('/roadmaps/comments/{comment}', [RoadmapCommentController::class, 'destroy'])->where('comment', '[0-9]{1,18}')->middleware(['auth', 'throttle:roadmap-actions'])->name('roadmaps.comments.destroy');
 Route::get('/roadmaps/{slug}/{topic}/{lesson}', [RoadmapController::class, 'lesson'])->where(['slug' => '[a-z0-9-]{1,64}', 'topic' => '[a-z0-9-]{1,64}', 'lesson' => '[a-z0-9-]{1,64}'])->name('roadmaps.lesson');

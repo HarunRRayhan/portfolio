@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 import type { PageProps } from '@/types'
 import { ProgressBar, formatDate } from '@/Components/Roadmap/shared'
-import { ArrowRight, Bookmark, Eye, Heart, Trophy } from 'lucide-react'
+import { ArrowRight, Bookmark, Eye, Heart, Search, Trophy } from 'lucide-react'
 import { RoadmapArt, type RoadmapArtData } from '@/Components/Roadmap/RoadmapArt'
 
 type RoadmapCard = {
@@ -28,6 +28,68 @@ type Mine = {
   started: boolean
   saved: boolean
   continueTopicId: string | null
+}
+
+type Hit = { title: string; summary: string; roadmap: string; topic: string; url: string }
+
+function LessonSearch() {
+  const [q, setQ] = useState('')
+  const [hits, setHits] = useState<Hit[] | null>(null)
+  useEffect(() => {
+    const term = q.trim()
+    if (term.length < 2) {
+      setHits(null)
+      return
+    }
+    const ctrl = new AbortController()
+    const t = setTimeout(() => {
+      fetch(`/roadmaps/search?q=${encodeURIComponent(term)}`, { signal: ctrl.signal, headers: { Accept: 'application/json' } })
+        .then((r) => (r.ok ? r.json() : Promise.reject()))
+        .then((d: { results: Hit[] }) => setHits(d.results))
+        .catch(() => {})
+    }, 250)
+    return () => {
+      clearTimeout(t)
+      ctrl.abort()
+    }
+  }, [q])
+  return (
+    <div className="mt-8 max-w-3xl">
+      <label htmlFor="lesson-search" className="sr-only">Search lessons</label>
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" aria-hidden />
+        <input
+          id="lesson-search"
+          type="search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search every lesson, for example DNS, load balancer or RAG"
+          autoComplete="off"
+          maxLength={80}
+          className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-12 pr-4 text-base text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-amber-400 focus:ring-2 focus:ring-amber-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-amber-900"
+        />
+      </div>
+      {hits && (
+        <div className="mt-3 overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900" aria-live="polite">
+          {hits.length === 0 ? (
+            <p className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">No lessons match "{q.trim()}".</p>
+          ) : (
+            <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+              {hits.map((h) => (
+                <li key={h.url}>
+                  <Link href={h.url} className="block px-4 py-3 transition hover:bg-slate-50 dark:hover:bg-slate-800/60">
+                    <p className="font-semibold text-slate-900 dark:text-white">{h.title}</p>
+                    <p className="mt-0.5 text-xs font-medium uppercase tracking-wider text-amber-700 dark:text-amber-400">{h.roadmap} · {h.topic}</p>
+                    <p className="mt-1 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">{h.summary}</p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  )
 }
 
 type Props = { roadmaps: RoadmapCard[]; mine: Mine[]; categories: Record<string, string> }
@@ -60,6 +122,8 @@ export default function RoadmapsIndex({ roadmaps, mine, categories }: Props) {
             <Trophy className="h-4 w-4" aria-hidden /> Earn XP and climb the leaderboard <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
         </div>
+
+        <LessonSearch />
 
         {!auth?.user && (
           <p className="mt-8 max-w-3xl rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
