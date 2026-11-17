@@ -1392,7 +1392,7 @@ stages:
               - **Retry** rules repeat a step with backoff on certain errors. **Catch** rules send failures to a fallback state
               - It calls over 200 AWS services directly, so many steps need no Lambda at all
               - **Standard** workflows last up to a year, run exactly once per step and keep full history. They are billed per state transition
-              - **Express** workflows last up to five minutes, suit high volume, and are billed by runs and duration. Steps can run at least once
+              - **Express** workflows last up to five minutes, suit high volume, and are billed by runs and duration. Asynchronous Express runs are at least once, synchronous ones at most once
 
               ### In practice
               For image processing: validate, then resize and tag in parallel, then save, with a Catch that writes failures to a table and sends an alert. Use Standard for long business flows, Express for short, high-rate streams.
@@ -1824,7 +1824,7 @@ stages:
               ### Key ideas
               - It creates an Organizations structure with OUs, usually a Security OU and a Sandbox or workloads OU
               - It sets up two key accounts: a **log archive** account that collects CloudTrail and Config logs, and an **audit** account for security tooling
-              - It turns on IAM Identity Center for access
+              - It can set up IAM Identity Center for access (optional in newer landing zone versions)
               - **Controls** (also called guardrails) are rules. Preventive controls use SCPs to block actions. Detective controls use AWS Config to flag problems
               - **Account Factory** creates new accounts from a template, already enrolled with the right controls and baseline
               - Account Factory for Terraform lets you create accounts from code

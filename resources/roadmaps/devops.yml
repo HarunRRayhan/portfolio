@@ -787,7 +787,7 @@ stages:
 
               ### Example
               ```dockerfile
-              FROM golang:1.23 AS build
+              FROM golang:1.27 AS build
               WORKDIR /src
               COPY . .
               RUN CGO_ENABLED=0 go build -o /app
@@ -896,7 +896,7 @@ stages:
                 test:
                   runs-on: ubuntu-latest
                   steps:
-                    - uses: actions/checkout@v4
+                    - uses: actions/checkout@v7
                     - run: npm ci
                     - run: npm test
               ```

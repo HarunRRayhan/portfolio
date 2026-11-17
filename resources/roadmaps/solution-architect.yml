@@ -583,7 +583,7 @@ stages:
             summary: The same ideas from the other clouds, useful when a client is not on AWS.
             learn:
               - Azure Well-Architected Framework
-              - Google Cloud Architecture Framework
+              - Google Cloud Well-Architected Framework
             body: |
               Azure and Google Cloud publish their own versions of well-architected guidance. They cover similar ground with different names and groupings.
 
@@ -599,7 +599,7 @@ stages:
               A client runs on Azure. You open the Azure framework, take its reliability checklist and review their design against it. You already know to ask about zones, failover and tested backups.
             resources:
               - { label: "Azure Well-Architected Framework", url: "https://learn.microsoft.com/en-us/azure/well-architected/", kind: docs }
-              - { label: "Google Cloud Architecture Framework", url: "https://cloud.google.com/architecture/framework", kind: docs }
+              - { label: "Google Cloud Well-Architected Framework", url: "https://cloud.google.com/architecture/framework", kind: docs }
           - id: well-architected-review
             title: Running a Well-Architected review
             summary: Walk a workload through the questions, record risks and agree on fixes.

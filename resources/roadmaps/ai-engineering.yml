@@ -1593,7 +1593,7 @@ stages:
               **AI engineering** is building applications on top of existing foundation models. It differs from classic ML engineering, which trains models from scratch.
 
               ### Key ideas
-              - The **AI engineering stack** has layers: the application (prompts, UI), the model layer (APIs, fine-tuning, inference), and infrastructure (data, serving, monitoring)
+              - The **AI engineering stack** has layers: the application (prompts, UI), the model layer (training, fine-tuning, dataset engineering, inference optimization), and infrastructure (data, serving, monitoring)
               - In **ML engineering** you collect data and train a model first. In **AI engineering** you start from a model that already exists and spend effort on prompts, retrieval, evals and product
               - Evaluation is a bigger share of the work, because outputs are open ended
               - The skills are a mix of software engineering, product sense and enough ML knowledge to reason about models
