@@ -104,6 +104,7 @@ final class SiteCatalog
             '/case-studies',
             '/roadmaps',
             '/leaderboard',
+            '/earn',
             '/slides',
             '/videos',
             '/bio',

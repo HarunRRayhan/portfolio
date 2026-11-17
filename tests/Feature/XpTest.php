@@ -86,8 +86,33 @@ class XpTest extends TestCase
         $this->assertSame($first->id, XpAward::where('key', 'comment:roadmap/internet-networking/packets')->value('comment_id'));
     }
 
-    private function rows(string $period): array
+    public function test_current_and_previous_windows_for_every_period(): void
     {
-        return Xp::board($period)->map(fn ($r) => [$r['user_id'], $r['xp']])->all();
+        [$a, $b] = User::factory()->count(2)->create();
+        XpAward::query()->delete();
+
+        Xp::award($a, 'today', 1, null, Carbon::parse('2026-11-18 00:00:00'));
+        Xp::award($a, 'yesterday', 2, null, Carbon::parse('2026-11-17 23:59:59'));
+        Xp::award($a, 'last-week', 4, null, Carbon::parse('2026-11-15 10:00:00'));   // Sunday before this week
+        Xp::award($a, 'last-month', 8, null, Carbon::parse('2026-10-31 23:00:00'));
+        Xp::award($b, 'last-year', 16, null, Carbon::parse('2025-12-31 23:00:00'));
+
+        $this->assertSame([[$a->id, 1]], $this->rows('day'));
+        $this->assertSame([[$a->id, 2]], $this->rows('day', true));
+        $this->assertSame([[$a->id, 3]], $this->rows('week'));
+        $this->assertSame([[$a->id, 4]], $this->rows('week', true));
+        $this->assertSame([[$a->id, 7]], $this->rows('month'));
+        $this->assertSame([[$a->id, 8]], $this->rows('month', true));
+        $this->assertSame([[$a->id, 15]], $this->rows('year'));
+        $this->assertSame([[$b->id, 16]], $this->rows('year', true));
+        $this->assertSame([[$a->id, 15], [$b->id, 16]], collect($this->rows('all'))->sortBy(0)->values()->all());
+        $this->assertSame(['rank' => 1, 'xp' => 2], Xp::rankOf($a, 'day', true));
+        $this->assertNull(Xp::rankOf($b, 'day'));
+        $this->assertNull(Xp::window('all', true));
+    }
+
+    private function rows(string $period, bool $previous = false): array
+    {
+        return Xp::board($period, $previous)->map(fn ($r) => [$r['user_id'], $r['xp']])->all();
     }
 }

@@ -204,8 +204,14 @@ final class SeoCatalog
 
         $pages['/leaderboard'] = new SeoMeta(
             title: 'Leaderboard | Harun R. Rayhan',
-            description: 'Who is learning the most today, this week, this month and all time. Earn XP by finishing roadmap lessons and joining the discussion.',
+            description: 'Who is learning the most by day, week, month, year and all time. Earn XP by finishing roadmap lessons and joining the discussion.',
             canonicalUrl: $siteUrl.'/leaderboard',
+        );
+
+        $pages['/earn'] = new SeoMeta(
+            title: 'How to earn XP | Harun R. Rayhan',
+            description: 'Every way to earn XP on harun.dev: finish roadmap lessons, complete topics, subscribe and join the discussion.',
+            canonicalUrl: $siteUrl.'/earn',
         );
 
         $pages['/slides'] = new SeoMeta(

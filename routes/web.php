@@ -678,6 +678,7 @@ Route::get('/newsletter/c/{delivery}', [NewsletterController::class, 'click'])
 
 Route::get('/roadmaps', [RoadmapController::class, 'index'])->name('roadmaps.index');
 Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
+Route::get('/earn', [LeaderboardController::class, 'earn'])->name('earn');
 Route::patch('/leaderboard/visibility', [LeaderboardController::class, 'visibility'])->middleware(['auth', 'throttle:roadmap-actions'])->name('leaderboard.visibility');
 Route::get('/roadmaps/search', [RoadmapController::class, 'search'])->middleware('throttle:60,1')->name('roadmaps.search');
 Route::get('/roadmaps/{slug}', [RoadmapController::class, 'show'])->where('slug', '[a-z0-9-]{1,64}')->name('roadmaps.show');

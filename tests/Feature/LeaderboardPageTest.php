@@ -20,6 +20,20 @@ class LeaderboardPageTest extends TestCase
             ->where('rows.0.name', 'Ada')->where('rows.0.xp', 50));
     }
 
+    public function test_previous_window_and_year_are_selectable(): void
+    {
+        User::factory()->create(['name' => 'Ada']);
+
+        $this->get('/leaderboard?period=year')->assertInertia(fn (Assert $p) => $p->where('period', 'year')->where('when', 'current')->has('rows', 1));
+        $this->get('/leaderboard?period=week&when=previous')->assertInertia(fn (Assert $p) => $p->where('when', 'previous')->has('rows', 0));
+        $this->get('/leaderboard?period=all&when=previous')->assertInertia(fn (Assert $p) => $p->where('when', 'current')->has('rows', 1));
+    }
+
+    public function test_earn_page_lists_the_points(): void
+    {
+        $this->get('/earn')->assertOk()->assertInertia(fn (Assert $p) => $p->component('Earn')->where('points.lesson', 10));
+    }
+
     public function test_hiding_removes_user_from_rows_but_keeps_own_rank(): void
     {
         $user = User::factory()->create(['terms_accepted_at' => now()]);
