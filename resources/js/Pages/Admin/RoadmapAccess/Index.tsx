@@ -27,7 +27,7 @@ interface PayRequest {
   note: string | null
   status: 'new' | 'paid' | 'approved' | 'declined'
   transaction_id: string | null
-  payer_phone: string | null
+  payer_account: string | null
   created_at: string
 }
 
@@ -57,9 +57,9 @@ function RequestRow({ r, plans }: { r: PayRequest; plans: Record<Plan, { label: 
         <span className={'rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ' + requestClass[r.status]}>{r.status === 'paid' ? 'payment sent' : r.status}</span>
       </div>
       <p className="text-sm text-gray-600">
-        {r.country} · asked for {plans[r.plan]?.label ?? r.plan} · {r.method === 'bkash' ? 'bKash' : 'other method'} · {formatDate(r.created_at)}
+        {r.country} · asked for {plans[r.plan]?.label ?? r.plan} · {r.method === 'bank' ? 'bank transfer' : 'other method'} · {formatDate(r.created_at)}
       </p>
-      {r.transaction_id && <p className="text-sm text-gray-900">Txn <span className="font-mono">{r.transaction_id}</span> from <span className="font-mono">{r.payer_phone}</span></p>}
+      {r.transaction_id && <p className="text-sm text-gray-900">Ref <span className="font-mono">{r.transaction_id}</span> from <span className="font-mono">{r.payer_account}</span></p>}
       {r.note && <p className="whitespace-pre-line rounded-md bg-gray-50 px-3 py-2 text-sm text-gray-700">{r.note}</p>}
       {open && (
         <div className="flex flex-wrap items-center gap-2">

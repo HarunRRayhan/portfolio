@@ -8,6 +8,10 @@ return [
     'url' => 'https://github.com/sponsors/'.$handle,
     'one_time_days' => 60,
 
+    // Bank details for Bangladesh sponsors ("pay another way"). Shown only on the requester's private page and email.
+    // One env line; write \n for line breaks. Unset: the page says the details come by email.
+    'bank_details' => str_replace('\\n', "\n", (string) env('SPONSOR_BANK_DETAILS', '')),
+
     // slug => GitHub tier node id, kind, and what a sponsorship grants.
     // calls: consultation tier slug => count. Unmapped GitHub tiers are donations.
     'tiers' => [

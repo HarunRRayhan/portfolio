@@ -23,13 +23,13 @@ export default function Pay({ prefill, plans, mine }: Props) {
   const dark = useIsDark()
   const [widgetKey, setWidgetKey] = useState(0)
 
-  const form = useForm({ name: prefill.name, email: prefill.email, country: prefill.country, plan: 'yearly' as Plan, method: prefill.country === 'BD' ? 'bkash' : 'other', note: '', 'cf-turnstile-response': '' })
+  const form = useForm({ name: prefill.name, email: prefill.email, country: prefill.country, plan: 'yearly' as Plan, method: prefill.country === 'BD' ? 'bank' : 'other', note: '', 'cf-turnstile-response': '' })
   const methods = [
     { id: 'github', label: 'GitHub Sponsors', hint: 'Card or PayPal, in every country GitHub supports.' },
-    ...(form.data.country === 'BD' ? [{ id: 'bkash', label: 'bKash', hint: 'I email you the number and amount in BDT.' }] : []),
+    ...(form.data.country === 'BD' ? [{ id: 'bank', label: 'Bank transfer', hint: 'Bank details and the BDT amount come after you send the request.' }] : []),
     { id: 'other', label: 'Another method', hint: 'Tell me what you can use; I reply with what works.' },
   ]
-  const setCountry = (country: string) => form.setData((d) => ({ ...d, country, method: d.method === 'bkash' && country !== 'BD' ? 'other' : d.method }))
+  const setCountry = (country: string) => form.setData((d) => ({ ...d, country, method: d.method === 'bank' && country !== 'BD' ? 'other' : d.method }))
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
@@ -57,7 +57,7 @@ export default function Pay({ prefill, plans, mine }: Props) {
               {mine.map((r) => (
                 <li key={r.id}>
                   <Link href={r.url} className="text-amber-900 underline underline-offset-2 dark:text-amber-200">
-                    {plans[r.plan]?.label ?? r.plan} · {r.method === 'bkash' ? 'bKash' : 'Another method'} · {statusLabel[r.status] ?? r.status}
+                    {plans[r.plan]?.label ?? r.plan} · {r.method === 'bank' ? 'Bank transfer' : 'Another method'} · {statusLabel[r.status] ?? r.status}
                   </Link>
                 </li>
               ))}
@@ -139,7 +139,7 @@ export default function Pay({ prefill, plans, mine }: Props) {
               <button type="submit" disabled={form.processing || (!!siteKey && !form.data['cf-turnstile-response'])} className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50 dark:bg-white dark:text-slate-900">
                 Send request <ArrowRight className="h-4 w-4" />
               </button>
-              <p className="text-xs text-slate-500 dark:text-slate-400">You get an email with a private link. {form.data.method === 'bkash' ? 'I send the bKash number by email; after paying, use the link to add the transaction ID.' : 'I reply by email.'}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">You get an email with a private link. {form.data.method === 'bank' ? 'It has the bank details; after paying, use it to add the transfer reference.' : 'I reply by email.'}</p>
             </>
           )}
         </form>
