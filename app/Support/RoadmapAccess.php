@@ -64,7 +64,21 @@ final class RoadmapAccess
         $email = $user->email_verified_at && $user->email ? strtolower($user->email) : null;
         $grants = $email ? (int) RoadmapAccessGrant::query()->whereNull('revoked_at')->whereRaw('lower(email) = ?', [$email])->sum('amount_cents') : 0;
 
-        return self::paid(self::sponsorships($user, $email))[0] + $grants;
+        // Private GitHub sponsors chose not to be shown, so their amount never becomes public XP or a tag.
+        $public = self::sponsorships($user, $email)->reject(fn (GithubSponsorship $s) => self::isPrivate($s));
+
+        return self::paid($public)[0] + $grants;
+    }
+
+    private static function isPrivate(GithubSponsorship $s): bool
+    {
+        if (! $s->github_sponsorship_node_id) {
+            return false;
+        }
+        $event = GithubWebhookEvent::query()->where('event', 'sponsorship')
+            ->whereRaw('CAST(payload AS TEXT) LIKE ?', ['%'.$s->github_sponsorship_node_id.'%'])->latest('id')->first();
+
+        return (((array) $event?->payload)['sponsorship']['privacy_level'] ?? null) === 'private';
     }
 
     /**

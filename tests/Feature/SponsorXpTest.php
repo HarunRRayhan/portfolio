@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Mail\Sponsorship\RoadmapAccessGrantedMail;
 use App\Models\GithubSponsorship;
+use App\Models\GithubWebhookEvent;
 use App\Models\RoadmapAccessGrant;
 use App\Models\User;
 use App\Models\XpAward;
@@ -82,5 +83,21 @@ class SponsorXpTest extends TestCase
         $user = User::factory()->create(['email' => 'late@example.com', 'email_verified_at' => now()]);
         $this->artisan('sponsors:sync');
         $this->assertSame(1000, $this->sponsorXp($user));
+    }
+
+    public function test_private_github_sponsors_get_no_public_xp_or_tag(): void
+    {
+        $user = User::factory()->create(['email_verified_at' => now()]);
+        GithubSponsorship::create([
+            'github_sponsor_id' => '777', 'github_login' => 'quiet', 'user_id' => $user->id, 'github_sponsorship_node_id' => 'S_private1',
+            'kind' => GithubSponsorship::KIND_ONE_TIME, 'status' => GithubSponsorship::STATUS_ACTIVE,
+            'source' => GithubSponsorship::SOURCE_WEBHOOK, 'monthly_price_cents' => 1000, 'started_at' => now()->subDay(),
+        ]);
+        GithubWebhookEvent::create(['delivery_id' => 'd1', 'event' => 'sponsorship', 'action' => 'created',
+            'payload' => ['sponsorship' => ['node_id' => 'S_private1', 'privacy_level' => 'private']]]);
+
+        $this->artisan('sponsors:sync');
+        $this->assertSame(0, $this->sponsorXp($user));
+        $this->assertFalse(SponsorXp::isSponsor($user));
     }
 }
