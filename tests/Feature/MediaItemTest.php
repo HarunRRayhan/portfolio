@@ -145,6 +145,8 @@ class MediaItemTest extends TestCase
             'https://docs.google.com/presentation/d/1AbCdEfGhIjKlMnOpQrStUvWxYz/embed?start=false&loop=false&delayms=3000',
             $page['props']['item']['embedUrl']
         );
+        $this->assertSame('Article', $page['props']['seo']['jsonLd'][0]['@type'] ?? null);
+        $this->assertSame('Laravel DB Performance', $page['props']['seo']['jsonLd'][0]['headline'] ?? null);
     }
 
     public function test_matching_slide_and_video_are_interlinked_and_have_page_share_urls(): void

@@ -179,7 +179,7 @@ export function Footer() {
                         {user ? null : (
                             <>
                                 {' '}
-                                <Link href="/login" rel="nofollow" className="text-slate-500 underline-offset-4 hover:text-white hover:underline">
+                                <Link href="/login" className="text-slate-500 underline-offset-4 hover:text-white hover:underline">
                                     Sign in
                                 </Link>
                             </>

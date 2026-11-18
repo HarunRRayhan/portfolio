@@ -46,6 +46,7 @@ use App\Support\LlmSiteIndex;
 use App\Support\MediaEmbeds;
 use App\Support\PublicSitemap;
 use App\Support\SeoCatalog;
+use App\Support\SeoMeta;
 use App\Support\SiteCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -876,12 +877,20 @@ Route::get('/slides/{slug}', function (string $slug) use ($mediaDetailPayload) {
             'thumbnailUrl' => $r->thumbnail_url, 'detailUrl' => '/slides/'.$r->slug,
         ]),
         'canonicalUrl' => $siteUrl.'/slides/'.$item->slug,
-        'seo' => SeoCatalog::forMedia(
-            $item->title,
-            (string) ($item->summary ?? $item->title),
-            $siteUrl.'/slides/'.$item->slug,
-            $item->thumbnail_url,
-        )->toArray(),
+        'seo' => (new SeoMeta(
+            title: $item->title,
+            description: (string) ($item->summary ?? $item->title),
+            canonicalUrl: $siteUrl.'/slides/'.$item->slug,
+            ogImage: $item->thumbnail_url,
+            jsonLd: [SeoCatalog::articleGraph(
+                'Article',
+                $item->title,
+                (string) ($item->summary ?? $item->title),
+                $siteUrl.'/slides/'.$item->slug,
+                $item->published_at?->toAtomString(),
+                $item->thumbnail_url,
+            )],
+        ))->toArray(),
     ]);
 })->name('slides.show');
 

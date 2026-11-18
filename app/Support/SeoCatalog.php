@@ -147,6 +147,16 @@ final class SeoCatalog
             title: 'Products | Harun R. Rayhan',
             description: 'Products built by Harun R. Rayhan - CloudPloy, SkaleAgents, Toolblip, Crontinel, Appnary, Amazing Plugins, and RayStack.',
             canonicalUrl: $siteUrl.'/products',
+            jsonLd: [self::itemListGraph('Products', [
+                // Mirrors resources/js/Pages/Products.tsx.
+                ['CloudPloy', 'https://cloudploy.com'],
+                ['SkaleAgents', 'https://skaleagents.com'],
+                ['Toolblip', 'https://toolblip.com'],
+                ['Crontinel', 'https://crontinel.com'],
+                ['Appnary', 'https://appnary.com'],
+                ['Amazing Plugins', 'https://amazingplugins.com'],
+                ['RayStack', $siteUrl.'/raystack'],
+            ])],
         );
 
         $pages['/raystack'] = new SeoMeta(
@@ -445,6 +455,25 @@ final class SeoCatalog
             'name' => $name,
             'url' => $url,
             'about' => ['@id' => SiteCatalog::siteUrl().'/#person'],
+        ];
+    }
+
+    /**
+     * @param  list<array{0: string, 1: string}>  $items  [name, url] pairs
+     * @return array<string, mixed>
+     */
+    private static function itemListGraph(string $name, array $items): array
+    {
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'ItemList',
+            'name' => $name,
+            'itemListElement' => array_map(fn (array $item, int $i) => [
+                '@type' => 'ListItem',
+                'position' => $i + 1,
+                'name' => $item[0],
+                'url' => $item[1],
+            ], $items, array_keys($items)),
         ];
     }
 
