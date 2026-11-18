@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\GithubSponsorship;
+use App\Models\RoadmapAccessGrant;
 use App\Services\Sponsorship\CancelSponsorBookings;
 use App\Services\Sponsorship\SponsorCreditService;
 use Illuminate\Http\RedirectResponse;
@@ -48,6 +49,17 @@ class SponsorshipController extends Controller
                     ])->values(),
                 ]),
             'tiers' => array_keys(config('sponsors.tiers')),
+            // Paid roadmap access (Admin > Roadmap access, or an approved pay-another-way request) counts as sponsoring too.
+            'roadmapSponsors' => RoadmapAccessGrant::query()->where('amount_cents', '>', 0)->with('user:id,name')->latest()->latest('id')->limit(200)->get()
+                ->map(fn (RoadmapAccessGrant $g) => [
+                    'id' => $g->id,
+                    'email' => $g->email,
+                    'name' => $g->user?->name,
+                    'amount_cents' => $g->amount_cents,
+                    'expires_at' => $g->expires_at->toIso8601String(),
+                    'status' => $g->status(),
+                    'created_at' => $g->created_at->toIso8601String(),
+                ]),
         ]);
     }
 
