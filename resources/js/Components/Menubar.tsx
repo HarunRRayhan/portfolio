@@ -4,8 +4,9 @@ import * as React from 'react'
 import { Link, router, usePage } from '@inertiajs/react'
 import { cn } from '@/lib/utils'
 import { Logo } from './Logo'
-import { ArrowRight, Briefcase, Calendar, ChevronDown, Heart, Link2, LogOut, Mail, Menu, Package, Presentation, SquareTerminal, Trophy, User, Video } from 'lucide-react'
+import { ArrowRight, Briefcase, Calendar, ChevronDown, CircleUser, Heart, Link2, LogOut, Mail, Menu, Package, Presentation, SquareTerminal, Trophy, User, Video } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import UserAvatar from '@/Components/UserAvatar'
 const MobileNavigation = React.lazy(() => import('@/Components/MobileNavigation'))
 
 const mainNavItems = [
@@ -66,7 +67,7 @@ export function Menubar() {
   const mobileTriggerRef = React.useRef<HTMLButtonElement>(null)
   const { url } = usePage()
   const pathname = url.split('?')[0]
-  const user = usePage().props.auth?.user as { name?: string; email?: string } | null | undefined
+  const user = usePage().props.auth?.user as { name?: string; email?: string; avatar_url?: string | null; profile_slug?: string } | null | undefined
   const isAdmin = Boolean(usePage().props.auth?.isAdmin)
   const xp = usePage().props.auth?.xp ?? 0
   const profileRef = React.useRef<HTMLDivElement>(null)
@@ -302,9 +303,7 @@ export function Menubar() {
                 }}
                 className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
               >
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-800 text-xs font-semibold text-white">
-                  {(user.name?.charAt(0) ?? '?').toUpperCase()}
-                </span>
+                <UserAvatar name={user.name ?? '?'} url={user.avatar_url} className="h-7 w-7 text-xs" />
               </button>
 
               {profileOpen && (
@@ -317,6 +316,14 @@ export function Menubar() {
                   >
                     <User className="h-4 w-4" />
                     {isAdmin ? 'Dashboard' : 'Account'}
+                  </Link>
+                  <Link
+                    href={`/u/${user.profile_slug}`}
+                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                    onClick={() => setProfileOpen(false)}
+                  >
+                    <CircleUser className="h-4 w-4" />
+                    Your profile
                   </Link>
                   <Link
                     href="/leaderboard"

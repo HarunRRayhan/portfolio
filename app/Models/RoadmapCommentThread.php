@@ -24,13 +24,13 @@ class RoadmapCommentThread extends Model
     }
 
     /**
-     * Every comment, oldest first, nested by parent. Only the author's name is exposed, never the email.
+     * Every comment, oldest first, nested by parent. Only the author's public name, picture and profile link are exposed, never the email.
      *
      * @return list<array<string, mixed>>
      */
     public function tree(): array
     {
-        return $this->branch($this->comments()->with('user:id,name')->orderBy('created_at')->get(), null);
+        return $this->branch($this->comments()->with('user:id,name,email,avatar_url,anonymous,anon_name,profile_slug')->orderBy('created_at')->get(), null);
     }
 
     private function branch(Collection $comments, ?int $parentId): array
@@ -41,7 +41,7 @@ class RoadmapCommentThread extends Model
                 'id' => (int) $c->id,
                 'content' => (string) $c->content,
                 'createdAt' => $c->created_at?->toAtomString(),
-                'user' => $c->user ? ['id' => (int) $c->user->id, 'name' => (string) $c->user->name] : null,
+                'user' => $c->user ? ['id' => (int) $c->user->id, 'name' => $c->user->publicName(), 'avatarUrl' => $c->user->publicAvatar(), 'profile' => $c->user->profile_slug] : null,
                 'replies' => $this->branch($comments, (int) $c->id),
             ])
             ->values()

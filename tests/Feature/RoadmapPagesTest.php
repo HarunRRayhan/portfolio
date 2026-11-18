@@ -155,6 +155,15 @@ class RoadmapPagesTest extends TestCase
             ->where('roadmaps.1.slug', 'aws')
             ->where('roadmaps.1.viewCount', 2)
             ->where('roadmaps.0.viewCount', 0));
+
+        // Topic and lesson views add to the roadmap's total.
+        $roadmap = app(RoadmapRepository::class)->find('aws');
+        $topic = $roadmap['stages'][0]['topics'][0];
+        $this->postJson('/roadmaps/aws/view', ['topic' => $topic['id']])->assertOk()->assertJson(['views' => 3]);
+        $this->postJson('/roadmaps/aws/view', ['topic' => $topic['id'], 'lesson' => $topic['lessons'][0]['id']])->assertOk()->assertJson(['views' => 4]);
+        $this->postJson('/roadmaps/aws/view', ['topic' => 'nope'])->assertNotFound();
+        $this->postJson('/roadmaps/aws/view', ['topic' => $topic['id'], 'lesson' => 'nope'])->assertNotFound();
+        $this->get('/roadmaps/aws')->assertInertia(fn ($page) => $page->where('viewCount', 4)->where('discussionCount', 0));
     }
 
     public function test_unknown_roadmap_or_topic_is_404(): void

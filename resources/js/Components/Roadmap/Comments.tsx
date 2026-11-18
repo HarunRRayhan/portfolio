@@ -2,12 +2,13 @@ import { Link, router, useForm, usePage } from '@inertiajs/react'
 import { MessageSquare } from 'lucide-react'
 import { FormEvent, useState } from 'react'
 import type { PageProps } from '@/types'
+import UserAvatar from '@/Components/UserAvatar'
 
 export type RoadmapComment = {
   id: number
   content: string
   createdAt: string | null
-  user: { id: number; name: string } | null
+  user: { id: number; name: string; avatarUrl: string | null; profile: string } | null
   replies: RoadmapComment[]
 }
 
@@ -104,11 +105,19 @@ function CommentItem({ comment, postUrl, depth = 0 }: { comment: RoadmapComment;
 
   return (
     <li className="flex gap-3">
-      <Avatar name={comment.user?.name} small={depth > 0} />
+      {comment.user ? (
+        <UserAvatar name={comment.user.name} url={comment.user.avatarUrl} className={depth > 0 ? 'h-7 w-7 text-xs' : undefined} />
+      ) : (
+        <Avatar name={null} small={depth > 0} />
+      )}
       <div className="min-w-0 flex-1">
         <div className="rounded-2xl rounded-tl-sm bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
           <p className="text-xs text-slate-500">
-            <span className="font-semibold text-slate-800 dark:text-slate-100">{comment.user?.name ?? 'Deleted user'}</span> · {when(comment.createdAt)}
+            {comment.user ? (
+              <Link href={`/u/${comment.user.profile}`} className="font-semibold text-slate-800 hover:underline dark:text-slate-100">{comment.user.name}</Link>
+            ) : (
+              <span className="font-semibold text-slate-800 dark:text-slate-100">Deleted user</span>
+            )} · {when(comment.createdAt)}
           </p>
           <p className="mt-1 whitespace-pre-line break-words text-sm leading-6 text-slate-700 dark:text-slate-200">{comment.content}</p>
         </div>

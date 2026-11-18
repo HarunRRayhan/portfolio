@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Link, router } from '@inertiajs/react'
 import { ArrowLeft, ArrowRight, Check, ChevronRight, Lock, Share2 } from 'lucide-react'
 import { ShareButton } from '@/Components/ShareButton'
@@ -20,6 +21,9 @@ type Props = {
 }
 
 export default function RoadmapTopic({ roadmap, topic, lessons, locked, hasAccount, percent, prev, next, canonicalUrl, comments, commentCount }: Props) {
+  useEffect(() => {
+    fetch(`/roadmaps/${roadmap.slug}/view`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, body: JSON.stringify({ topic: topic.id }) }).catch(() => {})
+  }, [roadmap.slug, topic.id])
   const base = `/roadmaps/${roadmap.slug}`
   const here = `${base}/${topic.id}`
   const loginHref = `/login?redirect=${encodeURIComponent(here)}`

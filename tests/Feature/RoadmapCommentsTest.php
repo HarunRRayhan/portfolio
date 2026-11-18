@@ -60,7 +60,7 @@ class RoadmapCommentsTest extends TestCase
         $this->actingAs($alice)->post("/roadmaps/internet-networking/{$topic}/{$lesson}/comments", ['content' => 'Great resources'])->assertRedirect();
         $this->get("/roadmaps/internet-networking/{$topic}/{$lesson}")->assertInertia(fn ($p) => $p
             ->where('comments.0.content', 'Great resources')
-            ->where('comments.0.user.name', 'Alice')
+            ->where('comments.0.user.name', 'Al•••') // a name that is just the email's local part is masked
             ->missing('comments.0.user.email'));
         $parentId = $this->get("/roadmaps/internet-networking/{$topic}/{$lesson}")->viewData('page')['props']['comments'][0]['id'];
 
@@ -73,6 +73,17 @@ class RoadmapCommentsTest extends TestCase
         $this->get("/roadmaps/internet-networking/{$topic}")->assertInertia(fn ($p) => $p->where('comments', []));
         $this->actingAs($bob)->post("/roadmaps/internet-networking/{$topic}/comments", ['content' => 'Topic note'])->assertRedirect();
         $this->get("/roadmaps/internet-networking/{$topic}")->assertInertia(fn ($p) => $p->where('comments.0.content', 'Topic note'));
+
+        // The roadmap counts every comment under it.
+        $this->get('/roadmaps/internet-networking')->assertInertia(fn ($p) => $p->where('discussionCount', 3)->where('commentCount', 0));
+
+        // Anonymous authors show their anonymous name and no picture.
+        $alice->forceFill(['avatar_url' => 'https://example.com/a.png'])->save();
+        $alice->setAnonymous(true);
+        $this->get("/roadmaps/internet-networking/{$topic}/{$lesson}")->assertInertia(fn ($p) => $p
+            ->where('comments.0.user.name', $alice->fresh()->anon_name)
+            ->where('comments.0.user.avatarUrl', null)
+            ->where('comments.0.user.profile', $alice->fresh()->profile_slug));
     }
 
     public function test_roadmap_has_its_own_discussion(): void
