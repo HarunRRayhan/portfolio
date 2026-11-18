@@ -3,9 +3,10 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/Components/
 import { SeoHead } from '@/Components/SeoHead';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import type { PageProps } from '@/types';
+import UserAvatar from '@/Components/UserAvatar';
 import { Link, usePage } from '@inertiajs/react';
 import {
-    BarChart3, Calendar, ChevronDown, FileText, Image, Images, KeyRound, LayoutDashboard,
+    BarChart3, Calendar, ChevronDown, CircleUser, ExternalLink, FileText, Fingerprint, Image, Images, KeyRound, LayoutDashboard,
     ChevronsUpDown, Heart, Inbox, LayoutTemplate, Link2, LogOut, Mail, Menu, PanelLeftClose, PanelLeftOpen, Presentation, Route as RouteIcon, Send, Ticket, Trash2, User, UserCog, Users, Video,
 } from 'lucide-react';
 import { PropsWithChildren, ReactNode, useEffect, useRef, useState } from 'react';
@@ -106,13 +107,6 @@ function useNavSections(): NavSection[] {
                 { label: 'Bookings', href: '/admin/consultations/bookings', icon: Calendar, active: route().current('admin.consultations.bookings.*') },
                 { label: 'Coupons', href: '/admin/consultations/coupons', icon: Ticket, active: route().current('admin.consultations.coupons.*') },
                 { label: 'Availability', href: '/admin/consultations/availability', icon: Calendar, active: route().current('admin.consultations.availability.*') || route().current('admin.consultations.google.*') },
-            ],
-        },
-        {
-            label: 'Account', icon: KeyRound,
-            items: [
-                { label: 'API keys', href: route('admin.api-keys.index'), icon: KeyRound, active: route().current('admin.api-keys.*') },
-                { label: 'Profile', href: route('profile.edit'), icon: User, active: route().current('profile.edit') },
             ],
         },
     ];
@@ -253,18 +247,16 @@ function NavList({ compact = false, onNavigate }: { compact?: boolean; onNavigat
     );
 }
 
-// Account menu: every profile setting lives on one page; these jump straight to its sections.
+// Account menu: the only place for account settings (profile, passkeys, API keys). They live on one page; these jump to its sections.
 function SidebarUser({ compact = false }: { compact?: boolean }) {
-    const user = usePage().props.auth.user;
+    const { user, isAdmin } = usePage().props.auth;
     const item = 'flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground';
     return (
         <div className={'border-t ' + (compact ? 'p-2' : 'p-3')}>
             <Popover>
                 <PopoverTrigger aria-label="Account menu" title={compact ? 'Account' : undefined}
                     className={'flex w-full items-center rounded-md py-2 text-left hover:bg-muted ' + (compact ? 'justify-center' : 'gap-3 px-3')}>
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
-                        {user.name.charAt(0).toUpperCase()}
-                    </span>
+                    <UserAvatar name={user.name} url={user.avatar_url} className="h-8 w-8 text-xs" />
                     {!compact && <>
                         <span className="min-w-0 flex-1">
                             <span className="block truncate text-sm font-medium text-foreground">{user.name}</span>
@@ -275,7 +267,10 @@ function SidebarUser({ compact = false }: { compact?: boolean }) {
                 </PopoverTrigger>
                 <PopoverContent side="top" align="start" className="w-60 p-1">
                     <Link href={route('profile.edit')} className={item}><UserCog className="h-4 w-4" />Profile details</Link>
-                    <Link href={route('profile.edit') + '#passkeys'} className={item}><KeyRound className="h-4 w-4" />Passkeys</Link>
+                    <Link href={route('profile.edit') + '#public-profile'} className={item}><CircleUser className="h-4 w-4" />Public profile</Link>
+                    <Link href={route('profile.edit') + '#passkeys'} className={item}><Fingerprint className="h-4 w-4" />Passkeys</Link>
+                    {isAdmin && <Link href={route('admin.api-keys.index')} className={item}><KeyRound className="h-4 w-4" />API keys</Link>}
+                    <Link href={`/u/${user.profile_handle}`} className={item}><ExternalLink className="h-4 w-4" />View my profile</Link>
                     <Link href={route('profile.edit') + '#delete-account'} className={item + ' text-red-600 hover:text-red-700'}>
                         <Trash2 className="h-4 w-4" />Delete account
                     </Link>
