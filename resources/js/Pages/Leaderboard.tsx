@@ -36,14 +36,14 @@ export default function Leaderboard({ period, when, rows, me, hidden }: Props) {
         </h1>
         <p className="mt-3 text-slate-600 dark:text-slate-300">Earn XP by learning on the <Link href="/roadmaps" className="font-medium text-amber-700 underline underline-offset-2 dark:text-amber-400">roadmaps</Link> and joining the discussion.</p>
 
-        <nav aria-label="Period" className="mt-8 flex flex-wrap gap-1 rounded-3xl border border-slate-200 bg-white p-1 sm:inline-flex sm:rounded-full dark:border-slate-800 dark:bg-slate-900">
+        <nav aria-label="Period" className="mt-8 flex max-w-full gap-1 overflow-x-auto rounded-full border border-slate-200 bg-white p-1 [scrollbar-width:none] sm:inline-flex dark:border-slate-800 dark:bg-slate-900">
           {tabs.map((t) => (
             <Link
               key={t.id}
               href={`/leaderboard?period=${t.id}`}
               preserveScroll
               aria-current={period === t.id ? 'page' : undefined}
-              className={cn('rounded-full px-4 py-1.5 text-sm font-medium', period === t.id ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'text-slate-600 hover:text-slate-900 dark:text-slate-300')}
+              className={cn('shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium', period === t.id ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'text-slate-600 hover:text-slate-900 dark:text-slate-300')}
             >
               {t.label}
             </Link>
