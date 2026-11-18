@@ -133,7 +133,9 @@ function Row({ s, onGrant }: { s: Sponsorship; onGrant: (s: Sponsorship) => void
   )
 }
 
-export default function Index({ sponsorships, tiers }: { sponsorships: Paginated<Sponsorship>; tiers: string[] }) {
+type RoadmapSponsor = { id: number; email: string; name: string | null; amount_cents: number; expires_at: string; status: 'active' | 'expired' | 'revoked'; created_at: string }
+
+export default function Index({ sponsorships, tiers, roadmapSponsors }: { sponsorships: Paginated<Sponsorship>; tiers: string[]; roadmapSponsors: RoadmapSponsor[] }) {
   const form = useGrantForm(tiers)
   const prefill = (s: Sponsorship) => {
     form.setData({ identifier: s.github_login, tier_slug: tiers[0] ?? '', expires_at: '', sponsorship_id: s.id })
@@ -151,8 +153,8 @@ export default function Index({ sponsorships, tiers }: { sponsorships: Paginated
               <Heart className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-2xl font-semibold tabular-nums text-gray-900">{sponsorships.total}</p>
-              <p className="text-sm text-gray-500">{sponsorships.total === 1 ? 'sponsorship' : 'sponsorships'}</p>
+              <p className="text-2xl font-semibold tabular-nums text-gray-900">{sponsorships.total + roadmapSponsors.length}</p>
+              <p className="text-sm text-gray-500">{sponsorships.total} on GitHub · {roadmapSponsors.length} by roadmap access</p>
             </div>
           </div>
 
@@ -164,6 +166,27 @@ export default function Index({ sponsorships, tiers }: { sponsorships: Paginated
             ) : (
               <ul className="divide-y divide-gray-100">
                 {sponsorships.data.map((s) => <Row key={s.id} s={s} onGrant={prefill} />)}
+              </ul>
+            )}
+          </div>
+
+          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+            <p className="border-b border-gray-100 px-5 py-3 text-sm font-semibold text-gray-900">
+              Roadmap access sponsors <span className="font-normal text-gray-500">· added in <Link href={route('admin.roadmap-access.index')} className="underline">Roadmap access</Link></span>
+            </p>
+            {roadmapSponsors.length === 0 ? (
+              <p className="px-6 py-10 text-center text-sm text-gray-500">None yet.</p>
+            ) : (
+              <ul className="divide-y divide-gray-100">
+                {roadmapSponsors.map((g) => (
+                  <li key={g.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-gray-900">{g.name ?? g.email}</p>
+                      <p className="truncate text-sm text-gray-500">{g.name ? `${g.email} · ` : ''}${g.amount_cents / 100} · since {new Date(g.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' })}</p>
+                    </div>
+                    <span className="rounded-full px-2.5 py-0.5 text-xs font-medium text-gray-700 ring-1 ring-gray-200">{g.status}</span>
+                  </li>
+                ))}
               </ul>
             )}
           </div>

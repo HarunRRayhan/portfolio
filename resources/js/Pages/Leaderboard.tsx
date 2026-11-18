@@ -92,8 +92,8 @@ export default function Leaderboard({ period, when, rows, me, hidden }: Props) {
                 <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold', medal[r.rank - 1] ?? 'text-slate-500')}>{r.rank}</span>
                 <Link href={`/u/${r.profile}`} className="flex min-w-0 flex-1 items-center gap-3 hover:underline">
                   <UserAvatar name={r.name} url={r.avatar_url} />
-                  {r.sponsor && <SponsorTag />}
                   <span className="min-w-0 truncate font-medium text-slate-900 dark:text-white">{r.name}</span>
+                  {r.sponsor && <SponsorTag />}
                 </Link>
                 <span className="font-semibold tabular-nums text-amber-700 dark:text-amber-400">{r.xp} XP</span>
               </li>

@@ -67,6 +67,8 @@ class SponsorXpTest extends TestCase
         Mail::assertSent(RoadmapAccessGrantedMail::class, fn ($m) => $m->hasTo('payer@example.com'));
         $this->assertSame(1000, $this->sponsorXp($user));
         $this->assertStringContainsString('1,000 XP', (new RoadmapAccessGrantedMail($grant))->render());
+        $this->actingAs($admin)->get('/admin/sponsorships')->assertInertia(fn (Assert $p) => $p
+            ->where('roadmapSponsors.0.email', 'payer@example.com')->where('roadmapSponsors.0.amount_cents', 1000));
 
         // A gift on a custom date: access, no XP.
         $this->actingAs($admin)->post('/admin/roadmap-access', ['email' => 'gift@example.com', 'plan' => '', 'expires_at' => now()->addWeek()->toDateString(), 'amount' => '0'])->assertRedirect();

@@ -14,6 +14,11 @@ class RoadmapAccessGrant extends Model
         return ['expires_at' => 'datetime', 'revoked_at' => 'datetime'];
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function scopeActive(Builder $q): Builder
     {
         return $q->whereNull('revoked_at')->where('expires_at', '>', now());

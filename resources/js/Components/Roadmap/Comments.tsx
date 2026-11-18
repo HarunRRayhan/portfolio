@@ -116,8 +116,8 @@ function CommentItem({ comment, postUrl, depth = 0 }: { comment: RoadmapComment;
           <p className="text-xs text-slate-500">
             {comment.user ? (
               <>
-                {comment.user.sponsor && <><SponsorTag /> </>}
                 <Link href={`/u/${comment.user.profile}`} className="font-semibold text-slate-800 hover:underline dark:text-slate-100">{comment.user.name}</Link>
+                {comment.user.sponsor && <> <SponsorTag /></>}
               </>
             ) : (
               <span className="font-semibold text-slate-800 dark:text-slate-100">Deleted user</span>
