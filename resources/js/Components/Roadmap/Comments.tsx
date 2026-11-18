@@ -8,7 +8,7 @@ export type RoadmapComment = {
   id: number
   content: string
   createdAt: string | null
-  user: { id: number; name: string; avatarUrl: string | null; profile: string } | null
+  user: { mine: boolean; name: string; avatarUrl: string | null; profile: string } | null
   replies: RoadmapComment[]
 }
 
@@ -98,7 +98,7 @@ function CommentForm({ postUrl, parentId, onDone }: { postUrl: string; parentId?
 function CommentItem({ comment, postUrl, depth = 0 }: { comment: RoadmapComment; postUrl: string; depth?: number }) {
   const { auth } = usePage<PageProps>().props
   const [replying, setReplying] = useState(false)
-  const canDelete = !!auth?.user && (auth.user.id === comment.user?.id || auth.isAdmin)
+  const canDelete = !!auth?.user && (!!comment.user?.mine || auth.isAdmin)
   const remove = () => {
     if (confirm('Delete this comment?')) router.delete(`/roadmaps/comments/${comment.id}`, { preserveScroll: true, preserveState: true })
   }

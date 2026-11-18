@@ -61,7 +61,8 @@ class RoadmapCommentsTest extends TestCase
         $this->get("/roadmaps/internet-networking/{$topic}/{$lesson}")->assertInertia(fn ($p) => $p
             ->where('comments.0.content', 'Great resources')
             ->where('comments.0.user.name', 'Al•••') // a name that is just the email's local part is masked
-            ->missing('comments.0.user.email'));
+            ->missing('comments.0.user.email')
+            ->missing('comments.0.user.id'));
         $parentId = $this->get("/roadmaps/internet-networking/{$topic}/{$lesson}")->viewData('page')['props']['comments'][0]['id'];
 
         $this->actingAs($bob)->post("/roadmaps/internet-networking/{$topic}/{$lesson}/comments", ['content' => 'Agreed!', 'parent_id' => $parentId])->assertRedirect();

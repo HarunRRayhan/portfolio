@@ -42,7 +42,7 @@ class LeaderboardPageTest extends TestCase
         $this->actingAs($user)->patch('/leaderboard/visibility', ['hidden' => true])->assertRedirect();
 
         $this->actingAs($user)->get('/leaderboard?period=all')->assertInertia(fn (Assert $p) => $p
-            ->where('hidden', true)->has('rows', 1)->where('rows.0.user_id', $other->id)
+            ->where('hidden', true)->has('rows', 1)->where('rows.0.profile', $other->profile_slug)->missing('rows.0.user_id')
             ->where('me', ['rank' => 1, 'xp' => 50]));
     }
 

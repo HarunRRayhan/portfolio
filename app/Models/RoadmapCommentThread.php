@@ -41,7 +41,7 @@ class RoadmapCommentThread extends Model
                 'id' => (int) $c->id,
                 'content' => (string) $c->content,
                 'createdAt' => $c->created_at?->toAtomString(),
-                'user' => $c->user ? ['id' => (int) $c->user->id, 'name' => $c->user->publicName(), 'avatarUrl' => $c->user->publicAvatar(), 'profile' => $c->user->profile_slug] : null,
+                'user' => $c->user ? ['mine' => auth()->id() === (int) $c->user->id, 'name' => $c->user->publicName(), 'avatarUrl' => $c->user->publicAvatar(), 'profile' => $c->user->profile_slug] : null,
                 'replies' => $this->branch($comments, (int) $c->id),
             ])
             ->values()
