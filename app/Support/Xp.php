@@ -78,6 +78,7 @@ class Xp
                 'name' => $u->publicName(),
                 'avatar_url' => $u->publicAvatar(),
                 'profile' => $u->profileHandle(),
+                'sponsor' => (bool) $r->sponsor,
                 'xp' => (int) $r->xp,
             ];
         });
@@ -105,8 +106,9 @@ class Xp
             ->where('users.leaderboard_hidden', false)
             ->whereNull('users.deletion_scheduled_at')
             ->where(fn ($q) => $q->whereNull('users.role')->orWhere('users.role', '!=', 'admin'))
-            ->groupBy('users.id', 'users.name', 'users.email', 'users.avatar_url', 'users.anonymous', 'users.anon_name', 'users.profile_slug', 'users.username', 'users.username')
-            ->select('users.id as user_id', 'users.name', 'users.email', 'users.avatar_url', 'users.anonymous', 'users.anon_name', 'users.profile_slug', 'users.username', DB::raw('sum(xp_awards.points) as xp'))
+            ->groupBy('users.id', 'users.name', 'users.email', 'users.avatar_url', 'users.anonymous', 'users.anon_name', 'users.profile_slug', 'users.username')
+            ->selectRaw("exists (select 1 from xp_awards s where s.user_id = users.id and s.key like 'sponsor:%' and s.points > 0) as sponsor")
+            ->addSelect('users.id as user_id', 'users.name', 'users.email', 'users.avatar_url', 'users.anonymous', 'users.anon_name', 'users.profile_slug', 'users.username', DB::raw('sum(xp_awards.points) as xp'))
             ->orderByDesc('xp')->orderBy('users.id');
     }
 }

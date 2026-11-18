@@ -9,6 +9,8 @@ interface Grant {
   expires_at: string
   revoked_at: string | null
   status: 'active' | 'expired' | 'revoked'
+  amount_cents: number | null
+  notified: boolean
 }
 
 const statusClass: Record<Grant['status'], string> = {
@@ -77,7 +79,7 @@ function RequestRow({ r, plans }: { r: PayRequest; plans: Record<Plan, { label: 
 const formatDate = (value: string) => new Date(value).toLocaleDateString(undefined, { dateStyle: 'medium' })
 
 export default function Index({ grants, requests, plans }: { grants: Grant[]; requests: PayRequest[]; plans: Record<Plan, { label: string; price: string }> }) {
-  const form = useForm({ email: '', plan: 'yearly' as Plan | '', expires_at: '', note: '' })
+  const form = useForm({ email: '', plan: 'yearly' as Plan | '', expires_at: '', amount: '', note: '' })
   const submit = (e: FormEvent) => {
     e.preventDefault()
     form.post(route('admin.roadmap-access.store'), { preserveScroll: true, onSuccess: () => form.reset() })
@@ -106,7 +108,7 @@ export default function Index({ grants, requests, plans }: { grants: Grant[]; re
 
           <form onSubmit={submit} className="space-y-3 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-semibold text-gray-900">Give Intermediate + Advanced access</p>
-            <p className="text-xs text-gray-500">For payments made elsewhere (email, bank, cash). Matches the person's verified sign-in email, now or when they sign up later. Monthly, yearly and lifetime count from today.</p>
+            <p className="text-xs text-gray-500">For payments made elsewhere (email, bank, cash). Matches the person's verified sign-in email, now or when they sign up later. Monthly, yearly and lifetime count from today. They get an email, plus 100 XP per dollar and a Sponsor tag.</p>
             <div className="grid gap-3 sm:grid-cols-4">
               <div className="sm:col-span-2">
                 <label htmlFor="email" className="block text-xs font-medium text-gray-600">Email</label>
@@ -123,6 +125,8 @@ export default function Index({ grants, requests, plans }: { grants: Grant[]; re
               <div className={form.data.plan ? 'hidden' : ''}>
                 <label htmlFor="expires_at" className="block text-xs font-medium text-gray-600">Access until</label>
                 <input id="expires_at" type="date" required={!form.data.plan} value={form.data.expires_at} onChange={(e) => form.setData('expires_at', e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 text-sm" />
+                <label htmlFor="amount" className="mt-2 block text-xs font-medium text-gray-600">Paid ($, 0 for a gift)</label>
+                <input id="amount" type="number" min="0" step="0.01" value={form.data.amount} onChange={(e) => form.setData('amount', e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 text-sm" />
                 {form.errors.expires_at && <p className="mt-1 text-xs text-red-600">{form.errors.expires_at}</p>}
               </div>
               <div>
@@ -143,7 +147,7 @@ export default function Index({ grants, requests, plans }: { grants: Grant[]; re
                   <li key={g.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-5">
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-gray-900">{g.email}</p>
-                      <p className="truncate text-sm text-gray-500">Until {formatDate(g.expires_at)}{g.note ? ` · ${g.note}` : ''}</p>
+                      <p className="truncate text-sm text-gray-500">Until {formatDate(g.expires_at)}{g.amount_cents ? ` · $${g.amount_cents / 100}` : ''}{g.notified ? ' · emailed' : ''}{g.note ? ` · ${g.note}` : ''}</p>
                     </div>
                     <span className={'rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ' + statusClass[g.status]}>{g.status}</span>
                     {g.status === 'active' && (
