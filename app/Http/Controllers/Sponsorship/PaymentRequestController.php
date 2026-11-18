@@ -38,7 +38,7 @@ class PaymentRequestController extends Controller
         }
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
-            'email' => ['required', 'email', 'max:255'],
+            'email' => ['required', 'email:filter', 'max:255'],
             'country' => ['required', 'string', 'regex:/^[A-Z]{2}$/'],
             'plan' => ['required', Rule::in(array_keys(PaymentRequest::PLANS))],
             'method' => ['required', Rule::in(array_keys(PaymentRequest::METHODS))],

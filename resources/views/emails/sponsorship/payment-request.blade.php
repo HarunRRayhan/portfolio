@@ -1,7 +1,7 @@
 @php($name = \App\Support\MailText::plain($r->name))
 @component('mail::message')
 @if ($kind === 'received')
-# Thanks, {{ $name }}
+# Thanks for your request
 
 I got your request for **{{ $plan }}** roadmap access ({{ $price }}) by **{{ $method }}**.
 
@@ -23,7 +23,7 @@ Keep this link to yourself: anyone with it can add payment details to your reque
 
 Your **{{ $plan }}** access to the Intermediate and Advanced roadmap topics is on{{ $r->grant && $r->grant->expires_at->year < 2099 ? ', until '.$r->grant->expires_at->format('M j, Y') : '' }}.
 
-Sign in with **{{ $r->email }}** to use it.
+Sign in with {{ \App\Support\MailText::plain($r->email) }} to use it.
 
 @component('mail::button', ['url' => $roadmapsUrl])
 Open the roadmaps
@@ -34,8 +34,8 @@ Thank you for sponsoring.
 # {{ $r->status === 'paid' ? 'Payment details sent' : 'New payment request' }}
 
 - Name: {{ $name }}
-- Email: {{ $r->email }}
-- Country: {{ $r->country }}
+- Email: {{ \App\Support\MailText::plain($r->email) }}
+- Country: {{ \App\Support\MailText::plain($r->country) }}
 - Plan: {{ $plan }} ({{ $price }})
 - Method: {{ $method }}
 @if ($r->transaction_id)
