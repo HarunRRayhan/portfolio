@@ -49,43 +49,19 @@ class BlogCommentThread extends Model
      *
      * Admins see everything; commenters only see their own comments.
      */
-    public function visibleCommentCountForViewer(?User $viewer): int
-    {
-        $query = $this->comments();
-
-        if ($viewer && ! $viewer->isAdmin()) {
-            $query->where('user_id', $viewer->id);
-        }
-
-        return $query->count();
-    }
-
     /**
      * Convert flat comment records into a nested tree for the UI.
      *
-     * Admins see every comment. Non-admin (commenter) users see only their own.
+     * Public: everyone sees every comment, with the author's public name, picture and profile link only (never the email).
      *
      * @return array<int, array<string, mixed>>
      */
     public function commentTree(): array
     {
         $comments = $this->comments()
-            ->with('user')
+            ->with('user:id,name,email,avatar_url,anonymous,anon_name,profile_slug,username')
             ->orderBy('created_at')
             ->get();
-
-        $viewer = auth()->user();
-        $isAdmin = $viewer && method_exists($viewer, 'isAdmin') && $viewer->isAdmin();
-
-        if (! $isAdmin) {
-            $allowedUserIds = $viewer ? [intval($viewer->id)] : [];
-
-            $comments = $comments->filter(function ($comment) use ($allowedUserIds) {
-                $authorId = optional($comment->user)->id;
-
-                return $authorId !== null && in_array(intval($authorId), $allowedUserIds, true);
-            })->values();
-        }
 
         $sponsors = XpAward::whereIn('user_id', $comments->pluck('user_id')->filter()->unique())
             ->where('key', 'like', SponsorXp::KEY_PREFIX.'%')->where('points', '>', 0)->pluck('user_id')->flip();
@@ -117,9 +93,9 @@ class BlogCommentThread extends Model
                     'createdAtHuman' => $createdAt?->format('M j, Y g:i A') ?? '',
                     'parentId' => $comment->parent_id ? (int) $comment->parent_id : null,
                     'user' => $comment->user ? [
-                        'id' => (int) $comment->user->id,
-                        'name' => (string) $comment->user->name,
-                        'email' => (string) $comment->user->email,
+                        'name' => $comment->user->publicName(),
+                        'avatarUrl' => $comment->user->publicAvatar(),
+                        'profile' => $comment->user->profileHandle(),
                         'sponsor' => (bool) $sponsors?->has($comment->user->id),
                     ] : null,
                     'children' => $this->buildTree($comments, (int) $comment->id, $sponsors),

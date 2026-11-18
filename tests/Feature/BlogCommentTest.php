@@ -74,4 +74,25 @@ class BlogCommentTest extends TestCase
             'content' => 'This is a draft comment.',
         ]);
     }
+
+    #[Test]
+    public function comments_are_public_without_emails(): void
+    {
+        $alice = User::factory()->create(['name' => 'Alice Writer', 'email' => 'alice@example.com']);
+        $this->actingAs($alice)->post('/blog/github-actions-lambda-terraform-cicd/comments', ['content' => 'Public note'])->assertRedirect();
+        auth()->logout();
+
+        $this->get('/blog/github-actions-lambda-terraform-cicd')->assertOk()
+            ->assertDontSee('alice@example.com')
+            ->assertInertia(fn ($p) => $p
+                ->where('commentCount', 1)
+                ->where('comments.0.content', 'Public note')
+                ->where('comments.0.user.name', 'Alice Writer')
+                ->where('comments.0.user.profile', $alice->fresh()->profileHandle())
+                ->missing('comments.0.user.email')
+                ->missing('comments.0.user.id'));
+
+        $this->actingAs(User::factory()->create())->get('/blog/github-actions-lambda-terraform-cicd')
+            ->assertInertia(fn ($p) => $p->where('comments.0.content', 'Public note'));
+    }
 }

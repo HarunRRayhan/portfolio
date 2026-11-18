@@ -47,8 +47,7 @@ class BlogCommentController extends Controller
             $parent,
         );
 
-        Cache::forget('blog.post.'.$slug.'.comments.'.$request->user()->id);
-        Cache::forget('blog.post.'.$slug.'.comments.guest');
+        Cache::forget('blog.post.'.$slug.'.comments');
 
         return redirect()->to(route('blog.post', ['slug' => $slug]).'#discussion');
     }
