@@ -44,8 +44,8 @@ class PaymentRequestController extends Controller
             'method' => ['required', Rule::in(array_keys(PaymentRequest::METHODS))],
             'note' => ['nullable', 'string', 'max:2000'],
         ]);
-        if ($data['method'] === 'bank' && $data['country'] !== 'BD') {
-            throw ValidationException::withMessages(['method' => 'Bank transfer is only for Bangladesh.']);
+        if (($data['method'] === 'bank') !== ($data['country'] === 'BD')) {
+            throw ValidationException::withMessages(['method' => $data['country'] === 'BD' ? 'In Bangladesh, pay by bank transfer or GitHub Sponsors.' : 'Bank transfer is only for Bangladesh.']);
         }
 
         $paymentRequest = PaymentRequest::create(['email' => strtolower($data['email']), 'user_id' => $request->user()?->id] + $data);

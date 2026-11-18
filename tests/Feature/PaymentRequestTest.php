@@ -78,6 +78,7 @@ class PaymentRequestTest extends TestCase
     public function test_bank_is_only_for_bangladesh_and_other_needs_a_note(): void
     {
         $this->post('/sponsor-me/pay', $this->payload(['country' => 'IN']))->assertSessionHasErrors('method');
+        $this->post('/sponsor-me/pay', $this->payload(['method' => 'other', 'note' => 'x']))->assertSessionHasErrors('method');
         $this->post('/sponsor-me/pay', $this->payload(['country' => 'IN', 'method' => 'other', 'note' => 'UPI']))->assertRedirect();
         $this->assertSame('other', PaymentRequest::sole()->method);
     }
