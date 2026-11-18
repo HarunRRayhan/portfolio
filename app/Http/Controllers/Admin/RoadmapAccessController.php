@@ -41,7 +41,7 @@ class RoadmapAccessController extends Controller
                     'note' => $r->note,
                     'status' => $r->status,
                     'transaction_id' => $r->transaction_id,
-                    'payer_phone' => $r->payer_phone,
+                    'payer_account' => $r->payer_account,
                     'created_at' => $r->created_at->toIso8601String(),
                 ]),
             'plans' => PaymentRequest::PLANS,

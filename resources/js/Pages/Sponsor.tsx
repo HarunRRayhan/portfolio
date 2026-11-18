@@ -247,7 +247,7 @@ export default function Sponsor({ sponsorsUrl, contactUrl, contactEmail }: Spons
               },
               {
                 title: 'Fill in the form',
-                description: 'Pick your country and plan. In Bangladesh you can pay by bKash; anywhere else, tell me which payment methods you can use.',
+                description: 'Pick your country and plan. In Bangladesh you can pay by bank transfer; anywhere else, tell me which payment methods you can use.',
               },
               {
                 title: 'I reply with options',

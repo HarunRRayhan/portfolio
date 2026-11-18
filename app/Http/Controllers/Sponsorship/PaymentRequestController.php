@@ -44,8 +44,8 @@ class PaymentRequestController extends Controller
             'method' => ['required', Rule::in(array_keys(PaymentRequest::METHODS))],
             'note' => ['nullable', 'string', 'max:2000'],
         ]);
-        if ($data['method'] === 'bkash' && $data['country'] !== 'BD') {
-            throw ValidationException::withMessages(['method' => 'bKash is only for Bangladesh.']);
+        if ($data['method'] === 'bank' && $data['country'] !== 'BD') {
+            throw ValidationException::withMessages(['method' => 'Bank transfer is only for Bangladesh.']);
         }
 
         $paymentRequest = PaymentRequest::create(['email' => strtolower($data['email']), 'user_id' => $request->user()?->id] + $data);
@@ -61,6 +61,8 @@ class PaymentRequestController extends Controller
 
         return Inertia::render('Sponsor/PayRequest', [
             'request' => $this->summary($paymentRequest),
+            // Only on this private page (signed link or the requester's own account), never on the public form.
+            'bankDetails' => $paymentRequest->method === 'bank' ? (config('sponsors.bank_details') ?: null) : null,
             'paidUrl' => URL::signedRoute('sponsor.pay.paid', ['paymentRequest' => $paymentRequest->public_id]),
             'seo' => ['title' => 'Your sponsorship request | Harun R. Rayhan', 'description' => '', 'canonicalUrl' => url('/sponsor-me/pay'), 'noindex' => true],
         ]);
@@ -71,8 +73,8 @@ class PaymentRequestController extends Controller
         $this->authorizeLink($request, $paymentRequest);
         abort_if(in_array($paymentRequest->status, ['approved', 'declined'], true), 409);
         $data = $request->validate([
-            'transaction_id' => ['required', 'string', 'max:64', 'regex:/^[A-Za-z0-9-]+$/'],
-            'payer_phone' => ['required', 'string', 'max:32', 'regex:/^\+?[0-9 -]{6,20}$/'],
+            'transaction_id' => ['required', 'string', 'max:64', 'regex:/^[A-Za-z0-9 \/._-]+$/'],
+            'payer_account' => ['required', 'string', 'max:120'],
         ]);
         $paymentRequest->update($data + ['status' => 'paid', 'paid_at' => now()]);
         $this->mail($paymentRequest, config('mail.owner.address'), 'owner');

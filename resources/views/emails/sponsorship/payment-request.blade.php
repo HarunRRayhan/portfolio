@@ -5,10 +5,18 @@
 
 I got your request for **{{ $plan }}** roadmap access ({{ $price }}) by **{{ $method }}**.
 
-@if ($r->method === 'bkash')
-I'll email you the bKash number myself, with the amount in BDT. It is a personal number, so please don't share it with anyone.
+@if ($r->method === 'bank')
+@if (config('sponsors.bank_details'))
+Send the amount in BDT to this account:
 
-After you send the money, open your request and add the bKash transaction ID and the number you paid from. I'll unlock your access once I see it.
+@component('mail::panel')
+{!! nl2br(e(config('sponsors.bank_details'))) !!}
+@endcomponent
+@else
+I'll email you the bank details and the amount in BDT.
+@endif
+
+After you send the money, open your request and add the transfer reference and the account you paid from. I'll unlock your access once I see it.
 @else
 I'll reply by email with a way to pay that works in your country.
 @endif
@@ -39,8 +47,8 @@ Thank you for sponsoring.
 - Plan: {{ $plan }} ({{ $price }})
 - Method: {{ $method }}
 @if ($r->transaction_id)
-- Transaction ID: {{ \App\Support\MailText::plain($r->transaction_id) }}
-- Paid from: {{ \App\Support\MailText::plain((string) $r->payer_phone) }}
+- Reference: {{ \App\Support\MailText::plain($r->transaction_id) }}
+- Paid from: {{ \App\Support\MailText::plain((string) $r->payer_account) }}
 @endif
 @if ($r->note)
 

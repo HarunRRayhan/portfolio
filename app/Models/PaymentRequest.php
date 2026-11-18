@@ -19,8 +19,8 @@ class PaymentRequest extends Model
         'lifetime' => ['label' => 'Lifetime', 'price' => '$100'],
     ];
 
-    /** bKash only for Bangladesh; "other" works anywhere and is arranged by email. */
-    public const METHODS = ['bkash' => 'bKash', 'other' => 'Another method'];
+    /** Bank transfer only for Bangladesh (local BDT account); "other" works anywhere and is arranged by email. */
+    public const METHODS = ['bank' => 'Bank transfer', 'other' => 'Another method'];
 
     protected $guarded = ['id'];
 
