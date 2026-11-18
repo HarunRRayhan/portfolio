@@ -164,6 +164,10 @@ class RoadmapPagesTest extends TestCase
         $this->postJson('/roadmaps/aws/view', ['topic' => 'nope'])->assertNotFound();
         $this->postJson('/roadmaps/aws/view', ['topic' => $topic['id'], 'lesson' => 'nope'])->assertNotFound();
         $this->get('/roadmaps/aws')->assertInertia(fn ($page) => $page->where('viewCount', 4)->where('discussionCount', 0));
+
+        RoadmapStart::create(['user_id' => User::factory()->create()->id, 'roadmap_slug' => 'aws']);
+        $this->get('/roadmaps/aws')->assertInertia(fn ($page) => $page->where('joinCount', 1));
+        $this->get('/roadmaps')->assertInertia(fn ($page) => $page->where('roadmaps.1.joinCount', 1)->where('roadmaps.0.joinCount', 0));
     }
 
     public function test_unknown_roadmap_or_topic_is_404(): void
