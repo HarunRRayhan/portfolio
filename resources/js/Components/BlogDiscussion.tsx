@@ -6,12 +6,13 @@ import { Button } from '@/Components/ui/button'
 import { Textarea } from '@/Components/ui/textarea'
 import { cn } from '@/lib/utils'
 import SponsorTag from '@/Components/SponsorTag'
+import UserAvatar from '@/Components/UserAvatar'
 import { LogIn, MessageSquare, Reply, Send } from 'lucide-react'
 
 type BlogCommentUser = {
-  id: number
   name: string
-  email?: string | null
+  avatarUrl?: string | null
+  profile?: string
   sponsor?: boolean
 }
 
@@ -38,24 +39,6 @@ type InertiaAuthProps = {
   }
 }
 
-function getInitials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((part) => part[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
-}
-
-function CommentAvatar({ name }: { name: string }) {
-  return (
-    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-900 text-xs font-semibold text-white shadow-sm">
-      {getInitials(name)}
-    </div>
-  )
-}
-
 function CommentItem({
   comment,
   depth = 0,
@@ -70,12 +53,15 @@ function CommentItem({
   return (
     <article className={cn('rounded-[1.5rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm', depth > 0 && 'ml-4 border-l-4 border-l-slate-200')}>
       <div className="flex items-start gap-3">
-        <CommentAvatar name={authorName} />
+        <UserAvatar name={authorName} url={comment.user?.avatarUrl} />
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">{authorName}{comment.user?.sponsor && <SponsorTag />}</p>
+              <p className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
+                {comment.user?.profile ? <Link href={`/u/${comment.user.profile}`} className="hover:underline">{authorName}</Link> : authorName}
+                {comment.user?.sponsor && <SponsorTag />}
+              </p>
               <p className="text-xs text-slate-500 dark:text-slate-400">{comment.createdAtHuman}</p>
             </div>
 

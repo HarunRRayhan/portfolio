@@ -1101,7 +1101,8 @@ Route::get('/blog/{slug}', function (Request $request, string $slug) {
         abort(404);
     }
 
-    $commentCacheKey = 'blog.post.'.$slug.'.comments.'.($request->user()?->id ?? 'guest');
+    // Comments are public and the same for everyone, so one cache entry per post.
+    $commentCacheKey = 'blog.post.'.$slug.'.comments';
     $commentCount = 0;
     $comments = [];
 
@@ -1110,9 +1111,7 @@ Route::get('/blog/{slug}', function (Request $request, string $slug) {
             $blog,
             $slug,
             $post,
-            $request,
         ): array {
-            $viewer = $request->user();
             $thread = BlogCommentThread::resolveForPost(
                 $slug,
                 (string) $post['title'],
@@ -1121,7 +1120,7 @@ Route::get('/blog/{slug}', function (Request $request, string $slug) {
             );
 
             return [
-                'count' => $thread->visibleCommentCountForViewer($viewer),
+                'count' => $thread->commentCount(),
                 'comments' => $thread->commentTree(),
             ];
         });
