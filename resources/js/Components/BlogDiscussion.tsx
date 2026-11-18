@@ -5,12 +5,14 @@ import { Link, useForm, usePage } from '@inertiajs/react'
 import { Button } from '@/Components/ui/button'
 import { Textarea } from '@/Components/ui/textarea'
 import { cn } from '@/lib/utils'
+import SponsorTag from '@/Components/SponsorTag'
 import { LogIn, MessageSquare, Reply, Send } from 'lucide-react'
 
 type BlogCommentUser = {
   id: number
   name: string
   email?: string | null
+  sponsor?: boolean
 }
 
 type BlogCommentNode = {
@@ -73,7 +75,7 @@ function CommentItem({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">{authorName}</p>
+              <p className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">{authorName}{comment.user?.sponsor && <SponsorTag />}</p>
               <p className="text-xs text-slate-500 dark:text-slate-400">{comment.createdAtHuman}</p>
             </div>
 
