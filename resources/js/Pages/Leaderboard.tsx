@@ -3,8 +3,9 @@ import { ArrowRight, Trophy } from 'lucide-react'
 import type { PageProps } from '@/types'
 import { cn } from '@/lib/utils'
 import UserAvatar from '@/Components/UserAvatar'
+import SponsorTag from '@/Components/SponsorTag'
 
-type Row = { rank: number; name: string; avatar_url: string | null; profile: string; xp: number }
+type Row = { rank: number; name: string; avatar_url: string | null; profile: string; sponsor: boolean; xp: number }
 type Props = {
   period: 'day' | 'week' | 'month' | 'year' | 'all'
   when: 'current' | 'previous'
@@ -89,8 +90,9 @@ export default function Leaderboard({ period, when, rows, me, hidden }: Props) {
             {rows.map((r) => (
               <li key={r.profile} className={cn('flex items-center gap-4 px-5 py-3', auth?.user?.profile_handle === r.profile && 'bg-amber-50/60 dark:bg-amber-950/30')}>
                 <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold', medal[r.rank - 1] ?? 'text-slate-500')}>{r.rank}</span>
-                <Link href={`/u/${r.profile}`} className="flex min-w-0 flex-1 items-center gap-4 hover:underline">
+                <Link href={`/u/${r.profile}`} className="flex min-w-0 flex-1 items-center gap-3 hover:underline">
                   <UserAvatar name={r.name} url={r.avatar_url} />
+                  {r.sponsor && <SponsorTag />}
                   <span className="min-w-0 truncate font-medium text-slate-900 dark:text-white">{r.name}</span>
                 </Link>
                 <span className="font-semibold tabular-nums text-amber-700 dark:text-amber-400">{r.xp} XP</span>

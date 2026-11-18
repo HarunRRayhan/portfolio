@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Mail\Sponsorship\PaymentRequestMail;
+use App\Mail\Sponsorship\RoadmapAccessGrantedMail;
 use App\Models\PaymentRequest;
 use App\Models\RoadmapAccessGrant;
 use App\Models\User;
+use App\Support\SponsorXp;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -29,6 +31,8 @@ class RoadmapAccessController extends Controller
                     'expires_at' => $g->expires_at->toIso8601String(),
                     'revoked_at' => $g->revoked_at?->toIso8601String(),
                     'status' => $g->status(),
+                    'amount_cents' => $g->amount_cents,
+                    'notified' => (bool) $g->notified_at,
                 ]),
             'requests' => PaymentRequest::query()->latest()->latest('id')->limit(200)->get()
                 ->map(fn (PaymentRequest $r) => [
@@ -55,17 +59,22 @@ class RoadmapAccessController extends Controller
             'plan' => ['nullable', Rule::in(array_keys(PaymentRequest::PLANS))],
             'expires_at' => ['required_without:plan', 'nullable', 'date', 'after:today'],
             'note' => ['nullable', 'string', 'max:500'],
+            // Dollars paid, for custom dates; plans use their own price. 0 for a gift.
+            'amount' => ['nullable', 'numeric', 'min:0', 'max:100000'],
         ]);
         $email = strtolower($data['email']);
+        $plan = $data['plan'] ?? null;
 
-        RoadmapAccessGrant::create([
+        $grant = RoadmapAccessGrant::create([
             'email' => $email,
             'user_id' => User::query()->whereRaw('lower(email) = ?', [$email])->value('id'),
             // The picked date is the last full day of access.
             'expires_at' => ($data['plan'] ?? null) ? PaymentRequest::expiresFor($data['plan']) : Carbon::parse($data['expires_at'])->endOfDay(),
             'note' => $data['note'] ?? null,
             'granted_by' => $request->user()->id,
+            'amount_cents' => $plan ? PaymentRequest::PLANS[$plan]['cents'] : (int) round(((float) ($data['amount'] ?? 0)) * 100),
         ]);
+        $this->notify($grant);
 
         return back()->with('success', "Roadmap access granted to {$email}.");
     }
@@ -84,6 +93,8 @@ class RoadmapAccessController extends Controller
                 'expires_at' => PaymentRequest::expiresFor($data['plan']),
                 'note' => trim(PaymentRequest::PLANS[$data['plan']]['label'].' · '.(PaymentRequest::METHODS[$r->method] ?? $r->method).($r->transaction_id ? ' '.$r->transaction_id : '')),
                 'granted_by' => $request->user()->id,
+                'amount_cents' => PaymentRequest::PLANS[$data['plan']]['cents'],
+                'notified_at' => now(), // the approval email below covers it
             ]);
             $r->update(['plan' => $data['plan'], 'status' => 'approved', 'grant_id' => $grant->id, 'decided_at' => now()]);
         });
@@ -93,6 +104,8 @@ class RoadmapAccessController extends Controller
         } catch (\Throwable $e) {
             report($e);
         }
+
+        $this->syncXp($r->email);
 
         return back()->with('success', "Approved {$r->email}.");
     }
@@ -106,12 +119,33 @@ class RoadmapAccessController extends Controller
         return back()->with('success', "Declined {$r->email}.");
     }
 
+    /** Email the person now; sponsors:sync retries if this fails. Then give them their sponsor XP. */
+    private function notify(RoadmapAccessGrant $grant): void
+    {
+        try {
+            Mail::to($grant->email)->send(new RoadmapAccessGrantedMail($grant));
+            $grant->forceFill(['notified_at' => now()])->save();
+        } catch (\Throwable $e) {
+            report($e);
+        }
+        $this->syncXp($grant->email);
+    }
+
+    private function syncXp(string $email): void
+    {
+        $user = User::query()->whereRaw('lower(email) = ?', [strtolower($email)])->whereNotNull('email_verified_at')->first();
+        if ($user) {
+            SponsorXp::sync($user);
+        }
+    }
+
     public function revoke(string $grant): RedirectResponse
     {
         // Manual lookup, not route binding: binding runs before role:admin.
         $grant = RoadmapAccessGrant::findOrFail($grant);
         $grant->revoked_at ??= now();
         $grant->save();
+        $this->syncXp($grant->email); // takes the sponsor XP back
 
         return back()->with('success', "Access revoked for {$grant->email}.");
     }

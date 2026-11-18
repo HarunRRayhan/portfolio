@@ -7,6 +7,7 @@ use App\Models\RoadmapStart;
 use App\Models\User;
 use App\Models\XpAward;
 use App\Support\RoadmapRepository;
+use App\Support\SponsorXp;
 use App\Support\Xp;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -44,6 +45,7 @@ class PublicProfileController extends Controller
                 'avatarUrl' => $user->publicAvatar(),
                 'bio' => $user->bio,
                 'anonymous' => (bool) $user->anonymous,
+                'sponsor' => SponsorXp::isSponsor($user),
                 'joined' => $user->created_at?->format('F Y'),
                 'xp' => $xp,
                 // Hidden and admin accounts are left off the board, so they have no public rank.

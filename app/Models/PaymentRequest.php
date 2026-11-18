@@ -14,9 +14,9 @@ class PaymentRequest extends Model
 
     /** Same prices and lengths as GitHub Sponsors access ($5 a month, $10 a year, $100 for life). */
     public const PLANS = [
-        'monthly' => ['label' => 'Monthly', 'price' => '$5'],
-        'yearly' => ['label' => 'Yearly', 'price' => '$10'],
-        'lifetime' => ['label' => 'Lifetime', 'price' => '$100'],
+        'monthly' => ['label' => 'Monthly', 'price' => '$5', 'cents' => 500],
+        'yearly' => ['label' => 'Yearly', 'price' => '$10', 'cents' => 1000],
+        'lifetime' => ['label' => 'Lifetime', 'price' => '$100', 'cents' => 10000],
     ];
 
     /** Bank transfer only for Bangladesh (local BDT account); "other" works anywhere and is arranged by email. */

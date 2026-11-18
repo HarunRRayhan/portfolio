@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react'
 import { BookOpen, ChevronDown, Mail, Shield, Trophy, UserRoundPen } from 'lucide-react'
 import UserAvatar from '@/Components/UserAvatar'
+import SponsorTag from '@/Components/SponsorTag'
 
 type Props = {
   profile: {
@@ -8,6 +9,7 @@ type Props = {
     avatarUrl: string | null
     bio: string | null
     anonymous: boolean
+    sponsor: boolean
     joined: string | null
     xp: number
     rank: number | null
@@ -42,7 +44,10 @@ export default function ProfileShow({ profile, isOwner, admin }: Props) {
         <div className="flex flex-wrap items-center gap-5">
           <UserAvatar name={profile.name} url={profile.avatarUrl} className="h-20 w-20 text-3xl" />
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">{profile.name}</h1>
+            <h1 className="flex min-w-0 items-center gap-2 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">
+              {profile.sponsor && <SponsorTag />}
+              <span className="truncate">{profile.name}</span>
+            </h1>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               {profile.anonymous ? 'Anonymous learner' : 'Learner'}
               {profile.joined && <> · joined {profile.joined}</>}

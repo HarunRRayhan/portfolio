@@ -48,6 +48,31 @@ final class RoadmapAccess
      */
     public static function accessUntil(iterable $sponsorships): Carbon|bool|null
     {
+        [$total, $lastPaid] = self::paid($sponsorships);
+
+        return match (true) {
+            $total >= self::LIFETIME_CENTS => true,
+            $total >= self::YEAR_CENTS => $lastPaid->copy()->addYear(),
+            $total >= self::MIN_CENTS => $lastPaid->copy()->addMonth(),
+            default => null,
+        };
+    }
+
+    /** Everything this person has given: GitHub Sponsors charges plus non-revoked manual grants. */
+    public static function sponsoredCents(User $user): int
+    {
+        $email = $user->email_verified_at && $user->email ? strtolower($user->email) : null;
+        $grants = $email ? (int) RoadmapAccessGrant::query()->whereNull('revoked_at')->whereRaw('lower(email) = ?', [$email])->sum('amount_cents') : 0;
+
+        return self::paid(self::sponsorships($user, $email))[0] + $grants;
+    }
+
+    /**
+     * @param  iterable<GithubSponsorship>  $sponsorships
+     * @return array{0: int, 1: ?Carbon} total cents, last charge
+     */
+    private static function paid(iterable $sponsorships): array
+    {
         $total = 0;
         $lastPaid = null;
         foreach ($sponsorships as $s) {
@@ -72,12 +97,7 @@ final class RoadmapAccess
             $lastPaid = $lastPaid === null || $paidAt->gt($lastPaid) ? $paidAt : $lastPaid;
         }
 
-        return match (true) {
-            $total >= self::LIFETIME_CENTS => true,
-            $total >= self::YEAR_CENTS => $lastPaid->copy()->addYear(),
-            $total >= self::MIN_CENTS => $lastPaid->copy()->addMonth(),
-            default => null,
-        };
+        return [$total, $lastPaid];
     }
 
     /**

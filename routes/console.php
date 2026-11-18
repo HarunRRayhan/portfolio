@@ -86,6 +86,8 @@ Artisan::command('sponsors:remind-expiring', function () {
     $this->info("Sent {$sent} credit expiry reminders.");
 })->purpose('Remind sponsors whose one-time call credit expires within 7 days');
 
+Schedule::command('sponsors:sync')->everyFiveMinutes()->withoutOverlapping()->onOneServer();
+
 Schedule::command('consultations:expire')
     ->everyFiveMinutes()
     ->withoutOverlapping()
