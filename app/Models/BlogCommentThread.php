@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Support\SponsorXp;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use RyanChandler\Comments\Concerns\HasComments;
+use RyanChandler\Comments\Models\Comment;
 
 class BlogCommentThread extends Model
 {
@@ -47,7 +49,7 @@ class BlogCommentThread extends Model
      *
      * Admins see everything; commenters only see their own comments.
      */
-    public function visibleCommentCountForViewer(?\App\Models\User $viewer): int
+    public function visibleCommentCountForViewer(?User $viewer): int
     {
         $query = $this->comments();
 
@@ -85,14 +87,17 @@ class BlogCommentThread extends Model
             })->values();
         }
 
-        return $this->buildTree($comments);
+        $sponsors = XpAward::whereIn('user_id', $comments->pluck('user_id')->filter()->unique())
+            ->where('key', 'like', SponsorXp::KEY_PREFIX.'%')->where('points', '>', 0)->pluck('user_id')->flip();
+
+        return $this->buildTree($comments, null, $sponsors);
     }
 
     /**
-     * @param  Collection<int, \RyanChandler\Comments\Models\Comment>  $comments
+     * @param  Collection<int, Comment>  $comments
      * @return array<int, array<string, mixed>>
      */
-    private function buildTree(Collection $comments, ?int $parentId = null): array
+    private function buildTree(Collection $comments, ?int $parentId = null, ?Collection $sponsors = null): array
     {
         return $comments
             ->filter(function ($comment) use ($parentId): bool {
@@ -102,7 +107,7 @@ class BlogCommentThread extends Model
                     ? $commentParentId === null
                     : (int) $commentParentId === $parentId;
             })
-            ->map(function ($comment) use ($comments): array {
+            ->map(function ($comment) use ($comments, $sponsors): array {
                 $createdAt = $comment->created_at;
 
                 return [
@@ -115,8 +120,9 @@ class BlogCommentThread extends Model
                         'id' => (int) $comment->user->id,
                         'name' => (string) $comment->user->name,
                         'email' => (string) $comment->user->email,
+                        'sponsor' => (bool) $sponsors?->has($comment->user->id),
                     ] : null,
-                    'children' => $this->buildTree($comments, (int) $comment->id),
+                    'children' => $this->buildTree($comments, (int) $comment->id, $sponsors),
                 ];
             })
             ->values()

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Mail\Sponsorship\RoadmapAccessGrantedMail;
+use App\Models\BlogCommentThread;
 use App\Models\GithubSponsorship;
 use App\Models\GithubWebhookEvent;
 use App\Models\RoadmapAccessGrant;
@@ -52,6 +53,11 @@ class SponsorXpTest extends TestCase
         }
         $this->get('/roadmaps/internet-networking')->assertInertia(fn (Assert $p) => $p
             ->where('comments.0.user.sponsor', true)->where('comments.1.user.sponsor', false));
+
+        $blog = BlogCommentThread::resolveForPost('a-post', 'A post', 'https://harun.dev/blog/a-post', 'https://harun.dev/blog/a-post');
+        $blog->comments()->create(['user_id' => $user->id, 'content' => 'hi']);
+        $this->actingAs($user);
+        $this->assertTrue($blog->commentTree()[0]['user']['sponsor']);
     }
 
     public function test_manual_grant_emails_gives_xp_and_revoke_takes_it_back(): void
