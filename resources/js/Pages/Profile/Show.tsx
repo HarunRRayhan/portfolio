@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react'
-import { BookOpen, Mail, Shield, Trophy, UserRoundPen } from 'lucide-react'
+import { BookOpen, ChevronDown, Mail, Shield, Trophy, UserRoundPen } from 'lucide-react'
 import UserAvatar from '@/Components/UserAvatar'
 
 type Props = {
@@ -88,8 +88,11 @@ export default function ProfileShow({ profile, isOwner, admin }: Props) {
         )}
 
         {admin && (
-          <div className="mt-10 rounded-2xl border border-rose-200 bg-rose-50 p-5 dark:border-rose-900 dark:bg-rose-950/30">
-            <h2 className="flex items-center gap-2 text-sm font-semibold text-rose-900 dark:text-rose-200"><Shield className="h-4 w-4" aria-hidden /> Admin only</h2>
+          <details className="group mt-10 rounded-2xl border border-rose-200 bg-rose-50 p-5 dark:border-rose-900 dark:bg-rose-950/30">
+            <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-semibold text-rose-900 dark:text-rose-200 [&::-webkit-details-marker]:hidden">
+              <Shield className="h-4 w-4" aria-hidden /> Admin only
+              <ChevronDown className="ml-auto h-4 w-4 transition-transform group-open:rotate-180" aria-hidden />
+            </summary>
             <dl className="mt-3 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
               {(
                 [
@@ -113,7 +116,7 @@ export default function ProfileShow({ profile, isOwner, admin }: Props) {
             <a href={`mailto:${admin.email}`} className="mt-4 inline-flex items-center gap-2 rounded-full bg-rose-900 px-4 py-1.5 text-sm font-semibold text-white hover:bg-rose-800 dark:bg-rose-200 dark:text-rose-950">
               <Mail className="h-4 w-4" aria-hidden /> Email
             </a>
-          </div>
+          </details>
         )}
 
         <Link href="/leaderboard" className="mt-10 inline-flex items-center gap-2 text-sm font-semibold text-amber-700 hover:text-amber-600 dark:text-amber-400">
