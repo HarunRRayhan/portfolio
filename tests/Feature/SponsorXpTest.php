@@ -6,6 +6,7 @@ use App\Mail\Sponsorship\RoadmapAccessGrantedMail;
 use App\Models\GithubSponsorship;
 use App\Models\GithubWebhookEvent;
 use App\Models\RoadmapAccessGrant;
+use App\Models\RoadmapCommentThread;
 use App\Models\User;
 use App\Models\XpAward;
 use App\Support\SponsorXp;
@@ -44,6 +45,13 @@ class SponsorXpTest extends TestCase
             ->where('rows.0.sponsor', true)->where('rows.0.xp', 1050)
             ->where('rows.1.sponsor', false));
         $this->get('/u/'.$user->profileHandle())->assertInertia(fn (Assert $p) => $p->where('profile.sponsor', true));
+
+        $thread = RoadmapCommentThread::forKey('internet-networking');
+        foreach ([$user, $other] as $u) {
+            $thread->comments()->create(['user_id' => $u->id, 'content' => 'hi']);
+        }
+        $this->get('/roadmaps/internet-networking')->assertInertia(fn (Assert $p) => $p
+            ->where('comments.0.user.sponsor', true)->where('comments.1.user.sponsor', false));
     }
 
     public function test_manual_grant_emails_gives_xp_and_revoke_takes_it_back(): void
