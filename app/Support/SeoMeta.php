@@ -84,7 +84,7 @@ final class SeoMeta
     }
 
     /**
-     * @return array<string, string>
+     * @return array<string, mixed>
      */
     public static function organizationGraph(?string $siteUrl = null): array
     {
@@ -97,6 +97,9 @@ final class SeoMeta
             'name' => 'Harun R. Rayhan',
             'url' => $siteUrl,
             'logo' => $siteUrl.'/android-chrome-512x512.png',
+            'description' => 'AWS infrastructure, DevOps consulting, and developer products by Harun R. Rayhan.',
+            'founder' => ['@id' => $siteUrl.'/#person'],
+            'sameAs' => SeoCatalog::personSameAs(),
         ];
     }
 }

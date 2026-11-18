@@ -110,6 +110,24 @@ class SiteSeoTest extends TestCase
     }
 
     #[Test]
+    public function it_ships_ai_relevant_schema_for_the_home_and_products_pages(): void
+    {
+        $graphs = function (string $path) {
+            preg_match_all('#<script type="application/ld\+json"[^>]*>(.*?)</script>#s', $this->get($path)->assertOk()->getContent(), $m);
+
+            return collect($m[1])->map(fn (string $json) => json_decode($json, true));
+        };
+
+        $org = $graphs('/')->firstWhere('@type', 'Organization');
+        $this->assertContains('https://github.com/HarunRRayhan', $org['sameAs'] ?? []);
+        $this->assertNotEmpty($org['description'] ?? null);
+
+        $list = $graphs('/products')->firstWhere('@type', 'ItemList');
+        $this->assertSame(['CloudPloy', 1], [$list['itemListElement'][0]['name'] ?? null, $list['itemListElement'][0]['position'] ?? null]);
+        $this->assertCount(7, $list['itemListElement']);
+    }
+
+    #[Test]
     public function it_ships_raystack_metadata_and_software_schema_in_the_first_html(): void
     {
         $siteUrl = rtrim(config('app.url', url('/')), '/');
