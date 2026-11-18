@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BlogCommentThread;
 use App\Models\RoadmapProgress;
 use App\Models\RoadmapStart;
 use App\Models\User;
@@ -83,6 +84,7 @@ class PublicProfileController extends Controller
         $user = $request->user();
         $user->forceFill(['bio' => isset($data['bio']) ? trim($data['bio']) : null, 'username' => ($data['username'] ?? null) ?: null])->save();
         $user->setAnonymous((bool) $data['anonymous']);
+        BlogCommentThread::forgetCachesFor($user);
 
         return back();
     }

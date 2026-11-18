@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Support\SponsorXp;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use RyanChandler\Comments\Concerns\HasComments;
 use RyanChandler\Comments\Models\Comment;
 
@@ -37,6 +39,14 @@ class BlogCommentThread extends Model
                 'source_url' => $sourceUrl,
             ],
         );
+    }
+
+    /** Public comment caches show the author's name and picture, so drop them when the author changes either. */
+    public static function forgetCachesFor(User $user): void
+    {
+        static::query()->whereIn('id', DB::table('comments')->where('user_id', $user->id)
+            ->where('commentable_type', (new static)->getMorphClass())->select('commentable_id'))
+            ->pluck('slug')->each(fn (string $slug) => Cache::forget('blog.post.'.$slug.'.comments'));
     }
 
     public function commentCount(): int
