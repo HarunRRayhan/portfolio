@@ -7,6 +7,7 @@ import { FormEventHandler } from 'react';
 export default function PublicProfileForm({ className = '' }: { className?: string }) {
     const user = usePage().props.auth.user;
     const { data, setData, patch, errors, processing, recentlySuccessful } = useForm({
+        username: user.username ?? '',
         bio: user.bio ?? '',
         anonymous: !!user.anonymous,
     });
@@ -22,11 +23,29 @@ export default function PublicProfileForm({ className = '' }: { className?: stri
                 <h2 className="text-lg font-medium text-gray-900">Public profile</h2>
                 <p className="mt-1 text-sm text-gray-600">
                     Your profile is public and linked from the leaderboard. Your email is never shown.{' '}
-                    <Link href={`/u/${user.profile_slug}`} className="underline">View your profile</Link>
+                    <Link href={`/u/${user.profile_handle}`} className="underline">View your profile</Link>
                 </p>
             </header>
 
             <form onSubmit={submit} className="mt-6 space-y-6">
+                <div>
+                    <InputLabel htmlFor="username" value="Username" />
+                    <div className="mt-1 flex rounded-md shadow-sm">
+                        <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">harun.dev/u/</span>
+                        <input
+                            id="username"
+                            value={data.username}
+                            onChange={(e) => setData('username', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                            maxLength={30}
+                            placeholder="your_name"
+                            autoComplete="off"
+                            className="block w-full min-w-0 rounded-none rounded-r-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">3–30 characters: lowercase letters, numbers and _, starting with a letter. Hidden while you're anonymous.</p>
+                    <InputError className="mt-2" message={errors.username} />
+                </div>
+
                 <div>
                     <InputLabel htmlFor="bio" value="Bio" />
                     <textarea

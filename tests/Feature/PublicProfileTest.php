@@ -84,4 +84,25 @@ class PublicProfileTest extends TestCase
         $user = User::factory()->create(['terms_accepted_at' => now()]);
         $this->actingAs($user)->patch('/profile/public', ['bio' => str_repeat('x', 281), 'anonymous' => false])->assertSessionHasErrors('bio');
     }
+
+    public function test_username_becomes_the_profile_link_but_not_while_anonymous(): void
+    {
+        $user = User::factory()->create(['name' => 'Ada', 'terms_accepted_at' => now()]);
+        $other = User::factory()->create(['username' => 'taken']);
+
+        $this->actingAs($user)->patch('/profile/public', ['username' => 'Ada_L', 'bio' => null, 'anonymous' => false])->assertSessionHasNoErrors();
+        $this->assertSame('ada_l', $user->fresh()->username);
+        foreach (['taken', '1abc', 'ab', 'has-dash', $other->profile_slug] as $bad) {
+            $this->actingAs($user)->patch('/profile/public', ['username' => $bad, 'anonymous' => false])->assertSessionHasErrors('username');
+        }
+
+        $this->get('/u/ada_l')->assertOk()->assertInertia(fn (Assert $p) => $p->where('profile.name', 'Ada'));
+        $this->get("/u/{$user->fresh()->profile_slug}")->assertOk();
+        $this->get('/leaderboard')->assertInertia(fn (Assert $p) => $p->where('rows.0.profile', fn ($v) => in_array($v, ['ada_l', 'taken', $other->profile_slug], true)));
+
+        $this->actingAs($user)->patch('/profile/public', ['username' => 'ada_l', 'anonymous' => true]);
+        auth()->logout();
+        $this->get('/u/ada_l')->assertNotFound();
+        $this->assertSame($user->fresh()->profile_slug, $user->fresh()->profileHandle());
+    }
 }

@@ -10,6 +10,7 @@ use App\Support\RoadmapRepository;
 use App\Support\Xp;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -19,7 +20,7 @@ class PublicProfileController extends Controller
     {
         $viewer = $request->user();
         $isAdmin = (bool) $viewer?->isAdmin();
-        $user = User::where('profile_slug', $slug)->firstOrFail();
+        $user = User::findByProfileHandle($slug) ?? abort(404);
         abort_if($user->deletion_scheduled_at && ! $isAdmin, 404);
 
         $done = RoadmapProgress::where('user_id', $user->id)->get(['roadmap_slug', 'step_id'])->groupBy('roadmap_slug');
@@ -64,18 +65,21 @@ class PublicProfileController extends Controller
                 'leaderboardHidden' => (bool) $user->leaderboard_hidden,
                 'deletionScheduledAt' => $user->deletion_scheduled_at?->toDateTimeString(),
             ] : null,
-            'seo' => ['title' => $name.' | harun.dev', 'description' => $name.' is learning on harun.dev roadmaps.', 'canonicalUrl' => url('/u/'.$user->profile_slug), 'noindex' => true],
+            'seo' => ['title' => $name.' | harun.dev', 'description' => $name.' is learning on harun.dev roadmaps.', 'canonicalUrl' => url('/u/'.$user->profileHandle()), 'noindex' => true],
         ]);
     }
 
     public function update(Request $request): RedirectResponse
     {
+        $request->merge(['username' => strtolower(trim((string) $request->input('username'))) ?: null]);
         $data = $request->validate([
             'bio' => ['nullable', 'string', 'max:280'],
+            // Lowercase, starts with a letter; can't take someone's /u/ link.
+            'username' => ['nullable', 'string', 'regex:'.User::USERNAME_PATTERN, Rule::unique('users', 'username')->ignore($request->user()->id), Rule::unique('users', 'profile_slug')->ignore($request->user()->id)],
             'anonymous' => ['required', 'boolean'],
         ]);
         $user = $request->user();
-        $user->forceFill(['bio' => $data['bio'] !== null ? trim($data['bio']) : null])->save();
+        $user->forceFill(['bio' => isset($data['bio']) ? trim($data['bio']) : null, 'username' => ($data['username'] ?? null) ?: null])->save();
         $user->setAnonymous((bool) $data['anonymous']);
 
         return back();

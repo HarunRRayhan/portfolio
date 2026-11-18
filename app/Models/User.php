@@ -70,9 +70,34 @@ class User extends Authenticatable implements HasPasskeys, MustVerifyEmail
         static::creating(fn (User $user) => $user->profile_slug ??= self::newProfileSlug());
     }
 
+    public const USERNAME_PATTERN = '/^[a-z][a-z0-9_]{2,29}$/';
+
+    protected $appends = ['profile_handle'];
+
     public static function newProfileSlug(): string
     {
-        return Str::lower(Str::random(10));
+        do {
+            $slug = Str::lower(Str::random(10));
+        } while (static::where('username', $slug)->exists());
+
+        return $slug;
+    }
+
+    /** What goes after /u/: the chosen username, except while anonymous (it would give them away). */
+    public function profileHandle(): string
+    {
+        return ! $this->anonymous && $this->username ? $this->username : (string) $this->profile_slug;
+    }
+
+    protected function getProfileHandleAttribute(): string
+    {
+        return $this->profileHandle();
+    }
+
+    public static function findByProfileHandle(string $handle): ?self
+    {
+        return static::where('username', $handle)->where('anonymous', false)->first()
+            ?? static::where('profile_slug', $handle)->first();
     }
 
     /** The name everyone else sees: the anonymous name, or the real one (masked when it is just the email's local part). */

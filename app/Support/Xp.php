@@ -70,14 +70,14 @@ class Xp
     public static function board(string $period, bool $previous = false, int $limit = 50): Collection
     {
         return self::totals($period, $previous)->limit($limit)->get()->values()->map(function ($r, $i) {
-            $u = (new User)->forceFill(['name' => $r->name, 'email' => $r->email, 'avatar_url' => $r->avatar_url, 'anonymous' => $r->anonymous, 'anon_name' => $r->anon_name]);
+            $u = (new User)->forceFill(['name' => $r->name, 'email' => $r->email, 'avatar_url' => $r->avatar_url, 'anonymous' => $r->anonymous, 'anon_name' => $r->anon_name, 'username' => $r->username, 'profile_slug' => $r->profile_slug]);
 
             return [
                 'rank' => $i + 1,
                 'user_id' => (int) $r->user_id,
                 'name' => $u->publicName(),
                 'avatar_url' => $u->publicAvatar(),
-                'profile' => $r->profile_slug,
+                'profile' => $u->profileHandle(),
                 'xp' => (int) $r->xp,
             ];
         });
@@ -105,8 +105,8 @@ class Xp
             ->where('users.leaderboard_hidden', false)
             ->whereNull('users.deletion_scheduled_at')
             ->where(fn ($q) => $q->whereNull('users.role')->orWhere('users.role', '!=', 'admin'))
-            ->groupBy('users.id', 'users.name', 'users.email', 'users.avatar_url', 'users.anonymous', 'users.anon_name', 'users.profile_slug')
-            ->select('users.id as user_id', 'users.name', 'users.email', 'users.avatar_url', 'users.anonymous', 'users.anon_name', 'users.profile_slug', DB::raw('sum(xp_awards.points) as xp'))
+            ->groupBy('users.id', 'users.name', 'users.email', 'users.avatar_url', 'users.anonymous', 'users.anon_name', 'users.profile_slug', 'users.username', 'users.username')
+            ->select('users.id as user_id', 'users.name', 'users.email', 'users.avatar_url', 'users.anonymous', 'users.anon_name', 'users.profile_slug', 'users.username', DB::raw('sum(xp_awards.points) as xp'))
             ->orderByDesc('xp')->orderBy('users.id');
     }
 }
