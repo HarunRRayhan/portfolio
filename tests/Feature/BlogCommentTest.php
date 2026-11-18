@@ -94,5 +94,12 @@ class BlogCommentTest extends TestCase
 
         $this->actingAs(User::factory()->create())->get('/blog/github-actions-lambda-terraform-cicd')
             ->assertInertia(fn ($p) => $p->where('comments.0.content', 'Public note'));
+
+        // Going anonymous takes effect on cached comments right away.
+        $alice->forceFill(['terms_accepted_at' => now()])->save();
+        $this->actingAs($alice)->patch('/profile/public', ['anonymous' => true])->assertRedirect();
+        auth()->logout();
+        $this->get('/blog/github-actions-lambda-terraform-cicd')->assertDontSee('Alice Writer')
+            ->assertInertia(fn ($p) => $p->where('comments.0.user.name', $alice->fresh()->anon_name));
     }
 }
