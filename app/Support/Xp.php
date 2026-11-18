@@ -8,7 +8,6 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 /** XP ledger: one row per (user, key), so every cap is a unique key. */
 class Xp
@@ -67,16 +66,21 @@ class Xp
         return $previous ? [$start->copy()->{$unit}(), $start] : [$start, $start->copy()->{str_replace('sub', 'add', $unit)}()];
     }
 
-    /** @return Collection<int, array{rank:int,user_id:int,name:string,avatar_url:?string,xp:int}> */
+    /** @return Collection<int, array{rank:int,user_id:int,name:string,avatar_url:?string,profile:string,xp:int}> */
     public static function board(string $period, bool $previous = false, int $limit = 50): Collection
     {
-        return self::totals($period, $previous)->limit($limit)->get()->values()->map(fn ($r, $i) => [
-            'rank' => $i + 1,
-            'user_id' => (int) $r->user_id,
-            'name' => self::publicName((string) $r->name, (string) $r->email),
-            'avatar_url' => $r->avatar_url,
-            'xp' => (int) $r->xp,
-        ]);
+        return self::totals($period, $previous)->limit($limit)->get()->values()->map(function ($r, $i) {
+            $u = (new User)->forceFill(['name' => $r->name, 'email' => $r->email, 'avatar_url' => $r->avatar_url, 'anonymous' => $r->anonymous, 'anon_name' => $r->anon_name]);
+
+            return [
+                'rank' => $i + 1,
+                'user_id' => (int) $r->user_id,
+                'name' => $u->publicName(),
+                'avatar_url' => $u->publicAvatar(),
+                'profile' => $r->profile_slug,
+                'xp' => (int) $r->xp,
+            ];
+        });
     }
 
     /** The user's own rank among visible users, counted even when they hide themselves. */
@@ -93,12 +97,6 @@ class Xp
         return ['rank' => $ahead + 1, 'xp' => $xp];
     }
 
-    /** Magic-link accounts are named after their email's local part; don't publish that on the board. */
-    private static function publicName(string $name, string $email): string
-    {
-        return strcasecmp($name, Str::before($email, '@')) === 0 ? mb_substr($name, 0, 2).'•••' : $name;
-    }
-
     private static function totals(string $period, bool $previous = false)
     {
         return XpAward::query()
@@ -107,8 +105,8 @@ class Xp
             ->where('users.leaderboard_hidden', false)
             ->whereNull('users.deletion_scheduled_at')
             ->where(fn ($q) => $q->whereNull('users.role')->orWhere('users.role', '!=', 'admin'))
-            ->groupBy('users.id', 'users.name', 'users.email', 'users.avatar_url')
-            ->select('users.id as user_id', 'users.name', 'users.email', 'users.avatar_url', DB::raw('sum(xp_awards.points) as xp'))
+            ->groupBy('users.id', 'users.name', 'users.email', 'users.avatar_url', 'users.anonymous', 'users.anon_name', 'users.profile_slug')
+            ->select('users.id as user_id', 'users.name', 'users.email', 'users.avatar_url', 'users.anonymous', 'users.anon_name', 'users.profile_slug', DB::raw('sum(xp_awards.points) as xp'))
             ->orderByDesc('xp')->orderBy('users.id');
     }
 }

@@ -5,6 +5,11 @@ export interface User {
     name: string;
     email: string;
     email_verified_at?: string;
+    profile_slug: string;
+    anonymous: boolean;
+    anon_name: string | null;
+    bio: string | null;
+    avatar_url: string | null;
 }
 
 export type PageProps<

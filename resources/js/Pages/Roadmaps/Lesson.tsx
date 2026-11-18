@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Link, router } from '@inertiajs/react'
 import { showToast } from '@/Components/ToastHost'
 import { ArrowLeft, ArrowRight, Check, ChevronRight } from 'lucide-react'
@@ -24,6 +25,9 @@ type Props = {
 }
 
 export default function RoadmapLesson({ roadmap, topic, lesson, position, lessonCount, siblings, locked, hasAccount, prev, next, comments, commentCount }: Props) {
+  useEffect(() => {
+    fetch(`/roadmaps/${roadmap.slug}/view`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, body: JSON.stringify({ topic: topic.id, lesson: lesson.id }) }).catch(() => {})
+  }, [roadmap.slug, topic.id, lesson.id])
   const base = `/roadmaps/${roadmap.slug}`
   const here = `${base}/${topic.id}/${lesson.id}`
   const loginHref = `/login?redirect=${encodeURIComponent(here)}`

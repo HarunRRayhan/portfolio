@@ -19,7 +19,8 @@ class LeaderboardController extends Controller
         return Inertia::render('Leaderboard', [
             'period' => $period,
             'when' => $previous ? 'previous' : 'current',
-            'rows' => Xp::board($period, $previous),
+            // No numeric ids in public rows: they'd survive a switch to anonymous and link the two names.
+            'rows' => Xp::board($period, $previous)->map(fn (array $r) => array_diff_key($r, ['user_id' => true]))->values(),
             'me' => $request->user() ? Xp::rankOf($request->user(), $period, $previous) : null,
             'hidden' => (bool) $request->user()?->leaderboard_hidden,
         ]);

@@ -30,7 +30,8 @@ class RoadmapController extends Controller
         $paid = RoadmapAccess::canAccessPaid($user);
         $loves = RoadmapReaction::query()->where('type', RoadmapReaction::LOVE)
             ->selectRaw('roadmap_slug, count(*) as n')->groupBy('roadmap_slug')->pluck('n', 'roadmap_slug');
-        $views = DB::table('roadmap_views')->pluck('count', 'roadmap_slug');
+        $views = self::totals('views');
+        $discussions = self::totals('comments');
 
         $mine = [];
         if ($user) {
@@ -65,7 +66,8 @@ class RoadmapController extends Controller
                 'lessonCount' => count($this->repo->lessonIndex($r)),
                 'levels' => array_column($r['stages'], 'level'),
                 'loveCount' => (int) ($loves[$r['slug']] ?? 0),
-                'viewCount' => (int) ($views[$r['slug']] ?? 0),
+                'viewCount' => $views[$r['slug']] ?? 0,
+                'discussionCount' => $discussions[$r['slug']] ?? 0,
                 'buildsOn' => $this->buildsOn($r),
                 'updatedAt' => (string) $r['updated'],
                 'art' => $this->art($r),
@@ -134,7 +136,8 @@ class RoadmapController extends Controller
             'loveCount' => RoadmapReaction::where('roadmap_slug', $slug)->where('type', RoadmapReaction::LOVE)->count(),
             'percent' => $percent,
             'nextTopicId' => $user && $nextLesson ? $lessons[$nextLesson]['topic'] : null,
-            'viewCount' => (int) DB::table('roadmap_views')->where('roadmap_slug', $slug)->value('count'),
+            'viewCount' => self::totals('views')[$slug] ?? 0,
+            'discussionCount' => self::totals('comments')[$slug] ?? 0,
             'canonicalUrl' => $canonicalUrl,
             'seo' => SeoCatalog::forMedia($roadmap['title'].' roadmap | Harun R. Rayhan', $roadmap['summary'], $canonicalUrl)->toArray(),
         ] + $this->comments($slug, false));
@@ -263,18 +266,51 @@ class RoadmapController extends Controller
         ];
     }
 
-    /** Called by the page after it loads, like blog post views, so crawlers and cached HTML don't count. */
-    public function view(string $slug): JsonResponse
+    /**
+     * Called by a roadmap, topic or lesson page after it loads, like blog post views, so crawlers and cached HTML
+     * don't count. Each page has its own row; a roadmap's total is the sum of its rows.
+     */
+    public function view(Request $request, string $slug): JsonResponse
     {
-        $this->roadmapOr404($slug);
+        $roadmap = $this->roadmapOr404($slug);
+        $topic = $request->string('topic')->toString();
+        $lesson = $request->string('lesson')->toString();
+        $key = $slug;
+        if ($topic !== '') {
+            abort_unless($this->repo->findTopic($roadmap, $topic), 404);
+            $key .= '/'.$topic;
+            if ($lesson !== '') {
+                abort_unless(($this->repo->lessonIndex($roadmap)[$lesson]['topic'] ?? null) === $topic, 404);
+                $key .= '/'.$lesson;
+            }
+        }
         $now = now();
         DB::table('roadmap_views')->upsert(
-            ['roadmap_slug' => $slug, 'count' => 1, 'created_at' => $now, 'updated_at' => $now],
+            ['roadmap_slug' => $key, 'count' => 1, 'created_at' => $now, 'updated_at' => $now],
             'roadmap_slug',
             ['count' => DB::raw('roadmap_views.count + 1'), 'updated_at' => $now],
         );
 
-        return response()->json(['views' => (int) DB::table('roadmap_views')->where('roadmap_slug', $slug)->value('count')]);
+        return response()->json(['views' => self::totals('views')[$slug] ?? 0]);
+    }
+
+    /**
+     * Per roadmap: views or discussion comments across the roadmap, its topics and its lessons.
+     *
+     * @return array<string, int>
+     */
+    private static function totals(string $what): array
+    {
+        $rows = $what === 'views'
+            ? DB::table('roadmap_views')->pluck('count', 'roadmap_slug')
+            : RoadmapCommentThread::withCount('comments')->pluck('comments_count', 'key');
+        $sum = [];
+        foreach ($rows as $key => $n) {
+            $root = strtok((string) $key, '/');
+            $sum[$root] = ($sum[$root] ?? 0) + (int) $n;
+        }
+
+        return $sum;
     }
 
     public function start(Request $request, string $slug): RedirectResponse

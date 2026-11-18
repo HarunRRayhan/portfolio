@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from '@inertiajs/react'
-import { ArrowRight, Calendar, ChevronDown, LogOut, Trophy, User, type LucideIcon } from 'lucide-react'
+import { ArrowRight, Calendar, ChevronDown, LogOut, Trophy, User, type LucideIcon, CircleUser } from 'lucide-react'
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle } from '@/Components/ui/sheet'
 import { cn } from '@/lib/utils'
 
@@ -11,7 +11,7 @@ export type MobileNavigationProps = {
   mainItems: { name: string; href: string }[]
   moreItems: { name: string; href: string; icon: LucideIcon; featured?: boolean }[]
   isActive: (href: string) => boolean
-  user: { name?: string; email?: string } | null | undefined
+  user: { name?: string; email?: string; avatar_url?: string | null; profile_slug?: string } | null | undefined
   isAdmin: boolean
   xp: number
   onLogout: () => void
@@ -71,6 +71,11 @@ export default function MobileNavigation({ open, onOpenChange, onCloseAutoFocus,
               <SheetClose asChild>
                 <Link href={route(isAdmin ? 'dashboard' : 'profile.edit')} className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
                   <User className="h-4 w-4" />{isAdmin ? 'Dashboard' : 'Account'}
+                </Link>
+              </SheetClose>
+              <SheetClose asChild>
+                <Link href={`/u/${user.profile_slug}`} className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                  <CircleUser className="h-4 w-4" />Your profile
                 </Link>
               </SheetClose>
               <SheetClose asChild>

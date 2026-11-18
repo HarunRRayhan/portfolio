@@ -84,6 +84,7 @@ final class AiCrawlerPolicy
         '/login',
         '/register',
         '/profile',
+        '/u/',
         '/forgot-password',
         '/reset-password',
         '/verify-email',

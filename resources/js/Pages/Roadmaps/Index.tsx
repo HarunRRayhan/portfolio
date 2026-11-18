@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 import type { PageProps } from '@/types'
 import { ProgressBar, formatDate } from '@/Components/Roadmap/shared'
-import { ArrowRight, Bookmark, Eye, Heart, Search, Trophy } from 'lucide-react'
+import { ArrowRight, Bookmark, Eye, Heart, Search, Trophy, MessageSquare } from 'lucide-react'
 import { RoadmapArt, type RoadmapArtData } from '@/Components/Roadmap/RoadmapArt'
 
 type RoadmapCard = {
@@ -16,6 +16,7 @@ type RoadmapCard = {
   levels: string[]
   loveCount: number
   viewCount: number
+  discussionCount: number
   buildsOn: { slug: string; title: string } | null
   updatedAt: string
   art: RoadmapArtData
@@ -196,6 +197,7 @@ export default function RoadmapsIndex({ roadmaps, mine, categories }: Props) {
                 <span>{r.topicCount} topics · {r.lessonCount} lessons · Updated <time dateTime={r.updatedAt}>{formatDate(r.updatedAt)}</time></span>
                 <span className="inline-flex items-center gap-3">
                   <span className="inline-flex items-center gap-1" title="Views"><Eye className="h-4 w-4" aria-hidden /> {r.viewCount.toLocaleString()}<span className="sr-only"> views</span></span>
+                  <span className="inline-flex items-center gap-1" title="Comments"><MessageSquare className="h-4 w-4" aria-hidden /> {r.discussionCount.toLocaleString()}<span className="sr-only"> comments</span></span>
                   <span className="inline-flex items-center gap-1" title="Loves"><Heart className="h-4 w-4" aria-hidden /> {r.loveCount}<span className="sr-only"> loves</span></span>
                 </span>
               </div>

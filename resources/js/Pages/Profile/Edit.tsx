@@ -2,6 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageProps } from '@/types';
 import { Head } from '@inertiajs/react';
 import DeleteUserForm from './Partials/DeleteUserForm';
+import PublicProfileForm from './Partials/PublicProfileForm';
 import PasskeysSection, { PasskeyRow } from './Partials/PasskeysSection';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 
@@ -28,6 +29,10 @@ export default function Edit({
                             status={status}
                             className="max-w-xl"
                         />
+                    </div>
+
+                    <div id="public-profile" className="scroll-mt-20 bg-white p-4 shadow sm:rounded-lg sm:p-8">
+                        <PublicProfileForm className="max-w-xl" />
                     </div>
 
                     <div id="passkeys" className="scroll-mt-20 bg-white p-4 shadow sm:rounded-lg sm:p-8">

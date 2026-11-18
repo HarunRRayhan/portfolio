@@ -23,6 +23,7 @@ use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\OperationalHealthController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicProfileController;
 use App\Http\Controllers\RoadmapCommentController;
 use App\Http\Controllers\RoadmapController;
 use App\Http\Controllers\Sponsorship\GithubSponsorsWebhookController;
@@ -678,6 +679,7 @@ Route::get('/newsletter/c/{delivery}', [NewsletterController::class, 'click'])
 
 Route::get('/roadmaps', [RoadmapController::class, 'index'])->name('roadmaps.index');
 Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
+Route::get('/u/{slug}', [PublicProfileController::class, 'show'])->where('slug', '[a-z0-9]{10}')->name('profile.public');
 Route::get('/earn', [LeaderboardController::class, 'earn'])->name('earn');
 Route::patch('/leaderboard/visibility', [LeaderboardController::class, 'visibility'])->middleware(['auth', 'throttle:roadmap-actions'])->name('leaderboard.visibility');
 Route::get('/roadmaps/search', [RoadmapController::class, 'search'])->middleware('throttle:60,1')->name('roadmaps.search');
@@ -1207,6 +1209,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/consultation/scan', [ScanRequestController::class, 'store'])->middleware('throttle:10,1');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::patch('/profile/public', [PublicProfileController::class, 'update'])->middleware('throttle:roadmap-actions')->name('profile.public.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
