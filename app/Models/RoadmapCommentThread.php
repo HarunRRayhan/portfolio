@@ -30,7 +30,7 @@ class RoadmapCommentThread extends Model
      */
     public function tree(): array
     {
-        return $this->branch($this->comments()->with('user:id,name,email,avatar_url,anonymous,anon_name,profile_slug')->orderBy('created_at')->get(), null);
+        return $this->branch($this->comments()->with('user:id,name,email,avatar_url,anonymous,anon_name,profile_slug,username')->orderBy('created_at')->get(), null);
     }
 
     private function branch(Collection $comments, ?int $parentId): array
@@ -41,7 +41,7 @@ class RoadmapCommentThread extends Model
                 'id' => (int) $c->id,
                 'content' => (string) $c->content,
                 'createdAt' => $c->created_at?->toAtomString(),
-                'user' => $c->user ? ['mine' => auth()->id() === (int) $c->user->id, 'name' => $c->user->publicName(), 'avatarUrl' => $c->user->publicAvatar(), 'profile' => $c->user->profile_slug] : null,
+                'user' => $c->user ? ['mine' => auth()->id() === (int) $c->user->id, 'name' => $c->user->publicName(), 'avatarUrl' => $c->user->publicAvatar(), 'profile' => $c->user->profileHandle()] : null,
                 'replies' => $this->branch($comments, (int) $c->id),
             ])
             ->values()

@@ -73,7 +73,7 @@ export default function Leaderboard({ period, when, rows, me, hidden }: Props) {
             <p className="text-sm text-amber-950 dark:text-amber-100">
               {me ? <>You: <strong>#{me.rank}</strong> · <strong>{me.xp} XP</strong></> : 'No XP in this period yet.'}
               {hidden && <span className="ml-2 text-amber-800 dark:text-amber-300">(hidden from the board)</span>}
-              <Link href={`/u/${auth.user.profile_slug}`} className="ml-3 font-semibold underline underline-offset-2">Your profile</Link>
+              <Link href={`/u/${auth.user.profile_handle}`} className="ml-3 font-semibold underline underline-offset-2">Your profile</Link>
             </p>
             <label className="inline-flex items-center gap-2 text-sm text-amber-950 dark:text-amber-100">
               <input type="checkbox" checked={!hidden} onChange={(e) => setHidden(!e.target.checked)} className="rounded border-amber-300 text-amber-600" />
@@ -87,7 +87,7 @@ export default function Leaderboard({ period, when, rows, me, hidden }: Props) {
         ) : (
           <ol className="mt-6 divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200 bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
             {rows.map((r) => (
-              <li key={r.profile} className={cn('flex items-center gap-4 px-5 py-3', auth?.user?.profile_slug === r.profile && 'bg-amber-50/60 dark:bg-amber-950/30')}>
+              <li key={r.profile} className={cn('flex items-center gap-4 px-5 py-3', auth?.user?.profile_handle === r.profile && 'bg-amber-50/60 dark:bg-amber-950/30')}>
                 <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold', medal[r.rank - 1] ?? 'text-slate-500')}>{r.rank}</span>
                 <Link href={`/u/${r.profile}`} className="flex min-w-0 flex-1 items-center gap-4 hover:underline">
                   <UserAvatar name={r.name} url={r.avatar_url} />

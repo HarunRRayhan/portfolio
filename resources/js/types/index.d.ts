@@ -6,6 +6,8 @@ export interface User {
     email: string;
     email_verified_at?: string;
     profile_slug: string;
+    profile_handle: string;
+    username: string | null;
     anonymous: boolean;
     anon_name: string | null;
     bio: string | null;

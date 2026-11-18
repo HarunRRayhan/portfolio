@@ -67,7 +67,7 @@ export function Menubar() {
   const mobileTriggerRef = React.useRef<HTMLButtonElement>(null)
   const { url } = usePage()
   const pathname = url.split('?')[0]
-  const user = usePage().props.auth?.user as { name?: string; email?: string; avatar_url?: string | null; profile_slug?: string } | null | undefined
+  const user = usePage().props.auth?.user as { name?: string; email?: string; avatar_url?: string | null; profile_handle?: string } | null | undefined
   const isAdmin = Boolean(usePage().props.auth?.isAdmin)
   const xp = usePage().props.auth?.xp ?? 0
   const profileRef = React.useRef<HTMLDivElement>(null)
@@ -318,7 +318,7 @@ export function Menubar() {
                     {isAdmin ? 'Dashboard' : 'Account'}
                   </Link>
                   <Link
-                    href={`/u/${user.profile_slug}`}
+                    href={`/u/${user.profile_handle}`}
                     className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
                     onClick={() => setProfileOpen(false)}
                   >
