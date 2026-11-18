@@ -3,12 +3,13 @@ import { MessageSquare } from 'lucide-react'
 import { FormEvent, useState } from 'react'
 import type { PageProps } from '@/types'
 import UserAvatar from '@/Components/UserAvatar'
+import SponsorTag from '@/Components/SponsorTag'
 
 export type RoadmapComment = {
   id: number
   content: string
   createdAt: string | null
-  user: { mine: boolean; name: string; avatarUrl: string | null; profile: string } | null
+  user: { mine: boolean; name: string; avatarUrl: string | null; profile: string; sponsor: boolean } | null
   replies: RoadmapComment[]
 }
 
@@ -114,7 +115,10 @@ function CommentItem({ comment, postUrl, depth = 0 }: { comment: RoadmapComment;
         <div className="rounded-2xl rounded-tl-sm bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
           <p className="text-xs text-slate-500">
             {comment.user ? (
-              <Link href={`/u/${comment.user.profile}`} className="font-semibold text-slate-800 hover:underline dark:text-slate-100">{comment.user.name}</Link>
+              <>
+                {comment.user.sponsor && <><SponsorTag /> </>}
+                <Link href={`/u/${comment.user.profile}`} className="font-semibold text-slate-800 hover:underline dark:text-slate-100">{comment.user.name}</Link>
+              </>
             ) : (
               <span className="font-semibold text-slate-800 dark:text-slate-100">Deleted user</span>
             )} · {when(comment.createdAt)}

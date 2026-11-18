@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\SponsorXp;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use RyanChandler\Comments\Concerns\HasComments;
@@ -30,10 +31,15 @@ class RoadmapCommentThread extends Model
      */
     public function tree(): array
     {
-        return $this->branch($this->comments()->with('user:id,name,email,avatar_url,anonymous,anon_name,profile_slug,username')->orderBy('created_at')->get(), null);
+        $comments = $this->comments()->with('user:id,name,email,avatar_url,anonymous,anon_name,profile_slug,username')->orderBy('created_at')->get();
+        // One query for every author's Sponsor tag, same rule as the leaderboard.
+        $sponsors = XpAward::whereIn('user_id', $comments->pluck('user_id')->filter()->unique())
+            ->where('key', 'like', SponsorXp::KEY_PREFIX.'%')->where('points', '>', 0)->pluck('user_id')->flip();
+
+        return $this->branch($comments, null, $sponsors);
     }
 
-    private function branch(Collection $comments, ?int $parentId): array
+    private function branch(Collection $comments, ?int $parentId, Collection $sponsors): array
     {
         return $comments
             ->filter(fn ($c) => ($c->parent_id === null ? null : (int) $c->parent_id) === $parentId)
@@ -41,8 +47,8 @@ class RoadmapCommentThread extends Model
                 'id' => (int) $c->id,
                 'content' => (string) $c->content,
                 'createdAt' => $c->created_at?->toAtomString(),
-                'user' => $c->user ? ['mine' => auth()->id() === (int) $c->user->id, 'name' => $c->user->publicName(), 'avatarUrl' => $c->user->publicAvatar(), 'profile' => $c->user->profileHandle()] : null,
-                'replies' => $this->branch($comments, (int) $c->id),
+                'user' => $c->user ? ['mine' => auth()->id() === (int) $c->user->id, 'name' => $c->user->publicName(), 'avatarUrl' => $c->user->publicAvatar(), 'profile' => $c->user->profileHandle(), 'sponsor' => $sponsors->has($c->user->id)] : null,
+                'replies' => $this->branch($comments, (int) $c->id, $sponsors),
             ])
             ->values()
             ->all();
