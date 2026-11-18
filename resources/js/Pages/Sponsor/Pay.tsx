@@ -26,10 +26,12 @@ export default function Pay({ prefill, plans, mine }: Props) {
   const form = useForm({ name: prefill.name, email: prefill.email, country: prefill.country, plan: 'yearly' as Plan, method: prefill.country === 'BD' ? 'bank' : 'other', note: '', 'cf-turnstile-response': '' })
   const methods = [
     { id: 'github', label: 'GitHub Sponsors', hint: 'Card or PayPal, in every country GitHub supports.' },
-    ...(form.data.country === 'BD' ? [{ id: 'bank', label: 'Bank transfer', hint: 'Bank details and the BDT amount come after you send the request.' }] : []),
-    { id: 'other', label: 'Another method', hint: 'Tell me what you can use; I reply with what works.' },
+    // Bangladesh: GitHub Sponsors or a local bank transfer. Elsewhere: GitHub Sponsors or tell me what works.
+    form.data.country === 'BD'
+      ? { id: 'bank', label: 'Bank transfer', hint: 'You get my bank details and the BDT amount by email right away.' }
+      : { id: 'other', label: 'Another method', hint: 'Tell me what you can use; I reply with what works.' },
   ]
-  const setCountry = (country: string) => form.setData((d) => ({ ...d, country, method: d.method === 'bank' && country !== 'BD' ? 'other' : d.method }))
+  const setCountry = (country: string) => form.setData((d) => ({ ...d, country, method: d.method === 'github' ? 'github' : country === 'BD' ? 'bank' : 'other' }))
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
