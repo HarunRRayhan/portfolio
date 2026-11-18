@@ -27,6 +27,7 @@ use App\Http\Controllers\PublicProfileController;
 use App\Http\Controllers\RoadmapCommentController;
 use App\Http\Controllers\RoadmapController;
 use App\Http\Controllers\Sponsorship\GithubSponsorsWebhookController;
+use App\Http\Controllers\Sponsorship\PaymentRequestController;
 use App\Http\Controllers\Sponsorship\ScanRequestController;
 use App\Models\BioLink;
 use App\Models\BioLinkClick;
@@ -318,6 +319,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])
     ->group(function () {
         Route::get('/', [AdminRoadmapAccessController::class, 'index'])->name('index');
         Route::post('/', [AdminRoadmapAccessController::class, 'store'])->name('store');
+        Route::post('/requests/{paymentRequest}/approve', [AdminRoadmapAccessController::class, 'approve'])->where('paymentRequest', '[0-9a-z]{26}')->name('approve');
+        Route::post('/requests/{paymentRequest}/decline', [AdminRoadmapAccessController::class, 'decline'])->where('paymentRequest', '[0-9a-z]{26}')->name('decline');
         Route::post('/{grant}/revoke', [AdminRoadmapAccessController::class, 'revoke'])->where('grant', '[0-9]{1,18}')->name('revoke');
     });
 
@@ -638,6 +641,10 @@ Route::post('/book/b/{publicId}/pick-proposed', [BookingAccessController::class,
     ->middleware('throttle:10,1')
     ->name('book.pick-proposed');
 
+Route::get('/sponsor-me/pay', [PaymentRequestController::class, 'create'])->name('sponsor.pay');
+Route::post('/sponsor-me/pay', [PaymentRequestController::class, 'store'])->middleware('throttle:5,1')->name('sponsor.pay.store');
+Route::get('/sponsor-me/pay/{paymentRequest}', [PaymentRequestController::class, 'show'])->where('paymentRequest', '[0-9a-z]{26}')->name('sponsor.pay.show');
+Route::post('/sponsor-me/pay/{paymentRequest}/paid', [PaymentRequestController::class, 'paid'])->where('paymentRequest', '[0-9a-z]{26}')->middleware('throttle:10,1')->name('sponsor.pay.paid');
 Route::post('/github/sponsors/webhook', GithubSponsorsWebhookController::class)->name('github.sponsors.webhook');
 
 Route::get('/contact', function () {

@@ -246,12 +246,12 @@ export default function Sponsor({ sponsorsUrl, contactUrl, contactEmail }: Spons
                 description: 'Open the sponsor page and go to checkout. If your card, bank or wallet isn’t offered there, carry on to the next step.',
               },
               {
-                title: 'Send me a short note',
-                description: 'Use the contact page or email me. Say your country, the amount, whether it is once or monthly, and which payment methods you can use.',
+                title: 'Fill in the form',
+                description: 'Pick your country and plan. In Bangladesh you can pay by bKash; anywhere else, tell me which payment methods you can use.',
               },
               {
                 title: 'I reply with options',
-                description: 'I’ll answer with what can work for your country and we agree on one. I won’t ask for card details over email.',
+                description: 'I email you how to pay. Once it arrives, I unlock your roadmap access. I won’t ask for card details over email.',
               },
             ].map(({ title, description }, i) => (
               <li key={title} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-5">
@@ -264,10 +264,10 @@ export default function Sponsor({ sponsorsUrl, contactUrl, contactEmail }: Spons
 
           <div className="mx-auto mt-10 flex max-w-4xl flex-col gap-3 sm:flex-row sm:justify-center">
             <a
-              href={contactUrl}
+              href="/sponsor-me/pay"
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 dark:bg-white px-5 py-3 text-sm font-semibold text-white dark:text-slate-900 transition hover:bg-slate-700 dark:hover:bg-slate-200"
             >
-              Open the contact page
+              Pay another way
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </a>
             <a

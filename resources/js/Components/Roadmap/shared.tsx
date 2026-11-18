@@ -88,7 +88,7 @@ export function SponsorDialog({ children }: { children?: ReactElement }) {
           <a href={sponsorsUrl} target="_blank" rel="noopener noreferrer" className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#bf3989] px-4 py-3 text-sm font-semibold text-white hover:bg-[#a82e78]">
             <Github className="h-4 w-4" /> Sponsor on GitHub
           </a>
-          <Link href="/sponsor-me#other-payment-methods" className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+          <Link href="/sponsor-me/pay" className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
             GitHub Sponsors doesn't work for me <ArrowRight className="h-4 w-4" />
           </Link>
           <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">Sponsor with the GitHub account or email you sign in with here, so access unlocks automatically.</p>
