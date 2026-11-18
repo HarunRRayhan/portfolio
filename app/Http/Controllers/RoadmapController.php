@@ -32,6 +32,7 @@ class RoadmapController extends Controller
             ->selectRaw('roadmap_slug, count(*) as n')->groupBy('roadmap_slug')->pluck('n', 'roadmap_slug');
         $views = self::totals('views');
         $discussions = self::totals('comments');
+        $joins = RoadmapStart::selectRaw('roadmap_slug, count(*) as n')->groupBy('roadmap_slug')->pluck('n', 'roadmap_slug');
 
         $mine = [];
         if ($user) {
@@ -68,6 +69,7 @@ class RoadmapController extends Controller
                 'loveCount' => (int) ($loves[$r['slug']] ?? 0),
                 'viewCount' => $views[$r['slug']] ?? 0,
                 'discussionCount' => $discussions[$r['slug']] ?? 0,
+                'joinCount' => (int) ($joins[$r['slug']] ?? 0),
                 'buildsOn' => $this->buildsOn($r),
                 'updatedAt' => (string) $r['updated'],
                 'art' => $this->art($r),
@@ -138,6 +140,7 @@ class RoadmapController extends Controller
             'nextTopicId' => $user && $nextLesson ? $lessons[$nextLesson]['topic'] : null,
             'viewCount' => self::totals('views')[$slug] ?? 0,
             'discussionCount' => self::totals('comments')[$slug] ?? 0,
+            'joinCount' => RoadmapStart::where('roadmap_slug', $slug)->count(),
             'canonicalUrl' => $canonicalUrl,
             'seo' => SeoCatalog::forMedia($roadmap['title'].' roadmap | Harun R. Rayhan', $roadmap['summary'], $canonicalUrl)->toArray(),
         ] + $this->comments($slug, false));

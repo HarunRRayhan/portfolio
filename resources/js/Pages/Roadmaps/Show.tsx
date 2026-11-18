@@ -1,5 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react'
-import { AlertTriangle, Bookmark, Check, Eye, Heart, Lock, Share2, MessageSquare } from 'lucide-react'
+import { AlertTriangle, Bookmark, Check, Eye, Heart, Lock, Share2, MessageSquare, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { ShareButton } from '@/Components/ShareButton'
 import { Comments, type RoadmapComment } from '@/Components/Roadmap/Comments'
@@ -32,12 +32,13 @@ type Props = {
   nextTopicId: string | null
   viewCount: number
   discussionCount: number
+  joinCount: number
   canonicalUrl: string
   comments: RoadmapComment[]
   commentCount: number
 }
 
-export default function RoadmapShow({ roadmap, stages, started, loved, saved, loveCount, percent, nextTopicId, viewCount, discussionCount, canonicalUrl, comments, commentCount }: Props) {
+export default function RoadmapShow({ roadmap, stages, started, loved, saved, loveCount, percent, nextTopicId, viewCount, discussionCount, joinCount, canonicalUrl, comments, commentCount }: Props) {
   const { auth } = usePage<PageProps>().props
   const base = `/roadmaps/${roadmap.slug}`
   const loginHref = `/login?redirect=${encodeURIComponent(base)}`
@@ -118,6 +119,9 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
           </ShareButton>
           <span className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
             <Eye className="h-4 w-4" aria-hidden /> {views.toLocaleString()} {views === 1 ? 'view' : 'views'}
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
+            <Users className="h-4 w-4" aria-hidden /> {joinCount.toLocaleString()} joined
           </span>
           <span className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400" title="Comments on this roadmap, its topics and lessons">
             <MessageSquare className="h-4 w-4" aria-hidden /> {discussionCount.toLocaleString()} {discussionCount === 1 ? 'comment' : 'comments'}
