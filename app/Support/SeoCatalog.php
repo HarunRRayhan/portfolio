@@ -166,13 +166,14 @@ final class SeoCatalog
             ogImage: self::defaultOgImage(),
             jsonLd: [[
                 '@context' => 'https://schema.org',
-                '@type' => 'SoftwareApplication',
+                // SoftwareSourceCode, not SoftwareApplication: Google requires ratings for the
+                // latter's rich result, and codeRepository is only valid here.
+                '@type' => 'SoftwareSourceCode',
                 'name' => 'RayStack',
                 'url' => $siteUrl.'/raystack',
                 'description' => 'Skills for coding agents: a full development flow (new project intake, research, PRD, architecture, specs, plans, reviewed builds, ship; gap-filling, design review and migration for existing projects), read-only scans and reviews (architecture incl. MVC and CQRS, frontend, reliability and availability, code health, AWS billing, AWS security, AWS bottleneck, infrastructure, scaling, database, performance, CI/CD pipeline, and app security), local browser verification, and working principles.',
-                'applicationCategory' => 'DeveloperApplication',
-                'operatingSystem' => 'macOS, Linux',
-                'softwareVersion' => '0.9',
+                'runtimePlatform' => 'Claude Code, Codex, Cursor',
+                'version' => '0.9',
                 'license' => 'https://opensource.org/licenses/MIT',
                 'codeRepository' => 'https://github.com/HarunRRayhan/RayStack',
                 'offers' => ['@type' => 'Offer', 'price' => '0', 'priceCurrency' => 'USD'],
