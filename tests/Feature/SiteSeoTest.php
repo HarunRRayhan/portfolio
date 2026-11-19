@@ -133,7 +133,7 @@ class SiteSeoTest extends TestCase
         $siteUrl = rtrim(config('app.url', url('/')), '/');
         $html = $this->get('/raystack')->assertOk()->getContent();
 
-        $this->assertStringContainsString('<title data-inertia="">RayStack: build and review software with coding agents | Harun R. Rayhan</title>', $html);
+        $this->assertStringContainsString('<title data-inertia="">RayStack: build and review software with coding agents</title>', $html);
         $this->assertStringContainsString('rel="canonical" href="'.$siteUrl.'/raystack"', $html);
 
         preg_match_all('#<script type="application/ld\+json"[^>]*>(.*?)</script>#s', $html, $matches);

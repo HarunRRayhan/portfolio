@@ -845,7 +845,7 @@ Route::get('/slides', function (Request $request) {
         'canonicalUrl' => $siteUrl.'/slides',
         'seo' => SeoCatalog::forMedia(
             'Slides | Harun R. Rayhan',
-            'Talk decks and presentations on cloud, DevOps, and AWS.',
+            'Talk decks and presentations on cloud, DevOps, and AWS. Open any deck in the browser, and the matching recorded talk is linked where one exists.',
             $siteUrl.'/slides',
         )->toArray(),
     ]);
@@ -918,7 +918,7 @@ Route::get('/videos', function (Request $request) {
         'canonicalUrl' => $siteUrl.'/videos',
         'seo' => SeoCatalog::forMedia(
             'Videos | Harun R. Rayhan',
-            'Recorded talks and walkthroughs on cloud, DevOps, and AWS.',
+            'Recorded talks and walkthroughs on cloud, DevOps, and AWS. Each video is listed with its date, and matching slides are linked when they exist.',
             $siteUrl.'/videos',
         )->toArray(),
     ]);
