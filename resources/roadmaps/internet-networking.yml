@@ -3,7 +3,7 @@ title: How the Internet Works
 summary: From what a network is to how BGP holds the whole internet together. Learn the layers in order, one topic at a time.
 order: 1
 category: foundations
-updated: '2026-11-16'
+updated: '2026-11-19'
 icon: globe
 color: sky
 logos:
@@ -278,6 +278,292 @@ stages:
               - { label: "China's hollow-core fiber trial pushes 51.3 Tb/s over 128 miles (Tom's Hardware)", url: "https://www.tomshardware.com/networking/chinas-hollow-core-fiber-trial-pushes-51-3-tb-s-over-128-miles-without-signal-regeneration-milestone-targets-ai-era-networking-bottlenecks", kind: article }
               - { label: "Photonic-crystal fiber (Wikipedia)", url: "https://en.wikipedia.org/wiki/Photonic-crystal_fiber", kind: article }
 
+      - id: access-networks
+        title: "The last mile: fiber, satellite, cable and mobile"
+        summary: How your home actually connects to the internet. Fiber to the home, geostationary satellites like Viasat, low-orbit Starlink, and why fiber wins wherever it can be laid.
+        lessons:
+          - id: last-mile-overview
+            title: The ways a home gets online
+            summary: Every connection ends in a "last mile" from the ISP to you. The options, from copper phone lines to satellites, and how they compare.
+            learn:
+              - What the last mile is and why it is the expensive part
+              - DSL, cable, fiber, fixed wireless, mobile and satellite
+              - Typical speed and latency of each
+            body: |
+              The internet's core is fiber: long-haul and undersea cables, data centres, exchange points. The hard and costly part is the **last mile**, the link from the ISP's nearest building to each home. There are millions of homes, and each needs its own path.
+
+              | Access | Medium | Typical download | Typical latency to the ISP |
+              |---|---|---|---|
+              | **DSL** | old copper phone line | 10 to 100 Mbps, drops with distance | 10 to 40 ms |
+              | **Cable** (DOCSIS) | TV coax, shared per street | 100 Mbps to 1+ Gbps | 10 to 30 ms |
+              | **Fiber to the home** | glass to your wall | 300 Mbps to 10 Gbps, often symmetric | 1 to 10 ms |
+              | **Fixed wireless / 5G home** | radio to a mast | 50 to 500 Mbps | 15 to 40 ms |
+              | **Mobile 4G/5G** | radio, shared per cell | 20 to 500 Mbps | 20 to 60 ms |
+              | **LEO satellite** (Starlink) | radio to satellites 550 km up | 50 to 250 Mbps | 25 to 60 ms |
+              | **GEO satellite** (Viasat, HughesNet) | radio to satellites 35,786 km up | 25 to 150 Mbps | 600 ms or more |
+
+              ### Key ideas
+              - Every option except satellite ends on fiber within a few kilometres of you. Even satellite traffic lands at a ground station and continues on fiber
+              - Copper and coax are limited by distance and electrical noise. Glass is not, over these distances
+              - Radio options share spectrum among everyone in a cell or a satellite beam, so speed drops at busy times
+              - **Latency** depends on distance and medium, and no plan upgrade changes physics
+
+              ### Why it matters
+              Choosing a connection is mostly choosing latency, how much the capacity is shared, and how it upgrades later. The next lessons go through fiber, GEO satellites and LEO satellites in depth.
+            resources:
+              - { label: "Last mile (Wikipedia)", url: "https://en.wikipedia.org/wiki/Last_mile_(telecommunications)", kind: article }
+              - { label: "DOCSIS (Wikipedia)", url: "https://en.wikipedia.org/wiki/DOCSIS", kind: article }
+              - { label: "Digital subscriber line (Wikipedia)", url: "https://en.wikipedia.org/wiki/Digital_subscriber_line", kind: article }
+              - { label: "Satellite internet access (Wikipedia)", url: "https://en.wikipedia.org/wiki/Satellite_Internet_access", kind: article }
+          - id: fiber-to-the-home
+            title: How fiber reaches your home (FTTH and PON)
+            summary: One fiber from the exchange is split passively to dozens of homes. OLT, splitter and ONT, and how GPON and XGS-PON share the light.
+            learn:
+              - FTTH vs FTTC, FTTB and hybrid fiber-coax
+              - OLT, passive splitter and ONT
+              - How downstream and upstream share one fiber (GPON, XGS-PON)
+              - Why the glass outlives the equipment
+            body: |
+              "Fiber" in ads covers several designs. **FTTC** (to the cabinet) runs fiber to a street box and copper the last few hundred metres. **FTTB** stops in the building's basement. **FTTH** (to the home) runs glass all the way to a box on your wall. Only FTTH gets the full benefit.
+
+              Most FTTH is a **passive optical network** (PON). "Passive" means nothing in the field needs power.
+
+              1. The **OLT** (optical line terminal) sits in the ISP's exchange and has many PON ports
+              2. One fiber from a port runs out to the neighbourhood
+              3. A **splitter**, just a piece of shaped glass, divides it into 32 or 64 fibers, one per home, up to about 20 km from the OLT
+              4. The **ONT** (optical network terminal) on your wall turns light into Ethernet for your router
+
+              ### Sharing one fiber
+              - **Downstream** the OLT sends one stream on one wavelength, and every ONT receives all of it. Each ONT keeps only frames for itself, and traffic is encrypted per home
+              - **Upstream** all ONTs share one wavelength, so the OLT gives each a **time slot** (TDMA). Otherwise their light would collide at the splitter
+              - **GPON** carries 2.5 Gbps down and 1.25 Gbps up per port (1490 nm down, 1310 nm up)
+              - **XGS-PON** carries 10 Gbps each way on other wavelengths (1577 nm and 1270 nm), so both can run on the same fiber at once
+              - 25G and 50G PON standards are next
+
+              ### Why the glass outlives the equipment
+              Going from GPON to XGS-PON means swapping the OLT card and your ONT. The fiber in the street stays. The digging, which is most of the cost, is done once for decades.
+
+              ### In practice
+              If your ISP's box on the wall has a green fiber cable going into it, labelled PON, you have FTTH. If a phone cable goes in, it is DSL or FTTC.
+            resources:
+              - { label: "Passive optical network (Wikipedia)", url: "https://en.wikipedia.org/wiki/Passive_optical_network", kind: article }
+              - { label: "Fiber to the x (Wikipedia)", url: "https://en.wikipedia.org/wiki/Fiber_to_the_x", kind: article }
+              - { label: "10G-PON (Wikipedia)", url: "https://en.wikipedia.org/wiki/10G-PON", kind: article }
+          - id: why-fiber-wins
+            title: Why most people who can get fiber use it
+            summary: Fiber has more capacity, lower latency, symmetric speeds and nothing to share through the sky. Its only real problem is the cost of digging.
+            learn:
+              - Capacity of glass vs radio spectrum
+              - Latency, jitter and reliability
+              - Cost per bit and upgrade path
+              - Why rural areas still use satellite and mobile
+            body: |
+              Where fiber is available, it is usually the best connection, and in countries that built it widely, such as South Korea, Japan, Spain and China, it carries most fixed broadband. Mobile is still the most common way people get online worldwide, mainly because no cable needs to reach the person.
+
+              ### Why fiber wins
+              - **Capacity.** One strand can carry many terabits per second with WDM. A whole high-throughput satellite carries a few hundred gigabits to about a terabit, shared across a continent. Radio spectrum is shared by everyone in range; a fiber strand is private to its path
+              - **Latency.** Light in glass covers about 200 km per millisecond, and the route goes nearly straight to the ISP. Typical latency to the ISP is 1 to 10 ms
+              - **Stable.** No rain fade, no obstructions, no satellite handoffs, and very low **jitter** (variation in delay), which matters for calls and games
+              - **Symmetric.** Upload can match download, which matters for video calls, backups and hosting
+              - **Cheap per bit.** Once the glass is in, serving more traffic costs little
+              - **Upgradable.** New optics at each end, same fiber
+
+              ### The catch: digging
+              Most of the cost of fiber is civil works: trenching, ducts, poles and permits. In a city, one street run serves hundreds of homes. On a farm 5 km from the next house, the same money serves one. That is why rural and remote areas, ships and aircraft use satellite and mobile instead.
+
+              ### Common mistakes
+              - Comparing only Mbps: a 100 Mbps fiber link feels faster than a 150 Mbps GEO satellite link because of latency
+              - Thinking wireless will replace fiber: every mobile mast and satellite ground station is itself connected by fiber
+            resources:
+              - { label: "Optical fiber (Wikipedia)", url: "https://en.wikipedia.org/wiki/Optical_fiber", kind: article }
+              - { label: "Fiber-optic communication (Wikipedia)", url: "https://en.wikipedia.org/wiki/Fiber-optic_communication", kind: article }
+              - { label: "Fiber to the x (Wikipedia)", url: "https://en.wikipedia.org/wiki/Fiber_to_the_x", kind: article }
+          - id: satellite-orbits
+            title: Satellite orbits and the speed of light
+            summary: GEO, MEO and LEO satellites differ by altitude, and altitude sets the minimum latency. The physics in a few lines of arithmetic.
+            learn:
+              - GEO, MEO and LEO altitudes and what each is used for
+              - Why a GEO satellite stays fixed in the sky
+              - Working out minimum latency from distance
+            body: |
+              A satellite link is a radio path from your dish to a satellite and back down to a **ground station** (gateway) on fiber. How high the satellite flies decides how long that trip takes.
+
+              | Orbit | Altitude | Seen from the ground | Examples |
+              |---|---|---|---|
+              | **GEO** (geostationary) | 35,786 km | fixed point in the sky | Viasat, HughesNet, satellite TV |
+              | **MEO** (medium) | about 8,000 km | moves slowly | SES O3b mPOWER, GPS (20,200 km) |
+              | **LEO** (low) | about 340 to 1,200 km | crosses the sky in minutes | Starlink (~550 km), OneWeb (~1,200 km), Amazon Kuiper |
+
+              At 35,786 km a satellite takes exactly one day to orbit, the same as the Earth's spin. Over the equator it seems to hang still, so a fixed dish can point at it forever. One GEO satellite sees about a third of the planet.
+
+              ### The arithmetic
+              Radio travels at about 300,000 km per second, or 300 km per millisecond. A request and its reply each go up and down once:
+
+              - **GEO**: you → satellite → gateway → back → you is 4 × 35,786 km ≈ 143,000 km, which is about **477 ms** before any processing. Real-world round trips are usually 600 ms or more
+              - **LEO at 550 km**: 4 × 550 km ≈ 2,200 km, about **7 ms**. The satellite is rarely straight overhead, so the slant path is longer, and with routing and queues real round trips are about 25 to 60 ms
+              - **Fiber across 1,000 km** of land: light in glass covers about 200 km per ms, so 2,000 km there and back is about 10 ms
+
+              ### Key ideas
+              - No technology lowers the GEO floor of about half a second: it is distance divided by the speed of light
+              - LEO satellites move fast (about 27,000 km/h), so you need many of them and constant handoffs
+              - Latitude matters: near the poles a GEO satellite sits low on the horizon or below it
+            resources:
+              - { label: "Geostationary orbit (Wikipedia)", url: "https://en.wikipedia.org/wiki/Geostationary_orbit", kind: article }
+              - { label: "Low Earth orbit (Wikipedia)", url: "https://en.wikipedia.org/wiki/Low_Earth_orbit", kind: article }
+              - { label: "Medium Earth orbit (Wikipedia)", url: "https://en.wikipedia.org/wiki/Medium_Earth_orbit", kind: article }
+          - id: how-viasat-works
+            title: How geostationary satellite internet works (Viasat)
+            summary: A few very large satellites 35,786 km up, hundreds of spot beams, ground gateways, and proxies that hide the half-second delay from TCP.
+            learn:
+              - The path from your dish to a Viasat gateway
+              - High-throughput satellites, spot beams and frequency reuse
+              - Performance-enhancing proxies and why encryption weakens them
+              - Rain fade, shared beams and data priority
+            body: |
+              Viasat, like HughesNet, runs internet service from **geostationary** satellites. A small number of very large satellites cover whole continents.
+
+              ### The path
+              1. Your dish points at one fixed spot in the sky. A transceiver on the dish arm sends and receives in the **Ka band** (around 20 to 30 GHz)
+              2. The satellite receives your signal and relays it down to a **gateway**, a ground station with a large dish
+              3. The gateway is on fiber, and from there your traffic joins the internet
+              4. Replies take the same path in reverse
+
+              ### High-throughput satellites
+              Older satellites used one wide beam for a whole country. **High-throughput satellites** (HTS) like ViaSat-2 and ViaSat-3 use hundreds of narrow **spot beams**. Beams far enough apart reuse the same frequencies, so total capacity multiplies. ViaSat-3 class satellites were designed for about 1 Tbps each. The first one, launched in 2023, had its large antenna fail to deploy fully, which cut its usable capacity.
+
+              Everyone under one spot beam shares that beam's capacity. Plans therefore come with priority data: after a monthly amount, your traffic can be slowed when the beam is busy.
+
+              ### Hiding the delay: PEPs
+              With about 600 ms round trips, TCP's handshake and slow start crawl. Viasat's modem and gateway run **performance-enhancing proxies** (PEPs): the modem acknowledges your TCP data locally and the gateway talks to the real server, so each side sees a short round trip. Encrypted traffic limits this. A proxy cannot touch the insides of TLS, and **QUIC** (HTTP/3) encrypts even its transport headers, so it gets no PEP help at all.
+
+              ### Weaknesses
+              - **Rain fade**: heavy rain absorbs Ka-band signals and can drop the link
+              - Latency of 600 ms or more makes gaming, video calls and remote desktops hard
+              - Capacity is shared across huge areas and adding more means launching a new satellite, which takes years
+
+              ### Strengths
+              Coverage over oceans and sky. Viasat (which bought Inmarsat in 2023) remains strong in aviation, shipping and government links, where wide coverage matters more than latency.
+            resources:
+              - { label: "ViaSat-3 (Wikipedia)", url: "https://en.wikipedia.org/wiki/ViaSat-3", kind: article }
+              - { label: "High-throughput satellite (Wikipedia)", url: "https://en.wikipedia.org/wiki/High-throughput_satellite", kind: article }
+              - { label: "RFC 3135: Performance Enhancing Proxies", url: "https://www.rfc-editor.org/rfc/rfc3135", kind: docs }
+              - { label: "Rain fade (Wikipedia)", url: "https://en.wikipedia.org/wiki/Rain_fade", kind: article }
+          - id: how-starlink-works
+            title: How Starlink works (low Earth orbit)
+            summary: Thousands of small satellites about 550 km up, a dish that steers electronically, handoffs every few seconds, and lasers between satellites.
+            learn:
+              - The constellation, shells and why thousands of satellites are needed
+              - Phased-array dishes and satellite handoffs
+              - Gateways, points of presence and laser links between satellites
+              - Carrier-grade NAT and IPv6 on Starlink
+            body: |
+              Starlink, run by SpaceX, uses **low Earth orbit** satellites, about 550 km up, with some shells lower. Each one crosses your sky in a few minutes, so to always have one overhead the constellation needs thousands. By 2025 there were more than 7,000 in orbit, in several **shells** of different heights and tilts, including polar orbits for high latitudes.
+
+              ### The dish
+              The Starlink dish has no moving parts for tracking. It is a **phased array**: hundreds of small antennas whose signals are timed so the beam points where it needs to, steered electronically in microseconds. The network reassigns your dish to a different satellite on a fixed schedule, about every 15 seconds, and you can see small latency steps at those moments.
+
+              ### The path
+              1. Dish → satellite overhead (Ku band)
+              2. Satellite → a nearby **gateway** ground station (Ka and E bands)
+              3. Gateway → fiber → a Starlink **point of presence** (PoP), where traffic joins the internet
+
+              Where there is no gateway in range, such as mid-ocean, satellites pass traffic to each other over **laser links** in space until one can reach a gateway. Light in a vacuum is about 50% faster than in glass fiber, so on very long routes laser paths can rival undersea cable.
+
+              ### Addresses
+              Most residential Starlink users sit behind **carrier-grade NAT**, with a `100.64.0.0/10` address, so hosting a server or opening ports does not work. Starlink also gives out IPv6, which reaches you directly.
+
+              ### Limits
+              - Each satellite beam covers a cell on the ground, and everyone in the cell shares it. Busy areas slow at peak times, which is why Starlink caps signups or charges more in some regions
+              - The dish needs a clear view of the sky. Trees and buildings cause short drops
+              - Satellites last about five years before they are deorbited, so the fleet must be replaced constantly
+              - Astronomers report the satellites interfere with telescope images
+            resources:
+              - { label: "Starlink technology (Starlink)", url: "https://www.starlink.com/technology", kind: docs }
+              - { label: "Starlink (Wikipedia)", url: "https://en.wikipedia.org/wiki/Starlink", kind: article }
+              - { label: "Phased array (Wikipedia)", url: "https://en.wikipedia.org/wiki/Phased_array", kind: article }
+              - { label: "Laser communication in space (Wikipedia)", url: "https://en.wikipedia.org/wiki/Laser_communication_in_space", kind: article }
+          - id: viasat-vs-starlink
+            title: Viasat vs Starlink, and why Starlink feels faster
+            summary: The two side by side. Starlink wins mostly on latency, which comes from being 65 times closer, plus far more total capacity in orbit.
+            learn:
+              - A side-by-side comparison of GEO and LEO service
+              - The four reasons Starlink is faster
+              - Where Viasat and GEO still make sense
+            body: |
+              | | Viasat (GEO) | Starlink (LEO) |
+              |---|---|---|
+              | Altitude | 35,786 km | about 550 km |
+              | Round-trip latency | 600 ms or more | 25 to 60 ms |
+              | Typical download | 25 to 150 Mbps | 50 to 250 Mbps |
+              | Satellites | a handful, very large | thousands, small |
+              | Dish | fixed, pointed once | phased array, steered electronically |
+              | Coverage per satellite | about a third of Earth | a small area, moving |
+              | Poles | poor | covered by polar shells |
+              | Upgrade cycle | a new satellite every few years | launches every few days |
+
+              ### Why Starlink is faster
+              1. **Distance.** 35,786 ÷ 550 ≈ 65. Starlink's satellites are about 65 times closer, so the round trip drops from about half a second to tens of milliseconds. This is the biggest difference you feel
+              2. **Latency multiplies.** Opening a page needs several round trips: DNS, the TCP handshake, the TLS handshake, then the request. At 600 ms that is two to three seconds before the first byte. At 40 ms it is under 200 ms
+              3. **More capacity in orbit.** Thousands of satellites, each with many beams over small cells, add up to far more total capacity than a few GEO satellites, so each user has more to share
+              4. **Faster iteration.** SpaceX launches new satellite versions constantly. A GEO operator gets one new design every few years
+
+              Raw Mbps is the smallest part of the gap. A 100 Mbps Viasat plan and a 100 Mbps Starlink plan download a big file at similar speed, but everything interactive feels completely different.
+
+              ### Where GEO still makes sense
+              - Wide coverage with a few satellites, such as aircraft and ships over oceans
+              - One-to-many broadcast, such as satellite TV
+              - Places where LEO service is not licensed
+
+              ### Both lose to fiber
+              Fiber gives 1 to 10 ms, gigabit symmetric speeds, no weather and no sharing a beam with a whole region. Satellite is for places fiber cannot reach.
+            resources:
+              - { label: "Satellite internet access (Wikipedia)", url: "https://en.wikipedia.org/wiki/Satellite_Internet_access", kind: article }
+              - { label: "Starlink (Wikipedia)", url: "https://en.wikipedia.org/wiki/Starlink", kind: article }
+              - { label: "ViaSat-3 (Wikipedia)", url: "https://en.wikipedia.org/wiki/ViaSat-3", kind: article }
+          - id: latency-vs-bandwidth
+            title: Why latency matters more than bandwidth
+            summary: Bandwidth is how wide the pipe is, latency is how long it is. TCP throughput, page loads and calls all depend on the round-trip time.
+            learn:
+              - Bandwidth, latency and jitter
+              - The bandwidth-delay product and TCP window limits
+              - Counting round trips in a page load
+            body: |
+              **Bandwidth** is how many bits per second a link can carry. **Latency** is how long one bit takes to get there and back (the round-trip time, RTT). **Jitter** is how much the latency varies.
+
+              ### TCP needs round trips
+              TCP sends a window of data, then waits for acknowledgements before sending more. So its speed is at most:
+
+              `throughput ≤ window size ÷ RTT`
+
+              With a 64 KB window: on a 10 ms fiber link that is about 52 Mbps. On a 600 ms GEO link it is about 0.87 Mbps, whatever plan you pay for. Modern TCP scales the window much larger, but it starts small (**slow start**) and grows once per round trip, so every short transfer pays for the RTT.
+
+              The amount of data "in flight" a link can hold is the **bandwidth-delay product**: a 100 Mbps link with 600 ms RTT holds 7.5 MB in flight. Both ends need buffers that large to fill it.
+
+              ### Counting round trips in a page load
+              1. DNS lookup: 1 RTT
+              2. TCP handshake: 1 RTT
+              3. TLS 1.3 handshake: 1 RTT
+              4. HTTP request and first byte: 1 RTT
+
+              | Link | RTT | 4 round trips |
+              |---|---|---|
+              | Fiber | 10 ms | 40 ms |
+              | Starlink | 40 ms | 160 ms |
+              | GEO satellite | 600 ms | 2.4 s |
+
+              That is before any image, script or API call. This is why CDNs, connection reuse, TLS 1.3 and QUIC (which merges the transport and TLS handshakes) all try to remove round trips.
+
+              ### In practice
+              ```bash
+              ping -c 10 1.1.1.1
+              curl -o /dev/null -s -w 'dns %{time_namelookup} tcp %{time_connect} tls %{time_appconnect} first byte %{time_starttransfer}\n' https://harun.dev
+              ```
+              The `curl` timings show each round trip adding up.
+            resources:
+              - { label: "Bandwidth-delay product (Wikipedia)", url: "https://en.wikipedia.org/wiki/Bandwidth-delay_product", kind: article }
+              - { label: "What is latency? (Cloudflare)", url: "https://www.cloudflare.com/learning/performance/glossary/what-is-latency/", kind: article }
+              - { label: "Round-trip delay (Wikipedia)", url: "https://en.wikipedia.org/wiki/Round-trip_delay", kind: article }
+
       - id: ip-addresses
         title: IP addresses
         summary: Every device on a network needs an address so packets know where to go. Two versions are in use, IPv4 and IPv6.
@@ -363,7 +649,7 @@ stages:
 
       - id: ipv4
         title: IPv4
-        summary: The original 32-bit addresses, the ranges set aside for private use, and why the world ran out.
+        summary: The original 32-bit addresses in depth. Classes, public and private space, unicast, broadcast, multicast and anycast, every special range, and why the world ran out.
         lessons:
           - id: ipv4-format
             title: The IPv4 address format
@@ -390,6 +676,114 @@ stages:
               - { label: "Internet Protocol (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/internet-protocol/", kind: article }
               - { label: "RFC 791: Internet Protocol", url: "https://www.rfc-editor.org/rfc/rfc791", kind: docs }
               - { label: "Internet Protocol version 4 (Wikipedia)", url: "https://en.wikipedia.org/wiki/Internet_Protocol_version_4", kind: article }
+          - id: ipv4-address-classes
+            title: Address classes A to E, and why they ended
+            summary: The first bits of an IPv4 address used to fix the network size. Classes still explain why 10.x, 172.16.x and 224.x look the way they do.
+            learn:
+              - How the leading bits picked class A, B, C, D or E
+              - The size of each class and who got them
+              - Why classful addressing wasted space and CIDR replaced it in 1993
+            body: |
+              Early IPv4 had no subnet masks. Instead, the **first bits** of the address said how much of it was the network and how much was the host. That gave five classes.
+
+              | Class | First bits | First octet | Network part | Hosts per network |
+              |---|---|---|---|---|
+              | A | `0` | 0 to 127 | 8 bits (/8) | 16,777,214 |
+              | B | `10` | 128 to 191 | 16 bits (/16) | 65,534 |
+              | C | `110` | 192 to 223 | 24 bits (/24) | 254 |
+              | D | `1110` | 224 to 239 | multicast groups, no hosts | n/a |
+              | E | `1111` | 240 to 255 | reserved, experimental | n/a |
+
+              A, B and C are **unicast**: one address, one interface. D is **multicast**: an address names a group of receivers, not a machine. E was set aside and is still unused on the internet.
+
+              ### Why classes broke
+              - Sizes jumped from 254 to 65,534 to 16 million. A company with 2,000 machines took a whole class B and left 63,000 addresses empty
+              - Early holders got whole class A blocks, 16 million addresses each, and many still hold them
+              - Routers needed one route per class C, and routing tables exploded
+
+              In 1993 **CIDR** (classless inter-domain routing) replaced classes. A prefix length like `/22` can sit on any bit boundary, so a network gets the size it needs and providers can summarise many customers into one route.
+
+              ### Why classes still matter
+              - The private ranges were picked one per class: `10.0.0.0/8` (one A), `172.16.0.0/12` (16 Bs), `192.168.0.0/16` (256 Cs)
+              - Multicast is still exactly old class D, `224.0.0.0/4`
+              - `240.0.0.0/4` is still old class E, and most operating systems refuse to use it
+              - Old tools and exam questions still say "class C" when they mean a /24
+
+              ### Common mistakes
+              - Assuming a `10.x` address must use a /8 mask: with CIDR it can be any size
+              - Calling every /24 "a class C" in a design document: say /24
+            resources:
+              - { label: "Classful network (Wikipedia)", url: "https://en.wikipedia.org/wiki/Classful_network", kind: article }
+              - { label: "RFC 4632: Classless Inter-domain Routing (CIDR)", url: "https://www.rfc-editor.org/rfc/rfc4632", kind: docs }
+              - { label: "RFC 791: Internet Protocol (original classes)", url: "https://www.rfc-editor.org/rfc/rfc791", kind: docs }
+          - id: ipv4-delivery-types
+            title: Unicast, broadcast, multicast and anycast
+            summary: Four ways to deliver a packet, from one receiver to every device on the link. Public and private are about reach; these are about who receives.
+            learn:
+              - The four delivery types and who receives each packet
+              - How they relate to public and private addresses
+              - Which ones IPv6 keeps and which it drops
+            body: |
+              An address answers two separate questions. **Who receives the packet?** That is the delivery type. **How far can it travel?** That is the scope: public, private or link-local. Keep them apart: "public" is not a type of delivery.
+
+              | Type | Receivers | IPv4 range | Example |
+              |---|---|---|---|
+              | **Unicast** | exactly one interface | most of `0.0.0.0` to `223.255.255.255` | loading a web page |
+              | **Broadcast** | every device on the local network | `255.255.255.255`, or a subnet's last address | DHCP Discover |
+              | **Multicast** | devices that joined the group | `224.0.0.0/4` | IPTV, OSPF, mDNS |
+              | **Anycast** | the nearest of many servers | ordinary unicast addresses | `1.1.1.1`, `8.8.8.8` |
+
+              ### How they fit with public and private
+              - **Unicast** space splits into **public** (globally unique, routed on the internet) and **private** (`10/8`, `172.16/12`, `192.168/16`, reused everywhere). Your laptop's `192.168.1.20` is private unicast. A web server's address is public unicast
+              - **Multicast** has its own scopes too. `224.0.0.0/24` never leaves the local link, and `239.0.0.0/8` is the "private" multicast range for use inside one organisation
+              - **Anycast** has no range of its own. It is a public unicast prefix announced by BGP from many places at once, so the routing system picks the closest copy
+              - **Broadcast** never crosses a router, so it is always local
+
+              ### IPv6
+              IPv6 has no broadcast. Jobs that used broadcast use multicast instead, such as `ff02::1` for "all nodes on this link". Unicast, multicast and anycast all remain.
+
+              ### Example
+              One DHCP Discover goes to `255.255.255.255`. Your printer announces itself with mDNS to `224.0.0.251`. Your browser then reaches `harun.dev` with unicast, and the DNS lookup before it probably hit an anycast resolver.
+            resources:
+              - { label: "What is anycast? (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/glossary/anycast-network/", kind: article }
+              - { label: "Unicast (Wikipedia)", url: "https://en.wikipedia.org/wiki/Unicast", kind: article }
+              - { label: "Routing schemes (Wikipedia)", url: "https://en.wikipedia.org/wiki/Routing#Delivery_schemes", kind: article }
+              - { label: "Multicast address (Wikipedia)", url: "https://en.wikipedia.org/wiki/Multicast_address", kind: article }
+          - id: ipv4-public-ranges
+            title: Public IPv4 addresses and who hands them out
+            summary: Public addresses flow from IANA to five regional registries to ISPs to you. How to find who owns an address, and what bogons are.
+            learn:
+              - The chain from IANA to RIRs to ISPs and customers
+              - The five regional internet registries
+              - Looking up an address with whois and RDAP
+              - Bogons and the smallest prefix BGP will carry
+            body: |
+              A **public** IPv4 address is unique on the whole internet. Uniqueness only works if someone keeps the list, so addresses are handed down a chain.
+
+              1. **IANA** manages the whole space as 256 blocks of size /8
+              2. It gave blocks to five **regional internet registries** (RIRs): **ARIN** (North America), **RIPE NCC** (Europe, Middle East, Central Asia), **APNIC** (Asia-Pacific), **LACNIC** (Latin America) and **AFRINIC** (Africa)
+              3. RIRs allocate smaller blocks to ISPs, clouds and companies, often called LIRs
+              4. The ISP gives your router one address, or shares one among many customers with carrier-grade NAT
+
+              After about 590 million addresses are taken out for private, multicast and reserved use, roughly 3.7 billion public unicast addresses remain, and all of them are allocated.
+
+              ### Key ideas
+              - Some early organisations, such as the US Department of Defense, still hold whole legacy /8 blocks from before the RIRs existed
+              - Most networks on the internet drop BGP routes smaller than a **/24**, so 256 addresses is the smallest block you can announce on your own
+              - **Bogons** are addresses that should never appear on the public internet: private, reserved or never allocated. Networks filter them at the edge, since a packet "from" `10.1.2.3` arriving from the internet is spoofed
+              - The ranges `192.0.2.0/24`, `198.51.100.0/24` and `203.0.113.0/24` exist only for documentation and examples, so a sample never points at a real server
+
+              ### In practice
+              ```bash
+              whois 1.1.1.1
+              curl -s https://rdap.arin.net/registry/ip/8.8.8.8 | head
+              ```
+              `whois` and its newer JSON form, **RDAP**, show the block, the holder and the RIR. A cloud address shows the cloud provider, not the customer using it today.
+            resources:
+              - { label: "IANA IPv4 Address Space Registry", url: "https://www.iana.org/assignments/ipv4-address-space/ipv4-address-space.xhtml", kind: docs }
+              - { label: "Regional Internet registry (Wikipedia)", url: "https://en.wikipedia.org/wiki/Regional_Internet_registry", kind: article }
+              - { label: "Bogon filtering (Wikipedia)", url: "https://en.wikipedia.org/wiki/Bogon_filtering", kind: article }
+              - { label: "RFC 5737: IPv4 address blocks reserved for documentation", url: "https://www.rfc-editor.org/rfc/rfc5737", kind: docs }
           - id: ipv4-special-ranges
             title: IPv4 private and special ranges
             summary: The address blocks you will see every day that never route on the public internet.
@@ -416,6 +810,166 @@ stages:
               - { label: "RFC 6598: shared address space for CGNAT", url: "https://www.rfc-editor.org/rfc/rfc6598", kind: docs }
               - { label: "IPv4 Special-Purpose Address Space (IANA)", url: "https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml", kind: docs }
               - { label: "RFC 3927: Dynamic Configuration of IPv4 Link-Local Addresses", url: "https://www.rfc-editor.org/rfc/rfc3927", kind: docs }
+          - id: ipv4-special-table
+            title: The full IPv4 special-purpose table
+            optional: true
+            summary: Every reserved IPv4 block on one page, what it is for, and whether it can ever appear on the public internet.
+            learn:
+              - Every special-purpose block and its RFC
+              - Which blocks are private, which are local and which are only for examples
+              - The difference between not forwarded and not globally reachable
+            body: |
+              IANA keeps a registry of every IPv4 block that is not ordinary public unicast. These are the ones you will meet.
+
+              | Block | Name | Use | On the internet? |
+              |---|---|---|---|
+              | `0.0.0.0/8` | "this network" | `0.0.0.0` as a source before an address is known | no |
+              | `10.0.0.0/8` | private (RFC 1918) | homes, offices, clouds | no |
+              | `100.64.0.0/10` | shared address space | ISP carrier-grade NAT | no |
+              | `127.0.0.0/8` | loopback | this machine | no |
+              | `169.254.0.0/16` | link-local | self-assigned when DHCP fails, cloud metadata | no |
+              | `172.16.0.0/12` | private (RFC 1918) | 172.16 to 172.31 only | no |
+              | `192.0.0.0/24` | IETF protocol assignments | special protocol use | no |
+              | `192.0.2.0/24` | TEST-NET-1 | documentation | no |
+              | `192.88.99.0/24` | 6to4 relay anycast | deprecated | no |
+              | `192.168.0.0/16` | private (RFC 1918) | home routers | no |
+              | `198.18.0.0/15` | benchmarking | lab tests of network gear | no |
+              | `198.51.100.0/24` | TEST-NET-2 | documentation | no |
+              | `203.0.113.0/24` | TEST-NET-3 | documentation | no |
+              | `224.0.0.0/4` | multicast | groups of receivers | only inside networks that run it |
+              | `240.0.0.0/4` | reserved (old class E) | unused | no |
+              | `255.255.255.255/32` | limited broadcast | every host on this link | never forwarded |
+
+              ### Key ideas
+              - Everything not in this table, and allocated by an RIR, is public unicast
+              - `169.254.169.254` is the metadata endpoint on AWS, GCP and Azure. It is link-local, so only the VM itself can reach it
+              - Use the TEST-NET blocks in docs, slides and tests instead of real addresses
+              - `0.0.0.0` in a server config means "listen on every interface", not an address you can connect to from elsewhere
+
+              ### Common mistakes
+              - Using `198.18.0.0/15` or `100.64.0.0/10` as a home LAN because they look unused: they clash with VPNs and ISPs
+              - Thinking `240.0.0.0/4` can be reclaimed: most hosts and routers still reject it
+            resources:
+              - { label: "IANA IPv4 Special-Purpose Address Registry", url: "https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml", kind: docs }
+              - { label: "RFC 6890: Special-Purpose IP Address Registries", url: "https://www.rfc-editor.org/rfc/rfc6890", kind: docs }
+              - { label: "Reserved IP addresses (Wikipedia)", url: "https://en.wikipedia.org/wiki/Reserved_IP_addresses", kind: article }
+          - id: ipv4-broadcast
+            title: Broadcast addresses
+            summary: One packet to every device on the local network. Limited and directed broadcast, why a /24 has 254 hosts, and why routers block broadcasts.
+            learn:
+              - Limited broadcast (255.255.255.255) vs directed broadcast
+              - Network and broadcast addresses in every subnet
+              - Who still uses broadcast (DHCP, ARP, Wake-on-LAN)
+              - Broadcast domains, storms and the smurf attack
+            body: |
+              A **broadcast** is a packet every device on the local network must receive and look at. It is how a device talks when it does not yet know who to talk to.
+
+              ### Two kinds
+              - **Limited broadcast** `255.255.255.255`: every host on this link. Routers never forward it
+              - **Directed broadcast**: the last address of a subnet, with all host bits set to 1. For `192.168.1.0/24` it is `192.168.1.255`
+
+              ### Why a /24 has 254 hosts
+              Every subnet loses two addresses. The first, with all host bits 0, names the **network** (`192.168.1.0`). The last is the **broadcast** (`192.168.1.255`). That leaves 254 for hosts. A `/31` is the exception for point-to-point links (RFC 3021), with both addresses usable, and a `/32` is one single host.
+
+              ### Who uses it
+              - **DHCP**: a new device has no address, so it sends Discover from `0.0.0.0` to `255.255.255.255`
+              - **ARP**: "who has 192.168.1.1?" goes to the Ethernet broadcast `ff:ff:ff:ff:ff:ff`. This is a layer 2 broadcast, not an IP one
+              - **Wake-on-LAN** magic packets and some old discovery protocols
+
+              ### Broadcast domains
+              A **broadcast domain** is everywhere a broadcast reaches: one VLAN or one subnet. A router ends it. Every host in the domain spends CPU on every broadcast, which is one reason big flat networks are split into VLANs. A switching loop without spanning tree turns broadcasts into a **broadcast storm** that can take the network down in seconds.
+
+              ### Why routers block directed broadcast
+              In the 1990s the **smurf attack** sent pings to a network's directed broadcast address with the victim's address forged as the source. Every host replied to the victim at once. Since RFC 2644 (1999) routers drop directed broadcasts from outside by default.
+
+              ### Common mistakes
+              - Giving a host the `.0` or `.255` address of its subnet
+              - Expecting a discovery broadcast to reach a device on another subnet: it stops at the router unless a relay (such as a DHCP relay) forwards it
+            resources:
+              - { label: "Broadcast address (Wikipedia)", url: "https://en.wikipedia.org/wiki/Broadcast_address", kind: article }
+              - { label: "What is a smurf DDoS attack? (Cloudflare)", url: "https://www.cloudflare.com/learning/ddos/smurf-ddos-attack/", kind: article }
+              - { label: "RFC 2644: Changing the default for directed broadcasts in routers", url: "https://www.rfc-editor.org/rfc/rfc2644", kind: docs }
+              - { label: "RFC 3021: Using 31-bit prefixes on point-to-point links", url: "https://www.rfc-editor.org/rfc/rfc3021", kind: docs }
+          - id: ipv4-multicast-ranges
+            title: The IPv4 multicast ranges
+            summary: 224.0.0.0/4 split into blocks with different reach, from link-only control traffic to the private 239.0.0.0/8.
+            learn:
+              - Why multicast exists and what a group address is
+              - The local network control block and well-known groups
+              - Source-specific (232/8), GLOP (233/8) and administratively scoped (239/8) blocks
+              - How TTL and scope keep multicast contained
+            body: |
+              **Multicast** sends one packet to a group. The sender transmits once, and the network copies the packet only where branches split toward receivers. A thousand viewers of one TV channel cost the sender the same as one.
+
+              A multicast address names a **group**, not a machine. It is only ever a destination. The source address is always the sender's normal unicast address.
+
+              | Block | Name | Reach |
+              |---|---|---|
+              | `224.0.0.0/24` | Local network control | this link only, never routed, TTL 1 |
+              | `224.0.1.0/24` | Internetwork control | may be routed |
+              | `232.0.0.0/8` | Source-specific multicast (SSM) | routed, receivers pick the source |
+              | `233.0.0.0/8` | GLOP | a /24 per 16-bit AS number |
+              | `239.0.0.0/8` | Administratively scoped | inside one organisation, like private space |
+
+              ### Well-known groups on your LAN
+              - `224.0.0.1` all hosts, `224.0.0.2` all routers
+              - `224.0.0.5` and `224.0.0.6` OSPF routers, `224.0.0.9` RIPv2, `224.0.0.13` PIM
+              - `224.0.0.18` VRRP (router failover), `224.0.0.22` IGMPv3 reports
+              - `224.0.0.251` mDNS (Bonjour, `printer.local`), `224.0.0.252` LLMNR
+              - `224.0.1.1` NTP
+              - `239.255.255.250` SSDP, used by UPnP, smart TVs and Chromecast discovery
+
+              ### Key ideas
+              - `239.0.0.0/8` is to multicast what `10.0.0.0/8` is to unicast: reuse it freely inside your network, and block it at the border
+              - `232.0.0.0/8` needs no shared meeting point because receivers name the exact source they want
+              - The TTL field and boundary filters on routers stop groups from leaking farther than intended
+              - Multicast normally runs over UDP, since TCP cannot do one-to-many
+
+              ### In practice
+              ```bash
+              netstat -g        # Linux: groups this host has joined
+              tcpdump -n 'net 224.0.0.0/4'
+              ```
+              On a home network you will see mDNS and SSDP chatter within a minute.
+            resources:
+              - { label: "IANA IPv4 Multicast Address Space Registry", url: "https://www.iana.org/assignments/multicast-addresses/multicast-addresses.xhtml", kind: docs }
+              - { label: "RFC 5771: IANA guidelines for IPv4 multicast address assignments", url: "https://www.rfc-editor.org/rfc/rfc5771", kind: docs }
+              - { label: "RFC 2365: Administratively scoped IP multicast", url: "https://www.rfc-editor.org/rfc/rfc2365", kind: docs }
+              - { label: "Multicast address (Wikipedia)", url: "https://en.wikipedia.org/wiki/Multicast_address", kind: article }
+          - id: ipv4-multicast-how
+            title: How multicast is delivered (IGMP, snooping, PIM)
+            summary: Hosts join groups with IGMP, switches listen in with snooping, and routers build delivery trees with PIM.
+            learn:
+              - Joining and leaving a group with IGMP
+              - IGMP snooping and why switches need it
+              - PIM sparse mode, rendezvous points and source-specific multicast
+              - How a group address maps to an Ethernet MAC address
+            body: |
+              Multicast needs three pieces: hosts saying which groups they want, switches sending the traffic only to those ports, and routers building a tree from the source to every receiver.
+
+              ### 1. Hosts join with IGMP
+              A host that wants group `239.1.1.1` sends an **IGMP membership report**. The local router asks every so often "who still wants which groups?" and drops a group when nobody answers. IGMPv2 added a fast **leave** message. **IGMPv3** lets a host say "only from this source", which source-specific multicast needs. IPv6 does the same job with MLD.
+
+              ### 2. Switches snoop
+              A plain switch treats multicast like broadcast and floods it to every port. With **IGMP snooping**, the switch reads the IGMP messages and forwards each group only to ports that joined. Without it, one 4K IPTV stream can swamp every device on the VLAN.
+
+              ### 3. Routers build trees with PIM
+              - **PIM sparse mode**: routers send joins toward a **rendezvous point** (RP), a meeting router that sources and receivers both know. Traffic starts on this shared tree, then routers can switch to the shortest path from the source
+              - **Source-specific multicast** (SSM, `232/8`): the receiver names source and group, written (S, G), so routers join straight toward the source and no RP is needed
+              - **RPF check**: a router accepts a multicast packet only on the interface that leads back toward the source. That one rule stops loops
+
+              ### MAC address mapping
+              Ethernet carries multicast to MAC `01:00:5e` plus the low 23 bits of the group. `239.255.255.250` becomes `01:00:5e:7f:ff:fa`. A group has 28 variable bits, so 32 groups share each MAC address, and the host's IP stack filters the rest.
+
+              ### Why the public internet does not do multicast
+              Inter-domain multicast was tried (the MBone in the 1990s), but ISPs had no way to bill it and it was hard to run safely. Today multicast lives inside networks: ISP IPTV, stock exchange market data feeds, OSPF, and mDNS on your LAN. Streaming services reach you with unicast from CDNs instead.
+            resources:
+              - { label: "Internet Group Management Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Internet_Group_Management_Protocol", kind: article }
+              - { label: "IGMP snooping (Wikipedia)", url: "https://en.wikipedia.org/wiki/IGMP_snooping", kind: article }
+              - { label: "Protocol Independent Multicast (Wikipedia)", url: "https://en.wikipedia.org/wiki/Protocol_Independent_Multicast", kind: article }
+              - { label: "RFC 3376: IGMPv3", url: "https://www.rfc-editor.org/rfc/rfc3376", kind: docs }
+              - { label: "RFC 4607: Source-Specific Multicast for IP", url: "https://www.rfc-editor.org/rfc/rfc4607", kind: docs }
+              - { label: "RFC 7761: PIM Sparse Mode", url: "https://www.rfc-editor.org/rfc/rfc7761", kind: docs }
           - id: ipv4-exhaustion
             title: Running out of IPv4
             summary: The last free IPv4 blocks were handed out in 2011. NAT, carrier-grade NAT and buying addresses keep IPv4 going.

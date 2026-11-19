@@ -33,6 +33,12 @@ class RoadmapAccessTest extends TestCase
         $this->assertFalse(RoadmapAccess::canAccessPaid(null));
     }
 
+    public function test_admin_always_has_paid_access(): void
+    {
+        $this->assertTrue(RoadmapAccess::canAccessPaid(User::factory()->create(['role' => 'admin'])));
+        $this->assertFalse(RoadmapAccess::canAccessPaid(User::factory()->create()));
+    }
+
     public function test_monthly_five_dollars_or_more_unlocks(): void
     {
         $user = User::factory()->create();

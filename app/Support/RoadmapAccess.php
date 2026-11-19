@@ -30,6 +30,11 @@ final class RoadmapAccess
             return false;
         }
 
+        // Admins write the paid stages, so they must always see them.
+        if ($user->isAdmin()) {
+            return true;
+        }
+
         $email = $user->email_verified_at && $user->email ? strtolower($user->email) : null;
 
         if ($email && RoadmapAccessGrant::query()->active()->whereRaw('lower(email) = ?', [$email])->exists()) {
