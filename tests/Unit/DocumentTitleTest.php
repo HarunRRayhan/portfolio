@@ -33,6 +33,11 @@ class DocumentTitleTest extends TestCase
             'auth title never becomes Laravel' => ['Log in', null, 'Log in - Harun R. Rayhan'],
             'placeholder site name is ignored' => ['Profile', 'Laravel', 'Profile - Harun R. Rayhan'],
             'empty site name uses the default' => ['Profile', '', 'Profile - Harun R. Rayhan'],
+            'long title drops the site name' => [
+                'Why Your Terraform State Is More Sensitive Than Your .env File',
+                null,
+                'Why Your Terraform State Is More Sensitive Than Your .env File',
+            ],
         ];
     }
 

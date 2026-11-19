@@ -1,7 +1,7 @@
 ---
 title: "Why Rust Finishes That Loop Before Python, PHP, JavaScript, and Go"
 slug: "why-rust-is-faster-than-python-javascript-php-and-go"
-brief: "Interpreter, compiled+GC, compiled without GC on the path. Same loop. Slide the race to 100x."
+brief: "Interpreter, compiled+GC, compiled without GC on the path. One CPU-bound loop shows why Rust finishes first. Slide the race to 100x."
 publishedAt: "2099-06-01T18:00:00.000Z"
 draft: true
 draftToken: "deae83e5dc92e2055cd6b8e8b40d2ada"

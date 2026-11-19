@@ -27,5 +27,8 @@ export function resolveDocumentTitle(title: string, siteName?: string): string {
         return trimmed;
     }
 
-    return `${trimmed} - ${brand}`;
+    const branded = `${trimmed} - ${brand}`;
+
+    // Search results cut titles near 60 characters; a long title keeps its words, not the brand.
+    return branded.length <= 60 ? branded : trimmed;
 }

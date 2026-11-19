@@ -139,7 +139,7 @@ final class SeoCatalog
 
         $pages['/consultation'] = new SeoMeta(
             title: 'Book a consult | Harun R. Rayhan',
-            description: 'Book a paid DevOps consultation (Pro, Max, or Ultra).',
+            description: 'Book a paid DevOps consultation (Pro, Max, or Ultra) for AWS infrastructure, deploys, scaling, and cloud cost questions.',
             canonicalUrl: $siteUrl.'/consultation',
         );
 
@@ -160,7 +160,7 @@ final class SeoCatalog
         );
 
         $pages['/raystack'] = new SeoMeta(
-            title: 'RayStack: build and review software with coding agents | Harun R. Rayhan',
+            title: 'RayStack: build and review software with coding agents',
             description: 'Open-source skills for Claude Code, Codex, Cursor, and other agents: a full development flow, read-only infrastructure reviews with ranked findings, and working principles.',
             canonicalUrl: $siteUrl.'/raystack',
             ogImage: self::defaultOgImage(),
