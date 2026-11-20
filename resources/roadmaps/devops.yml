@@ -11,6 +11,7 @@ logos:
   - /images/tech/kubernetes.svg
   - /images/tech/terraform.svg
   - /images/tech/github-actions.svg
+builds_on: networking
 
 stages:
   - level: beginner

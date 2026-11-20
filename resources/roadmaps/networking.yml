@@ -509,7 +509,7 @@ stages:
               | Flag | Does |
               |---|---|
               | `-i eth0` / `-i any` | which interface to listen on |
-              | `-n` | no DNS lookups for addresses (`-nn` also keeps port numbers) |
+              | `-n` | no DNS lookups, numeric ports too (older tcpdump needs `-nn` for port numbers) |
               | `-c 100` | stop after 100 packets |
               | `-w file.pcap` | write raw packets to a file instead of printing |
               | `-r file.pcap` | read a saved file |
@@ -1010,7 +1010,7 @@ stages:
               |---|---|---|
               | Source and destination IP (L3) | per host pair | one busy host pair uses one link |
               | 5-tuple: IPs, protocol, ports (L4) | per connection | the usual choice |
-              | Inner headers of a tunnel | per inner flow | needed for VXLAN or GRE |
+              | Inner headers of a tunnel | per inner flow | needed for GRE or IP-in-IP. VXLAN already puts a hash of the inner flow in its outer UDP source port |
 
               ### Example
               On Linux, one route with two next hops:
@@ -1020,7 +1020,7 @@ stages:
                 nexthop via 10.0.13.1 dev eth2
               sysctl -w net.ipv4.fib_multipath_hash_policy=1
               ```
-              Policy `1` hashes on the 5-tuple. The default `0` uses only the addresses. FRR installs ECMP routes on its own when OSPF or IS-IS finds equal costs, up to `maximum-paths` (64 by default). BGP has its own `maximum-paths` setting.
+              Policy `1` hashes on the 5-tuple. The default `0` uses only the addresses. FRR installs ECMP routes on its own when OSPF or IS-IS finds equal costs, up to `maximum-paths`, which defaults to the compile-time limit (256 in the official Debian and RPM packages, 16 in a plain source build). BGP has its own `maximum-paths` setting.
 
               ### Key ideas
               - Costs must tie exactly. Use the same link speeds and costs on parallel paths
@@ -1187,7 +1187,7 @@ stages:
 
               ### Common mistakes
               - Dropping all ICMP "for security", then chasing hanging connections
-              - Forgetting `flush ruleset`, so reloads stack duplicate tables
+              - Forgetting `flush ruleset`, so each reload appends another copy of every rule to the existing table
               - Allowing SSH from anywhere when a fixed address or a VPN would do
             resources:
               - { label: "Simple ruleset for a server (nftables wiki)", url: "https://wiki.nftables.org/wiki-nftables/index.php/Simple_ruleset_for_a_server", kind: docs }
@@ -1516,7 +1516,7 @@ stages:
               Set `AllowedIPs = 0.0.0.0/0, ::/0` instead for a full tunnel. `PersistentKeepalive` keeps a NAT mapping open when the peer sits behind NAT.
 
               ### Common mistakes
-              - Two peers with overlapping `AllowedIPs`: the last one configured wins the route
+              - Giving two peers the same prefix in `AllowedIPs`: a prefix belongs to one peer only, so the later one takes it from the earlier. Different overlapping prefixes use the longest match
               - Forgetting IP forwarding and NAT on the server, so clients connect but reach nothing past it
             resources:
               - { label: "WireGuard (official site)", url: "https://www.wireguard.com/", kind: docs }
