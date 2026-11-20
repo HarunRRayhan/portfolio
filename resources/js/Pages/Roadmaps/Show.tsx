@@ -155,8 +155,9 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
 
 
       <section id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" hidden={tab !== 'overview'} className="relative mx-auto max-w-5xl px-4 pb-24 sm:px-6 lg:px-8">
-        {/* The spine: left edge on phones, centre from md up. Starts behind the first stage label. */}
-        <div aria-hidden className="absolute bottom-24 left-[2.1rem] top-12 w-0.5 bg-slate-300 sm:left-[2.6rem] md:left-1/2 md:-translate-x-1/2 dark:bg-slate-700" />
+        <div className="relative">
+        {/* The spine: left edge on phones, centre from md up. Runs from the first stop to the last one, not past it. */}
+        <div aria-hidden className="absolute bottom-0 left-[2.1rem] top-12 w-0.5 bg-slate-300 sm:left-[2.6rem] md:left-1/2 md:-translate-x-1/2 dark:bg-slate-700" />
 
         {roadmap.prerequisites.length > 0 && (
           <PathStop
@@ -213,6 +214,7 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
             </span>
           </div>
         )}
+        </div>
         <p className="relative z-10 mt-10 text-sm text-slate-500 md:text-center dark:text-slate-400">
           Last updated <time dateTime={roadmap.updatedAt}>{formatDate(roadmap.updatedAt)}</time>
         </p>
@@ -227,7 +229,8 @@ type RoadmapLink = { slug: string; title: string; summary: string }
 /** A stop on the path outside the levels: prerequisites before Beginner, follow-on roadmaps after Advanced. */
 function PathStop({ label, note, links, accent = false }: { label: string; note: string; links: RoadmapLink[]; accent?: boolean }) {
   return (
-    <div className="relative z-10 py-8">
+    // The last stop has no bottom padding, so the spine ends at its cards.
+    <div className={cn('relative z-10 pt-8', !accent && 'pb-8')}>
       <div className="flex md:justify-center">
         <span
           className={cn(
