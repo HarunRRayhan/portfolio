@@ -104,7 +104,8 @@ const products: Product[] = [
         description:
             "Simple tools for Shopify merchants. Starting with Pixel Tracker for ad performance and ROAS, with more apps in development.",
         logo: "/images/products/appnary-icon.png",
-        backdrop: "bg-[#eef0fb]"
+        backdrop: "bg-[#eef0fb]",
+        status: "In development"
     },
     {
         id: "amazingplugins",
@@ -115,7 +116,8 @@ const products: Product[] = [
         description:
             "Free WooCommerce plugins, each built to solve one specific problem. Fix accessibility issues or clean up stale orders without an upgrade pitch.",
         logo: "/images/products/amazingplugins.jpg",
-        backdrop: "bg-[#f5f0df]"
+        backdrop: "bg-[#f5f0df]",
+        status: "MVP released"
     },
     {
         id: "raystack",
@@ -126,7 +128,8 @@ const products: Product[] = [
         description:
             "Open-source agent skills: a full development flow from idea to shipped code, plus read-only reviews for cost, security, bottlenecks, scaling, and databases.",
         logo: "/images/products/raystack.svg",
-        backdrop: "bg-[#e7eff1]"
+        backdrop: "bg-[#e7eff1]",
+        status: "MVP released"
     }
 ]
 
