@@ -6,10 +6,10 @@ export function HarunBrandMark({ className, ...rest }: ImgHTMLAttributes<HTMLIma
   return (
     <img
       alt=""
-      width={400}
-      height={400}
+      width={160}
+      height={160}
       {...rest}
-      src={getImageUrl('/images/profile/harun-bio.jpg')}
+      src={getImageUrl('/images/profile/harun-bio-160.jpg')}
       className={cn('block rounded-[22%] object-cover', className)}
     />
   )

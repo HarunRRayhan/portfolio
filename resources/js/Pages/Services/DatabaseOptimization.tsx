@@ -79,7 +79,7 @@ export default function DatabaseOptimization({ canonicalUrl }: { canonicalUrl?: 
           backgroundImage="/service-assets/database-optimization/hero.jpg"
         />
         <div className="container mx-auto px-4 py-4">
-          <Link href="/services" className="inline-flex items-center text-amber-600 hover:text-amber-700 dark:hover:text-amber-300 font-medium">
+          <Link href="/services" className="inline-flex items-center text-amber-700 dark:text-amber-500 hover:text-amber-800 dark:hover:text-amber-300 font-medium">
             <ArrowRight className="w-4 h-4 mr-2 rotate-180" />
             Back to Services
           </Link>
