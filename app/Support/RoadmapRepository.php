@@ -181,6 +181,8 @@ final class RoadmapRepository
                         $lesson['bodyHtml'] = filled($lesson['body'] ?? null)
                             ? Str::markdown((string) $lesson['body'], ['html_input' => 'strip', 'allow_unsafe_links' => false])
                             : null;
+                        // Diagrams live in public/images and are served from the media CDN like other images.
+                        $lesson['bodyHtml'] = $lesson['bodyHtml'] ? preg_replace_callback('#src="(/images/[^"]+)"#', fn ($m) => 'src="'.e(Cdn::url($m[1])).'"', $lesson['bodyHtml']) : null;
                         $resources = array_values(array_filter(array_map(
                             fn (array $r) => $this->resource($r, $blog), $lesson['resources'] ?? [],
                         )));

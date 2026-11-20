@@ -97,8 +97,10 @@ export function SkillsSection() {
 
                             <div className="mt-4 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-3">
                                 <Image
-                                    src={getImageUrl('/images/aws-certifications.webp')}
+                                    src={getImageUrl('/images/aws-certifications-800.webp')}
                                     alt="AWS certifications"
+                                    width={800}
+                                    height={723}
                                     className="h-auto w-full rounded-lg object-contain"
                                     loading="lazy"
                                     decoding="async"

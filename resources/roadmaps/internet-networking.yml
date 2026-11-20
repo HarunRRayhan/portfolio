@@ -333,6 +333,8 @@ stages:
               3. A **splitter**, just a piece of shaped glass, divides it into 32 or 64 fibers, one per home, up to about 20 km from the OLT
               4. The **ONT** (optical network terminal) on your wall turns light into Ethernet for your router
 
+              ![An OLT at the exchange feeding one fiber into a passive splitter that fans out to 32 home ONTs, with GPON and XGS-PON wavelengths](/images/roadmaps/internet-networking/pon-tree.svg)
+
               ### Sharing one fiber
               - **Downstream** the OLT sends one stream on one wavelength, and every ONT receives all of it. Each ONT keeps only frames for itself, and traffic is encrypted per home
               - **Upstream** all ONTs share one wavelength, so the OLT gives each a **time slot** (TDMA). Otherwise their light would collide at the splitter
@@ -395,6 +397,8 @@ stages:
               | **LEO** (low) | about 340 to 1,200 km | crosses the sky in minutes | Starlink (~550 km), OneWeb (~1,200 km), Amazon Kuiper |
 
               At 35,786 km a satellite takes exactly one day to orbit, the same as the Earth's spin. Over the equator it seems to hang still, so a fixed dish can point at it forever. One GEO satellite sees about a third of the planet.
+
+              ![A dish on the ground reaching a gateway through a LEO satellite at 550 km and a GEO satellite at 35,786 km, with minimum round trips of about 7 ms and 477 ms](/images/roadmaps/internet-networking/geo-vs-leo.svg)
 
               ### The arithmetic
               Radio travels at about 300,000 km per second, or 300 km per millisecond. A request and its reply each go up and down once:
@@ -694,6 +698,8 @@ stages:
               | D | `1110` | 224 to 239 | multicast groups, no hosts | n/a |
               | E | `1111` | 240 to 255 | reserved, experimental | n/a |
 
+              ![The IPv4 space by first octet drawn to scale: class A is half, B a quarter, C an eighth, D and E a sixteenth each, with private and special ranges marked](/images/roadmaps/internet-networking/ipv4-map.svg)
+
               A, B and C are **unicast**: one address, one interface. D is **multicast**: an address names a group of receivers, not a machine. E was set aside and is still unused on the internet.
 
               ### Why classes broke
@@ -946,6 +952,8 @@ stages:
               - How a group address maps to an Ethernet MAC address
             body: |
               Multicast needs three pieces: hosts saying which groups they want, switches sending the traffic only to those ports, and routers building a tree from the source to every receiver.
+
+              ![Unicast sends one copy per viewer over the shared link; multicast sends one copy that a router splits toward receivers that joined](/images/roadmaps/internet-networking/multicast-tree.svg)
 
               ### 1. Hosts join with IGMP
               A host that wants group `239.1.1.1` sends an **IGMP membership report**. The local router asks every so often "who still wants which groups?" and drops a group when nobody answers. IGMPv2 added a fast **leave** message. **IGMPv3** lets a host say "only from this source", which source-specific multicast needs. IPv6 does the same job with MLD.
