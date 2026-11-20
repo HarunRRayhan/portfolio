@@ -681,7 +681,7 @@ stages:
               |---|---|---|---|
               | DOCSIS 3.0 | 2006 | **channel bonding**: many 6 or 8 MHz channels used at once | about 1 Gbps / 200 Mbps with 32×8 |
               | DOCSIS 3.1 | 2013 | **OFDM**: wide channels of thousands of subcarriers, up to 4096-QAM | 10 Gbps / 1 to 2 Gbps |
-              | DOCSIS 4.0 | 2017 | spectrum up to 1.8 GHz, or full duplex | 10 Gbps / 6 Gbps |
+              | DOCSIS 4.0 | 2020 | spectrum up to 1.8 GHz, or full duplex | 10 Gbps / 6 Gbps |
 
               ### Key ideas
               - **Shared node.** Everyone on the node shares the same downstream and upstream channels. At 9 pm, when the street streams video, each home gets less
