@@ -1,6 +1,6 @@
 slug: networking
 title: Networking
-summary: Build and run real networks. Wi-Fi, switches and VLANs, packet capture, routing inside a network, firewalls, VPNs, network design and email. Builds on How the Internet Works.
+summary: The technical roadmap for engineers. IPv4 and IPv6 in depth, switching and VLANs, subnets, NAT, routing protocols, TCP and TLS internals, firewalls, VPNs, load balancers, BGP, network design and email, with real commands and configs. Builds on How the Internet Works.
 order: 1
 category: foundations
 updated: '2026-11-20'
