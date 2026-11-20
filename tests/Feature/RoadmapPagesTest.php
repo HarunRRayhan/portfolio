@@ -137,10 +137,15 @@ class RoadmapPagesTest extends TestCase
     public function test_builds_on_is_shown(): void
     {
         $this->get('/roadmaps/mlops')->assertOk()->assertInertia(fn ($page) => $page
-            ->where('roadmap.buildsOn.slug', 'devops')
-            ->where('roadmap.buildsOn.title', 'DevOps'));
-        $this->get('/roadmaps/devops')->assertInertia(fn ($page) => $page->where('roadmap.buildsOn.slug', 'networking'));
-        $this->get('/roadmaps/internet-networking')->assertInertia(fn ($page) => $page->where('roadmap.buildsOn', null));
+            ->where('roadmap.prerequisites.0.slug', 'devops')
+            ->where('roadmap.prerequisites.0.title', 'DevOps')
+            ->where('roadmap.successors', []));
+        $this->get('/roadmaps/devops')->assertInertia(fn ($page) => $page
+            ->where('roadmap.prerequisites.0.slug', 'networking')
+            ->where('roadmap.successors.0.slug', 'sre'));
+        $this->get('/roadmaps/internet-networking')->assertInertia(fn ($page) => $page
+            ->where('roadmap.prerequisites', [])
+            ->where('roadmap.successors.0.slug', 'networking'));
     }
 
     public function test_views_are_counted_and_shown(): void

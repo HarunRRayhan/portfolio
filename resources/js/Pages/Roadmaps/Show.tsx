@@ -1,5 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react'
-import { AlertTriangle, Bookmark, Check, Eye, Heart, Lock, Share2, MessageSquare, Users } from 'lucide-react'
+import { ArrowRight, Bookmark, Check, Eye, Flag, Heart, Lock, Share2, MessageSquare, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { ShareButton } from '@/Components/ShareButton'
 import { Comments, type RoadmapComment } from '@/Components/Roadmap/Comments'
@@ -21,7 +21,7 @@ type TopicNodeData = {
 type Stage = { level: string; title: string; locked: boolean; topics: TopicNodeData[] }
 
 type Props = {
-  roadmap: { slug: string; title: string; summary: string; buildsOn: { slug: string; title: string } | null; updatedAt: string; art: RoadmapArtData }
+  roadmap: { slug: string; title: string; summary: string; prerequisites: RoadmapLink[]; successors: RoadmapLink[]; updatedAt: string; art: RoadmapArtData }
   stages: Stage[]
   hasPaidAccess: boolean
   started: boolean
@@ -75,17 +75,6 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
         <RoadmapArt art={roadmap.art} size="hero" className="mt-6" />
         <h1 className="mt-8 text-4xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-5xl">{roadmap.title}</h1>
         <p className="mt-4 text-lg leading-8 text-slate-600 dark:text-slate-300">{roadmap.summary}</p>
-        {roadmap.buildsOn && (
-          <div className="mt-6 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden />
-            <p>
-              <strong>Learn {roadmap.buildsOn.title} first.</strong> This roadmap builds on it and assumes you know its basics.{' '}
-              <Link href={`/roadmaps/${roadmap.buildsOn.slug}`} className="font-semibold underline underline-offset-2">
-                Open the {roadmap.buildsOn.title} roadmap
-              </Link>
-            </p>
-          </div>
-        )}
 
         <div className="mt-8 flex flex-wrap items-center gap-3">
           {!started && (
@@ -169,6 +158,14 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
         {/* The spine: left edge on phones, centre from md up. Starts behind the first stage label. */}
         <div aria-hidden className="absolute bottom-24 left-[2.1rem] top-12 w-0.5 bg-slate-300 sm:left-[2.6rem] md:left-1/2 md:-translate-x-1/2 dark:bg-slate-700" />
 
+        {roadmap.prerequisites.length > 0 && (
+          <PathStop
+            label="Prerequisites"
+            note={roadmap.prerequisites.length === 1 ? 'Finish this roadmap first. This one assumes you know it.' : 'Finish these roadmaps first. This one assumes you know them.'}
+            links={roadmap.prerequisites}
+          />
+        )}
+
         {stages.map((stage, i) => {
           // Topic numbers run 1, 2, 3 … down the whole roadmap.
           const offset = stages.slice(0, i).reduce((n, st) => n + st.topics.length, 0)
@@ -207,16 +204,57 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
           )
         })}
 
-        <div className="relative z-10 flex pt-10 md:justify-center">
-          <span className="inline-flex items-center gap-2 rounded-full border-2 border-amber-500 bg-white px-5 py-2 text-sm font-semibold text-amber-700 dark:bg-slate-950 dark:text-amber-400">
-            <Check className="h-4 w-4" /> Finish
-          </span>
-        </div>
+        {roadmap.successors.length > 0 ? (
+          <PathStop label="Continue with" note="Done with Advanced? These roadmaps build on this one." links={roadmap.successors} accent />
+        ) : (
+          <div className="relative z-10 flex pt-10 md:justify-center">
+            <span className="inline-flex items-center gap-2 rounded-full border-2 border-amber-500 bg-white px-5 py-2 text-sm font-semibold text-amber-700 dark:bg-slate-950 dark:text-amber-400">
+              <Check className="h-4 w-4" /> Finish
+            </span>
+          </div>
+        )}
         <p className="relative z-10 mt-10 text-sm text-slate-500 md:text-center dark:text-slate-400">
           Last updated <time dateTime={roadmap.updatedAt}>{formatDate(roadmap.updatedAt)}</time>
         </p>
       </section>
 
+    </div>
+  )
+}
+
+type RoadmapLink = { slug: string; title: string; summary: string }
+
+/** A stop on the path outside the levels: prerequisites before Beginner, follow-on roadmaps after Advanced. */
+function PathStop({ label, note, links, accent = false }: { label: string; note: string; links: RoadmapLink[]; accent?: boolean }) {
+  return (
+    <div className="relative z-10 py-8">
+      <div className="flex md:justify-center">
+        <span
+          className={cn(
+            'inline-flex items-center gap-2 rounded-full border-2 bg-white px-5 py-2 text-sm font-semibold dark:bg-slate-950',
+            accent ? 'border-amber-500 text-amber-700 dark:text-amber-400' : 'border-slate-400 text-slate-700 dark:border-slate-500 dark:text-slate-200',
+          )}
+        >
+          {accent ? <ArrowRight className="h-4 w-4" aria-hidden /> : <Flag className="h-4 w-4" aria-hidden />} {label}
+        </span>
+      </div>
+      <p className="mt-3 pl-12 text-sm text-slate-500 md:pl-0 md:text-center dark:text-slate-400">{note}</p>
+      <ul className="mt-4 flex flex-col gap-3 pl-12 md:items-center md:pl-0">
+        {links.map((r) => (
+          <li key={r.slug} className="w-full md:max-w-xl">
+            <Link
+              href={`/roadmaps/${r.slug}`}
+              className="group flex items-center gap-3 rounded-xl border-2 border-slate-200 bg-white px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-400 hover:shadow-md dark:border-slate-700 dark:bg-slate-900"
+            >
+              <span className="min-w-0 flex-1">
+                <span className="block font-semibold text-slate-900 dark:text-white">{r.title}</span>
+                <span className="mt-0.5 line-clamp-2 block text-xs text-slate-500 dark:text-slate-400">{r.summary}</span>
+              </span>
+              <ArrowRight className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-amber-600" aria-hidden />
+            </Link>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
