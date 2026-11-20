@@ -1,6 +1,6 @@
 slug: mlops
 title: MLOps
-summary: DevOps for machine learning. Take models from a notebook to production, then keep them honest.
+summary: DevOps for machine learning. Take models from a notebook to production, then keep them honest. Covers data versioning, tracking, packaging, and evaluation.
 order: 5
 category: ai-ml
 updated: '2026-11-16'
