@@ -65,6 +65,10 @@ class RoadmapContentTest extends TestCase
                             $this->assertIsString($lesson['body'], "{$lw}: body must be Markdown text");
                             $this->assertLessThanOrEqual(3000, strlen($lesson['body']), "{$lw}: keep the body short");
                             // Raw HTML is stripped when rendered (RoadmapRepository), so a `<` in prose or code is safe.
+                            preg_match_all('#\]\((/images/[^)\s]+)\)#', $lesson['body'], $imgs);
+                            foreach ($imgs[1] as $img) {
+                                $this->assertFileExists(public_path(ltrim($img, '/')), "{$lw}: missing image {$img}");
+                            }
                             $this->assertStringNotContainsString('<script', (string) Str::markdown($lesson['body'], ['html_input' => 'strip']), $lw);
                         }
                         $this->assertNotEmpty($lesson['resources'] ?? [], "{$lw}: no resources");
@@ -87,6 +91,15 @@ class RoadmapContentTest extends TestCase
                 }
             }
         }
+    }
+
+    public function test_lesson_diagrams_render_through_the_media_cdn(): void
+    {
+        config(['services.assets.base_url' => 'https://cdn.example.test']);
+        $repo = new RoadmapRepository;
+        $topic = $repo->findTopic($repo->find('internet-networking'), 'access-networks');
+        $lesson = collect($topic['topic']['lessons'])->firstWhere('id', 'satellite-orbits');
+        $this->assertStringContainsString('<img src="https://cdn.example.test/images/roadmaps/internet-networking/geo-vs-leo.svg"', $lesson['bodyHtml']);
     }
 
     public function test_builds_on_points_at_a_real_roadmap(): void
