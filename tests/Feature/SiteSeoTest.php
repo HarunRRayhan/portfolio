@@ -104,7 +104,7 @@ class SiteSeoTest extends TestCase
         $response->assertOk();
 
         $this->assertStringContainsString(
-            'name="description" content="Products built by Harun R. Rayhan - CloudPloy, SkaleAgents, Toolblip, Crontinel, Appnary, Amazing Plugins, and RayStack."',
+            'name="description" content="Products built by Harun R. Rayhan - CloudPloy, OpsAgent, SocialReins, SkaleAgents, Toolblip, Crontinel, Appnary, Amazing Plugins, and RayStack."',
             $response->getContent(),
         );
     }
@@ -124,7 +124,7 @@ class SiteSeoTest extends TestCase
 
         $list = $graphs('/products')->firstWhere('@type', 'ItemList');
         $this->assertSame(['CloudPloy', 1], [$list['itemListElement'][0]['name'] ?? null, $list['itemListElement'][0]['position'] ?? null]);
-        $this->assertCount(7, $list['itemListElement']);
+        $this->assertCount(9, $list['itemListElement']);
     }
 
     #[Test]
