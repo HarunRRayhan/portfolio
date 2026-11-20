@@ -3,7 +3,7 @@ title: How the Internet Works
 summary: From what a network is to how BGP holds the whole internet together. Learn the layers in order, one topic at a time.
 order: 1
 category: foundations
-updated: '2026-11-19'
+updated: '2026-11-20'
 icon: globe
 color: sky
 logos:
@@ -997,7 +997,7 @@ stages:
 
       - id: ipv6-basics
         title: IPv6
-        summary: 128-bit addresses, so every device can have its own public address. How to read them and how devices get one.
+        summary: 128-bit addresses in depth. Address types, every special block, how public space is handed out, Neighbor Discovery and multicast scopes.
         lessons:
           - id: ipv6-addresses
             title: The IPv6 address format
@@ -1052,6 +1052,91 @@ stages:
               - { label: "RFC 4291: IPv6 addressing", url: "https://www.rfc-editor.org/rfc/rfc4291", kind: docs }
               - { label: "RFC 4193: Unique Local IPv6 Unicast Addresses", url: "https://www.rfc-editor.org/rfc/rfc4193", kind: docs }
               - { label: "IPv6 Special-Purpose Address Space (IANA)", url: "https://www.iana.org/assignments/iana-ipv6-special-registry/iana-ipv6-special-registry.xhtml", kind: docs }
+          - id: ipv6-special-table
+            title: The full IPv6 special-purpose table
+            optional: true
+            summary: Every IPv6 block you will meet in configs and logs, what it is for, and whether it can appear on the public internet.
+            learn:
+              - The special blocks and what each one means
+              - Transition blocks such as NAT64, 6to4 and Teredo
+              - Documentation prefixes to use in examples
+              - How anycast works in IPv6
+            body: |
+              IANA keeps a registry of IPv6 blocks with special meaning, just as it does for IPv4. Everything else inside `2000::/3` that an RIR has allocated is ordinary public unicast.
+
+              | Block | Name | Use | On the internet? |
+              |---|---|---|---|
+              | `::/128` | unspecified | source before an address is known, like `0.0.0.0` | no |
+              | `::1/128` | loopback | this machine | no |
+              | `::ffff:0:0/96` | IPv4-mapped | how a dual-stack socket shows an IPv4 peer, such as `::ffff:192.0.2.1` | no |
+              | `64:ff9b::/96` | NAT64 well-known prefix | IPv6-only clients reaching IPv4 servers | through a NAT64 gateway |
+              | `100::/64` | discard-only | send unwanted traffic to nowhere (blackholing) | no |
+              | `2000::/3` | global unicast | public addresses | yes |
+              | `2001::/32` | Teredo | old tunnelling of IPv6 over IPv4 UDP | mostly gone |
+              | `2001:db8::/32` | documentation | examples and docs | no |
+              | `3fff::/20` | documentation (2024) | larger examples | no |
+              | `2002::/16` | 6to4 | old automatic tunnelling | deprecated |
+              | `fc00::/7` | unique local (ULA) | private addresses inside a site, use `fd00::/8` | no |
+              | `fe80::/10` | link-local | one link only, on every interface | never forwarded |
+              | `ff00::/8` | multicast | groups, with built-in scope | only within its scope |
+
+              ### Key ideas
+              - There is **no broadcast** block. "All nodes on this link" is the multicast group `ff02::1`
+              - Link-local addresses are not unique across links, so you must name the interface: `ping fe80::1%en0`
+              - `fec0::/10` (site-local) appears in old books. It was deprecated in 2004 and replaced by ULA
+              - **Anycast** has no prefix of its own. It is a normal unicast address configured on many devices, and routing picks the nearest. Every subnet also has a **subnet-router anycast** address, the prefix with an all-zero interface ID, which reaches any router on that subnet
+
+              ### Common mistakes
+              - Using real-looking prefixes in docs instead of `2001:db8::/32`
+              - Thinking `::ffff:` addresses mean the traffic is IPv6: the packet on the wire is IPv4
+            resources:
+              - { label: "IANA IPv6 Special-Purpose Address Registry", url: "https://www.iana.org/assignments/iana-ipv6-special-registry/iana-ipv6-special-registry.xhtml", kind: docs }
+              - { label: "IPv6 address (Wikipedia)", url: "https://en.wikipedia.org/wiki/IPv6_address", kind: article }
+              - { label: "RFC 6052: IPv6 addressing of IPv4/IPv6 translators (NAT64)", url: "https://www.rfc-editor.org/rfc/rfc6052", kind: docs }
+              - { label: "RFC 3849: IPv6 documentation prefix", url: "https://www.rfc-editor.org/rfc/rfc3849", kind: docs }
+          - id: ipv6-public-allocation
+            title: How public IPv6 space is handed out
+            summary: Registries give ISPs a /32, sites get a /48 or /56, and every LAN gets a /64. How the bits split and why there are so many.
+            learn:
+              - The 48 + 16 + 64 bit layout of a global address
+              - Who gets a /32, /48, /56 and /64
+              - Prefix delegation to home routers
+              - The smallest IPv6 route BGP will carry
+            body: |
+              Public IPv6 addresses come down the same chain as IPv4: **IANA** gives large blocks from `2000::/3` to the five **RIRs**, the RIRs allocate to ISPs and companies, and they assign to customers. The difference is size. Nobody counts single addresses, only prefixes.
+
+              ### The layout of a global address
+              | Bits | Part | Chosen by |
+              |---|---|---|
+              | first 48 | global routing prefix | registry and ISP |
+              | next 16 | subnet ID | you, up to 65,536 subnets |
+              | last 64 | interface ID | the device (SLAAC) or DHCPv6 |
+
+              ### Typical sizes
+              - **/32**: a usual first allocation to an ISP. It holds 65,536 /48s
+              - **/48**: a site or company. 65,536 subnets
+              - **/56**: a common home connection. 256 subnets
+              - **/64**: one LAN or VLAN. About 18 quintillion addresses, and always this size, because SLAAC needs a 64-bit interface ID
+
+              ### Prefix delegation
+              Your ISP gives your home router a prefix, such as a /56, using **DHCPv6 prefix delegation** (DHCPv6-PD). The router then carves one /64 per network (main Wi-Fi, guest Wi-Fi, IoT) and announces each with router advertisements. No NAT is needed: every device gets a public address, and the router's firewall decides what is allowed in.
+
+              ### Key ideas
+              - Most networks accept IPv6 routes in BGP only down to **/48**, the IPv6 version of the IPv4 /24 rule
+              - Some ISPs hand out only a /64, which leaves no room for subnets at home. Ask for a /56 or /48
+              - Address scanning, routine in IPv4, is useless in IPv6: one /64 is too large to sweep
+
+              ### In practice
+              ```bash
+              ip -6 addr show scope global      # Linux
+              ifconfig en0 | grep inet6         # macOS
+              ```
+              Addresses starting with `2` or `3` are global. Compare the first 56 or 64 bits on two devices to see the shared prefix.
+            resources:
+              - { label: "RFC 6177: IPv6 address assignment to end sites", url: "https://www.rfc-editor.org/rfc/rfc6177", kind: docs }
+              - { label: "RIPE-690: best current practice for IPv6 prefix assignment", url: "https://www.ripe.net/publications/docs/ripe-690/", kind: docs }
+              - { label: "Prefix delegation (Wikipedia)", url: "https://en.wikipedia.org/wiki/Prefix_delegation", kind: article }
+              - { label: "IANA IPv6 Global Unicast Address Assignments", url: "https://www.iana.org/assignments/ipv6-unicast-address-assignments/ipv6-unicast-address-assignments.xhtml", kind: docs }
           - id: slaac
             title: How a device gets an IPv6 address
             summary: Routers announce the network prefix and devices build their own address (SLAAC), with DHCPv6 as the other option.
@@ -1078,6 +1163,94 @@ stages:
               - { label: "RFC 8981: temporary IPv6 addresses", url: "https://www.rfc-editor.org/rfc/rfc8981", kind: docs }
               - { label: "IPv6 stateless address autoconfiguration (Wikipedia)", url: "https://en.wikipedia.org/wiki/Stateless_address_autoconfiguration", kind: article }
               - { label: "RFC 4861: Neighbor Discovery for IP version 6", url: "https://www.rfc-editor.org/rfc/rfc4861", kind: docs }
+
+          - id: ipv6-neighbor-discovery
+            title: Neighbor Discovery, the IPv6 replacement for ARP
+            summary: IPv6 finds neighbours, routers and duplicate addresses with ICMPv6 messages sent to multicast groups, not broadcasts.
+            learn:
+              - The five Neighbor Discovery messages
+              - Solicited-node multicast and why it beats ARP broadcast
+              - Duplicate address detection
+              - RA Guard and other ND security
+            body: |
+              IPv4 uses ARP broadcasts to find a neighbour's MAC address. IPv6 has no broadcast, so **Neighbor Discovery** (NDP) does the job with ICMPv6 messages sent to multicast groups.
+
+              | ICMPv6 type | Message | Job |
+              |---|---|---|
+              | 133 | Router Solicitation | "any routers here?" sent to `ff02::2` |
+              | 134 | Router Advertisement | prefix, default router, DNS, sent to `ff02::1` |
+              | 135 | Neighbor Solicitation | "who has this address?" |
+              | 136 | Neighbor Advertisement | "I do, here is my MAC" |
+              | 137 | Redirect | "use a better next hop" |
+
+              ### Solicited-node multicast
+              A Neighbor Solicitation does not go to everyone. It goes to the target's **solicited-node** group: `ff02::1:ff` plus the last 24 bits of the address. For `2001:db8::abcd:1234` that group is `ff02::1:ffcd:1234`, carried on Ethernet as `33:33:ff:cd:12:34`. Only the few hosts whose addresses end in those 24 bits listen, so other machines' network cards drop the frame without waking the CPU. ARP interrupts every host on the LAN.
+
+              ### Duplicate address detection
+              Before using a new address, a device sends a Neighbor Solicitation for it from `::`. If anyone answers, the address is taken and the device must not use it. This is **DAD**, and it runs for SLAAC addresses as well as manual ones.
+
+              ### Key ideas
+              - NDP is ICMPv6, so a firewall that blocks all ICMPv6 breaks IPv6 completely
+              - The neighbour cache is the IPv6 ARP table: `ip -6 neigh` on Linux, `ndp -a` on macOS
+              - Anyone on the LAN can send a fake Router Advertisement and become everyone's router. Switches with **RA Guard** drop RAs from ports that are not routers
+              - **SEND** (secure ND) exists but almost nobody deploys it, so switch features do the protecting
+
+              ### In practice
+              ```bash
+              ip -6 neigh                           # Linux neighbour cache
+              sudo tcpdump -n icmp6                 # watch NS, NA and RA messages
+              ```
+            resources:
+              - { label: "RFC 4861: Neighbor Discovery for IP version 6", url: "https://www.rfc-editor.org/rfc/rfc4861", kind: docs }
+              - { label: "Neighbor Discovery Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Neighbor_Discovery_Protocol", kind: article }
+              - { label: "Solicited-node multicast address (Wikipedia)", url: "https://en.wikipedia.org/wiki/Solicited-node_multicast_address", kind: article }
+              - { label: "RFC 6105: IPv6 Router Advertisement Guard", url: "https://www.rfc-editor.org/rfc/rfc6105", kind: docs }
+          - id: ipv6-multicast
+            title: IPv6 multicast and scopes
+            summary: Every IPv6 multicast address carries its own scope, from one interface to the whole internet. The format, the well-known groups and MLD.
+            learn:
+              - The ff, flags and scope fields of a multicast address
+              - Scopes from interface-local to global
+              - Well-known groups such as ff02::1 and ff02::2
+              - MLD, the IPv6 version of IGMP, and Ethernet mapping
+            body: |
+              IPv6 relies on multicast far more than IPv4, because it has no broadcast. Every multicast address starts with `ff` and then says, inside the address itself, how far it may travel.
+
+              ### The format
+              `ff` + 4 flag bits + 4 scope bits + a 112-bit group ID. In `ff02::1`, the flags are `0` (a permanent, well-known group) and the scope is `2` (link-local).
+
+              | Scope | Name | Reach |
+              |---|---|---|
+              | `1` | interface-local | loopback only, this interface |
+              | `2` | link-local | one link, never routed |
+              | `4` | admin-local | smallest area an admin sets up |
+              | `5` | site-local | one site |
+              | `8` | organization-local | many sites of one organisation |
+              | `e` | global | the whole internet |
+
+              A router needs no extra boundary lists to stop an `ff05::` packet at the edge of a site: the scope is in the address. Compare IPv4, where `239.0.0.0/8` needs manual filters.
+
+              ### Well-known groups
+              - `ff02::1` all nodes, `ff02::2` all routers
+              - `ff02::5` and `ff02::6` OSPFv3, `ff02::9` RIPng, `ff02::d` PIM
+              - `ff02::16` MLDv2 reports, `ff02::fb` mDNS
+              - `ff02::1:2` DHCPv6 servers and relays on the link, `ff05::1:3` all DHCPv6 servers on the site
+              - `ff02::1:ffXX:XXXX` solicited-node groups, used by Neighbor Discovery
+
+              ### Flags
+              - **T**: 1 means a temporary group, not assigned by IANA
+              - **P**: the group is built from a unicast prefix, so every network gets its own unique groups
+              - **R**: the rendezvous point address is embedded in the group (embedded RP)
+              - Source-specific multicast uses `ff3x::/32`
+
+              ### MLD and Ethernet
+              Hosts join groups with **MLD** (Multicast Listener Discovery), carried in ICMPv6. MLDv2 matches IGMPv3 and supports source filters. Switches use **MLD snooping** the way they use IGMP snooping. On Ethernet, a group maps to MAC `33:33` plus its last 32 bits, so `ff02::1` becomes `33:33:00:00:00:01`.
+            resources:
+              - { label: "RFC 4291: IPv6 addressing (multicast format)", url: "https://www.rfc-editor.org/rfc/rfc4291", kind: docs }
+              - { label: "IANA IPv6 Multicast Address Space Registry", url: "https://www.iana.org/assignments/ipv6-multicast-addresses/ipv6-multicast-addresses.xhtml", kind: docs }
+              - { label: "Multicast Listener Discovery (Wikipedia)", url: "https://en.wikipedia.org/wiki/Multicast_Listener_Discovery", kind: article }
+              - { label: "RFC 3810: MLDv2 for IPv6", url: "https://www.rfc-editor.org/rfc/rfc3810", kind: docs }
+              - { label: "RFC 7346: IPv6 multicast address scopes", url: "https://www.rfc-editor.org/rfc/rfc7346", kind: docs }
 
       - id: packets
         title: Packets
