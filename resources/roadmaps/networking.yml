@@ -273,6 +273,43 @@ stages:
         title: Switching and VLANs
         summary: How an Ethernet switch learns where every device is, how VLANs split one switch into many networks, and how spanning tree stops loops from melting the LAN.
         lessons:
+          - id: mac-addresses-and-ethernet
+            title: MAC addresses and Ethernet
+            optional: true
+            summary: How devices on the same local network find each other at the link layer, before IP comes into play.
+            learn:
+              - What a MAC address is
+              - Ethernet frames
+              - ARP maps IP addresses to MAC addresses
+            body: |
+              A **MAC address** is a 48-bit hardware address burned into a network card, written like `3c:22:fb:12:ab:cd`. It names the card on its local network, not the machine on the wider internet.
+
+              On a LAN, data travels in **Ethernet frames**. A frame has a destination MAC, a source MAC, a type field, the payload and a checksum. Switches read the destination MAC to pick an output port.
+
+              IP addresses are used to find a device, but the last step is by MAC. **ARP** (Address Resolution Protocol) asks the local network "who has this IP?" and the owner replies with its MAC.
+
+              ### Key ideas
+              - MAC addresses work only inside one local network
+              - Frames carry IP packets as their payload
+              - ARP maps an IP address to a MAC address
+              - Routers rewrite the MAC addresses at every hop, but not the IP addresses
+
+              ### In practice
+              ```bash
+              arp -a
+              ```
+              This shows the IP to MAC pairs your machine has learned recently.
+            resources:
+              - { label: "MAC address (Wikipedia)", url: "https://en.wikipedia.org/wiki/MAC_address", kind: article }
+              - { label: "Address Resolution Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Address_Resolution_Protocol", kind: article }
+              - { label: "Ethernet frame (Wikipedia)", url: "https://en.wikipedia.org/wiki/Ethernet_frame", kind: article }
+              - { label: "RFC 826: An Ethernet Address Resolution Protocol", url: "https://www.rfc-editor.org/rfc/rfc826", kind: docs }
+              - { label: "MAC address explained (PowerCert)", url: "https://www.youtube.com/watch?v=TIiQiw7fpsU", kind: video }
+              - { label: "ARP in less than 5 minutes (Practical Networking)", url: "https://www.youtube.com/watch?v=QPi5Nvxaosw", kind: video }
+              - { label: "IEEE OUI registry lookup (IEEE)", url: "https://regauth.standards.ieee.org/standards-ra-web/pub/view.html#registries", kind: tool }
+              - { label: "MAC address vendor lookup (Wireshark OUI lookup)", url: "https://www.wireshark.org/tools/oui-lookup.html", kind: tool }
+              - { label: "ARP explained (PowerCert)", url: "https://www.youtube.com/watch?v=cn8Zxh9bPio", kind: video }
+              - { label: "Packet traveling: how packets move through a network (Practical Networking)", url: "https://www.practicalnetworking.net/series/packet-traveling/packet-traveling/", kind: article }
           - id: mac-learning-forwarding
             title: How a switch learns and forwards
             summary: A switch builds its MAC address table by reading the source of every frame, then forwards, floods or filters each frame using that table.
@@ -490,6 +527,585 @@ stages:
               - { label: "What is LACP in networking? (Network Direction)", url: "https://www.youtube.com/watch?v=z6hStQ3g4ck", kind: video }
               - { label: "EtherChannel explained: concept and configuration (CertBros)", url: "https://www.youtube.com/watch?v=j6-kadxwIFQ", kind: video }
 
+      - id: ipv4-in-depth
+        title: IPv4 in depth
+        summary: Address classes, public and special ranges, broadcast, multicast with IGMP and PIM, and MTU. The technical detail behind the IPv4 basics.
+        lessons:
+          - id: ipv4-address-classes
+            title: Address classes A to E, and why they ended
+            summary: The first bits of an IPv4 address used to fix the network size. Classes still explain why 10.x, 172.16.x and 224.x look the way they do.
+            learn:
+              - How the leading bits picked class A, B, C, D or E
+              - The size of each class and who got them
+              - Why classful addressing wasted space and CIDR replaced it in 1993
+            body: |
+              Early IPv4 had no subnet masks. Instead, the **first bits** of the address said how much of it was the network and how much was the host. That gave five classes.
+
+              | Class | First bits | First octet | Network part | Hosts per network |
+              |---|---|---|---|---|
+              | A | `0` | 0 to 127 | 8 bits (/8) | 16,777,214 |
+              | B | `10` | 128 to 191 | 16 bits (/16) | 65,534 |
+              | C | `110` | 192 to 223 | 24 bits (/24) | 254 |
+              | D | `1110` | 224 to 239 | multicast groups, no hosts | n/a |
+              | E | `1111` | 240 to 255 | reserved, experimental | n/a |
+
+              ![The IPv4 space by first octet drawn to scale: class A is half, B a quarter, C an eighth, D and E a sixteenth each, with private and special ranges marked](/images/roadmaps/internet-networking/ipv4-map.svg)
+
+              A, B and C are **unicast**: one address, one interface. D is **multicast**: an address names a group of receivers, not a machine. E was set aside and is still unused on the internet.
+
+              ### Why classes broke
+              - Sizes jumped from 254 to 65,534 to 16 million. A company with 2,000 machines took a whole class B and left 63,000 addresses empty
+              - Early holders got whole class A blocks, 16 million addresses each, and many still hold them
+              - Routers needed one route per class C, and routing tables exploded
+
+              In 1993 **CIDR** (classless inter-domain routing) replaced classes. A prefix length like `/22` can sit on any bit boundary, so a network gets the size it needs and providers can summarise many customers into one route.
+
+              ### Why classes still matter
+              - The private ranges were picked one per class: `10.0.0.0/8` (one A), `172.16.0.0/12` (16 Bs), `192.168.0.0/16` (256 Cs)
+              - Multicast is still exactly old class D, `224.0.0.0/4`
+              - `240.0.0.0/4` is still old class E, and most operating systems refuse to use it
+              - Old tools and exam questions still say "class C" when they mean a /24
+
+              ### Common mistakes
+              - Assuming a `10.x` address must use a /8 mask: with CIDR it can be any size
+              - Calling every /24 "a class C" in a design document: say /24
+            resources:
+              - { label: "Classful network (Wikipedia)", url: "https://en.wikipedia.org/wiki/Classful_network", kind: article }
+              - { label: "RFC 4632: Classless Inter-domain Routing (CIDR)", url: "https://www.rfc-editor.org/rfc/rfc4632", kind: docs }
+              - { label: "RFC 791: Internet Protocol (original classes)", url: "https://www.rfc-editor.org/rfc/rfc791", kind: docs }
+              - { label: "IP address classes A to E explained (Networking with H)", url: "https://www.youtube.com/watch?v=0dFNpNgiTAA", kind: video }
+              - { label: "Classful addressing, part 1 (Neso Academy)", url: "https://www.youtube.com/watch?v=VkgfyLf1raY", kind: video }
+              - { label: "RFC 1519: the original CIDR specification", url: "https://www.rfc-editor.org/rfc/rfc1519", kind: docs }
+              - { label: "What is CIDR? (AWS)", url: "https://aws.amazon.com/what-is/cidr/", kind: article }
+              - { label: "Classless inter-domain routing (Wikipedia)", url: "https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing", kind: article }
+              - { label: "Subnet cheat sheet and CIDR table (Practical Networking)", url: "https://www.practicalnetworking.net/stand-alone/subnetting-mastery/", kind: course }
+          - id: ipv4-public-ranges
+            title: Public IPv4 addresses and who hands them out
+            summary: Public addresses flow from IANA to five regional registries to ISPs to you. How to find who owns an address, and what bogons are.
+            learn:
+              - The chain from IANA to RIRs to ISPs and customers
+              - The five regional internet registries
+              - Looking up an address with whois and RDAP
+              - Bogons and the smallest prefix BGP will carry
+            body: |
+              A **public** IPv4 address is unique on the whole internet. Uniqueness only works if someone keeps the list, so addresses are handed down a chain.
+
+              1. **IANA** manages the whole space as 256 blocks of size /8
+              2. It gave blocks to five **regional internet registries** (RIRs): **ARIN** (North America), **RIPE NCC** (Europe, Middle East, Central Asia), **APNIC** (Asia-Pacific), **LACNIC** (Latin America) and **AFRINIC** (Africa)
+              3. RIRs allocate smaller blocks to ISPs, clouds and companies, often called LIRs
+              4. The ISP gives your router one address, or shares one among many customers with carrier-grade NAT
+
+              After about 590 million addresses are taken out for private, multicast and reserved use, roughly 3.7 billion public unicast addresses remain, and all of them are allocated.
+
+              ### Key ideas
+              - Some early organisations, such as the US Department of Defense, still hold whole legacy /8 blocks from before the RIRs existed
+              - Most networks on the internet drop BGP routes smaller than a **/24**, so 256 addresses is the smallest block you can announce on your own
+              - **Bogons** are addresses that should never appear on the public internet: private, reserved or never allocated. Networks filter them at the edge, since a packet "from" `10.1.2.3` arriving from the internet is spoofed
+              - The ranges `192.0.2.0/24`, `198.51.100.0/24` and `203.0.113.0/24` exist only for documentation and examples, so a sample never points at a real server
+
+              ### In practice
+              ```bash
+              whois 1.1.1.1
+              curl -s https://rdap.arin.net/registry/ip/8.8.8.8 | head
+              ```
+              `whois` and its newer JSON form, **RDAP**, show the block, the holder and the RIR. A cloud address shows the cloud provider, not the customer using it today.
+            resources:
+              - { label: "IANA IPv4 Address Space Registry", url: "https://www.iana.org/assignments/ipv4-address-space/ipv4-address-space.xhtml", kind: docs }
+              - { label: "Regional Internet registry (Wikipedia)", url: "https://en.wikipedia.org/wiki/Regional_Internet_registry", kind: article }
+              - { label: "Bogon filtering (Wikipedia)", url: "https://en.wikipedia.org/wiki/Bogon_filtering", kind: article }
+              - { label: "RFC 5737: IPv4 address blocks reserved for documentation", url: "https://www.rfc-editor.org/rfc/rfc5737", kind: docs }
+              - { label: "How are internet number resources distributed? (RIPE NCC)", url: "https://www.youtube.com/watch?v=XUIPoEhkFTc", kind: video }
+              - { label: "History of the RIRs (APNIC)", url: "https://www.youtube.com/watch?v=7I0fb2N4wHU", kind: video }
+              - { label: "Number resources, how IANA delegates them (IANA)", url: "https://www.iana.org/numbers", kind: docs }
+              - { label: "Number Resource Organization: the five RIRs", url: "https://www.nro.net/about/rirs/", kind: article }
+              - { label: "RIPEstat: look up any IP prefix", url: "https://stat.ripe.net/", kind: tool }
+              - { label: "ARIN whois lookup", url: "https://search.arin.net/rdap/", kind: tool }
+          - id: ipv4-special-ranges
+            title: IPv4 private and special ranges
+            summary: The address blocks you will see every day that never route on the public internet.
+            learn:
+              - The 10/8, 172.16/12 and 192.168/16 private ranges
+              - Loopback (127.0.0.1) and link-local (169.254/16)
+              - The 100.64/10 range used by carrier-grade NAT
+            body: |
+              Some IPv4 blocks have special meaning and never route on the public internet. You will see them every day in configs and logs.
+
+              ### Key ideas
+              - **Private ranges** (RFC 1918): `10.0.0.0/8`, `172.16.0.0/12` (172.16.0.0 to 172.31.255.255) and `192.168.0.0/16`
+              - **Loopback**: `127.0.0.1` (the whole `127.0.0.0/8`) always means "this machine"
+              - **Link-local**: `169.254.0.0/16`, self-assigned when DHCP fails
+              - **Shared address space** `100.64.0.0/10` is used by ISPs for carrier-grade NAT (CGNAT), and is not private in the same sense as RFC 1918
+              - Cloud networks, VPNs and containers mostly pick from the private ranges
+
+              ### Common mistakes
+              - Treating `172.x.x.x` as all private: only `172.16` to `172.31` is
+              - Seeing a `169.254` address and not realising it means DHCP failed
+              - Picking a private range that clashes with a VPN or another network you will join
+            resources:
+              - { label: "RFC 1918: private address space", url: "https://www.rfc-editor.org/rfc/rfc1918", kind: docs }
+              - { label: "RFC 6598: shared address space for CGNAT", url: "https://www.rfc-editor.org/rfc/rfc6598", kind: docs }
+              - { label: "IPv4 Special-Purpose Address Space (IANA)", url: "https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml", kind: docs }
+              - { label: "RFC 3927: Dynamic Configuration of IPv4 Link-Local Addresses", url: "https://www.rfc-editor.org/rfc/rfc3927", kind: docs }
+              - { label: "Public vs private IP address (PowerCert)", url: "https://www.youtube.com/watch?v=po8ZFG0Xc4Q", kind: video }
+              - { label: "What happens when DHCP fails? APIPA and 169.254 (PowerCert)", url: "https://www.youtube.com/watch?v=0tEjUR6tjBU", kind: video }
+              - { label: "RFC 6890: Special-purpose IP address registries", url: "https://www.rfc-editor.org/rfc/rfc6890", kind: docs }
+              - { label: "RFC 1122: loopback and host requirements", url: "https://www.rfc-editor.org/rfc/rfc1122", kind: docs }
+              - { label: "Carrier-grade NAT (Wikipedia)", url: "https://en.wikipedia.org/wiki/Carrier-grade_NAT", kind: article }
+              - { label: "Link-local address (Wikipedia)", url: "https://en.wikipedia.org/wiki/Link-local_address", kind: article }
+          - id: ipv4-special-table
+            title: The full IPv4 special-purpose table
+            optional: true
+            summary: Every reserved IPv4 block on one page, what it is for, and whether it can ever appear on the public internet.
+            learn:
+              - Every special-purpose block and its RFC
+              - Which blocks are private, which are local and which are only for examples
+              - The difference between not forwarded and not globally reachable
+            body: |
+              IANA keeps a registry of every IPv4 block that is not ordinary public unicast. These are the ones you will meet.
+
+              | Block | Name | Use | On the internet? |
+              |---|---|---|---|
+              | `0.0.0.0/8` | "this network" | `0.0.0.0` as a source before an address is known | no |
+              | `10.0.0.0/8` | private (RFC 1918) | homes, offices, clouds | no |
+              | `100.64.0.0/10` | shared address space | ISP carrier-grade NAT | no |
+              | `127.0.0.0/8` | loopback | this machine | no |
+              | `169.254.0.0/16` | link-local | self-assigned when DHCP fails, cloud metadata | no |
+              | `172.16.0.0/12` | private (RFC 1918) | 172.16 to 172.31 only | no |
+              | `192.0.0.0/24` | IETF protocol assignments | special protocol use | no |
+              | `192.0.2.0/24` | TEST-NET-1 | documentation | no |
+              | `192.88.99.0/24` | 6to4 relay anycast | deprecated | no |
+              | `192.168.0.0/16` | private (RFC 1918) | home routers | no |
+              | `198.18.0.0/15` | benchmarking | lab tests of network gear | no |
+              | `198.51.100.0/24` | TEST-NET-2 | documentation | no |
+              | `203.0.113.0/24` | TEST-NET-3 | documentation | no |
+              | `224.0.0.0/4` | multicast | groups of receivers | only inside networks that run it |
+              | `240.0.0.0/4` | reserved (old class E) | unused | no |
+              | `255.255.255.255/32` | limited broadcast | every host on this link | never forwarded |
+
+              ### Key ideas
+              - Everything not in this table, and allocated by an RIR, is public unicast
+              - `169.254.169.254` is the metadata endpoint on AWS, GCP and Azure. It is link-local, so only the VM itself can reach it
+              - Use the TEST-NET blocks in docs, slides and tests instead of real addresses
+              - `0.0.0.0` in a server config means "listen on every interface", not an address you can connect to from elsewhere
+
+              ### Common mistakes
+              - Using `198.18.0.0/15` or `100.64.0.0/10` as a home LAN because they look unused: they clash with VPNs and ISPs
+              - Thinking `240.0.0.0/4` can be reclaimed: most hosts and routers still reject it
+            resources:
+              - { label: "IANA IPv4 Special-Purpose Address Registry", url: "https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml", kind: docs }
+              - { label: "RFC 6890: Special-Purpose IP Address Registries", url: "https://www.rfc-editor.org/rfc/rfc6890", kind: docs }
+              - { label: "Reserved IP addresses (Wikipedia)", url: "https://en.wikipedia.org/wiki/Reserved_IP_addresses", kind: article }
+              - { label: "RFC 5735: Special use IPv4 addresses (historic)", url: "https://www.rfc-editor.org/rfc/rfc5735", kind: docs }
+              - { label: "RFC 5737: IPv4 documentation blocks", url: "https://www.rfc-editor.org/rfc/rfc5737", kind: docs }
+              - { label: "RFC 1918: private address space", url: "https://www.rfc-editor.org/rfc/rfc1918", kind: docs }
+              - { label: "RFC 6598: shared address space", url: "https://www.rfc-editor.org/rfc/rfc6598", kind: docs }
+              - { label: "Bogon filtering (Wikipedia)", url: "https://en.wikipedia.org/wiki/Bogon_filtering", kind: article }
+          - id: ipv4-broadcast
+            title: Broadcast addresses
+            summary: One packet to every device on the local network. Limited and directed broadcast, why a /24 has 254 hosts, and why routers block broadcasts.
+            learn:
+              - Limited broadcast (255.255.255.255) vs directed broadcast
+              - Network and broadcast addresses in every subnet
+              - Who still uses broadcast (DHCP, ARP, Wake-on-LAN)
+              - Broadcast domains, storms and the smurf attack
+            body: |
+              A **broadcast** is a packet every device on the local network must receive and look at. It is how a device talks when it does not yet know who to talk to.
+
+              ### Two kinds
+              - **Limited broadcast** `255.255.255.255`: every host on this link. Routers never forward it
+              - **Directed broadcast**: the last address of a subnet, with all host bits set to 1. For `192.168.1.0/24` it is `192.168.1.255`
+
+              ### Why a /24 has 254 hosts
+              Every subnet loses two addresses. The first, with all host bits 0, names the **network** (`192.168.1.0`). The last is the **broadcast** (`192.168.1.255`). That leaves 254 for hosts. A `/31` is the exception for point-to-point links (RFC 3021), with both addresses usable, and a `/32` is one single host.
+
+              ### Who uses it
+              - **DHCP**: a new device has no address, so it sends Discover from `0.0.0.0` to `255.255.255.255`
+              - **ARP**: "who has 192.168.1.1?" goes to the Ethernet broadcast `ff:ff:ff:ff:ff:ff`. This is a layer 2 broadcast, not an IP one
+              - **Wake-on-LAN** magic packets and some old discovery protocols
+
+              ### Broadcast domains
+              A **broadcast domain** is everywhere a broadcast reaches: one VLAN or one subnet. A router ends it. Every host in the domain spends CPU on every broadcast, which is one reason big flat networks are split into VLANs. A switching loop without spanning tree turns broadcasts into a **broadcast storm** that can take the network down in seconds.
+
+              ### Why routers block directed broadcast
+              In the 1990s the **smurf attack** sent pings to a network's directed broadcast address with the victim's address forged as the source. Every host replied to the victim at once. Since RFC 2644 (1999) routers drop directed broadcasts from outside by default.
+
+              ### Common mistakes
+              - Giving a host the `.0` or `.255` address of its subnet
+              - Expecting a discovery broadcast to reach a device on another subnet: it stops at the router unless a relay (such as a DHCP relay) forwards it
+            resources:
+              - { label: "Broadcast address (Wikipedia)", url: "https://en.wikipedia.org/wiki/Broadcast_address", kind: article }
+              - { label: "What is a smurf DDoS attack? (Cloudflare)", url: "https://www.cloudflare.com/learning/ddos/smurf-ddos-attack/", kind: article }
+              - { label: "RFC 2644: Changing the default for directed broadcasts in routers", url: "https://www.rfc-editor.org/rfc/rfc2644", kind: docs }
+              - { label: "RFC 3021: Using 31-bit prefixes on point-to-point links", url: "https://www.rfc-editor.org/rfc/rfc3021", kind: docs }
+              - { label: "How to find the broadcast address (System Engineer)", url: "https://www.youtube.com/watch?v=1pZNjRZLNqI", kind: video }
+              - { label: "IPv4 unicast, multicast and broadcast (Neso Academy)", url: "https://www.youtube.com/watch?v=aDdArElVJvQ", kind: video }
+              - { label: "RFC 919: Broadcasting internet datagrams", url: "https://www.rfc-editor.org/rfc/rfc919", kind: docs }
+              - { label: "RFC 922: Broadcasting internet datagrams in the presence of subnets", url: "https://www.rfc-editor.org/rfc/rfc922", kind: docs }
+              - { label: "Broadcast domain (Wikipedia)", url: "https://en.wikipedia.org/wiki/Broadcast_domain", kind: article }
+              - { label: "ipcalc online calculator (jodies.de)", url: "https://jodies.de/ipcalc", kind: tool }
+          - id: ipv4-multicast-ranges
+            title: The IPv4 multicast ranges
+            summary: 224.0.0.0/4 split into blocks with different reach, from link-only control traffic to the private 239.0.0.0/8.
+            learn:
+              - Why multicast exists and what a group address is
+              - The local network control block and well-known groups
+              - Source-specific (232/8), GLOP (233/8) and administratively scoped (239/8) blocks
+              - How TTL and scope keep multicast contained
+            body: |
+              **Multicast** sends one packet to a group. The sender transmits once, and the network copies the packet only where branches split toward receivers. A thousand viewers of one TV channel cost the sender the same as one.
+
+              A multicast address names a **group**, not a machine. It is only ever a destination. The source address is always the sender's normal unicast address.
+
+              | Block | Name | Reach |
+              |---|---|---|
+              | `224.0.0.0/24` | Local network control | this link only, never routed, TTL 1 |
+              | `224.0.1.0/24` | Internetwork control | may be routed |
+              | `232.0.0.0/8` | Source-specific multicast (SSM) | routed, receivers pick the source |
+              | `233.0.0.0/8` | GLOP | a /24 per 16-bit AS number |
+              | `239.0.0.0/8` | Administratively scoped | inside one organisation, like private space |
+
+              ### Well-known groups on your LAN
+              - `224.0.0.1` all hosts, `224.0.0.2` all routers
+              - `224.0.0.5` and `224.0.0.6` OSPF routers, `224.0.0.9` RIPv2, `224.0.0.13` PIM
+              - `224.0.0.18` VRRP (router failover), `224.0.0.22` IGMPv3 reports
+              - `224.0.0.251` mDNS (Bonjour, `printer.local`), `224.0.0.252` LLMNR
+              - `224.0.1.1` NTP
+              - `239.255.255.250` SSDP, used by UPnP, smart TVs and Chromecast discovery
+
+              ### Key ideas
+              - `239.0.0.0/8` is to multicast what `10.0.0.0/8` is to unicast: reuse it freely inside your network, and block it at the border
+              - `232.0.0.0/8` needs no shared meeting point because receivers name the exact source they want
+              - The TTL field and boundary filters on routers stop groups from leaking farther than intended
+              - Multicast normally runs over UDP, since TCP cannot do one-to-many
+
+              ### In practice
+              ```bash
+              netstat -g        # Linux: groups this host has joined
+              tcpdump -n 'net 224.0.0.0/4'
+              ```
+              On a home network you will see mDNS and SSDP chatter within a minute.
+            resources:
+              - { label: "IANA IPv4 Multicast Address Space Registry", url: "https://www.iana.org/assignments/multicast-addresses/multicast-addresses.xhtml", kind: docs }
+              - { label: "RFC 5771: IANA guidelines for IPv4 multicast address assignments", url: "https://www.rfc-editor.org/rfc/rfc5771", kind: docs }
+              - { label: "RFC 2365: Administratively scoped IP multicast", url: "https://www.rfc-editor.org/rfc/rfc2365", kind: docs }
+              - { label: "Multicast address (Wikipedia)", url: "https://en.wikipedia.org/wiki/Multicast_address", kind: article }
+              - { label: "Multicast explained in 5 minutes (Data Knox)", url: "https://www.youtube.com/watch?v=W5oMvrMRM3Q", kind: video }
+              - { label: "RFC 1112: Host extensions for IP multicasting", url: "https://www.rfc-editor.org/rfc/rfc1112", kind: docs }
+              - { label: "RFC 6034: Unicast-prefix-based IPv4 multicast addresses", url: "https://www.rfc-editor.org/rfc/rfc6034", kind: docs }
+              - { label: "RFC 5110: Overview of the internet multicast routing architecture", url: "https://www.rfc-editor.org/rfc/rfc5110", kind: docs }
+              - { label: "IP multicast (Wikipedia)", url: "https://en.wikipedia.org/wiki/IP_multicast", kind: article }
+              - { label: "RFC 3180: GLOP addressing in 233/8", url: "https://www.rfc-editor.org/rfc/rfc3180", kind: docs }
+          - id: ipv4-multicast-how
+            title: How multicast is delivered (IGMP, snooping, PIM)
+            summary: Hosts join groups with IGMP, switches listen in with snooping, and routers build delivery trees with PIM.
+            learn:
+              - Joining and leaving a group with IGMP
+              - IGMP snooping and why switches need it
+              - PIM sparse mode, rendezvous points and source-specific multicast
+              - How a group address maps to an Ethernet MAC address
+            body: |
+              Multicast needs three pieces: hosts saying which groups they want, switches sending the traffic only to those ports, and routers building a tree from the source to every receiver.
+
+              ![Unicast sends one copy per viewer over the shared link; multicast sends one copy that a router splits toward receivers that joined](/images/roadmaps/internet-networking/multicast-tree.svg)
+
+              ### 1. Hosts join with IGMP
+              A host that wants group `239.1.1.1` sends an **IGMP membership report**. The local router asks every so often "who still wants which groups?" and drops a group when nobody answers. IGMPv2 added a fast **leave** message. **IGMPv3** lets a host say "only from this source", which source-specific multicast needs. IPv6 does the same job with MLD.
+
+              ### 2. Switches snoop
+              A plain switch treats multicast like broadcast and floods it to every port. With **IGMP snooping**, the switch reads the IGMP messages and forwards each group only to ports that joined. Without it, one 4K IPTV stream can swamp every device on the VLAN.
+
+              ### 3. Routers build trees with PIM
+              - **PIM sparse mode**: routers send joins toward a **rendezvous point** (RP), a meeting router that sources and receivers both know. Traffic starts on this shared tree, then routers can switch to the shortest path from the source
+              - **Source-specific multicast** (SSM, `232/8`): the receiver names source and group, written (S, G), so routers join straight toward the source and no RP is needed
+              - **RPF check**: a router accepts a multicast packet only on the interface that leads back toward the source. That one rule stops loops
+
+              ### MAC address mapping
+              Ethernet carries multicast to MAC `01:00:5e` plus the low 23 bits of the group. `239.255.255.250` becomes `01:00:5e:7f:ff:fa`. A group has 28 variable bits, so 32 groups share each MAC address, and the host's IP stack filters the rest.
+
+              ### Why the public internet does not do multicast
+              Inter-domain multicast was tried (the MBone in the 1990s), but ISPs had no way to bill it and it was hard to run safely. Today multicast lives inside networks: ISP IPTV, stock exchange market data feeds, OSPF, and mDNS on your LAN. Streaming services reach you with unicast from CDNs instead.
+            resources:
+              - { label: "Internet Group Management Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Internet_Group_Management_Protocol", kind: article }
+              - { label: "IGMP snooping (Wikipedia)", url: "https://en.wikipedia.org/wiki/IGMP_snooping", kind: article }
+              - { label: "Protocol Independent Multicast (Wikipedia)", url: "https://en.wikipedia.org/wiki/Protocol_Independent_Multicast", kind: article }
+              - { label: "RFC 3376: IGMPv3", url: "https://www.rfc-editor.org/rfc/rfc3376", kind: docs }
+              - { label: "RFC 4607: Source-Specific Multicast for IP", url: "https://www.rfc-editor.org/rfc/rfc4607", kind: docs }
+              - { label: "RFC 7761: PIM Sparse Mode", url: "https://www.rfc-editor.org/rfc/rfc7761", kind: docs }
+              - { label: "Introduction to IGMP snooping (CBT Nuggets)", url: "https://www.youtube.com/watch?v=MLCN3CWQVc0", kind: video }
+              - { label: "IGMP, Internet Group Management Protocol (Tall Paul Tech)", url: "https://www.youtube.com/watch?v=MaTkt-wNHRg", kind: video }
+              - { label: "Multicast: IGMP snooping (BitsPlease)", url: "https://www.youtube.com/watch?v=fxORfD-OFdM", kind: video }
+              - { label: "RFC 4541: Considerations for IGMP and MLD snooping switches", url: "https://www.rfc-editor.org/rfc/rfc4541", kind: docs }
+              - { label: "RFC 1112: Host extensions for IP multicasting", url: "https://www.rfc-editor.org/rfc/rfc1112", kind: docs }
+              - { label: "Multicast explained in 5 minutes (Data Knox)", url: "https://www.youtube.com/watch?v=W5oMvrMRM3Q", kind: video }
+          - id: mtu
+            title: MTU and fragmentation
+            optional: true
+            summary: Every link has a maximum packet size. Packets that are too big get split or dropped, which causes odd bugs.
+            learn:
+              - The common 1500-byte MTU
+              - Fragmentation and path MTU discovery
+              - Why VPNs and tunnels lower the MTU
+            body: |
+              Every link has a maximum packet size, called its **MTU** (maximum transmission unit). For Ethernet it is normally 1500 bytes. A packet bigger than the MTU of a link cannot cross it as it is.
+
+              IPv4 routers can **fragment** a big packet into smaller pieces, which are put together again at the destination. That is slow and fragile, so most traffic avoids it. **Path MTU discovery** finds the smallest MTU on the path: the sender marks packets "do not fragment", and a router that cannot forward one replies with an ICMP message. IPv6 routers never fragment.
+
+              ### Key ideas
+              - 1500 bytes is the common Ethernet MTU
+              - Fragmentation is expensive, and path MTU discovery avoids it
+              - VPNs and tunnels add their own headers, so the usable MTU gets smaller
+
+              ### Common mistakes
+              - Blocking all ICMP, so path MTU discovery breaks
+              - Odd bug: small requests work, large ones hang. Check for an MTU problem on a VPN or tunnel
+            resources:
+              - { label: "What is MTU? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-mtu/", kind: article }
+              - { label: "Path MTU Discovery (Wikipedia)", url: "https://en.wikipedia.org/wiki/Path_MTU_Discovery", kind: article }
+              - { label: "Path MTU discovery in practice (Cloudflare)", url: "https://blog.cloudflare.com/path-mtu-discovery-in-practice/", kind: article }
+              - { label: "MTU and IP fragmentation (Network Direction)", url: "https://www.youtube.com/watch?v=1zKwBWtYFHU", kind: video }
+              - { label: "Fragmentation of IPv4 datagram (Gate Smashers)", url: "https://www.youtube.com/watch?v=k8VgrqDOIUo", kind: video }
+              - { label: "RFC 1191: Path MTU discovery", url: "https://www.rfc-editor.org/rfc/rfc1191", kind: docs }
+              - { label: "RFC 8201: Path MTU discovery for IPv6", url: "https://www.rfc-editor.org/rfc/rfc8201", kind: docs }
+              - { label: "RFC 4821: Packetization layer path MTU discovery", url: "https://www.rfc-editor.org/rfc/rfc4821", kind: docs }
+              - { label: "Maximum transmission unit (Wikipedia)", url: "https://en.wikipedia.org/wiki/Maximum_transmission_unit", kind: article }
+
+      - id: ipv6-in-depth
+        title: IPv6 in depth
+        summary: Every special block, how public space is handed out, SLAAC, Neighbor Discovery and multicast scopes.
+        lessons:
+          - id: ipv6-special-table
+            title: The full IPv6 special-purpose table
+            optional: true
+            summary: Every IPv6 block you will meet in configs and logs, what it is for, and whether it can appear on the public internet.
+            learn:
+              - The special blocks and what each one means
+              - Transition blocks such as NAT64, 6to4 and Teredo
+              - Documentation prefixes to use in examples
+              - How anycast works in IPv6
+            body: |
+              IANA keeps a registry of IPv6 blocks with special meaning, just as it does for IPv4. Everything else inside `2000::/3` that an RIR has allocated is ordinary public unicast.
+
+              | Block | Name | Use | On the internet? |
+              |---|---|---|---|
+              | `::/128` | unspecified | source before an address is known, like `0.0.0.0` | no |
+              | `::1/128` | loopback | this machine | no |
+              | `::ffff:0:0/96` | IPv4-mapped | how a dual-stack socket shows an IPv4 peer, such as `::ffff:192.0.2.1` | no |
+              | `64:ff9b::/96` | NAT64 well-known prefix | IPv6-only clients reaching IPv4 servers | through a NAT64 gateway |
+              | `100::/64` | discard-only | send unwanted traffic to nowhere (blackholing) | no |
+              | `2000::/3` | global unicast | public addresses | yes |
+              | `2001::/32` | Teredo | old tunnelling of IPv6 over IPv4 UDP | mostly gone |
+              | `2001:db8::/32` | documentation | examples and docs | no |
+              | `3fff::/20` | documentation (2024) | larger examples | no |
+              | `2002::/16` | 6to4 | old automatic tunnelling | deprecated |
+              | `fc00::/7` | unique local (ULA) | private addresses inside a site, use `fd00::/8` | no |
+              | `fe80::/10` | link-local | one link only, on every interface | never forwarded |
+              | `ff00::/8` | multicast | groups, with built-in scope | only within its scope |
+
+              ### Key ideas
+              - There is **no broadcast** block. "All nodes on this link" is the multicast group `ff02::1`
+              - Link-local addresses are not unique across links, so you must name the interface: `ping fe80::1%en0`
+              - `fec0::/10` (site-local) appears in old books. It was deprecated in 2004 and replaced by ULA
+              - **Anycast** has no prefix of its own. It is a normal unicast address configured on many devices, and routing picks the nearest. Every subnet also has a **subnet-router anycast** address, the prefix with an all-zero interface ID, which reaches any router on that subnet
+
+              ### Common mistakes
+              - Using real-looking prefixes in docs instead of `2001:db8::/32`
+              - Thinking `::ffff:` addresses mean the traffic is IPv6: the packet on the wire is IPv4
+            resources:
+              - { label: "IANA IPv6 Special-Purpose Address Registry", url: "https://www.iana.org/assignments/iana-ipv6-special-registry/iana-ipv6-special-registry.xhtml", kind: docs }
+              - { label: "IPv6 address (Wikipedia)", url: "https://en.wikipedia.org/wiki/IPv6_address", kind: article }
+              - { label: "RFC 6052: IPv6 addressing of IPv4/IPv6 translators (NAT64)", url: "https://www.rfc-editor.org/rfc/rfc6052", kind: docs }
+              - { label: "RFC 3849: IPv6 documentation prefix", url: "https://www.rfc-editor.org/rfc/rfc3849", kind: docs }
+              - { label: "IANA IPv6 address space registry", url: "https://www.iana.org/assignments/ipv6-address-space/ipv6-address-space.xhtml", kind: docs }
+              - { label: "RFC 6890: Special-purpose IP address registries", url: "https://www.rfc-editor.org/rfc/rfc6890", kind: docs }
+              - { label: "RFC 4193: Unique local IPv6 unicast addresses", url: "https://www.rfc-editor.org/rfc/rfc4193", kind: docs }
+              - { label: "RFC 4291: IPv6 addressing architecture", url: "https://www.rfc-editor.org/rfc/rfc4291", kind: docs }
+              - { label: "RFC 9637: Expanding the IPv6 documentation space (3fff::/20)", url: "https://www.rfc-editor.org/rfc/rfc9637", kind: docs }
+              - { label: "RFC 6666: Discard prefix for IPv6 (100::/64)", url: "https://www.rfc-editor.org/rfc/rfc6666", kind: docs }
+          - id: ipv6-public-allocation
+            title: How public IPv6 space is handed out
+            summary: Registries give ISPs a /32, sites get a /48 or /56, and every LAN gets a /64. How the bits split and why there are so many.
+            learn:
+              - The 48 + 16 + 64 bit layout of a global address
+              - Who gets a /32, /48, /56 and /64
+              - Prefix delegation to home routers
+              - The smallest IPv6 route BGP will carry
+            body: |
+              Public IPv6 addresses come down the same chain as IPv4: **IANA** gives large blocks from `2000::/3` to the five **RIRs**, the RIRs allocate to ISPs and companies, and they assign to customers. The difference is size. Nobody counts single addresses, only prefixes.
+
+              ### The layout of a global address
+              | Bits | Part | Chosen by |
+              |---|---|---|
+              | first 48 | global routing prefix | registry and ISP |
+              | next 16 | subnet ID | you, up to 65,536 subnets |
+              | last 64 | interface ID | the device (SLAAC) or DHCPv6 |
+
+              ![A 128-bit IPv6 address split into a 48-bit routing prefix, a 16-bit subnet and a 64-bit interface ID, with /32, /48, /56 and /64 boundaries marked](/images/roadmaps/internet-networking/ipv6-layout.svg)
+
+              ### Typical sizes
+              - **/32**: a usual first allocation to an ISP. It holds 65,536 /48s
+              - **/48**: a site or company. 65,536 subnets
+              - **/56**: a common home connection. 256 subnets
+              - **/64**: one LAN or VLAN. About 18 quintillion addresses, and always this size, because SLAAC needs a 64-bit interface ID
+
+              ### Prefix delegation
+              Your ISP gives your home router a prefix, such as a /56, using **DHCPv6 prefix delegation** (DHCPv6-PD). The router then carves one /64 per network (main Wi-Fi, guest Wi-Fi, IoT) and announces each with router advertisements. No NAT is needed: every device gets a public address, and the router's firewall decides what is allowed in.
+
+              ### Key ideas
+              - Most networks accept IPv6 routes in BGP only down to **/48**, the IPv6 version of the IPv4 /24 rule
+              - Some ISPs hand out only a /64, which leaves no room for subnets at home. Ask for a /56 or /48
+              - Address scanning, routine in IPv4, is useless in IPv6: one /64 is too large to sweep
+
+              ### In practice
+              ```bash
+              ip -6 addr show scope global      # Linux
+              ifconfig en0 | grep inet6         # macOS
+              ```
+              Addresses starting with `2` or `3` are global. Compare the first 56 or 64 bits on two devices to see the shared prefix.
+            resources:
+              - { label: "RFC 6177: IPv6 address assignment to end sites", url: "https://www.rfc-editor.org/rfc/rfc6177", kind: docs }
+              - { label: "RIPE-690: best current practice for IPv6 prefix assignment", url: "https://www.ripe.net/publications/docs/ripe-690/", kind: docs }
+              - { label: "Prefix delegation (Wikipedia)", url: "https://en.wikipedia.org/wiki/Prefix_delegation", kind: article }
+              - { label: "IANA IPv6 Global Unicast Address Assignments", url: "https://www.iana.org/assignments/ipv6-unicast-address-assignments/ipv6-unicast-address-assignments.xhtml", kind: docs }
+              - { label: "RIPE NCC training material, including IPv6 (RIPE NCC)", url: "https://www.ripe.net/training/in-person-training-courses/material/", kind: course }
+              - { label: "How are internet number resources distributed? (RIPE NCC)", url: "https://www.youtube.com/watch?v=XUIPoEhkFTc", kind: video }
+              - { label: "RIPEstat: look up any IPv6 prefix", url: "https://stat.ripe.net/", kind: tool }
+              - { label: "RFC 3177: original IAB recommendations on IPv6 site allocation", url: "https://www.rfc-editor.org/rfc/rfc3177", kind: docs }
+              - { label: "APNIC IPv6 address policy", url: "https://www.apnic.net/community/policy/resources/", kind: docs }
+              - { label: "IPv6 subnet calculator (subnetonline)", url: "https://www.subnetonline.com/pages/subnet-calculators/ipv6-subnet-calculator.php", kind: tool }
+          - id: slaac
+            title: How a device gets an IPv6 address
+            summary: Routers announce the network prefix and devices build their own address (SLAAC), with DHCPv6 as the other option.
+            learn:
+              - Router advertisements and SLAAC
+              - DHCPv6
+              - Temporary privacy addresses
+            body: |
+              In IPv6, a device can get an address without a DHCP server. The router sends **Router Advertisements** (RAs) saying "this is the network prefix". The device adds its own 64-bit interface identifier and has a full address. This is **SLAAC** (stateless address autoconfiguration).
+
+              The device also checks that nobody else is using the address before it takes it.
+
+              ### Key ideas
+              - Routers announce the prefix, devices build their own address
+              - **DHCPv6** is the other option, for sites that want a server to track who has which address
+              - RAs can also tell devices about DNS servers and the default router
+              - **Temporary privacy addresses** are random and change over time, used for outgoing connections so that your device cannot be tracked by a fixed identifier
+
+              ### Common mistakes
+              - Expecting DHCPv6 on every IPv6 network: many use SLAAC only
+              - Blocking ICMPv6 on a firewall, which breaks router advertisements and neighbour discovery
+            resources:
+              - { label: "RFC 4862: stateless address autoconfiguration", url: "https://www.rfc-editor.org/rfc/rfc4862", kind: docs }
+              - { label: "RFC 8981: temporary IPv6 addresses", url: "https://www.rfc-editor.org/rfc/rfc8981", kind: docs }
+              - { label: "IPv6 stateless address autoconfiguration (Wikipedia)", url: "https://en.wikipedia.org/wiki/Stateless_address_autoconfiguration", kind: article }
+              - { label: "RFC 4861: Neighbor Discovery for IP version 6", url: "https://www.rfc-editor.org/rfc/rfc4861", kind: docs }
+              - { label: "IPv6 explained: SLAAC and DHCPv6 (OneMarcFifty)", url: "https://www.youtube.com/watch?v=jlG_nrCOmJc", kind: video }
+              - { label: "IPv6 and SLAAC, Network+ (Professor Messer)", url: "https://www.youtube.com/watch?v=A6WVj82by3Y", kind: video }
+              - { label: "IPv6 stateless addressing: SLAAC, the A-bit and the O-bit (Wendell Odom)", url: "https://www.youtube.com/watch?v=Vm3wm1_oziE", kind: video }
+              - { label: "RFC 8415: DHCPv6", url: "https://www.rfc-editor.org/rfc/rfc8415", kind: docs }
+              - { label: "RFC 7217: Stable, opaque interface identifiers", url: "https://www.rfc-editor.org/rfc/rfc7217", kind: docs }
+              - { label: "RFC 8106: DNS options in router advertisements", url: "https://www.rfc-editor.org/rfc/rfc8106", kind: docs }
+          - id: ipv6-neighbor-discovery
+            title: Neighbor Discovery, the IPv6 replacement for ARP
+            summary: IPv6 finds neighbours, routers and duplicate addresses with ICMPv6 messages sent to multicast groups, not broadcasts.
+            learn:
+              - The five Neighbor Discovery messages
+              - Solicited-node multicast and why it beats ARP broadcast
+              - Duplicate address detection
+              - RA Guard and other ND security
+            body: |
+              IPv4 uses ARP broadcasts to find a neighbour's MAC address. IPv6 has no broadcast, so **Neighbor Discovery** (NDP) does the job with ICMPv6 messages sent to multicast groups.
+
+              | ICMPv6 type | Message | Job |
+              |---|---|---|
+              | 133 | Router Solicitation | "any routers here?" sent to `ff02::2` |
+              | 134 | Router Advertisement | prefix, default router, DNS, sent to `ff02::1` |
+              | 135 | Neighbor Solicitation | "who has this address?" |
+              | 136 | Neighbor Advertisement | "I do, here is my MAC" |
+              | 137 | Redirect | "use a better next hop" |
+
+              ### Solicited-node multicast
+              A Neighbor Solicitation does not go to everyone. It goes to the target's **solicited-node** group: `ff02::1:ff` plus the last 24 bits of the address. For `2001:db8::abcd:1234` that group is `ff02::1:ffcd:1234`, carried on Ethernet as `33:33:ff:cd:12:34`. Only the few hosts whose addresses end in those 24 bits listen, so other machines' network cards drop the frame without waking the CPU. ARP interrupts every host on the LAN.
+
+              ![ARP broadcasts a request to every host, while IPv6 Neighbor Discovery sends it to a solicited-node multicast group that only the target listens to](/images/roadmaps/internet-networking/neighbor-discovery.svg)
+
+              ### Duplicate address detection
+              Before using a new address, a device sends a Neighbor Solicitation for it from `::`. If anyone answers, the address is taken and the device must not use it. This is **DAD**, and it runs for SLAAC addresses as well as manual ones.
+
+              ### Key ideas
+              - NDP is ICMPv6, so a firewall that blocks all ICMPv6 breaks IPv6 completely
+              - The neighbour cache is the IPv6 ARP table: `ip -6 neigh` on Linux, `ndp -a` on macOS
+              - Anyone on the LAN can send a fake Router Advertisement and become everyone's router. Switches with **RA Guard** drop RAs from ports that are not routers
+              - **SEND** (secure ND) exists but almost nobody deploys it, so switch features do the protecting
+
+              ### In practice
+              ```bash
+              ip -6 neigh                           # Linux neighbour cache
+              sudo tcpdump -n icmp6                 # watch NS, NA and RA messages
+              ```
+            resources:
+              - { label: "RFC 4861: Neighbor Discovery for IP version 6", url: "https://www.rfc-editor.org/rfc/rfc4861", kind: docs }
+              - { label: "Neighbor Discovery Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Neighbor_Discovery_Protocol", kind: article }
+              - { label: "Solicited-node multicast address (Wikipedia)", url: "https://en.wikipedia.org/wiki/Solicited-node_multicast_address", kind: article }
+              - { label: "RFC 6105: IPv6 Router Advertisement Guard", url: "https://www.rfc-editor.org/rfc/rfc6105", kind: docs }
+              - { label: "Neighbor Discovery Protocol (RIPE NCC)", url: "https://www.youtube.com/watch?v=A3LFt7CHpgs", kind: video }
+              - { label: "IPv6 Neighbor Discovery Protocol (Sunny Classroom)", url: "https://www.youtube.com/watch?v=a1AQfjWwPaE", kind: video }
+              - { label: "Neighbor Discovery Protocol, IPv6's better ARP (Wendell Odom)", url: "https://www.youtube.com/watch?v=crupCqdfmj8", kind: video }
+              - { label: "Understanding Neighbor Discovery with Wireshark (Aakif Mairaj Mufti)", url: "https://www.youtube.com/watch?v=L_7SMkADKxU", kind: video }
+              - { label: "RFC 4443: ICMPv6", url: "https://www.rfc-editor.org/rfc/rfc4443", kind: docs }
+              - { label: "RFC 3971: SEcure Neighbor Discovery (SEND)", url: "https://www.rfc-editor.org/rfc/rfc3971", kind: docs }
+          - id: ipv6-multicast
+            title: IPv6 multicast and scopes
+            summary: Every IPv6 multicast address carries its own scope, from one interface to the whole internet. The format, the well-known groups and MLD.
+            learn:
+              - The ff, flags and scope fields of a multicast address
+              - Scopes from interface-local to global
+              - Well-known groups such as ff02::1 and ff02::2
+              - MLD, the IPv6 version of IGMP, and Ethernet mapping
+            body: |
+              IPv6 relies on multicast far more than IPv4, because it has no broadcast. Every multicast address starts with `ff` and then says, inside the address itself, how far it may travel.
+
+              ### The format
+              `ff` + 4 flag bits + 4 scope bits + a 112-bit group ID. In `ff02::1`, the flags are `0` (a permanent, well-known group) and the scope is `2` (link-local).
+
+              | Scope | Name | Reach |
+              |---|---|---|
+              | `1` | interface-local | loopback only, this interface |
+              | `2` | link-local | one link, never routed |
+              | `4` | admin-local | smallest area an admin sets up |
+              | `5` | site-local | one site |
+              | `8` | organization-local | many sites of one organisation |
+              | `e` | global | the whole internet |
+
+              A router needs no extra boundary lists to stop an `ff05::` packet at the edge of a site: the scope is in the address. Compare IPv4, where `239.0.0.0/8` needs manual filters.
+
+              ### Well-known groups
+              - `ff02::1` all nodes, `ff02::2` all routers
+              - `ff02::5` and `ff02::6` OSPFv3, `ff02::9` RIPng, `ff02::d` PIM
+              - `ff02::16` MLDv2 reports, `ff02::fb` mDNS
+              - `ff02::1:2` DHCPv6 servers and relays on the link, `ff05::1:3` all DHCPv6 servers on the site
+              - `ff02::1:ffXX:XXXX` solicited-node groups, used by Neighbor Discovery
+
+              ### Flags
+              - **T**: 1 means a temporary group, not assigned by IANA
+              - **P**: the group is built from a unicast prefix, so every network gets its own unique groups
+              - **R**: the rendezvous point address is embedded in the group (embedded RP)
+              - Source-specific multicast uses `ff3x::/32`
+
+              ### MLD and Ethernet
+              Hosts join groups with **MLD** (Multicast Listener Discovery), carried in ICMPv6. MLDv2 matches IGMPv3 and supports source filters. Switches use **MLD snooping** the way they use IGMP snooping. On Ethernet, a group maps to MAC `33:33` plus its last 32 bits, so `ff02::1` becomes `33:33:00:00:00:01`.
+            resources:
+              - { label: "RFC 4291: IPv6 addressing (multicast format)", url: "https://www.rfc-editor.org/rfc/rfc4291", kind: docs }
+              - { label: "IANA IPv6 Multicast Address Space Registry", url: "https://www.iana.org/assignments/ipv6-multicast-addresses/ipv6-multicast-addresses.xhtml", kind: docs }
+              - { label: "Multicast Listener Discovery (Wikipedia)", url: "https://en.wikipedia.org/wiki/Multicast_Listener_Discovery", kind: article }
+              - { label: "RFC 3810: MLDv2 for IPv6", url: "https://www.rfc-editor.org/rfc/rfc3810", kind: docs }
+              - { label: "RFC 7346: IPv6 multicast address scopes", url: "https://www.rfc-editor.org/rfc/rfc7346", kind: docs }
+              - { label: "IPv6 multicast addresses (Rick Graziani)", url: "https://www.youtube.com/watch?v=nTsD9BxmjaQ", kind: video }
+              - { label: "What is a solicited-node multicast group? (CBT Nuggets)", url: "https://www.youtube.com/watch?v=lGjJOhv6sck", kind: video }
+              - { label: "RFC 3306: Unicast-prefix-based IPv6 multicast addresses", url: "https://www.rfc-editor.org/rfc/rfc3306", kind: docs }
+              - { label: "RFC 3956: Embedding the RP address in IPv6 multicast", url: "https://www.rfc-editor.org/rfc/rfc3956", kind: docs }
+              - { label: "IPv6 multicast address (Wikipedia)", url: "https://en.wikipedia.org/wiki/Multicast_address#IPv6", kind: article }
+              - { label: "RFC 4541: IGMP and MLD snooping switches", url: "https://www.rfc-editor.org/rfc/rfc4541", kind: docs }
+
       - id: packet-capture
         title: Packet capture and network troubleshooting
         summary: Stop guessing and look at the packets. tcpdump on servers, Wireshark on your desk, and a step-by-step way to find out where a slow or broken request is going wrong.
@@ -706,6 +1322,322 @@ stages:
   - level: intermediate
     title: Connecting networks safely
     topics:
+      - id: subnets-cidr
+        title: Subnets and CIDR
+        summary: Splitting address space into smaller networks, and reading notation like 10.0.0.0/16.
+        lessons:
+          - id: subnet-masks
+            title: Subnet masks
+            summary: The mask says which part of the address names the network and which part names the host.
+            learn:
+              - Network and host bits
+              - 255.255.255.0 as a /24
+            body: |
+              An IPv4 address has two parts: a **network** part and a **host** part. The **subnet mask** says where the line between them falls.
+
+              A mask is 32 bits: ones for the network part, zeros for the host part. In dotted form, `255.255.255.0` is 24 ones followed by 8 zeros. A device compares an address against its own network using the mask. If the network parts match, the target is on the same local network. If not, the packet goes to the router.
+
+              ### Key ideas
+              - Network bits: identify the subnet
+              - Host bits: identify the device within it
+              - `255.255.255.0` is the same as `/24`
+              - Same network: send directly. Different network: send to the gateway
+
+              ### Example
+              `192.168.1.10` with mask `255.255.255.0`: the network is `192.168.1.0` and the host is `.10`. The address `192.168.1.200` is on the same network. `192.168.2.5` is not.
+            resources:
+              - { label: "What is a subnet? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-a-subnet/", kind: article }
+              - { label: "Subnet (Wikipedia)", url: "https://en.wikipedia.org/wiki/Subnet", kind: article }
+              - { label: "RFC 950: Internet Standard Subnetting Procedure", url: "https://www.rfc-editor.org/rfc/rfc950", kind: docs }
+              - { label: "Subnetting Mastery (Practical Networking)", url: "https://www.practicalnetworking.net/stand-alone/subnetting-mastery/", kind: course }
+              - { label: "What is subnetting? Subnetting Mastery part 1 (Practical Networking)", url: "https://www.youtube.com/watch?v=BWZ-MHIhqjM", kind: video }
+              - { label: "Subnet mask explained (PowerCert)", url: "https://www.youtube.com/watch?v=s_Ntt6eTn94", kind: video }
+              - { label: "IP subnet calculator (Calculator.net)", url: "https://www.calculator.net/ip-subnet-calculator.html", kind: tool }
+              - { label: "IPv4 addressing and subnets (An Introduction to Computer Networks)", url: "https://intronetworks.cs.luc.edu/current/html/ipv4.html", kind: course }
+          - id: cidr-notation
+            title: CIDR notation
+            summary: Read a /16 or a /28 and know how many addresses it holds.
+            learn:
+              - Prefix length
+              - Counting addresses in a block
+            body: |
+              **CIDR** (Classless Inter-Domain Routing) writes a network as an address plus a **prefix length**: `10.0.0.0/16`. The number after the slash is how many bits belong to the network.
+
+              The rest of the bits are for hosts. A block holds 2 to the power of (32 minus prefix) addresses, so a smaller prefix means a bigger block.
+
+              ### Key ideas
+              - `/24` leaves 8 host bits: 256 addresses
+              - `/16` leaves 16 host bits: 65,536 addresses
+              - `/28` leaves 4 host bits: 16 addresses
+              - `/32` is a single address
+              - Each step of one bit doubles or halves the size
+              - Usually a few addresses in each block are reserved (network, broadcast, and in clouds a few more)
+
+              ### Example
+              `10.0.0.0/16` covers `10.0.0.0` to `10.0.255.255`. You could split it into 256 networks of `/24`, such as `10.0.1.0/24`.
+            resources:
+              - { label: "Subnet calculator", url: "https://www.subnet-calculator.com/cidr.php", kind: tool }
+              - { label: "RFC 4632: CIDR", url: "https://www.rfc-editor.org/rfc/rfc4632", kind: docs }
+              - { label: "Classless Inter-Domain Routing (Wikipedia)", url: "https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing", kind: article }
+              - { label: "Interactive CIDR and IP range calculator", url: "https://cidr.xyz/", kind: tool }
+              - { label: "RFC 1878: Variable Length Subnet Table for IPv4", url: "https://www.rfc-editor.org/rfc/rfc1878", kind: docs }
+              - { label: "IPv4 Special-Purpose Address Registry (IANA)", url: "https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml", kind: docs }
+              - { label: "ipcalc: online CIDR and netmask calculator (jodies.de)", url: "https://jodies.de/ipcalc", kind: tool }
+              - { label: "What is network CIDR notation? (Justin Garrison)", url: "https://www.youtube.com/watch?v=tpa9QSiiiUo", kind: video }
+              - { label: "Drawing the subnetting cheat sheet, part 2 (Practical Networking)", url: "https://www.youtube.com/watch?v=ljS07YTEJ2I", kind: video }
+          - id: planning-vpc-subnets
+            title: Planning subnets for a VPC
+            summary: Pick ranges that leave room to grow and do not clash with other networks you will connect to.
+            learn:
+              - Public and private subnets per zone
+              - Avoiding overlapping ranges
+            body: |
+              When you create a cloud network (a VPC), you pick one big private block and split it into subnets. The choices are hard to change later, so plan before you build.
+
+              Typically each availability zone gets a **public** subnet (with a route to an internet gateway) and a **private** subnet (no direct inbound access). Spreading subnets over zones keeps the app up when one zone fails.
+
+              ### Key ideas
+              - Choose a VPC range big enough to grow, such as a `/16`
+              - Use equal-sized subnets per zone and leave unused space for later
+              - Keep databases and app servers in private subnets
+              - **Do not overlap** ranges with other VPCs, offices or VPNs you may connect to, because overlapping networks cannot be routed
+              - Cloud providers reserve a few addresses in every subnet (AWS reserves five)
+
+              ### Example
+              `10.0.0.0/16` for the VPC. Public `10.0.0.0/24` and `10.0.1.0/24`, private `10.0.10.0/24` and `10.0.11.0/24`, across two zones.
+            resources:
+              - { label: "VPC CIDR blocks (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-cidr-blocks.html", kind: docs }
+              - { label: "Subnets for your VPC (AWS)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/configure-subnets.html", kind: docs }
+              - { label: "RFC 1918: Address Allocation for Private Internets", url: "https://www.rfc-editor.org/rfc/rfc1918", kind: docs }
+              - { label: "What is IPAM? (Amazon VPC IP Address Manager docs)", url: "https://docs.aws.amazon.com/vpc/latest/ipam/what-it-is-ipam.html", kind: docs }
+              - { label: "Subnets (Google Cloud VPC docs)", url: "https://cloud.google.com/vpc/docs/subnets", kind: docs }
+              - { label: "Plan for IP addressing (Azure Cloud Adoption Framework)", url: "https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/plan-for-ip-addressing", kind: docs }
+              - { label: "Visual Subnet Calculator: split a range into subnets", url: "https://visualsubnetcalc.com/", kind: tool }
+              - { label: "AWS VPC and subnets for beginners (Sam Meech-Ward)", url: "https://www.youtube.com/watch?v=TUTqYEZZUdc", kind: video }
+
+      - id: nat
+        title: NAT
+        summary: How a whole house or office shares one public IPv4 address, and how gateways connect networks to the internet with IPv4 and IPv6.
+        lessons:
+          - id: source-nat
+            title: Source NAT and port mapping
+            summary: The router rewrites your private address to its public one and remembers which port belongs to whom.
+            learn:
+              - The NAT translation table
+              - Port address translation
+            body: |
+              **Source NAT** lets many private devices share one public IPv4 address. The router rewrites the source address of each outgoing packet from the private address to its own public one.
+
+              Many devices may use the same public address, so the router also changes the source port and records the pair in a **translation table**. This is **port address translation (PAT)**. When a reply comes back to that public address and port, the router looks up the table and sends it to the right device.
+
+              ### Key ideas
+              - Outgoing: private IP and port become public IP and a new port
+              - Incoming replies are matched against the table and translated back
+              - Entries expire after a period without traffic
+              - NAT is what kept IPv4 going
+
+              ### Example
+              `192.168.1.20:51000` goes out as `203.0.113.5:40001`. The reply to `203.0.113.5:40001` is sent back to `192.168.1.20:51000`.
+            resources:
+              - { label: "Network address translation (Wikipedia)", url: "https://en.wikipedia.org/wiki/Network_address_translation", kind: article }
+              - { label: "RFC 3022: traditional NAT", url: "https://www.rfc-editor.org/rfc/rfc3022", kind: docs }
+              - { label: "RFC 2663: IP NAT Terminology and Considerations", url: "https://www.rfc-editor.org/rfc/rfc2663", kind: docs }
+              - { label: "RFC 4787: NAT Behavioral Requirements for Unicast UDP", url: "https://www.rfc-editor.org/rfc/rfc4787", kind: docs }
+              - { label: "RFC 6598: Shared Address Space for carrier-grade NAT (100.64.0.0/10)", url: "https://www.rfc-editor.org/rfc/rfc6598", kind: docs }
+              - { label: "NAT explained, Network Address Translation (PowerCert)", url: "https://www.youtube.com/watch?v=FTUV0t6JaDA", kind: video }
+              - { label: "How NAT traversal works, with a NAT primer (Tailscale)", url: "https://tailscale.com/blog/how-nat-traversal-works", kind: article }
+          - id: nat-inbound
+            title: Why NAT breaks inbound connections
+            summary: Nobody outside can start a connection to a device behind NAT, unless you forward a port or punch a hole.
+            learn:
+              - Port forwarding
+              - NAT traversal for peer-to-peer apps
+            body: |
+              NAT only creates a table entry when a device inside starts a connection. If someone outside tries to connect first, the router has no entry and drops the packet. This makes NAT act like a simple shield, but it breaks servers and peer-to-peer apps at home.
+
+              ### Key ideas
+              - **Port forwarding** is a manual rule: traffic arriving at the public address on port X goes to a chosen internal device and port
+              - Hosting a game server or a camera at home needs it
+              - Two devices that are both behind NAT cannot reach each other directly
+              - **NAT traversal** tricks fix this: STUN learns your public address and port, then both sides send packets at the same moment to "punch a hole" (hole punching)
+              - When that fails, traffic goes through a **relay** server (TURN)
+              - Video calls and games use these techniques (ICE)
+
+              ### Common mistakes
+              - Treating NAT as a security feature: use a real firewall
+              - Forwarding a port to a device that is not updated
+            resources:
+              - { label: "Network address translation (Wikipedia)", url: "https://en.wikipedia.org/wiki/Network_address_translation", kind: article }
+              - { label: "Hole punching (networking) (Wikipedia)", url: "https://en.wikipedia.org/wiki/Hole_punching_(networking)", kind: article }
+              - { label: "Port forwarding (Wikipedia)", url: "https://en.wikipedia.org/wiki/Port_forwarding", kind: article }
+              - { label: "RFC 8445: Interactive Connectivity Establishment (ICE)", url: "https://www.rfc-editor.org/rfc/rfc8445", kind: docs }
+              - { label: "How NAT traversal works (Tailscale)", url: "https://tailscale.com/blog/how-nat-traversal-works", kind: article }
+              - { label: "Peer-to-Peer Communication Across Network Address Translators (Bryan Ford)", url: "https://bford.info/pub/net/p2pnat/", kind: article }
+              - { label: "RFC 8489: STUN, Session Traversal Utilities for NAT", url: "https://www.rfc-editor.org/rfc/rfc8489", kind: docs }
+              - { label: "RFC 8656: TURN, Traversal Using Relays around NAT", url: "https://www.rfc-editor.org/rfc/rfc8656", kind: docs }
+              - { label: "WebRTC connectivity protocols: ICE, STUN, TURN (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Protocols", kind: docs }
+              - { label: "Port forwarding explained (PowerCert)", url: "https://www.youtube.com/watch?v=2G1ueMDgwxw", kind: video }
+          - id: cloud-nat-gateways
+            title: NAT gateways in the cloud
+            optional: true
+            summary: Private servers in a cloud network use a NAT gateway to reach the internet, and it is billed per gigabyte.
+            learn:
+              - Outbound-only access for private subnets
+              - Why NAT gateway traffic gets expensive
+            body: |
+              Servers in a private cloud subnet have no public address, but they often need to reach the internet, to download updates or call an API. A **NAT gateway** lets them go out while blocking connections that start outside.
+
+              You put the NAT gateway in a public subnet and point the private subnet's default route at it.
+
+              ### Key ideas
+              - Outbound-only access: private servers start connections, the internet cannot
+              - Managed NAT gateways are billed per hour and **per gigabyte processed**
+              - Traffic to S3 or other cloud services through the NAT gateway adds up quickly
+              - Use **VPC endpoints** for cloud services. In AWS, gateway endpoints for S3 and DynamoDB cost nothing extra
+              - One NAT gateway per zone avoids cross-zone charges and a single point of failure, but costs more. AWS also offers a regional NAT gateway that spans zones
+
+              ### Common mistakes
+              - Pulling large downloads or container images through the NAT gateway every time
+              - Using one gateway for all zones, then losing outbound access when that zone fails
+            resources:
+              - { label: "NAT gateways (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html", kind: docs }
+              - { label: "Pricing for NAT gateways (AWS)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-pricing.html", kind: docs }
+              - { label: "Cloud NAT overview (Google Cloud)", url: "https://cloud.google.com/nat/docs/overview", kind: docs }
+              - { label: "NAT gateway use cases (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-scenarios.html", kind: docs }
+              - { label: "Compare NAT gateways and NAT instances (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-comparison.html", kind: docs }
+              - { label: "Gateway endpoints for S3 and DynamoDB, skip NAT charges (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/privatelink/gateway-endpoints.html", kind: docs }
+              - { label: "What is Azure NAT Gateway? (Microsoft Learn)", url: "https://learn.microsoft.com/en-us/azure/nat-gateway/nat-overview", kind: docs }
+              - { label: "The AWS Managed NAT Gateway is unpleasant and not recommended (Last Week in AWS)", url: "https://www.lastweekinaws.com/blog/the-aws-managed-nat-gateway-is-unpleasant-and-not-recommended/", kind: article }
+              - { label: "Understanding NAT gateways, AWS training (QA)", url: "https://www.youtube.com/watch?v=ujXr0i5EoHE", kind: video }
+          - id: internet-gateways
+            title: Internet gateways and IPv6 egress
+            summary: Public subnets reach the internet through an internet gateway. IPv6 needs no NAT, so private IPv6 subnets use an egress-only internet gateway instead.
+            learn:
+              - Internet gateway vs NAT gateway
+              - Public and private subnets, and their routes
+              - Egress-only internet gateways for outbound-only IPv6
+            body: |
+              A cloud network has no internet access by default. An **internet gateway** attaches the VPC to the internet. A subnet is **public** when its route table sends internet-bound traffic (`0.0.0.0/0`) to the internet gateway, and **private** when it does not.
+
+              A public IPv4 instance needs a public address, and the gateway translates between it and the private one. A **NAT gateway** is different: it is for private subnets to start outbound connections.
+
+              ### Key ideas
+              - Internet gateway: two-way access for instances with public addresses
+              - NAT gateway: outbound-only access for private IPv4 instances
+              - IPv6 addresses are public and need no NAT, so private IPv6 subnets use an **egress-only internet gateway**: it allows outbound and blocks inbound
+              - The route table decides which subnet is public or private, not its name
+
+              ### Example
+              Public subnet route: `0.0.0.0/0` to the internet gateway. Private subnet route: `0.0.0.0/0` to the NAT gateway, and `::/0` to the egress-only gateway.
+            resources:
+              - { label: "Internet gateways (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Internet_Gateway.html", kind: docs }
+              - { label: "Egress-only internet gateways (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/egress-only-internet-gateway.html", kind: docs }
+              - { label: "Configure route tables (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html", kind: docs }
+              - { label: "Example: private subnets with a NAT gateway (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-example-private-subnets-nat.html", kind: docs }
+              - { label: "IPv6 support for your VPC (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html", kind: docs }
+              - { label: "RFC 6146: Stateful NAT64", url: "https://www.rfc-editor.org/rfc/rfc6146", kind: docs }
+              - { label: "What is IPv6 for Azure Virtual Network? (Microsoft Learn)", url: "https://learn.microsoft.com/en-us/azure/virtual-network/ip-services/ipv6-overview", kind: docs }
+              - { label: "AWS Internet Gateway vs NAT Gateway in 3 minutes (DevOps Studio)", url: "https://www.youtube.com/watch?v=2htfhgcySfs", kind: video }
+
+      - id: routing
+        title: Routing
+        summary: How each router picks the next hop, and how packets cross many networks to reach you.
+        lessons:
+          - id: routing-tables
+            title: Routing tables and default routes
+            summary: Each router looks up the destination and sends the packet to the most specific match.
+            learn:
+              - Longest prefix match
+              - The default route
+            body: |
+              A router keeps a **routing table**: a list of destination networks and where to send packets for each one (the next hop). For every packet it looks up the destination address and forwards it.
+
+              Several entries can match one address. The router picks the most specific one, the one with the **longest prefix**. A `/24` route beats a `/16` route for an address inside both.
+
+              ### Key ideas
+              - Each route says: destination prefix, next hop, interface
+              - **Longest prefix match** chooses the most specific route
+              - The **default route** (`0.0.0.0/0` for IPv4, `::/0` for IPv6) matches everything else. It usually points to the ISP or a gateway
+              - Your laptop has a small table too, mostly the local network and a default gateway
+
+              ### Example
+              ```
+              10.0.0.0/16   via 10.0.0.1
+              10.0.5.0/24   via 10.0.5.1
+              0.0.0.0/0     via 192.168.1.1
+              ```
+              A packet for `10.0.5.9` takes the `/24` route. A packet for `8.8.8.8` takes the default route.
+            resources:
+              - { label: "What is routing? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-routing/", kind: article }
+              - { label: "Routing table (Wikipedia)", url: "https://en.wikipedia.org/wiki/Routing_table", kind: article }
+              - { label: "Default route (Wikipedia)", url: "https://en.wikipedia.org/wiki/Default_route", kind: article }
+              - { label: "RFC 1812: Requirements for IP Version 4 Routers", url: "https://www.rfc-editor.org/rfc/rfc1812", kind: docs }
+              - { label: "ip-route(8): Linux routing table management (man7.org)", url: "https://man7.org/linux/man-pages/man8/ip-route.8.html", kind: docs }
+              - { label: "Packet Traveling: how packets move through a network (Practical Networking)", url: "https://www.practicalnetworking.net/series/packet-traveling/packet-traveling/", kind: article }
+              - { label: "Routing tables explained (PowerCert)", url: "https://www.youtube.com/watch?v=CGmTvukObOw", kind: video }
+              - { label: "Routing table explained (Network Direction)", url: "https://www.youtube.com/watch?v=uKiM9-tGuc4", kind: video }
+              - { label: "Virtual network traffic routing (Microsoft Learn)", url: "https://learn.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview", kind: docs }
+          - id: hops-and-traceroute
+            title: Hops and traceroute
+            summary: See every router your packets pass through on their way to a server.
+            learn:
+              - Reading traceroute output
+              - Why some hops show as stars
+            body: |
+              Each router a packet passes through is a **hop**. `traceroute` (`tracert` on Windows) shows the list of hops between you and a server, with the round-trip time to each.
+
+              It works by sending packets with TTL 1, then 2, then 3. The first router drops the first packet and replies "time exceeded", the second router replies for the second packet, and so on until the target answers.
+
+              ### Key ideas
+              - Each line is one hop, with three timing samples
+              - Times usually grow with distance, but a single slow hop does not always mean a problem
+              - **Stars** (`* * *`) mean no reply came back. Many routers rate-limit or ignore these probes, so the path may be fine
+              - The path can differ between runs, and the return path can differ from the forward one
+
+              ### In practice
+              ```bash
+              traceroute harun.dev
+              mtr harun.dev
+              ```
+              `mtr` repeats the test and shows loss and delay per hop. A real problem shows as loss or delay that continues to all later hops.
+            resources:
+              - { label: "Traceroute (Wikipedia)", url: "https://en.wikipedia.org/wiki/Traceroute", kind: article }
+              - { label: "Traceroute (tracert) explained (PowerCert)", url: "https://www.youtube.com/watch?v=up3bcBLZS74", kind: video }
+              - { label: "Day 20: Scapy and traceroute (Julia Evans)", url: "https://jvns.ca/blog/2013/10/31/day-20-scapy-and-traceroute/", kind: article }
+              - { label: "MTR: traceroute plus ping in one tool (GitHub)", url: "https://github.com/traviscross/mtr", kind: tool }
+              - { label: "RIPE Atlas: traceroute from thousands of probes (RIPE NCC)", url: "https://atlas.ripe.net/", kind: tool }
+              - { label: "Looking glass: traceroute from Hurricane Electric routers", url: "https://lg.he.net/", kind: tool }
+              - { label: "RFC 792: ICMP, Time Exceeded messages", url: "https://www.rfc-editor.org/rfc/rfc792", kind: docs }
+          - id: static-vs-dynamic-routing
+            title: Static vs dynamic routing
+            optional: true
+            summary: Routes typed in by hand vs routes learned from protocols like OSPF and BGP.
+            learn:
+              - When static routes are enough
+              - Interior vs exterior routing protocols
+            body: |
+              Routes get into a routing table in two ways. A **static route** is typed in by a person and does not change unless they change it. A **dynamic route** is learned from neighbouring routers using a routing protocol, and it updates when the network changes.
+
+              ### Key ideas
+              - Static routes are simple and predictable. They are enough for small networks or a single exit
+              - They do not adapt: if a link fails, you must fix it by hand
+              - Dynamic protocols share changes automatically and can find another path
+              - **Interior** protocols such as OSPF run inside one organisation's network
+              - **Exterior** protocols such as BGP run between organisations. BGP holds the internet together
+
+              ### Example
+              An office with one internet link needs just a default static route to the ISP. A large company with many sites runs OSPF inside, and BGP to its providers.
+            resources:
+              - { label: "What is routing? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-routing/", kind: article }
+              - { label: "Static routing (Wikipedia)", url: "https://en.wikipedia.org/wiki/Static_routing", kind: article }
+              - { label: "Open Shortest Path First (Wikipedia)", url: "https://en.wikipedia.org/wiki/Open_Shortest_Path_First", kind: article }
+              - { label: "RFC 2328: OSPF Version 2", url: "https://www.rfc-editor.org/rfc/rfc2328", kind: docs }
+              - { label: "RFC 4271: BGP-4", url: "https://www.rfc-editor.org/rfc/rfc4271", kind: docs }
+              - { label: "What is BGP? (Cloudflare)", url: "https://www.cloudflare.com/learning/security/glossary/what-is-bgp/", kind: article }
+              - { label: "Routing (Computer Networks: A Systems Approach)", url: "https://book.systemsapproach.org/internetworking/routing.html", kind: course }
+              - { label: "OSPF overview (Juniper docs)", url: "https://www.juniper.net/documentation/us/en/software/junos/ospf/topics/topic-map/ospf-overview.html", kind: docs }
+              - { label: "OSPF explained step by step (CertBros)", url: "https://www.youtube.com/watch?v=kfvJ8QVJscc", kind: video }
+
       - id: interior-routing
         title: "Interior routing: RIP, OSPF and IS-IS"
         summary: How routers inside one network learn every path without anyone typing static routes. Distance vector vs link state, OSPF in depth with a real FRR config, IS-IS, redistribution and equal-cost multipath.
@@ -1039,6 +1971,179 @@ stages:
               - { label: "RFC 7938: BGP in large-scale data centers (ECMP section)", url: "https://www.rfc-editor.org/rfc/rfc7938", kind: docs }
               - { label: "Equal-cost multi-path routing (Wikipedia)", url: "https://en.wikipedia.org/wiki/Equal-cost_multi-path_routing", kind: article }
               - { label: "Equal-Cost Multi-Path Routing (Palo Alto Networks)", url: "https://www.youtube.com/watch?v=KICp-9yXOT0", kind: video }
+
+      - id: transport-in-depth
+        title: TCP, sockets and ICMP in depth
+        summary: How TCP recovers lost data and avoids congestion, how programs open sockets, and the ICMP tools for diagnosing a path.
+        lessons:
+          - id: tcp-reliability
+            title: Retransmission and congestion control
+            summary: How TCP notices lost packets, resends them and slows down when the network is full.
+            learn:
+              - Acknowledgements and retransmits
+              - Slow start and congestion windows
+            body: |
+              TCP numbers every byte it sends. The receiver sends **acknowledgements** saying which bytes arrived. If the sender does not get an ACK in time, or sees repeated ACKs for the same spot, it knows data was lost and **retransmits** it.
+
+              TCP also has to avoid flooding the network. It tracks a **congestion window**, the amount of data allowed in flight at once.
+
+              ### Key ideas
+              - **Slow start**: begin with a small window and roughly double it each round trip
+              - **Congestion avoidance**: after a threshold, grow more slowly
+              - On loss, cut the window and grow again. This is how many senders share a link fairly
+              - **Flow control** is separate: the receiver's window stops a fast sender from overwhelming a slow receiver
+              - Packet loss slows a transfer even when there is spare bandwidth
+
+              ### Why it matters
+              A new connection starts slow. That is one more reason to reuse connections and to keep first-page files small.
+            resources:
+              - { label: "Building blocks of TCP (High Performance Browser Networking)", url: "https://hpbn.co/building-blocks-of-tcp/", kind: course }
+              - { label: "RFC 5681: TCP congestion control", url: "https://www.rfc-editor.org/rfc/rfc5681", kind: docs }
+              - { label: "TCP congestion control (Wikipedia)", url: "https://en.wikipedia.org/wiki/TCP_congestion_control", kind: article }
+              - { label: "RFC 6298: Computing TCP's Retransmission Timer", url: "https://www.rfc-editor.org/rfc/rfc6298", kind: docs }
+              - { label: "RFC 9438: CUBIC for Fast and Long-Distance Networks", url: "https://www.rfc-editor.org/rfc/rfc9438", kind: docs }
+              - { label: "RFC 2018: TCP Selective Acknowledgment Options", url: "https://www.rfc-editor.org/rfc/rfc2018", kind: docs }
+              - { label: "Congestion control (Computer Networks: A Systems Approach)", url: "https://book.systemsapproach.org/congestion.html", kind: course }
+              - { label: "BBR: congestion-based congestion control (Google Research)", url: "https://research.google/pubs/bbr-congestion-based-congestion-control-2/", kind: article }
+              - { label: "TCP congestion control hands-on with Wireshark (Chris Greer)", url: "https://www.youtube.com/watch?v=IRXP1vJ6-vM", kind: video }
+          - id: socket-programming
+            title: Socket programming
+            optional: true
+            summary: Write a tiny TCP client and server yourself to see the handshake and ports in action.
+            learn:
+              - Sockets, bind, listen, accept, connect
+              - Reading and writing bytes
+            body: |
+              A **socket** is the endpoint a program uses to send and receive data over a network. You can write a working TCP server in a few lines, and it shows what the earlier lessons describe.
+
+              A server **binds** a socket to an address and port, **listens** for incoming connections, and **accepts** each one. A client **connects** to that address. Both then read and write bytes.
+
+              ### Key ideas
+              - Server: socket, bind, listen, accept, then read and write
+              - Client: socket, connect, then write and read
+              - TCP gives a stream of bytes, with no message boundaries, so you must frame your own messages
+              - The operating system does the handshake and picks the client's source port
+
+              ### In practice
+              ```python
+              import socket
+              s = socket.socket()
+              s.bind(("127.0.0.1", 9000))
+              s.listen()
+              conn, addr = s.accept()
+              print(addr, conn.recv(1024))
+              ```
+              Run it, then connect with `nc 127.0.0.1 9000` and type a line.
+            resources:
+              - { label: "Beej's Guide to Network Programming", url: "https://beej.us/guide/bgnet/", kind: course }
+              - { label: "Socket Programming HOWTO (Python)", url: "https://docs.python.org/3/howto/sockets.html", kind: docs }
+              - { label: "socket(7): Linux socket interface (man7.org)", url: "https://man7.org/linux/man-pages/man7/socket.7.html", kind: docs }
+              - { label: "tcp(7): Linux TCP protocol and socket options (man7.org)", url: "https://man7.org/linux/man-pages/man7/tcp.7.html", kind: docs }
+              - { label: "net package: Dial and Listen (Go docs)", url: "https://pkg.go.dev/net", kind: docs }
+              - { label: "net module: TCP servers and clients (Node.js docs)", url: "https://nodejs.org/api/net.html", kind: docs }
+              - { label: "Python socket programming tutorial (Tech With Tim)", url: "https://www.youtube.com/watch?v=3QiPPX-KeSc", kind: video }
+          - id: icmp-and-diagnostics
+            title: ICMP, ping and traceroute
+            optional: true
+            summary: The network layer's own messages, and the two tools that use them to debug connectivity.
+            learn:
+              - What ICMP carries
+              - How ping and traceroute work
+            body: |
+              **ICMP** (Internet Control Message Protocol) is how the network layer reports problems and answers simple questions. It travels inside IP packets and has no ports.
+
+              Common messages include echo request and echo reply, "destination unreachable" and "time exceeded".
+
+              ### Key ideas
+              - `ping` sends an echo request and waits for an echo reply, so it shows whether a host is reachable and how long the round trip takes
+              - `traceroute` sends packets with a TTL of 1, then 2, then 3, and so on. Each router that drops one sends back a "time exceeded" message, which reveals the path
+              - Many hosts and firewalls block or limit ICMP, so a failed ping does not always mean a host is down
+              - ICMP is also needed for path MTU discovery
+
+              ### In practice
+              ```bash
+              ping -c 4 example.com
+              traceroute example.com
+              ```
+            resources:
+              - { label: "What is ICMP? (Cloudflare)", url: "https://www.cloudflare.com/learning/ddos/glossary/internet-control-message-protocol-icmp/", kind: article }
+              - { label: "Traceroute (Wikipedia)", url: "https://en.wikipedia.org/wiki/Traceroute", kind: article }
+              - { label: "Internet Control Message Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol", kind: article }
+              - { label: "RFC 792: Internet Control Message Protocol", url: "https://www.rfc-editor.org/rfc/rfc792", kind: docs }
+              - { label: "ICMP parameters registry: types and codes (IANA)", url: "https://www.iana.org/assignments/icmp-parameters/icmp-parameters.xhtml", kind: docs }
+              - { label: "RFC 4443: ICMPv6", url: "https://www.rfc-editor.org/rfc/rfc4443", kind: docs }
+              - { label: "RFC 1191: Path MTU Discovery", url: "https://www.rfc-editor.org/rfc/rfc1191", kind: docs }
+              - { label: "Traceroute (tracert) explained (PowerCert)", url: "https://www.youtube.com/watch?v=up3bcBLZS74", kind: video }
+              - { label: "Day 20: Scapy and traceroute (Julia Evans)", url: "https://jvns.ca/blog/2013/10/31/day-20-scapy-and-traceroute/", kind: article }
+              - { label: "RIPE Atlas: run ping and traceroute from probes worldwide (RIPE NCC)", url: "https://atlas.ripe.net/", kind: tool }
+
+      - id: tls-in-depth
+        title: TLS in depth
+        summary: TLS versions and what changed between them, and running your own certificate authority.
+        lessons:
+          - id: tls-versions
+            title: TLS 1.3 vs older versions
+            summary: What changed in TLS 1.3, and why old versions should be turned off.
+            learn:
+              - Fewer round trips
+              - Removed weak ciphers
+            body: |
+              TLS has been revised several times. The versions before 1.2 (SSL 3.0, TLS 1.0 and 1.1) are broken or deprecated and should be off. TLS 1.2 is still widely used. **TLS 1.3** (2018) is the current version.
+
+              ### Key ideas
+              - **Fewer round trips**: 1.3 needs one round trip for the handshake, 1.2 needs two. Resumed sessions can be faster
+              - **Weak features removed**: static RSA key exchange, old ciphers such as RC4 and CBC modes, SHA-1 and compression are gone
+              - **Forward secrecy always**: 1.3 requires an ephemeral key exchange
+              - More of the handshake is encrypted, including the certificate
+              - Configure servers for 1.2 and 1.3 only
+
+              ### In practice
+              ```bash
+              curl -v --tlsv1.3 https://harun.dev -o /dev/null
+              ```
+              Look for the negotiated version in the output. Older clients that only speak TLS 1.0 or 1.1 will fail, which is the point.
+            resources:
+              - { label: "Why use TLS 1.3? (Cloudflare)", url: "https://www.cloudflare.com/learning/ssl/why-use-tls-1.3/", kind: article }
+              - { label: "RFC 8446: TLS 1.3", url: "https://www.rfc-editor.org/rfc/rfc8446", kind: docs }
+              - { label: "A Detailed Look at RFC 8446, a.k.a. TLS 1.3 (Cloudflare)", url: "https://blog.cloudflare.com/rfc-8446-aka-tls-1-3/", kind: article }
+              - { label: "RFC 8996: Deprecating TLS 1.0 and TLS 1.1", url: "https://www.rfc-editor.org/rfc/rfc8996", kind: docs }
+              - { label: "RFC 9325: Recommendations for Secure Use of TLS and DTLS", url: "https://www.rfc-editor.org/rfc/rfc9325", kind: docs }
+              - { label: "The Illustrated TLS 1.2 Connection (compare with 1.3)", url: "https://tls12.xargs.org/", kind: article }
+              - { label: "Introducing 0-RTT (Cloudflare blog)", url: "https://blog.cloudflare.com/introducing-0-rtt/", kind: article }
+              - { label: "SSL Configuration Generator (Mozilla)", url: "https://ssl-config.mozilla.org/", kind: tool }
+              - { label: "TLS 1.3 handshake, many changes from prior versions (Practical Networking)", url: "https://www.youtube.com/watch?v=JA0vaIb4158", kind: video }
+          - id: private-cas
+            title: Private certificate authorities
+            optional: true
+            summary: Internal services can use certificates from your own CA, as long as every client trusts it.
+            learn:
+              - When a private CA makes sense
+              - Watching certificate expiry
+            body: |
+              A public CA signs certificates for names on the internet. A **private CA** is one you run yourself, for names that exist only inside your network, such as `db.internal`.
+
+              You create a root key and certificate, then issue certificates to your services from it. A client accepts them only if it trusts your root, so you install the root certificate on every machine or container that needs it.
+
+              ### Key ideas
+              - Use a private CA for internal services, service-to-service TLS and mutual TLS
+              - Keep the root key offline or in a managed service, and issue from an intermediate
+              - Prefer short-lived certificates and automate renewal
+              - Distribute the root to every client that needs to trust it
+              - Monitor expiry dates, since an expired internal certificate causes outages
+
+              ### Common mistakes
+              - Putting the private CA's root into the machines of people outside your organisation
+              - No alert on expiry, so the first sign is a production outage
+            resources:
+              - { label: "Everything you should know about certificates and PKI (Smallstep)", url: "https://smallstep.com/blog/everything-pki/", kind: article }
+              - { label: "step-ca: open source private CA (Smallstep docs)", url: "https://smallstep.com/docs/step-ca/", kind: docs }
+              - { label: "mkcert: locally trusted development certificates (GitHub)", url: "https://github.com/FiloSottile/mkcert", kind: tool }
+              - { label: "AWS Private Certificate Authority (AWS docs)", url: "https://docs.aws.amazon.com/privateca/latest/userguide/PcaWelcome.html", kind: docs }
+              - { label: "PKI secrets engine (HashiCorp Vault docs)", url: "https://developer.hashicorp.com/vault/docs/secrets/pki", kind: docs }
+              - { label: "OpenSSL Certificate Authority guide (Jamie Nguyen)", url: "https://jamielinux.com/docs/openssl-certificate-authority/", kind: course }
+              - post: agentcore-gateway-private-ca-without-the-alb
+              - { label: "What is an SSL certificate? (Cloudflare)", url: "https://www.cloudflare.com/learning/ssl/what-is-an-ssl-certificate/", kind: article }
+              - { label: "RFC 5280: Internet X.509 Public Key Infrastructure Certificate Profile", url: "https://www.rfc-editor.org/rfc/rfc5280", kind: docs }
 
       - id: firewalls
         title: Firewalls
@@ -1381,6 +2486,40 @@ stages:
               - { label: "Configure the instance metadata service, IMDSv2 (AWS)", url: "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html", kind: docs }
               - { label: "Security group rules (AWS)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/security-group-rules.html", kind: docs }
               - { label: "Simple ruleset for a server (nftables wiki)", url: "https://wiki.nftables.org/wiki-nftables/index.php/Simple_ruleset_for_a_server", kind: docs }
+          - id: rate-limiting-and-wafs
+            title: Rate limiting and WAFs
+            summary: Block and slow abusive traffic before it reaches your app.
+            learn:
+              - Rate limits per IP or key
+              - Managed WAF rules and bot control
+            body: |
+              You can block and slow bad traffic before it reaches your app. Two tools do most of the work.
+
+              **Rate limiting** caps how many requests a client may send in a time window, such as 100 per minute per IP, per API key, or per user. Extra requests get a `429 Too Many Requests`. It protects login pages, search and APIs from floods and brute-force tries.
+
+              A **WAF** (web application firewall) reads HTTP requests and blocks those that look malicious, such as SQL injection or known exploits. Managed rules are kept up to date by the vendor, and you add your own.
+
+              ### Key ideas
+              - Limit by the right key: IP, token or user, and by path
+              - Return `429` with a `Retry-After` header
+              - Managed WAF rules catch common attacks, and bot control scores or challenges automated clients
+              - Test rules in a log-only mode first
+              - Rate limits at the edge are cheaper than at the app
+
+              ### Common mistakes
+              - Limiting by IP behind a proxy, so everyone shares one limit
+              - Turning on blocking rules without testing, which blocks real users
+            resources:
+              - { label: "Scaling your API with rate limiters (Stripe)", url: "https://stripe.com/blog/rate-limiters", kind: article }
+              - { label: "Rate limiting with NGINX (NGINX)", url: "https://blog.nginx.org/blog/rate-limiting-nginx", kind: article }
+              - { label: "How we built rate limiting capable of scaling to millions of domains (Cloudflare)", url: "https://blog.cloudflare.com/counting-things-a-lot-of-different-things/", kind: article }
+              - { label: "Token bucket (Wikipedia)", url: "https://en.wikipedia.org/wiki/Token_bucket", kind: article }
+              - { label: "OWASP ModSecurity Core Rule Set (OWASP CRS)", url: "https://coreruleset.org/", kind: tool }
+              - { label: "429 Too Many Requests (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/429", kind: docs }
+              - post: aws-waf-cloudfront-solo-dev
+              - { label: "What is rate limiting? (Cloudflare)", url: "https://www.cloudflare.com/learning/bots/what-is-rate-limiting/", kind: article }
+              - { label: "Rate limiting rules (Cloudflare docs)", url: "https://developers.cloudflare.com/waf/rate-limiting-rules/", kind: docs }
+              - { label: "Web application firewall (Wikipedia)", url: "https://en.wikipedia.org/wiki/Web_application_firewall", kind: article }
 
       - id: vpns
         title: VPNs
@@ -1613,6 +2752,192 @@ stages:
   - level: advanced
     title: Running real networks
     topics:
+      - id: load-balancers
+        title: Load balancers
+        summary: Spreading traffic over many servers, and the algorithms that decide who gets the next request.
+        lessons:
+          - id: l4-vs-l7
+            title: Layer 4 vs layer 7 load balancing
+            summary: Balance raw TCP connections, or read each HTTP request and route on its path or headers.
+            learn:
+              - What each layer can see
+              - TLS termination at the load balancer
+            body: |
+              A load balancer spreads traffic over several servers. It can work at two levels.
+
+              A **layer 4** balancer sees only IPs, ports and TCP or UDP connections. It passes connections along without reading them, so it is fast and works for any protocol (databases, game servers). A **layer 7** balancer reads the application protocol. For HTTP it can route by host name, path or header, and reuse connections to backends.
+
+              ### Key ideas
+              - Layer 4: fast, simple, protocol-agnostic
+              - Layer 7: smarter routing, such as `/api` to one pool and `/` to another
+              - A layer 7 balancer can add headers, retry, rewrite and apply rules
+              - **TLS termination**: the balancer decrypts HTTPS, so backends handle plain HTTP and certificates live in one place
+              - You can also re-encrypt to backends if the network between is not trusted
+
+              ### Example
+              `harun.dev/api/*` goes to the API servers, and everything else goes to the web servers. Only a layer 7 balancer can do that.
+            resources:
+              - { label: "What is load balancing? (Cloudflare)", url: "https://www.cloudflare.com/learning/performance/what-is-load-balancing/", kind: article }
+              - { label: "Layer 4 and layer 7 proxy mode (HAProxy)", url: "https://www.haproxy.com/blog/layer-4-and-layer-7-proxy-mode", kind: article }
+              - { label: "Cloud Load Balancing overview (Google Cloud)", url: "https://cloud.google.com/load-balancing/docs/load-balancing-overview", kind: docs }
+              - { label: "Load balancing options (Azure Architecture Center)", url: "https://learn.microsoft.com/en-us/azure/architecture/guide/technology-choices/load-balancing-overview", kind: docs }
+              - { label: "How Elastic Load Balancing works (AWS docs)", url: "https://docs.aws.amazon.com/elasticloadbalancing/latest/userguide/how-elastic-load-balancing-works.html", kind: docs }
+              - { label: "Load balancing in layer 4 vs layer 7 with HAProxy examples (Hussein Nasser)", url: "https://www.youtube.com/watch?v=aKMLgFVxZYk", kind: video }
+              - post: add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances
+              - { label: "What is an Application Load Balancer? (AWS)", url: "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html", kind: docs }
+              - { label: "What is a Network Load Balancer? (AWS)", url: "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/introduction.html", kind: docs }
+          - id: lb-algorithms
+            title: Balancing algorithms
+            summary: Round robin, least connections, hashing and more, and when each one fits.
+            learn:
+              - Round robin and weighted round robin
+              - Least connections
+              - IP hash and consistent hashing
+            body: |
+              The **algorithm** decides which server gets the next request. The right choice depends on how uniform your requests and servers are.
+
+              ### Key ideas
+              - **Round robin**: each server in turn. Simple, works when requests and servers are similar
+              - **Weighted round robin**: bigger servers get a larger share
+              - **Least connections**: send to the server with the fewest active connections. Good when requests vary in length
+              - **IP hash**: hash the client address so the same client lands on the same server
+              - **Consistent hashing**: hash a key onto a ring, so adding or removing a server moves only a few keys
+              - Others include least response time and random choice
+
+              ### Common mistakes
+              - Round robin with long-lived connections, which piles load on early servers
+              - IP hash behind a proxy, where every client shares one address
+              - **Sticky sessions** hide state that should live in a shared store
+            resources:
+              - { label: "Load balancing, an interactive visual essay (Sam Rose)", url: "https://samwho.dev/load-balancing/", kind: article }
+              - { label: "Using nginx as an HTTP load balancer (nginx docs)", url: "https://nginx.org/en/docs/http/load_balancing.html", kind: docs }
+              - { label: "Supported load balancers (Envoy docs)", url: "https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/load_balancing/load_balancers", kind: docs }
+              - { label: "Load balancing algorithms (HAProxy docs)", url: "https://www.haproxy.com/documentation/haproxy-configuration-tutorials/load-balancing/", kind: docs }
+              - { label: "Top 6 load balancing algorithms (ByteByteGo)", url: "https://www.youtube.com/watch?v=dBmxNsS3BGE", kind: video }
+              - post: eight-load-balancer-algorithms
+              - { label: "Types of load balancing algorithms (Cloudflare)", url: "https://www.cloudflare.com/learning/performance/types-of-load-balancing-algorithms/", kind: article }
+              - { label: "Load balancing (computing) (Wikipedia)", url: "https://en.wikipedia.org/wiki/Load_balancing_(computing)", kind: article }
+          - id: health-checks
+            title: Health checks
+            summary: The load balancer keeps asking each server if it is alive and stops sending traffic to the ones that fail.
+            learn:
+              - Active health checks
+              - What a good health endpoint checks
+            body: |
+              A load balancer must not send traffic to a server that is down. **Health checks** let it know. It keeps probing every server, and takes the unhealthy ones out of rotation until they pass again.
+
+              An **active** check sends a request on a schedule, for example `GET /health` every 10 seconds, and expects a `200`. Several failures in a row mark the server unhealthy, and several passes bring it back. Some balancers also use **passive** checks that watch real traffic for errors.
+
+              ### Key ideas
+              - A check can be TCP connect, or an HTTP request with an expected status
+              - Set the interval and thresholds so one blip does not remove a server, but real failures are caught fast
+              - A good health endpoint checks what the server needs to serve traffic, such as its database connection
+              - It should be cheap, and must not take the server down under load
+
+              ### Common mistakes
+              - A check that always returns `200`, even when the database is gone
+              - A deep check that fails every server at once when one shared dependency has a short outage
+            resources:
+              - { label: "Target group health checks (AWS docs)", url: "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html", kind: docs }
+              - { label: "Health checks overview (Google Cloud)", url: "https://cloud.google.com/load-balancing/docs/health-check-concepts", kind: docs }
+              - { label: "Azure Load Balancer health probes (Microsoft Learn)", url: "https://learn.microsoft.com/en-us/azure/load-balancer/load-balancer-custom-probe-overview", kind: docs }
+              - { label: "Implementing health checks (Amazon Builders' Library)", url: "https://aws.amazon.com/builders-library/implementing-health-checks/", kind: article }
+              - { label: "Configure liveness, readiness and startup probes (Kubernetes docs)", url: "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/", kind: docs }
+              - { label: "Health checking (Envoy docs)", url: "https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/health_checking", kind: docs }
+              - { label: "Health checks (HAProxy docs)", url: "https://www.haproxy.com/documentation/haproxy-configuration-tutorials/reliability/health-checks/", kind: docs }
+              - { label: "Monitors for load balancer health checks (Cloudflare docs)", url: "https://developers.cloudflare.com/load-balancing/monitors/", kind: docs }
+              - { label: "Load balancer health checks, a lightboard talk (Progress Kemp)", url: "https://www.youtube.com/watch?v=oZFItaTq2oI", kind: video }
+          - id: consistent-hashing
+            title: Consistent hashing
+            optional: true
+            summary: Spread keys over servers so adding or removing one only moves a small share of them.
+            learn:
+              - The hash ring
+              - Why caches and sticky routing use it
+            body: |
+              With plain hashing, you pick a server with `hash(key) mod N`. When N changes, almost every key moves to a different server. For a cache, that means almost everything is a miss.
+
+              **Consistent hashing** places both servers and keys on a circle, called a **ring**. A key belongs to the first server found going clockwise from the key's position. If you add or remove a server, only the keys next to it move, about 1 divided by N of them.
+
+              ### Key ideas
+              - The hash ring maps keys and servers to the same space
+              - Adding or removing a server moves only a small share of keys
+              - **Virtual nodes** put each server on the ring many times, so load spreads evenly
+              - Used by distributed caches, databases and load balancers that need requests for the same key to reach the same server
+
+              ### Example
+              Five cache servers hold user sessions. One more is added. With consistent hashing about one sixth of the keys move, and the rest stay put.
+            resources:
+              - { label: "Consistent hashing (Wikipedia)", url: "https://en.wikipedia.org/wiki/Consistent_hashing", kind: article }
+              - { label: "Consistent hashing and random trees, the original paper (Karger et al.)", url: "https://www.cs.princeton.edu/courses/archive/fall09/cos518/papers/chash.pdf", kind: article }
+              - { label: "Consistent hashing with bounded loads (Google Research)", url: "https://research.google/blog/consistent-hashing-with-bounded-loads/", kind: article }
+              - { label: "A fast, minimal memory, consistent hash algorithm, jump hash (arXiv)", url: "https://arxiv.org/abs/1406.2294", kind: article }
+              - { label: "Maglev: a fast and reliable software network load balancer (Google Research)", url: "https://research.google/pubs/maglev-a-fast-and-reliable-software-network-load-balancer/", kind: article }
+              - { label: "Dynamo: Amazon's highly available key-value store (paper)", url: "https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf", kind: article }
+              - { label: "Consistent hashing, algorithms you should know (ByteByteGo)", url: "https://www.youtube.com/watch?v=UF9Iqmg94tk", kind: video }
+
+      - id: bgp-in-depth
+        title: BGP in depth
+        summary: How BGP picks one path among many, and the RFCs that define it.
+        lessons:
+          - id: bgp-path-selection
+            title: Path selection
+            summary: When a router hears many routes to the same prefix, it picks one by a fixed list of rules.
+            learn:
+              - Local preference and AS path length
+              - Why the shortest path is not always chosen
+            body: |
+              A router often hears several routes for the same prefix. It must pick one. BGP uses a fixed list of rules, checked in order, and the first one that picks a winner decides.
+
+              ### Key ideas
+              - Highest **local preference** wins first. This is set by the network's own policy, for example "prefer customers over peers over transit"
+              - Then the **shortest AS path**
+              - Then lower origin type, lower MED, routes learned over eBGP before iBGP, and the lowest internal cost to the exit
+              - Final tie-breakers such as the lowest router ID
+
+              ### Why the shortest path is not always chosen
+              Local preference comes before path length, so money and policy beat distance. A network prefers to send traffic through a customer, which pays it, rather than a shorter path through a provider, which it pays. The "best" route for BGP is the best by business rules, not by speed.
+
+              This is also why engineers use **AS path prepending** to make a path look longer and steer traffic away.
+            resources:
+              - { label: "What is BGP? (Cloudflare)", url: "https://www.cloudflare.com/learning/security/glossary/what-is-bgp/", kind: article }
+              - { label: "RFC 4271: BGP-4", url: "https://www.rfc-editor.org/rfc/rfc4271", kind: docs }
+              - { label: "Tutorial: Introduction to BGP (NANOG)", url: "https://www.youtube.com/watch?v=mEkzTKjkNVI", kind: video }
+              - { label: "Architecting Robust BGP Routing Policies (NANOG)", url: "https://www.youtube.com/watch?v=_wRvNINnSQg", kind: video }
+              - { label: "RFC 1997: BGP Communities Attribute", url: "https://www.rfc-editor.org/rfc/rfc1997", kind: docs }
+              - { label: "RFC 8092: BGP Large Communities Attribute", url: "https://www.rfc-editor.org/rfc/rfc8092", kind: docs }
+              - { label: "What is BGP? Path attributes and selection (Kentik)", url: "https://www.kentik.com/kentipedia/what-is-bgp-border-gateway-protocol/", kind: article }
+              - { label: "Looking Glass: see real BGP paths (Hurricane Electric)", url: "https://lg.he.net/", kind: tool }
+          - id: bgp-rfc
+            title: Reading the BGP-4 spec
+            optional: true
+            summary: Go to the source. The message types, the state machine and the decision process in the RFC.
+            learn:
+              - OPEN, UPDATE, KEEPALIVE and NOTIFICATION
+              - The BGP finite state machine
+            body: |
+              The spec for BGP version 4 is **RFC 4271**. It is the source behind everything in this topic, and it is readable once you know the ideas.
+
+              ### Key ideas
+              - **Message types**: `OPEN` starts a session and sets parameters, `UPDATE` announces or withdraws routes, `KEEPALIVE` shows the peer is still there, and `NOTIFICATION` reports an error and closes the session
+              - The **finite state machine** describes the life of a session: `Idle`, `Connect`, `Active`, `OpenSent`, `OpenConfirm` and `Established`
+              - Routes only flow once the session is `Established`
+              - The **decision process** has three phases: rank each route, choose the best for each prefix, then decide what to advertise to neighbours
+              - Path attributes such as AS_PATH, NEXT_HOP and LOCAL_PREF carry the data used in selection
+
+              ### In practice
+              Read the sections on messages, the state machine and the decision process first. Skip the long tables on the first pass, then return to them when a real question comes up.
+            resources:
+              - { label: "RFC 4271: BGP-4", url: "https://www.rfc-editor.org/rfc/rfc4271", kind: docs }
+              - { label: "RFC 6811: BGP prefix origin validation", url: "https://www.rfc-editor.org/rfc/rfc6811", kind: docs }
+              - { label: "RFC 7454: BGP Operations and Security", url: "https://www.rfc-editor.org/rfc/rfc7454", kind: docs }
+              - { label: "RFC 4760: Multiprotocol Extensions for BGP-4", url: "https://www.rfc-editor.org/rfc/rfc4760", kind: docs }
+              - { label: "RFC 6793: BGP support for four-octet AS numbers", url: "https://www.rfc-editor.org/rfc/rfc6793", kind: docs }
+              - { label: "RFC 7908: Problem definition and classification of BGP route leaks", url: "https://www.rfc-editor.org/rfc/rfc7908", kind: docs }
+              - { label: "RFC 8212: Default EBGP route propagation behavior without policies", url: "https://www.rfc-editor.org/rfc/rfc8212", kind: docs }
+              - { label: "RFC 8205: BGPsec protocol specification", url: "https://www.rfc-editor.org/rfc/rfc8205", kind: docs }
+              - { label: "RFC 9234: Route leak prevention using roles in UPDATE and OPEN", url: "https://www.rfc-editor.org/rfc/rfc9234", kind: docs }
+
       - id: network-design
         title: Network design
         summary: Putting the pieces together. Redundant gateways with VRRP and HSRP, spine-leaf data centre fabrics, VXLAN and EVPN overlays, a small office built end to end, and how to see what the network is doing.

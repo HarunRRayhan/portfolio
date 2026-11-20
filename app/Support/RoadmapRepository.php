@@ -64,6 +64,24 @@ final class RoadmapRepository
         return $ids;
     }
 
+    /** Where a topic or lesson went when it moved to a roadmap that builds on this one (ids are kept on a move). */
+    public function movedTo(string $slug, string $topicId, ?string $lessonId = null): ?string
+    {
+        foreach ($this->all() as $child) {
+            if (($child['builds_on'] ?? null) !== $slug) {
+                continue;
+            }
+            if ($lessonId !== null && isset($this->lessonIndex($child)[$lessonId])) {
+                return '/roadmaps/'.$child['slug'].'/'.$this->lessonIndex($child)[$lessonId]['topic'].'/'.$lessonId;
+            }
+            if ($lessonId === null && $this->findTopic($child, $topicId)) {
+                return '/roadmaps/'.$child['slug'].'/'.$topicId;
+            }
+        }
+
+        return null;
+    }
+
     /**
      * A topic with its stage and its neighbours on the path.
      *
