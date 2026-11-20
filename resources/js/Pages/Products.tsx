@@ -19,6 +19,7 @@ type Product = {
     description: string
     logo: string
     backdrop: string
+    status?: string
 }
 
 const products: Product[] = [
@@ -31,7 +32,8 @@ const products: Product[] = [
         description:
             "Connect Claude Code, Cursor, or another MCP client to your cloud. Bring your own server or provision one, and let CloudPloy handle the deployment.",
         logo: "/images/products/cloudploy-icon.svg",
-        backdrop: "bg-[#edf1ff]"
+        backdrop: "bg-[#edf1ff]",
+        status: "In development (v2.0)"
     },
     {
         id: "opsagent",
@@ -42,7 +44,8 @@ const products: Product[] = [
         description:
             "A read-only ops agent for your cloud. A full scan every night, a calm morning briefing, and urgent exposures checked every 15 minutes.",
         logo: "/images/products/opsagent-icon.svg",
-        backdrop: "bg-[#e8eef6]"
+        backdrop: "bg-[#e8eef6]",
+        status: "In development"
     },
     {
         id: "socialreins",
@@ -53,7 +56,8 @@ const products: Product[] = [
         description:
             "Open-source social media manager for Facebook, Instagram, Threads, LinkedIn, Bluesky, X, TikTok, and YouTube. Self-host it free today.",
         logo: "/images/products/socialreins-icon.svg",
-        backdrop: "bg-[#f3ece8]"
+        backdrop: "bg-[#f3ece8]",
+        status: "In development"
     },
     {
         id: "skaleagents",
@@ -64,7 +68,8 @@ const products: Product[] = [
         description:
             "Review code and infrastructure with AI DevOps agents. Run audits from your editor or the web app, then work through the findings with your team.",
         logo: "/images/products/skaleagents-icon.svg",
-        backdrop: "bg-[#f0eafa]"
+        backdrop: "bg-[#f0eafa]",
+        status: "MVP released"
     },
     {
         id: "toolblip",
@@ -75,7 +80,8 @@ const products: Product[] = [
         description:
             "Format JSON, encode Base64, generate QR codes, and get on with your work. Free browser-based utilities with no signup required.",
         logo: "/images/products/toolblip.svg",
-        backdrop: "bg-[#e9f2ed]"
+        backdrop: "bg-[#e9f2ed]",
+        status: "MVP released"
     },
     {
         id: "crontinel",
@@ -86,7 +92,8 @@ const products: Product[] = [
         description:
             "Monitor scheduled jobs, queues, workers, and AI agent runs. Open-source SDKs help you catch the failures an uptime check can miss.",
         logo: "/images/products/crontinel.png",
-        backdrop: "bg-[#f6eee6]"
+        backdrop: "bg-[#f6eee6]",
+        status: "MVP released"
     },
     {
         id: "appnary",
@@ -598,6 +605,11 @@ export default function Products() {
                                             >
                                                 {product.name}
                                             </h2>
+                                            {product.status && (
+                                                <span className="ml-auto shrink-0 rounded-full border border-[#e8e9e1] dark:border-slate-700 px-2.5 py-1 text-xs font-medium text-[#686b65] dark:text-slate-400">
+                                                    {product.status}
+                                                </span>
+                                            )}
                                         </div>
                                         <p className="mt-5 text-sm font-medium leading-6">
                                             {product.tagline}
