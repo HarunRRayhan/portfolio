@@ -44,7 +44,7 @@ type BioLocale = 'en' | 'bn'
 const COPY: Record<BioLocale, Record<string, string>> = {
   en: {
     title: 'Harun R. Rayhan | Bio',
-    description: "Harun R. Rayhan's bio page with quick links to his portfolio, blog, contact details, and social profiles.",
+    description: "Harun R. Rayhan's bio page with quick links to his portfolio, blog, consultation booking, contact details, and social profiles.",
     shareDescription: "Quick links to Harun R. Rayhan's portfolio, blog, contact details, and social profiles.",
     keywords: 'Harun R. Rayhan, bio, portfolio, AWS DevOps, CloudOps, links',
     eyebrow: 'Harun.dev bio',

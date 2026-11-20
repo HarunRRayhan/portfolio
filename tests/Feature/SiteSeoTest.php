@@ -218,8 +218,8 @@ class SiteSeoTest extends TestCase
         $html = $response->getContent();
 
         $this->assertStringContainsString('<link rel="canonical" href="'.$siteUrl.'/"', $html);
-        $this->assertStringContainsString('name="description" content="I design, ship, and run AWS infrastructure. The account, the pipeline, and what happens after it ships."', $html);
-        $this->assertStringContainsString('property="og:description" content="I design, ship, and run AWS infrastructure. The account, the pipeline, and what happens after it ships."', $html);
+        $this->assertStringContainsString('name="description" content="I design, ship, and run AWS infrastructure. The account, the pipeline, and what happens after it ships. Open for audits, migrations, and DevOps work."', $html);
+        $this->assertStringContainsString('property="og:description" content="I design, ship, and run AWS infrastructure. The account, the pipeline, and what happens after it ships. Open for audits, migrations, and DevOps work."', $html);
         $this->assertStringContainsString('property="og:title"', $html);
         $this->assertStringContainsString('property="og:site_name" content="Harun R. Rayhan"', $html);
         $this->assertStringContainsString('property="og:image"', $html);
@@ -303,7 +303,7 @@ class SiteSeoTest extends TestCase
         $bio = $this->get('/bio')->assertOk()->getContent();
         $this->assertStringContainsString('<title data-inertia="">Harun R. Rayhan | Bio</title>', $bio);
         $this->assertStringContainsString(
-            'name="description" content="Harun R. Rayhan&#039;s bio page with quick links to his portfolio, blog, contact details, and social profiles."',
+            'name="description" content="Harun R. Rayhan&#039;s bio page with quick links to his portfolio, blog, consultation booking, contact details, and social profiles."',
             $bio,
         );
 

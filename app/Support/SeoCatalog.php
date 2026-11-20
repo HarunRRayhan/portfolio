@@ -81,7 +81,7 @@ final class SeoCatalog
 
         $pages['/'] = new SeoMeta(
             title: 'Harun R. Rayhan | AWS infrastructure',
-            description: 'I design, ship, and run AWS infrastructure. The account, the pipeline, and what happens after it ships.',
+            description: 'I design, ship, and run AWS infrastructure. The account, the pipeline, and what happens after it ships. Open for audits, migrations, and DevOps work.',
             canonicalUrl: $siteUrl.'/',
             ogImage: self::defaultOgImage(),
             ogType: 'website',
@@ -183,7 +183,7 @@ final class SeoCatalog
 
         $pages['/bio'] = new SeoMeta(
             title: 'Harun R. Rayhan | Bio',
-            description: "Harun R. Rayhan's bio page with quick links to his portfolio, blog, contact details, and social profiles.",
+            description: "Harun R. Rayhan's bio page with quick links to his portfolio, blog, consultation booking, contact details, and social profiles.",
             canonicalUrl: $siteUrl.'/bio',
             ogImage: self::assetUrl('/images/og/bio.jpg'),
         );
@@ -310,7 +310,7 @@ final class SeoCatalog
             ],
             'infrastructure-migration' => [
                 'title' => 'AWS Infrastructure Migration | Harun R. Rayhan',
-                'description' => 'AWS infrastructure migration with a written plan for downtime, data checks, and the first week after cutover.',
+                'description' => 'AWS infrastructure migration with a written plan for downtime, data checks, and the first week after cutover, across accounts, regions, or providers.',
             ],
             'mlops' => [
                 'title' => 'MLOps on AWS | Harun R. Rayhan',
