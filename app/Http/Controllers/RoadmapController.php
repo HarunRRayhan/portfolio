@@ -150,6 +150,9 @@ class RoadmapController extends Controller
     {
         $roadmap = $this->roadmapOr404($slug);
         $found = $this->repo->findTopic($roadmap, $topicId);
+        if (! $found && $moved = $this->repo->movedTo($slug, $topicId)) {
+            return redirect($moved, 301);
+        }
         abort_unless($found, 404);
         ['stage' => $stage, 'topic' => $topic, 'prev' => $prev, 'next' => $next] = $found;
 
@@ -184,10 +187,12 @@ class RoadmapController extends Controller
     {
         $roadmap = $this->roadmapOr404($slug);
         $found = $this->repo->findTopic($roadmap, $topicId);
-        abort_unless($found, 404);
-        ['stage' => $stage, 'topic' => $topic] = $found;
-        $position = collect($topic['lessons'])->search(fn ($l) => $l['id'] === $lessonId);
+        $position = $found ? collect($found['topic']['lessons'])->search(fn ($l) => $l['id'] === $lessonId) : false;
+        if ($position === false && $moved = $this->repo->movedTo($slug, $topicId, $lessonId)) {
+            return redirect($moved, 301);
+        }
         abort_if($position === false, 404);
+        ['stage' => $stage, 'topic' => $topic] = $found;
 
         $user = $request->user();
         $locked = $stage['level'] !== RoadmapRepository::FREE_LEVEL && ! RoadmapAccess::canAccessPaid($user);
