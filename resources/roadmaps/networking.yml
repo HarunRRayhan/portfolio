@@ -1,0 +1,2142 @@
+slug: networking
+title: Networking
+summary: Build and run real networks. Wi-Fi, switches and VLANs, packet capture, routing inside a network, firewalls, VPNs, network design and email. Builds on How the Internet Works.
+order: 1
+category: foundations
+updated: '2026-11-20'
+icon: network
+color: blue
+logos:
+  - /images/tech/linux.svg
+builds_on: internet-networking
+
+stages:
+  - level: beginner
+    title: Your own network
+    topics:
+      - id: wifi
+        title: "Wi-Fi: how your devices reach the router"
+        summary: The radio link inside your home. How 802.11 shares the air, the 2.4, 5 and 6 GHz bands, the Wi-Fi generations, security from WEP to WPA3, and mesh systems.
+        lessons:
+          - id: how-wifi-works
+            title: How Wi-Fi works
+            summary: An access point and its devices take turns on one radio channel. SSIDs, BSSIDs, joining a network, and why Wi-Fi speed is really about airtime.
+            learn:
+              - What 802.11, an access point, an SSID and a BSSID are
+              - The steps a device takes to join a network
+              - CSMA/CA and why Wi-Fi is half-duplex
+              - Airtime, and why one slow device slows everyone
+            body: |
+              **Wi-Fi** is the brand name for the IEEE **802.11** standards, first published in 1997. It is Ethernet over radio: frames with MAC addresses, sent through the air instead of a cable.
+
+              An **access point** (AP) is the radio that bridges wireless devices onto your wired network. Your home "router" usually contains one.
+
+              - **SSID**: the network name you pick from a list, up to 32 bytes
+              - **BSSID**: the MAC address of one AP radio. One SSID can have many BSSIDs: one per band, and one per AP in a mesh
+
+              ### Joining a network
+              1. The AP sends a **beacon** about 10 times a second (every 102.4 ms) announcing its SSID and abilities. Devices also send **probe requests** to ask who is there
+              2. The device **authenticates** and **associates** with one BSSID
+              3. With WPA2 or WPA3, a **4-way handshake** creates the encryption keys
+              4. Only then does it ask DHCP for an IP address
+
+              ### Taking turns: CSMA/CA
+              Everything on one channel shares the same air, and a radio cannot listen while it transmits. So Wi-Fi is **half-duplex**: one device talks at a time, AP included. It uses **CSMA/CA** (carrier sense multiple access with collision avoidance):
+
+              - Listen first. If the channel is busy, wait
+              - When it goes quiet, wait a random **backoff** time, so two waiting devices rarely start together
+              - The receiver sends an **ACK** for each frame. No ACK means a collision or noise, so send again
+
+              Two devices that cannot hear each other but both reach the AP are **hidden nodes**. Their frames collide at the AP. RTS/CTS, a short "clear to send" from the AP, reduces this.
+
+              ### Airtime
+              Capacity on a channel is measured in **time**, not Mbps. A device far away sends at a low rate and takes much longer to send the same data. One old phone at 6 Mbps uses ten times the airtime of a laptop at 60 Mbps for the same file, and everyone else waits.
+
+              ### In practice
+              ```bash
+              iw dev wlan0 link                   # Linux: BSSID, signal, rate
+              system_profiler SPAirPortDataType   # macOS: channel, signal and noise
+              ```
+
+              ### Common mistakes
+              - Adding devices as if each gets the full link speed: they share one channel's airtime
+              - Thinking a strong AP signal is enough: your phone's weaker transmitter must reach back
+            resources:
+              - { label: "IEEE 802.11 (Wikipedia)", url: "https://en.wikipedia.org/wiki/IEEE_802.11", kind: article }
+              - { label: "Wi-Fi (Wikipedia)", url: "https://en.wikipedia.org/wiki/Wi-Fi", kind: article }
+              - { label: "Service set: SSID, BSSID and ESS (Wikipedia)", url: "https://en.wikipedia.org/wiki/Service_set_(802.11_network)", kind: article }
+              - { label: "CSMA/CA (Wikipedia)", url: "https://en.wikipedia.org/wiki/Carrier-sense_multiple_access_with_collision_avoidance", kind: article }
+              - { label: "Hidden node problem (Wikipedia)", url: "https://en.wikipedia.org/wiki/Hidden_node_problem", kind: article }
+              - { label: "About iw (Linux Wireless)", url: "https://wireless.docs.kernel.org/en/latest/en/users/documentation/iw.html", kind: docs }
+              - { label: "How Wi-Fi Works, e01: CSMA/CA (Dimitrie Sandu)", url: "https://www.youtube.com/watch?v=TesJPzEnvew", kind: video }
+              - { label: "CSMA/CA with and without RTS/CTS (MrBrownCS)", url: "https://www.youtube.com/watch?v=My4VDzviiNg", kind: video }
+          - id: wifi-bands-channels
+            title: Wi-Fi bands, channels and signal strength
+            summary: 2.4, 5 and 6 GHz trade range for speed. Channel widths, why 1, 6 and 11, radar channels, and how to read dBm and SNR.
+            learn:
+              - What the 2.4, 5 and 6 GHz bands are good for
+              - Channel widths from 20 to 320 MHz and their cost
+              - Overlapping channels, DFS and interference
+              - Signal, noise and SNR in dBm
+            body: |
+              | Band | Range in practice | Channels | Notes |
+              |---|---|---|---|
+              | **2.4 GHz** | longest, best through walls | 1 to 13 (11 in the US), 5 MHz apart | crowded, shared with Bluetooth and microwave ovens |
+              | **5 GHz** | medium | 36 to 165, some need DFS | the everyday fast band |
+              | **6 GHz** | shortest | up to 1,200 MHz of spectrum in the US, 500 MHz in Europe | Wi-Fi 6E and 7 only, WPA3 required, no old devices |
+
+              ### Channel width
+              A channel can be 20, 40, 80, 160 or 320 MHz wide (320 only in 6 GHz, with Wi-Fi 7). Doubling the width roughly doubles the top speed, but:
+
+              - you get half as many separate channels, so neighbours overlap more
+              - a wider channel picks up more noise, so range drops a little
+
+              At 2.4 GHz use 20 MHz. At 5 GHz, 80 MHz is the usual balance. 160 and 320 MHz suit 6 GHz, where there is room.
+
+              ### Why 1, 6 and 11
+              2.4 GHz channels are only 5 MHz apart, but each signal is about 20 MHz wide. Channel 3 overlaps 1 and 6. Only **1, 6 and 11** fit side by side without overlap. Two APs on the same channel take turns politely with CSMA/CA. Two on partly overlapping channels cannot decode each other, so each just sees noise, which is worse.
+
+              ### DFS
+              Much of 5 GHz (channels 52 to 144) is shared with radar. On these **DFS** channels the AP must listen for radar for at least a minute before using them, and leave at once if radar appears. A router that suddenly changes channel and drops everyone for a minute may have heard radar.
+
+              ### Signal and noise in dBm
+              **dBm** is power relative to 1 milliwatt, on a log scale. Every 3 dB is double or half; every 10 dB is ten times. Wi-Fi signals are tiny, so the numbers are negative.
+
+              | Signal | Means |
+              |---|---|
+              | -30 to -50 dBm | excellent, close to the AP |
+              | -67 dBm | a common minimum for calls and video |
+              | -75 dBm | slow and unreliable |
+              | -90 dBm and below | about the noise floor |
+
+              **SNR** is signal minus noise in dB. At -60 dBm signal and -92 dBm noise, SNR is 32 dB: plenty. Below about 15 dB, rates fall and retries climb.
+
+              ### Common mistakes
+              - Setting 2.4 GHz to 40 MHz in a block of flats
+              - Turning transmit power to maximum: it raises interference for everyone, and phones still cannot shout back
+            resources:
+              - { label: "List of WLAN channels (Wikipedia)", url: "https://en.wikipedia.org/wiki/List_of_WLAN_channels", kind: article }
+              - { label: "Dynamic frequency selection (Wikipedia)", url: "https://en.wikipedia.org/wiki/Dynamic_frequency_selection", kind: article }
+              - { label: "dBm (Wikipedia)", url: "https://en.wikipedia.org/wiki/DBm", kind: article }
+              - { label: "Signal-to-noise ratio (Wikipedia)", url: "https://en.wikipedia.org/wiki/Signal-to-noise_ratio", kind: article }
+              - { label: "Recommended settings for Wi-Fi routers and access points (Apple)", url: "https://support.apple.com/en-us/102766", kind: docs }
+              - { label: "Wi-Fi Frequency Bands and Channels (VeEX)", url: "https://www.youtube.com/watch?v=fQs6FQkTkZo", kind: video }
+              - { label: "802.11 Frequency Bands: 2.4 GHz and 5 GHz (Computer Engineering life)", url: "https://www.youtube.com/watch?v=dAfJkao92Qk", kind: video }
+          - id: wifi-generations
+            title: "Wi-Fi generations: 4, 5, 6, 6E and 7"
+            summary: Each generation adds wider channels, denser modulation or smarter sharing. The headline speeds, what really changed, and why your laptop gets a fraction of them.
+            learn:
+              - The standard, year, bands and top rate of each generation
+              - MIMO, MU-MIMO, OFDMA and MLO in plain words
+              - Why real speeds are far below the box
+            body: |
+              In 2018 the Wi-Fi Alliance renamed the 802.11 versions with simple numbers.
+
+              | Name | Standard | Year | Bands (GHz) | Top rate | Key features |
+              |---|---|---|---|---|---|
+              | Wi-Fi 4 | 802.11n | 2009 | 2.4, 5 | 600 Mbps | MIMO, up to 4 streams, 40 MHz |
+              | Wi-Fi 5 | 802.11ac | 2013 | 5 | 6.9 Gbps | 80 and 160 MHz, 256-QAM, downlink MU-MIMO |
+              | Wi-Fi 6 | 802.11ax | 2019 | 2.4, 5 | 9.6 Gbps | OFDMA, uplink MU-MIMO, 1024-QAM, target wake time |
+              | Wi-Fi 6E | 802.11ax | 2021 | adds 6 | 9.6 Gbps | the 6 GHz band |
+              | Wi-Fi 7 | 802.11be | 2024 | 2.4, 5, 6 | 46 Gbps | 320 MHz, 4096-QAM, multi-link operation |
+
+              ### The features
+              - **MIMO**: several antennas send separate **spatial streams** at once. Each stream adds the same rate again
+              - **MU-MIMO**: the AP sends different streams to different devices at the same time
+              - **OFDMA**: a channel is cut into small **resource units**, so one transmission can carry data for several devices. It cuts waiting when many devices send small packets
+              - **QAM**: more points per symbol means more bits, but needs a cleaner signal, so 4096-QAM only works close to the AP
+              - **MLO** (multi-link operation): one device uses 5 and 6 GHz links together, for more speed or a backup when one is busy
+
+              ### Why the box lies
+              Top rates assume the maximum streams (8 for Wi-Fi 5 and 6, 16 for Wi-Fi 7), the widest channel and the best signal. Most phones and laptops have **2 streams**:
+
+              | Device, 2 streams | Link rate |
+              |---|---|
+              | Wi-Fi 5, 80 MHz | 867 Mbps |
+              | Wi-Fi 6, 80 MHz | 1.2 Gbps |
+              | Wi-Fi 6E, 160 MHz | 2.4 Gbps |
+
+              Then half-duplex sharing, ACKs, retries and other devices take their cut. Close to the AP, expect roughly half to two thirds of the link rate as real throughput. Through two walls, much less. Your internet plan may also be the slower part.
+
+              ### Common mistakes
+              - Buying a Wi-Fi 7 router for Wi-Fi 5 devices: they still talk Wi-Fi 5
+              - Comparing routers by the sum of all bands ("BE19000"): no single device gets that
+            resources:
+              - { label: "IEEE 802.11n (Wikipedia)", url: "https://en.wikipedia.org/wiki/IEEE_802.11n-2009", kind: article }
+              - { label: "IEEE 802.11ac (Wikipedia)", url: "https://en.wikipedia.org/wiki/IEEE_802.11ac-2013", kind: article }
+              - { label: "Wi-Fi 6 and 6E (Wikipedia)", url: "https://en.wikipedia.org/wiki/Wi-Fi_6", kind: article }
+              - { label: "Wi-Fi 7 (Wikipedia)", url: "https://en.wikipedia.org/wiki/Wi-Fi_7", kind: article }
+              - { label: "Multi-user MIMO (Wikipedia)", url: "https://en.wikipedia.org/wiki/Multi-user_MIMO", kind: article }
+              - { label: "Orthogonal frequency-division multiple access (Wikipedia)", url: "https://en.wikipedia.org/wiki/Orthogonal_frequency-division_multiple_access", kind: article }
+              - { label: "How Wi-Fi Works, e04: OFDMA (Dimitrie Sandu)", url: "https://www.youtube.com/watch?v=zk-fSVsFtK4", kind: video }
+              - { label: "From Wi-Fi 6/6E to Wi-Fi 7: What's New (Sunset Learning Institute)", url: "https://www.youtube.com/watch?v=O22gFihLJ6o", kind: video }
+          - id: wifi-security
+            title: "Wi-Fi security: WEP to WPA3"
+            summary: Radio reaches the street, so Wi-Fi needs encryption. Why WEP fell, how WPA2 personal and enterprise work, what KRACK broke, and what WPA3 and OWE fix.
+            learn:
+              - Why WEP is broken
+              - WPA2-PSK vs WPA2-Enterprise with 802.1X
+              - What KRACK was and how it was fixed
+              - WPA3-SAE, open networks and OWE
+            body: |
+              Anyone nearby can record your Wi-Fi frames. Security is about who may join and whether recorded traffic can be read.
+
+              | Mode | Year | How it works | Status |
+              |---|---|---|---|
+              | **WEP** | 1997 | RC4 with a short shared key and a 24-bit IV | broken since 2001, cracked in minutes |
+              | **WPA** (TKIP) | 2003 | stopgap for WEP hardware | deprecated |
+              | **WPA2-Personal** (PSK) | 2004 | AES-CCMP, key from a shared passphrase | fine with a long passphrase |
+              | **WPA2-Enterprise** (802.1X) | 2004 | 802.1X login per user, checked by a RADIUS server | the standard for offices |
+              | **WPA3-Personal** (SAE) | 2018 | password-based key exchange that resists guessing | use it where devices support it |
+
+              ### WPA2-Personal
+              The passphrase and the SSID make a master key. Each device runs a **4-way handshake** with the AP to make fresh session keys. The weak spot: anyone who captures one handshake can try passphrase guesses **offline**, as fast as their GPUs allow. A short or common passphrase falls quickly. Anyone who knows the passphrase and records a device's handshake can also decrypt its traffic.
+
+              ### Enterprise and 802.1X
+              Each user or device logs in with its own credentials, using **EAP**, checked by a **RADIUS** server. **EAP-TLS** uses certificates; **PEAP** uses a username and password inside TLS. Devices must check the server's certificate, or a fake AP can collect passwords.
+
+              ### KRACK (2017)
+              Mathy Vanhoef showed that replaying message 3 of the 4-way handshake made devices **reinstall** a key in use and reset its nonce, so encryption repeated and frames could be decrypted. It was a flaw in the standard, but backward-compatible patches to clients and APs fixed it.
+
+              ### WPA3
+              **SAE** (Simultaneous Authentication of Equals) replaces the PSK handshake. A captured exchange gives nothing to guess against offline, and each session has **forward secrecy**. WPA3 also requires protected management frames, which stop forged disconnect frames. The 2019 **Dragonblood** research found side channels and downgrade attacks in early versions and in WPA2/WPA3 transition mode; updates fixed most of them.
+
+              ### Open networks and OWE
+              An open café network encrypts nothing. **OWE** (Opportunistic Wireless Encryption, RFC 8110, sold as Wi-Fi Enhanced Open) encrypts each device's traffic with no password. It does not prove the AP is genuine, so an "evil twin" still works.
+
+              ### In practice
+              - Use WPA3, or WPA2/WPA3 mixed mode for older devices, with a long random passphrase
+              - Turn off **WPS**: its 8-digit PIN can be brute-forced in hours
+              - Keep using HTTPS and a VPN on networks you do not control
+            resources:
+              - { label: "Wi-Fi Protected Access (Wikipedia)", url: "https://en.wikipedia.org/wiki/Wi-Fi_Protected_Access", kind: article }
+              - { label: "Wired Equivalent Privacy (Wikipedia)", url: "https://en.wikipedia.org/wiki/Wired_Equivalent_Privacy", kind: article }
+              - { label: "KRACK Attacks: Breaking WPA2 (Mathy Vanhoef)", url: "https://www.krackattacks.com/", kind: article }
+              - { label: "Dragonblood: Analysing WPA3's Dragonfly Handshake", url: "https://wpa3.mathyvanhoef.com/", kind: article }
+              - { label: "IEEE 802.1X (Wikipedia)", url: "https://en.wikipedia.org/wiki/IEEE_802.1X", kind: article }
+              - { label: "RFC 8110: Opportunistic Wireless Encryption", url: "https://www.rfc-editor.org/rfc/rfc8110", kind: docs }
+              - { label: "Wi-Fi security (Wi-Fi Alliance)", url: "https://www.wi-fi.org/security", kind: docs }
+              - { label: "KRACKing WPA2 and Mitigating Future Vulnerabilities (Mathy Vanhoef talk)", url: "https://www.youtube.com/watch?v=KtZ2DnsgBRE", kind: video }
+          - id: mesh-and-roaming
+            title: Mesh Wi-Fi, roaming and where to put access points
+            optional: true
+            summary: More access points cover a bigger home, but only if they are linked well and devices move between them. Backhaul, 802.11k, v and r, and placement.
+            learn:
+              - Wired vs wireless mesh backhaul
+              - Why the device, not the AP, decides when to roam
+              - 802.11k, 802.11v and 802.11r
+              - Practical placement tips
+            body: |
+              One AP rarely covers a large or multi-floor home. **Mesh** systems add more nodes with one SSID, so devices see a single network.
+
+              ### Backhaul
+              Each extra node must reach the main router. That link is the **backhaul**.
+
+              | Backhaul | Effect |
+              |---|---|
+              | **Ethernet** | best: full speed, no airtime used |
+              | **Dedicated radio** (tri-band mesh) | good: one 5 or 6 GHz radio only carries node-to-node traffic |
+              | **Shared radio** (dual-band mesh, extenders) | weak: each frame crosses the air twice on the same channel, roughly halving speed per hop |
+
+              Wi-Fi Alliance **EasyMesh** lets nodes from different vendors work together, but most systems still use their own software.
+
+              ### Roaming
+              The **device** decides when to leave one AP for another. Many cling to a weak AP long after a better one is close (the "sticky client"). Apple devices, for example, start looking for a better AP when the signal drops below -70 dBm. Three amendments help:
+
+              - **802.11k** (neighbour reports): the AP tells the device which nearby APs and channels to check, so it scans less
+              - **802.11v** (BSS transition management): the AP can suggest that a device move to a better AP
+              - **802.11r** (fast BSS transition): keys are set up ahead, so a roam takes tens of milliseconds instead of a full handshake. This matters for calls and for 802.1X networks, where a full login can take seconds
+
+              Some old devices fail to join when 802.11r is on. If a printer or smart plug drops off, try turning it off.
+
+              ### Placement
+              - Put the main router central and in the open, not in a cupboard or behind the TV
+              - Place each node about halfway between the router and the dead zone, where it still gets a strong signal (around -65 dBm or better)
+              - Floors and concrete walls block far more than distance does. One node per floor is common
+              - Use Ethernet backhaul wherever a cable can reach, even one run
+              - Use one SSID for all bands and nodes, so devices can choose
+
+              ### Common mistakes
+              - Adding a cheap extender with the same channel: more bars, less speed
+              - Placing a node in the dead zone itself, where it has no good link back
+            resources:
+              - { label: "Wireless mesh network (Wikipedia)", url: "https://en.wikipedia.org/wiki/Wireless_mesh_network", kind: article }
+              - { label: "IEEE 802.11r-2008 (Wikipedia)", url: "https://en.wikipedia.org/wiki/IEEE_802.11r-2008", kind: article }
+              - { label: "IEEE 802.11k-2008 (Wikipedia)", url: "https://en.wikipedia.org/wiki/IEEE_802.11k-2008", kind: article }
+              - { label: "IEEE 802.11v (Wikipedia)", url: "https://en.wikipedia.org/wiki/IEEE_802.11v", kind: article }
+              - { label: "Wi-Fi roaming support in Apple devices (Apple)", url: "https://support.apple.com/guide/deployment/wi-fi-roaming-support-dep98f116c0f/web", kind: docs }
+              - { label: "Alternative topologies and EasyMesh (Wi-Fi Alliance)", url: "https://www.wi-fi.org/alternative-topologies", kind: docs }
+              - { label: "Tech Talk: Mesh and Roaming (EnGenius)", url: "https://www.youtube.com/watch?v=szpNBipgxes", kind: video }
+              - { label: "What Is Mesh WiFi? How It Works and Who Needs It (NETGEAR)", url: "https://www.youtube.com/watch?v=UgPD7YuyacA", kind: video }
+
+      - id: switching-vlans
+        title: Switching and VLANs
+        summary: How an Ethernet switch learns where every device is, how VLANs split one switch into many networks, and how spanning tree stops loops from melting the LAN.
+        lessons:
+          - id: mac-learning-forwarding
+            title: How a switch learns and forwards
+            summary: A switch builds its MAC address table by reading the source of every frame, then forwards, floods or filters each frame using that table.
+            learn:
+              - Learning from the source MAC address
+              - Forward, flood and filter decisions
+              - Why the table entries age out
+              - What MAC flooding attacks do
+            body: |
+              A switch works at layer 2. It reads Ethernet frames, not IP packets, and decides which port each frame leaves on. It does this with a **MAC address table** (Cisco calls it the CAM table): a list of MAC address, VLAN and port.
+
+              ### Key ideas
+              - **Learn.** When a frame arrives, the switch records its **source** MAC against the port it came in on. Nobody configures this
+              - **Forward.** If the **destination** MAC is in the table, the frame goes out that one port only
+              - **Flood.** If the destination is unknown, or is broadcast (`ff:ff:ff:ff:ff:ff`), the frame goes out every port in the same VLAN except the one it came in on
+              - **Filter.** If the destination sits on the same port the frame came from, the switch drops it
+              - **Age.** Entries that are not refreshed expire, often after 300 seconds, so a device that moves is learned again on its new port
+
+              ### Example
+              Laptop A on port 1 sends to printer B on port 7. The table is empty, so the switch learns "A is on port 1" and floods the frame. B replies, the switch learns "B is on port 7" and sends the reply straight to port 1. Every frame after that goes port to port.
+
+              ### In practice
+              ```
+              # Cisco IOS
+              show mac address-table dynamic
+              # Linux bridge
+              bridge fdb show br br0
+              ```
+
+              ### Common mistakes
+              - Thinking a switch sends every frame to every port. That was a **hub**. A switch only floods unknown and broadcast traffic
+              - Ignoring **MAC flooding**: an attacker sends frames from thousands of fake MACs until the table is full, and the switch then floods traffic the attacker can read. Port security limits MACs per port
+            resources:
+              - { label: "Network switch (Wikipedia)", url: "https://en.wikipedia.org/wiki/Network_switch", kind: article }
+              - { label: "Forwarding information base (Wikipedia)", url: "https://en.wikipedia.org/wiki/Forwarding_information_base", kind: article }
+              - { label: "Bridging (networking) (Wikipedia)", url: "https://en.wikipedia.org/wiki/Bridging_(networking)", kind: article }
+              - { label: "Communication through multiple switches (Practical Networking)", url: "https://www.practicalnetworking.net/stand-alone/communication-through-multiple-switches/", kind: article }
+              - { label: "Linux Ethernet bridging (kernel docs)", url: "https://www.kernel.org/doc/html/latest/networking/bridge.html", kind: docs }
+              - { label: "Everything switches do, part 1 (Practical Networking)", url: "https://www.youtube.com/watch?v=AhOU2eOpmX0", kind: video }
+              - { label: "Everything switches do, part 2 (Practical Networking)", url: "https://www.youtube.com/watch?v=G7GyWjJtjNs", kind: video }
+              - { label: "How a switch forwards and builds the MAC address table (danscourses)", url: "https://www.youtube.com/watch?v=sdYDLip2ANI", kind: video }
+          - id: vlans-and-8021q
+            title: VLANs, 802.1Q tags, access and trunk ports
+            summary: A VLAN turns one physical switch into several separate layer 2 networks. Trunks carry many VLANs on one cable by adding a 4-byte tag to each frame.
+            learn:
+              - What a VLAN separates and why
+              - The 802.1Q tag and its 12-bit VLAN ID
+              - Access ports vs trunk ports and the native VLAN
+              - Creating a tagged interface on Linux
+            body: |
+              A **VLAN** (virtual LAN) is a separate broadcast domain inside a switch. Ports in VLAN 10 and ports in VLAN 20 cannot reach each other at layer 2, even on the same switch. Each VLAN normally gets its own IP subnet.
+
+              ### The 802.1Q tag
+              To carry several VLANs on one cable, IEEE 802.1Q inserts a 4-byte tag after the source MAC address:
+
+              | Field | Bits | Meaning |
+              |---|---|---|
+              | TPID | 16 | always `0x8100`, marks a tagged frame |
+              | PCP | 3 | priority, 0 to 7, used for QoS |
+              | DEI | 1 | frame may be dropped first under congestion |
+              | VID | 12 | the VLAN ID, 1 to 4094 (0 and 4095 are reserved) |
+
+              ### Access vs trunk ports
+              - An **access port** belongs to one VLAN. Frames on the wire are **untagged**, and the device on it (a PC, a printer) never knows VLANs exist
+              - A **trunk port** carries many VLANs, each frame **tagged** with its VID. Trunks link switches to switches, routers, hypervisors and firewalls
+              - The **native VLAN** is the one VLAN a trunk sends untagged. Both ends must agree on it
+
+              ### Example
+              ```
+              # Linux: a tagged subinterface for VLAN 10 on eth0
+              ip link add link eth0 name eth0.10 type vlan id 10
+              ip addr add 10.0.10.5/24 dev eth0.10
+              ip link set eth0.10 up
+              ```
+
+              ### Common mistakes
+              - Mismatched native VLANs on the two ends of a trunk, which quietly merges two VLANs
+              - Leaving user ports in the native VLAN. That allows **VLAN hopping** with double-tagged frames. Use an unused VLAN as native and allow only the VLANs each trunk needs
+              - Treating VLANs as a firewall. They separate layer 2. Whatever routes between them decides what can talk
+            resources:
+              - { label: "IEEE 802.1Q (Wikipedia)", url: "https://en.wikipedia.org/wiki/IEEE_802.1Q", kind: article }
+              - { label: "VLAN (Wikipedia)", url: "https://en.wikipedia.org/wiki/VLAN", kind: article }
+              - { label: "IEEE 802.1Q standard page", url: "https://www.ieee802.org/1/pages/802.1Q.html", kind: docs }
+              - { label: "Virtual Local Area Networks (Practical Networking)", url: "https://www.practicalnetworking.net/stand-alone/vlans/", kind: article }
+              - { label: "VLANs part 1 (Jeremy's IT Lab)", url: "https://www.youtube.com/watch?v=cjFzOnm6u1g", kind: video }
+              - { label: "VLANs part 2: trunks and 802.1Q (Jeremy's IT Lab)", url: "https://www.youtube.com/watch?v=Jl9OOzNaBDU", kind: video }
+          - id: inter-vlan-routing
+            title: Routing between VLANs
+            summary: VLANs cannot talk to each other without a router. Router on a stick and layer 3 switch interfaces (SVIs) are the two common ways to join them.
+            learn:
+              - Why traffic between VLANs must be routed
+              - Router on a stick with subinterfaces
+              - Layer 3 switches and SVIs
+              - Where to put access control between VLANs
+            body: |
+              Each VLAN is its own subnet, so a host in VLAN 10 sends traffic for VLAN 20 to its **default gateway**, exactly as it would for the internet. Something has to own an address in each VLAN and route between them.
+
+              | Design | How it works | Good for |
+              |---|---|---|
+              | **Router on a stick** | one trunk to a router, one **subinterface** per VLAN, each with the gateway IP | small sites, firewalls doing the routing |
+              | **Layer 3 switch** | an **SVI** (switch virtual interface) per VLAN, routed in switch hardware | campus and data centre, high throughput |
+              | **Separate router ports** | one physical port per VLAN | very few VLANs, rarely used now |
+
+              ### Example
+              ```
+              ! Cisco router on a stick, VLAN 10 and 20 over one trunk
+              interface Gi0/0.10
+               encapsulation dot1Q 10
+               ip address 10.0.10.1 255.255.255.0
+              interface Gi0/0.20
+               encapsulation dot1Q 20
+               ip address 10.0.20.1 255.255.255.0
+              ```
+              Hosts in VLAN 10 use `10.0.10.1` as their gateway, hosts in VLAN 20 use `10.0.20.1`.
+
+              ### Key ideas
+              - Router on a stick sends traffic up and back down the same trunk, so that link's bandwidth is shared by every routed flow
+              - SVIs keep routing inside the switch, but a plain layer 3 switch routes everything by default. Add ACLs or route through a firewall to restrict it
+              - DHCP is broadcast and stays in its VLAN. A **DHCP relay** (`ip helper-address` on Cisco) forwards it to a central server
+
+              ### Common mistakes
+              - Forgetting to allow the VLAN on the trunk to the router, so the gateway is unreachable
+              - Giving two VLANs overlapping subnets
+            resources:
+              - { label: "Routing between VLANs and layer 3 switches (Practical Networking)", url: "https://www.practicalnetworking.net/stand-alone/routing-between-vlans/", kind: article }
+              - { label: "Router on a stick (Wikipedia)", url: "https://en.wikipedia.org/wiki/Router_on_a_stick", kind: article }
+              - { label: "VLAN (Wikipedia)", url: "https://en.wikipedia.org/wiki/VLAN", kind: article }
+              - { label: "VLANs part 2: router on a stick (Jeremy's IT Lab)", url: "https://www.youtube.com/watch?v=Jl9OOzNaBDU", kind: video }
+              - { label: "VLANs part 3: layer 3 switches and SVIs (Jeremy's IT Lab)", url: "https://www.youtube.com/watch?v=OkPB028l2eE", kind: video }
+              - { label: "Linux Ethernet bridging and VLAN filtering (kernel docs)", url: "https://www.kernel.org/doc/html/latest/networking/bridge.html", kind: docs }
+          - id: spanning-tree
+            title: Spanning tree (STP and RSTP) and switching loops
+            summary: Ethernet frames have no hop limit, so one loop can flood a network to a standstill. Spanning tree blocks redundant links until they are needed.
+            learn:
+              - Why a layer 2 loop causes a broadcast storm
+              - Root bridge election and port roles
+              - Classic STP vs RSTP convergence
+              - PortFast and BPDU guard on edge ports
+            body: |
+              IP packets carry a TTL that drops them after too many hops. **Ethernet frames have no TTL.** If two switches are joined by two cables, a broadcast circles forever, multiplies at every flood, and the MAC tables flap between ports. This is a **broadcast storm**, and it can take a LAN down in seconds.
+
+              **Spanning Tree Protocol** (IEEE 802.1D) keeps redundant cables but blocks just enough ports to leave a loop-free tree. Switches exchange **BPDUs** (bridge protocol data units) to build it.
+
+              ### How the tree is built
+              1. Every switch has a **bridge ID**: a priority (default 32768) plus its MAC. The lowest bridge ID becomes the **root bridge**
+              2. Each other switch picks one **root port**, its cheapest path to the root. Faster links have lower cost
+              3. Each link gets one **designated port**, the side closest to the root
+              4. Every other port is **blocked**. It still listens for BPDUs, and unblocks if the active path fails
+
+              | | Classic STP (802.1D) | RSTP (802.1w) |
+              |---|---|---|
+              | Convergence | 30 to 50 seconds | usually under a few seconds |
+              | Port states | blocking, listening, learning, forwarding, disabled | discarding, learning, forwarding |
+              | Backup roles | none | alternate and backup ports ready to take over |
+
+              RSTP is the default on modern switches. **MSTP** runs separate trees for groups of VLANs.
+
+              ### In practice
+              - Set the root on purpose: give your core switch a lower priority (for example 4096) so a random access switch never wins
+              - Mark ports to end devices as **edge ports** (Cisco **PortFast**) so they forward at once, and add **BPDU guard** so a port that hears a BPDU shuts down
+
+              ### Common mistakes
+              - Turning STP off "because it is slow". A single looped cable then takes the network down
+              - Expecting blocked links to add bandwidth. Use link aggregation for that
+            resources:
+              - { label: "Spanning Tree Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Spanning_Tree_Protocol", kind: article }
+              - { label: "Rapid Spanning Tree Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Rapid_Spanning_Tree_Protocol", kind: article }
+              - { label: "Understand Rapid Spanning Tree Protocol (802.1w) (Cisco)", url: "https://www.cisco.com/c/en/us/support/docs/lan-switching/spanning-tree-protocol/24062-146.html", kind: docs }
+              - { label: "Broadcast storm (Wikipedia)", url: "https://en.wikipedia.org/wiki/Broadcast_storm", kind: article }
+              - { label: "Spanning Tree Protocol part 1 (Jeremy's IT Lab)", url: "https://www.youtube.com/watch?v=j-bK-EFt9cY", kind: video }
+              - { label: "Rapid Spanning Tree Protocol (Jeremy's IT Lab)", url: "https://www.youtube.com/watch?v=EpazNsLlPps", kind: video }
+              - { label: "Spanning Tree Protocol explained step by step (CertBros)", url: "https://www.youtube.com/watch?v=japdEY1UKe4", kind: video }
+          - id: link-aggregation-lacp
+            title: Link aggregation and LACP
+            optional: true
+            summary: Bundle several physical links into one logical link for more bandwidth and redundancy. LACP negotiates the bundle, and hashing decides which link each flow uses.
+            learn:
+              - What a link aggregation group (LAG) is
+              - How LACP negotiates and checks the bundle
+              - Why one flow never goes faster than one link
+              - Setting up a bond on Linux
+            body: |
+              **Link aggregation** joins two or more Ethernet links between the same two devices into one logical link. Cisco calls it EtherChannel, Linux calls it a bond, others say LAG or port channel. Spanning tree sees one link, so nothing is blocked, and losing one cable only lowers capacity.
+
+              **LACP** (Link Aggregation Control Protocol, first IEEE 802.3ad, now IEEE 802.1AX) sends LACPDUs on each member so both sides agree which links belong to the bundle and drop any link that is miswired or dead.
+
+              ### Key ideas
+              - Each side runs LACP in **active** mode (sends LACPDUs) or **passive** mode (only answers). At least one side must be active
+              - Members must match in speed, duplex and VLAN settings
+              - Traffic is spread by **hashing** fields such as MAC, IP and port. Every frame of one flow takes the same link, so packets stay in order
+              - So four 10 Gbps links give 40 Gbps in total, but **one TCP connection still tops out at 10 Gbps**
+
+              ### Example
+              ```
+              # Linux: bond eth0 and eth1 with LACP
+              ip link add bond0 type bond mode 802.3ad
+              ip link set eth0 down; ip link set eth0 master bond0
+              ip link set eth1 down; ip link set eth1 master bond0
+              ip link set bond0 up
+              cat /proc/net/bonding/bond0
+              ```
+              On a Cisco switch the matching ports use `channel-group 1 mode active`.
+
+              ### In practice
+              A standard LAG runs between two devices. Spreading one bundle across two switches needs a vendor feature (MLAG, Cisco vPC, stacking), so both switches act as one LACP partner.
+
+              ### Common mistakes
+              - Building a static bundle without LACP: a miswired cable then silently drops traffic
+              - Testing with one large file copy and wondering why it uses one link
+            resources:
+              - { label: "Link aggregation (Wikipedia)", url: "https://en.wikipedia.org/wiki/Link_aggregation", kind: article }
+              - { label: "Link Aggregation Control Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Link_Aggregation_Control_Protocol", kind: article }
+              - { label: "Linux Ethernet bonding driver (kernel docs)", url: "https://www.kernel.org/doc/html/latest/networking/bonding.html", kind: docs }
+              - { label: "EtherChannel (Jeremy's IT Lab)", url: "https://www.youtube.com/watch?v=xuo69Joy_Nc", kind: video }
+              - { label: "What is LACP in networking? (Network Direction)", url: "https://www.youtube.com/watch?v=z6hStQ3g4ck", kind: video }
+              - { label: "EtherChannel explained: concept and configuration (CertBros)", url: "https://www.youtube.com/watch?v=j6-kadxwIFQ", kind: video }
+
+      - id: packet-capture
+        title: Packet capture and network troubleshooting
+        summary: Stop guessing and look at the packets. tcpdump on servers, Wireshark on your desk, and a step-by-step way to find out where a slow or broken request is going wrong.
+        lessons:
+          - id: tcpdump-basics
+            title: Capturing traffic with tcpdump
+            summary: tcpdump prints or saves the packets on an interface. The useful part is the BPF filter that picks the few packets you care about.
+            learn:
+              - The flags you use every time (-i, -n, -c, -w, -r)
+              - BPF capture filter syntax with host, net, port, and, or, not
+              - Reading tcpdump's TCP flags
+              - Saving a capture to open in Wireshark
+            body: |
+              **tcpdump** captures packets using libpcap. It needs root or the `CAP_NET_RAW` capability. A **capture filter**, written in BPF (Berkeley Packet Filter) syntax, runs in the kernel and keeps only matching packets, so even a busy server stays usable.
+
+              ### Flags you use every time
+              | Flag | Does |
+              |---|---|
+              | `-i eth0` / `-i any` | which interface to listen on |
+              | `-n` | no DNS lookups for addresses (`-nn` also keeps port numbers) |
+              | `-c 100` | stop after 100 packets |
+              | `-w file.pcap` | write raw packets to a file instead of printing |
+              | `-r file.pcap` | read a saved file |
+              | `-A` / `-X` | print payload as ASCII / hex and ASCII |
+              | `-v` | more header detail |
+
+              ### Filter examples
+              ```
+              tcpdump -nn -i any host 203.0.113.10
+              tcpdump -nn -i eth0 port 53
+              tcpdump -nn -i eth0 'tcp port 443 and not net 10.0.0.0/8'
+              tcpdump -nn -i eth0 'src host 10.0.0.5 and (port 80 or port 8080)'
+              tcpdump -nn -i eth0 'tcp[tcpflags] & (tcp-syn|tcp-rst) != 0'
+              tcpdump -nn -i eth0 icmp
+              tcpdump -i eth0 -w /tmp/web.pcap -c 5000 port 443
+              ```
+              Quote filters that contain brackets or parentheses so the shell leaves them alone.
+
+              ### Reading the output
+              ```
+              12:00:01.10 IP 10.0.0.5.51544 > 203.0.113.10.443: Flags [S], seq 1000, win 64240, length 0
+              12:00:01.12 IP 203.0.113.10.443 > 10.0.0.5.51544: Flags [S.], seq 7000, ack 1001, length 0
+              12:00:01.12 IP 10.0.0.5.51544 > 203.0.113.10.443: Flags [.], ack 7001, length 0
+              ```
+              `[S]` is SYN, `[S.]` is SYN-ACK, `[.]` is ACK, `[P.]` is data with PSH-ACK, `[F.]` is FIN, `[R]` is reset. The time between SYN and SYN-ACK is the network round trip.
+
+              ### Common mistakes
+              - Forgetting `-n`, so tcpdump makes DNS queries of its own and floods the output with them
+              - Capturing on the wrong interface. Inside containers and VPNs use `-i any` first
+              - Leaving a long capture running with no `-c` or filter and filling the disk
+            resources:
+              - { label: "tcpdump(1) man page (tcpdump.org)", url: "https://www.tcpdump.org/manpages/tcpdump.1.html", kind: docs }
+              - { label: "pcap-filter(7): BPF filter syntax (tcpdump.org)", url: "https://www.tcpdump.org/manpages/pcap-filter.7.html", kind: docs }
+              - { label: "Let's learn tcpdump (Julia Evans zine)", url: "https://wizardzines.com/zines/tcpdump/", kind: article }
+              - { label: "tcpdump is amazing (Julia Evans)", url: "https://jvns.ca/blog/2016/03/16/tcpdump-is-amazing/", kind: article }
+              - { label: "tcpdump examples: a tutorial (Daniel Miessler)", url: "https://danielmiessler.com/study/tcpdump/", kind: article }
+              - { label: "tcpdump (Wikipedia)", url: "https://en.wikipedia.org/wiki/Tcpdump", kind: article }
+              - { label: "tcpdump: traffic capture and analysis (HackerSploit)", url: "https://www.youtube.com/watch?v=1lDfCRM6dWk", kind: video }
+          - id: wireshark-filters-streams
+            title: Wireshark display filters and following streams
+            summary: Wireshark decodes every protocol field and lets you filter on any of them. Learn the filters you need daily, follow a TCP conversation, and read a handshake and a TLS ClientHello.
+            learn:
+              - Capture filters vs display filters
+              - Display filters you will use every day
+              - Follow TCP Stream and Conversations
+              - Reading a TCP handshake and a TLS ClientHello
+            body: |
+              Wireshark has two kinds of filter. **Capture filters** use the same BPF syntax as tcpdump and decide what is recorded. **Display filters** use Wireshark's own field syntax and only hide packets on screen. Capture broadly, then narrow with display filters.
+
+              ### Display filters you will use
+              | Filter | Shows |
+              |---|---|
+              | `ip.addr == 10.0.0.5` | traffic to or from one host |
+              | `tcp.port == 443` | one TCP port, either direction |
+              | `dns` or `http.request` | one protocol, or only HTTP requests |
+              | `tcp.flags.syn == 1 && tcp.flags.ack == 0` | new connection attempts |
+              | `tcp.analysis.retransmission` | retransmitted segments |
+              | `tcp.flags.reset == 1` | resets |
+              | `tls.handshake.type == 1` | TLS ClientHello messages |
+              | `!(arp or dns or icmp)` | hide the noise |
+
+              Right-click any field in the details pane and pick **Apply as Filter** to build a filter without typing.
+
+              ### Follow a stream
+              Right-click a packet, **Follow > TCP Stream**. Wireshark rebuilds the whole conversation in order, client in one colour and server in another, and sets the filter `tcp.stream eq N`. **Statistics > Conversations** lists every flow by bytes, which is the fastest way to find the big or slow one.
+
+              ### Reading a handshake
+              Filter on one `tcp.stream` and look at the first packets:
+              1. **SYN** from the client, with options like MSS and window scale
+              2. **SYN-ACK** from the server. The gap from the SYN is the network round trip
+              3. **ACK**, then the first data packet: for HTTPS, the **ClientHello**
+
+              Expand the ClientHello to see the **SNI** (`server_name`, the host name being visited), the TLS versions and cipher suites offered, **ALPN** (`h2`, `http/1.1`) and the key share. The ServerHello picks one of each. From TLS 1.3 on, everything after ServerHello, including the certificate, is encrypted.
+
+              ### Common mistakes
+              - Typing tcpdump syntax like `port 443` in the display filter bar
+              - Thinking a red retransmission in a busy capture is the cause. Check how many there are and whether they line up with the delay
+            resources:
+              - { label: "Wireshark User's Guide", url: "https://www.wireshark.org/docs/wsug_html_chunked/", kind: docs }
+              - { label: "Building display filter expressions (Wireshark docs)", url: "https://www.wireshark.org/docs/wsug_html_chunked/ChWorkBuildDisplayFilterSection.html", kind: docs }
+              - { label: "Following protocol streams (Wireshark docs)", url: "https://www.wireshark.org/docs/wsug_html_chunked/ChAdvFollowStreamSection.html", kind: docs }
+              - { label: "Display filter reference (Wireshark)", url: "https://www.wireshark.org/docs/dfref/", kind: docs }
+              - { label: "Display filters (Wireshark wiki)", url: "https://wiki.wireshark.org/DisplayFilters", kind: docs }
+              - { label: "TCP 3-way handshake (Wireshark wiki)", url: "https://wiki.wireshark.org/TCP_3_way_handshaking", kind: docs }
+              - { label: "How I use Wireshark (Julia Evans)", url: "https://jvns.ca/blog/2018/06/19/what-i-use-wireshark-for/", kind: article }
+              - { label: "Top 10 Wireshark filters (Chris Greer)", url: "https://www.youtube.com/watch?v=68t07-KOH9Y", kind: video }
+              - { label: "How TCP works: the handshake (Chris Greer)", url: "https://www.youtube.com/watch?v=HCHFX5O1IaQ", kind: video }
+          - id: wireshark-tls-decryption
+            title: Decrypting TLS in Wireshark with SSLKEYLOGFILE
+            summary: Modern TLS cannot be decrypted with the server's private key. Instead, ask the client to write its session secrets to a file, and give that file to Wireshark.
+            learn:
+              - Why a private key alone no longer decrypts TLS
+              - Logging secrets with SSLKEYLOGFILE
+              - Loading the key log in Wireshark and tshark
+              - Keeping key logs safe
+            body: |
+              With (EC)DHE key exchange, which TLS 1.3 always uses, each session's keys come from a temporary key pair that is thrown away. Having the server's certificate private key is not enough to decrypt a capture. That property is **forward secrecy**.
+
+              What works is a **key log**: the client writes each session's secrets to a file. Browsers built on NSS or BoringSSL (Firefox, Chrome) and curl do this when the `SSLKEYLOGFILE` environment variable is set. The file format was published as RFC 9850 in 2026.
+
+              ### Example
+              ```
+              export SSLKEYLOGFILE="$HOME/tls-keys.log"
+              sudo tcpdump -i any -w /tmp/https.pcap port 443 &
+              curl -s https://example.com/ > /dev/null
+              ```
+              Start the browser from that same shell to capture browser traffic too. Each line of the file looks like `CLIENT_TRAFFIC_SECRET_0 <client random> <secret>`.
+
+              In Wireshark: **Preferences > Protocols > TLS > (Pre)-Master-Secret log filename**, pick the file, and the TLS records turn into readable HTTP/1.1 or HTTP/2. From the command line:
+              ```
+              tshark -r /tmp/https.pcap -o tls.keylog_file:$HOME/tls-keys.log -Y http2
+              editcap --inject-secrets tls,$HOME/tls-keys.log /tmp/https.pcap /tmp/https-keys.pcapng
+              ```
+              The `editcap` line embeds the secrets in a pcapng file, so a colleague can open it without the separate log.
+
+              ### Key ideas
+              - It works only for clients you control. You cannot decrypt someone else's traffic this way
+              - QUIC (HTTP/3) is decrypted with the same key log
+              - Apps that do not read `SSLKEYLOGFILE` need a library hook or a debugging proxy instead
+
+              ### Common mistakes
+              - Setting the variable after the browser is already running. It is read at startup
+              - Leaving it set in your shell profile. Anyone with the file can read everything you browsed. Delete it when done
+            resources:
+              - { label: "TLS (Wireshark wiki): decryption with key log files", url: "https://wiki.wireshark.org/TLS", kind: docs }
+              - { label: "RFC 9850: The SSLKEYLOGFILE Format for TLS", url: "https://www.rfc-editor.org/rfc/rfc9850", kind: docs }
+              - { label: "editcap man page (Wireshark)", url: "https://www.wireshark.org/docs/man-pages/editcap.html", kind: docs }
+              - { label: "tshark man page (Wireshark)", url: "https://www.wireshark.org/docs/man-pages/tshark.html", kind: docs }
+              - { label: "RFC 8446: TLS 1.3", url: "https://www.rfc-editor.org/rfc/rfc8446", kind: docs }
+              - { label: "How to decrypt HTTPS traffic with Wireshark (Chris Greer)", url: "https://www.youtube.com/watch?v=5qecyZHL-GU", kind: video }
+              - { label: "Let's fix a broken TLS handshake with Wireshark (Chris Greer)", url: "https://www.youtube.com/watch?v=m3I-h9uSgj8", kind: video }
+          - id: troubleshooting-walkthrough
+            title: "A troubleshooting walkthrough: dig, curl -v, mtr and ss"
+            optional: true
+            summary: A slow or failing request has a few possible causes, DNS, the path, TCP, TLS or the server. Check them in order with four tools before reaching for a packet capture.
+            learn:
+              - Splitting a request into DNS, connect, TLS and server time
+              - Checking DNS with dig
+              - Reading mtr without being fooled by ICMP rate limits
+              - Inspecting sockets with ss
+            body: |
+              "The site is slow" is not a diagnosis. Work down the stack and time each step.
+
+              ### 1. DNS
+              ```
+              dig +short api.example.com
+              dig @1.1.1.1 api.example.com    # compare with a public resolver
+              ```
+              Look at the answer, the TTL and the `Query time`. A wrong or stale answer, or a slow resolver, ends the search here.
+
+              ### 2. Time each phase with curl
+              ```
+              curl -v -o /dev/null -s https://api.example.com/health
+              curl -o /dev/null -s -w 'dns %{time_namelookup} connect %{time_connect} tls %{time_appconnect} ttfb %{time_starttransfer} total %{time_total}\n' https://api.example.com/health
+              ```
+              `-v` shows the IP it tried, the TLS version, the certificate and every header. The `-w` times are cumulative seconds from the start:
+
+              | Large gap between | Points to |
+              |---|---|
+              | 0 and `dns` | DNS |
+              | `dns` and `connect` | network path or a firewall dropping SYNs |
+              | `connect` and `tls` | TLS handshake, OCSP, or a far-away server |
+              | `tls` and `ttfb` | the application itself |
+
+              ### 3. The path, with mtr
+              ```
+              mtr -rwzc 100 api.example.com
+              ```
+              Read loss and latency at the **last** hop. Loss at a middle hop that does not carry on to later hops is that router rate-limiting replies to probes, not real loss.
+
+              ### 4. Sockets, with ss
+              ```
+              ss -tlnp                 # what is listening, and which process
+              ss -tni dst 203.0.113.10 # rtt, cwnd and retransmits per connection
+              ss -s                    # totals, including TIME-WAIT
+              ```
+
+              ### Then capture
+              If these do not explain it, run tcpdump on both ends during a failing request and compare.
+
+              ### Common mistakes
+              - Trusting `ping` alone: ICMP may be blocked or deprioritised while TCP works fine
+              - Testing from your laptop when the problem is between two servers
+            resources:
+              - { label: "curl man page", url: "https://curl.se/docs/manpage.html", kind: docs }
+              - { label: "Verbose output (Everything curl)", url: "https://everything.curl.dev/usingcurl/verbose/index.html", kind: docs }
+              - { label: "How to use dig (Julia Evans)", url: "https://jvns.ca/blog/2021/12/04/how-to-use-dig/", kind: article }
+              - { label: "BIND 9 manual pages, including dig", url: "https://bind9.readthedocs.io/en/latest/manpages.html", kind: docs }
+              - { label: "mtr (GitHub)", url: "https://github.com/traviscross/mtr", kind: tool }
+              - { label: "Linux mtr command (Red Hat)", url: "https://www.redhat.com/en/blog/linux-mtr-command", kind: article }
+              - { label: "ss(8) man page", url: "https://man7.org/linux/man-pages/man8/ss.8.html", kind: docs }
+              - { label: "The pocket guide to debugging (Julia Evans zine)", url: "https://wizardzines.com/zines/debugging-guide/", kind: article }
+
+  - level: intermediate
+    title: Connecting networks safely
+    topics:
+      - id: interior-routing
+        title: "Interior routing: RIP, OSPF and IS-IS"
+        summary: How routers inside one network learn every path without anyone typing static routes. Distance vector vs link state, OSPF in depth with a real FRR config, IS-IS, redistribution and equal-cost multipath.
+        lessons:
+          - id: distance-vector-vs-link-state
+            title: Distance vector vs link state
+            summary: Two ways for routers to learn a network. Tell your neighbours what you can reach, or tell everyone what your links look like and let each router draw the map.
+            learn:
+              - How a distance vector router learns routes from its neighbours
+              - How a link-state router builds a full map and runs Dijkstra on it
+              - Why link state converges faster and loops less
+              - Where each family is still used
+            body: |
+              Static routes break when a link fails. A routing protocol lets routers find working paths on their own. Inside one organisation these are **interior gateway protocols** (IGPs). They come in two families.
+
+              | | Distance vector | Link state |
+              |---|---|---|
+              | What a router sends | its whole routing table: "I reach X at cost N" | a description of its own links |
+              | Who receives it | direct neighbours only | every router in the area (flooding) |
+              | What each router knows | the next hop and the cost, nothing beyond | the full topology of the area |
+              | How the best path is found | Bellman-Ford, one hop at a time | Dijkstra's shortest path first (SPF) |
+              | Convergence after a failure | slow, can count to infinity | fast, every router recomputes at once |
+              | Examples | RIP, Babel | OSPF, IS-IS |
+
+              ### Key ideas
+              - Distance vector is "routing by rumour". A router trusts what its neighbour says about networks it cannot see
+              - Link state routers all hold the same database, the **LSDB**. Each runs SPF on it with itself as the root
+              - When a link fails, link state floods one small update and everyone recomputes. Distance vector waits for timers and neighbours to pass the news along
+              - Link state costs more memory and CPU, which stopped mattering decades ago
+              - BGP is a **path vector** protocol: distance vector plus the full list of ASes on the path, which stops loops between networks
+
+              ### Example
+              Routers A, B and C sit in a line. A loses its link to network N. With distance vector, B may still tell A "I reach N in 2 hops", which was learned from A in the first place. A believes it, and the two raise the count back and forth. Split horizon and poison reverse limit this. Link state has no such problem: A floods "my link to N is down" and every router removes N from its map.
+
+              ### In practice
+              New designs use OSPF or IS-IS inside the network and BGP at the edge. Distance vector survives in RIP on old gear and in Babel on mesh and home networks.
+            resources:
+              - { label: "EGP / IGP, Distance Vector / Link State (Practical Networking)", url: "https://www.youtube.com/watch?v=KjNYEzEBRD8", kind: video }
+              - { label: "Distance-vector routing protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Distance-vector_routing_protocol", kind: article }
+              - { label: "Link-state routing protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Link-state_routing_protocol", kind: article }
+              - { label: "Dijkstra's algorithm (Wikipedia)", url: "https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm", kind: article }
+              - { label: "Bellman-Ford algorithm (Wikipedia)", url: "https://en.wikipedia.org/wiki/Bellman%E2%80%93Ford_algorithm", kind: article }
+              - { label: "Count to infinity (Wikipedia)", url: "https://en.wikipedia.org/wiki/Count_to_infinity", kind: article }
+              - { label: "Split horizon route advertisement (Wikipedia)", url: "https://en.wikipedia.org/wiki/Split_horizon_route_advertisement", kind: article }
+          - id: rip
+            title: RIP, and why it is rarely used
+            optional: true
+            summary: The oldest IGP still around. Hop count as the only metric, a 15-hop limit and slow timers explain why it lost to OSPF.
+            learn:
+              - How RIP picks routes by hop count
+              - The 15-hop limit and the 30-second update timer
+              - Split horizon and poison reverse
+              - RIPv1, RIPv2 and RIPng
+            body: |
+              **RIP** (Routing Information Protocol) is a distance vector protocol. Every 30 seconds each router sends its full table to its neighbours. The metric is the **hop count**: the number of routers on the way. The lowest count wins.
+
+              | Version | Addresses | Sends to | Notes |
+              |---|---|---|---|
+              | RIPv1 (RFC 1058) | IPv4, classful | broadcast | no subnet masks, no authentication |
+              | RIPv2 (RFC 2453) | IPv4, CIDR | `224.0.0.9` | carries masks, supports authentication |
+              | RIPng (RFC 2080) | IPv6 | `ff02::9`, UDP 521 | IPv6 version of RIPv2 |
+
+              RIPv1 and RIPv2 use UDP port 520.
+
+              ### Key ideas
+              - A hop count of **16 means unreachable**. A network more than 15 routers wide cannot use RIP at all
+              - **Split horizon**: never advertise a route back out of the interface you learned it on
+              - **Poison reverse**: advertise it back, but with metric 16, so the neighbour drops it at once
+              - Routes time out after 180 seconds without an update, so a silent failure can take minutes to notice
+
+              ### Why it is rarely used
+              - Hop count ignores bandwidth. A path over two 10 Gbps links loses to one hop over a slow WAN link
+              - Convergence takes tens of seconds to minutes. OSPF and IS-IS take well under a second when tuned
+              - Every router sends its whole table every 30 seconds, even when nothing changed
+              - There are no areas, so it does not scale
+
+              ### In practice
+              You meet RIP on old routers, in some small embedded gear and in exam questions. FRR still ships `ripd` and `ripngd`, which is handy for labs. For anything new, use OSPF.
+            resources:
+              - { label: "Networking Basics: How RIP Works (Kevin Wallace)", url: "https://www.youtube.com/watch?v=tZWlRq-iunI", kind: video }
+              - { label: "RFC 2453: RIP Version 2", url: "https://www.rfc-editor.org/rfc/rfc2453", kind: docs }
+              - { label: "RFC 2080: RIPng for IPv6", url: "https://www.rfc-editor.org/rfc/rfc2080", kind: docs }
+              - { label: "RFC 1058: Routing Information Protocol", url: "https://www.rfc-editor.org/rfc/rfc1058", kind: docs }
+              - { label: "RIP (FRRouting docs)", url: "https://docs.frrouting.org/en/latest/ripd.html", kind: docs }
+              - { label: "Routing Information Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Routing_Information_Protocol", kind: article }
+          - id: ospf-fundamentals
+            title: "OSPF: areas, LSAs, DR/BDR and cost"
+            summary: The link-state IGP most enterprises run. How neighbours form, what each LSA type carries, why areas exist and how cost picks the path.
+            learn:
+              - Neighbours, adjacencies and the LSDB
+              - Area 0, ABRs and ASBRs
+              - The main LSA types and who creates them
+              - DR/BDR election on shared segments
+              - How cost is calculated and why the default is wrong for fast links
+            body: |
+              **OSPF** (Open Shortest Path First) runs directly on IP as protocol 89. OSPFv2 (RFC 2328) is for IPv4, OSPFv3 (RFC 5340) for IPv6. Routers send **hellos** to `224.0.0.5` every 10 seconds, become neighbours, swap databases and reach the **Full** state. Then every router in an area holds the same LSDB and runs SPF on it.
+
+              ### Areas
+              Every SPF run covers one area. Big networks split into areas so a flap in one does not make every router recompute. **Area 0** is the backbone, and every other area must touch it. An **ABR** (area border router) sits in area 0 and another area. An **ASBR** brings in routes from outside OSPF.
+
+              | LSA | Created by | Carries | Floods |
+              |---|---|---|---|
+              | 1 Router | every router | its own links and their costs | inside its area |
+              | 2 Network | the DR | the routers on one shared segment | inside its area |
+              | 3 Summary | ABR | prefixes from other areas | into other areas |
+              | 4 ASBR summary | ABR | how to reach an ASBR | into other areas |
+              | 5 External | ASBR | redistributed routes | everywhere except stub areas |
+              | 7 NSSA external | ASBR in an NSSA | external routes in that area | the NSSA, turned into type 5 by the ABR |
+
+              ### DR and BDR
+              On a shared Ethernet segment with many routers, a full mesh of adjacencies would flood the same update many times. OSPF elects a **designated router** (DR) and a backup (BDR). Others form full adjacencies only with these two. The highest **priority** wins (default 1, 0 means never), then the highest router ID. The election does not preempt: a better router joining later waits until the DR fails.
+
+              ### Cost
+              Cost is **reference bandwidth / interface bandwidth**. The default reference is 100 Mbps, so 100 Mbps, 1 Gbps and 10 Gbps links all cost 1. Raise the reference on every router, or set costs by hand.
+
+              ### Common mistakes
+              - Mismatched hello or dead timers, area IDs, MTU or subnet: the neighbour never reaches Full
+              - Using a DR on a link between just two routers. Set the network type to point-to-point and skip the election
+              - Changing the reference bandwidth on some routers but not all
+            resources:
+              - { label: "RFC 2328: OSPF Version 2", url: "https://www.rfc-editor.org/rfc/rfc2328", kind: docs }
+              - { label: "RFC 5340: OSPF for IPv6", url: "https://www.rfc-editor.org/rfc/rfc5340", kind: docs }
+              - { label: "Practical OSPF: OSPF framework and packets (Practical Networking)", url: "https://www.youtube.com/watch?v=_ThYOX1wX_4", kind: video }
+              - { label: "OSPF LSA types explained (Practical Networking)", url: "https://www.youtube.com/watch?v=Wf755546JhA", kind: video }
+              - { label: "DR and BDR election, Practical OSPF lesson 6 (Practical Networking)", url: "https://www.youtube.com/watch?v=Mi3tNSUjb78", kind: video }
+              - { label: "OSPF Explained step by step (CertBros)", url: "https://www.youtube.com/watch?v=kfvJ8QVJscc", kind: video }
+              - { label: "OSPF overview (Juniper)", url: "https://www.juniper.net/documentation/us/en/software/junos/ospf/topics/topic-map/ospf-overview.html", kind: docs }
+              - { label: "Open Shortest Path First (Wikipedia)", url: "https://en.wikipedia.org/wiki/Open_Shortest_Path_First", kind: article }
+          - id: ospf-frr-config
+            title: A minimal OSPF setup with FRRouting
+            summary: Two Linux routers, one link, a loopback each. The FRR config, the commands to check it and what a healthy result looks like.
+            learn:
+              - Turning on ospfd in FRR
+              - Enabling OSPF per interface and setting the router ID
+              - Passive interfaces and point-to-point links
+              - Checking neighbours and learned routes with vtysh
+            body: |
+              **FRRouting** (FRR) is the open source routing suite used on Linux routers, in SONiC, Cumulus and many labs. It runs one daemon per protocol. Enable `ospfd` in `/etc/frr/daemons` (`ospfd=yes`) and restart FRR.
+
+              ### Example
+              Router r1 has loopback `10.255.0.1/32`, a link to r2 on `eth1` (`10.0.12.0/31`) and a user LAN on `eth2`. In `/etc/frr/frr.conf`:
+
+              ```
+              interface lo
+               ip address 10.255.0.1/32
+               ip ospf area 0
+               ip ospf passive
+              !
+              interface eth1
+               ip address 10.0.12.0/31
+               ip ospf area 0
+               ip ospf network point-to-point
+               ip ospf cost 10
+              !
+              interface eth2
+               ip address 192.168.10.1/24
+               ip ospf area 0
+               ip ospf passive
+              !
+              router ospf
+               ospf router-id 10.255.0.1
+               auto-cost reference-bandwidth 100000
+              ```
+
+              r2 gets the same config with its own addresses (`10.0.12.1/31`, router ID `10.255.0.2`).
+
+              ### What each line does
+              - `ip ospf area 0` turns OSPF on for that interface. Do not mix this with `network ... area` lines under `router ospf`: FRR does not support both on one router
+              - `ip ospf passive` advertises the subnet but sends no hellos, so no one on the user LAN can form an adjacency
+              - `network point-to-point` skips the DR election on a two-router link and speeds up convergence
+              - A fixed **router ID** keeps the router's identity stable when addresses change
+              - The reference bandwidth of 100,000 Mbps makes a 100 Gbps link cost 1, a 10 Gbps link 10
+
+              ### Checking it
+              ```bash
+              vtysh -c "show ip ospf neighbor"
+              vtysh -c "show ip ospf database"
+              vtysh -c "show ip route ospf"
+              ```
+              A healthy neighbour shows state **Full**. r1's table should now have `10.255.0.2/32` and r2's LAN, marked `O`.
+
+              ### Common mistakes
+              - Forgetting `ospfd=yes`: the config loads but nothing happens
+              - A host firewall dropping IP protocol 89 or multicast `224.0.0.5`
+              - Different MTUs on the two ends: the neighbour sticks in ExStart
+            resources:
+              - { label: "OSPFv2 (FRRouting docs)", url: "https://docs.frrouting.org/en/latest/ospfd.html", kind: docs }
+              - { label: "Basic setup and the daemons file (FRRouting docs)", url: "https://docs.frrouting.org/en/latest/setup.html", kind: docs }
+              - { label: "VTY shell (FRRouting docs)", url: "https://docs.frrouting.org/en/latest/vtysh.html", kind: docs }
+              - { label: "FRR lab example (containerlab)", url: "https://containerlab.dev/lab-examples/frr01/", kind: tool }
+              - { label: "containerlab", url: "https://containerlab.dev/", kind: tool }
+              - { label: "OSPF configuration and show commands (Practical Networking)", url: "https://www.youtube.com/watch?v=Jgs2-M9-gsI", kind: video }
+              - { label: "Free CCNA: OSPF Part 1 (Jeremy's IT Lab)", url: "https://www.youtube.com/watch?v=pvuaoJ9YzoI", kind: video }
+          - id: is-is
+            title: IS-IS, and why ISPs like it
+            optional: true
+            summary: The other link-state IGP. It runs below IP, carries IPv4 and IPv6 in one instance and is the usual choice in large provider backbones.
+            learn:
+              - How IS-IS differs from OSPF in transport and addressing
+              - Level 1, level 2 and the NET address
+              - Why providers prefer it for large backbones
+            body: |
+              **IS-IS** (Intermediate System to Intermediate System) was designed for the OSI protocol stack (ISO 10589). RFC 1195 added IPv4, RFC 5308 added IPv6. Like OSPF it floods link-state packets (LSPs) and runs SPF. The differences are in the details, and they suit big networks.
+
+              | | OSPF | IS-IS |
+              |---|---|---|
+              | Runs on | IP (protocol 89) | directly on layer 2, no IP |
+              | IPv4 and IPv6 | two protocols, OSPFv2 and OSPFv3 | one instance carries both |
+              | Hierarchy | area 0 plus areas attached to it | level 1 (inside an area) and level 2 (backbone) |
+              | Area border | on a router, per interface | on a link, between routers |
+              | New features | new LSA types | new TLVs in the same packets |
+              | Router address | router ID | NET, for example `49.0001.0100.0000.0001.00` |
+
+              ### Key ideas
+              - A router can be **L1**, **L2** or **L1/L2**. The L2 routers form the backbone, which must be contiguous
+              - The **NET** holds the area ID (`49.0001`, `49` means private), the system ID (6 bytes, often derived from the loopback IP) and a final `00`
+              - Use **wide metrics** (RFC 5305). The old narrow metric caps an interface at 63
+              - IS-IS has administrative distance 115 by default, so OSPF (110) wins if both learn a route
+
+              ### Why ISPs like it
+              - It does not run on IP, so a host cannot spoof IS-IS packets from across the network
+              - One instance and one database for IPv4 and IPv6
+              - TLVs made it easy to extend for traffic engineering and segment routing
+              - Large single-level designs are common and work well
+              - Many provider operators learned on it, and vendor support is mature
+
+              ### In practice
+              Inside a company, OSPF and IS-IS both work. Pick the one your team can run at 3 a.m. FRR ships `isisd`.
+            resources:
+              - { label: "RFC 1195: OSI IS-IS for routing in TCP/IP", url: "https://www.rfc-editor.org/rfc/rfc1195", kind: docs }
+              - { label: "RFC 5308: Routing IPv6 with IS-IS", url: "https://www.rfc-editor.org/rfc/rfc5308", kind: docs }
+              - { label: "RFC 5305: IS-IS extensions for traffic engineering (wide metrics)", url: "https://www.rfc-editor.org/rfc/rfc5305", kind: docs }
+              - { label: "IS-IS (FRRouting docs)", url: "https://docs.frrouting.org/en/latest/isisd.html", kind: docs }
+              - { label: "IS-IS routing overview (Juniper)", url: "https://www.juniper.net/documentation/us/en/software/junos/is-is/topics/concept/is-is-routing-overview.html", kind: docs }
+              - { label: "Comparing IS-IS and OSPF (NSRC)", url: "https://www.youtube.com/watch?v=GrrrEOyxg30", kind: video }
+              - { label: "IS-IS routing protocol fundamentals (Kevin Wallace)", url: "https://www.youtube.com/watch?v=o1k1TlxL5Dk", kind: video }
+              - { label: "IS-IS (Wikipedia)", url: "https://en.wikipedia.org/wiki/IS-IS", kind: article }
+          - id: redistribution-and-admin-distance
+            title: Route redistribution and administrative distance
+            summary: When two protocols, or a protocol and a static route, offer the same prefix, the router needs a tie-breaker. And sometimes routes must cross from one protocol into another.
+            learn:
+              - What administrative distance is and the common defaults
+              - How metric differs from distance
+              - Redistributing static and connected routes into OSPF
+              - How mutual redistribution creates loops
+            body: |
+              Each protocol picks its own best path with its own **metric**: hop count for RIP, cost for OSPF, path attributes for BGP. These numbers cannot be compared. When two sources offer the same prefix, the router uses **administrative distance** (AD): a fixed trust ranking per source. Lowest wins. Longest prefix match still comes first: a `/24` from RIP beats a `/16` from OSPF.
+
+              | Source | Default AD (FRR and Cisco) |
+              |---|---|
+              | Connected | 0 |
+              | Static | 1 |
+              | eBGP | 20 |
+              | OSPF | 110 |
+              | IS-IS | 115 |
+              | RIP | 120 |
+              | iBGP | 200 |
+
+              ### Floating static routes
+              Give a static route a higher AD than the IGP and it becomes a backup. It is installed only when the dynamic route disappears.
+              ```
+              ip route 0.0.0.0/0 203.0.113.1 250
+              ```
+
+              ### Redistribution
+              **Redistribution** copies routes from one source into another protocol. In FRR:
+              ```
+              router ospf
+               redistribute static route-map STATIC-TO-OSPF
+               default-information originate
+              ```
+              Redistributed routes enter OSPF as type 5 external LSAs, and the router becomes an ASBR. `default-information originate` advertises a default route when the router has one, which is how an edge router tells the whole network "the internet is this way".
+
+              ### Common mistakes
+              - Redistributing without a route-map. Every static and connected route leaks, including management and lab subnets
+              - **Mutual redistribution** at two points (OSPF into BGP and back, on two routers). A route can leave one protocol and come back as an external with a better distance, causing loops. Tag routes when they cross and refuse tagged routes on the way back
+              - Redistributing a full BGP table into an IGP. That is about a million routes, and the IGP will fall over
+              - Redistributing connected interfaces when `ip ospf passive` would do. Passive keeps them as internal routes with no type 5 flooding
+            resources:
+              - { label: "Administrative distance (FRRouting zebra docs)", url: "https://docs.frrouting.org/en/latest/zebra.html#administrative-distance", kind: docs }
+              - { label: "Route maps (FRRouting docs)", url: "https://docs.frrouting.org/en/latest/routemap.html", kind: docs }
+              - { label: "Redistribution into OSPF (FRRouting docs)", url: "https://docs.frrouting.org/en/latest/ospfd.html", kind: docs }
+              - { label: "Administrative distance (Wikipedia)", url: "https://en.wikipedia.org/wiki/Administrative_distance", kind: article }
+              - { label: "Route redistribution (Wikipedia)", url: "https://en.wikipedia.org/wiki/Route_redistribution", kind: article }
+              - { label: "Networking Basics: Administrative Distance (Kevin Wallace)", url: "https://www.youtube.com/watch?v=414sFHcOATc", kind: video }
+              - { label: "Route redistribution, theory and configuration (Kevin Wallace)", url: "https://www.youtube.com/watch?v=dUz-CWp_NaA", kind: video }
+          - id: ecmp
+            title: Equal-cost multipath (ECMP)
+            summary: When two or more paths tie on cost, use all of them. How routers split traffic per flow, and why packets of one connection stay on one path.
+            learn:
+              - How ECMP installs several next hops for one prefix
+              - Per-flow hashing and why per-packet splitting is avoided
+              - ECMP on Linux and in FRR
+              - Where hashing goes wrong
+            body: |
+              When SPF finds two or more paths with the same total cost, the router can install **all of them** for that prefix. This is **equal-cost multipath** (ECMP). Two 10 Gbps uplinks then carry up to 20 Gbps together, and a failure just removes one next hop.
+
+              ### Per flow, not per packet
+              Sending packets round-robin would reorder them, and TCP treats reordering like loss. So routers **hash** fields of each packet and pick a path from the hash. Every packet of one flow gets the same hash and stays on one path.
+
+              | Hash input | Spreads | Note |
+              |---|---|---|
+              | Source and destination IP (L3) | per host pair | one busy host pair uses one link |
+              | 5-tuple: IPs, protocol, ports (L4) | per connection | the usual choice |
+              | Inner headers of a tunnel | per inner flow | needed for VXLAN or GRE |
+
+              ### Example
+              On Linux, one route with two next hops:
+              ```bash
+              ip route add 10.20.0.0/16 \
+                nexthop via 10.0.12.1 dev eth1 \
+                nexthop via 10.0.13.1 dev eth2
+              sysctl -w net.ipv4.fib_multipath_hash_policy=1
+              ```
+              Policy `1` hashes on the 5-tuple. The default `0` uses only the addresses. FRR installs ECMP routes on its own when OSPF or IS-IS finds equal costs, up to `maximum-paths` (64 by default). BGP has its own `maximum-paths` setting.
+
+              ### Key ideas
+              - Costs must tie exactly. Use the same link speeds and costs on parallel paths
+              - One large flow, such as a backup job, still uses only one link. ECMP balances flows, not bytes
+              - When a path is added or removed, many flows can rehash onto new paths. Stateful devices in the path then see packets for connections they never saw start
+              - Data centre fabrics are built around ECMP: every leaf has equal-cost paths through every spine
+
+              ### Common mistakes
+              - Expecting a single file copy to go faster over two links
+              - Putting a stateful firewall pair behind ECMP without state sync or symmetric hashing
+            resources:
+              - { label: "RFC 2992: Analysis of an equal-cost multi-path algorithm", url: "https://www.rfc-editor.org/rfc/rfc2992", kind: docs }
+              - { label: "ECMP (FRRouting zebra docs)", url: "https://docs.frrouting.org/en/latest/zebra.html#ecmp", kind: docs }
+              - { label: "fib_multipath_hash_policy (Linux IP sysctl docs)", url: "https://docs.kernel.org/networking/ip-sysctl.html", kind: docs }
+              - { label: "ip-route(8) man page", url: "https://man.archlinux.org/man/ip-route.8", kind: docs }
+              - { label: "RFC 7938: BGP in large-scale data centers (ECMP section)", url: "https://www.rfc-editor.org/rfc/rfc7938", kind: docs }
+              - { label: "Equal-cost multi-path routing (Wikipedia)", url: "https://en.wikipedia.org/wiki/Equal-cost_multi-path_routing", kind: article }
+              - { label: "Equal-Cost Multi-Path Routing (Palo Alto Networks)", url: "https://www.youtube.com/watch?v=KICp-9yXOT0", kind: video }
+
+      - id: firewalls
+        title: Firewalls
+        summary: How packet filters decide what passes. Stateless vs stateful filtering, connection tracking, a real nftables ruleset, cloud security groups and network ACLs, next-gen firewalls, WAFs and IDS/IPS, and why outbound rules matter as much as inbound.
+        lessons:
+          - id: stateless-vs-stateful
+            title: Stateless vs stateful filtering
+            summary: A stateless filter judges every packet alone. A stateful one remembers connections, so replies come back without opening the door to everything.
+            learn:
+              - How a stateless filter matches each packet on its own
+              - Why stateless rules must open return traffic by hand
+              - How a stateful firewall uses a connection table
+              - Where each kind is still used
+            body: |
+              A firewall matches packets against rules: source and destination address, protocol, ports, interface. The big difference is whether it **remembers** what it saw before.
+
+              | | Stateless | Stateful |
+              |---|---|---|
+              | Looks at | each packet alone | each packet plus the connection it belongs to |
+              | Return traffic | needs its own rule | allowed because it matches a known connection |
+              | Memory | none | one entry per connection |
+              | Speed | very fast, easy to do in hardware | fast, but the table can fill up |
+              | Examples | router ACLs, AWS network ACLs, switch ACLs | Linux nftables with conntrack, AWS security groups, pfSense, most appliances |
+
+              ### Example
+              A web server allows inbound TCP 443. It also needs to reach a package mirror on 443.
+
+              With a **stateless** filter, the reply from the mirror arrives from port 443 to a random high port on the server. You must allow inbound TCP from port 443 to ports 1024 to 65535. That rule also lets in any packet an attacker crafts with source port 443.
+
+              With a **stateful** filter, the outbound connection creates an entry in the table. The reply matches it and is allowed. No inbound rule for high ports is needed.
+
+              ### Key ideas
+              - Stateful filtering is the default for hosts, VPCs and office firewalls
+              - Stateless filters are still useful at the edge: they drop obvious junk at line rate before it reaches anything with a table
+              - A stateful firewall can also drop packets that make no sense, such as a TCP ACK with no matching connection
+              - Some setups use both: a stateless ACL on the router, a stateful firewall behind it
+
+              ### Common mistakes
+              - Writing stateless rules as if they were stateful, then wondering why replies vanish
+              - Opening "all high ports inbound" to fix that, which removes most of the protection
+            resources:
+              - { label: "Stateful vs Stateless Firewalls (LearnCantrill)", url: "https://www.youtube.com/watch?v=rL4-vbsN35w", kind: video }
+              - { label: "Stateful firewall (Wikipedia)", url: "https://en.wikipedia.org/wiki/Stateful_firewall", kind: article }
+              - { label: "Firewall (computing) (Wikipedia)", url: "https://en.wikipedia.org/wiki/Firewall_(computing)", kind: article }
+              - { label: "What is a firewall? (Cloudflare)", url: "https://www.cloudflare.com/learning/security/what-is-a-firewall/", kind: article }
+              - { label: "NIST SP 800-41 Rev. 1: Guidelines on Firewalls and Firewall Policy", url: "https://csrc.nist.gov/pubs/sp/800/41/r1/final", kind: docs }
+              - { label: "Compare security groups and network ACLs (AWS)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/infrastructure-security.html", kind: docs }
+          - id: connection-tracking
+            title: Connection tracking (conntrack)
+            summary: The table behind every stateful Linux firewall and every NAT. What the states mean, how to read the table and what happens when it fills up.
+            learn:
+              - The conntrack states new, established, related and invalid
+              - How UDP and ICMP get "connections" too
+              - Reading the table with the conntrack tool
+              - Table size, timeouts and the "table full" failure
+            body: |
+              Netfilter, the packet filtering framework in the Linux kernel, keeps a **connection tracking** table. Each entry holds both directions of a flow: the original addresses and ports, and the reply addresses and ports. Firewall rules match on the entry's state, and NAT uses it to rewrite replies.
+
+              | State | Means |
+              |---|---|
+              | `new` | first packet of a flow not seen before |
+              | `established` | packets have been seen in both directions |
+              | `related` | a new flow tied to an existing one, such as an ICMP error about it |
+              | `invalid` | does not fit any known flow, for example a stray TCP ACK |
+              | `untracked` | a rule told conntrack to skip this packet |
+
+              ### Key ideas
+              - UDP and ICMP have no handshake, but conntrack still tracks them by addresses, ports and a timeout. A DNS reply is `established` because it matches the query
+              - Timeouts are per protocol. An established TCP entry lives 5 days by default. A UDP entry lives 30 seconds, or 120 seconds for a flow that keeps going in both directions
+              - The table has a size limit, `nf_conntrack_max`. When it is full, new flows are dropped and the kernel logs `nf_conntrack: table full, dropping packet`
+              - Docker, Kubernetes services and any Linux NAT router depend on conntrack
+
+              ### Example
+              ```bash
+              sudo conntrack -L | head
+              tcp 6 431995 ESTABLISHED src=10.0.0.5 dst=203.0.113.10 sport=51834 dport=443 src=203.0.113.10 dst=10.0.0.5 sport=443 dport=51834 [ASSURED] mark=0 use=1
+              sudo conntrack -E                # watch entries appear and close
+              sysctl net.netfilter.nf_conntrack_count net.netfilter.nf_conntrack_max
+              ```
+              The first `src/dst` pair is the original direction, the second is the expected reply. `ASSURED` means traffic went both ways, so the entry is kept when the table is under pressure.
+
+              ### Common mistakes
+              - Running a busy proxy or DNS server on default limits and losing packets at peak. Watch `nf_conntrack_count` and raise the max
+              - Forgetting that NAT needs conntrack too. A full table breaks NAT for new flows, not just filtering
+            resources:
+              - { label: "Connection tracking system (nftables wiki)", url: "https://wiki.nftables.org/wiki-nftables/index.php/Connection_Tracking_System", kind: docs }
+              - { label: "Matching connection tracking metainformation (nftables wiki)", url: "https://wiki.nftables.org/wiki-nftables/index.php/Matching_connection_tracking_stateful_metainformation", kind: docs }
+              - { label: "nf_conntrack sysctl reference (Linux kernel docs)", url: "https://docs.kernel.org/networking/nf_conntrack-sysctl.html", kind: docs }
+              - { label: "conntrack-tools user manual (netfilter.org)", url: "https://conntrack-tools.netfilter.org/manual.html", kind: docs }
+              - { label: "conntrack(8) man page", url: "https://man.archlinux.org/man/conntrack.8", kind: docs }
+              - { label: "Netfilter's connection tracking subsystem, Florian Westphal (Netdev 2.1)", url: "https://www.youtube.com/watch?v=mx2X9mZaZ5A", kind: video }
+              - { label: "Netfilter (Wikipedia)", url: "https://en.wikipedia.org/wiki/Netfilter", kind: article }
+          - id: nftables-ruleset
+            title: A minimal server firewall with nftables
+            summary: nftables replaced iptables as the Linux packet filter. A complete default-deny ruleset for a server, line by line, and how to load it without locking yourself out.
+            learn:
+              - Tables, chains, hooks and policies in nftables
+              - A default-deny input chain built on conntrack
+              - Why ICMP and ICMPv6 must stay open
+              - Loading, listing and persisting the ruleset safely
+            body: |
+              **nftables** is the current Linux firewall. Rules live in **tables**. A table holds **chains**, and a base chain attaches to a netfilter **hook** (`input`, `forward`, `output`, `prerouting`, `postrouting`). Family `inet` covers IPv4 and IPv6 in one table.
+
+              ### Example
+              `/etc/nftables.conf` for a server that serves HTTPS and SSH:
+
+              ```
+              #!/usr/sbin/nft -f
+              flush ruleset
+
+              table inet filter {
+                chain input {
+                  type filter hook input priority 0; policy drop;
+                  ct state established,related accept
+                  ct state invalid drop
+                  iif "lo" accept
+                  meta l4proto { icmp, ipv6-icmp } accept
+                  tcp dport 22 ip saddr 198.51.100.7 accept
+                  tcp dport { 80, 443 } accept
+                }
+                chain forward {
+                  type filter hook forward priority 0; policy drop;
+                }
+                chain output {
+                  type filter hook output priority 0; policy accept;
+                }
+              }
+              ```
+
+              ### Line by line
+              - `policy drop` on input: anything not accepted below is dropped. This is **default deny**
+              - `established,related` first: replies to the server's own traffic, and the bulk of packets, match on line one
+              - Loopback is always allowed. Local services talk over it
+              - **ICMP and ICMPv6** stay open. IPv6 breaks without Neighbor Discovery, and Path MTU discovery needs ICMP "too big" messages
+              - SSH only from one admin address. Web ports from anywhere
+              - The server does not route, so `forward` drops everything
+
+              ### Loading it safely
+              ```bash
+              sudo nft -c -f /etc/nftables.conf   # check syntax only
+              sudo nft -f /etc/nftables.conf      # apply atomically
+              sudo nft list ruleset
+              sudo systemctl enable nftables      # load at boot (Debian, Ubuntu)
+              ```
+              The whole file applies as one transaction, so there is never a half-loaded ruleset. On a remote machine, keep a console open, or schedule a rollback (`sleep 120 && nft flush ruleset`) before you apply.
+
+              ### Common mistakes
+              - Dropping all ICMP "for security", then chasing hanging connections
+              - Forgetting `flush ruleset`, so reloads stack duplicate tables
+              - Allowing SSH from anywhere when a fixed address or a VPN would do
+            resources:
+              - { label: "Simple ruleset for a server (nftables wiki)", url: "https://wiki.nftables.org/wiki-nftables/index.php/Simple_ruleset_for_a_server", kind: docs }
+              - { label: "Quick reference: nftables in 10 minutes (nftables wiki)", url: "https://wiki.nftables.org/wiki-nftables/index.php/Quick_reference-nftables_in_10_minutes", kind: docs }
+              - { label: "Configuring chains (nftables wiki)", url: "https://wiki.nftables.org/wiki-nftables/index.php/Configuring_chains", kind: docs }
+              - { label: "Netfilter hooks (nftables wiki)", url: "https://wiki.nftables.org/wiki-nftables/index.php/Netfilter_hooks", kind: docs }
+              - { label: "nft(8) man page", url: "https://man.archlinux.org/man/nft.8", kind: docs }
+              - { label: "nftables (ArchWiki)", url: "https://wiki.archlinux.org/title/Nftables", kind: docs }
+              - { label: "RFC 4890: Recommendations for filtering ICMPv6 messages in firewalls", url: "https://www.rfc-editor.org/rfc/rfc4890", kind: docs }
+              - { label: "Tutorial: Firewalls with nftables (The Linux Foundation)", url: "https://www.youtube.com/watch?v=EGKhIljDPCw", kind: video }
+          - id: iptables-and-frontends
+            title: iptables, nftables and the tools on top
+            optional: true
+            summary: Most guides online still show iptables. How it maps to nftables, what ufw and firewalld do, and why Docker can punch through your firewall.
+            learn:
+              - iptables tables, chains and the same rule in both syntaxes
+              - iptables-nft vs iptables-legacy
+              - ufw and firewalld as front ends
+              - How Docker published ports bypass host rules
+            body: |
+              **iptables** was the Linux firewall for about twenty years. It had separate tools for IPv4 (`iptables`), IPv6 (`ip6tables`), ARP and bridges. **nftables** replaced it with one tool, one syntax and atomic updates. On current Debian, Ubuntu, Fedora and RHEL, the `iptables` command is usually **iptables-nft**: iptables syntax that writes nftables rules underneath. `iptables -V` shows `(nf_tables)` or `(legacy)`.
+
+              | Task | iptables | nftables |
+              |---|---|---|
+              | Default drop | `iptables -P INPUT DROP` | `policy drop;` on the chain |
+              | Allow replies | `iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT` | `ct state established,related accept` |
+              | Allow HTTPS | `iptables -A INPUT -p tcp --dport 443 -j ACCEPT` | `tcp dport 443 accept` |
+              | Show rules | `iptables -S` | `nft list ruleset` |
+
+              `iptables-translate` converts a rule for you:
+              ```bash
+              iptables-translate -A INPUT -p tcp --dport 22 -j ACCEPT
+              nft 'add rule ip filter INPUT tcp dport 22 counter accept'
+              ```
+
+              ### Front ends
+              - **ufw** (Ubuntu) gives simple commands such as `ufw allow 443/tcp` and generates the rules
+              - **firewalld** (Fedora, RHEL) groups interfaces into **zones** and uses nftables as its backend
+              - Pick one tool per host. Two tools writing rules at once fight each other
+
+              ### Docker and your firewall
+              Docker adds its own rules for published ports in the `nat` and `FORWARD` paths. Traffic to a container is forwarded, not delivered to the host, so it never reaches the host's `INPUT` rules. A port published with `-p 5432:5432` is open to the world even if ufw says it is closed. Fixes:
+              - Publish on localhost only: `-p 127.0.0.1:5432:5432`
+              - Put your own rules in the `DOCKER-USER` chain, which Docker leaves alone
+              - Use a cloud security group in front of the host as well
+
+              ### Common mistakes
+              - Mixing `iptables-legacy` and nftables rules on one host: both run, and the result is hard to read
+              - Trusting `ufw status` on a Docker host
+            resources:
+              - { label: "Moving from iptables to nftables (nftables wiki)", url: "https://wiki.nftables.org/wiki-nftables/index.php/Moving_from_iptables_to_nftables", kind: docs }
+              - { label: "iptables(8) man page", url: "https://man7.org/linux/man-pages/man8/iptables.8.html", kind: docs }
+              - { label: "Packet filtering and firewalls (Docker docs)", url: "https://docs.docker.com/engine/network/packet-filtering-firewalls/", kind: docs }
+              - { label: "firewalld documentation", url: "https://firewalld.org/documentation/", kind: docs }
+              - { label: "Uncomplicated Firewall (ArchWiki)", url: "https://wiki.archlinux.org/title/Uncomplicated_Firewall", kind: docs }
+              - { label: "iptables (ArchWiki)", url: "https://wiki.archlinux.org/title/Iptables", kind: docs }
+              - { label: "iptables basics (Julia Evans)", url: "https://jvns.ca/blog/2017/06/07/iptables-basics/", kind: article }
+              - { label: "iptables complete guide (HackerSploit)", url: "https://www.youtube.com/watch?v=6Ra17Qpj68c", kind: video }
+          - id: security-groups-vs-nacls
+            title: Cloud security groups vs network ACLs
+            summary: AWS gives you two filters. Stateful security groups on each interface, stateless network ACLs on each subnet. How they differ, how they combine and how GCP and Azure compare.
+            learn:
+              - Where security groups and network ACLs apply
+              - Stateful allow-only rules vs ordered allow and deny rules
+              - Why NACLs need ephemeral port rules
+              - Referencing one security group from another
+              - The equivalents in GCP and Azure
+            body: |
+              In an AWS VPC a packet to an instance passes two filters: the **network ACL** of the subnet, then the **security group** on the instance's network interface.
+
+              | | Security group | Network ACL |
+              |---|---|---|
+              | Attached to | a network interface (instance, load balancer, RDS) | a subnet |
+              | State | stateful: replies are allowed back | stateless: replies need their own rule |
+              | Rules | allow only | allow and deny |
+              | Order | all rules checked, any allow wins | numbered, lowest first, first match wins |
+              | Default | new group: no inbound, all outbound | default NACL: allow all. A new custom NACL denies all |
+              | Source can be | a CIDR or another security group | a CIDR only |
+
+              ### Key ideas
+              - Do almost all filtering with security groups. They are stateful and easy to reason about
+              - Reference groups instead of addresses: the database group allows 5432 from the `app` group. New app instances are covered automatically
+              - Use NACLs for coarse **deny** rules, such as blocking a known bad range for a whole subnet. Security groups cannot deny
+              - Because NACLs are stateless, a custom NACL must allow return traffic to **ephemeral ports**. AWS suggests 1024 to 65535, since clients pick different ranges
+              - Neither one filters traffic to the Amazon DNS resolver or the instance metadata service
+
+              ### Other clouds
+              - **GCP** VPC firewall rules are stateful, set on the VPC network and aimed at instances by network tag or service account. Each rule has a priority and can allow or deny
+              - **Azure** network security groups are stateful, attach to a subnet or a NIC, and use priorities from 100 to 4096 with allow and deny
+
+              ### Common mistakes
+              - Adding a custom NACL with inbound 443 and forgetting outbound ephemeral ports. The site times out
+              - Allowing `0.0.0.0/0` on port 22 in a security group "for now"
+              - Debugging a security group when the NACL is the one dropping traffic. VPC Flow Logs show which packets were rejected
+            resources:
+              - { label: "Security groups (AWS VPC docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-security-groups.html", kind: docs }
+              - { label: "Network ACLs (AWS VPC docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-network-acls.html", kind: docs }
+              - { label: "Compare security groups and network ACLs (AWS)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/infrastructure-security.html", kind: docs }
+              - { label: "Ephemeral ports and network ACLs (AWS)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/nacl-ephemeral-ports.html", kind: docs }
+              - { label: "VPC Flow Logs (AWS)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html", kind: docs }
+              - { label: "VPC firewall rules (Google Cloud)", url: "https://cloud.google.com/firewall/docs/firewalls", kind: docs }
+              - { label: "Network security groups (Microsoft Azure)", url: "https://learn.microsoft.com/en-us/azure/virtual-network/network-security-groups-overview", kind: docs }
+              - { label: "Security groups vs network ACLs in AWS (Tiny Technical Tutorials)", url: "https://www.youtube.com/watch?v=JWoNu2Mtpdg", kind: video }
+          - id: ngfw-waf-ids-ips
+            title: Next-gen firewalls, WAFs and IDS/IPS
+            optional: true
+            summary: Port-based filtering cannot see what is inside a connection. What next-gen firewalls, web application firewalls and intrusion detection add, and where each one sits.
+            learn:
+              - What a next-generation firewall adds over port filtering
+              - WAF vs network firewall
+              - IDS vs IPS and how they see traffic
+              - Common open source and cloud options
+            body: |
+              A port filter knows that a connection goes to TCP 443. It does not know whether it carries a browser, a tunnel or an SQL injection. Three kinds of device look deeper.
+
+              | | Works at | Looks for | Placement |
+              |---|---|---|---|
+              | **Next-gen firewall** (NGFW) | layers 3 to 7 | applications, users, threats | inline at the network edge or between zones |
+              | **WAF** | HTTP (layer 7) | attacks on web apps: SQL injection, XSS, bad bots | in front of web servers, often in a CDN or load balancer |
+              | **IDS** | layers 3 to 7 | known attack patterns and odd behaviour | on a copy of traffic (SPAN port or tap) |
+              | **IPS** | layers 3 to 7 | the same as IDS | inline, so it can drop packets |
+
+              ### Next-gen firewalls
+              An NGFW is a stateful firewall plus **application identification** ("this is SSH on port 443"), rules by user or group, an IPS engine and often TLS inspection. TLS inspection means the firewall decrypts and re-encrypts traffic, so clients must trust its certificate. Palo Alto, Fortinet and Check Point sell them. OPNsense and pfSense with Suricata cover much of this for free.
+
+              ### WAF vs network firewall
+              A network firewall decides **who may connect**. A WAF reads each HTTP request and decides **whether this request is safe**. You need both: a firewall cannot see a malicious query string, and a WAF does nothing for SSH. The **OWASP Core Rule Set** is the common open source WAF rule set. Cloud options include AWS WAF, Azure WAF, Google Cloud Armor and Cloudflare.
+
+              ### IDS vs IPS
+              - An **IDS** only alerts, so a false positive costs a look, not an outage
+              - An **IPS** blocks, so a bad signature can drop real traffic. Run new rules in alert mode first
+              - **Suricata** and **Snort** match signatures and can run either way. **Zeek** writes detailed logs of every connection, DNS query and TLS handshake for later analysis
+
+              ### Common mistakes
+              - Buying an NGFW and keeping "allow any any" rules on it
+              - Running a WAF in detection mode forever and never reading the alerts
+            resources:
+              - { label: "Next-generation firewall (Wikipedia)", url: "https://en.wikipedia.org/wiki/Next-generation_firewall", kind: article }
+              - { label: "OWASP Core Rule Set", url: "https://coreruleset.org/", kind: tool }
+              - { label: "AWS WAF developer guide", url: "https://docs.aws.amazon.com/waf/latest/developerguide/waf-chapter.html", kind: docs }
+              - { label: "AWS Network Firewall (Suricata-compatible rules)", url: "https://docs.aws.amazon.com/network-firewall/latest/developerguide/what-is-aws-network-firewall.html", kind: docs }
+              - { label: "Suricata documentation", url: "https://docs.suricata.io/en/latest/", kind: docs }
+              - { label: "Zeek documentation", url: "https://docs.zeek.org/en/master/", kind: docs }
+              - { label: "Snort", url: "https://www.snort.org/", kind: tool }
+              - { label: "IDS vs IPS: which to use and when (CBT Nuggets)", url: "https://www.youtube.com/watch?v=wQSd_piqxQo", kind: video }
+              - { label: "Web application firewall vs network firewall (House Of Secure Network)", url: "https://www.youtube.com/watch?v=KAt1y4i4OGA", kind: video }
+          - id: default-deny-and-egress
+            title: Default deny and egress filtering
+            summary: Allow what you need and drop the rest, in both directions. Outbound rules stop a compromised host from calling home, spreading or leaking data.
+            learn:
+              - Why every policy should end in deny
+              - What egress filtering stops that inbound rules cannot
+              - A practical outbound allow-list for servers
+              - Logging drops without drowning in them
+            body: |
+              **Default deny** means the last rule, or the chain policy, drops everything, and each allowed flow has its own rule. It is the opposite of "allow all, block what is bad", which fails the moment something new and bad appears.
+
+              Most setups apply default deny to **inbound** traffic only and allow all **outbound**. That leaves a big hole. Malware on a server almost always needs to connect out: to fetch its second stage, to reach a command and control server, to send stolen data, or to scan other networks.
+
+              ### What egress filtering stops
+              - **Exfiltration**: the database server cannot upload a dump to a random host
+              - **Command and control**: a backdoor cannot call home
+              - **Abuse of your network**: no outbound SMTP spam or attacks from your IPs
+              - **SSRF damage**: an app tricked into fetching URLs can reach only approved places
+
+              ### Example
+              | Server | Allowed out | Everything else |
+              |---|---|---|
+              | Web app | database subnet 5432, internal DNS 53, HTTPS proxy 3128 | drop and log |
+              | Database | replication peers, backup bucket endpoint | drop and log |
+              | Build runner | package mirrors through the proxy | drop and log |
+
+              In nftables, add `policy drop;` to the output chain and allow `ct state established,related` plus each needed flow. In AWS, remove the default "all outbound" rule from the security group and add specific ones.
+
+              ### Key ideas
+              - Send web traffic out through a **proxy** that allows by domain name. IP allow-lists for SaaS and package mirrors break when their addresses change
+              - Point hosts at your own DNS resolver and block outbound 53 and 853 elsewhere, or DNS becomes the leak
+              - Many clouds already block or limit outbound TCP 25 for this reason
+              - Log dropped packets with a rate limit, or a noisy host fills your disk
+              - On AWS, require **IMDSv2** so an SSRF bug cannot easily read instance credentials
+
+              ### Common mistakes
+              - Allowing outbound 443 to anywhere and calling it egress filtering. Almost all malware speaks HTTPS
+              - Rolling out egress rules without logging first. Run in log-only mode for a week to find the real flows
+            resources:
+              - { label: "Egress filtering (Wikipedia)", url: "https://en.wikipedia.org/wiki/Egress_filtering", kind: article }
+              - { label: "NIST SP 800-41 Rev. 1: Guidelines on Firewalls and Firewall Policy", url: "https://csrc.nist.gov/pubs/sp/800/41/r1/final", kind: docs }
+              - { label: "MITRE ATT&CK: Exfiltration tactic", url: "https://attack.mitre.org/tactics/TA0010/", kind: docs }
+              - { label: "MITRE ATT&CK: Command and Control tactic", url: "https://attack.mitre.org/tactics/TA0011/", kind: docs }
+              - { label: "Centralized egress to the internet (AWS whitepaper)", url: "https://docs.aws.amazon.com/whitepapers/latest/building-scalable-secure-multi-vpc-network-infrastructure/centralized-egress-to-internet.html", kind: docs }
+              - { label: "Configure the instance metadata service, IMDSv2 (AWS)", url: "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html", kind: docs }
+              - { label: "Security group rules (AWS)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/security-group-rules.html", kind: docs }
+              - { label: "Simple ruleset for a server (nftables wiki)", url: "https://wiki.nftables.org/wiki-nftables/index.php/Simple_ruleset_for_a_server", kind: docs }
+
+      - id: vpns
+        title: VPNs
+        summary: What a VPN really protects and what it does not, then the three families that matter in practice, IPsec, WireGuard and TLS-based VPNs, and how sites and clouds are joined with them.
+        lessons:
+          - id: what-a-vpn-does
+            title: What a VPN really does (and does not)
+            summary: A VPN wraps your packets in an encrypted tunnel to another network. It moves where your traffic appears to come from. It does not make you anonymous or safe from everything.
+            learn:
+              - Tunnelling and encapsulation in one picture
+              - What a VPN protects you from
+              - What it does not protect you from
+              - Full tunnel vs split tunnel
+            body: |
+              A **VPN** (virtual private network) takes each packet you send, encrypts it, and wraps it in a new packet addressed to a **VPN gateway**. The gateway unwraps it and sends the original packet on as if it started there. Replies come back the same way. This wrapping is **encapsulation**, and the encrypted path is the **tunnel**.
+
+              ```
+              outer IP: you -> gateway | UDP/ESP | encrypted [ inner IP: 10.8.0.2 -> 10.0.5.20 | TCP | data ]
+              ```
+
+              ### What it does
+              - Hides your traffic from the local network and your ISP. They see encrypted packets to one gateway
+              - Puts you **inside** another network, such as an office or a cloud VPC, with a private address there
+              - Makes your traffic appear to come from the gateway's public IP
+
+              ### What it does not do
+              - It does not make you anonymous. The VPN operator now sees what your ISP used to see
+              - It does not stop tracking by cookies, logins or browser fingerprints
+              - It does not protect against malware or phishing
+              - It does not encrypt anything past the gateway. HTTPS still does that job end to end
+
+              ### Full vs split tunnel
+              | Mode | What goes through the tunnel | Trade-off |
+              |---|---|---|
+              | **Full tunnel** | everything, a default route `0.0.0.0/0` | simple and private, but all traffic pays the detour |
+              | **Split tunnel** | only listed prefixes, such as `10.0.0.0/8` | faster, but other traffic leaves locally |
+
+              ### Common mistakes
+              - **DNS leaks**: the tunnel carries traffic but DNS still goes to the local resolver, so names are visible. Push a DNS server through the tunnel
+              - Forgetting **MTU**: the extra headers make packets larger, so large packets may need fragmenting or a lower tunnel MTU
+            resources:
+              - { label: "What is a VPN? (Cloudflare)", url: "https://www.cloudflare.com/learning/access-management/what-is-a-vpn/", kind: article }
+              - { label: "Virtual private network (Wikipedia)", url: "https://en.wikipedia.org/wiki/Virtual_private_network", kind: article }
+              - { label: "Choosing the VPN that's right for you (EFF Surveillance Self-Defense)", url: "https://ssd.eff.org/module/choosing-vpn-thats-right-you", kind: article }
+              - { label: "VPNs, proxies and secure tunnels explained (LiveOverflow)", url: "https://www.youtube.com/watch?v=32KKwgF67Ho", kind: video }
+              - { label: "VPN and remote working (Computerphile)", url: "https://www.youtube.com/watch?v=1mtSNVdC7tM", kind: video }
+              - { label: "VPN explained (PowerCert)", url: "https://www.youtube.com/watch?v=R-JUOpCgTZc", kind: video }
+          - id: ipsec-ikev2
+            title: IPsec with IKEv2
+            summary: The standard VPN of routers, firewalls and cloud gateways. IKEv2 agrees the keys, ESP carries the data, and NAT traversal wraps it all in UDP.
+            learn:
+              - IKE SAs and Child SAs
+              - ESP vs AH
+              - Tunnel mode vs transport mode
+              - How NAT traversal works on UDP 4500
+              - Policy-based vs route-based tunnels
+            body: |
+              **IPsec** is a set of protocols that encrypt and authenticate IP packets. Two parts do the work:
+
+              1. **IKEv2** (RFC 7296) runs on **UDP 500**. In the `IKE_SA_INIT` exchange the peers agree algorithms and do a Diffie-Hellman key exchange. In `IKE_AUTH` they prove who they are with a pre-shared key or certificates, and set up the first **Child SA**
+              2. **ESP** (Encapsulating Security Payload, IP protocol **50**) carries the actual traffic, encrypted and integrity-protected, usually with AES-GCM. Each SA has an **SPI** number so the receiver knows which keys to use
+
+              An SA (security association) is one-way, so a tunnel uses a pair. Keys are renewed by rekeying on a timer. **AH** (protocol 51) authenticates without encrypting and breaks behind NAT, so it is rarely used.
+
+              ### Tunnel vs transport mode
+              | Mode | What is protected | Used for |
+              |---|---|---|
+              | **Tunnel** | the whole original IP packet, behind a new outer IP header | site-to-site and remote access VPNs |
+              | **Transport** | only the payload; the original IP header stays | host to host, or under GRE or L2TP |
+
+              ### NAT traversal (NAT-T)
+              ESP has no port numbers, so a NAT device cannot track it. During IKE both sides send hashes of their addresses (NAT detection payloads). If a NAT changed them, IKE moves to **UDP 4500** and ESP is wrapped in UDP too (RFC 3948). Small keepalives keep the NAT mapping open. Firewalls must allow UDP 500 and 4500, plus protocol 50 if no NAT is involved.
+
+              ### Policy-based vs route-based
+              - **Policy-based**: traffic selectors (local and remote subnets) decide what gets encrypted
+              - **Route-based**: a virtual tunnel interface (VTI) exists, and the routing table, often fed by **BGP**, decides. Cloud gateways prefer this
+
+              ### In practice
+              ```
+              swanctl --list-sas   # strongSwan: show IKE and Child SAs
+              ```
+              Most failures are a mismatch: different proposals, pre-shared keys, IDs or traffic selectors on the two ends.
+            resources:
+              - { label: "RFC 7296: Internet Key Exchange Protocol Version 2 (IKEv2)", url: "https://www.rfc-editor.org/rfc/rfc7296", kind: docs }
+              - { label: "RFC 4301: Security Architecture for the Internet Protocol", url: "https://www.rfc-editor.org/rfc/rfc4301", kind: docs }
+              - { label: "RFC 4303: IP Encapsulating Security Payload (ESP)", url: "https://www.rfc-editor.org/rfc/rfc4303", kind: docs }
+              - { label: "RFC 3948: UDP Encapsulation of IPsec ESP Packets", url: "https://www.rfc-editor.org/rfc/rfc3948", kind: docs }
+              - { label: "IPsec protocol overview (strongSwan docs)", url: "https://docs.strongswan.org/docs/latest/howtos/ipsecProtocol.html", kind: docs }
+              - { label: "NAT traversal (strongSwan docs)", url: "https://docs.strongswan.org/docs/latest/features/natTraversal.html", kind: docs }
+              - { label: "What is IPsec? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-ipsec/", kind: article }
+              - { label: "IPsec IKEv2 explained (Sikandar Shaik)", url: "https://www.youtube.com/watch?v=LHnnzdipaKQ", kind: video }
+              - { label: "IPsec VPN fundamentals (LearnCantrill)", url: "https://www.youtube.com/watch?v=15amNny_kKI", kind: video }
+          - id: wireguard
+            title: WireGuard
+            summary: A small, fast VPN built into the Linux kernel. Each peer is a public key plus a list of allowed IPs, and that list is both the routing table and the access control.
+            learn:
+              - Keys and the Noise-based handshake
+              - Cryptokey routing with AllowedIPs
+              - Why it uses only UDP and stays silent
+              - A minimal working config
+            body: |
+              **WireGuard** is a layer 3 VPN with a fixed, modern set of crypto: Curve25519 keys, ChaCha20-Poly1305 encryption and BLAKE2s hashing, in a handshake built on the Noise framework. There is nothing to negotiate, so there is nothing to misconfigure. It has been in the Linux kernel since 5.6 and has apps for every major OS.
+
+              ### Key ideas
+              - **Keys are identities.** Each peer has a private key and shares its public key. No usernames, no certificates
+              - **Cryptokey routing.** Each peer has an `AllowedIPs` list. Sending: the destination IP picks which peer to encrypt for. Receiving: a decrypted packet is dropped unless its source IP is in that peer's list
+              - **UDP only**, on any port (51820 is the usual choice)
+              - **Silent.** It does not answer packets that fail authentication, so a port scan sees nothing
+              - **Roaming.** A peer's endpoint updates to wherever its latest valid packet came from, so a laptop can change networks without reconnecting
+              - Session keys are renewed with a new handshake about every two minutes
+
+              ### Example
+              ```
+              wg genkey | tee client.key | wg pubkey > client.pub
+              ```
+              ```
+              # /etc/wireguard/wg0.conf on the client
+              [Interface]
+              PrivateKey = <contents of client.key>
+              Address = 10.8.0.2/32
+              DNS = 10.8.0.1
+
+              [Peer]
+              PublicKey = <server public key>
+              Endpoint = vpn.example.com:51820
+              AllowedIPs = 10.8.0.0/24, 10.0.0.0/16
+              PersistentKeepalive = 25
+              ```
+              ```
+              wg-quick up wg0
+              wg show        # peers, latest handshake, bytes moved
+              ```
+              Set `AllowedIPs = 0.0.0.0/0, ::/0` instead for a full tunnel. `PersistentKeepalive` keeps a NAT mapping open when the peer sits behind NAT.
+
+              ### Common mistakes
+              - Two peers with overlapping `AllowedIPs`: the last one configured wins the route
+              - Forgetting IP forwarding and NAT on the server, so clients connect but reach nothing past it
+            resources:
+              - { label: "WireGuard (official site)", url: "https://www.wireguard.com/", kind: docs }
+              - { label: "WireGuard quick start", url: "https://www.wireguard.com/quickstart/", kind: docs }
+              - { label: "WireGuard protocol and cryptography", url: "https://www.wireguard.com/protocol/", kind: docs }
+              - { label: "WireGuard whitepaper (Jason A. Donenfeld)", url: "https://www.wireguard.com/papers/wireguard.pdf", kind: docs }
+              - { label: "wg(8) man page", url: "https://man7.org/linux/man-pages/man8/wg.8.html", kind: docs }
+              - { label: "wg-quick(8) man page", url: "https://man7.org/linux/man-pages/man8/wg-quick.8.html", kind: docs }
+              - { label: "WireGuard: next generation secure network tunnel (Black Hat talk)", url: "https://www.youtube.com/watch?v=88GyLoZbDNw", kind: video }
+              - { label: "How to build your own WireGuard VPN server in the cloud (Lawrence Systems)", url: "https://www.youtube.com/watch?v=7yC-gJtl9mQ", kind: video }
+          - id: tls-and-mesh-vpns
+            title: TLS VPNs, mesh VPNs and zero trust
+            optional: true
+            summary: OpenVPN and AnyConnect-style VPNs ride on TLS and pass almost any firewall. Mesh tools like Tailscale connect devices directly, and zero trust checks every request instead of trusting the network.
+            learn:
+              - How TLS-based VPNs differ from IPsec
+              - How a mesh VPN like Tailscale finds direct paths
+              - What zero trust access changes
+            body: |
+              ### TLS and SSL VPNs
+              Many remote access VPNs use TLS instead of IKE to agree keys:
+              - **OpenVPN** uses TLS for the handshake and its own packet format for data, by default on UDP 1194. It can also run over TCP
+              - **Cisco AnyConnect** (now Cisco Secure Client) and the open source **OpenConnect** run over TLS on TCP 443, usually with DTLS on UDP for the data
+
+              Running on port 443 means they get through hotel and corporate firewalls that block UDP 500 and ESP. Running over TCP costs speed: when the inner TCP and outer TCP both retransmit on loss, performance falls apart.
+
+              ### Mesh VPNs
+              A classic VPN is hub and spoke: every packet goes through the gateway. A **mesh** connects each device to each other device.
+
+              **Tailscale** builds a mesh out of WireGuard:
+              1. A coordination server holds every device's public key and hands each device its peers' keys and addresses
+              2. Devices use NAT traversal (STUN-style probing and hole punching) to talk directly
+              3. When both sides are behind strict NAT, traffic goes through **DERP** relays, still end-to-end encrypted
+              4. ACLs on the coordination server decide which device may reach which
+
+              **Headscale** is an open source coordination server. ZeroTier and NetBird are similar products.
+
+              ### Zero trust
+              A VPN trusts you once you are "inside". **Zero trust** drops the idea of inside: every request to every app is checked against identity, device health and policy. Tools such as Cloudflare Access put an identity-aware proxy in front of each app instead of exposing a network.
+
+              ### Common mistakes
+              - Calling a mesh VPN zero trust by default: without tight ACLs, every device can still reach every other one
+              - Running OpenVPN over TCP when UDP is allowed
+            resources:
+              - { label: "How Tailscale works (Tailscale)", url: "https://tailscale.com/blog/how-tailscale-works", kind: article }
+              - { label: "How NAT traversal works (Tailscale)", url: "https://tailscale.com/blog/how-nat-traversal-works", kind: article }
+              - { label: "DERP relay servers (Tailscale docs)", url: "https://tailscale.com/kb/1232/derp-servers", kind: docs }
+              - { label: "Headscale: open source Tailscale control server", url: "https://headscale.net/", kind: tool }
+              - { label: "OpenVPN community how-to", url: "https://openvpn.net/community-resources/how-to/", kind: docs }
+              - { label: "OpenConnect VPN client", url: "https://www.infradead.org/openconnect/", kind: tool }
+              - { label: "What is zero trust? (Cloudflare)", url: "https://www.cloudflare.com/learning/security/glossary/what-is-zero-trust/", kind: article }
+              - { label: "How Tailscale makes managing WireGuard easy (Lawrence Systems)", url: "https://www.youtube.com/watch?v=bcRVkoeSN0E", kind: video }
+          - id: site-to-site-vs-remote-access
+            title: Site-to-site vs remote access, and cloud VPN gateways
+            summary: Site-to-site VPNs join whole networks router to router. Remote access VPNs join one device at a time. Cloud providers sell managed gateways for both.
+            learn:
+              - The two VPN shapes and who runs each end
+              - How AWS, Google Cloud and Azure build site-to-site links
+              - Redundant tunnels and BGP failover
+              - Planning address space before you connect
+            body: |
+              | | Site-to-site | Remote access |
+              |---|---|---|
+              | Joins | two networks | one device to a network |
+              | Ends | router or firewall at each site | client app on the device, gateway at the office or cloud |
+              | Users notice it | no, it is always on | yes, they connect and sign in |
+              | Usual protocol | IPsec IKEv2, sometimes WireGuard | WireGuard, OpenVPN, IKEv2, TLS VPNs |
+
+              ### Cloud VPN gateways
+              Every big cloud sells a managed IPsec endpoint for site-to-site links to your office or data centre:
+              - **AWS Site-to-Site VPN** gives each connection **two tunnels** to two different AWS endpoints, with static routes or BGP. It attaches to a virtual private gateway or a transit gateway
+              - **Google Cloud HA VPN** has two interfaces. Its 99.99% availability SLA applies only when you build the required redundant tunnels
+              - **Azure VPN Gateway** runs active-standby or active-active, with BGP optional
+              - For remote access, **AWS Client VPN** is a managed OpenVPN-based service, and Azure has point-to-site VPN
+
+              ### Key ideas
+              - Always bring up **both** tunnels and use BGP, so traffic moves on its own when the provider does maintenance on one
+              - The two sides' address ranges **must not overlap**. Two VPCs both on `10.0.0.0/16` cannot be routed to each other without NAT
+              - A VPN rides the public internet. For steady high bandwidth or predictable latency, clouds offer private links instead (AWS Direct Connect, Google Cloud Interconnect, Azure ExpressRoute)
+
+              ### Common mistakes
+              - Building one tunnel only, then losing the link during routine maintenance
+              - Allowing the tunnel but forgetting security groups or firewall rules on the far side
+            resources:
+              - { label: "What is AWS Site-to-Site VPN? (AWS docs)", url: "https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html", kind: docs }
+              - { label: "How AWS Site-to-Site VPN works (AWS docs)", url: "https://docs.aws.amazon.com/vpn/latest/s2svpn/how_it_works.html", kind: docs }
+              - { label: "What is AWS Client VPN? (AWS docs)", url: "https://docs.aws.amazon.com/vpn/latest/clientvpn-admin/what-is.html", kind: docs }
+              - { label: "Cloud VPN overview (Google Cloud docs)", url: "https://cloud.google.com/network-connectivity/docs/vpn/concepts/overview", kind: docs }
+              - { label: "Cloud VPN topologies (Google Cloud docs)", url: "https://cloud.google.com/network-connectivity/docs/vpn/concepts/topologies", kind: docs }
+              - { label: "What is Azure VPN Gateway? (Microsoft Learn)", url: "https://learn.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-about-vpngateways", kind: docs }
+              - { label: "VPNs explained: site-to-site and remote access (CertBros)", url: "https://www.youtube.com/watch?v=CWy3x3Wux6o", kind: video }
+              - { label: "Build a site-to-site VPN with pfSense and WireGuard (Lawrence Systems)", url: "https://www.youtube.com/watch?v=WXkWP-JZOd8", kind: video }
+
+  - level: advanced
+    title: Running real networks
+    topics:
+      - id: network-design
+        title: Network design
+        summary: Putting the pieces together. Redundant gateways with VRRP and HSRP, spine-leaf data centre fabrics, VXLAN and EVPN overlays, a small office built end to end, and how to see what the network is doing.
+        lessons:
+          - id: first-hop-redundancy
+            title: "First-hop redundancy: VRRP and HSRP"
+            summary: Every host has one default gateway. Two routers can share one virtual gateway address so a router failure goes unnoticed by the hosts.
+            learn:
+              - Why a single default gateway is a single point of failure
+              - How a virtual IP and virtual MAC move between routers
+              - VRRP vs HSRP, priorities and preemption
+              - A keepalived config for Linux routers
+            body: |
+              A host is configured with one default gateway, for example `192.168.10.1`. If that router dies, the host cannot leave its subnet, even when a second router sits right next to it. **First-hop redundancy protocols** fix this. Two or more routers share a **virtual IP** and a **virtual MAC**. One is active and answers for both. The others listen and take over when the active router's adverts stop.
+
+              | | VRRP | HSRP |
+              |---|---|---|
+              | Standard | open, RFC 9568 (VRRPv3) | Cisco, described in RFC 2281 |
+              | Roles | master and backups | active, standby and listeners |
+              | Adverts to | `224.0.0.18`, IP protocol 112 | `224.0.0.2` (v1) or `224.0.0.102` (v2), UDP 1985 |
+              | Virtual MAC (IPv4) | `00-00-5E-00-01-{VRID}` | `0000.0c07.acXX` (v1) |
+              | Default priority | 100 (255 for the router that owns the address) | 100 |
+              | Preemption | on by default | off by default |
+
+              ### Key ideas
+              - Hosts never notice a failover. The new router sends **gratuitous ARP** so switches learn the virtual MAC on its port
+              - The highest priority wins. With **preemption**, a recovered router with a higher priority takes the role back
+              - **Tracking**: lower a router's priority when its uplink fails, so a router with no way out hands over the gateway
+              - VRRPv3 adverts default to once per second, so failover takes about three seconds
+              - GLBP (Cisco) and CARP (OpenBSD, pfSense, OPNsense) solve the same problem
+
+              ### Example
+              keepalived runs VRRP on Linux. On the backup router:
+              ```
+              vrrp_instance LAN {
+                  state BACKUP
+                  interface eth0
+                  virtual_router_id 10
+                  priority 100
+                  advert_int 1
+                  virtual_ipaddress {
+                      192.168.10.1/24
+                  }
+              }
+              ```
+              The primary uses `state MASTER` and `priority 150`. DHCP hands out `192.168.10.1` as the gateway.
+
+              ### Common mistakes
+              - Two VRRP groups on one segment with the same `virtual_router_id`
+              - A firewall between the routers dropping protocol 112, so both become master (split brain)
+              - Forgetting to track the uplink: the gateway stays on a router that cannot reach the internet
+            resources:
+              - { label: "RFC 9568: Virtual Router Redundancy Protocol Version 3", url: "https://www.rfc-editor.org/rfc/rfc9568", kind: docs }
+              - { label: "RFC 2281: Cisco Hot Standby Router Protocol", url: "https://www.rfc-editor.org/rfc/rfc2281", kind: docs }
+              - { label: "keepalived documentation", url: "https://keepalived.readthedocs.io/en/latest/", kind: docs }
+              - { label: "keepalived configuration synopsis", url: "https://keepalived.readthedocs.io/en/latest/configuration_synopsis.html", kind: docs }
+              - { label: "VRRP (FRRouting docs)", url: "https://docs.frrouting.org/en/latest/vrrp.html", kind: docs }
+              - { label: "First-hop redundancy protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/First-hop_redundancy_protocol", kind: article }
+              - { label: "Free CCNA: First Hop Redundancy Protocols (Jeremy's IT Lab)", url: "https://www.youtube.com/watch?v=43WnpwQMolo", kind: video }
+              - { label: "What is VRRP? (CBT Nuggets)", url: "https://www.youtube.com/watch?v=GyQrgfrKJ38", kind: video }
+          - id: spine-leaf
+            title: Spine-leaf fabrics and why they replaced three-tier
+            summary: Modern data centres connect every leaf switch to every spine and route over all links at once. Why the old access, aggregation and core design could not keep up.
+            learn:
+              - The three-tier design and its limits
+              - How a spine-leaf (Clos) fabric is wired
+              - ECMP across every spine and routing to the leaf
+              - Oversubscription and how a fabric grows
+            body: |
+              The classic campus and data centre design had **three tiers**: access switches for servers, aggregation switches above them and a core on top. It was built for **north-south** traffic, from users to servers. Layer 2 VLANs stretched across the access and aggregation layers, and **spanning tree** blocked redundant links to stop loops. Half the bought bandwidth sat idle.
+
+              Then traffic changed. Virtual machines, microservices, storage and databases talk to each other far more than to users. This **east-west** traffic in a three-tier design climbs to the aggregation or core and back down, through paths of different length.
+
+              ### Spine-leaf
+              - Every **leaf** (top-of-rack switch) connects to every **spine**
+              - Leaves never connect to leaves, and spines never connect to spines
+              - A server reaches any server in another rack through leaf, spine, leaf: the same three switches, the same latency
+              - Links between leaves and spines are **routed** (layer 3). There is no spanning tree, and all links are active through **ECMP**
+              - Many fabrics run **eBGP** with a private ASN per leaf, as described in RFC 7938. OSPF and IS-IS also work
+
+              This is a **Clos** network, named after Charles Clos, who described the idea for telephone switches in 1953.
+
+              | | Three-tier | Spine-leaf |
+              |---|---|---|
+              | Links in use | about half (spanning tree blocks the rest) | all (ECMP) |
+              | Server to server in another rack | 3 to 5 switches, varies | always 3 switches |
+              | One spine fails | depends on the design | lose 1/N of the capacity, nothing else |
+              | Growth | bigger boxes at the top | add leaves for ports, spines for bandwidth |
+
+              ### Oversubscription
+              A leaf with 48 × 25 Gbps server ports has 1,200 Gbps facing down. With 8 × 100 Gbps uplinks it has 800 Gbps facing up. The ratio is **1.5:1**. Storage and AI clusters aim for 1:1. General compute often accepts 3:1.
+
+              ### Limits
+              The number of leaves is capped by the port count of a spine. Very large sites add a third layer (super-spines) and repeat the pattern, as in Facebook's data centre fabric.
+            resources:
+              - { label: "RFC 7938: Use of BGP for routing in large-scale data centers", url: "https://www.rfc-editor.org/rfc/rfc7938", kind: docs }
+              - { label: "Introducing data center fabric (Engineering at Meta)", url: "https://engineering.fb.com/2014/11/14/production-engineering/introducing-data-center-fabric-the-next-generation-facebook-data-center-network/", kind: article }
+              - { label: "Clos network (Wikipedia)", url: "https://en.wikipedia.org/wiki/Clos_network", kind: article }
+              - { label: "Spanning Tree Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Spanning_Tree_Protocol", kind: article }
+              - { label: "Equal-cost multi-path routing (Wikipedia)", url: "https://en.wikipedia.org/wiki/Equal-cost_multi-path_routing", kind: article }
+              - { label: "Spine-leaf network topology (Keith Barker)", url: "https://www.youtube.com/watch?v=IPaU-N7p4L0", kind: video }
+              - { label: "Spine and leaf architecture explained (Networking with H)", url: "https://www.youtube.com/watch?v=xjc7WLBb-nI", kind: video }
+          - id: vxlan-evpn
+            title: "Overlays: VXLAN and EVPN"
+            optional: true
+            summary: A routed fabric has no stretched VLANs, but some workloads still need layer 2. VXLAN carries Ethernet frames inside UDP, and EVPN tells every switch where each MAC lives.
+            learn:
+              - Underlay vs overlay
+              - How VXLAN wraps a frame and what a VTEP does
+              - Why flood and learn was replaced by an EVPN control plane
+              - The EVPN route types you meet first
+            body: |
+              A spine-leaf fabric is routed, so a VLAN ends at its leaf. But a virtual machine that moves between racks wants to keep its IP address, and some apps expect to share a layer 2 segment. An **overlay** solves this. The routed fabric is the **underlay**. On top of it, leaves build tunnels that carry Ethernet frames between them.
+
+              ### VXLAN
+              **VXLAN** (RFC 7348) puts the original Ethernet frame inside a UDP packet to port 4789. A **VTEP** (VXLAN tunnel endpoint), usually the leaf switch or a Linux host, adds and removes the outer headers.
+
+              | Layer | Size |
+              |---|---|
+              | Outer Ethernet | 14 bytes |
+              | Outer IPv4 | 20 bytes |
+              | UDP | 8 bytes |
+              | VXLAN header with the 24-bit **VNI** | 8 bytes |
+              | Original frame | unchanged |
+
+              - The VNI gives about 16 million segments, instead of 4,094 VLANs
+              - The outer UDP source port is a hash of the inner frame, so ECMP in the underlay spreads tunnel traffic
+              - The overhead is 50 bytes. Raise the underlay MTU (9,000 or more is common) so inner 1,500-byte frames fit
+
+              ### EVPN, the control plane
+              Plain VXLAN learns like a switch: it floods unknown frames to every VTEP and learns MACs from replies. That does not scale. **EVPN** (RFC 7432, and RFC 8365 for VXLAN) uses **BGP** to advertise MAC and IP addresses instead.
+
+              | EVPN route | Says |
+              |---|---|
+              | Type 2, MAC/IP | "MAC `aa:bb:..` with IP `10.1.1.5` is behind VTEP 10.255.0.3, VNI 100" |
+              | Type 3, inclusive multicast | "send broadcast and unknown traffic for VNI 100 to me" |
+              | Type 5, IP prefix (RFC 9136) | "subnet `10.50.0.0/24` is reachable through me" |
+
+              Because leaves know every MAC and IP in advance, they can answer ARP locally (**ARP suppression**) and route between VNIs at the first leaf.
+
+              ### Example
+              In FRR, after the VXLAN interfaces exist, one block turns on EVPN:
+              ```
+              router bgp 65001
+               address-family l2vpn evpn
+                neighbor fabric activate
+                advertise-all-vni
+              ```
+
+              ### Common mistakes
+              - Leaving the underlay at MTU 1,500: large packets in the overlay are dropped
+              - Stretching layer 2 between data centres "because we can". A broadcast storm then spans both sites
+            resources:
+              - { label: "RFC 7348: VXLAN", url: "https://www.rfc-editor.org/rfc/rfc7348", kind: docs }
+              - { label: "RFC 7432: BGP MPLS-based Ethernet VPN", url: "https://www.rfc-editor.org/rfc/rfc7432", kind: docs }
+              - { label: "RFC 8365: A network virtualization overlay solution using EVPN", url: "https://www.rfc-editor.org/rfc/rfc8365", kind: docs }
+              - { label: "RFC 9136: IP prefix advertisement in EVPN", url: "https://www.rfc-editor.org/rfc/rfc9136", kind: docs }
+              - { label: "EVPN (FRRouting docs)", url: "https://docs.frrouting.org/en/latest/evpn.html", kind: docs }
+              - { label: "Virtual eXtensible Local Area Networking (Linux kernel docs)", url: "https://docs.kernel.org/networking/vxlan.html", kind: docs }
+              - { label: "What is EVPN-VXLAN anyways? (CBT Nuggets)", url: "https://www.youtube.com/watch?v=cdvstTm467k", kind: video }
+              - { label: "EVPN VXLAN: learn the basics (The Netcademy)", url: "https://www.youtube.com/watch?v=3zjf1dPB_Es", kind: video }
+          - id: office-vlan-and-addressing
+            title: "Small office design, part 1: VLANs and addressing"
+            summary: Plan a 40-person office before buying anything. Split devices by trust into VLANs, give each a subnet that is easy to read, and route between them through the firewall.
+            learn:
+              - Grouping devices by trust and function
+              - A VLAN and subnet plan that is easy to remember
+              - Trunk ports, access ports and where routing happens
+              - Choosing private ranges that do not clash with home networks
+            body: |
+              Start from **who needs to talk to whom**, not from the hardware. Devices with different trust levels go into different **VLANs**, and the firewall routes between them. A guest phone and the accounting laptop should never share a broadcast domain.
+
+              ### Example plan
+              Site range `10.20.0.0/16`, with the VLAN number in the third octet:
+
+              | VLAN | Name | Subnet | Who |
+              |---|---|---|---|
+              | 10 | staff | `10.20.10.0/24` | laptops and desktops |
+              | 20 | voice | `10.20.20.0/24` | desk phones |
+              | 30 | guest | `10.20.30.0/24` | visitors, internet only |
+              | 40 | iot | `10.20.40.0/24` | printers, TVs, cameras |
+              | 50 | servers | `10.20.50.0/24` | NAS, local services |
+              | 99 | mgmt | `10.20.99.0/24` | switches, access points, firewall admin |
+
+              The gateway of each subnet is `.1`, on the firewall. Infrastructure takes `.2` to `.49`, and DHCP hands out `.50` to `.250`.
+
+              ### Key ideas
+              - **Avoid `192.168.0.0/24` and `192.168.1.0/24`**. Staff on VPN from home have those ranges, and overlapping subnets break routing
+              - Leave room: `10.20.0.0/16` is this site, `10.21.0.0/16` the next one. Each summarises to one route over a site-to-site VPN
+              - Switch ports to end devices are **access** ports in one VLAN, untagged. Links between the firewall, switches and access points are **trunks** carrying several VLANs with 802.1Q tags
+              - Route between VLANs **on the firewall**, so every crossing hits a policy. A layer 3 switch is faster, but it filters only with simple stateless ACLs
+              - Put switch and access point management in its own VLAN, reachable only from admin machines
+
+              ### Common mistakes
+              - Using VLAN 1, the default, for real traffic. Leave it unused
+              - A /24 for 600 guest devices at a busy event. Size guest networks for the peak
+              - Writing the plan nowhere. Keep it in the repo or wiki with the configs
+            resources:
+              - { label: "VLANs (Practical Networking)", url: "https://www.practicalnetworking.net/stand-alone/vlans/", kind: article }
+              - { label: "IEEE 802.1Q (Wikipedia)", url: "https://en.wikipedia.org/wiki/IEEE_802.1Q", kind: article }
+              - { label: "RFC 1918: Address allocation for private internets", url: "https://www.rfc-editor.org/rfc/rfc1918", kind: docs }
+              - { label: "VLANs (pfSense docs)", url: "https://docs.netgate.com/pfsense/en/latest/vlan/index.html", kind: docs }
+              - { label: "OPNsense documentation", url: "https://docs.opnsense.org/", kind: docs }
+              - { label: "Router on a stick (Wikipedia)", url: "https://en.wikipedia.org/wiki/Router_on_a_stick", kind: article }
+              - { label: "Inter-VLAN routing, router on a stick lab (Jeremy's IT Lab)", url: "https://www.youtube.com/watch?v=3II2RwiXImg", kind: video }
+              - { label: "Complete network configuration, CCNA mega lab (Jeremy's IT Lab)", url: "https://www.youtube.com/watch?v=2p7-MluKAgE", kind: video }
+          - id: office-services-and-policy
+            title: "Small office design, part 2: DHCP, DNS, Wi-Fi and firewall policy"
+            summary: The services that make the plan work, and the rules between the VLANs. A policy table you can hand to anyone who touches the firewall.
+            learn:
+              - DHCP scopes, reservations and snooping
+              - An internal DNS resolver and a local domain name
+              - Mapping Wi-Fi networks to VLANs
+              - A firewall policy between VLANs
+            body: |
+              ### DHCP
+              - One scope per VLAN on the firewall. Short leases for guests (a few hours), longer for staff
+              - **Reservations** for printers and anything other devices must find by address
+              - Turn on **DHCP snooping** on the switches so a rogue DHCP server, such as a home router someone plugs in, cannot hand out addresses
+
+              ### DNS
+              - Run a resolver on the firewall (Unbound in OPNsense and pfSense) and hand it out through DHCP
+              - Name local hosts under a subdomain you own, such as `office.example.com`. Do not use `.local`, which belongs to mDNS. For home networks, `home.arpa` is reserved for this
+              - Guests get only public resolution, never internal names
+
+              ### Wi-Fi
+              Each SSID maps to one VLAN on the access points' trunk:
+              - **Staff**: WPA3-Enterprise or WPA2-Enterprise with 802.1X, so leavers lose access when their account is disabled
+              - **Guest**: WPA2 or WPA3 password, client isolation on, internet only
+              - **IoT**: a separate password, since many devices support only WPA2-Personal
+
+              ### Firewall policy
+              | From | May reach | Denied |
+              |---|---|---|
+              | staff | internet, servers, printers in iot, voice server | mgmt |
+              | voice | the phone provider, internal DNS | everything else |
+              | guest | internet, DNS on the firewall | every internal VLAN |
+              | iot | internet for updates, if needed | every other VLAN |
+              | servers | internet for updates, backup target | staff, guest, iot |
+              | mgmt | everything, admins only | nothing |
+
+              Replies are allowed by state. Every rule outside this table is denied and logged.
+
+              ### In practice
+              - AirPrint and casting use mDNS, which does not cross VLANs. An **mDNS repeater** on the firewall forwards it from iot to staff only
+              - Put the firewall, switches and access points on a UPS
+              - Back up every config after each change
+
+              ### Common mistakes
+              - "Temporary" any-to-any rules between VLANs that stay forever
+              - Guest Wi-Fi on the staff VLAN with a different password
+            resources:
+              - { label: "RFC 2131: Dynamic Host Configuration Protocol", url: "https://www.rfc-editor.org/rfc/rfc2131", kind: docs }
+              - { label: "RFC 8375: Special-use domain home.arpa", url: "https://www.rfc-editor.org/rfc/rfc8375", kind: docs }
+              - { label: "RFC 6762: Multicast DNS (the .local domain)", url: "https://www.rfc-editor.org/rfc/rfc6762", kind: docs }
+              - { label: "Unbound DNS (OPNsense docs)", url: "https://docs.opnsense.org/manual/unbound.html", kind: docs }
+              - { label: "Setting up a guest network (OPNsense docs)", url: "https://docs.opnsense.org/manual/how-tos/guestnet.html", kind: docs }
+              - { label: "Wi-Fi security (Wi-Fi Alliance)", url: "https://www.wi-fi.org/discover-wi-fi/security", kind: docs }
+              - { label: "IEEE 802.1X (Wikipedia)", url: "https://en.wikipedia.org/wiki/IEEE_802.1X", kind: article }
+              - { label: "Free CCNA: DHCP Snooping (Jeremy's IT Lab)", url: "https://www.youtube.com/watch?v=qYYeg2kz1yE", kind: video }
+          - id: network-observability
+            title: "Network observability: SNMP, flows and streaming telemetry"
+            optional: true
+            summary: Three ways to see what the network is doing. SNMP counters for health, flow records for who talks to whom, and streaming telemetry for fast, detailed data.
+            learn:
+              - SNMP polling, traps and why v3 matters
+              - NetFlow, IPFIX and sFlow, and how they differ
+              - Streaming telemetry with gNMI and OpenConfig
+              - Open source tools for each
+            body: |
+              Monitoring a network answers three questions. **Is it healthy?** **Who is using it?** **What changed, and when?** Each source answers a different one.
+
+              | Source | How it works | Answers |
+              |---|---|---|
+              | **SNMP** | a poller asks devices for counters, UDP 161. Devices send traps, UDP 162 | link up or down, bytes, errors, CPU, temperature |
+              | **NetFlow v9 / IPFIX** | the device summarises each flow and exports a record | who talked to whom, on which ports, how much |
+              | **sFlow** | the device samples 1 in N packets and sends their headers, plus counters | the same, from samples, cheap even at 400 Gbps |
+              | **Streaming telemetry** | the device pushes data on a subscription (gNMI over gRPC) | counters and state every few seconds, or on change |
+
+              ### SNMP
+              - Data is organised in **MIBs**. Interface counters live in IF-MIB
+              - Use the 64-bit counters (`ifHCInOctets`). A 32-bit byte counter wraps in about 3.4 seconds at 10 Gbps
+              - **v2c** sends a "community" string in plain text. **v3** adds users, authentication and encryption. Use v3, and never leave the community as `public`
+              - Polling every 1 to 5 minutes averages away short bursts
+
+              ### Flows
+              - **NetFlow v5** is a fixed IPv4-only format. **v9** uses templates, and **IPFIX** (RFC 7011) is the IETF standard based on it
+              - Flow data shows top talkers, DDoS sources and unexpected traffic, without capturing payloads
+              - Sampling is fine for traffic engineering, but it misses single small flows during an investigation
+
+              ### Streaming telemetry
+              Instead of being polled, the device **pushes** data. **gNMI** carries it, and **OpenConfig** YANG models give it the same shape across vendors. Second-level detail shows microbursts that 5-minute SNMP averages hide.
+
+              ### Tools
+              - SNMP: LibreNMS, Prometheus `snmp_exporter`
+              - Flows: Akvorado, pmacct, goflow2
+              - Telemetry: gnmic into Prometheus or InfluxDB, with Grafana on top
+
+              ### Common mistakes
+              - Graphing only averages, then wondering why users complain about drops
+              - Exposing SNMP to the internet. It has been used for DDoS amplification
+            resources:
+              - { label: "RFC 3414: User-based Security Model for SNMPv3", url: "https://www.rfc-editor.org/rfc/rfc3414", kind: docs }
+              - { label: "RFC 2863: The Interfaces Group MIB", url: "https://www.rfc-editor.org/rfc/rfc2863", kind: docs }
+              - { label: "RFC 7011: IPFIX protocol specification", url: "https://www.rfc-editor.org/rfc/rfc7011", kind: docs }
+              - { label: "sFlow.org", url: "https://sflow.org/", kind: docs }
+              - { label: "gNMI specification (OpenConfig)", url: "https://github.com/openconfig/reference/blob/master/rpc/gnmi/gnmi-specification.md", kind: docs }
+              - { label: "gnmic", url: "https://gnmic.openconfig.net/", kind: tool }
+              - { label: "Prometheus SNMP exporter", url: "https://github.com/prometheus/snmp_exporter", kind: tool }
+              - { label: "Akvorado flow collector", url: "https://github.com/akvorado/akvorado", kind: tool }
+              - { label: "SNMP explained (CertBros)", url: "https://www.youtube.com/watch?v=Lq7j-QipNrI", kind: video }
+
+      - id: how-email-works
+        title: How email works
+        summary: The path a message takes from your mail app to someone's inbox, how SPF, DKIM and DMARC prove who sent it, how mailboxes are read, and why legitimate mail still lands in spam.
+        lessons:
+          - id: smtp-mail-path
+            title: "The SMTP path: MUA, MSA, MTA and MX records"
+            summary: Mail moves in hops. Your app submits it to your provider, your provider looks up the recipient's MX record, and server-to-server SMTP on port 25 delivers it.
+            learn:
+              - The roles of MUA, MSA, MTA and MDA
+              - How MX records pick the receiving server
+              - Ports 25, 587 and 465 and what each is for
+              - Envelope addresses vs header addresses
+              - Reading a raw SMTP conversation
+            body: |
+              Sending an email is a relay race between programs with fixed roles:
+
+              1. **MUA** (mail user agent): your mail app, such as Outlook, Apple Mail or Thunderbird
+              2. **MSA** (mail submission agent): your provider's server that accepts mail from logged-in users
+              3. **MTA** (mail transfer agent): looks up where the recipient's domain takes mail and relays it there
+              4. **MDA** (mail delivery agent): the receiving side files the message into the right mailbox
+
+              To find the next hop, the MTA asks DNS for the domain's **MX records**. The **lowest** preference number is tried first, the others are backups. With no MX at all, the domain's A or AAAA record is used.
+              ```
+              dig +short MX example.com
+              10 mx1.example.com.
+              20 mx2.example.com.
+              ```
+
+              ### Ports
+              | Port | Used for | Encryption |
+              |---|---|---|
+              | **25** | server to server relay | STARTTLS when both sides support it |
+              | **587** | client submission, login required | STARTTLS |
+              | **465** | client submission, login required | implicit TLS from the first byte, preferred by RFC 8314 |
+
+              Many ISPs and cloud providers block outbound port 25 from ordinary machines, because spam bots used it.
+
+              ### A raw SMTP session
+              ```
+              S: 220 mx1.example.com ESMTP
+              C: EHLO mail.sender.net
+              S: 250-mx1.example.com
+              S: 250 STARTTLS
+              C: MAIL FROM:<alice@sender.net>
+              S: 250 OK
+              C: RCPT TO:<bob@example.com>
+              S: 250 OK
+              C: DATA
+              S: 354 End data with <CR><LF>.<CR><LF>
+              C: From: Alice <alice@sender.net>
+              C: Subject: Hello
+              C: .
+              S: 250 OK queued
+              ```
+              `MAIL FROM` and `RCPT TO` are the **envelope**. The `From:` you see in your app is a **header** inside the message, and the two do not have to match. Bounces go to the envelope sender.
+
+              ### Key ideas
+              - Codes starting with **4** are temporary, so the sender retries, often for several days. Codes starting with **5** are permanent and produce a bounce
+              - Each server adds a `Received:` header. Read them from the bottom up to trace the path
+            resources:
+              - { label: "RFC 5321: Simple Mail Transfer Protocol", url: "https://www.rfc-editor.org/rfc/rfc5321", kind: docs }
+              - { label: "RFC 5598: Internet Mail Architecture (MUA, MSA, MTA, MDA)", url: "https://www.rfc-editor.org/rfc/rfc5598", kind: docs }
+              - { label: "RFC 6409: Message Submission for Mail", url: "https://www.rfc-editor.org/rfc/rfc6409", kind: docs }
+              - { label: "RFC 8314: Cleartext Considered Obsolete (port 465)", url: "https://www.rfc-editor.org/rfc/rfc8314", kind: docs }
+              - { label: "What is SMTP? (Cloudflare)", url: "https://www.cloudflare.com/learning/email-security/what-is-smtp/", kind: article }
+              - { label: "MX record (Wikipedia)", url: "https://en.wikipedia.org/wiki/MX_record", kind: article }
+              - { label: "Simple Mail Transfer Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol", kind: article }
+              - { label: "Email (Computerphile)", url: "https://www.youtube.com/watch?v=7ZPW8FwgHoM", kind: video }
+              - { label: "How email works (PowerCert)", url: "https://www.youtube.com/watch?v=ELioaGg4WOY", kind: video }
+          - id: spf-dkim-dmarc
+            title: SPF, DKIM and DMARC
+            summary: Three DNS records that let a receiver check a message really came from the domain it claims. SPF lists servers, DKIM signs messages, DMARC ties both to the visible From address.
+            learn:
+              - What SPF checks and its 10-lookup limit
+              - How DKIM signatures and selectors work
+              - DMARC alignment and the none, quarantine and reject policies
+              - Reading the Authentication-Results header
+            body: |
+              Plain SMTP lets anyone write any `From:` address. These three records, all published in DNS, fix that.
+
+              ### SPF: which servers may send
+              ```
+              example.com. TXT "v=spf1 include:_spf.google.com ip4:203.0.113.25 -all"
+              ```
+              The receiver checks the connecting IP against this list for the **envelope** sender's domain (`MAIL FROM`), not the visible `From:`. `-all` means fail everything else, `~all` means soft fail. SPF allows at most **10 DNS lookups** (`include`, `a`, `mx` and similar), and it breaks when mail is forwarded, because the forwarder's IP is not listed.
+
+              ### DKIM: a signature on the message
+              The sending server signs chosen headers and a hash of the body, and adds a `DKIM-Signature` header with `d=` (the signing domain) and `s=` (the selector). The receiver fetches the public key from DNS:
+              ```
+              s1._domainkey.example.com. TXT "v=DKIM1; k=rsa; p=MIIBIjANBgkqh..."
+              ```
+              DKIM survives forwarding as long as nobody changes the signed parts. Use 2048-bit RSA keys.
+
+              ### DMARC: tie it to the From address
+              ```
+              _dmarc.example.com. TXT "v=DMARC1; p=quarantine; rua=mailto:dmarc@example.com"
+              ```
+              DMARC passes when SPF **or** DKIM passes **and** that domain **aligns** with the `From:` domain (by default, the same organisational domain). `p=` tells receivers what to do when it fails: `none` (only report), `quarantine` (spam folder) or `reject`. `rua` receives daily XML reports of who sends as you.
+
+              In 2026 DMARC was republished as RFC 9989, replacing RFC 7489. It drops the `pct` tag, adds `t=y` for test mode and `np` for non-existent subdomains.
+
+              ### In practice
+              Open a received message's original source and look for:
+              ```
+              Authentication-Results: mx.google.com; spf=pass ...; dkim=pass header.d=example.com; dmarc=pass
+              ```
+              Roll out in steps: `p=none`, read reports until every real sender passes, then `quarantine`, then `reject`.
+            resources:
+              - { label: "RFC 7208: Sender Policy Framework (SPF)", url: "https://www.rfc-editor.org/rfc/rfc7208", kind: docs }
+              - { label: "RFC 6376: DomainKeys Identified Mail (DKIM) Signatures", url: "https://www.rfc-editor.org/rfc/rfc6376", kind: docs }
+              - { label: "RFC 9989: DMARC", url: "https://www.rfc-editor.org/rfc/rfc9989", kind: docs }
+              - { label: "DMARC, DKIM and SPF explained (Cloudflare)", url: "https://www.cloudflare.com/learning/email-security/dmarc-dkim-spf/", kind: article }
+              - { label: "Set up DMARC (Google Workspace Admin Help)", url: "https://support.google.com/a/answer/2466580", kind: docs }
+              - { label: "Email authentication in Microsoft 365 (Microsoft Learn)", url: "https://learn.microsoft.com/en-us/defender-office-365/email-authentication-about", kind: docs }
+              - { label: "Learn and test DMARC (learndmarc.com)", url: "https://www.learndmarc.com/", kind: tool }
+              - { label: "MxToolbox: check SPF, DKIM, DMARC and blocklists", url: "https://mxtoolbox.com/", kind: tool }
+              - { label: "DMARC, DKIM and SPF explained (Mike Chapple)", url: "https://www.youtube.com/watch?v=Q8NUW3CZRvw", kind: video }
+          - id: imap-pop3-mailbox-access
+            title: "Reading mail: IMAP, POP3 and JMAP"
+            summary: SMTP only moves mail between servers. Reading it is a separate protocol. IMAP keeps mail on the server and syncs every device, POP3 downloads it, and JMAP does the job over HTTPS and JSON.
+            learn:
+              - IMAP vs POP3 and their ports
+              - Folders, flags and IDLE in IMAP
+              - Talking IMAP by hand with openssl
+              - Where JMAP and provider APIs fit
+            body: |
+              Once mail reaches the recipient's server, it waits in a mailbox. The recipient's app fetches it with a different protocol from the one that delivered it.
+
+              | | IMAP | POP3 | JMAP |
+              |---|---|---|---|
+              | Ports | 143 with STARTTLS, **993** implicit TLS | 110 with STARTTLS, **995** implicit TLS | 443 (HTTPS) |
+              | Mail lives | on the server | moved to one device, usually deleted from the server | on the server |
+              | Folders and read flags | yes, synced to every device | no | yes |
+              | Push | `IDLE` command | no, poll only | push over HTTP |
+              | Standard | RFC 9051 (IMAP4rev2) | RFC 1939 | RFC 8620 and RFC 8621 |
+
+              IMAP is the default for nearly everyone now, because people read mail on several devices. POP3 survives where a single machine should hold the only copy.
+
+              ### Example
+              ```
+              openssl s_client -connect imap.example.com:993 -crlf -quiet
+              a1 LOGIN bob@example.com app-password
+              a2 LIST "" "*"
+              a3 SELECT INBOX
+              a4 FETCH 1 (FLAGS BODY.PEEK[HEADER.FIELDS (FROM SUBJECT)])
+              a5 LOGOUT
+              ```
+              Each command starts with a tag (`a1`, `a2`) so replies can be matched to requests. `BODY.PEEK` reads without marking the message as seen.
+
+              ### Key ideas
+              - Sending is separate: even an IMAP app sends through SMTP submission on 587 or 465
+              - Big providers prefer their own APIs (Gmail API, Microsoft Graph) and OAuth sign-in. Plain password login over IMAP is often disabled or needs an app password
+              - **JMAP** replaces IMAP's many round trips with batched JSON requests, and can also send mail
+
+              ### Common mistakes
+              - Using POP3 on two devices and wondering where messages went
+              - Connecting to 143 or 110 without STARTTLS, which sends the password in clear text
+            resources:
+              - { label: "RFC 9051: IMAP4rev2", url: "https://www.rfc-editor.org/rfc/rfc9051", kind: docs }
+              - { label: "RFC 1939: Post Office Protocol version 3", url: "https://www.rfc-editor.org/rfc/rfc1939", kind: docs }
+              - { label: "RFC 8620: The JSON Meta Application Protocol (JMAP)", url: "https://www.rfc-editor.org/rfc/rfc8620", kind: docs }
+              - { label: "JMAP (official site)", url: "https://jmap.io/", kind: docs }
+              - { label: "Internet Message Access Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Internet_Message_Access_Protocol", kind: article }
+              - { label: "Post Office Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Post_Office_Protocol", kind: article }
+              - { label: "POP3 vs IMAP: what's the difference? (PowerCert)", url: "https://www.youtube.com/watch?v=SBaARws0hy4", kind: video }
+              - { label: "SMTP vs IMAP vs POP3 explained (Mailtrap)", url: "https://www.youtube.com/watch?v=IMLFrYqI-oQ", kind: video }
+          - id: email-deliverability
+            title: Why mail goes to spam, and the 2024 bulk sender rules
+            optional: true
+            summary: Receivers judge each message on authentication, the sender's reputation and how recipients react. Since February 2024 Gmail and Yahoo require bulk senders to meet hard rules.
+            learn:
+              - IP and domain reputation
+              - Complaint rate and engagement signals
+              - The Gmail and Yahoo bulk sender requirements
+              - Practical habits that keep mail out of spam
+            body: |
+              Spam filters care much less about words like "free" than people think. The big signals are:
+
+              - **Authentication**: SPF, DKIM and DMARC pass and align with the `From:` domain
+              - **Reputation**: the history of the sending IP and, more and more, the sending **domain**. A new IP or domain has no history and must build up volume slowly (**warm-up**)
+              - **Recipient behaviour**: spam complaints count heavily. Opens, replies and moving mail out of spam help
+              - **List quality**: many bounces, old addresses or spam traps (addresses that never signed up) mark you as careless
+              - **Infrastructure**: the sending IP needs a PTR record whose name resolves back to the same IP, and TLS on delivery
+
+              ### The 2024 rules
+              From February 2024, Gmail requires anyone sending **more than 5,000 messages a day** to Gmail accounts to:
+
+              | Requirement | Detail |
+              |---|---|
+              | SPF **and** DKIM | for the sending domain |
+              | DMARC | published, `p=none` is enough, and passing with alignment to `From:` |
+              | One-click unsubscribe | `List-Unsubscribe` and `List-Unsubscribe-Post` headers (RFC 8058) on marketing mail, honoured within 48 hours |
+              | Spam rate | below 0.3% in Postmaster Tools, ideally under 0.1% |
+              | PTR and TLS | valid forward and reverse DNS, TLS for transmission |
+
+              Yahoo announced matching rules at the same time. Smaller senders still need SPF or DKIM, PTR records and TLS.
+
+              ### In practice
+              - Send marketing and transactional mail from different subdomains, such as `news.example.com` and `mail.example.com`, so a campaign cannot hurt password resets
+              - Watch Google Postmaster Tools and Yahoo Sender Hub, and read DMARC reports
+              - Remove hard bounces at once and stop mailing people who never engage
+
+              ### Common mistakes
+              - Buying a list. It is full of spam traps
+              - Hiding the unsubscribe link. People hit "Report spam" instead, which costs far more
+            resources:
+              - { label: "Email sender guidelines (Google)", url: "https://support.google.com/a/answer/81126", kind: docs }
+              - { label: "Email sender guidelines FAQ (Google)", url: "https://support.google.com/a/answer/14229414", kind: docs }
+              - { label: "Google Postmaster Tools", url: "https://postmaster.google.com/", kind: tool }
+              - { label: "Sender best practices (Yahoo Sender Hub)", url: "https://senders.yahooinc.com/best-practices/", kind: docs }
+              - { label: "M3AAWG Sender Best Common Practices", url: "https://www.m3aawg.org/sites/default/files/document/M3AAWG_Senders_BCP_Ver3-2015-02.pdf", kind: docs }
+              - { label: "RFC 8058: One-click unsubscribe", url: "https://www.rfc-editor.org/rfc/rfc8058", kind: docs }
+              - { label: "Spamhaus", url: "https://www.spamhaus.org/", kind: tool }
+              - { label: "mail-tester: score a test message", url: "https://www.mail-tester.com/", kind: tool }
+              - { label: "Gmail and Yahoo bulk sender requirements explained (mailmark)", url: "https://www.youtube.com/watch?v=qLa2kf9ESvw", kind: video }

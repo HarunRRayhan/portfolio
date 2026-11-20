@@ -152,8 +152,8 @@ class RoadmapPagesTest extends TestCase
 
         $this->get('/roadmaps/aws')->assertInertia(fn ($page) => $page->where('viewCount', 2));
         $this->get('/roadmaps')->assertInertia(fn ($page) => $page
-            ->where('roadmaps.1.slug', 'aws')
-            ->where('roadmaps.1.viewCount', 2)
+            ->where('roadmaps.2.slug', 'aws') // after How the Internet Works and Networking
+            ->where('roadmaps.2.viewCount', 2)
             ->where('roadmaps.0.viewCount', 0));
 
         // Topic and lesson views add to the roadmap's total.
@@ -167,7 +167,7 @@ class RoadmapPagesTest extends TestCase
 
         RoadmapStart::create(['user_id' => User::factory()->create()->id, 'roadmap_slug' => 'aws']);
         $this->get('/roadmaps/aws')->assertInertia(fn ($page) => $page->where('joinCount', 1));
-        $this->get('/roadmaps')->assertInertia(fn ($page) => $page->where('roadmaps.1.joinCount', 1)->where('roadmaps.0.joinCount', 0));
+        $this->get('/roadmaps')->assertInertia(fn ($page) => $page->where('roadmaps.2.joinCount', 1)->where('roadmaps.0.joinCount', 0));
     }
 
     public function test_unknown_roadmap_or_topic_is_404(): void
