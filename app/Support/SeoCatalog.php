@@ -145,11 +145,13 @@ final class SeoCatalog
 
         $pages['/products'] = new SeoMeta(
             title: 'Products | Harun R. Rayhan',
-            description: 'Products built by Harun R. Rayhan - CloudPloy, SkaleAgents, Toolblip, Crontinel, Appnary, Amazing Plugins, and RayStack.',
+            description: 'Products built by Harun R. Rayhan - CloudPloy, OpsAgent, SocialReins, SkaleAgents, Toolblip, Crontinel, Appnary, Amazing Plugins, and RayStack.',
             canonicalUrl: $siteUrl.'/products',
             jsonLd: [self::itemListGraph('Products', [
                 // Mirrors resources/js/Pages/Products.tsx.
                 ['CloudPloy', 'https://cloudploy.com'],
+                ['OpsAgent', 'https://opsagent.dev'],
+                ['SocialReins', 'https://socialreins.com'],
                 ['SkaleAgents', 'https://skaleagents.com'],
                 ['Toolblip', 'https://toolblip.com'],
                 ['Crontinel', 'https://crontinel.com'],
