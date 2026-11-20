@@ -41,6 +41,10 @@ stages:
               - { label: "What is a WAN? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-a-wan/", kind: article }
               - { label: "Local area network (Wikipedia)", url: "https://en.wikipedia.org/wiki/Local_area_network", kind: article }
               - { label: "Wide area network (Wikipedia)", url: "https://en.wikipedia.org/wiki/Wide_area_network", kind: article }
+              - { label: "LAN, WAN and subnets explained (PowerCert)", url: "https://www.youtube.com/watch?v=NyZWSvSj8ek", kind: video }
+              - { label: "Network types: LAN, WAN, PAN, MAN and more (PowerCert)", url: "https://www.youtube.com/watch?v=4_zSIXb7tLQ", kind: video }
+              - { label: "WAN, it's not the internet (sometimes) (NetworkChuck)", url: "https://www.youtube.com/watch?v=xPi4uZu4uF0", kind: video }
+              - { label: "Computer Networking: a Top-Down Approach, online material (Kurose and Ross)", url: "https://gaia.cs.umass.edu/kurose_ross/online_lectures.htm", kind: course }
           - id: network-devices
             title: Routers, switches and modems
             summary: The three boxes that move your traffic, and the job each one does.
@@ -66,6 +70,12 @@ stages:
               - { label: "Network switch (Wikipedia)", url: "https://en.wikipedia.org/wiki/Network_switch", kind: article }
               - { label: "Router (computing) (Wikipedia)", url: "https://en.wikipedia.org/wiki/Router_(computing)", kind: article }
               - { label: "Modem (Wikipedia)", url: "https://en.wikipedia.org/wiki/Modem", kind: article }
+              - { label: "Hub, switch and router explained (PowerCert)", url: "https://www.youtube.com/watch?v=1z0ULvg_pW8", kind: video }
+              - { label: "Routers vs switches vs access points (Techquickie)", url: "https://www.youtube.com/watch?v=Vc16CCAAz7Q", kind: video }
+              - { label: "How data moves through the internet (Practical Networking)", url: "https://www.youtube.com/watch?v=YJGGYKAV4pA", kind: video }
+              - { label: "Every network device simply explained (Prime Explained)", url: "https://www.youtube.com/watch?v=5_GDs-SCYuo", kind: video }
+              - { label: "Cable modem (Wikipedia)", url: "https://en.wikipedia.org/wiki/Cable_modem", kind: article }
+              - { label: "Residential gateway: the home router-modem box (Wikipedia)", url: "https://en.wikipedia.org/wiki/Residential_gateway", kind: article }
           - id: network-of-networks
             title: The internet as a network of networks
             summary: There is no single internet owner. It is many independent networks agreeing to carry each other's traffic.
@@ -89,6 +99,12 @@ stages:
               - { label: "What is the Internet? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-the-internet/", kind: article }
               - { label: "Internet service provider (Wikipedia)", url: "https://en.wikipedia.org/wiki/Internet_service_provider", kind: article }
               - { label: "How does the Internet work? (MDN)", url: "https://developer.mozilla.org/en-US/docs/Learn_web_development/Howto/Web_mechanics/How_does_the_Internet_work", kind: docs }
+              - { label: "How the internet works, full course (freeCodeCamp)", url: "https://www.youtube.com/watch?v=zN8YNNHcaZc", kind: video }
+              - { label: "How network peering works (Akamai Developers)", url: "https://www.youtube.com/watch?v=skVbynIJ5P0", kind: video }
+              - { label: "What is an autonomous system? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-an-autonomous-system/", kind: article }
+              - { label: "What is an internet exchange point? (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/glossary/internet-exchange-point-ixp/", kind: article }
+              - { label: "Internet - CS50's Understanding Technology (CS50)", url: "https://www.youtube.com/watch?v=n_KghQP86Sw", kind: video }
+              - { label: "Hurricane Electric BGP toolkit (bgp.he.net)", url: "https://bgp.he.net/", kind: tool }
           - id: mac-addresses-and-ethernet
             title: MAC addresses and Ethernet
             optional: true
@@ -120,6 +136,12 @@ stages:
               - { label: "Address Resolution Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Address_Resolution_Protocol", kind: article }
               - { label: "Ethernet frame (Wikipedia)", url: "https://en.wikipedia.org/wiki/Ethernet_frame", kind: article }
               - { label: "RFC 826: An Ethernet Address Resolution Protocol", url: "https://www.rfc-editor.org/rfc/rfc826", kind: docs }
+              - { label: "MAC address explained (PowerCert)", url: "https://www.youtube.com/watch?v=TIiQiw7fpsU", kind: video }
+              - { label: "ARP in less than 5 minutes (Practical Networking)", url: "https://www.youtube.com/watch?v=QPi5Nvxaosw", kind: video }
+              - { label: "IEEE OUI registry lookup (IEEE)", url: "https://regauth.standards.ieee.org/standards-ra-web/pub/view.html#registries", kind: tool }
+              - { label: "MAC address vendor lookup (Wireshark OUI lookup)", url: "https://www.wireshark.org/tools/oui-lookup.html", kind: tool }
+              - { label: "ARP explained (PowerCert)", url: "https://www.youtube.com/watch?v=cn8Zxh9bPio", kind: video }
+              - { label: "Packet traveling: how packets move through a network (Practical Networking)", url: "https://www.practicalnetworking.net/series/packet-traveling/packet-traveling/", kind: article }
 
       - id: fiber-and-undersea-cables
         title: Fiber and undersea cables
@@ -151,6 +173,10 @@ stages:
               - { label: "Optical fiber (Wikipedia)", url: "https://en.wikipedia.org/wiki/Optical_fiber", kind: article }
               - { label: "Total internal reflection (Wikipedia)", url: "https://en.wikipedia.org/wiki/Total_internal_reflection", kind: article }
               - { label: "Wavelength-division multiplexing (Wikipedia)", url: "https://en.wikipedia.org/wiki/Wavelength-division_multiplexing", kind: article }
+              - { label: "Fiber optic cables: how they work (engineerguy)", url: "https://www.youtube.com/watch?v=0MwMkBET_5I", kind: video }
+              - { label: "How does light carry data? Fiber optics explained (Techquickie)", url: "https://www.youtube.com/watch?v=G1Ke-H8I1uk", kind: video }
+              - { label: "Fiber optic basics (The Fiber Optic Association)", url: "https://www.thefoa.org/tech/ref/basic/fiber.html", kind: article }
+              - { label: "Optical fibre cables, how do they work? (Sabin Civil Engineering)", url: "https://www.youtube.com/watch?v=jZOg39v73c4", kind: video }
           - id: fiber-history
             title: Where fiber optics came from
             summary: From telegraph cables under the Atlantic to Charles Kao's idea of low-loss glass and the first fiber cable across an ocean.
@@ -176,6 +202,10 @@ stages:
               - { label: "Transatlantic telegraph cable (Wikipedia)", url: "https://en.wikipedia.org/wiki/Transatlantic_telegraph_cable", kind: article }
               - { label: "Charles K. Kao (Wikipedia)", url: "https://en.wikipedia.org/wiki/Charles_K._Kao", kind: article }
               - { label: "TAT-8 (Wikipedia)", url: "https://en.wikipedia.org/wiki/TAT-8", kind: article }
+              - { label: "Charles K. Kao, Nobel Prize in Physics 2009 (NobelPrize.org)", url: "https://www.nobelprize.org/prizes/physics/2009/kao/facts/", kind: article }
+              - { label: "The 2009 Nobel Prize in Physics, press release (NobelPrize.org)", url: "https://www.nobelprize.org/prizes/physics/2009/press-release/", kind: article }
+              - { label: "Nobel Prize winner Charles Kao interview with FiberStory (OFC)", url: "https://www.youtube.com/watch?v=m53Er379L2U", kind: video }
+              - { label: "Fiber-optic communication history (Wikipedia)", url: "https://en.wikipedia.org/wiki/Fiber-optic_communication#History", kind: article }
           - id: undersea-cables
             title: Undersea cables carry the world's traffic
             summary: Almost all traffic between continents runs on a few hundred cables on the sea floor, not satellites.
@@ -201,6 +231,12 @@ stages:
               - { label: "Submarine Cable Map (TeleGeography)", url: "https://www.submarinecablemap.com/", kind: tool }
               - { label: "Submarine communications cable (Wikipedia)", url: "https://en.wikipedia.org/wiki/Submarine_communications_cable", kind: article }
               - { label: "Cable landing point (Wikipedia)", url: "https://en.wikipedia.org/wiki/Cable_landing_point", kind: article }
+              - { label: "How the internet travels across oceans (VISION)", url: "https://www.youtube.com/watch?v=yd1JhZzoS6A", kind: video }
+              - { label: "How a million miles of undersea cables power the internet (CNBC)", url: "https://www.youtube.com/watch?v=Pz5XRyo5fiw", kind: video }
+              - { label: "Submarine cable frequently asked questions (TeleGeography)", url: "https://www2.telegeography.com/submarine-cable-faqs-frequently-asked-questions", kind: article }
+              - { label: "Global internet map (TeleGeography)", url: "https://global-internet-map-2022.telegeography.com/", kind: tool }
+              - { label: "International Cable Protection Committee (ICPC)", url: "https://www.iscpc.org/", kind: article }
+              - { label: "Mother Earth Mother Board (Neal Stephenson, Wired)", url: "https://www.wired.com/1996/12/ffglass/", kind: article }
           - id: cable-ships
             title: The ships that lay and repair cables
             summary: A small global fleet of cable ships lays new routes and fixes breaks, often kilometres down, without anyone seeing the cable.
@@ -226,6 +262,12 @@ stages:
               - { label: "How undersea internet cables are made and laid", url: "https://www.youtube.com/watch?v=pkbv4tyQoF0", kind: video }
               - { label: "How undersea cables get repaired 4 km down", url: "https://www.youtube.com/watch?v=GoPnMffCxuA", kind: video }
               - { label: "Cable layer (Wikipedia)", url: "https://en.wikipedia.org/wiki/Cable_layer", kind: article }
+              - { label: "Inside the extreme life of divers repairing underwater cables (Fluctus)", url: "https://www.youtube.com/watch?v=l1knCR6xAzo", kind: video }
+              - { label: "Inside the largest cable-laying ship ever built (Nauctis)", url: "https://www.youtube.com/watch?v=bgRsiGGSgjc", kind: video }
+              - { label: "The invisible seafaring industry that keeps the internet afloat (The Verge)", url: "https://www.theverge.com/c/24070570/internet-cables-undersea-deep-repair-ships", kind: article }
+              - { label: "Behind the process of repairing cables deep underwater (Fluctus)", url: "https://www.youtube.com/watch?v=eXjmr2AXIWk", kind: video }
+              - { label: "CS Faraday, an early purpose-built cable ship (Wikipedia)", url: "https://en.wikipedia.org/wiki/CS_Faraday", kind: article }
+              - { label: "Submarine cable industry news, including repair ships (Submarine Networks)", url: "https://www.submarinenetworks.com/", kind: article }
           - id: cable-fragility
             title: How fragile the cables are
             summary: Around 150 to 200 cable faults happen every year, mostly from anchors and fishing. Real cuts show what breaks when a route goes down.
@@ -253,6 +295,12 @@ stages:
               - { label: "Damage to submarine cables from dragged anchors (ICPC)", url: "https://iscpc.org/publications/icpc-viewpoints/damage-to-submarine-cables-from-dragged-anchors/", kind: article }
               - { label: "Subsea cables: how vulnerable are they? (EU JRC)", url: "https://joint-research-centre.ec.europa.eu/jrc-explains/subsea-cables-how-vulnerable-are-they-and-can-we-protect-them_en", kind: article }
               - { label: "Submarine cable resilience (APNIC)", url: "https://blog.apnic.net/2026/10/14/submarine-cable-resilience/", kind: article }
+              - { label: "A ship's anchor cut 3 internet cables in the Red Sea (What's Going on at Sea?)", url: "https://www.youtube.com/watch?v=IYJjxFh6i8s", kind: video }
+              - { label: "Subsea cable resilience, internet outages (Internet Society Pulse)", url: "https://pulse.internetsociety.org/", kind: tool }
+              - { label: "Red Sea cable cuts and their impact (Kentik blog)", url: "https://www.kentik.com/blog/what-caused-the-red-sea-submarine-cable-cuts/", kind: article }
+              - { label: "Germany suspects sabotage behind severed undersea cables (BBC News)", url: "https://www.youtube.com/watch?v=B2ZO9jn_mwo", kind: video }
+              - { label: "2008 submarine cable disruption (Wikipedia)", url: "https://en.wikipedia.org/wiki/2008_submarine_cable_disruption", kind: article }
+              - { label: "2006 Hengchun earthquakes and the cables they cut (Wikipedia)", url: "https://en.wikipedia.org/wiki/2006_Hengchun_earthquakes", kind: article }
           - id: next-generation-fiber
             title: New kinds of fiber
             optional: true
@@ -277,6 +325,11 @@ stages:
             resources:
               - { label: "China's hollow-core fiber trial pushes 51.3 Tb/s over 128 miles (Tom's Hardware)", url: "https://www.tomshardware.com/networking/chinas-hollow-core-fiber-trial-pushes-51-3-tb-s-over-128-miles-without-signal-regeneration-milestone-targets-ai-era-networking-bottlenecks", kind: article }
               - { label: "Photonic-crystal fiber (Wikipedia)", url: "https://en.wikipedia.org/wiki/Photonic-crystal_fiber", kind: article }
+              - { label: "Hollow core fiber explained (HUBER+SUHNER)", url: "https://www.youtube.com/watch?v=YVuBAUSOQJM", kind: video }
+              - { label: "What is hollow-core fiber? Benefits and use cases (EXFO)", url: "https://www.youtube.com/watch?v=s-OjtuOPYlg", kind: video }
+              - { label: "Hollow core fiber: from latency curiosity to deployment (FiberGuide)", url: "https://www.youtube.com/watch?v=w2lmhWbLjV4", kind: video }
+              - { label: "Hollow-core fiber and Microsoft's Lumenisity work (Microsoft Azure blog)", url: "https://azure.microsoft.com/en-us/blog/how-hollow-core-fiber-is-accelerating-ai/", kind: article }
+              - { label: "Space-division multiplexing (Wikipedia)", url: "https://en.wikipedia.org/wiki/Space-division_multiple_access", kind: article }
 
       - id: access-networks
         title: "The last mile: fiber, satellite, cable and mobile"
@@ -315,6 +368,10 @@ stages:
               - { label: "DOCSIS (Wikipedia)", url: "https://en.wikipedia.org/wiki/DOCSIS", kind: article }
               - { label: "Digital subscriber line (Wikipedia)", url: "https://en.wikipedia.org/wiki/Digital_subscriber_line", kind: article }
               - { label: "Satellite internet access (Wikipedia)", url: "https://en.wikipedia.org/wiki/Satellite_Internet_access", kind: article }
+              - { label: "Cable vs DSL vs fiber internet explained (PowerCert)", url: "https://www.youtube.com/watch?v=qQYiwmamq38", kind: video }
+              - { label: "Cable internet vs DSL internet (Techquickie)", url: "https://www.youtube.com/watch?v=RLooclrz7wA", kind: video }
+              - { label: "Every type of internet connection simply explained (Prime Explained)", url: "https://www.youtube.com/watch?v=Ll_LUl96bYA", kind: video }
+              - { label: "Fixed wireless access (Wikipedia)", url: "https://en.wikipedia.org/wiki/Fixed_wireless", kind: article }
           - id: fiber-to-the-home
             title: How fiber reaches your home (FTTH and PON)
             summary: One fiber from the exchange is split passively to dozens of homes. OLT, splitter and ONT, and how GPON and XGS-PON share the light.
@@ -351,6 +408,12 @@ stages:
               - { label: "Passive optical network (Wikipedia)", url: "https://en.wikipedia.org/wiki/Passive_optical_network", kind: article }
               - { label: "Fiber to the x (Wikipedia)", url: "https://en.wikipedia.org/wiki/Fiber_to_the_x", kind: article }
               - { label: "10G-PON (Wikipedia)", url: "https://en.wikipedia.org/wiki/10G-PON", kind: article }
+              - { label: "What is PON? Passive optical networks explained (NM Cabling Solutions)", url: "https://www.youtube.com/watch?v=JxqMB334apQ", kind: video }
+              - { label: "GPON technology fundamentals and architecture (Spectra Tech)", url: "https://www.youtube.com/watch?v=Oi0SNlMzMjQ", kind: video }
+              - { label: "Fundamentals of PON (Tellabs Optical LAN Training)", url: "https://www.youtube.com/watch?v=KMI-s5m53fY", kind: video }
+              - { label: "Fiber to the home: FTTH and PON (The Fiber Optic Association)", url: "https://www.thefoa.org/tech/ref/appln/FTTH-PON.html", kind: article }
+              - { label: "ITU-T G.984.1: GPON general characteristics (ITU)", url: "https://www.itu.int/rec/T-REC-G.984.1", kind: docs }
+              - { label: "ITU-T G.9807.1: XGS-PON (ITU)", url: "https://www.itu.int/rec/T-REC-G.9807.1", kind: docs }
           - id: why-fiber-wins
             title: Why most people who can get fiber use it
             summary: Fiber has more capacity, lower latency, symmetric speeds and nothing to share through the sky. Its only real problem is the cost of digging.
@@ -380,6 +443,12 @@ stages:
               - { label: "Optical fiber (Wikipedia)", url: "https://en.wikipedia.org/wiki/Optical_fiber", kind: article }
               - { label: "Fiber-optic communication (Wikipedia)", url: "https://en.wikipedia.org/wiki/Fiber-optic_communication", kind: article }
               - { label: "Fiber to the x (Wikipedia)", url: "https://en.wikipedia.org/wiki/Fiber_to_the_x", kind: article }
+              - { label: "Fiber internet vs cable vs 5G home: the honest breakdown (Explaining Tech Like You're Five)", url: "https://www.youtube.com/watch?v=AJuzsyGBSpw", kind: video }
+              - { label: "DSL, cable, fiber: which connection is right for you? (NetWork From Home)", url: "https://www.youtube.com/watch?v=1mELGfN6BA8", kind: video }
+              - { label: "Bufferbloat and why latency under load matters (bufferbloat.net)", url: "https://www.bufferbloat.net/projects/bloat/wiki/Introduction/", kind: article }
+              - { label: "Cable vs fiber internet explained (Wyyerd Fiber)", url: "https://www.youtube.com/watch?v=RVojwPRfSJ0", kind: video }
+              - { label: "Bufferbloat (Wikipedia)", url: "https://en.wikipedia.org/wiki/Bufferbloat", kind: article }
+              - { label: "Fiber to the premises by country (Wikipedia)", url: "https://en.wikipedia.org/wiki/Fiber_to_the_premises_by_country", kind: article }
           - id: satellite-orbits
             title: Satellite orbits and the speed of light
             summary: GEO, MEO and LEO satellites differ by altitude, and altitude sets the minimum latency. The physics in a few lines of arithmetic.
@@ -415,6 +484,12 @@ stages:
               - { label: "Geostationary orbit (Wikipedia)", url: "https://en.wikipedia.org/wiki/Geostationary_orbit", kind: article }
               - { label: "Low Earth orbit (Wikipedia)", url: "https://en.wikipedia.org/wiki/Low_Earth_orbit", kind: article }
               - { label: "Medium Earth orbit (Wikipedia)", url: "https://en.wikipedia.org/wiki/Medium_Earth_orbit", kind: article }
+              - { label: "The orbits explained: LEO, MEO and GEO (Global Invacom)", url: "https://www.youtube.com/watch?v=NFc3oU_wq7I", kind: video }
+              - { label: "Why satellite internet doesn't suck anymore (Techquickie)", url: "https://www.youtube.com/watch?v=j43j9iwU158", kind: video }
+              - { label: "Types of orbits (ESA)", url: "https://www.esa.int/articles/about-us/directorates/space-transportation/types-of-orbits", kind: article }
+              - { label: "Catalog of Earth satellite orbits (NASA Earth Observatory)", url: "https://science.nasa.gov/earth/earth-observatory/catalog-of-earth-satellite-orbits/", kind: article }
+              - { label: "Are LEO satellites worse than geostationary? (Speedify)", url: "https://www.youtube.com/watch?v=vnuWydbc7kg", kind: video }
+              - { label: "Satellite tracker: see every satellite live (satellitemap.space)", url: "https://satellitemap.space/", kind: tool }
           - id: how-viasat-works
             title: How geostationary satellite internet works (Viasat)
             summary: A few very large satellites 35,786 km up, hundreds of spot beams, ground gateways, and proxies that hide the half-second delay from TCP.
@@ -452,6 +527,11 @@ stages:
               - { label: "High-throughput satellite (Wikipedia)", url: "https://en.wikipedia.org/wiki/High-throughput_satellite", kind: article }
               - { label: "RFC 3135: Performance Enhancing Proxies", url: "https://www.rfc-editor.org/rfc/rfc3135", kind: docs }
               - { label: "Rain fade (Wikipedia)", url: "https://en.wikipedia.org/wiki/Rain_fade", kind: article }
+              - { label: "Is GEO satellite internet dead? (Speedify)", url: "https://www.youtube.com/watch?v=xNVWSGTlAHQ", kind: video }
+              - { label: "ViaSat-3 satellite platform (Viasat)", url: "https://www.viasat.com/about/technology/satellite-fleet/viasat-3/", kind: docs }
+              - { label: "RFC 2488: Enhancing TCP over satellite channels", url: "https://www.rfc-editor.org/rfc/rfc2488", kind: docs }
+              - { label: "Geostationary orbit (ESA)", url: "https://www.esa.int/media/geostationary-orbit", kind: article }
+              - { label: "Very-small-aperture terminal (Wikipedia)", url: "https://en.wikipedia.org/wiki/Very-small-aperture_terminal", kind: article }
           - id: how-starlink-works
             title: How Starlink works (low Earth orbit)
             summary: Thousands of small satellites about 550 km up, a dish that steers electronically, handoffs every few seconds, and lasers between satellites.
@@ -486,6 +566,10 @@ stages:
               - { label: "Starlink (Wikipedia)", url: "https://en.wikipedia.org/wiki/Starlink", kind: article }
               - { label: "Phased array (Wikipedia)", url: "https://en.wikipedia.org/wiki/Phased_array", kind: article }
               - { label: "Laser communication in space (Wikipedia)", url: "https://en.wikipedia.org/wiki/Laser_communication_in_space", kind: article }
+              - { label: "How does Starlink satellite internet work? (Branch Education)", url: "https://www.youtube.com/watch?v=qs2QcycggWU", kind: video }
+              - { label: "Starlink network update and performance (Starlink)", url: "https://starlink.com/updates/network-update", kind: docs }
+              - { label: "A transport protocol's view of Starlink (APNIC blog)", url: "https://blog.apnic.net/2024/05/17/a-transport-protocols-view-of-starlink/", kind: article }
+              - { label: "Starlink satellite map (satellitemap.space)", url: "https://satellitemap.space/", kind: tool }
           - id: viasat-vs-starlink
             title: Viasat vs Starlink, and why Starlink feels faster
             summary: The two side by side. Starlink wins mostly on latency, which comes from being 65 times closer, plus far more total capacity in orbit.
@@ -524,6 +608,12 @@ stages:
               - { label: "Satellite internet access (Wikipedia)", url: "https://en.wikipedia.org/wiki/Satellite_Internet_access", kind: article }
               - { label: "Starlink (Wikipedia)", url: "https://en.wikipedia.org/wiki/Starlink", kind: article }
               - { label: "ViaSat-3 (Wikipedia)", url: "https://en.wikipedia.org/wiki/ViaSat-3", kind: article }
+              - { label: "Are LEO satellites worse than geostationary? (Speedify)", url: "https://www.youtube.com/watch?v=vnuWydbc7kg", kind: video }
+              - { label: "Why satellite internet doesn't suck anymore (Techquickie)", url: "https://www.youtube.com/watch?v=j43j9iwU158", kind: video }
+              - { label: "A transport protocol's view of Starlink (APNIC blog)", url: "https://blog.apnic.net/2024/05/17/a-transport-protocols-view-of-starlink/", kind: article }
+              - { label: "Starlink vs HughesNet and Viasat, Speedtest data (Ookla)", url: "https://www.ookla.com/articles/starlink-hughesnet-viasat-performance-q1-2023", kind: article }
+              - { label: "Amazon vs SpaceX: the battle for space internet (WSJ)", url: "https://www.youtube.com/watch?v=8HkCSDZc_70", kind: video }
+              - { label: "Geostationary orbit latency, speed of light (Wikipedia: Satellite internet latency)", url: "https://en.wikipedia.org/wiki/Satellite_Internet_access#Latency", kind: article }
           - id: latency-vs-bandwidth
             title: Why latency matters more than bandwidth
             summary: Bandwidth is how wide the pipe is, latency is how long it is. TCP throughput, page loads and calls all depend on the round-trip time.
@@ -567,6 +657,233 @@ stages:
               - { label: "Bandwidth-delay product (Wikipedia)", url: "https://en.wikipedia.org/wiki/Bandwidth-delay_product", kind: article }
               - { label: "What is latency? (Cloudflare)", url: "https://www.cloudflare.com/learning/performance/glossary/what-is-latency/", kind: article }
               - { label: "Round-trip delay (Wikipedia)", url: "https://en.wikipedia.org/wiki/Round-trip_delay", kind: article }
+              - { label: "Primer on latency and bandwidth (High Performance Browser Networking)", url: "https://hpbn.co/primer-on-latency-and-bandwidth/", kind: article }
+              - { label: "Internet bandwidth (speed) explained (PowerCert)", url: "https://www.youtube.com/watch?v=DHa9gxRfAmM", kind: video }
+              - { label: "Latency numbers every programmer should know (colin-scott.github.io)", url: "https://colin-scott.github.io/personal_website/research/interactive_latency.html", kind: tool }
+              - { label: "Cloudflare speed test, latency and jitter", url: "https://speed.cloudflare.com/", kind: tool }
+              - { label: "More bandwidth doesn't matter much (Ilya Grigorik)", url: "https://www.igvita.com/2012/07/19/latency-the-new-web-performance-bottleneck/", kind: article }
+              - { label: "Bufferbloat introduction (bufferbloat.net)", url: "https://www.bufferbloat.net/projects/bloat/wiki/Introduction/", kind: article }
+
+          - id: cable-docsis
+            title: How cable internet works (HFC and DOCSIS)
+            summary: Cable TV networks carry data as radio channels on coax. Fiber to a neighbourhood node, a shared coax tree, and DOCSIS versions from 3.0 to 4.0.
+            learn:
+              - Hybrid fiber-coax, the node and the CMTS
+              - How DOCSIS 3.0, 3.1 and 4.0 differ
+              - Why upload is slow and why busy evenings hurt
+              - What a node split is
+            body: |
+              Cable broadband runs on the network built for TV. It is **hybrid fiber-coax** (HFC): fiber from the operator's headend to an **optical node** in your area, then copper **coax** from the node, through amplifiers and taps, to a few hundred homes.
+
+              The **CMTS** (cable modem termination system) at the headend talks to the **cable modem** in each home. The rules for that conversation are **DOCSIS**, written by CableLabs. Data rides in radio channels on the coax, the same way TV channels do.
+
+              | Version | Year | Key change | Top speed (down / up) |
+              |---|---|---|---|
+              | DOCSIS 3.0 | 2006 | **channel bonding**: many 6 or 8 MHz channels used at once | about 1 Gbps / 200 Mbps with 32×8 |
+              | DOCSIS 3.1 | 2013 | **OFDM**: wide channels of thousands of subcarriers, up to 4096-QAM | 10 Gbps / 1 to 2 Gbps |
+              | DOCSIS 4.0 | 2017 | spectrum up to 1.8 GHz, or full duplex | 10 Gbps / 6 Gbps |
+
+              ### Key ideas
+              - **Shared node.** Everyone on the node shares the same downstream and upstream channels. At 9 pm, when the street streams video, each home gets less
+              - **Asymmetric upstream.** Upload uses a small slice of low frequencies, traditionally 5 to 42 MHz in North America and 5 to 65 MHz in Europe. Downstream gets hundreds of MHz. So a 1 Gbps plan often uploads at 35 to 50 Mbps
+              - **Request and grant.** A modem cannot just send. It asks the CMTS for a time slot, which adds a few milliseconds of upload latency
+              - Moving the split up to 85 MHz (mid-split) or 204 MHz (high-split) gives much faster upload, but amplifiers and filters in the street must change
+
+              ### Node splits
+              When a node is full, the operator runs fiber deeper and **splits** it into two or more nodes. Each now serves fewer homes, so each home gets a bigger share. Taken far enough, the node sits a few houses away and the network starts to look like fiber.
+
+              ### In practice
+              Most cable modems show their channels, signal levels and errors at a local status page, often `http://192.168.100.1`. Many uncorrectable errors on several channels point to a wiring or signal fault, not a busy node.
+
+              ### Common mistakes
+              - Buying a DOCSIS 3.1 modem and expecting faster upload: the street's upstream split sets that
+              - Blaming the ISP's "shared node" for slowness that comes from home Wi-Fi
+            resources:
+              - { label: "DOCSIS (Wikipedia)", url: "https://en.wikipedia.org/wiki/DOCSIS", kind: article }
+              - { label: "Hybrid fiber-coaxial (Wikipedia)", url: "https://en.wikipedia.org/wiki/Hybrid_fiber-coaxial", kind: article }
+              - { label: "Cable modem termination system (Wikipedia)", url: "https://en.wikipedia.org/wiki/Cable_modem_termination_system", kind: article }
+              - { label: "Cable Internet access (Wikipedia)", url: "https://en.wikipedia.org/wiki/Cable_Internet_access", kind: article }
+              - { label: "Orthogonal frequency-division multiplexing (Wikipedia)", url: "https://en.wikipedia.org/wiki/Orthogonal_frequency-division_multiplexing", kind: article }
+              - { label: "How Cable Internet Really Works: DOCSIS 3.0, 3.1 and 4.0 (Telecom Training)", url: "https://www.youtube.com/watch?v=TB-GBvPmYkI", kind: video }
+              - { label: "What is DOCSIS 4.0 technology? (CableLabs)", url: "https://www.youtube.com/watch?v=hyIEUs0A1js", kind: video }
+              - { label: "How Cable Modems Work (Hill's Workbench)", url: "https://www.youtube.com/watch?v=1Y-MX2iZe14", kind: video }
+          - id: dsl-vdsl
+            title: DSL, VDSL2 and why distance matters
+            summary: DSL sends data over the copper phone line at frequencies far above the voice. ADSL2+, VDSL2, vectoring and G.fast, and why every metre of copper costs speed.
+            learn:
+              - How DSL shares the phone line with voice
+              - ADSL2+, VDSL2, vectoring and G.fast compared
+              - Why speed falls with distance from the cabinet
+              - FTTC and how to read your line stats
+            body: |
+              Phone lines carry voice below about 4 kHz. **DSL** uses the much higher frequencies the same copper pair can carry. It splits them into many narrow tones (4.3125 kHz each, called **DMT**), and each tone carries as many bits as its signal-to-noise ratio allows.
+
+              The far end is a **DSLAM**, either in the telephone exchange or, with **FTTC** (fiber to the cabinet), in a green street cabinet fed by fiber. Only the last stretch from the cabinet to you is copper.
+
+              | Standard | ITU year | Top frequency | Best case (down / up) | Realistic reach |
+              |---|---|---|---|---|
+              | ADSL2+ (G.992.5) | 2003 | 2.2 MHz | 24 / 1 Mbps | works to about 5 km |
+              | VDSL2 17a (G.993.2) | 2006 | 17.6 MHz | about 80 to 100 / 20 to 40 Mbps | fast under about 1 km |
+              | VDSL2 vectoring (G.993.5) | 2010 | 17.6 MHz | the same, kept on more lines | same |
+              | VDSL2 35b ("supervectoring") | 2015 | 35 MHz | up to about 300 Mbps down | a few hundred metres |
+              | G.fast (G.9701) | 2014 | 106 or 212 MHz | up to about 1 Gbps total | under about 300 m |
+
+              ### Why distance kills speed
+              Copper loses signal faster at higher frequencies. On a long line the high tones fade into the noise and carry no bits, so only the low, slow part of the band is left. That is why VDSL2 needs a cabinet nearby and ADSL2+ still works far from the exchange.
+
+              ### Vectoring
+              Pairs in the same cable leak into each other (**crosstalk**), and at VDSL2 frequencies that noise is the main limit. **Vectoring** measures the leakage between every pair and sends a cancelling signal. It only works if one operator controls every line in the cable, which makes it hard for rival operators to share a cabinet.
+
+              ### In practice
+              Your router's DSL page shows the **sync rate** (the line's speed), **attenuation** (signal loss, rises with distance) and **SNR margin** (spare signal, often targeted at 6 dB). Many disconnects with a falling SNR margin point to noise on the wiring.
+
+              ### Common mistakes
+              - "Up to 80 Mbps" applies to lines near the cabinet. Check the estimate for your exact address
+              - Calling FTTC "fiber broadband": the last part is still copper
+            resources:
+              - { label: "Digital subscriber line (Wikipedia)", url: "https://en.wikipedia.org/wiki/Digital_subscriber_line", kind: article }
+              - { label: "VDSL (Wikipedia)", url: "https://en.wikipedia.org/wiki/VDSL", kind: article }
+              - { label: "G.992.5, ADSL2+ (Wikipedia)", url: "https://en.wikipedia.org/wiki/G.992.5", kind: article }
+              - { label: "G.fast (Wikipedia)", url: "https://en.wikipedia.org/wiki/G.fast", kind: article }
+              - { label: "Crosstalk (Wikipedia)", url: "https://en.wikipedia.org/wiki/Crosstalk", kind: article }
+              - { label: "Fiber to the x (Wikipedia)", url: "https://en.wikipedia.org/wiki/Fiber_to_the_x", kind: article }
+              - { label: "How VDSL lines work (Telecom Training)", url: "https://www.youtube.com/watch?v=ieVvVLjrlWQ", kind: video }
+              - { label: "How VDSL2 vectoring works (Telecom Training)", url: "https://www.youtube.com/watch?v=ZlmBqfH7u3E", kind: video }
+          - id: mobile-4g-5g
+            title: How mobile data works (4G and 5G)
+            summary: Your phone talks to a base station, the base station is wired back to the operator's core, and the core hands your traffic to the internet. LTE vs 5G, bands, and real latency.
+            learn:
+              - Cell, eNodeB and gNodeB, backhaul and the core network
+              - LTE vs 5G non-standalone and standalone
+              - Low, mid and mmWave bands
+              - Real latency and carrier-grade NAT on mobile
+            body: |
+              A mobile network is mostly wires. Only the first few hundred metres to a few kilometres are radio.
+
+              1. Your phone talks to a **base station**: an **eNodeB** in 4G LTE, a **gNodeB** in 5G. Its antennas cover a few **cells** (sectors), and everyone in a sector shares its capacity
+              2. **Backhaul**, usually fiber and sometimes microwave, links the site to the operator
+              3. The **core network** authenticates your SIM, tracks which cell you are in, and hands over as you move. Its gateway (the PGW in LTE, the UPF in 5G) gives you an IP address and joins the internet
+
+              ### LTE and 5G
+              - **LTE** (3GPP Release 8, launched 2009) uses OFDMA and the **EPC** core
+              - **5G NSA** (non-standalone) adds 5G radio but keeps the LTE anchor and core. Most early 5G launches in 2019 were NSA
+              - **5G SA** (standalone) uses the new **5G Core**. It enables network slicing and lower setup latency, and is still rolling out
+
+              ### Bands
+              | Band | Example frequencies | Coverage | Typical speed |
+              |---|---|---|---|
+              | Low | 600 to 900 MHz | many km, inside buildings | tens of Mbps |
+              | Mid | 1.8 to 2.6 GHz, 3.3 to 4.2 GHz | 1 to 2 km | hundreds of Mbps |
+              | mmWave | 26, 28 and 39 GHz | a few hundred metres, line of sight | 1 Gbps or more |
+
+              mmWave is blocked by walls, trees and even a hand, so it lives mainly in stadiums and city centres. Most "5G" you use is mid-band.
+
+              ### Latency in reality
+              5G's 1 ms figure is a target for the radio link only. Real phone pings are usually 20 to 50 ms, because traffic crosses backhaul and the core, often to a gateway in another city. A phone that has been idle must first set up its radio connection, which can add tens of milliseconds or more to the first packet.
+
+              ### Carrier-grade NAT
+              Most mobile operators put IPv4 users behind **CGNAT**, so thousands of phones share one public address and nothing can connect in. Many, such as T-Mobile US, run phones on IPv6 only and reach IPv4 sites through **464XLAT**.
+
+              ### In practice
+              Running a server on mobile data does not work without a tunnel. Use a VPN, a reverse tunnel, or IPv6 if your operator allows inbound traffic.
+            resources:
+              - { label: "LTE (Wikipedia)", url: "https://en.wikipedia.org/wiki/LTE_(telecommunication)", kind: article }
+              - { label: "5G NR (Wikipedia)", url: "https://en.wikipedia.org/wiki/5G_NR", kind: article }
+              - { label: "5G NR frequency bands (Wikipedia)", url: "https://en.wikipedia.org/wiki/5G_NR_frequency_bands", kind: article }
+              - { label: "System Architecture Evolution, the LTE core (Wikipedia)", url: "https://en.wikipedia.org/wiki/System_Architecture_Evolution", kind: article }
+              - { label: "5G System Overview (3GPP)", url: "https://www.3gpp.org/technologies/5g-system-overview", kind: docs }
+              - { label: "Carrier-grade NAT (Wikipedia)", url: "https://en.wikipedia.org/wiki/Carrier-grade_NAT", kind: article }
+              - { label: "RFC 6877: 464XLAT", url: "https://www.rfc-editor.org/rfc/rfc6877", kind: docs }
+              - { label: "How Cell Towers Actually Work, base station tour (Wireless Future)", url: "https://www.youtube.com/watch?v=5DtwjQnNgiw", kind: video }
+              - { label: "5G Technologies: Millimeter Waves Explained (IEEE Spectrum)", url: "https://www.youtube.com/watch?v=aacnhn8IcHI", kind: video }
+          - id: fixed-wireless-5g-home
+            title: Fixed wireless and 5G home internet vs fiber
+            summary: A box in your window or on your roof uses the mobile network, or a dedicated radio link, as your home connection. Quick to install, but shared and less steady than fiber.
+            learn:
+              - What fixed wireless access (FWA) is
+              - 5G home internet vs WISP radio links
+              - How it compares to fiber on speed, upload, latency and sharing
+              - How antenna placement changes everything
+            body: |
+              **Fixed wireless access** (FWA) brings broadband to a home over radio instead of a cable. There are two common kinds:
+
+              - **5G or 4G home internet**: a router with a SIM, indoors or on an outside wall, using the same masts as phones. Big mobile operators sell it where they have spare capacity
+              - **WISP links**: a small dish on the roof aimed at a local provider's mast, often on unlicensed 5 GHz or 60 GHz radio. Common in rural areas
+
+              ### Fiber vs 5G home
+              | | Fiber (FTTH) | 5G home internet |
+              |---|---|---|
+              | Install | engineer visit, sometimes digging | plug in, same day |
+              | Download | steady, often 1 Gbps or more | 50 to 500 Mbps, varies by hour |
+              | Upload | often equal to download | usually 10 to 50 Mbps |
+              | Latency | 1 to 10 ms to the ISP | 20 to 40 ms, with more jitter |
+              | Shared with | a few dozen homes on one PON, lots of headroom | every phone and home in the cell sector |
+              | Weather and walls | no effect | trees, walls and rain on mmWave matter |
+              | Public IPv4 | often | usually CGNAT |
+
+              ### Key ideas
+              - Capacity in a sector is fixed. Operators limit how many homes can sign up per sector, and many rank home internet below phones when a cell is busy
+              - The router's position matters more than the plan. A box near an upstairs window facing the mast can be several times faster than one in a back room
+              - Every mast is itself on fiber backhaul. FWA is a fast way to reach homes, not a replacement for the fiber behind it
+
+              ### In practice
+              The router's status page shows signal values. **RSRP** (signal strength) better than -90 dBm is good and below -110 dBm is poor. **SINR** (signal quality) above 13 dB is good and below 0 dB is poor. Move the box, note the numbers, then run a speed test at a busy evening hour as well as the morning.
+
+              ### Common mistakes
+              - Judging it by a midday speed test: evenings decide
+              - Expecting to host a game server or a camera behind CGNAT
+            resources:
+              - { label: "Fixed wireless (Wikipedia)", url: "https://en.wikipedia.org/wiki/Fixed_wireless", kind: article }
+              - { label: "Wireless Internet service provider (Wikipedia)", url: "https://en.wikipedia.org/wiki/Wireless_Internet_service_provider", kind: article }
+              - { label: "5G (Wikipedia)", url: "https://en.wikipedia.org/wiki/5G", kind: article }
+              - { label: "5G NR frequency bands (Wikipedia)", url: "https://en.wikipedia.org/wiki/5G_NR_frequency_bands", kind: article }
+              - { label: "Ookla research articles on fixed and mobile speeds", url: "https://www.ookla.com/articles", kind: article }
+              - { label: "What Is FWA? Fixed Wireless Access Explained (globalnetworkhub)", url: "https://www.youtube.com/watch?v=0j9KvHNdr5U", kind: video }
+              - { label: "Fiber vs. 5G Home Internet: Does the Difference Really Matter? (Michael Saves)", url: "https://www.youtube.com/watch?v=M48oVjk2Si4", kind: video }
+              - { label: "5 Years of 5G Home Internet vs Cable and Fiber (Nater Tater)", url: "https://www.youtube.com/watch?v=hPdeDopr2ko", kind: video }
+          - id: starlink-laser-links
+            title: Lasers between satellites and routing in space
+            optional: true
+            summary: Starlink satellites pass traffic to each other with lasers. How a mesh that moves at 27,000 km/h is routed, and the distances at which space can beat undersea fiber.
+            learn:
+              - What inter-satellite laser links do
+              - Why routing in a moving mesh is hard
+              - The arithmetic of vacuum vs glass
+              - What real Starlink traffic does today
+            body: |
+              Early Starlink satellites were "bent pipes": up from your dish, straight down to a gateway in range. Laser links began flying in 2021. Now each satellite carries a few laser terminals and holds links to its neighbours, so traffic can cross several satellites before it comes down.
+
+              ### Why it matters
+              - **Coverage**: ships, aircraft, oceans and polar regions have no gateway below them. Lasers carry their traffic to one that does
+              - **Fewer gateways**: one ground site can serve a much larger area
+              - **Speed of light**: light in vacuum covers about 300 km per ms, in glass fiber about 200 km per ms
+
+              ### Routing in a moving mesh
+              Satellites in the same orbital plane keep stable links to the ones ahead and behind. Links to the next plane change as orbits cross, and every satellite moves at about 27,000 km/h. A laser must find and lock onto a tiny moving target, which takes time, so links cannot be rebuilt instantly. Routes have to be recomputed all the time from known orbits. SpaceX's routing is not public. Research such as Mark Handley's 2018 study computes routes from the predictable positions of the satellites.
+
+              ### When space beats fiber
+              London to New York is about 5,570 km great-circle.
+
+              | Path | One way | Round trip |
+              |---|---|---|
+              | Perfect straight fiber | 5,570 km at 200 km/ms ≈ 28 ms | ≈ 56 ms |
+              | Real undersea routes | longer cables, plus equipment | usually 65 to 75 ms |
+              | Lasers at 550 km | about 6,050 km arc plus 1,100 km up and down at 300 km/ms ≈ 24 ms | ≈ 48 ms best case |
+
+              Going up and down costs about 7 ms per round trip, so over short distances fiber wins. With these numbers space pulls ahead beyond roughly 2,700 km of straight fiber, before zig-zag routes between planes eat into the gain.
+
+              ### What happens today
+              Starlink traffic still lands at a gateway and leaves through a point of presence, usually in the user's region. Lasers are used mainly for coverage, not to undercut cable latency between continents.
+            resources:
+              - { label: "Laser communication in space (Wikipedia)", url: "https://en.wikipedia.org/wiki/Laser_communication_in_space", kind: article }
+              - { label: "Free-space optical communication (Wikipedia)", url: "https://en.wikipedia.org/wiki/Free-space_optical_communication", kind: article }
+              - { label: "Starlink technology (Starlink)", url: "https://www.starlink.com/technology", kind: docs }
+              - { label: "Reliable Low-Delay Routing in Space with Routing-Oblivious LEO Satellites (arXiv)", url: "https://arxiv.org/abs/2401.11490", kind: article }
+              - { label: "Measuring a Low-Earth-Orbit Satellite Network (arXiv)", url: "https://arxiv.org/abs/2307.06863", kind: article }
+              - { label: "A Cool Simulation of SpaceX's Revised Satellite Broadband Plan (CircleID)", url: "https://circleid.com/posts/20181128_a_cool_simulation_of_spacexs_revised_satellite_broadband_plan", kind: article }
+              - { label: "Submarine communications cable (Wikipedia)", url: "https://en.wikipedia.org/wiki/Submarine_communications_cable", kind: article }
+              - { label: "Using ground relays with Starlink (Mark Handley)", url: "https://www.youtube.com/watch?v=m05abdGSOxY", kind: video }
+              - { label: "Laser Inter-Satellite Links in a Starlink Constellation (Punyaslok Swain)", url: "https://www.youtube.com/watch?v=rNCknogpDKM", kind: video }
 
       - id: ip-addresses
         title: IP addresses
@@ -596,6 +913,12 @@ stages:
             resources:
               - { label: "Internet Protocol (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/internet-protocol/", kind: article }
               - { label: "IP address (Wikipedia)", url: "https://en.wikipedia.org/wiki/IP_address", kind: article }
+              - { label: "IP address, IPv4 vs IPv6 tutorial (PowerCert)", url: "https://www.youtube.com/watch?v=ThdO9beHhpA", kind: video }
+              - { label: "What is an IP address? (NetworkChuck)", url: "https://www.youtube.com/watch?v=5WfiTHiU4x8", kind: video }
+              - { label: "IP addresses explained (WhiteboardDoodles)", url: "https://www.youtube.com/watch?v=zZ02fvBXNAI", kind: video }
+              - { label: "What is an IP address? (Cloudflare)", url: "https://www.cloudflare.com/learning/dns/glossary/what-is-my-ip-address/", kind: article }
+              - { label: "What is an IP address? (MDN glossary)", url: "https://developer.mozilla.org/en-US/docs/Glossary/IP_Address", kind: docs }
+              - { label: "Check your public IP (icanhazip)", url: "https://icanhazip.com/", kind: tool }
           - id: public-vs-private-ip
             title: Public vs private addresses
             summary: Some addresses work only inside your network, others are reachable from the whole internet.
@@ -622,6 +945,11 @@ stages:
               - { label: "What is my IP address? (Cloudflare)", url: "https://www.cloudflare.com/learning/dns/glossary/what-is-my-ip-address/", kind: article }
               - { label: "Reserved IP addresses (Wikipedia)", url: "https://en.wikipedia.org/wiki/Reserved_IP_addresses", kind: article }
               - { label: "Private network (Wikipedia)", url: "https://en.wikipedia.org/wiki/Private_network", kind: article }
+              - { label: "Public vs private IP address (PowerCert)", url: "https://www.youtube.com/watch?v=po8ZFG0Xc4Q", kind: video }
+              - { label: "NAT explained (PowerCert)", url: "https://www.youtube.com/watch?v=FTUV0t6JaDA", kind: video }
+              - { label: "Network address translation (Computerphile)", url: "https://www.youtube.com/watch?v=01ajHxPLxAw", kind: video }
+              - { label: "RFC 1918: Address allocation for private internets", url: "https://www.rfc-editor.org/rfc/rfc1918", kind: docs }
+              - { label: "Network address translation (Wikipedia)", url: "https://en.wikipedia.org/wiki/Network_address_translation", kind: article }
           - id: dhcp
             title: How your device gets an address (DHCP)
             summary: When you join a Wi-Fi network, a DHCP server hands you an address, a gateway and DNS servers.
@@ -650,6 +978,12 @@ stages:
               - { label: "Dynamic Host Configuration Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol", kind: article }
               - { label: "RFC 2131: DHCP", url: "https://www.rfc-editor.org/rfc/rfc2131", kind: docs }
               - { label: "RFC 2132: DHCP Options and BOOTP Vendor Extensions", url: "https://www.rfc-editor.org/rfc/rfc2132", kind: docs }
+              - { label: "DHCP explained (PowerCert)", url: "https://www.youtube.com/watch?v=e6-TaH5bkjo", kind: video }
+              - { label: "DHCP explained step by step (CertBros)", url: "https://www.youtube.com/watch?v=S43CFcpOZSI", kind: video }
+              - { label: "What happens when DHCP fails? APIPA (PowerCert)", url: "https://www.youtube.com/watch?v=0tEjUR6tjBU", kind: video }
+              - { label: "What is DHCP? (Microsoft Learn)", url: "https://learn.microsoft.com/en-us/windows-server/networking/technologies/dhcp/dhcp-top", kind: docs }
+              - { label: "IANA BOOTP and DHCP parameters registry", url: "https://www.iana.org/assignments/bootp-dhcp-parameters/bootp-dhcp-parameters.xhtml", kind: docs }
+              - { label: "RFC 8415: DHCPv6", url: "https://www.rfc-editor.org/rfc/rfc8415", kind: docs }
 
       - id: ipv4
         title: IPv4
@@ -680,6 +1014,12 @@ stages:
               - { label: "Internet Protocol (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/internet-protocol/", kind: article }
               - { label: "RFC 791: Internet Protocol", url: "https://www.rfc-editor.org/rfc/rfc791", kind: docs }
               - { label: "Internet Protocol version 4 (Wikipedia)", url: "https://en.wikipedia.org/wiki/Internet_Protocol_version_4", kind: article }
+              - { label: "Binary explained for IPv4 (CertBros)", url: "https://www.youtube.com/watch?v=EDAnsWpOjGM", kind: video }
+              - { label: "IPv4 address, part 1 (Neso Academy)", url: "https://www.youtube.com/watch?v=phOlq9SuscM", kind: video }
+              - { label: "IPv4 header, Free CCNA day 10 (Jeremy's IT Lab)", url: "https://www.youtube.com/watch?v=aQB22y4liXA", kind: video }
+              - { label: "IP subnet calculator (subnet-calculator.com)", url: "https://www.subnet-calculator.com/", kind: tool }
+              - { label: "Subnetting mastery and binary (Practical Networking)", url: "https://www.practicalnetworking.net/stand-alone/subnetting-mastery/", kind: course }
+              - { label: "ipcalc online calculator (jodies.de)", url: "https://jodies.de/ipcalc", kind: tool }
           - id: ipv4-address-classes
             title: Address classes A to E, and why they ended
             summary: The first bits of an IPv4 address used to fix the network size. Classes still explain why 10.x, 172.16.x and 224.x look the way they do.
@@ -722,6 +1062,12 @@ stages:
               - { label: "Classful network (Wikipedia)", url: "https://en.wikipedia.org/wiki/Classful_network", kind: article }
               - { label: "RFC 4632: Classless Inter-domain Routing (CIDR)", url: "https://www.rfc-editor.org/rfc/rfc4632", kind: docs }
               - { label: "RFC 791: Internet Protocol (original classes)", url: "https://www.rfc-editor.org/rfc/rfc791", kind: docs }
+              - { label: "IP address classes A to E explained (Networking with H)", url: "https://www.youtube.com/watch?v=0dFNpNgiTAA", kind: video }
+              - { label: "Classful addressing, part 1 (Neso Academy)", url: "https://www.youtube.com/watch?v=VkgfyLf1raY", kind: video }
+              - { label: "RFC 1519: the original CIDR specification", url: "https://www.rfc-editor.org/rfc/rfc1519", kind: docs }
+              - { label: "What is CIDR? (AWS)", url: "https://aws.amazon.com/what-is/cidr/", kind: article }
+              - { label: "Classless inter-domain routing (Wikipedia)", url: "https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing", kind: article }
+              - { label: "Subnet cheat sheet and CIDR table (Practical Networking)", url: "https://www.practicalnetworking.net/stand-alone/subnetting-mastery/", kind: course }
           - id: ipv4-delivery-types
             title: Unicast, broadcast, multicast and anycast
             summary: Four ways to deliver a packet, from one receiver to every device on the link. Public and private are about reach; these are about who receives.
@@ -755,6 +1101,12 @@ stages:
               - { label: "Unicast (Wikipedia)", url: "https://en.wikipedia.org/wiki/Unicast", kind: article }
               - { label: "Routing schemes (Wikipedia)", url: "https://en.wikipedia.org/wiki/Routing#Delivery_schemes", kind: article }
               - { label: "Multicast address (Wikipedia)", url: "https://en.wikipedia.org/wiki/Multicast_address", kind: article }
+              - { label: "Every transmission type in 5 minutes: unicast, broadcast, multicast, anycast (Packetbrew)", url: "https://www.youtube.com/watch?v=5hp8r9uZlpE", kind: video }
+              - { label: "IPv4 unicast, multicast and broadcast (Neso Academy)", url: "https://www.youtube.com/watch?v=aDdArElVJvQ", kind: video }
+              - { label: "Unicast, multicast, broadcast and anycast (Tariq Abosallout)", url: "https://www.youtube.com/watch?v=xr1u3LUwcek", kind: video }
+              - { label: "RFC 4786: Operation of anycast services", url: "https://www.rfc-editor.org/rfc/rfc4786", kind: docs }
+              - { label: "Anycast (Wikipedia)", url: "https://en.wikipedia.org/wiki/Anycast", kind: article }
+              - { label: "Broadcast address (Wikipedia)", url: "https://en.wikipedia.org/wiki/Broadcast_address", kind: article }
           - id: ipv4-public-ranges
             title: Public IPv4 addresses and who hands them out
             summary: Public addresses flow from IANA to five regional registries to ISPs to you. How to find who owns an address, and what bogons are.
@@ -790,6 +1142,12 @@ stages:
               - { label: "Regional Internet registry (Wikipedia)", url: "https://en.wikipedia.org/wiki/Regional_Internet_registry", kind: article }
               - { label: "Bogon filtering (Wikipedia)", url: "https://en.wikipedia.org/wiki/Bogon_filtering", kind: article }
               - { label: "RFC 5737: IPv4 address blocks reserved for documentation", url: "https://www.rfc-editor.org/rfc/rfc5737", kind: docs }
+              - { label: "How are internet number resources distributed? (RIPE NCC)", url: "https://www.youtube.com/watch?v=XUIPoEhkFTc", kind: video }
+              - { label: "History of the RIRs (APNIC)", url: "https://www.youtube.com/watch?v=7I0fb2N4wHU", kind: video }
+              - { label: "Number resources, how IANA delegates them (IANA)", url: "https://www.iana.org/numbers", kind: docs }
+              - { label: "Number Resource Organization: the five RIRs", url: "https://www.nro.net/about/rirs/", kind: article }
+              - { label: "RIPEstat: look up any IP prefix", url: "https://stat.ripe.net/", kind: tool }
+              - { label: "ARIN whois lookup", url: "https://search.arin.net/rdap/", kind: tool }
           - id: ipv4-special-ranges
             title: IPv4 private and special ranges
             summary: The address blocks you will see every day that never route on the public internet.
@@ -816,6 +1174,12 @@ stages:
               - { label: "RFC 6598: shared address space for CGNAT", url: "https://www.rfc-editor.org/rfc/rfc6598", kind: docs }
               - { label: "IPv4 Special-Purpose Address Space (IANA)", url: "https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml", kind: docs }
               - { label: "RFC 3927: Dynamic Configuration of IPv4 Link-Local Addresses", url: "https://www.rfc-editor.org/rfc/rfc3927", kind: docs }
+              - { label: "Public vs private IP address (PowerCert)", url: "https://www.youtube.com/watch?v=po8ZFG0Xc4Q", kind: video }
+              - { label: "What happens when DHCP fails? APIPA and 169.254 (PowerCert)", url: "https://www.youtube.com/watch?v=0tEjUR6tjBU", kind: video }
+              - { label: "RFC 6890: Special-purpose IP address registries", url: "https://www.rfc-editor.org/rfc/rfc6890", kind: docs }
+              - { label: "RFC 1122: loopback and host requirements", url: "https://www.rfc-editor.org/rfc/rfc1122", kind: docs }
+              - { label: "Carrier-grade NAT (Wikipedia)", url: "https://en.wikipedia.org/wiki/Carrier-grade_NAT", kind: article }
+              - { label: "Link-local address (Wikipedia)", url: "https://en.wikipedia.org/wiki/Link-local_address", kind: article }
           - id: ipv4-special-table
             title: The full IPv4 special-purpose table
             optional: true
@@ -859,6 +1223,11 @@ stages:
               - { label: "IANA IPv4 Special-Purpose Address Registry", url: "https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml", kind: docs }
               - { label: "RFC 6890: Special-Purpose IP Address Registries", url: "https://www.rfc-editor.org/rfc/rfc6890", kind: docs }
               - { label: "Reserved IP addresses (Wikipedia)", url: "https://en.wikipedia.org/wiki/Reserved_IP_addresses", kind: article }
+              - { label: "RFC 5735: Special use IPv4 addresses (historic)", url: "https://www.rfc-editor.org/rfc/rfc5735", kind: docs }
+              - { label: "RFC 5737: IPv4 documentation blocks", url: "https://www.rfc-editor.org/rfc/rfc5737", kind: docs }
+              - { label: "RFC 1918: private address space", url: "https://www.rfc-editor.org/rfc/rfc1918", kind: docs }
+              - { label: "RFC 6598: shared address space", url: "https://www.rfc-editor.org/rfc/rfc6598", kind: docs }
+              - { label: "Bogon filtering (Wikipedia)", url: "https://en.wikipedia.org/wiki/Bogon_filtering", kind: article }
           - id: ipv4-broadcast
             title: Broadcast addresses
             summary: One packet to every device on the local network. Limited and directed broadcast, why a /24 has 254 hosts, and why routers block broadcasts.
@@ -896,6 +1265,12 @@ stages:
               - { label: "What is a smurf DDoS attack? (Cloudflare)", url: "https://www.cloudflare.com/learning/ddos/smurf-ddos-attack/", kind: article }
               - { label: "RFC 2644: Changing the default for directed broadcasts in routers", url: "https://www.rfc-editor.org/rfc/rfc2644", kind: docs }
               - { label: "RFC 3021: Using 31-bit prefixes on point-to-point links", url: "https://www.rfc-editor.org/rfc/rfc3021", kind: docs }
+              - { label: "How to find the broadcast address (System Engineer)", url: "https://www.youtube.com/watch?v=1pZNjRZLNqI", kind: video }
+              - { label: "IPv4 unicast, multicast and broadcast (Neso Academy)", url: "https://www.youtube.com/watch?v=aDdArElVJvQ", kind: video }
+              - { label: "RFC 919: Broadcasting internet datagrams", url: "https://www.rfc-editor.org/rfc/rfc919", kind: docs }
+              - { label: "RFC 922: Broadcasting internet datagrams in the presence of subnets", url: "https://www.rfc-editor.org/rfc/rfc922", kind: docs }
+              - { label: "Broadcast domain (Wikipedia)", url: "https://en.wikipedia.org/wiki/Broadcast_domain", kind: article }
+              - { label: "ipcalc online calculator (jodies.de)", url: "https://jodies.de/ipcalc", kind: tool }
           - id: ipv4-multicast-ranges
             title: The IPv4 multicast ranges
             summary: 224.0.0.0/4 split into blocks with different reach, from link-only control traffic to the private 239.0.0.0/8.
@@ -942,6 +1317,12 @@ stages:
               - { label: "RFC 5771: IANA guidelines for IPv4 multicast address assignments", url: "https://www.rfc-editor.org/rfc/rfc5771", kind: docs }
               - { label: "RFC 2365: Administratively scoped IP multicast", url: "https://www.rfc-editor.org/rfc/rfc2365", kind: docs }
               - { label: "Multicast address (Wikipedia)", url: "https://en.wikipedia.org/wiki/Multicast_address", kind: article }
+              - { label: "Multicast explained in 5 minutes (Data Knox)", url: "https://www.youtube.com/watch?v=W5oMvrMRM3Q", kind: video }
+              - { label: "RFC 1112: Host extensions for IP multicasting", url: "https://www.rfc-editor.org/rfc/rfc1112", kind: docs }
+              - { label: "RFC 6034: Unicast-prefix-based IPv4 multicast addresses", url: "https://www.rfc-editor.org/rfc/rfc6034", kind: docs }
+              - { label: "RFC 5110: Overview of the internet multicast routing architecture", url: "https://www.rfc-editor.org/rfc/rfc5110", kind: docs }
+              - { label: "IP multicast (Wikipedia)", url: "https://en.wikipedia.org/wiki/IP_multicast", kind: article }
+              - { label: "RFC 3180: GLOP addressing in 233/8", url: "https://www.rfc-editor.org/rfc/rfc3180", kind: docs }
           - id: ipv4-multicast-how
             title: How multicast is delivered (IGMP, snooping, PIM)
             summary: Hosts join groups with IGMP, switches listen in with snooping, and routers build delivery trees with PIM.
@@ -978,6 +1359,12 @@ stages:
               - { label: "RFC 3376: IGMPv3", url: "https://www.rfc-editor.org/rfc/rfc3376", kind: docs }
               - { label: "RFC 4607: Source-Specific Multicast for IP", url: "https://www.rfc-editor.org/rfc/rfc4607", kind: docs }
               - { label: "RFC 7761: PIM Sparse Mode", url: "https://www.rfc-editor.org/rfc/rfc7761", kind: docs }
+              - { label: "Introduction to IGMP snooping (CBT Nuggets)", url: "https://www.youtube.com/watch?v=MLCN3CWQVc0", kind: video }
+              - { label: "IGMP, Internet Group Management Protocol (Tall Paul Tech)", url: "https://www.youtube.com/watch?v=MaTkt-wNHRg", kind: video }
+              - { label: "Multicast: IGMP snooping (BitsPlease)", url: "https://www.youtube.com/watch?v=fxORfD-OFdM", kind: video }
+              - { label: "RFC 4541: Considerations for IGMP and MLD snooping switches", url: "https://www.rfc-editor.org/rfc/rfc4541", kind: docs }
+              - { label: "RFC 1112: Host extensions for IP multicasting", url: "https://www.rfc-editor.org/rfc/rfc1112", kind: docs }
+              - { label: "Multicast explained in 5 minutes (Data Knox)", url: "https://www.youtube.com/watch?v=W5oMvrMRM3Q", kind: video }
           - id: ipv4-exhaustion
             title: Running out of IPv4
             summary: The last free IPv4 blocks were handed out in 2011. NAT, carrier-grade NAT and buying addresses keep IPv4 going.
@@ -1002,6 +1389,12 @@ stages:
               - { label: "IPv4 address exhaustion (Wikipedia)", url: "https://en.wikipedia.org/wiki/IPv4_address_exhaustion", kind: article }
               - { label: "Carrier-grade NAT (Wikipedia)", url: "https://en.wikipedia.org/wiki/Carrier-grade_NAT", kind: article }
               - { label: "Regional Internet registry (Wikipedia)", url: "https://en.wikipedia.org/wiki/Regional_Internet_registry", kind: article }
+              - { label: "IPv4 address report, live exhaustion stats (Geoff Huston)", url: "https://ipv4.potaroo.net/", kind: tool }
+              - { label: "IANA IPv4 address space registry", url: "https://www.iana.org/assignments/ipv4-address-space/ipv4-address-space.xhtml", kind: docs }
+              - { label: "RIPE NCC IPv4 exhaustion", url: "https://www.ripe.net/manage-ips-and-asns/ipv4/ipv4-run-out/", kind: article }
+              - { label: "NAT explained (PowerCert)", url: "https://www.youtube.com/watch?v=FTUV0t6JaDA", kind: video }
+              - { label: "Google IPv6 adoption statistics", url: "https://www.google.com/intl/en/ipv6/statistics.html", kind: tool }
+              - { label: "RFC 6598: shared address space for CGNAT", url: "https://www.rfc-editor.org/rfc/rfc6598", kind: docs }
 
       - id: ipv6-basics
         title: IPv6
@@ -1033,6 +1426,12 @@ stages:
               - { label: "IPv6 (Wikipedia)", url: "https://en.wikipedia.org/wiki/IPv6", kind: article }
               - { label: "RFC 4291: IPv6 addressing", url: "https://www.rfc-editor.org/rfc/rfc4291", kind: docs }
               - { label: "RFC 8200: Internet Protocol, Version 6 (IPv6) Specification", url: "https://www.rfc-editor.org/rfc/rfc8200", kind: docs }
+              - { label: "IPv6 addresses explained (CertBros)", url: "https://www.youtube.com/watch?v=irhS0ASkvy8", kind: video }
+              - { label: "IPv6 from scratch, the very basics (OneMarcFifty)", url: "https://www.youtube.com/watch?v=oItwDXraK1M", kind: video }
+              - { label: "RFC 5952: Recommendation for IPv6 address text representation", url: "https://www.rfc-editor.org/rfc/rfc5952", kind: docs }
+              - { label: "IPv6 subnet calculator (subnetonline)", url: "https://www.subnetonline.com/pages/subnet-calculators/ipv6-subnet-calculator.php", kind: tool }
+              - { label: "Google IPv6 adoption statistics", url: "https://www.google.com/intl/en/ipv6/statistics.html", kind: tool }
+              - { label: "Test your IPv6 connectivity (test-ipv6.com)", url: "https://test-ipv6.com/", kind: tool }
           - id: ipv6-address-types
             title: IPv6 address types
             summary: Global, link-local and unique local addresses, loopback, and multicast instead of broadcast.
@@ -1060,6 +1459,12 @@ stages:
               - { label: "RFC 4291: IPv6 addressing", url: "https://www.rfc-editor.org/rfc/rfc4291", kind: docs }
               - { label: "RFC 4193: Unique Local IPv6 Unicast Addresses", url: "https://www.rfc-editor.org/rfc/rfc4193", kind: docs }
               - { label: "IPv6 Special-Purpose Address Space (IANA)", url: "https://www.iana.org/assignments/iana-ipv6-special-registry/iana-ipv6-special-registry.xhtml", kind: docs }
+              - { label: "IPv6 address types: unicast, multicast, anycast, link local (Networking with H)", url: "https://www.youtube.com/watch?v=LU9Dz6WF40A", kind: video }
+              - { label: "IPv6 unique local addresses (Wendell Odom)", url: "https://www.youtube.com/watch?v=LOHq7XBnhbk", kind: video }
+              - { label: "IPv6 link-local address (Rick Graziani)", url: "https://www.youtube.com/watch?v=Ln7D-irXnX0", kind: video }
+              - { label: "RFC 4007: IPv6 scoped address architecture", url: "https://www.rfc-editor.org/rfc/rfc4007", kind: docs }
+              - { label: "Unique local address (Wikipedia)", url: "https://en.wikipedia.org/wiki/Unique_local_address", kind: article }
+              - { label: "IANA IPv6 address space registry", url: "https://www.iana.org/assignments/ipv6-address-space/ipv6-address-space.xhtml", kind: docs }
           - id: ipv6-special-table
             title: The full IPv6 special-purpose table
             optional: true
@@ -1102,6 +1507,12 @@ stages:
               - { label: "IPv6 address (Wikipedia)", url: "https://en.wikipedia.org/wiki/IPv6_address", kind: article }
               - { label: "RFC 6052: IPv6 addressing of IPv4/IPv6 translators (NAT64)", url: "https://www.rfc-editor.org/rfc/rfc6052", kind: docs }
               - { label: "RFC 3849: IPv6 documentation prefix", url: "https://www.rfc-editor.org/rfc/rfc3849", kind: docs }
+              - { label: "IANA IPv6 address space registry", url: "https://www.iana.org/assignments/ipv6-address-space/ipv6-address-space.xhtml", kind: docs }
+              - { label: "RFC 6890: Special-purpose IP address registries", url: "https://www.rfc-editor.org/rfc/rfc6890", kind: docs }
+              - { label: "RFC 4193: Unique local IPv6 unicast addresses", url: "https://www.rfc-editor.org/rfc/rfc4193", kind: docs }
+              - { label: "RFC 4291: IPv6 addressing architecture", url: "https://www.rfc-editor.org/rfc/rfc4291", kind: docs }
+              - { label: "RFC 9637: Expanding the IPv6 documentation space (3fff::/20)", url: "https://www.rfc-editor.org/rfc/rfc9637", kind: docs }
+              - { label: "RFC 6666: Discard prefix for IPv6 (100::/64)", url: "https://www.rfc-editor.org/rfc/rfc6666", kind: docs }
           - id: ipv6-public-allocation
             title: How public IPv6 space is handed out
             summary: Registries give ISPs a /32, sites get a /48 or /56, and every LAN gets a /64. How the bits split and why there are so many.
@@ -1119,6 +1530,8 @@ stages:
               | first 48 | global routing prefix | registry and ISP |
               | next 16 | subnet ID | you, up to 65,536 subnets |
               | last 64 | interface ID | the device (SLAAC) or DHCPv6 |
+
+              ![A 128-bit IPv6 address split into a 48-bit routing prefix, a 16-bit subnet and a 64-bit interface ID, with /32, /48, /56 and /64 boundaries marked](/images/roadmaps/internet-networking/ipv6-layout.svg)
 
               ### Typical sizes
               - **/32**: a usual first allocation to an ISP. It holds 65,536 /48s
@@ -1145,6 +1558,12 @@ stages:
               - { label: "RIPE-690: best current practice for IPv6 prefix assignment", url: "https://www.ripe.net/publications/docs/ripe-690/", kind: docs }
               - { label: "Prefix delegation (Wikipedia)", url: "https://en.wikipedia.org/wiki/Prefix_delegation", kind: article }
               - { label: "IANA IPv6 Global Unicast Address Assignments", url: "https://www.iana.org/assignments/ipv6-unicast-address-assignments/ipv6-unicast-address-assignments.xhtml", kind: docs }
+              - { label: "RIPE NCC training material, including IPv6 (RIPE NCC)", url: "https://www.ripe.net/training/in-person-training-courses/material/", kind: course }
+              - { label: "How are internet number resources distributed? (RIPE NCC)", url: "https://www.youtube.com/watch?v=XUIPoEhkFTc", kind: video }
+              - { label: "RIPEstat: look up any IPv6 prefix", url: "https://stat.ripe.net/", kind: tool }
+              - { label: "RFC 3177: original IAB recommendations on IPv6 site allocation", url: "https://www.rfc-editor.org/rfc/rfc3177", kind: docs }
+              - { label: "APNIC IPv6 address policy", url: "https://www.apnic.net/community/policy/resources/", kind: docs }
+              - { label: "IPv6 subnet calculator (subnetonline)", url: "https://www.subnetonline.com/pages/subnet-calculators/ipv6-subnet-calculator.php", kind: tool }
           - id: slaac
             title: How a device gets an IPv6 address
             summary: Routers announce the network prefix and devices build their own address (SLAAC), with DHCPv6 as the other option.
@@ -1171,6 +1590,12 @@ stages:
               - { label: "RFC 8981: temporary IPv6 addresses", url: "https://www.rfc-editor.org/rfc/rfc8981", kind: docs }
               - { label: "IPv6 stateless address autoconfiguration (Wikipedia)", url: "https://en.wikipedia.org/wiki/Stateless_address_autoconfiguration", kind: article }
               - { label: "RFC 4861: Neighbor Discovery for IP version 6", url: "https://www.rfc-editor.org/rfc/rfc4861", kind: docs }
+              - { label: "IPv6 explained: SLAAC and DHCPv6 (OneMarcFifty)", url: "https://www.youtube.com/watch?v=jlG_nrCOmJc", kind: video }
+              - { label: "IPv6 and SLAAC, Network+ (Professor Messer)", url: "https://www.youtube.com/watch?v=A6WVj82by3Y", kind: video }
+              - { label: "IPv6 stateless addressing: SLAAC, the A-bit and the O-bit (Wendell Odom)", url: "https://www.youtube.com/watch?v=Vm3wm1_oziE", kind: video }
+              - { label: "RFC 8415: DHCPv6", url: "https://www.rfc-editor.org/rfc/rfc8415", kind: docs }
+              - { label: "RFC 7217: Stable, opaque interface identifiers", url: "https://www.rfc-editor.org/rfc/rfc7217", kind: docs }
+              - { label: "RFC 8106: DNS options in router advertisements", url: "https://www.rfc-editor.org/rfc/rfc8106", kind: docs }
 
           - id: ipv6-neighbor-discovery
             title: Neighbor Discovery, the IPv6 replacement for ARP
@@ -1194,6 +1619,8 @@ stages:
               ### Solicited-node multicast
               A Neighbor Solicitation does not go to everyone. It goes to the target's **solicited-node** group: `ff02::1:ff` plus the last 24 bits of the address. For `2001:db8::abcd:1234` that group is `ff02::1:ffcd:1234`, carried on Ethernet as `33:33:ff:cd:12:34`. Only the few hosts whose addresses end in those 24 bits listen, so other machines' network cards drop the frame without waking the CPU. ARP interrupts every host on the LAN.
 
+              ![ARP broadcasts a request to every host, while IPv6 Neighbor Discovery sends it to a solicited-node multicast group that only the target listens to](/images/roadmaps/internet-networking/neighbor-discovery.svg)
+
               ### Duplicate address detection
               Before using a new address, a device sends a Neighbor Solicitation for it from `::`. If anyone answers, the address is taken and the device must not use it. This is **DAD**, and it runs for SLAAC addresses as well as manual ones.
 
@@ -1213,6 +1640,12 @@ stages:
               - { label: "Neighbor Discovery Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Neighbor_Discovery_Protocol", kind: article }
               - { label: "Solicited-node multicast address (Wikipedia)", url: "https://en.wikipedia.org/wiki/Solicited-node_multicast_address", kind: article }
               - { label: "RFC 6105: IPv6 Router Advertisement Guard", url: "https://www.rfc-editor.org/rfc/rfc6105", kind: docs }
+              - { label: "Neighbor Discovery Protocol (RIPE NCC)", url: "https://www.youtube.com/watch?v=A3LFt7CHpgs", kind: video }
+              - { label: "IPv6 Neighbor Discovery Protocol (Sunny Classroom)", url: "https://www.youtube.com/watch?v=a1AQfjWwPaE", kind: video }
+              - { label: "Neighbor Discovery Protocol, IPv6's better ARP (Wendell Odom)", url: "https://www.youtube.com/watch?v=crupCqdfmj8", kind: video }
+              - { label: "Understanding Neighbor Discovery with Wireshark (Aakif Mairaj Mufti)", url: "https://www.youtube.com/watch?v=L_7SMkADKxU", kind: video }
+              - { label: "RFC 4443: ICMPv6", url: "https://www.rfc-editor.org/rfc/rfc4443", kind: docs }
+              - { label: "RFC 3971: SEcure Neighbor Discovery (SEND)", url: "https://www.rfc-editor.org/rfc/rfc3971", kind: docs }
           - id: ipv6-multicast
             title: IPv6 multicast and scopes
             summary: Every IPv6 multicast address carries its own scope, from one interface to the whole internet. The format, the well-known groups and MLD.
@@ -1259,6 +1692,12 @@ stages:
               - { label: "Multicast Listener Discovery (Wikipedia)", url: "https://en.wikipedia.org/wiki/Multicast_Listener_Discovery", kind: article }
               - { label: "RFC 3810: MLDv2 for IPv6", url: "https://www.rfc-editor.org/rfc/rfc3810", kind: docs }
               - { label: "RFC 7346: IPv6 multicast address scopes", url: "https://www.rfc-editor.org/rfc/rfc7346", kind: docs }
+              - { label: "IPv6 multicast addresses (Rick Graziani)", url: "https://www.youtube.com/watch?v=nTsD9BxmjaQ", kind: video }
+              - { label: "What is a solicited-node multicast group? (CBT Nuggets)", url: "https://www.youtube.com/watch?v=lGjJOhv6sck", kind: video }
+              - { label: "RFC 3306: Unicast-prefix-based IPv6 multicast addresses", url: "https://www.rfc-editor.org/rfc/rfc3306", kind: docs }
+              - { label: "RFC 3956: Embedding the RP address in IPv6 multicast", url: "https://www.rfc-editor.org/rfc/rfc3956", kind: docs }
+              - { label: "IPv6 multicast address (Wikipedia)", url: "https://en.wikipedia.org/wiki/Multicast_address#IPv6", kind: article }
+              - { label: "RFC 4541: IGMP and MLD snooping switches", url: "https://www.rfc-editor.org/rfc/rfc4541", kind: docs }
 
       - id: packets
         title: Packets
@@ -1287,6 +1726,10 @@ stages:
             resources:
               - { label: "What is a packet? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-a-packet/", kind: article }
               - { label: "Packet switching (Wikipedia)", url: "https://en.wikipedia.org/wiki/Packet_switching", kind: article }
+              - { label: "Circuit switching vs packet switching (PowerCert)", url: "https://www.youtube.com/watch?v=G7n8thqwO2c", kind: video }
+              - { label: "The internet: packets, routing and reliability (CodeAI)", url: "https://www.youtube.com/watch?v=AYdF7b3nMto", kind: video }
+              - { label: "Building blocks of TCP (High Performance Browser Networking)", url: "https://hpbn.co/building-blocks-of-tcp/", kind: article }
+              - { label: "Circuit switching (Wikipedia)", url: "https://en.wikipedia.org/wiki/Circuit_switching", kind: article }
           - id: headers-and-payload
             title: Headers vs payload
             summary: Each layer wraps the data in its own header. Learn to read what an IP header carries.
@@ -1312,6 +1755,12 @@ stages:
               - { label: "Wireshark (packet capture tool)", url: "https://www.wireshark.org/", kind: tool }
               - { label: "Time to live (Wikipedia)", url: "https://en.wikipedia.org/wiki/Time_to_live", kind: article }
               - { label: "Encapsulation (networking) (Wikipedia)", url: "https://en.wikipedia.org/wiki/Encapsulation_(networking)", kind: article }
+              - { label: "IPv4 header, Free CCNA day 10 (Jeremy's IT Lab)", url: "https://www.youtube.com/watch?v=aQB22y4liXA", kind: video }
+              - { label: "Network fundamentals: IPv4 packet header (TechKnowSurge)", url: "https://www.youtube.com/watch?v=IozUoCVbLeI", kind: video }
+              - { label: "Wireshark user's guide (Wireshark)", url: "https://www.wireshark.org/docs/wsug_html_chunked/", kind: docs }
+              - { label: "IPv4 header (Wikipedia)", url: "https://en.wikipedia.org/wiki/Internet_Protocol_version_4#Header", kind: article }
+              - { label: "Wireshark sample captures (Wireshark wiki)", url: "https://wiki.wireshark.org/SampleCaptures", kind: tool }
+              - { label: "Network layers model (Computerphile)", url: "https://www.youtube.com/watch?v=eelvWAURfdI", kind: video }
           - id: mtu
             title: MTU and fragmentation
             optional: true
@@ -1337,6 +1786,12 @@ stages:
               - { label: "What is MTU? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-mtu/", kind: article }
               - { label: "Path MTU Discovery (Wikipedia)", url: "https://en.wikipedia.org/wiki/Path_MTU_Discovery", kind: article }
               - { label: "Path MTU discovery in practice (Cloudflare)", url: "https://blog.cloudflare.com/path-mtu-discovery-in-practice/", kind: article }
+              - { label: "MTU and IP fragmentation (Network Direction)", url: "https://www.youtube.com/watch?v=1zKwBWtYFHU", kind: video }
+              - { label: "Fragmentation of IPv4 datagram (Gate Smashers)", url: "https://www.youtube.com/watch?v=k8VgrqDOIUo", kind: video }
+              - { label: "RFC 1191: Path MTU discovery", url: "https://www.rfc-editor.org/rfc/rfc1191", kind: docs }
+              - { label: "RFC 8201: Path MTU discovery for IPv6", url: "https://www.rfc-editor.org/rfc/rfc8201", kind: docs }
+              - { label: "RFC 4821: Packetization layer path MTU discovery", url: "https://www.rfc-editor.org/rfc/rfc4821", kind: docs }
+              - { label: "Maximum transmission unit (Wikipedia)", url: "https://en.wikipedia.org/wiki/Maximum_transmission_unit", kind: article }
 
       - id: ports
         title: Ports
@@ -1367,6 +1822,11 @@ stages:
               - { label: "What is a computer port? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-a-computer-port/", kind: article }
               - { label: "List of TCP and UDP port numbers (Wikipedia)", url: "https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers", kind: article }
               - { label: "Service Name and Transport Protocol Port Number Registry (IANA)", url: "https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml", kind: docs }
+              - { label: "Network ports explained (PowerCert)", url: "https://www.youtube.com/watch?v=g2fT-g9PX9o", kind: video }
+              - { label: "Common TCP and UDP ports (Professor Messer)", url: "https://www.youtube.com/watch?v=MTPTow2PTfY", kind: video }
+              - { label: "TCP vs UDP comparison (PowerCert)", url: "https://www.youtube.com/watch?v=uwoD5YsGACg", kind: video }
+              - { label: "RFC 6335: IANA procedures for port numbers", url: "https://www.rfc-editor.org/rfc/rfc6335", kind: docs }
+              - { label: "Port (computer networking) (Wikipedia)", url: "https://en.wikipedia.org/wiki/Port_(computer_networking)", kind: article }
           - id: source-and-destination-ports
             title: Source vs destination port
             summary: A connection is identified by two addresses and two ports. The client side picks a random high port.
@@ -1391,6 +1851,12 @@ stages:
               - { label: "What is a computer port? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-a-computer-port/", kind: article }
               - { label: "Ephemeral port (Wikipedia)", url: "https://en.wikipedia.org/wiki/Ephemeral_port", kind: article }
               - { label: "How to stop running out of ephemeral ports (Cloudflare)", url: "https://blog.cloudflare.com/how-to-stop-running-out-of-ephemeral-ports-and-start-to-love-long-lived-connections/", kind: article }
+              - { label: "Sessions, connections, sockets and ephemeral ports (Sunny Classroom)", url: "https://www.youtube.com/watch?v=KGmateiteUc", kind: video }
+              - { label: "Network ports explained (PowerCert)", url: "https://www.youtube.com/watch?v=g2fT-g9PX9o", kind: video }
+              - { label: "RFC 6056: Recommendations for transport-protocol port randomization", url: "https://www.rfc-editor.org/rfc/rfc6056", kind: docs }
+              - { label: "Network socket (Wikipedia)", url: "https://en.wikipedia.org/wiki/Network_socket", kind: article }
+              - { label: "Beej's guide to network programming", url: "https://beej.us/guide/bgnet/", kind: course }
+              - { label: "ss(8) Linux manual page (man7.org)", url: "https://man7.org/linux/man-pages/man8/ss.8.html", kind: docs }
           - id: firewalls-and-ports
             title: Why firewalls care about ports
             summary: Opening or closing a port decides which services the outside world can reach.
@@ -1415,6 +1881,12 @@ stages:
             resources:
               - { label: "What is a firewall? (Cloudflare)", url: "https://www.cloudflare.com/learning/security/what-is-a-firewall/", kind: article }
               - { label: "Firewall (computing) (Wikipedia)", url: "https://en.wikipedia.org/wiki/Firewall_(computing)", kind: article }
+              - { label: "What is a firewall? (PowerCert)", url: "https://www.youtube.com/watch?v=kDEX1HXybrU", kind: video }
+              - { label: "NAT and firewall explained (IBM Technology)", url: "https://www.youtube.com/watch?v=2llWuivdS7w", kind: video }
+              - { label: "Firewall fundamentals explained (Antisyphon Training)", url: "https://www.youtube.com/watch?v=K4ilFsm2GvA", kind: video }
+              - { label: "Nmap reference guide: port scanning basics (nmap.org)", url: "https://nmap.org/book/man-port-scanning-basics.html", kind: docs }
+              - { label: "Security groups for your VPC (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-security-groups.html", kind: docs }
+              - { label: "UFW, uncomplicated firewall (Ubuntu docs)", url: "https://wiki.ubuntu.com/UFW", kind: docs }
 
       - id: client-server
         title: Clients and servers
@@ -1447,6 +1919,12 @@ stages:
               - { label: "An overview of HTTP (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview", kind: docs }
               - { label: "Client–server model (Wikipedia)", url: "https://en.wikipedia.org/wiki/Client%E2%80%93server_model", kind: article }
               - { label: "HTTP messages (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Messages", kind: docs }
+              - { label: "The client server model (The TechCave)", url: "https://www.youtube.com/watch?v=L5BlpPU_muY", kind: video }
+              - { label: "RFC 9110: HTTP semantics", url: "https://www.rfc-editor.org/rfc/rfc9110", kind: docs }
+              - { label: "HTTP, the protocol every web developer must know (Julia Evans, wizardzines)", url: "https://wizardzines.com/zines/http/", kind: article }
+              - { label: "Learn HTTP request and response with curl (Everything curl)", url: "https://everything.curl.dev/http/", kind: docs }
+              - { label: "httpbin: HTTP request and response service", url: "https://httpbin.org/", kind: tool }
+              - { label: "What is the client-server model? (Be A Better Dev)", url: "https://www.youtube.com/watch?v=-dSXvLAwXO0", kind: video }
           - id: client-vs-server-side
             title: Client-side vs server-side work
             summary: Some work runs in the browser, some on the server. Knowing which is which explains a lot of web behaviour.
@@ -1471,6 +1949,12 @@ stages:
             resources:
               - { label: "Client-side vs server-side (Cloudflare)", url: "https://www.cloudflare.com/learning/serverless/glossary/client-side-vs-server-side/", kind: article }
               - { label: "How the web works (MDN)", url: "https://developer.mozilla.org/en-US/docs/Learn_web_development/Getting_started/Web_standards/How_the_web_works", kind: docs }
+              - { label: "Server-side rendering vs client-side rendering, pros and cons (Smoljames)", url: "https://www.youtube.com/watch?v=ObrSuDYMl1s", kind: video }
+              - { label: "Rendering on the web (web.dev)", url: "https://web.dev/articles/rendering-on-the-web", kind: article }
+              - { label: "Introduction to the server side (MDN)", url: "https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Server-side/First_steps/Introduction", kind: docs }
+              - { label: "What is JavaScript? client-side scripting (MDN)", url: "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Scripting/What_is_JavaScript", kind: docs }
+              - { label: "Client-server overview (MDN)", url: "https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Server-side/First_steps/Client-Server_overview", kind: docs }
+              - { label: "Server-side rendering vs client-side rendering (Synipher)", url: "https://www.youtube.com/watch?v=rNVcZklcmqU", kind: video }
           - id: reverse-proxies
             title: Proxies and reverse proxies
             optional: true
@@ -1496,6 +1980,12 @@ stages:
               - { label: "What is a reverse proxy? (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/glossary/reverse-proxy/", kind: article }
               - { label: "Proxy servers and tunneling (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Proxy_servers_and_tunneling", kind: docs }
               - { label: "Reverse proxy (Wikipedia)", url: "https://en.wikipedia.org/wiki/Reverse_proxy", kind: article }
+              - { label: "Proxy vs reverse proxy, explained by example (Hussein Nasser)", url: "https://www.youtube.com/watch?v=ozhe__GdWC8", kind: video }
+              - { label: "Proxy vs reverse proxy, real-world examples (ByteByteGo)", url: "https://www.youtube.com/watch?v=4NB0NDtOwIQ", kind: video }
+              - { label: "Load balancer vs reverse proxy (Hussein Nasser)", url: "https://www.youtube.com/watch?v=S8J2fkN2FeI", kind: video }
+              - { label: "NGINX reverse proxy (NGINX docs)", url: "https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/", kind: docs }
+              - { label: "What is a reverse proxy? (F5 glossary)", url: "https://www.f5.com/glossary/reverse-proxy", kind: article }
+              - { label: "Caddy reverse_proxy directive (Caddy docs)", url: "https://caddyserver.com/docs/caddyfile/directives/reverse_proxy", kind: docs }
 
       - id: dns-basics
         title: DNS
@@ -1529,6 +2019,12 @@ stages:
               - { label: "How DNS works (comic)", url: "https://howdns.works/", kind: article }
               - { label: "RFC 1034: Domain names, concepts and facilities", url: "https://www.rfc-editor.org/rfc/rfc1034", kind: docs }
               - { label: "Domain Name System (Wikipedia)", url: "https://en.wikipedia.org/wiki/Domain_Name_System", kind: article }
+              - { label: "How a DNS server works (PowerCert)", url: "https://www.youtube.com/watch?v=mpQZVYPuDGU", kind: video }
+              - { label: "What is DNS? and how it makes the internet work (NetworkChuck)", url: "https://www.youtube.com/watch?v=NiQTs9DbtW4", kind: video }
+              - { label: "dig web interface, trace a lookup (Google Admin Toolbox)", url: "https://toolbox.googleapps.com/apps/dig/", kind: tool }
+              - { label: "Root servers (root-servers.org)", url: "https://root-servers.org/", kind: tool }
+              - { label: "A toy DNS resolver (Julia Evans)", url: "https://jvns.ca/blog/2022/02/01/a-dns-resolver-in-80-lines-of-go/", kind: article }
+              - { label: "DNS lookup and record browser (nslookup.io)", url: "https://www.nslookup.io/", kind: tool }
           - id: dns-records
             title: Record types
             summary: The records you will set most often and what each one points to.
@@ -1556,6 +2052,12 @@ stages:
             resources:
               - { label: "DNS records (Cloudflare)", url: "https://www.cloudflare.com/learning/dns/dns-records/", kind: article }
               - { label: "Mess With DNS (hands-on)", url: "https://messwithdns.net/", kind: tool }
+              - { label: "DNS records explained (PowerCert)", url: "https://www.youtube.com/watch?v=HnUDtycXSNE", kind: video }
+              - { label: "What are DNS zones and records? (IBM Technology)", url: "https://www.youtube.com/watch?v=U-i_UDDYLxY", kind: video }
+              - { label: "RFC 1035: Domain names, implementation and specification", url: "https://www.rfc-editor.org/rfc/rfc1035", kind: docs }
+              - { label: "IANA DNS resource record types registry", url: "https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml", kind: docs }
+              - { label: "List of DNS record types (Wikipedia)", url: "https://en.wikipedia.org/wiki/List_of_DNS_record_types", kind: article }
+              - { label: "Route 53 supported DNS record types (AWS docs)", url: "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/ResourceRecordTypes.html", kind: docs }
           - id: dns-ttl-caching
             title: TTL and caching
             summary: Answers are cached at every step, which is why a DNS change can take time to show up.
@@ -1579,6 +2081,12 @@ stages:
               - Forgetting that operating systems and browsers keep their own DNS cache
             resources:
               - { label: "What is time-to-live (TTL)? (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/glossary/time-to-live-ttl/", kind: article }
+              - { label: "TTL and caching on resolving name servers (DNS Made Easy)", url: "https://www.youtube.com/watch?v=1qFNBxkAOLA", kind: video }
+              - { label: "What is DNS TTL? (DNSimple)", url: "https://www.youtube.com/watch?v=lZXu5ymxeks", kind: video }
+              - { label: "RFC 2308: Negative caching of DNS queries", url: "https://www.rfc-editor.org/rfc/rfc2308", kind: docs }
+              - { label: "RFC 8767: Serving stale data to improve DNS resiliency", url: "https://www.rfc-editor.org/rfc/rfc8767", kind: docs }
+              - { label: "What happens when you update a DNS record (Julia Evans)", url: "https://jvns.ca/blog/2021/12/06/dns-doesn-t-propagate/", kind: article }
+              - { label: "Purge Google Public DNS cache (Google)", url: "https://dns.google/cache", kind: tool }
           - id: dns-security
             title: DNSSEC and encrypted DNS
             optional: true
@@ -1605,6 +2113,12 @@ stages:
               - { label: "DNSSEC (Wikipedia)", url: "https://en.wikipedia.org/wiki/Domain_Name_System_Security_Extensions", kind: article }
               - { label: "DNS Encryption Explained (Cloudflare)", url: "https://blog.cloudflare.com/dns-encryption-explained/", kind: article }
               - { label: "RFC 8484: DNS Queries over HTTPS (DoH)", url: "https://www.rfc-editor.org/rfc/rfc8484", kind: docs }
+              - { label: "What is DNSSEC? (IBM Technology)", url: "https://www.youtube.com/watch?v=Fk2oejzgSVQ", kind: video }
+              - { label: "DNS over HTTPS in 2 minutes (Hussein Nasser)", url: "https://www.youtube.com/watch?v=flnw78uhFkE", kind: video }
+              - { label: "DNS encryption explained: DoT and DoH (Christian Lempa)", url: "https://www.youtube.com/watch?v=6hLHMA_tJ8k", kind: video }
+              - { label: "RFC 7858: DNS over TLS", url: "https://www.rfc-editor.org/rfc/rfc7858", kind: docs }
+              - { label: "DNSViz: visualise a domain's DNSSEC chain", url: "https://dnsviz.net/", kind: tool }
+              - { label: "DNSSEC analyzer (Verisign Labs)", url: "https://dnssec-analyzer.verisignlabs.com/", kind: tool }
 
       - id: http-basics
         title: HTTP
@@ -1640,6 +2154,12 @@ stages:
               - { label: "HTTP request methods (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods", kind: docs }
               - { label: "Idempotent (MDN)", url: "https://developer.mozilla.org/en-US/docs/Glossary/Idempotent", kind: docs }
               - { label: "Safe (HTTP methods) (MDN)", url: "https://developer.mozilla.org/en-US/docs/Glossary/Safe/HTTP", kind: docs }
+              - { label: "HTTP request methods: GET, POST, PUT, DELETE (Curious Code)", url: "https://www.youtube.com/watch?v=tkfVQK6UxDI", kind: video }
+              - { label: "RFC 9110 section 9: methods", url: "https://www.rfc-editor.org/rfc/rfc9110#name-methods", kind: docs }
+              - { label: "RFC 5789: PATCH method for HTTP", url: "https://www.rfc-editor.org/rfc/rfc5789", kind: docs }
+              - { label: "IANA HTTP method registry", url: "https://www.iana.org/assignments/http-methods/http-methods.xhtml", kind: docs }
+              - { label: "HTTP request methods with curl (Everything curl)", url: "https://everything.curl.dev/http/modify/method.html", kind: docs }
+              - { label: "httpbin: try each method", url: "https://httpbin.org/", kind: tool }
           - id: http-status-codes
             title: Status codes
             summary: The three-digit number that says how the request went.
@@ -1668,6 +2188,11 @@ stages:
               - { label: "HTTP response status codes (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status", kind: docs }
               - { label: "Redirections in HTTP (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Redirections", kind: docs }
               - { label: "HTTP Status Code Registry (IANA)", url: "https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml", kind: docs }
+              - { label: "HTTP status codes explained in 5 minutes (ByteByteGo)", url: "https://www.youtube.com/watch?v=qmpUfWN7hh4", kind: video }
+              - { label: "Learn HTTP status codes in 10 minutes (Web Dev Simplified)", url: "https://www.youtube.com/watch?v=wJa5CTIFj7U", kind: video }
+              - { label: "RFC 9110 section 15: status codes", url: "https://www.rfc-editor.org/rfc/rfc9110#name-status-codes", kind: docs }
+              - { label: "HTTP status dogs and cats (http.cat)", url: "https://http.cat/", kind: tool }
+              - { label: "List of HTTP status codes (Wikipedia)", url: "https://en.wikipedia.org/wiki/List_of_HTTP_status_codes", kind: article }
           - id: http-headers-cookies
             title: Headers and cookies
             summary: Headers carry metadata both ways. Cookies are how a stateless protocol remembers you.
@@ -1694,6 +2219,12 @@ stages:
               - { label: "HTTP headers (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers", kind: docs }
               - { label: "Using HTTP cookies (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies", kind: docs }
               - { label: "RFC 6265: HTTP State Management Mechanism", url: "https://www.rfc-editor.org/rfc/rfc6265", kind: docs }
+              - { label: "HTTP cookies crash course (Hussein Nasser)", url: "https://www.youtube.com/watch?v=sovAIX4doOE", kind: video }
+              - { label: "HTTP headers and cookies (Zach Gollwitzer)", url: "https://www.youtube.com/watch?v=DxeSGUM16_4", kind: video }
+              - { label: "Set-Cookie header reference (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie", kind: docs }
+              - { label: "SameSite cookies explained (web.dev)", url: "https://web.dev/articles/samesite-cookies-explained", kind: article }
+              - { label: "IANA HTTP field name registry", url: "https://www.iana.org/assignments/http-fields/http-fields.xhtml", kind: docs }
+              - { label: "Cookies, sessions and tokens (Valentin Despa)", url: "https://www.youtube.com/watch?v=GhrvZ5nUWNg", kind: video }
           - id: http-caching
             title: HTTP caching
             optional: true
@@ -1721,6 +2252,12 @@ stages:
               - { label: "Prevent unnecessary network requests with the HTTP Cache (web.dev)", url: "https://web.dev/articles/http-cache", kind: article }
               - { label: "HTTP conditional requests (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Conditional_requests", kind: docs }
               - { label: "RFC 9111: HTTP Caching", url: "https://www.rfc-editor.org/rfc/rfc9111", kind: docs }
+              - { label: "Deep dive into HTTP caching: cache-control, ETag (Software Developer Diaries)", url: "https://www.youtube.com/watch?v=Cy2ZJOBgk84", kind: video }
+              - { label: "HTTP caching with ETags (Hussein Nasser)", url: "https://www.youtube.com/watch?v=TgZnpp5wJWU", kind: video }
+              - { label: "Caching tutorial for web authors (Mark Nottingham)", url: "https://www.mnot.net/cache_docs/", kind: article }
+              - { label: "Cache-Control header reference (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control", kind: docs }
+              - { label: "REDbot: lint a URL's caching headers", url: "https://redbot.org/", kind: tool }
+              - { label: "Cache-Control for civilians (Harry Roberts, CSS Wizardry)", url: "https://csswizardry.com/2019/03/cache-control-for-civilians/", kind: article }
 
       - id: how-a-page-loads
         title: What happens when you open a website
@@ -1752,6 +2289,11 @@ stages:
               - { label: "High Performance Browser Networking (free book)", url: "https://hpbn.co/", kind: course }
               - { label: "Time to First Byte (web.dev)", url: "https://web.dev/articles/ttfb", kind: article }
               - { label: "Primer on Latency and Bandwidth (HPBN)", url: "https://hpbn.co/primer-on-latency-and-bandwidth/", kind: article }
+              - { label: "What happens when you type a URL into your browser? (ByteByteGo)", url: "https://www.youtube.com/watch?v=AlkDbnbv7dk", kind: video }
+              - { label: "What happens when you type a URL and press Enter? (Scott Hanselman)", url: "https://www.youtube.com/watch?v=vvpCnjyjTuU", kind: video }
+              - { label: "Populating the page: how browsers work (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/Performance/Guides/How_browsers_work", kind: docs }
+              - { label: "Inside look at modern web browser, part 2: navigation (Chrome for Developers)", url: "https://developer.chrome.com/blog/inside-browser-part2", kind: article }
+              - { label: "Primer on web performance (High Performance Browser Networking)", url: "https://hpbn.co/primer-on-web-performance/", kind: article }
           - id: browser-rendering
             title: How the browser renders the page
             summary: Parsing HTML, fetching CSS and scripts, building the page and painting it.
@@ -1777,6 +2319,11 @@ stages:
               - { label: "How browsers work (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/Performance/How_browsers_work", kind: docs }
               - { label: "Critical rendering path (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/Performance/Guides/Critical_rendering_path", kind: docs }
               - { label: "Critical Rendering Path (web.dev)", url: "https://web.dev/articles/critical-rendering-path", kind: article }
+              - { label: "Inside look at modern web browser, part 3: rendering (Chrome for Developers)", url: "https://developer.chrome.com/blog/inside-browser-part3", kind: article }
+              - { label: "How browsers work (Tali Garsiel and Paul Irish, web.dev)", url: "https://web.dev/articles/howbrowserswork", kind: article }
+              - { label: "Render-tree construction, layout and paint (web.dev)", url: "https://web.dev/articles/critical-rendering-path/render-tree-construction", kind: article }
+              - { label: "Layout and paint, critical rendering path (Udacity)", url: "https://www.youtube.com/watch?v=CHwwSgKfXDE", kind: video }
+              - { label: "Rendering performance (web.dev)", url: "https://web.dev/articles/rendering-performance", kind: article }
           - id: measuring-page-load
             title: Measuring a page load
             optional: true
@@ -1804,6 +2351,12 @@ stages:
               - { label: "Chrome DevTools: Network panel", url: "https://developer.chrome.com/docs/devtools/network", kind: docs }
               - { label: "High Performance Browser Networking (free book)", url: "https://hpbn.co/", kind: course }
               - { label: "Network features reference (Chrome DevTools)", url: "https://developer.chrome.com/docs/devtools/network/reference", kind: docs }
+              - { label: "Inspect network activity, DevTools 101 (Chrome for Developers)", url: "https://www.youtube.com/watch?v=e1gAyQuIFQo", kind: video }
+              - { label: "Demystifying the browser networking tab (Hussein Nasser)", url: "https://www.youtube.com/watch?v=LBgfSwX4GDI", kind: video }
+              - { label: "Core Web Vitals (web.dev)", url: "https://web.dev/articles/vitals", kind: article }
+              - { label: "Navigation timing API (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/API/Performance_API/Navigation_timing", kind: docs }
+              - { label: "PageSpeed Insights (Google)", url: "https://pagespeed.web.dev/", kind: tool }
+              - { label: "Resource timing API (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/API/Performance_API/Resource_timing", kind: docs }
 
   - level: intermediate
     title: How the pieces fit
@@ -1837,6 +2390,11 @@ stages:
             resources:
               - { label: "What is the OSI model? (Cloudflare)", url: "https://www.cloudflare.com/learning/ddos/glossary/open-systems-interconnection-model-osi/", kind: article }
               - { label: "OSI model (Wikipedia)", url: "https://en.wikipedia.org/wiki/OSI_model", kind: article }
+              - { label: "The OSI model, a practical view (Practical Networking)", url: "https://www.practicalnetworking.net/series/packet-traveling/osi-model/", kind: article }
+              - { label: "OSI Model: A Practical Perspective (Practical Networking)", url: "https://www.youtube.com/watch?v=LkolbURrtTs", kind: video }
+              - { label: "OSI layers 5, 6 and 7, what they actually do (Practical Networking)", url: "https://www.youtube.com/watch?v=2iFFRqzX3yE", kind: video }
+              - { label: "Protocol layering (Computer Networks: A Systems Approach)", url: "https://book.systemsapproach.org/foundation/architecture.html", kind: course }
+              - { label: "Networking zine (Julia Evans, wizardzines)", url: "https://wizardzines.com/zines/networking/", kind: article }
           - id: tcp-ip-model
             title: OSI vs the TCP/IP model
             summary: The real internet uses a simpler four-layer model. Learn how the two map onto each other.
@@ -1862,6 +2420,11 @@ stages:
               - { label: "What is TCP/IP? (Cloudflare)", url: "https://www.cloudflare.com/learning/ddos/glossary/tcp-ip/", kind: article }
               - { label: "Internet protocol suite (Wikipedia)", url: "https://en.wikipedia.org/wiki/Internet_protocol_suite", kind: article }
               - { label: "RFC 1122: Requirements for Internet Hosts, Communication Layers", url: "https://www.rfc-editor.org/rfc/rfc1122", kind: docs }
+              - { label: "RFC 1180: A TCP/IP Tutorial", url: "https://www.rfc-editor.org/rfc/rfc1180", kind: docs }
+              - { label: "RFC 3439: Some Internet Architectural Guidelines, layering considered harmful", url: "https://www.rfc-editor.org/rfc/rfc3439", kind: docs }
+              - { label: "What is TCP/IP and OSI? (NetworkChuck)", url: "https://www.youtube.com/watch?v=CRdL1PcherM", kind: video }
+              - { label: "Protocol layering and the internet architecture (Computer Networks: A Systems Approach)", url: "https://book.systemsapproach.org/foundation/architecture.html", kind: course }
+              - { label: "Kurose and Ross video lectures (Computer Networking: A Top-Down Approach)", url: "https://gaia.cs.umass.edu/kurose_ross/online_lectures.htm", kind: course }
           - id: icmp-and-diagnostics
             title: ICMP, ping and traceroute
             optional: true
@@ -1890,6 +2453,12 @@ stages:
               - { label: "Traceroute (Wikipedia)", url: "https://en.wikipedia.org/wiki/Traceroute", kind: article }
               - { label: "Internet Control Message Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol", kind: article }
               - { label: "RFC 792: Internet Control Message Protocol", url: "https://www.rfc-editor.org/rfc/rfc792", kind: docs }
+              - { label: "ICMP parameters registry: types and codes (IANA)", url: "https://www.iana.org/assignments/icmp-parameters/icmp-parameters.xhtml", kind: docs }
+              - { label: "RFC 4443: ICMPv6", url: "https://www.rfc-editor.org/rfc/rfc4443", kind: docs }
+              - { label: "RFC 1191: Path MTU Discovery", url: "https://www.rfc-editor.org/rfc/rfc1191", kind: docs }
+              - { label: "Traceroute (tracert) explained (PowerCert)", url: "https://www.youtube.com/watch?v=up3bcBLZS74", kind: video }
+              - { label: "Day 20: Scapy and traceroute (Julia Evans)", url: "https://jvns.ca/blog/2013/10/31/day-20-scapy-and-traceroute/", kind: article }
+              - { label: "RIPE Atlas: run ping and traceroute from probes worldwide (RIPE NCC)", url: "https://atlas.ripe.net/", kind: tool }
 
       - id: tcp-vs-udp
         title: TCP vs UDP
@@ -1921,6 +2490,12 @@ stages:
               - { label: "Building blocks of TCP (High Performance Browser Networking)", url: "https://hpbn.co/building-blocks-of-tcp/", kind: course }
               - { label: "RFC 9293: TCP", url: "https://www.rfc-editor.org/rfc/rfc9293", kind: docs }
               - { label: "Transmission Control Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Transmission_Control_Protocol", kind: article }
+              - { label: "TCP handshake (MDN glossary)", url: "https://developer.mozilla.org/en-US/docs/Glossary/TCP_handshake", kind: docs }
+              - { label: "TCP three-way handshaking (Wireshark wiki)", url: "https://wiki.wireshark.org/TCP_3_way_handshaking", kind: article }
+              - { label: "SYN packet handling in the wild (Cloudflare blog)", url: "https://blog.cloudflare.com/syn-packet-handling-in-the-wild/", kind: article }
+              - { label: "RFC 7413: TCP Fast Open", url: "https://www.rfc-editor.org/rfc/rfc7413", kind: docs }
+              - { label: "SYN flood attack (Cloudflare)", url: "https://www.cloudflare.com/learning/ddos/syn-flood-ddos-attack/", kind: article }
+              - { label: "The TCP 3-way handshake and why backend engineers should understand it (Hussein Nasser)", url: "https://www.youtube.com/watch?v=bW_BILl7n0Y", kind: video }
           - id: tcp-reliability
             title: Retransmission and congestion control
             summary: How TCP notices lost packets, resends them and slows down when the network is full.
@@ -1945,6 +2520,12 @@ stages:
               - { label: "Building blocks of TCP (High Performance Browser Networking)", url: "https://hpbn.co/building-blocks-of-tcp/", kind: course }
               - { label: "RFC 5681: TCP congestion control", url: "https://www.rfc-editor.org/rfc/rfc5681", kind: docs }
               - { label: "TCP congestion control (Wikipedia)", url: "https://en.wikipedia.org/wiki/TCP_congestion_control", kind: article }
+              - { label: "RFC 6298: Computing TCP's Retransmission Timer", url: "https://www.rfc-editor.org/rfc/rfc6298", kind: docs }
+              - { label: "RFC 9438: CUBIC for Fast and Long-Distance Networks", url: "https://www.rfc-editor.org/rfc/rfc9438", kind: docs }
+              - { label: "RFC 2018: TCP Selective Acknowledgment Options", url: "https://www.rfc-editor.org/rfc/rfc2018", kind: docs }
+              - { label: "Congestion control (Computer Networks: A Systems Approach)", url: "https://book.systemsapproach.org/congestion.html", kind: course }
+              - { label: "BBR: congestion-based congestion control (Google Research)", url: "https://research.google/pubs/bbr-congestion-based-congestion-control-2/", kind: article }
+              - { label: "TCP congestion control hands-on with Wireshark (Chris Greer)", url: "https://www.youtube.com/watch?v=IRXP1vJ6-vM", kind: video }
           - id: udp-use-cases
             title: When UDP wins
             summary: No handshake and no resends. Why DNS, games, video calls and QUIC use UDP.
@@ -1970,6 +2551,12 @@ stages:
               - { label: "Building blocks of UDP (High Performance Browser Networking)", url: "https://hpbn.co/building-blocks-of-udp/", kind: course }
               - { label: "User Datagram Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/User_Datagram_Protocol", kind: article }
               - { label: "RFC 768: User Datagram Protocol", url: "https://www.rfc-editor.org/rfc/rfc768", kind: docs }
+              - { label: "RFC 8085: UDP Usage Guidelines", url: "https://www.rfc-editor.org/rfc/rfc8085", kind: docs }
+              - { label: "RFC 9000: QUIC, a UDP-based multiplexed and secure transport", url: "https://www.rfc-editor.org/rfc/rfc9000", kind: docs }
+              - { label: "The road to QUIC (Cloudflare blog)", url: "https://blog.cloudflare.com/the-road-to-quic/", kind: article }
+              - { label: "What is HTTP/3? (Cloudflare)", url: "https://www.cloudflare.com/learning/performance/what-is-http3/", kind: article }
+              - { label: "TCP vs UDP crash course (Hussein Nasser)", url: "https://www.youtube.com/watch?v=qqRYkcta6IE", kind: video }
+              - { label: "How QUIC works, intro to the QUIC transport (Chris Greer)", url: "https://www.youtube.com/watch?v=HnDsMehSSY4", kind: video }
           - id: socket-programming
             title: Socket programming
             optional: true
@@ -2001,6 +2588,11 @@ stages:
             resources:
               - { label: "Beej's Guide to Network Programming", url: "https://beej.us/guide/bgnet/", kind: course }
               - { label: "Socket Programming HOWTO (Python)", url: "https://docs.python.org/3/howto/sockets.html", kind: docs }
+              - { label: "socket(7): Linux socket interface (man7.org)", url: "https://man7.org/linux/man-pages/man7/socket.7.html", kind: docs }
+              - { label: "tcp(7): Linux TCP protocol and socket options (man7.org)", url: "https://man7.org/linux/man-pages/man7/tcp.7.html", kind: docs }
+              - { label: "net package: Dial and Listen (Go docs)", url: "https://pkg.go.dev/net", kind: docs }
+              - { label: "net module: TCP servers and clients (Node.js docs)", url: "https://nodejs.org/api/net.html", kind: docs }
+              - { label: "Python socket programming tutorial (Tech With Tim)", url: "https://www.youtube.com/watch?v=3QiPPX-KeSc", kind: video }
 
       - id: tls-https
         title: TLS and HTTPS
@@ -2030,6 +2622,12 @@ stages:
               - { label: "What happens in a TLS handshake? (Cloudflare)", url: "https://www.cloudflare.com/learning/ssl/what-happens-in-a-tls-handshake/", kind: article }
               - { label: "The Illustrated TLS 1.3 Connection", url: "https://tls13.xargs.org/", kind: article }
               - { label: "RFC 8446: The Transport Layer Security (TLS) Protocol Version 1.3", url: "https://www.rfc-editor.org/rfc/rfc8446", kind: docs }
+              - { label: "Transport Layer Security (High Performance Browser Networking)", url: "https://hpbn.co/transport-layer-security-tls/", kind: course }
+              - { label: "TLS handshake explained (Computerphile)", url: "https://www.youtube.com/watch?v=86cQJ0MMses", kind: video }
+              - { label: "TLS handshake, everything that happens when you visit an HTTPS site (Practical Networking)", url: "https://www.youtube.com/watch?v=ZkL10eoG1PY", kind: video }
+              - { label: "Transport Layer Security (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/Security/Transport_Layer_Security", kind: docs }
+              - { label: "How HTTPS works, an illustrated comic (howhttps.works)", url: "https://howhttps.works/", kind: article }
+              - { label: "SSL Server Test (Qualys SSL Labs)", url: "https://www.ssllabs.com/ssltest/", kind: tool }
           - id: certificates-and-cas
             title: Certificates and certificate authorities
             summary: A certificate proves a server owns a name. A chain of trust ends at a CA your device already trusts.
@@ -2056,6 +2654,12 @@ stages:
               - { label: "What is HTTPS? (Cloudflare)", url: "https://www.cloudflare.com/learning/ssl/what-is-https/", kind: article }
               - { label: "How Let's Encrypt works", url: "https://letsencrypt.org/how-it-works/", kind: docs }
               - { label: "Public key certificate (Wikipedia)", url: "https://en.wikipedia.org/wiki/Public_key_certificate", kind: article }
+              - { label: "Chain of trust and root certificates (Let's Encrypt)", url: "https://letsencrypt.org/certificates/", kind: docs }
+              - { label: "RFC 8555: ACME, Automatic Certificate Management Environment", url: "https://www.rfc-editor.org/rfc/rfc8555", kind: docs }
+              - { label: "How Certificate Transparency works (certificate.transparency.dev)", url: "https://certificate.transparency.dev/", kind: article }
+              - { label: "crt.sh: search Certificate Transparency logs", url: "https://crt.sh/", kind: tool }
+              - { label: "Certificates and certificate authorities explained (Hussein Nasser)", url: "https://www.youtube.com/watch?v=x_I6Qc35PuQ", kind: video }
+              - { label: "badssl.com: test pages for broken and odd certificates", url: "https://badssl.com/", kind: tool }
           - id: tls-versions
             title: TLS 1.3 vs older versions
             optional: true
@@ -2082,6 +2686,12 @@ stages:
               - { label: "Why use TLS 1.3? (Cloudflare)", url: "https://www.cloudflare.com/learning/ssl/why-use-tls-1.3/", kind: article }
               - { label: "RFC 8446: TLS 1.3", url: "https://www.rfc-editor.org/rfc/rfc8446", kind: docs }
               - { label: "A Detailed Look at RFC 8446, a.k.a. TLS 1.3 (Cloudflare)", url: "https://blog.cloudflare.com/rfc-8446-aka-tls-1-3/", kind: article }
+              - { label: "RFC 8996: Deprecating TLS 1.0 and TLS 1.1", url: "https://www.rfc-editor.org/rfc/rfc8996", kind: docs }
+              - { label: "RFC 9325: Recommendations for Secure Use of TLS and DTLS", url: "https://www.rfc-editor.org/rfc/rfc9325", kind: docs }
+              - { label: "The Illustrated TLS 1.2 Connection (compare with 1.3)", url: "https://tls12.xargs.org/", kind: article }
+              - { label: "Introducing 0-RTT (Cloudflare blog)", url: "https://blog.cloudflare.com/introducing-0-rtt/", kind: article }
+              - { label: "SSL Configuration Generator (Mozilla)", url: "https://ssl-config.mozilla.org/", kind: tool }
+              - { label: "TLS 1.3 handshake, many changes from prior versions (Practical Networking)", url: "https://www.youtube.com/watch?v=JA0vaIb4158", kind: video }
           - id: private-cas
             title: Private certificate authorities
             optional: true
@@ -2105,6 +2715,12 @@ stages:
               - Putting the private CA's root into the machines of people outside your organisation
               - No alert on expiry, so the first sign is a production outage
             resources:
+              - { label: "Everything you should know about certificates and PKI (Smallstep)", url: "https://smallstep.com/blog/everything-pki/", kind: article }
+              - { label: "step-ca: open source private CA (Smallstep docs)", url: "https://smallstep.com/docs/step-ca/", kind: docs }
+              - { label: "mkcert: locally trusted development certificates (GitHub)", url: "https://github.com/FiloSottile/mkcert", kind: tool }
+              - { label: "AWS Private Certificate Authority (AWS docs)", url: "https://docs.aws.amazon.com/privateca/latest/userguide/PcaWelcome.html", kind: docs }
+              - { label: "PKI secrets engine (HashiCorp Vault docs)", url: "https://developer.hashicorp.com/vault/docs/secrets/pki", kind: docs }
+              - { label: "OpenSSL Certificate Authority guide (Jamie Nguyen)", url: "https://jamielinux.com/docs/openssl-certificate-authority/", kind: course }
               - post: agentcore-gateway-private-ca-without-the-alb
               - { label: "What is an SSL certificate? (Cloudflare)", url: "https://www.cloudflare.com/learning/ssl/what-is-an-ssl-certificate/", kind: article }
               - { label: "RFC 5280: Internet X.509 Public Key Infrastructure Certificate Profile", url: "https://www.rfc-editor.org/rfc/rfc5280", kind: docs }
@@ -2135,6 +2751,12 @@ stages:
             resources:
               - { label: "What is a subnet? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-a-subnet/", kind: article }
               - { label: "Subnet (Wikipedia)", url: "https://en.wikipedia.org/wiki/Subnet", kind: article }
+              - { label: "RFC 950: Internet Standard Subnetting Procedure", url: "https://www.rfc-editor.org/rfc/rfc950", kind: docs }
+              - { label: "Subnetting Mastery (Practical Networking)", url: "https://www.practicalnetworking.net/stand-alone/subnetting-mastery/", kind: course }
+              - { label: "What is subnetting? Subnetting Mastery part 1 (Practical Networking)", url: "https://www.youtube.com/watch?v=BWZ-MHIhqjM", kind: video }
+              - { label: "Subnet mask explained (PowerCert)", url: "https://www.youtube.com/watch?v=s_Ntt6eTn94", kind: video }
+              - { label: "IP subnet calculator (Calculator.net)", url: "https://www.calculator.net/ip-subnet-calculator.html", kind: tool }
+              - { label: "IPv4 addressing and subnets (An Introduction to Computer Networks)", url: "https://intronetworks.cs.luc.edu/current/html/ipv4.html", kind: course }
           - id: cidr-notation
             title: CIDR notation
             summary: Read a /16 or a /28 and know how many addresses it holds.
@@ -2161,6 +2783,11 @@ stages:
               - { label: "RFC 4632: CIDR", url: "https://www.rfc-editor.org/rfc/rfc4632", kind: docs }
               - { label: "Classless Inter-Domain Routing (Wikipedia)", url: "https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing", kind: article }
               - { label: "Interactive CIDR and IP range calculator", url: "https://cidr.xyz/", kind: tool }
+              - { label: "RFC 1878: Variable Length Subnet Table for IPv4", url: "https://www.rfc-editor.org/rfc/rfc1878", kind: docs }
+              - { label: "IPv4 Special-Purpose Address Registry (IANA)", url: "https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml", kind: docs }
+              - { label: "ipcalc: online CIDR and netmask calculator (jodies.de)", url: "https://jodies.de/ipcalc", kind: tool }
+              - { label: "What is network CIDR notation? (Justin Garrison)", url: "https://www.youtube.com/watch?v=tpa9QSiiiUo", kind: video }
+              - { label: "Drawing the subnetting cheat sheet, part 2 (Practical Networking)", url: "https://www.youtube.com/watch?v=ljS07YTEJ2I", kind: video }
           - id: planning-vpc-subnets
             title: Planning subnets for a VPC
             summary: Pick ranges that leave room to grow and do not clash with other networks you will connect to.
@@ -2184,6 +2811,12 @@ stages:
             resources:
               - { label: "VPC CIDR blocks (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-cidr-blocks.html", kind: docs }
               - { label: "Subnets for your VPC (AWS)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/configure-subnets.html", kind: docs }
+              - { label: "RFC 1918: Address Allocation for Private Internets", url: "https://www.rfc-editor.org/rfc/rfc1918", kind: docs }
+              - { label: "What is IPAM? (Amazon VPC IP Address Manager docs)", url: "https://docs.aws.amazon.com/vpc/latest/ipam/what-it-is-ipam.html", kind: docs }
+              - { label: "Subnets (Google Cloud VPC docs)", url: "https://cloud.google.com/vpc/docs/subnets", kind: docs }
+              - { label: "Plan for IP addressing (Azure Cloud Adoption Framework)", url: "https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/plan-for-ip-addressing", kind: docs }
+              - { label: "Visual Subnet Calculator: split a range into subnets", url: "https://visualsubnetcalc.com/", kind: tool }
+              - { label: "AWS VPC and subnets for beginners (Sam Meech-Ward)", url: "https://www.youtube.com/watch?v=TUTqYEZZUdc", kind: video }
 
       - id: nat
         title: NAT
@@ -2211,6 +2844,11 @@ stages:
             resources:
               - { label: "Network address translation (Wikipedia)", url: "https://en.wikipedia.org/wiki/Network_address_translation", kind: article }
               - { label: "RFC 3022: traditional NAT", url: "https://www.rfc-editor.org/rfc/rfc3022", kind: docs }
+              - { label: "RFC 2663: IP NAT Terminology and Considerations", url: "https://www.rfc-editor.org/rfc/rfc2663", kind: docs }
+              - { label: "RFC 4787: NAT Behavioral Requirements for Unicast UDP", url: "https://www.rfc-editor.org/rfc/rfc4787", kind: docs }
+              - { label: "RFC 6598: Shared Address Space for carrier-grade NAT (100.64.0.0/10)", url: "https://www.rfc-editor.org/rfc/rfc6598", kind: docs }
+              - { label: "NAT explained, Network Address Translation (PowerCert)", url: "https://www.youtube.com/watch?v=FTUV0t6JaDA", kind: video }
+              - { label: "How NAT traversal works, with a NAT primer (Tailscale)", url: "https://tailscale.com/blog/how-nat-traversal-works", kind: article }
           - id: nat-inbound
             title: Why NAT breaks inbound connections
             summary: Nobody outside can start a connection to a device behind NAT, unless you forward a port or punch a hole.
@@ -2236,6 +2874,12 @@ stages:
               - { label: "Hole punching (networking) (Wikipedia)", url: "https://en.wikipedia.org/wiki/Hole_punching_(networking)", kind: article }
               - { label: "Port forwarding (Wikipedia)", url: "https://en.wikipedia.org/wiki/Port_forwarding", kind: article }
               - { label: "RFC 8445: Interactive Connectivity Establishment (ICE)", url: "https://www.rfc-editor.org/rfc/rfc8445", kind: docs }
+              - { label: "How NAT traversal works (Tailscale)", url: "https://tailscale.com/blog/how-nat-traversal-works", kind: article }
+              - { label: "Peer-to-Peer Communication Across Network Address Translators (Bryan Ford)", url: "https://bford.info/pub/net/p2pnat/", kind: article }
+              - { label: "RFC 8489: STUN, Session Traversal Utilities for NAT", url: "https://www.rfc-editor.org/rfc/rfc8489", kind: docs }
+              - { label: "RFC 8656: TURN, Traversal Using Relays around NAT", url: "https://www.rfc-editor.org/rfc/rfc8656", kind: docs }
+              - { label: "WebRTC connectivity protocols: ICE, STUN, TURN (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Protocols", kind: docs }
+              - { label: "Port forwarding explained (PowerCert)", url: "https://www.youtube.com/watch?v=2G1ueMDgwxw", kind: video }
           - id: cloud-nat-gateways
             title: NAT gateways in the cloud
             optional: true
@@ -2262,6 +2906,12 @@ stages:
               - { label: "NAT gateways (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html", kind: docs }
               - { label: "Pricing for NAT gateways (AWS)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-pricing.html", kind: docs }
               - { label: "Cloud NAT overview (Google Cloud)", url: "https://cloud.google.com/nat/docs/overview", kind: docs }
+              - { label: "NAT gateway use cases (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/nat-gateway-scenarios.html", kind: docs }
+              - { label: "Compare NAT gateways and NAT instances (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-comparison.html", kind: docs }
+              - { label: "Gateway endpoints for S3 and DynamoDB, skip NAT charges (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/privatelink/gateway-endpoints.html", kind: docs }
+              - { label: "What is Azure NAT Gateway? (Microsoft Learn)", url: "https://learn.microsoft.com/en-us/azure/nat-gateway/nat-overview", kind: docs }
+              - { label: "The AWS Managed NAT Gateway is unpleasant and not recommended (Last Week in AWS)", url: "https://www.lastweekinaws.com/blog/the-aws-managed-nat-gateway-is-unpleasant-and-not-recommended/", kind: article }
+              - { label: "Understanding NAT gateways, AWS training (QA)", url: "https://www.youtube.com/watch?v=ujXr0i5EoHE", kind: video }
           - id: internet-gateways
             title: Internet gateways and IPv6 egress
             summary: Public subnets reach the internet through an internet gateway. IPv6 needs no NAT, so private IPv6 subnets use an egress-only internet gateway instead.
@@ -2285,6 +2935,12 @@ stages:
             resources:
               - { label: "Internet gateways (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Internet_Gateway.html", kind: docs }
               - { label: "Egress-only internet gateways (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/egress-only-internet-gateway.html", kind: docs }
+              - { label: "Configure route tables (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html", kind: docs }
+              - { label: "Example: private subnets with a NAT gateway (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-example-private-subnets-nat.html", kind: docs }
+              - { label: "IPv6 support for your VPC (AWS docs)", url: "https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html", kind: docs }
+              - { label: "RFC 6146: Stateful NAT64", url: "https://www.rfc-editor.org/rfc/rfc6146", kind: docs }
+              - { label: "What is IPv6 for Azure Virtual Network? (Microsoft Learn)", url: "https://learn.microsoft.com/en-us/azure/virtual-network/ip-services/ipv6-overview", kind: docs }
+              - { label: "AWS Internet Gateway vs NAT Gateway in 3 minutes (DevOps Studio)", url: "https://www.youtube.com/watch?v=2htfhgcySfs", kind: video }
 
       - id: routing
         title: Routing
@@ -2318,6 +2974,12 @@ stages:
               - { label: "What is routing? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-routing/", kind: article }
               - { label: "Routing table (Wikipedia)", url: "https://en.wikipedia.org/wiki/Routing_table", kind: article }
               - { label: "Default route (Wikipedia)", url: "https://en.wikipedia.org/wiki/Default_route", kind: article }
+              - { label: "RFC 1812: Requirements for IP Version 4 Routers", url: "https://www.rfc-editor.org/rfc/rfc1812", kind: docs }
+              - { label: "ip-route(8): Linux routing table management (man7.org)", url: "https://man7.org/linux/man-pages/man8/ip-route.8.html", kind: docs }
+              - { label: "Packet Traveling: how packets move through a network (Practical Networking)", url: "https://www.practicalnetworking.net/series/packet-traveling/packet-traveling/", kind: article }
+              - { label: "Routing tables explained (PowerCert)", url: "https://www.youtube.com/watch?v=CGmTvukObOw", kind: video }
+              - { label: "Routing table explained (Network Direction)", url: "https://www.youtube.com/watch?v=uKiM9-tGuc4", kind: video }
+              - { label: "Virtual network traffic routing (Microsoft Learn)", url: "https://learn.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview", kind: docs }
           - id: hops-and-traceroute
             title: Hops and traceroute
             summary: See every router your packets pass through on their way to a server.
@@ -2343,6 +3005,12 @@ stages:
               `mtr` repeats the test and shows loss and delay per hop. A real problem shows as loss or delay that continues to all later hops.
             resources:
               - { label: "Traceroute (Wikipedia)", url: "https://en.wikipedia.org/wiki/Traceroute", kind: article }
+              - { label: "Traceroute (tracert) explained (PowerCert)", url: "https://www.youtube.com/watch?v=up3bcBLZS74", kind: video }
+              - { label: "Day 20: Scapy and traceroute (Julia Evans)", url: "https://jvns.ca/blog/2013/10/31/day-20-scapy-and-traceroute/", kind: article }
+              - { label: "MTR: traceroute plus ping in one tool (GitHub)", url: "https://github.com/traviscross/mtr", kind: tool }
+              - { label: "RIPE Atlas: traceroute from thousands of probes (RIPE NCC)", url: "https://atlas.ripe.net/", kind: tool }
+              - { label: "Looking glass: traceroute from Hurricane Electric routers", url: "https://lg.he.net/", kind: tool }
+              - { label: "RFC 792: ICMP, Time Exceeded messages", url: "https://www.rfc-editor.org/rfc/rfc792", kind: docs }
           - id: static-vs-dynamic-routing
             title: Static vs dynamic routing
             optional: true
@@ -2366,6 +3034,12 @@ stages:
               - { label: "What is routing? (Cloudflare)", url: "https://www.cloudflare.com/learning/network-layer/what-is-routing/", kind: article }
               - { label: "Static routing (Wikipedia)", url: "https://en.wikipedia.org/wiki/Static_routing", kind: article }
               - { label: "Open Shortest Path First (Wikipedia)", url: "https://en.wikipedia.org/wiki/Open_Shortest_Path_First", kind: article }
+              - { label: "RFC 2328: OSPF Version 2", url: "https://www.rfc-editor.org/rfc/rfc2328", kind: docs }
+              - { label: "RFC 4271: BGP-4", url: "https://www.rfc-editor.org/rfc/rfc4271", kind: docs }
+              - { label: "What is BGP? (Cloudflare)", url: "https://www.cloudflare.com/learning/security/glossary/what-is-bgp/", kind: article }
+              - { label: "Routing (Computer Networks: A Systems Approach)", url: "https://book.systemsapproach.org/internetworking/routing.html", kind: course }
+              - { label: "OSPF overview (Juniper docs)", url: "https://www.juniper.net/documentation/us/en/software/junos/ospf/topics/topic-map/ospf-overview.html", kind: docs }
+              - { label: "OSPF explained step by step (CertBros)", url: "https://www.youtube.com/watch?v=kfvJ8QVJscc", kind: video }
 
       - id: cdns
         title: CDNs
@@ -2399,6 +3073,11 @@ stages:
               - { label: "Content delivery network (Wikipedia)", url: "https://en.wikipedia.org/wiki/Content_delivery_network", kind: article }
               - { label: "Cache Keys (Cloudflare docs)", url: "https://developers.cloudflare.com/cache/how-to/cache-keys/", kind: docs }
               - { label: "Understand the cache key (AWS)", url: "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/understanding-the-cache-key.html", kind: docs }
+              - { label: "HTTP caching (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Caching", kind: docs }
+              - { label: "RFC 9111: HTTP Caching", url: "https://www.rfc-editor.org/rfc/rfc9111", kind: docs }
+              - { label: "Vary header (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Vary", kind: docs }
+              - { label: "Default cache behavior (Cloudflare docs)", url: "https://developers.cloudflare.com/cache/concepts/default-cache-behavior/", kind: docs }
+              - { label: "What is a CDN? How does it work? (ByteByteGo)", url: "https://www.youtube.com/watch?v=RI9np1LWzqw", kind: video }
           - id: cdn-setup
             title: Putting a CDN in front of an app
             summary: Point your domain at the CDN, set the origin and choose what gets cached.
@@ -2421,6 +3100,12 @@ stages:
               ### In practice
               Request an image twice and check the response headers. A cache header such as `x-cache: Hit` or `cf-cache-status: HIT` on the second request shows it works.
             resources:
+              - { label: "Content delivery networks (web.dev)", url: "https://web.dev/articles/content-delivery-networks", kind: article }
+              - { label: "Get started with Cloudflare Cache (Cloudflare docs)", url: "https://developers.cloudflare.com/cache/get-started/", kind: docs }
+              - { label: "Get started with a standard CloudFront distribution (AWS docs)", url: "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/GettingStarted.SimpleDistribution.html", kind: docs }
+              - { label: "What is Azure Front Door? (Microsoft Learn)", url: "https://learn.microsoft.com/en-us/azure/frontdoor/front-door-overview", kind: docs }
+              - { label: "Prevent unnecessary network requests with the HTTP cache (web.dev)", url: "https://web.dev/articles/http-cache", kind: article }
+              - { label: "CDN, Content Delivery Network, explained (PowerCert)", url: "https://www.youtube.com/watch?v=nhhfSBm6v4A", kind: video }
               - post: add-cloudfront-cdn-distribution-to-wordpress-application-hosted-on-amazon-lightsail
               - { label: "What is Amazon CloudFront? (AWS docs)", url: "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Introduction.html", kind: docs }
               - { label: "Cloud CDN overview (Google Cloud)", url: "https://cloud.google.com/cdn/docs/overview", kind: docs }
@@ -2448,6 +3133,12 @@ stages:
               - { label: "Using Origin Shield (AWS docs)", url: "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/origin-shield.html", kind: docs }
               - { label: "Purge cache (Cloudflare docs)", url: "https://developers.cloudflare.com/cache/how-to/purge-cache/", kind: docs }
               - { label: "Tiered Cache (Cloudflare docs)", url: "https://developers.cloudflare.com/cache/how-to/tiered-cache/", kind: docs }
+              - { label: "Invalidate files to remove content (CloudFront docs)", url: "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Invalidation.html", kind: docs }
+              - { label: "Manage how long content stays in the cache (CloudFront docs)", url: "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html", kind: docs }
+              - { label: "Shielding (Fastly docs)", url: "https://www.fastly.com/documentation/guides/concepts/shielding/", kind: docs }
+              - { label: "RFC 5861: stale-while-revalidate and stale-if-error", url: "https://www.rfc-editor.org/rfc/rfc5861", kind: docs }
+              - { label: "Cache-Control header (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control", kind: docs }
+              - { label: "CloudFront caching behaviors: cache keys, TTL and Origin Shield (CloudWolf AWS)", url: "https://www.youtube.com/watch?v=rrpREiIAcHE", kind: video }
 
       - id: load-balancers
         title: Load balancers
@@ -2475,6 +3166,11 @@ stages:
               `harun.dev/api/*` goes to the API servers, and everything else goes to the web servers. Only a layer 7 balancer can do that.
             resources:
               - { label: "What is load balancing? (Cloudflare)", url: "https://www.cloudflare.com/learning/performance/what-is-load-balancing/", kind: article }
+              - { label: "Layer 4 and layer 7 proxy mode (HAProxy)", url: "https://www.haproxy.com/blog/layer-4-and-layer-7-proxy-mode", kind: article }
+              - { label: "Cloud Load Balancing overview (Google Cloud)", url: "https://cloud.google.com/load-balancing/docs/load-balancing-overview", kind: docs }
+              - { label: "Load balancing options (Azure Architecture Center)", url: "https://learn.microsoft.com/en-us/azure/architecture/guide/technology-choices/load-balancing-overview", kind: docs }
+              - { label: "How Elastic Load Balancing works (AWS docs)", url: "https://docs.aws.amazon.com/elasticloadbalancing/latest/userguide/how-elastic-load-balancing-works.html", kind: docs }
+              - { label: "Load balancing in layer 4 vs layer 7 with HAProxy examples (Hussein Nasser)", url: "https://www.youtube.com/watch?v=aKMLgFVxZYk", kind: video }
               - post: add-lightsail-load-balancer-to-application-hosted-in-amazon-lightsail-instances
               - { label: "What is an Application Load Balancer? (AWS)", url: "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html", kind: docs }
               - { label: "What is a Network Load Balancer? (AWS)", url: "https://docs.aws.amazon.com/elasticloadbalancing/latest/network/introduction.html", kind: docs }
@@ -2501,6 +3197,11 @@ stages:
               - IP hash behind a proxy, where every client shares one address
               - **Sticky sessions** hide state that should live in a shared store
             resources:
+              - { label: "Load balancing, an interactive visual essay (Sam Rose)", url: "https://samwho.dev/load-balancing/", kind: article }
+              - { label: "Using nginx as an HTTP load balancer (nginx docs)", url: "https://nginx.org/en/docs/http/load_balancing.html", kind: docs }
+              - { label: "Supported load balancers (Envoy docs)", url: "https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/load_balancing/load_balancers", kind: docs }
+              - { label: "Load balancing algorithms (HAProxy docs)", url: "https://www.haproxy.com/documentation/haproxy-configuration-tutorials/load-balancing/", kind: docs }
+              - { label: "Top 6 load balancing algorithms (ByteByteGo)", url: "https://www.youtube.com/watch?v=dBmxNsS3BGE", kind: video }
               - post: eight-load-balancer-algorithms
               - { label: "Types of load balancing algorithms (Cloudflare)", url: "https://www.cloudflare.com/learning/performance/types-of-load-balancing-algorithms/", kind: article }
               - { label: "Load balancing (computing) (Wikipedia)", url: "https://en.wikipedia.org/wiki/Load_balancing_(computing)", kind: article }
@@ -2528,6 +3229,12 @@ stages:
               - { label: "Target group health checks (AWS docs)", url: "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html", kind: docs }
               - { label: "Health checks overview (Google Cloud)", url: "https://cloud.google.com/load-balancing/docs/health-check-concepts", kind: docs }
               - { label: "Azure Load Balancer health probes (Microsoft Learn)", url: "https://learn.microsoft.com/en-us/azure/load-balancer/load-balancer-custom-probe-overview", kind: docs }
+              - { label: "Implementing health checks (Amazon Builders' Library)", url: "https://aws.amazon.com/builders-library/implementing-health-checks/", kind: article }
+              - { label: "Configure liveness, readiness and startup probes (Kubernetes docs)", url: "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/", kind: docs }
+              - { label: "Health checking (Envoy docs)", url: "https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/health_checking", kind: docs }
+              - { label: "Health checks (HAProxy docs)", url: "https://www.haproxy.com/documentation/haproxy-configuration-tutorials/reliability/health-checks/", kind: docs }
+              - { label: "Monitors for load balancer health checks (Cloudflare docs)", url: "https://developers.cloudflare.com/load-balancing/monitors/", kind: docs }
+              - { label: "Load balancer health checks, a lightboard talk (Progress Kemp)", url: "https://www.youtube.com/watch?v=oZFItaTq2oI", kind: video }
           - id: consistent-hashing
             title: Consistent hashing
             optional: true
@@ -2550,6 +3257,12 @@ stages:
               Five cache servers hold user sessions. One more is added. With consistent hashing about one sixth of the keys move, and the rest stay put.
             resources:
               - { label: "Consistent hashing (Wikipedia)", url: "https://en.wikipedia.org/wiki/Consistent_hashing", kind: article }
+              - { label: "Consistent hashing and random trees, the original paper (Karger et al.)", url: "https://www.cs.princeton.edu/courses/archive/fall09/cos518/papers/chash.pdf", kind: article }
+              - { label: "Consistent hashing with bounded loads (Google Research)", url: "https://research.google/blog/consistent-hashing-with-bounded-loads/", kind: article }
+              - { label: "A fast, minimal memory, consistent hash algorithm, jump hash (arXiv)", url: "https://arxiv.org/abs/1406.2294", kind: article }
+              - { label: "Maglev: a fast and reliable software network load balancer (Google Research)", url: "https://research.google/pubs/maglev-a-fast-and-reliable-software-network-load-balancer/", kind: article }
+              - { label: "Dynamo: Amazon's highly available key-value store (paper)", url: "https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf", kind: article }
+              - { label: "Consistent hashing, algorithms you should know (ByteByteGo)", url: "https://www.youtube.com/watch?v=UF9Iqmg94tk", kind: video }
 
   - level: advanced
     title: How the internet holds together
@@ -2585,6 +3298,12 @@ stages:
               - { label: "Hurricane Electric BGP Toolkit", url: "https://bgp.he.net/", kind: tool }
               - { label: "Autonomous system (Internet) (Wikipedia)", url: "https://en.wikipedia.org/wiki/Autonomous_system_(Internet)", kind: article }
               - { label: "Autonomous System Numbers (ARIN)", url: "https://www.arin.net/resources/guide/asn/", kind: docs }
+              - { label: "RFC 1930: Guidelines for creation, selection and registration of an AS", url: "https://www.rfc-editor.org/rfc/rfc1930", kind: docs }
+              - { label: "RFC 6793: BGP support for four-octet AS numbers", url: "https://www.rfc-editor.org/rfc/rfc6793", kind: docs }
+              - { label: "Autonomous System Numbers registry (IANA)", url: "https://www.iana.org/assignments/as-numbers/as-numbers.xhtml", kind: docs }
+              - { label: "AS Numbers (RIPE NCC)", url: "https://www.ripe.net/manage-ips-and-asns/as-numbers/", kind: docs }
+              - { label: "AS Rank: ranking networks by customer cone (CAIDA)", url: "https://asrank.caida.org/", kind: tool }
+              - { label: "32-bit ASN allocation report (Geoff Huston, potaroo)", url: "https://www.potaroo.net/tools/asn32/", kind: tool }
           - id: transit-vs-peering
             title: Transit vs peering
             summary: Networks either pay someone to carry their traffic everywhere, or swap traffic with each other for free.
@@ -2611,6 +3330,11 @@ stages:
               - { label: "Peering (Wikipedia)", url: "https://en.wikipedia.org/wiki/Peering", kind: article }
               - { label: "Tier 1 network (Wikipedia)", url: "https://en.wikipedia.org/wiki/Tier_1_network", kind: article }
               - { label: "PeeringDB", url: "https://www.peeringdb.com/", kind: tool }
+              - { label: "Internet transit (Wikipedia)", url: "https://en.wikipedia.org/wiki/Internet_transit", kind: article }
+              - { label: "The relative cost of bandwidth around the world (Cloudflare)", url: "https://blog.cloudflare.com/the-relative-cost-of-bandwidth-around-the-world/", kind: article }
+              - { label: "AS Rank: who buys transit from whom (CAIDA)", url: "https://asrank.caida.org/", kind: tool }
+              - { label: "Tutorial: A Complete Guide To Peering (NANOG)", url: "https://www.youtube.com/watch?v=kJW4OpBI2zI", kind: video }
+              - { label: "Architecting Robust BGP Routing Policies (NANOG)", url: "https://www.youtube.com/watch?v=_wRvNINnSQg", kind: video }
 
       - id: bgp
         title: BGP
@@ -2643,6 +3367,12 @@ stages:
               - { label: "What is BGP? (Cloudflare)", url: "https://www.cloudflare.com/learning/security/glossary/what-is-bgp/", kind: article }
               - { label: "Border Gateway Protocol (Wikipedia)", url: "https://en.wikipedia.org/wiki/Border_Gateway_Protocol", kind: article }
               - { label: "RFC 4271: A Border Gateway Protocol 4 (BGP-4)", url: "https://www.rfc-editor.org/rfc/rfc4271", kind: docs }
+              - { label: "Tutorial: BGP 101 (NANOG)", url: "https://www.youtube.com/watch?v=tKcPNgKJBkA", kind: video }
+              - { label: "Understanding how Facebook disappeared from the Internet (Cloudflare)", url: "https://blog.cloudflare.com/october-2021-facebook-outage/", kind: article }
+              - { label: "More details about the October 4 outage (Meta Engineering)", url: "https://engineering.fb.com/2021/10/05/networking-traffic/outage-details/", kind: article }
+              - { label: "Why was Facebook down for five hours? (Ben Eater)", url: "https://www.youtube.com/watch?v=-wMU8vmfaYo", kind: video }
+              - { label: "BGPlay: replay prefix announcements over time (RIPEstat)", url: "https://stat.ripe.net/widget/bgplay", kind: tool }
+              - { label: "Routing Information Service collectors (RIPE NCC)", url: "https://www.ripe.net/analyse/internet-measurements/routing-information-service-ris/", kind: docs }
           - id: bgp-path-selection
             title: Path selection
             summary: When a router hears many routes to the same prefix, it picks one by a fixed list of rules.
@@ -2665,6 +3395,12 @@ stages:
             resources:
               - { label: "What is BGP? (Cloudflare)", url: "https://www.cloudflare.com/learning/security/glossary/what-is-bgp/", kind: article }
               - { label: "RFC 4271: BGP-4", url: "https://www.rfc-editor.org/rfc/rfc4271", kind: docs }
+              - { label: "Tutorial: Introduction to BGP (NANOG)", url: "https://www.youtube.com/watch?v=mEkzTKjkNVI", kind: video }
+              - { label: "Architecting Robust BGP Routing Policies (NANOG)", url: "https://www.youtube.com/watch?v=_wRvNINnSQg", kind: video }
+              - { label: "RFC 1997: BGP Communities Attribute", url: "https://www.rfc-editor.org/rfc/rfc1997", kind: docs }
+              - { label: "RFC 8092: BGP Large Communities Attribute", url: "https://www.rfc-editor.org/rfc/rfc8092", kind: docs }
+              - { label: "What is BGP? Path attributes and selection (Kentik)", url: "https://www.kentik.com/kentipedia/what-is-bgp-border-gateway-protocol/", kind: article }
+              - { label: "Looking Glass: see real BGP paths (Hurricane Electric)", url: "https://lg.he.net/", kind: tool }
           - id: bgp-hijacks-rpki
             title: Hijacks, route leaks and RPKI
             summary: BGP trusts what neighbours say. Learn how that goes wrong and how RPKI signs who may announce what.
@@ -2687,6 +3423,12 @@ stages:
               - { label: "Is BGP safe yet? (Cloudflare)", url: "https://isbgpsafeyet.com/", kind: tool }
               - { label: "BGP hijacking (Wikipedia)", url: "https://en.wikipedia.org/wiki/BGP_hijacking", kind: article }
               - { label: "Resource Public Key Infrastructure (Wikipedia)", url: "https://en.wikipedia.org/wiki/Resource_Public_Key_Infrastructure", kind: article }
+              - { label: "YouTube hijacking: a RIPE NCC RIS case study (RIPE NCC)", url: "https://www.ripe.net/publications/news/industry-developments/youtube-hijacking-a-ripe-ncc-ris-case-study", kind: article }
+              - { label: "How Verizon and a BGP optimizer knocked large parts of the Internet offline (Cloudflare)", url: "https://blog.cloudflare.com/how-verizon-and-a-bgp-optimizer-knocked-large-parts-of-the-internet-offline-today/", kind: article }
+              - { label: "A brief history of the Internet's biggest BGP incidents (Kentik)", url: "https://www.kentik.com/blog/a-brief-history-of-the-internets-biggest-bgp-incidents/", kind: article }
+              - { label: "RPKI: the required cryptographic upgrade to BGP routing (Cloudflare)", url: "https://blog.cloudflare.com/rpki/", kind: article }
+              - { label: "Mutually Agreed Norms for Routing Security (MANRS)", url: "https://manrs.org/", kind: docs }
+              - { label: "Tutorial: RPKI-Based BGP Origin Validation Workshop (NANOG)", url: "https://www.youtube.com/watch?v=Pxsk5stzJCs", kind: video }
           - id: bgp-rfc
             title: Reading the BGP-4 spec
             optional: true
@@ -2710,6 +3452,12 @@ stages:
               - { label: "RFC 4271: BGP-4", url: "https://www.rfc-editor.org/rfc/rfc4271", kind: docs }
               - { label: "RFC 6811: BGP prefix origin validation", url: "https://www.rfc-editor.org/rfc/rfc6811", kind: docs }
               - { label: "RFC 7454: BGP Operations and Security", url: "https://www.rfc-editor.org/rfc/rfc7454", kind: docs }
+              - { label: "RFC 4760: Multiprotocol Extensions for BGP-4", url: "https://www.rfc-editor.org/rfc/rfc4760", kind: docs }
+              - { label: "RFC 6793: BGP support for four-octet AS numbers", url: "https://www.rfc-editor.org/rfc/rfc6793", kind: docs }
+              - { label: "RFC 7908: Problem definition and classification of BGP route leaks", url: "https://www.rfc-editor.org/rfc/rfc7908", kind: docs }
+              - { label: "RFC 8212: Default EBGP route propagation behavior without policies", url: "https://www.rfc-editor.org/rfc/rfc8212", kind: docs }
+              - { label: "RFC 8205: BGPsec protocol specification", url: "https://www.rfc-editor.org/rfc/rfc8205", kind: docs }
+              - { label: "RFC 9234: Route leak prevention using roles in UPDATE and OPEN", url: "https://www.rfc-editor.org/rfc/rfc9234", kind: docs }
 
       - id: internet-exchange-points
         title: Internet exchange points
@@ -2740,6 +3488,12 @@ stages:
               - { label: "What is an IXP? (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/glossary/internet-exchange-point-ixp/", kind: article }
               - { label: "Internet exchange point (Wikipedia)", url: "https://en.wikipedia.org/wiki/Internet_exchange_point", kind: article }
               - { label: "Internet Exchange Map (TeleGeography)", url: "https://www.internetexchangemap.com/", kind: tool }
+              - { label: "An Introduction to IXPs and Peering (LINX)", url: "https://www.youtube.com/watch?v=hJU3f6Ez52Q", kind: video }
+              - { label: "Internet Exchange Points (Internet Society)", url: "https://www.internetsociety.org/issues/ixps/", kind: article }
+              - { label: "European Internet Exchange Association (Euro-IX)", url: "https://www.euro-ix.net/", kind: docs }
+              - { label: "Internet Exchange Directory (PCH)", url: "https://www.pch.net/ixp/dir", kind: tool }
+              - { label: "PeeringDB: who is present at which IXP", url: "https://www.peeringdb.com/", kind: tool }
+              - { label: "What is an Internet Exchange? (Iron Mountain Data Centers)", url: "https://www.youtube.com/watch?v=gUZF23RC8wM", kind: video }
           - id: public-vs-private-peering
             title: Public vs private peering
             summary: Peering over the shared IXP fabric vs a direct cable between two networks.
@@ -2764,6 +3518,11 @@ stages:
               - { label: "Internet exchange point (Wikipedia)", url: "https://en.wikipedia.org/wiki/Internet_exchange_point", kind: article }
               - { label: "PeeringDB", url: "https://www.peeringdb.com/", kind: tool }
               - { label: "The IXP Database (Euro-IX)", url: "https://ixpdb.euro-ix.net/", kind: tool }
+              - { label: "Tutorial: A Complete Guide To Peering (NANOG)", url: "https://www.youtube.com/watch?v=kJW4OpBI2zI", kind: video }
+              - { label: "RFC 7947: Internet Exchange BGP Route Server", url: "https://www.rfc-editor.org/rfc/rfc7947", kind: docs }
+              - { label: "RFC 7948: Internet Exchange BGP Route Server Operations", url: "https://www.rfc-editor.org/rfc/rfc7948", kind: docs }
+              - { label: "MANRS for IXPs (MANRS)", url: "https://www.manrs.org/ixps/", kind: docs }
+              - { label: "Colocation centre and cross-connects (Wikipedia)", url: "https://en.wikipedia.org/wiki/Colocation_centre", kind: article }
 
       - id: anycast
         title: Anycast
@@ -2793,6 +3552,12 @@ stages:
               - { label: "What is an anycast network? (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/glossary/anycast-network/", kind: article }
               - { label: "Anycast (Wikipedia)", url: "https://en.wikipedia.org/wiki/Anycast", kind: article }
               - { label: "A Brief Primer on Anycast (Cloudflare)", url: "https://blog.cloudflare.com/a-brief-anycast-primer/", kind: article }
+              - { label: "RFC 1546: Host Anycasting Service", url: "https://www.rfc-editor.org/rfc/rfc1546", kind: docs }
+              - { label: "RFC 4786: Operation of Anycast Services", url: "https://www.rfc-editor.org/rfc/rfc4786", kind: docs }
+              - { label: "RFC 7094: Architectural Considerations of IP Anycast", url: "https://www.rfc-editor.org/rfc/rfc7094", kind: docs }
+              - { label: "Unicast (Wikipedia)", url: "https://en.wikipedia.org/wiki/Unicast", kind: article }
+              - { label: "What is BGP Anycast? (NetActuate)", url: "https://www.youtube.com/watch?v=u9S5e71hoWg", kind: video }
+              - { label: "One IP to all servers? Anycast vs Unicast (Piyush Garg)", url: "https://www.youtube.com/watch?v=jIHvQ-236OY", kind: video }
           - id: anycast-in-practice
             title: How DNS and CDNs use anycast
             summary: Root DNS servers, public resolvers and CDNs all use anycast for speed and resilience.
@@ -2819,6 +3584,12 @@ stages:
               - { label: "Cloudflare blog", url: "https://blog.cloudflare.com/", kind: article }
               - { label: "RFC 4786: Operation of Anycast Services", url: "https://www.rfc-editor.org/rfc/rfc4786", kind: docs }
               - { label: "Cloudflare servers don't own IPs anymore (Cloudflare)", url: "https://blog.cloudflare.com/cloudflare-servers-dont-own-ips-anymore/", kind: article }
+              - { label: "Root server instances map (root-servers.org)", url: "https://root-servers.org/", kind: tool }
+              - { label: "Root name server (Wikipedia)", url: "https://en.wikipedia.org/wiki/Root_name_server", kind: article }
+              - { label: "RFC 3258: Distributing authoritative name servers via shared unicast addresses", url: "https://www.rfc-editor.org/rfc/rfc3258", kind: docs }
+              - { label: "RFC 7094: Architectural Considerations of IP Anycast", url: "https://www.rfc-editor.org/rfc/rfc7094", kind: docs }
+              - { label: "Announcing 1.1.1.1 (Cloudflare)", url: "https://blog.cloudflare.com/announcing-1111/", kind: article }
+              - { label: "Google Public DNS FAQ (Google)", url: "https://developers.google.com/speed/public-dns/faq", kind: docs }
 
       - id: ipv6
         title: IPv6 in practice
@@ -2850,6 +3621,12 @@ stages:
               - { label: "IPv6 adoption statistics (Google)", url: "https://www.google.com/intl/en/ipv6/statistics.html", kind: tool }
               - { label: "Dual-stack (Wikipedia)", url: "https://en.wikipedia.org/wiki/Dual-stack", kind: article }
               - { label: "Happy Eyeballs (Wikipedia)", url: "https://en.wikipedia.org/wiki/Happy_Eyeballs", kind: article }
+              - { label: "RFC 4213: Basic transition mechanisms for IPv6 hosts and routers", url: "https://www.rfc-editor.org/rfc/rfc4213", kind: docs }
+              - { label: "RFC 6724: Default address selection for IPv6", url: "https://www.rfc-editor.org/rfc/rfc6724", kind: docs }
+              - { label: "RFC 6555: Happy Eyeballs (v1)", url: "https://www.rfc-editor.org/rfc/rfc6555", kind: docs }
+              - { label: "Test your IPv6 connectivity (test-ipv6.com)", url: "https://test-ipv6.com/", kind: tool }
+              - { label: "IPv6 capability measurement by country (APNIC Labs)", url: "https://stats.labs.apnic.net/ipv6", kind: tool }
+              - { label: "IPv4/IPv6 Dual-Stack on Abilene (NANOG)", url: "https://www.youtube.com/watch?v=dTEjQSViynk", kind: video }
           - id: ipv6-no-nat
             title: No NAT by default
             optional: true
@@ -2876,6 +3653,12 @@ stages:
             resources:
               - { label: "RFC 8200: IPv6", url: "https://www.rfc-editor.org/rfc/rfc8200", kind: docs }
               - { label: "RFC 4890: Recommendations for Filtering ICMPv6 Messages in Firewalls", url: "https://www.rfc-editor.org/rfc/rfc4890", kind: docs }
+              - { label: "RFC 4864: Local Network Protection for IPv6", url: "https://www.rfc-editor.org/rfc/rfc4864", kind: docs }
+              - { label: "RFC 6092: Simple security in IPv6 customer edge equipment", url: "https://www.rfc-editor.org/rfc/rfc6092", kind: docs }
+              - { label: "RFC 7084: Basic requirements for IPv6 customer edge routers", url: "https://www.rfc-editor.org/rfc/rfc7084", kind: docs }
+              - { label: "RFC 8981: Temporary address extensions (privacy addresses)", url: "https://www.rfc-editor.org/rfc/rfc8981", kind: docs }
+              - { label: "SP 800-119: Guidelines for the Secure Deployment of IPv6 (NIST)", url: "https://csrc.nist.gov/pubs/sp/800/119/final", kind: docs }
+              - { label: "IPv6 resources and training (RIPE NCC)", url: "https://www.ripe.net/manage-ips-and-asns/ipv6/", kind: docs }
 
       - id: quic-http3
         title: QUIC and HTTP/3
@@ -2906,6 +3689,11 @@ stages:
               - { label: "Head-of-line blocking (Wikipedia)", url: "https://en.wikipedia.org/wiki/Head-of-line_blocking", kind: article }
               - { label: "RFC 9113: HTTP/2", url: "https://www.rfc-editor.org/rfc/rfc9113", kind: docs }
               - { label: "HTTP/2 (HPBN)", url: "https://hpbn.co/http2/", kind: article }
+              - { label: "Head-of-line blocking in QUIC and HTTP/3: the details (Robin Marx)", url: "https://calendar.perfplanet.com/2020/head-of-line-blocking-in-quic-and-http-3-the-details/", kind: article }
+              - { label: "Building blocks of TCP (High Performance Browser Networking)", url: "https://hpbn.co/building-blocks-of-tcp/", kind: article }
+              - { label: "Introduction to HTTP/2 (web.dev)", url: "https://web.dev/articles/performance-http2", kind: article }
+              - { label: "HTTP/3 explained (Daniel Stenberg)", url: "https://http3-explained.haxx.se/", kind: article }
+              - { label: "HTTP/3 and QUIC: solving transport-layer head-of-line blocking (Last Mile Developer)", url: "https://www.youtube.com/watch?v=XMfprDkkLMU", kind: video }
           - id: quic-streams
             title: How QUIC streams work
             summary: QUIC runs over UDP with independent streams and TLS 1.3 inside the handshake.
@@ -2931,6 +3719,12 @@ stages:
               - { label: "What is HTTP/3? (Cloudflare)", url: "https://www.cloudflare.com/learning/performance/what-is-http3/", kind: article }
               - { label: "RFC 9000: QUIC", url: "https://www.rfc-editor.org/rfc/rfc9000", kind: docs }
               - { label: "The Road to QUIC (Cloudflare)", url: "https://blog.cloudflare.com/the-road-to-quic/", kind: article }
+              - { label: "QUIC Working Group (IETF, quicwg.org)", url: "https://quicwg.org/", kind: docs }
+              - { label: "RFC 9001: Using TLS to Secure QUIC", url: "https://www.rfc-editor.org/rfc/rfc9001", kind: docs }
+              - { label: "RFC 9002: QUIC Loss Detection and Congestion Control", url: "https://www.rfc-editor.org/rfc/rfc9002", kind: docs }
+              - { label: "The Illustrated QUIC Connection (quic.xargs.org)", url: "https://quic.xargs.org/", kind: article }
+              - { label: "QUIC, a multiplexed transport over UDP (Chromium)", url: "https://www.chromium.org/quic/", kind: docs }
+              - { label: "Head-of-line blocking in QUIC and HTTP/3: the details (Robin Marx)", url: "https://calendar.perfplanet.com/2020/head-of-line-blocking-in-quic-and-http-3-the-details/", kind: article }
           - id: connection-migration
             title: Connection migration
             optional: true
@@ -2957,6 +3751,12 @@ stages:
               - { label: "RFC 9114: HTTP/3", url: "https://www.rfc-editor.org/rfc/rfc9114", kind: docs }
               - { label: "HTTP/3: the past, the present, and the future (Cloudflare)", url: "https://blog.cloudflare.com/http3-the-past-present-and-future/", kind: article }
               - { label: "QUIC (Wikipedia)", url: "https://en.wikipedia.org/wiki/QUIC", kind: article }
+              - { label: "RFC 9308: Applicability of the QUIC Transport Protocol", url: "https://www.rfc-editor.org/rfc/rfc9308", kind: docs }
+              - { label: "RFC 9312: Manageability of the QUIC Transport Protocol", url: "https://www.rfc-editor.org/rfc/rfc9312", kind: docs }
+              - { label: "How Facebook is bringing QUIC to billions (Meta Engineering)", url: "https://engineering.fb.com/2020/10/21/networking-traffic/how-facebook-is-bringing-quic-to-billions/", kind: article }
+              - { label: "The QUIC Transport Protocol: Design and Internet-Scale Deployment (Google Research)", url: "https://research.google/pubs/the-quic-transport-protocol-design-and-internet-scale-deployment/", kind: article }
+              - { label: "The Illustrated QUIC Connection (quic.xargs.org)", url: "https://quic.xargs.org/", kind: article }
+              - { label: "HTTP/3 explained (Daniel Stenberg)", url: "https://http3-explained.haxx.se/", kind: article }
 
       - id: ddos
         title: DDoS and how it is stopped
@@ -2988,6 +3788,12 @@ stages:
               - { label: "Denial-of-service attack (Wikipedia)", url: "https://en.wikipedia.org/wiki/Denial-of-service_attack", kind: article }
               - { label: "SYN flood (Wikipedia)", url: "https://en.wikipedia.org/wiki/SYN_flood", kind: article }
               - { label: "DDoS attack coverage (Cloudflare docs)", url: "https://developers.cloudflare.com/ddos-protection/about/attack-coverage/", kind: docs }
+              - { label: "Understanding Denial-of-Service Attacks (CISA)", url: "https://www.cisa.gov/news-events/news/understanding-denial-service-attacks", kind: article }
+              - { label: "UDP-based amplification attacks (CISA)", url: "https://www.cisa.gov/news-events/alerts/2014/01/17/udp-based-amplification-attacks", kind: docs }
+              - { label: "Memcrashed: major amplification attacks from UDP port 11211 (Cloudflare)", url: "https://blog.cloudflare.com/memcrashed-major-amplification-attacks-from-port-11211/", kind: article }
+              - { label: "February 28th DDoS incident report (GitHub)", url: "https://github.blog/news-insights/company-news/ddos-incident-report/", kind: article }
+              - { label: "HTTP/2 Rapid Reset: deconstructing the record-breaking attack (Cloudflare)", url: "https://blog.cloudflare.com/technical-breakdown-http2-rapid-reset-ddos-attack/", kind: article }
+              - { label: "RFC 4987: TCP SYN Flooding Attacks and Common Mitigations", url: "https://www.rfc-editor.org/rfc/rfc4987", kind: docs }
           - id: rate-limiting-and-wafs
             title: Rate limiting and WAFs
             summary: Block and slow abusive traffic before it reaches your app.
@@ -3012,6 +3818,12 @@ stages:
               - Limiting by IP behind a proxy, so everyone shares one limit
               - Turning on blocking rules without testing, which blocks real users
             resources:
+              - { label: "Scaling your API with rate limiters (Stripe)", url: "https://stripe.com/blog/rate-limiters", kind: article }
+              - { label: "Rate limiting with NGINX (NGINX)", url: "https://blog.nginx.org/blog/rate-limiting-nginx", kind: article }
+              - { label: "How we built rate limiting capable of scaling to millions of domains (Cloudflare)", url: "https://blog.cloudflare.com/counting-things-a-lot-of-different-things/", kind: article }
+              - { label: "Token bucket (Wikipedia)", url: "https://en.wikipedia.org/wiki/Token_bucket", kind: article }
+              - { label: "OWASP ModSecurity Core Rule Set (OWASP CRS)", url: "https://coreruleset.org/", kind: tool }
+              - { label: "429 Too Many Requests (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/429", kind: docs }
               - post: aws-waf-cloudfront-solo-dev
               - { label: "What is rate limiting? (Cloudflare)", url: "https://www.cloudflare.com/learning/bots/what-is-rate-limiting/", kind: article }
               - { label: "Rate limiting rules (Cloudflare docs)", url: "https://developers.cloudflare.com/waf/rate-limiting-rules/", kind: docs }
@@ -3041,3 +3853,9 @@ stages:
             resources:
               - { label: "What is an anycast network? (Cloudflare)", url: "https://www.cloudflare.com/learning/cdn/glossary/anycast-network/", kind: article }
               - { label: "A Brief Primer on Anycast (Cloudflare)", url: "https://blog.cloudflare.com/a-brief-anycast-primer/", kind: article }
+              - { label: "Events of 2015-11-30: root servers under DDoS (Root Server Operators)", url: "https://root-servers.org/media/news/events-of-20151130.txt", kind: docs }
+              - { label: "RFC 7094: Architectural Considerations of IP Anycast", url: "https://www.rfc-editor.org/rfc/rfc7094", kind: docs }
+              - { label: "Unmetered mitigation: DDoS protection without limits (Cloudflare)", url: "https://blog.cloudflare.com/unmetered-mitigation/", kind: article }
+              - { label: "Cloudflare thwarts 17.2M rps DDoS attack (Cloudflare)", url: "https://blog.cloudflare.com/cloudflare-thwarts-17-2m-rps-ddos-attack-the-largest-ever-reported/", kind: article }
+              - { label: "How Cloudflare protects network infrastructure with Magic Transit (Cloudflare)", url: "https://www.youtube.com/watch?v=r6k9P55hU5M", kind: video }
+              - { label: "DDoS attack trends (Cloudflare Radar)", url: "https://radar.cloudflare.com/", kind: tool }
