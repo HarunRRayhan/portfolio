@@ -124,7 +124,7 @@ class SiteSeoTest extends TestCase
 
         $list = $graphs('/products')->firstWhere('@type', 'ItemList');
         $this->assertSame(['CloudPloy', 1], [$list['itemListElement'][0]['name'] ?? null, $list['itemListElement'][0]['position'] ?? null]);
-        $this->assertCount(7, $list['itemListElement']);
+        $this->assertCount(9, $list['itemListElement']);
     }
 
     #[Test]
