@@ -70,7 +70,7 @@ class RoadmapController extends Controller
                 'viewCount' => $views[$r['slug']] ?? 0,
                 'discussionCount' => $discussions[$r['slug']] ?? 0,
                 'joinCount' => (int) ($joins[$r['slug']] ?? 0),
-                'buildsOn' => $this->buildsOn($r),
+                'prerequisites' => $this->links($this->repo->prerequisiteSlugs($r)),
                 'updatedAt' => (string) $r['updated'],
                 'art' => $this->art($r),
             ], $this->repo->all()),
@@ -128,7 +128,7 @@ class RoadmapController extends Controller
             : [];
 
         return Inertia::render('Roadmaps/Show', [
-            'roadmap' => ['slug' => $slug, 'title' => $roadmap['title'], 'summary' => $roadmap['summary'], 'buildsOn' => $this->buildsOn($roadmap), 'updatedAt' => (string) $roadmap['updated'], 'art' => $this->art($roadmap)],
+            'roadmap' => ['slug' => $slug, 'title' => $roadmap['title'], 'summary' => $roadmap['summary'], 'prerequisites' => $this->links($this->repo->prerequisiteSlugs($roadmap)), 'successors' => $this->links(array_column($this->repo->successors($slug), 'slug')), 'updatedAt' => (string) $roadmap['updated'], 'art' => $this->art($roadmap)],
             'hasAccount' => (bool) $user,
             'stages' => $stages,
             'hasPaidAccess' => $paid,
@@ -408,12 +408,17 @@ class RoadmapController extends Controller
         return ['icon' => (string) ($roadmap['icon'] ?? 'globe'), 'color' => (string) ($roadmap['color'] ?? 'amber'), 'logos' => array_values($roadmap['logos'] ?? [])];
     }
 
-    /** @return array{slug: string, title: string}|null */
-    private function buildsOn(array $roadmap): ?array
+    /**
+     * @param  list<string>  $slugs
+     * @return list<array{slug: string, title: string, summary: string}>
+     */
+    private function links(array $slugs): array
     {
-        $parent = isset($roadmap['builds_on']) ? $this->repo->find((string) $roadmap['builds_on']) : null;
+        return array_values(array_filter(array_map(function (string $s) {
+            $r = $this->repo->find($s);
 
-        return $parent ? ['slug' => $parent['slug'], 'title' => $parent['title']] : null;
+            return $r ? ['slug' => $r['slug'], 'title' => $r['title'], 'summary' => $r['summary']] : null;
+        }, $slugs)));
     }
 
     /** @return array<string, mixed> */

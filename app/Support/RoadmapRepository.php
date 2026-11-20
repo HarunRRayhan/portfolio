@@ -64,13 +64,30 @@ final class RoadmapRepository
         return $ids;
     }
 
+    /**
+     * Slugs a roadmap builds on. `builds_on` in the YAML is one slug or a list.
+     *
+     * @return list<string>
+     */
+    public function prerequisiteSlugs(array $roadmap): array
+    {
+        return array_values(array_filter(array_map('strval', (array) ($roadmap['builds_on'] ?? []))));
+    }
+
+    /**
+     * Roadmaps that list this one as a prerequisite, in roadmap order.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function successors(string $slug): array
+    {
+        return array_values(array_filter($this->all(), fn (array $r) => in_array($slug, $this->prerequisiteSlugs($r), true)));
+    }
+
     /** Where a topic or lesson went when it moved to a roadmap that builds on this one (ids are kept on a move). */
     public function movedTo(string $slug, string $topicId, ?string $lessonId = null): ?string
     {
-        foreach ($this->all() as $child) {
-            if (($child['builds_on'] ?? null) !== $slug) {
-                continue;
-            }
+        foreach ($this->successors($slug) as $child) {
             if ($lessonId !== null && isset($this->lessonIndex($child)[$lessonId])) {
                 return '/roadmaps/'.$child['slug'].'/'.$this->lessonIndex($child)[$lessonId]['topic'].'/'.$lessonId;
             }

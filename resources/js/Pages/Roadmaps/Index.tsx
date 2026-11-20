@@ -18,7 +18,7 @@ type RoadmapCard = {
   viewCount: number
   discussionCount: number
   joinCount: number
-  buildsOn: { slug: string; title: string } | null
+  prerequisites: { slug: string; title: string }[]
   updatedAt: string
   art: RoadmapArtData
 }
@@ -192,7 +192,7 @@ export default function RoadmapsIndex({ roadmaps, mine, categories }: Props) {
               <RoadmapArt art={r.art} />
               <div className="flex flex-1 flex-col p-6">
               <h2 className="text-2xl font-semibold text-slate-950 dark:text-white">{r.title}</h2>
-              {r.buildsOn && <p className="mt-1 text-xs font-medium uppercase tracking-wider text-amber-700 dark:text-amber-400">Builds on {r.buildsOn.title}</p>}
+              {r.prerequisites.length > 0 && <p className="mt-1 text-xs font-medium uppercase tracking-wider text-amber-700 dark:text-amber-400">Builds on {r.prerequisites.map((p) => p.title).join(' + ')}</p>}
               <p className="mt-2 flex-1 text-slate-600 dark:text-slate-300">{r.summary}</p>
               <div className="mt-6 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-500 dark:text-slate-400">
                 <span>{r.topicCount} topics · {r.lessonCount} lessons · Updated <time dateTime={r.updatedAt}>{formatDate(r.updatedAt)}</time></span>

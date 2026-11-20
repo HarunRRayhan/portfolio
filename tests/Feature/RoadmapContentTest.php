@@ -111,9 +111,9 @@ class RoadmapContentTest extends TestCase
             $this->assertSame('devops', $roadmap['builds_on']);
         }
         foreach ($repo->all() as $roadmap) {
-            if (isset($roadmap['builds_on'])) {
-                $this->assertNotNull($repo->find($roadmap['builds_on']), "{$roadmap['slug']} builds on a missing roadmap");
-                $this->assertNotSame($roadmap['slug'], $roadmap['builds_on']);
+            foreach ($repo->prerequisiteSlugs($roadmap) as $parent) {
+                $this->assertNotNull($repo->find($parent), "{$roadmap['slug']} builds on a missing roadmap");
+                $this->assertNotSame($roadmap['slug'], $parent);
             }
         }
     }
