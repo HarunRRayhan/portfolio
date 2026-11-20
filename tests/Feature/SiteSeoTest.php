@@ -104,7 +104,7 @@ class SiteSeoTest extends TestCase
         $response->assertOk();
 
         $this->assertStringContainsString(
-            'name="description" content="Products built by Harun R. Rayhan - CloudPloy, SkaleAgents, Toolblip, Crontinel, Appnary, Amazing Plugins, and RayStack."',
+            'name="description" content="Products built by Harun R. Rayhan - CloudPloy, OpsAgent, SocialReins, SkaleAgents, Toolblip, Crontinel, Appnary, Amazing Plugins, and RayStack."',
             $response->getContent(),
         );
     }

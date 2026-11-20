@@ -34,6 +34,28 @@ const products: Product[] = [
         backdrop: "bg-[#edf1ff]"
     },
     {
+        id: "opsagent",
+        name: "OpsAgent",
+        url: "https://opsagent.dev",
+        category: "Cloud & AI",
+        tagline: "An ops teammate that never sleeps.",
+        description:
+            "A read-only ops agent for your cloud. A full scan every night, a calm morning briefing, and urgent exposures checked every 15 minutes.",
+        logo: "/images/products/opsagent-icon.svg",
+        backdrop: "bg-[#e8eef6]"
+    },
+    {
+        id: "socialreins",
+        name: "SocialReins",
+        url: "https://socialreins.com",
+        category: "Developer tools",
+        tagline: "Every social account, one set of reins.",
+        description:
+            "Open-source social media manager for Facebook, Instagram, Threads, LinkedIn, Bluesky, X, TikTok, and YouTube. Self-host it free today.",
+        logo: "/images/products/socialreins-icon.svg",
+        backdrop: "bg-[#f3ece8]"
+    },
+    {
         id: "skaleagents",
         name: "SkaleAgents",
         url: "https://skaleagents.com",
@@ -142,6 +164,57 @@ function ProductIllustration({ product }: { product: Product }) {
                             <ArrowUpRight className="h-3 w-3" />
                         </div>
                     </div>
+                </div>
+            )}
+            {product.id === "opsagent" && (
+                <div className="w-full max-w-[340px] rotate-2 rounded-lg border border-slate-300/60 dark:border-slate-700/60 bg-white dark:bg-slate-900 p-4 shadow-[0_12px_35px_-15px_#64748b55]">
+                    <div className="mb-3 flex items-center justify-between font-mono text-[10px] text-slate-500 dark:text-slate-400">
+                        <span>morning briefing</span>
+                        <span>Read-only</span>
+                    </div>
+                    {[
+                        ["Nightly scan", "Done"],
+                        ["Exposure check", "Every 15 min"],
+                        ["Open findings", "3"]
+                    ].map(([label, value]) => (
+                        <div
+                            key={label}
+                            className="flex items-center gap-3 border-t border-slate-100 dark:border-slate-800 py-2.5 text-[11px] text-slate-600 dark:text-slate-300"
+                        >
+                            <Check className="h-3 w-3 text-emerald-700 dark:text-emerald-300" />
+                            <span>{label}</span>
+                            <span className="ml-auto font-mono text-[10px] text-slate-400">
+                                {value}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            )}
+            {product.id === "socialreins" && (
+                <div className="flex max-w-[340px] -rotate-3 flex-wrap justify-center gap-2.5">
+                    {[
+                        "Instagram",
+                        "Threads",
+                        "LinkedIn",
+                        "Bluesky",
+                        "X",
+                        "TikTok",
+                        "YouTube"
+                    ].map((network, index) => (
+                        <span
+                            key={network}
+                            className={cn(
+                                "rounded-full border border-black/10 px-3 py-1.5 text-[11px] shadow-[0_6px_12px_-8px_#64748b55]",
+                                [
+                                    "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200",
+                                    "bg-[#fcf7e9] text-amber-800 dark:text-amber-300",
+                                    "bg-[#f0eafa] text-purple-800 dark:text-purple-300"
+                                ][index % 3]
+                            )}
+                        >
+                            {network}
+                        </span>
+                    ))}
                 </div>
             )}
             {product.id === "skaleagents" && (
