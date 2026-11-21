@@ -136,13 +136,6 @@ Schedule::command('newsletter:send-weekly')
     ->withoutOverlapping()
     ->onOneServer();
 
-// Saturday morning, so the week's progress arrives when people have time to learn.
-Schedule::command('roadmaps:send-progress')
-    ->weeklyOn(6, '10:00')
-    ->timezone(config('newsletter.schedule.timezone'))
-    ->withoutOverlapping()
-    ->onOneServer();
-
 Schedule::command('sponsors:remind-expiring')
     ->dailyAt('09:00')
     ->withoutOverlapping()

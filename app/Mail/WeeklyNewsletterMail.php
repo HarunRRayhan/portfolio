@@ -4,7 +4,9 @@ namespace App\Mail;
 
 use App\Models\NewsletterDelivery;
 use App\Models\Subscriber;
+use App\Models\User;
 use App\Support\NewsletterIssue;
+use App\Support\RoadmapDigest;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -35,10 +37,27 @@ class WeeklyNewsletterMail extends Mailable
         return $this->roadmaps ??= app(NewsletterIssue::class)->recentRoadmaps(now())->all();
     }
 
+    /** This reader's own roadmap week, when the subscriber is a signed-up learner with an unfinished roadmap. */
+    private function roadmapProgress(): ?array
+    {
+        if (! $this->subscriber) {
+            return null;
+        }
+        $user = User::query()->whereNotNull('email_verified_at')->whereRaw('lower(email) = ?', [strtolower($this->subscriber->email)])->first();
+
+        return $user ? app(RoadmapDigest::class)->for($user, now(config('newsletter.schedule.timezone'))) : null;
+    }
+
     public function build()
     {
+        $appUrl = rtrim(config('app.url'), '/');
+        $progress = $this->roadmapProgress();
+
         return $this->subject($this->subjectLine())
             ->view('emails.newsletter.weekly', [
+                'progress' => $progress,
+                'roadmapsUrl' => $appUrl.'/roadmaps',
+                'leaderboardUrl' => $appUrl.'/leaderboard',
                 'posts' => $this->posts,
                 'products' => $this->products,
                 'tweets' => $this->tweets,
@@ -49,6 +68,9 @@ class WeeklyNewsletterMail extends Mailable
                 'openPixelUrl' => $this->delivery ? URL::signedRoute('newsletter.open', ['delivery' => $this->delivery->getKey()]) : null,
             ])
             ->text('emails.newsletter.weekly-text', [
+                'progress' => $progress,
+                'roadmapsUrl' => $appUrl.'/roadmaps',
+                'leaderboardUrl' => $appUrl.'/leaderboard',
                 'posts' => $this->posts,
                 'products' => $this->products,
                 'tweets' => $this->tweets,
