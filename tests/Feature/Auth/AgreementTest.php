@@ -105,6 +105,16 @@ class AgreementTest extends TestCase
         $this->actingAs($user)->get('/roadmaps')->assertInertia(fn ($p) => $p->where('newsletter.accountSubscribed', true));
     }
 
+    public function test_account_unsubscribe_stops_the_newsletter(): void
+    {
+        $user = User::factory()->create(['email' => 'leave@example.com']);
+        Subscriber::create(['email' => 'LEAVE@example.com', 'status' => 'subscribed', 'source' => 'welcome']);
+
+        $this->actingAs($user)->delete(route('newsletter.account.unsubscribe'))->assertRedirect();
+
+        $this->assertFalse(Subscriber::isSubscribed('leave@example.com'));
+    }
+
     public function test_account_subscribe_needs_a_verified_signed_in_user(): void
     {
         $this->post(route('newsletter.account'))->assertRedirect('/login');

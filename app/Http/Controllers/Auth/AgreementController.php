@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Subscriber;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -49,6 +50,15 @@ class AgreementController extends Controller
         if ($user->email_verified_at && $user->email) {
             Subscriber::subscribeVerified($user->email, 'signup-offer');
         }
+
+        return back();
+    }
+
+    /** Profile switch: stops the weekly newsletter (and the roadmap progress inside it) for the account email. */
+    public function unsubscribe(Request $request): RedirectResponse
+    {
+        Subscriber::whereRaw('lower(email) = ?', [strtolower((string) $request->user()->email)])->update(['status' => 'unsubscribed']);
+        Cache::forget('newsletter.subscriber_count');
 
         return back();
     }
