@@ -50,10 +50,13 @@ export function SubscribeForm({
       { email, source, referrer: document.referrer || null, website },
       {
         preserveScroll: true,
-        onSuccess: () => {
+        onSuccess: (page) => {
           setIsSubmitting(false)
           setEmail('')
-          toast.success('Check your inbox to confirm.')
+          // Signed-in verified members are subscribed at once, so the server's flash says which case happened.
+          const flash = (page.props as { flash?: { type?: string; message?: string } }).flash
+          if (flash?.type === 'error') toast.error(flash.message ?? 'Something went wrong. Please try again.')
+          else toast.success(flash?.message ?? 'Check your inbox to confirm.')
           onSuccess?.()
         },
         onError: (errors: Record<string, string>) => {

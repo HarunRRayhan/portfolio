@@ -19,6 +19,16 @@ class NewsletterController extends Controller
                 return redirect()->back()->with('flash', ['type' => 'success', 'message' => 'Check your inbox to confirm your subscription.']);
             }
 
+            // A signed-in, verified member subscribing their own address already proved ownership: no confirm mail.
+            // A guest typing a member's address still confirms, since the form can't tell who is typing.
+            $user = $request->user();
+            if ($user?->email_verified_at && strcasecmp(trim((string) $user->email), trim($request->email)) === 0) {
+                Subscriber::subscribeVerified($user->email, $request->source ?? 'account');
+                Cache::forget('newsletter.subscriber_count');
+
+                return redirect()->back()->with('flash', ['type' => 'success', 'message' => "You're subscribed. The next issue lands in your inbox."]);
+            }
+
             // Same reply whether or not a mail went out, so the form can't be used to probe addresses.
             Subscriber::requestConfirmation($request->email, $request->source, $request->referrer);
 
