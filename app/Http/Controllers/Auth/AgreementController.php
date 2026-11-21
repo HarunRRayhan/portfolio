@@ -57,8 +57,12 @@ class AgreementController extends Controller
     /** Profile switch: stops the weekly newsletter (and the roadmap progress inside it) for the account email. */
     public function unsubscribe(Request $request): RedirectResponse
     {
-        Subscriber::whereRaw('lower(email) = ?', [strtolower((string) $request->user()->email)])->update(['status' => 'unsubscribed']);
-        Cache::forget('newsletter.subscriber_count');
+        $user = $request->user();
+        // Only a verified owner may unsubscribe the address; an unverified account could hold someone else's email.
+        if ($user->email_verified_at && $user->email) {
+            Subscriber::whereRaw('lower(email) = ?', [strtolower($user->email)])->update(['status' => 'unsubscribed']);
+            Cache::forget('newsletter.subscriber_count');
+        }
 
         return back();
     }

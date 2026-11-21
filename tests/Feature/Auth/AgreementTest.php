@@ -113,6 +113,10 @@ class AgreementTest extends TestCase
         $this->actingAs($user)->delete(route('newsletter.account.unsubscribe'))->assertRedirect();
 
         $this->assertFalse(Subscriber::isSubscribed('leave@example.com'));
+
+        Subscriber::create(['email' => 'victim@example.com', 'status' => 'subscribed', 'source' => 'footer']);
+        $this->actingAs(User::factory()->unverified()->create(['email' => 'victim@example.com']))->delete(route('newsletter.account.unsubscribe'));
+        $this->assertTrue(Subscriber::isSubscribed('victim@example.com'));
     }
 
     public function test_account_subscribe_needs_a_verified_signed_in_user(): void
