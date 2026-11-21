@@ -154,12 +154,14 @@ test('a new account must agree to the terms once before using account pages', as
   const skip = page.getByRole('button', { name: 'Skip passkey' })
   await expect(skip).toBeDisabled()
   await page.getByRole('checkbox', { name: /I agree to the/ }).check()
+  const newsletter = page.getByRole('checkbox', { name: /weekly newsletter/ })
+  await expect(newsletter).not.toBeChecked() // opt-in, never pre-ticked
+  await newsletter.check()
   await skip.click()
   await expect(page).toHaveURL(/\/blog$/)
-  await expect(page.getByRole('dialog', { name: 'Get the weekly newsletter?' })).toBeVisible()
-  await page.getByRole('button', { name: 'No thanks' }).click()
-  await expect(page.getByRole('dialog', { name: 'Get the weekly newsletter?' })).toHaveCount(0)
+  await expect(page.getByRole('dialog', { name: 'Get the weekly newsletter?' })).toHaveCount(0) // the box replaced the popup
 
   await page.goto('/profile')
   await expect(page).toHaveURL(/\/profile$/)
+  await expect(page.getByRole('button', { name: 'Unsubscribe' })).toBeVisible()
 })
