@@ -11,9 +11,16 @@ import { FormEventHandler, useState } from "react";
 
 // Shown once per account: agreeing is required, the passkey is optional.
 // Where to go next is held server-side and applied on accept.
-export default function Welcome({ hasPasskey }: { hasPasskey: boolean }) {
+export default function Welcome({
+    hasPasskey,
+    subscribed,
+}: {
+    hasPasskey: boolean;
+    subscribed: boolean;
+}) {
     const { data, setData, post, processing, errors } = useForm({
         terms: false,
+        newsletter: false,
     });
     const [busy, setBusy] = useState(false);
     const [passkeyError, setPasskeyError] = useState<string | null>(null);
@@ -97,6 +104,22 @@ export default function Welcome({ hasPasskey }: { hasPasskey: boolean }) {
                 </span>
             </label>
             <InputError message={errors.terms} className="mt-2" />
+
+            {!subscribed && (
+                <label className="mt-3 flex items-start gap-3 text-sm text-gray-700">
+                    <Checkbox
+                        name="newsletter"
+                        className="mt-0.5"
+                        checked={data.newsletter}
+                        onChange={(e) => setData("newsletter", e.target.checked)}
+                    />
+                    <span>
+                        Send me the weekly newsletter: new posts, roadmap
+                        updates and my roadmap progress. One email a week,
+                        unsubscribe anytime.
+                    </span>
+                </label>
+            )}
 
             {hasPasskey ? (
                 <div className="mt-6">

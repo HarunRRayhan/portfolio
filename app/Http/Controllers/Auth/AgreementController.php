@@ -23,6 +23,7 @@ class AgreementController extends Controller
 
         return Inertia::render('Auth/Welcome', [
             'hasPasskey' => $request->user()->passkeys()->exists(),
+            'subscribed' => (bool) ($request->user()->email && Subscriber::isSubscribed($request->user()->email)),
         ]);
     }
 
@@ -33,9 +34,9 @@ class AgreementController extends Controller
         $user = $request->user();
         $user->forceFill(['terms_accepted_at' => now()])->save();
 
-        // Offer the newsletter once, on the first page after this step (pulled by HandleInertiaRequests).
-        if ($user->email && ! Subscriber::isSubscribed($user->email)) {
-            $request->session()->put(self::NEWSLETTER_OFFER_KEY, true);
+        // The unticked newsletter box on this screen is the sign-up offer; no follow-up popup either way.
+        if ($request->boolean('newsletter') && $user->email_verified_at && $user->email) {
+            Subscriber::subscribeVerified($user->email, 'welcome');
         }
 
         return $this->continue($request);
