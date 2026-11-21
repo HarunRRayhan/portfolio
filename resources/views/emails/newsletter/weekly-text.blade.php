@@ -1,13 +1,34 @@
 This week on Harun.dev
 
-New notes from the blog, plus a couple of things I’m building.
+New notes from the blog, your roadmap week, and what I’m building.
 
 @if(isset($products[0]))
-{{ $products[0]['name'] }}
+Sponsor: {{ $products[0]['name'] }}
 {{ $products[0]['description'] }}
 {!! $track($products[0]['url']) !!}
 
 @endif
+Your roadmap week
+
+@if($progress)
+@if($progress['idle'])
+You have not finished a lesson this week. Pick up where you stopped, one lesson is enough.
+@else
+You finished {{ $progress['lessonsWeek'] }} lesson{{ $progress['lessonsWeek'] === 1 ? '' : 's' }} and earned {{ $progress['xpWeek'] }} XP. You have {{ $progress['xpTotal'] }} XP in total.
+@endif
+
+@foreach($progress['roadmaps'] as $r)
+{{ $r['title'] }}: {{ $r['done'] }} of {{ $r['total'] }} lessons ({{ $r['percent'] }}%)
+Next: {{ $r['next']['title'] }}
+{!! $track($r['next']['url']) !!}
+
+@endforeach
+Leaderboard: {!! $track($leaderboardUrl) !!}
+@else
+Follow a free roadmap on Harun.dev and this email will carry your weekly progress and your next lesson. No extra emails.
+{!! $track($roadmapsUrl) !!}
+@endif
+
 @foreach($posts as $post)
 {{ $post['title'] }}
 {{ $post['newsletterExcerpt'] ?? $post['brief'] }}
@@ -15,7 +36,7 @@ New notes from the blog, plus a couple of things I’m building.
 {!! $track($post['canonicalUrl']) !!}
 
 @if($loop->first && isset($products[1]))
-{{ $products[1]['name'] }}
+Also sponsoring this issue: {{ $products[1]['name'] }}
 {{ $products[1]['description'] }}
 {!! $track($products[1]['url']) !!}
 

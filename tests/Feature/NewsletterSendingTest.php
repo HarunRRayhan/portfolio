@@ -103,7 +103,8 @@ class NewsletterSendingTest extends TestCase
         $keys = collect($campaign->products)->pluck('key')->all();
         $this->assertCount(2, $keys);
         $this->assertCount(2, array_unique($keys));
-        $this->assertEmpty(array_intersect(['toolblip', 'cloudploy'], $keys));
+        $this->assertSame('cloudploy', $keys[0]);
+        $this->assertNotSame('toolblip', $keys[1]);
         Mail::assertSent(
             WeeklyNewsletterMail::class,
             fn (WeeklyNewsletterMail $mail): bool => collect($mail->products)->pluck('key')->all() === $keys,
@@ -128,26 +129,30 @@ class NewsletterSendingTest extends TestCase
         $this->artisan('newsletter:send-weekly')->assertSuccessful();
 
         $campaign = NewsletterCampaign::query()->where('key', '2026-W40')->firstOrFail();
-        $keys = collect($campaign->products)->pluck('key')->sort()->values()->all();
-        $this->assertSame(['amazingplugins', 'appnary'], $keys);
-        $this->assertStringContainsString('Amazing Plugins', $campaign->html);
+        $keys = collect($campaign->products)->pluck('key')->all();
+        $this->assertSame('cloudploy', $keys[0]);
+        $this->assertContains($keys[1], ['amazingplugins', 'appnary']);
+        $this->assertStringContainsString('CloudPloy', $campaign->html);
     }
 
     #[Test]
-    public function products_rotate_evenly_without_repeating_last_week(): void
+    public function cloudploy_is_pinned_and_the_second_product_rotates_evenly(): void
     {
         $issue = app(NewsletterIssue::class);
-        $previous = [];
+        $previous = null;
 
-        for ($week = 1; $week <= 10; $week++) {
+        for ($week = 1; $week <= 8; $week++) {
             $keys = collect($issue->chooseProducts())->pluck('key')->all();
-            $this->assertEmpty(array_intersect($previous, $keys), "Week {$week} repeated last week's product.");
+            $this->assertSame('cloudploy', $keys[0]);
+            $this->assertCount(2, $keys);
+            $this->assertNotSame($previous, $keys[1], "Week {$week} repeated last week's product.");
             NewsletterCampaign::query()->create(['key' => "2025-W{$week}", 'post_slugs' => [], 'subject' => 'Week', 'products' => collect(config('newsletter.products'))->whereIn('key', $keys)->values()->all()]);
-            $previous = $keys;
+            $previous = $keys[1];
         }
 
-        $counts = NewsletterCampaign::query()->pluck('products')->flatten(1)->countBy('key')->unique()->all();
-        $this->assertSame([4], array_values($counts));
+        $counts = NewsletterCampaign::query()->pluck('products')->flatten(1)->countBy('key');
+        $this->assertSame(8, $counts->pull('cloudploy'));
+        $this->assertSame([2], $counts->unique()->values()->all());
     }
 
     #[Test]
@@ -266,7 +271,7 @@ class NewsletterSendingTest extends TestCase
         $this->assertStringContainsString('A note from X about cron jobs.', $html);
         $this->assertStringContainsString('https://harun.dev/images/brand/harun-logo-email.png', $html);
         $this->assertTrue(strpos($html, 'harun-logo-email.png') < strpos($html, 'class="newsletter"'));
-        $this->assertTrue(strpos($html, 'Also building') < strpos($html, 'A note from X about cron jobs.'));
+        $this->assertTrue(strpos($html, 'Also sponsoring this issue') < strpos($html, 'A note from X about cron jobs.'));
         $this->assertTrue(strpos($html, 'A note from X about cron jobs.') < strpos($html, 'Thanks for reading'));
         $this->assertStringContainsString('Browse the blog', $html);
         $this->assertStringNotContainsString('padding:10px 14px', $html);

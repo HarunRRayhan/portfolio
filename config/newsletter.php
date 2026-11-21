@@ -9,6 +9,9 @@ return [
         'timezone' => env('NEWSLETTER_TIMEZONE', 'America/New_York'),
     ],
 
+    // Shown at the top of every issue; the second product slot rotates through the rest.
+    'pinned_product' => 'cloudploy',
+
     'products' => [
         ['key' => 'toolblip', 'name' => 'Toolblip', 'url' => 'https://toolblip.com', 'logoUrl' => 'https://harun.dev/images/products/toolblip-email.png', 'description' => 'Developer tools that run in your browser, with no signup.'],
         ['key' => 'cloudploy', 'name' => 'CloudPloy', 'url' => 'https://cloudploy.com', 'logoUrl' => 'https://harun.dev/images/products/cloudploy-email.png', 'description' => 'Deploy apps from Claude Code, Cursor, or any MCP client to a server you own or provision.'],

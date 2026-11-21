@@ -19,13 +19,13 @@
         <table role="presentation" class="newsletter" cellpadding="0" cellspacing="0" width="720" style="width:720px;max-width:100%;background:#ffffff;border:1px solid #dce2e8;">
             <tr><td class="inset" style="padding:38px 42px 20px;">
                 <h1 style="margin:0 0 12px;color:#17212e;font-size:32px;line-height:1.2;">This week on Harun.dev</h1>
-                <p style="margin:0;color:#516071;font-size:16px;line-height:1.6;">New notes from the blog, plus a couple of things I’m building.</p>
+                <p style="margin:0;color:#516071;font-size:16px;line-height:1.6;">New notes from the blog, your roadmap week, and what I’m building.</p>
             </td></tr>
             @if(isset($products[0]))
             <tr><td class="inset" style="padding:20px 42px 24px;">
                 <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#edf4fa;border-left:3px solid #28679a;">
                     <tr><td style="padding:22px 24px;">
-                        <p style="margin:0 0 8px;color:#35617e;font-size:13px;font-weight:700;">From my desk</p>
+                        <p style="margin:0 0 8px;color:#35617e;font-size:13px;font-weight:700;">Sponsor</p>
                         <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 12px;"><tr>
                             @if(!empty($products[0]['logoUrl']))
                             <td width="64" style="width:64px;vertical-align:middle;"><a href="{{ $track($products[0]['url']) }}"><img src="{{ $products[0]['logoUrl'] }}" alt="{{ $products[0]['name'] }} logo" width="52" height="52" style="display:block;width:52px;height:52px;border:0;border-radius:10px;"></a></td>
@@ -38,6 +38,35 @@
                 </table>
             </td></tr>
             @endif
+            <tr><td class="inset" style="padding:20px 42px 24px;border-bottom:1px solid #e3e8ed;">
+                <h2 style="margin:0 0 10px;color:#17212e;font-size:22px;line-height:1.3;">Your roadmap week</h2>
+                @if($progress)
+                <p style="margin:0 0 14px;color:#34485a;font-size:15px;line-height:1.6;">
+                    @if($progress['idle'])
+                        You have not finished a lesson this week. Pick up where you stopped, one lesson is enough.
+                    @else
+                        You finished {{ $progress['lessonsWeek'] }} lesson{{ $progress['lessonsWeek'] === 1 ? '' : 's' }} and earned {{ $progress['xpWeek'] }} XP. You have {{ $progress['xpTotal'] }} XP in total.
+                    @endif
+                </p>
+                @foreach($progress['roadmaps'] as $r)
+                <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 12px;background:#f5f7f9;border-left:3px solid #f59e0b;">
+                    <tr><td style="padding:16px 20px;">
+                        <h3 style="margin:0 0 6px;font-size:18px;"><a href="{{ $track($r['url']) }}" style="color:#173c5c;text-decoration:none;">{{ $r['title'] }}</a></h3>
+                        <p style="margin:0 0 10px;color:#516071;font-size:14px;">{{ $r['done'] }} of {{ $r['total'] }} lessons, {{ $r['percent'] }}%</p>
+                        <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:0 0 12px;"><tr>
+                            <td width="{{ max($r['percent'], 2) }}%" style="background:#f59e0b;height:6px;font-size:0;line-height:0;">&nbsp;</td>
+                            <td style="background:#dce2e8;height:6px;font-size:0;line-height:0;">&nbsp;</td>
+                        </tr></table>
+                        <p style="margin:0;font-size:15px;">Next: <a href="{{ $track($r['next']['url']) }}" style="color:#145583;font-weight:700;">{{ $r['next']['title'] }}</a></p>
+                    </td></tr>
+                </table>
+                @endforeach
+                <a href="{{ $track($leaderboardUrl) }}" style="color:#145583;font-size:14px;font-weight:700;">See the leaderboard</a>
+                @else
+                <p style="margin:0 0 12px;color:#34485a;font-size:15px;line-height:1.6;">Follow a free roadmap on Harun.dev and this email will carry your weekly progress and your next lesson. No extra emails.</p>
+                <a href="{{ $track($roadmapsUrl) }}" style="color:#145583;font-size:15px;font-weight:700;">Start a roadmap</a>
+                @endif
+            </td></tr>
             @foreach($posts as $post)
             <tr><td class="inset" style="padding:20px 42px 28px;border-bottom:1px solid #e3e8ed;">
                 @if(!empty($post['coverImageUrl']))
@@ -52,7 +81,7 @@
             <tr><td class="inset" style="padding:26px 42px 20px;">
                 <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f5f7f9;border-left:3px solid #8396a9;">
                     <tr><td style="padding:22px 24px;">
-                        <p style="margin:0 0 8px;color:#516071;font-size:13px;font-weight:700;">Also building</p>
+                        <p style="margin:0 0 8px;color:#516071;font-size:13px;font-weight:700;">Also sponsoring this issue</p>
                         <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 12px;"><tr>
                             @if(!empty($products[1]['logoUrl']))
                             <td width="64" style="width:64px;vertical-align:middle;"><a href="{{ $track($products[1]['url']) }}"><img src="{{ $products[1]['logoUrl'] }}" alt="{{ $products[1]['name'] }} logo" width="52" height="52" style="display:block;width:52px;height:52px;border:0;border-radius:10px;"></a></td>
