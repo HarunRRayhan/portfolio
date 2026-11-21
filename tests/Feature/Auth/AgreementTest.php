@@ -54,15 +54,32 @@ class AgreementTest extends TestCase
         $this->assertNotNull($user->fresh()->terms_accepted_at);
     }
 
-    public function test_agreeing_offers_the_newsletter_once_on_the_next_page(): void
+    public function test_agreeing_without_the_newsletter_box_subscribes_nothing_and_skips_the_popup(): void
     {
         $user = User::factory()->create(['terms_accepted_at' => null]);
 
         $this->actingAs($user)->post(route('agreement.accept'), ['terms' => true])->assertRedirect();
-        $this->assertSame(0, Subscriber::count());
 
-        $this->actingAs($user)->get('/roadmaps')->assertInertia(fn ($p) => $p->where('newsletter.offerAfterSignup', true));
+        $this->assertSame(0, Subscriber::count());
         $this->actingAs($user)->get('/roadmaps')->assertInertia(fn ($p) => $p->where('newsletter.offerAfterSignup', false));
+    }
+
+    public function test_ticking_the_newsletter_box_subscribes_the_verified_email(): void
+    {
+        $user = User::factory()->create(['terms_accepted_at' => null, 'email' => 'tick@example.com']);
+
+        $this->actingAs($user)->post(route('agreement.accept'), ['terms' => true, 'newsletter' => true])->assertRedirect();
+
+        $this->assertTrue(Subscriber::isSubscribed('tick@example.com'));
+    }
+
+    public function test_an_unverified_account_is_not_subscribed_from_the_box(): void
+    {
+        $user = User::factory()->unverified()->create(['terms_accepted_at' => null]);
+
+        $this->actingAs($user)->post(route('agreement.accept'), ['terms' => true, 'newsletter' => true]);
+
+        $this->assertSame(0, Subscriber::count());
     }
 
     public function test_no_offer_when_the_account_email_is_already_subscribed(): void
@@ -86,6 +103,20 @@ class AgreementTest extends TestCase
         $subscriber = Subscriber::whereRaw('lower(email) = ?', ['new@example.com'])->first();
         $this->assertSame('subscribed', $subscriber->status);
         $this->actingAs($user)->get('/roadmaps')->assertInertia(fn ($p) => $p->where('newsletter.accountSubscribed', true));
+    }
+
+    public function test_account_unsubscribe_stops_the_newsletter(): void
+    {
+        $user = User::factory()->create(['email' => 'leave@example.com']);
+        Subscriber::create(['email' => 'LEAVE@example.com', 'status' => 'subscribed', 'source' => 'welcome']);
+
+        $this->actingAs($user)->delete(route('newsletter.account.unsubscribe'))->assertRedirect();
+
+        $this->assertFalse(Subscriber::isSubscribed('leave@example.com'));
+
+        Subscriber::create(['email' => 'victim@example.com', 'status' => 'subscribed', 'source' => 'footer']);
+        $this->actingAs(User::factory()->unverified()->create(['email' => 'victim@example.com']))->delete(route('newsletter.account.unsubscribe'));
+        $this->assertTrue(Subscriber::isSubscribed('victim@example.com'));
     }
 
     public function test_account_subscribe_needs_a_verified_signed_in_user(): void

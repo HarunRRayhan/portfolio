@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Subscriber;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -23,6 +24,7 @@ class AgreementController extends Controller
 
         return Inertia::render('Auth/Welcome', [
             'hasPasskey' => $request->user()->passkeys()->exists(),
+            'subscribed' => (bool) ($request->user()->email && Subscriber::isSubscribed($request->user()->email)),
         ]);
     }
 
@@ -33,9 +35,9 @@ class AgreementController extends Controller
         $user = $request->user();
         $user->forceFill(['terms_accepted_at' => now()])->save();
 
-        // Offer the newsletter once, on the first page after this step (pulled by HandleInertiaRequests).
-        if ($user->email && ! Subscriber::isSubscribed($user->email)) {
-            $request->session()->put(self::NEWSLETTER_OFFER_KEY, true);
+        // The unticked newsletter box on this screen is the sign-up offer; no follow-up popup either way.
+        if ($request->boolean('newsletter') && $user->email_verified_at && $user->email) {
+            Subscriber::subscribeVerified($user->email, 'welcome');
         }
 
         return $this->continue($request);
@@ -47,6 +49,19 @@ class AgreementController extends Controller
         $user = $request->user();
         if ($user->email_verified_at && $user->email) {
             Subscriber::subscribeVerified($user->email, 'signup-offer');
+        }
+
+        return back();
+    }
+
+    /** Profile switch: stops the weekly newsletter (and the roadmap progress inside it) for the account email. */
+    public function unsubscribe(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        // Only a verified owner may unsubscribe the address; an unverified account could hold someone else's email.
+        if ($user->email_verified_at && $user->email) {
+            Subscriber::whereRaw('lower(email) = ?', [strtolower($user->email)])->update(['status' => 'unsubscribed']);
+            Cache::forget('newsletter.subscriber_count');
         }
 
         return back();

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Mail\SubscribeConfirmationMail;
 use App\Models\Subscriber;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -266,5 +267,40 @@ class SubscriberTest extends TestCase
         $shared = app(HandleInertiaRequests::class)->share(Request::create('/'));
 
         $this->assertSame(2, ($shared['newsletter']['subscriberCount'])());
+    }
+
+    #[Test]
+    public function a_signed_in_verified_member_is_subscribed_without_a_confirm_mail()
+    {
+        $user = User::factory()->create(['email' => 'member@example.com']);
+
+        $this->actingAs($user)->post('/subscribe', ['email' => 'Member@Example.com', 'source' => 'footer'])
+            ->assertSessionHas('flash.type', 'success');
+
+        $this->assertTrue(Subscriber::isSubscribed('member@example.com'));
+        Mail::assertNothingSent();
+    }
+
+    #[Test]
+    public function a_member_address_still_needs_confirming_from_a_guest_or_another_account()
+    {
+        User::factory()->create(['email' => 'member@example.com']);
+
+        $this->post('/subscribe', ['email' => 'member@example.com']);
+        $this->actingAs(User::factory()->create())->post('/subscribe', ['email' => 'member@example.com']);
+
+        $this->assertFalse(Subscriber::isSubscribed('member@example.com'));
+        Mail::assertSent(SubscribeConfirmationMail::class, 2);
+    }
+
+    #[Test]
+    public function an_unverified_member_still_gets_the_confirm_mail()
+    {
+        $user = User::factory()->unverified()->create(['email' => 'new@example.com']);
+
+        $this->actingAs($user)->post('/subscribe', ['email' => 'new@example.com']);
+
+        $this->assertFalse(Subscriber::isSubscribed('new@example.com'));
+        Mail::assertSent(SubscribeConfirmationMail::class);
     }
 }

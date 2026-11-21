@@ -664,6 +664,10 @@ Route::post('/newsletter/account', [AgreementController::class, 'subscribe'])
     ->middleware(['auth', 'throttle:10,1'])
     ->name('newsletter.account');
 
+Route::delete('/newsletter/account', [AgreementController::class, 'unsubscribe'])
+    ->middleware(['auth', 'throttle:10,1'])
+    ->name('newsletter.account.unsubscribe');
+
 Route::get('/newsletter/confirm/{subscriber}', [NewsletterController::class, 'confirm'])
     ->where('subscriber', '[0-9]+')
     ->middleware(['signed', 'throttle:30,1'])
