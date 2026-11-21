@@ -45,7 +45,7 @@ const products: Product[] = [
             "A read-only ops agent for your cloud. A full scan every night, a calm morning briefing, and urgent exposures checked every 15 minutes.",
         logo: "/images/products/opsagent-icon.svg",
         backdrop: "bg-[#e8eef6]",
-        status: "In development"
+        status: "MVP released"
     },
     {
         id: "socialreins",
