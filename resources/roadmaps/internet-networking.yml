@@ -3,7 +3,9 @@ title: How the Internet Works
 summary: A plain-language tour of the internet for everyone, no technical background needed. Cables under the sea, satellites, addresses, DNS, websites and the networks that hold it all together.
 order: 1
 category: foundations
-updated: '2026-11-20'
+updated: '2026-11-23'
+# Fully free: every level opens without sponsoring. The internet basics are for everyone.
+free: true
 icon: globe
 color: sky
 logos:
@@ -2374,9 +2376,6 @@ stages:
               - { label: "Cache-Control header (MDN)", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control", kind: docs }
               - { label: "CloudFront caching behaviors: cache keys, TTL and Origin Shield (CloudWolf AWS)", url: "https://www.youtube.com/watch?v=rrpREiIAcHE", kind: video }
 
-  - level: advanced
-    title: How the internet holds together
-    topics:
       - id: autonomous-systems
         title: Autonomous systems
         summary: The internet is about 100,000 networks, each run by someone, each with its own number.

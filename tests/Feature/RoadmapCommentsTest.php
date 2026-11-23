@@ -134,10 +134,10 @@ class RoadmapCommentsTest extends TestCase
 
     public function test_paid_topic_comments_need_access(): void
     {
-        $roadmap = (new RoadmapRepository)->find('internet-networking');
+        $roadmap = (new RoadmapRepository)->find('networking');
         $topic = $roadmap['stages'][1]['topics'][0];
         $lesson = $topic['lessons'][0]['id'];
-        $base = "/roadmaps/internet-networking/{$topic['id']}";
+        $base = "/roadmaps/networking/{$topic['id']}";
         $free = User::factory()->create(['email' => 'free@example.com']);
 
         $this->actingAs($free)->post("{$base}/comments", ['content' => 'Hi'])->assertForbidden();
@@ -148,7 +148,7 @@ class RoadmapCommentsTest extends TestCase
         $this->actingAs($sponsor)->post("{$base}/{$lesson}/comments", ['content' => 'Paid tip'])->assertRedirect();
 
         $this->actingAs($sponsor)->get("{$base}/{$lesson}")->assertInertia(fn ($p) => $p->where('comments.0.content', 'Paid tip'));
-        $this->actingAs($free)->get("{$base}/{$lesson}")->assertRedirect('/roadmaps/internet-networking#unlock');
+        $this->actingAs($free)->get("{$base}/{$lesson}")->assertRedirect('/roadmaps/networking#unlock');
         $this->get("{$base}/{$lesson}")->assertDontSee('Paid tip');
     }
 

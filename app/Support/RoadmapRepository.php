@@ -48,7 +48,7 @@ final class RoadmapRepository
     /**
      * Every lesson in the roadmap, in order. Lesson ids are unique per roadmap and are the progress keys.
      *
-     * @return array<string, array{level: string, topic: string, optional: bool}>
+     * @return array<string, array{level: string, free: bool, topic: string, optional: bool}>
      */
     public function lessonIndex(array $roadmap): array
     {
@@ -56,7 +56,7 @@ final class RoadmapRepository
         foreach ($roadmap['stages'] as $stage) {
             foreach ($stage['topics'] as $topic) {
                 foreach ($topic['lessons'] as $lesson) {
-                    $ids[$lesson['id']] = ['level' => $stage['level'], 'topic' => $topic['id'], 'optional' => $lesson['optional']];
+                    $ids[$lesson['id']] = ['level' => $stage['level'], 'free' => $stage['free'], 'topic' => $topic['id'], 'optional' => $lesson['optional']];
                 }
             }
         }
@@ -156,7 +156,7 @@ final class RoadmapRepository
         $hits = [];
         foreach ($this->all() as $roadmap) {
             foreach ($roadmap['stages'] as $stage) {
-                if ($stage['level'] !== self::FREE_LEVEL && ! $includePaid) {
+                if (! $stage['free'] && ! $includePaid) {
                     continue;
                 }
                 foreach ($stage['topics'] as $topic) {
@@ -208,6 +208,8 @@ final class RoadmapRepository
         foreach (glob(resource_path('roadmaps/*.yml')) ?: [] as $file) {
             $raw = Yaml::parseFile($file);
             foreach ($raw['stages'] as &$stage) {
+                // Beginner is always free; `free: true` on a roadmap opens every level of it.
+                $stage['free'] = $stage['level'] === self::FREE_LEVEL || (bool) ($raw['free'] ?? false);
                 foreach ($stage['topics'] as &$topic) {
                     foreach ($topic['lessons'] as &$lesson) {
                         $lesson['optional'] = (bool) ($lesson['optional'] ?? false);

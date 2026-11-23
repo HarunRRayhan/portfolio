@@ -35,7 +35,7 @@ class RoadmapSearchTest extends TestCase
     public function test_guests_only_find_free_level_lessons_sponsors_find_all(): void
     {
         $repo = new RoadmapRepository;
-        $paid = collect($repo->all())->flatMap(fn ($r) => collect($r['stages'])->where('level', '!=', RoadmapRepository::FREE_LEVEL)
+        $paid = collect($repo->all())->flatMap(fn ($r) => collect($r['stages'])->where('free', false)
             ->flatMap(fn ($s) => collect($s['topics'])->flatMap(fn ($t) => collect($t['lessons'])->map(fn ($l) => [$r['slug'], $t['id'], $l['id'], $l['title']]))))->first();
         [$slug, $topic, $lesson, $title] = $paid;
         $url = "/roadmaps/$slug/$topic/$lesson";

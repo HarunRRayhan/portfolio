@@ -18,6 +18,9 @@ class RoadmapPagesTest extends TestCase
 
     private const R = 'internet-networking';
 
+    /** A roadmap with sponsor-only levels; How the Internet Works is fully free. */
+    private const P = 'networking';
+
     private function sponsorUser(): User
     {
         $user = User::factory()->create();
@@ -31,9 +34,9 @@ class RoadmapPagesTest extends TestCase
     }
 
     /** @return array{0: array, 1: array} first topic of a stage, and its first required lesson */
-    private function topicOf(string $level): array
+    private function topicOf(string $level, string $slug = self::R): array
     {
-        $roadmap = (new RoadmapRepository)->find(self::R);
+        $roadmap = (new RoadmapRepository)->find($slug);
         $stage = collect($roadmap['stages'])->firstWhere('level', $level);
         $topic = $stage['topics'][0];
 
@@ -62,7 +65,7 @@ class RoadmapPagesTest extends TestCase
 
     public function test_roadmap_page_lists_topics_with_counts(): void
     {
-        $this->get('/roadmaps/'.self::R)->assertOk()->assertInertia(fn ($page) => $page
+        $this->get('/roadmaps/'.self::P)->assertOk()->assertInertia(fn ($page) => $page
             ->component('Roadmaps/Show')
             ->where('stages.0.locked', false)
             ->where('stages.1.locked', true)
@@ -73,6 +76,13 @@ class RoadmapPagesTest extends TestCase
             ->where('nextTopicId', null)
             ->has('roadmap.updatedAt')
             ->has('seo.title'));
+
+        // How the Internet Works is free at every level, and has no Advanced stage.
+        $this->get('/roadmaps/'.self::R)->assertInertia(fn ($page) => $page
+            ->where('stages.0.locked', false)
+            ->where('stages.1.locked', false)
+            ->where('stages.1.level', 'intermediate')
+            ->missing('stages.2'));
     }
 
     public function test_guest_topic_page_hides_ai_prompt_but_shows_resources(): void
@@ -105,31 +115,31 @@ class RoadmapPagesTest extends TestCase
 
     public function test_paid_topic_and_lesson_redirect_to_the_unlock_box(): void
     {
-        [$topic, $lesson] = $this->topicOf('intermediate');
-        $unlock = '/roadmaps/'.self::R.'#unlock';
+        [$topic, $lesson] = $this->topicOf('intermediate', self::P);
+        $unlock = '/roadmaps/'.self::P.'#unlock';
 
-        $this->get('/roadmaps/'.self::R.'/'.$topic['id'])->assertRedirect($unlock);
-        $this->actingAs(User::factory()->create())->get('/roadmaps/'.self::R.'/'.$topic['id'])->assertRedirect($unlock);
-        $this->get('/roadmaps/'.self::R.'/'.$topic['id'].'/'.$lesson['id'])->assertRedirect($unlock);
+        $this->get('/roadmaps/'.self::P.'/'.$topic['id'])->assertRedirect($unlock);
+        $this->actingAs(User::factory()->create())->get('/roadmaps/'.self::P.'/'.$topic['id'])->assertRedirect($unlock);
+        $this->get('/roadmaps/'.self::P.'/'.$topic['id'].'/'.$lesson['id'])->assertRedirect($unlock);
     }
 
     public function test_sitemap_lists_only_free_topics(): void
     {
         [$free] = $this->topicOf('beginner');
-        [$paid] = $this->topicOf('advanced');
+        [$paid] = $this->topicOf('advanced', self::P);
 
-        $this->get('/sitemap.xml')->assertOk()->assertSee('/'.self::R.'/'.$free['id'], false)->assertDontSee('/'.self::R.'/'.$paid['id'].'<', false);
+        $this->get('/sitemap.xml')->assertOk()->assertSee('/'.self::R.'/'.$free['id'], false)->assertDontSee('/'.self::P.'/'.$paid['id'].'<', false);
     }
 
     public function test_sponsor_sees_paid_topics(): void
     {
-        [$topic] = $this->topicOf('advanced');
+        [$topic] = $this->topicOf('advanced', self::P);
 
-        $this->actingAs($this->sponsorUser())->get('/roadmaps/'.self::R.'/'.$topic['id'])->assertInertia(fn ($page) => $page
+        $this->actingAs($this->sponsorUser())->get('/roadmaps/'.self::P.'/'.$topic['id'])->assertInertia(fn ($page) => $page
             ->where('locked', false)
             ->has('lessons.0.resources')
             ->has('lessons.0.prompt'));
-        $this->actingAs($this->sponsorUser())->get('/roadmaps/'.self::R)->assertInertia(fn ($page) => $page
+        $this->actingAs($this->sponsorUser())->get('/roadmaps/'.self::P)->assertInertia(fn ($page) => $page
             ->where('hasPaidAccess', true)
             ->where('stages.1.locked', false));
     }
@@ -185,28 +195,28 @@ class RoadmapPagesTest extends TestCase
     public function test_progress_counts_required_lessons_and_ignores_unknown_rows(): void
     {
         $user = User::factory()->create();
-        [$topic, $lesson] = $this->topicOf('beginner');
-        [, $paidLesson] = $this->topicOf('advanced');
-        $optional = collect((new RoadmapRepository)->lessonIndex((new RoadmapRepository)->find(self::R)))
+        [$topic, $lesson] = $this->topicOf('beginner', self::P);
+        [, $paidLesson] = $this->topicOf('advanced', self::P);
+        $optional = collect((new RoadmapRepository)->lessonIndex((new RoadmapRepository)->find(self::P)))
             ->filter(fn ($l) => $l['optional'] && $l['level'] === 'beginner')->keys()->first();
 
-        RoadmapStart::create(['user_id' => $user->id, 'roadmap_slug' => self::R]);
+        RoadmapStart::create(['user_id' => $user->id, 'roadmap_slug' => self::P]);
         foreach (array_filter(['gone', $lesson['id'], $paidLesson['id'], $optional]) as $id) {
-            RoadmapProgress::create(['user_id' => $user->id, 'roadmap_slug' => self::R, 'step_id' => $id, 'completed_at' => now()]);
+            RoadmapProgress::create(['user_id' => $user->id, 'roadmap_slug' => self::P, 'step_id' => $id, 'completed_at' => now()]);
         }
 
-        $required = collect((new RoadmapRepository)->lessonIndex((new RoadmapRepository)->find(self::R)))
+        $required = collect((new RoadmapRepository)->lessonIndex((new RoadmapRepository)->find(self::P)))
             ->filter(fn ($l) => ! $l['optional'] && $l['level'] === 'beginner')->count();
         $expected = (int) round(100 / $required);
 
-        $this->actingAs($user)->get('/roadmaps/'.self::R)->assertOk()->assertInertia(fn ($page) => $page
+        $this->actingAs($user)->get('/roadmaps/'.self::P)->assertOk()->assertInertia(fn ($page) => $page
             ->where('started', true)
             ->where('stages.0.topics.0.doneCount', 1)
             ->where('percent', $expected)
             ->where('nextTopicId', $topic['id']));
 
         $this->actingAs($user)->get('/roadmaps')->assertInertia(fn ($page) => $page
-            ->where('mine.0.slug', self::R)
+            ->where('mine.0.slug', self::P)
             ->where('mine.0.percent', $expected));
     }
 
