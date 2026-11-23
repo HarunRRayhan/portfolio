@@ -40,6 +40,15 @@ export function ProgressBar({ percent }: { percent: number }) {
   )
 }
 
+/** Shown on roadmaps that set `free: true`: every level opens without sponsoring. */
+export function FreeTag({ className }: { className?: string }) {
+  return (
+    <span className={cn('inline-flex rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:ring-emerald-900', className)}>
+      Free, every lesson
+    </span>
+  )
+}
+
 export function OptionalTag() {
   return (
     <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-700 ring-1 ring-sky-200 dark:bg-sky-950 dark:text-sky-300 dark:ring-sky-900">

@@ -3,7 +3,7 @@ import { ArrowRight, Bookmark, Check, Eye, Flag, Heart, Lock, Share2, MessageSqu
 import { useEffect, useState } from 'react'
 import { ShareButton } from '@/Components/ShareButton'
 import { Comments, type RoadmapComment } from '@/Components/Roadmap/Comments'
-import { ProgressBar, SponsorDialog, UnlockCard, formatDate, levelLabel } from '@/Components/Roadmap/shared'
+import { FreeTag, ProgressBar, SponsorDialog, UnlockCard, formatDate, levelLabel } from '@/Components/Roadmap/shared'
 import { RoadmapArt, type RoadmapArtData } from '@/Components/Roadmap/RoadmapArt'
 import { cn } from '@/lib/utils'
 import type { PageProps } from '@/types'
@@ -21,7 +21,7 @@ type TopicNodeData = {
 type Stage = { level: string; title: string; locked: boolean; topics: TopicNodeData[] }
 
 type Props = {
-  roadmap: { slug: string; title: string; summary: string; prerequisites: RoadmapLink[]; successors: RoadmapLink[]; updatedAt: string; art: RoadmapArtData }
+  roadmap: { slug: string; title: string; summary: string; prerequisites: RoadmapLink[]; successors: RoadmapLink[]; updatedAt: string; free: boolean; art: RoadmapArtData }
   stages: Stage[]
   hasPaidAccess: boolean
   started: boolean
@@ -73,7 +73,8 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
       <section className="mx-auto max-w-4xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
         <Link href="/roadmaps" className="text-sm text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">← All roadmaps</Link>
         <RoadmapArt art={roadmap.art} size="hero" className="mt-6" />
-        <h1 className="mt-8 text-4xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-5xl">{roadmap.title}</h1>
+        {roadmap.free && <FreeTag className="mt-8" />}
+        <h1 className={(roadmap.free ? 'mt-3' : 'mt-8') + ' text-4xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-5xl'}>{roadmap.title}</h1>
         <p className="mt-4 text-lg leading-8 text-slate-600 dark:text-slate-300">{roadmap.summary}</p>
 
         <div className="mt-8 flex flex-wrap items-center gap-3">

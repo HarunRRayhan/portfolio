@@ -82,7 +82,9 @@ class RoadmapPagesTest extends TestCase
             ->where('stages.0.locked', false)
             ->where('stages.1.locked', false)
             ->where('stages.1.level', 'intermediate')
-            ->missing('stages.2'));
+            ->missing('stages.2')
+            ->where('roadmap.free', true));
+        $this->get('/roadmaps')->assertInertia(fn ($page) => $page->where('roadmaps.0.slug', self::R)->where('roadmaps.0.free', true)->where('roadmaps.1.free', false));
     }
 
     public function test_guest_topic_page_hides_ai_prompt_but_shows_resources(): void
