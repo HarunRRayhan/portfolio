@@ -38,27 +38,36 @@ class WeeklyNewsletterMail extends Mailable
         return $this->roadmaps ??= app(NewsletterIssue::class)->recentRoadmaps(now())->all();
     }
 
+    /** The verified site account behind this subscriber's address, if any. */
+    private function member(): ?User
+    {
+        return $this->subscriber
+            ? User::query()->whereNotNull('email_verified_at')->whereRaw('lower(email) = ?', [strtolower($this->subscriber->email)])->first()
+            : null;
+    }
+
     /** This reader's own roadmap week, when the subscriber is a signed-up learner with an unfinished roadmap. */
-    private function roadmapProgress(): ?array
+    private function roadmapProgress(?User $member): ?array
     {
         if ($this->sampleProgress) {
             return $this->sampleProgress;
         }
-        if (! $this->subscriber) {
-            return null;
-        }
-        $user = User::query()->whereNotNull('email_verified_at')->whereRaw('lower(email) = ?', [strtolower($this->subscriber->email)])->first();
 
-        return $user ? app(RoadmapDigest::class)->for($user, now(config('newsletter.schedule.timezone'))) : null;
+        return $member ? app(RoadmapDigest::class)->for($member, now(config('newsletter.schedule.timezone'))) : null;
     }
 
     public function build()
     {
         $appUrl = rtrim(config('app.url'), '/');
-        $progress = $this->roadmapProgress();
+        $member = $this->member();
+        $progress = $this->roadmapProgress($member);
+        // A verified member's own first name wins (the subscribe form can't prove ownership), then the name typed
+        // when subscribing, else "there" (also owner copies and previews).
+        $name = trim(explode(' ', trim((string) $member?->name))[0]) ?: (trim((string) $this->subscriber?->name) ?: 'there');
 
         return $this->subject($this->subjectLine($progress))
             ->view('emails.newsletter.weekly', [
+                'name' => $name,
                 'progress' => $progress,
                 'roadmapsUrl' => $appUrl.'/roadmaps',
                 'leaderboardUrl' => $appUrl.'/leaderboard',
@@ -72,6 +81,7 @@ class WeeklyNewsletterMail extends Mailable
                 'openPixelUrl' => $this->delivery ? URL::signedRoute('newsletter.open', ['delivery' => $this->delivery->getKey()]) : null,
             ])
             ->text('emails.newsletter.weekly-text', [
+                'name' => $name,
                 'progress' => $progress,
                 'roadmapsUrl' => $appUrl.'/roadmaps',
                 'leaderboardUrl' => $appUrl.'/leaderboard',

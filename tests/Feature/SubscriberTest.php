@@ -8,6 +8,7 @@ use App\Models\Subscriber;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
@@ -302,5 +303,49 @@ class SubscriberTest extends TestCase
 
         $this->assertFalse(Subscriber::isSubscribed('new@example.com'));
         Mail::assertSent(SubscribeConfirmationMail::class);
+    }
+
+    #[Test]
+    public function the_optional_name_step_names_only_the_address_this_browser_just_entered()
+    {
+        $this->withoutMiddleware(ThrottleRequests::class); // many attempts below
+        $this->post('/subscribe', ['email' => 'Ada@Example.com'])->assertSessionHas('flash.askName', true);
+        $this->post('/subscribe/name', ['name' => '  Ada  '])->assertRedirect();
+        $this->assertSame('Ada', Subscriber::where('email', 'ada@example.com')->value('name'));
+
+        // The session key is used up, so a second call can't rename it or anyone else.
+        Subscriber::factory()->create(['email' => 'victim@example.com', 'status' => 'subscribed']);
+        $this->post('/subscribe/name', ['name' => 'Hacked'])->assertRedirect();
+        $this->assertNull(Subscriber::where('email', 'victim@example.com')->value('name'));
+        $this->assertSame('Ada', Subscriber::where('email', 'ada@example.com')->value('name'));
+
+        foreach ([str_repeat('a', 41), 'Visit evil.com/x', 'https://x.io', 'Bob: click'] as $bad) {
+            $this->post('/subscribe/name', ['name' => $bad])->assertSessionHasErrors('name');
+        }
+        $this->post('/subscribe/name', ['name' => "José O'Neil-Smith"])->assertSessionDoesntHaveErrors();
+    }
+
+    #[Test]
+    public function the_name_step_cannot_rename_an_address_already_on_the_list()
+    {
+        Subscriber::factory()->create(['email' => 'victim@example.com', 'status' => 'subscribed', 'name' => 'Real']);
+        Subscriber::factory()->create(['email' => 'pending@example.com', 'status' => 'pending']);
+
+        $this->post('/subscribe', ['email' => 'victim@example.com']);
+        $this->post('/subscribe/name', ['name' => 'Hacked']);
+        $this->post('/subscribe', ['email' => 'pending@example.com']);
+        $this->post('/subscribe/name', ['name' => 'Hacked']);
+
+        $this->assertSame('Real', Subscriber::where('email', 'victim@example.com')->value('name'));
+        $this->assertNull(Subscriber::where('email', 'pending@example.com')->value('name'));
+    }
+
+    #[Test]
+    public function a_skipped_name_leaves_it_empty()
+    {
+        $this->post('/subscribe', ['email' => 'quiet@example.com']);
+        $this->post('/subscribe/name', ['name' => ''])->assertRedirect();
+
+        $this->assertNull(Subscriber::where('email', 'quiet@example.com')->value('name'));
     }
 }

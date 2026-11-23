@@ -39,6 +39,27 @@ export function SubscribeForm({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [website, setWebsite] = useState('') // honeypot, see NewsletterController::subscribe
+  const [askName, setAskName] = useState(false) // optional second step: "What should we call you?"
+  const [name, setName] = useState('')
+
+  const finishName = (save: boolean) => {
+    const done = () => {
+      setIsSubmitting(false)
+      setAskName(false)
+      setName('')
+      onSuccess?.()
+    }
+    if (!save || !name.trim()) return done()
+    setIsSubmitting(true)
+    router.post('/subscribe/name', { name: name.trim() }, {
+      preserveScroll: true,
+      onSuccess: done,
+      onError: (errors: Record<string, string>) => {
+        setIsSubmitting(false)
+        setError(errors.name ?? 'Something went wrong. Please try again.')
+      },
+    })
+  }
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -54,10 +75,11 @@ export function SubscribeForm({
           setIsSubmitting(false)
           setEmail('')
           // Signed-in verified members are subscribed at once, so the server's flash says which case happened.
-          const flash = (page.props as { flash?: { type?: string; message?: string } }).flash
+          const flash = (page.props as { flash?: { type?: string; message?: string; askName?: boolean } }).flash
           if (flash?.type === 'error') toast.error(flash.message ?? 'Something went wrong. Please try again.')
           else toast.success(flash?.message ?? 'Check your inbox to confirm.')
-          onSuccess?.()
+          if (flash?.askName) setAskName(true)
+          else onSuccess?.()
         },
         onError: (errors: Record<string, string>) => {
           setIsSubmitting(false)
@@ -66,6 +88,39 @@ export function SubscribeForm({
           toast.error(message)
         },
       },
+    )
+  }
+
+  if (askName) {
+    return (
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          finishName(true)
+        }}
+        className={cn('flex flex-col gap-2.5', className)}
+      >
+        <label htmlFor={`subscribe-name-${source}`} className="px-1 text-sm font-medium">
+          What should we call you? <span className="font-normal opacity-70">(optional)</span>
+        </label>
+        <Input
+          id={`subscribe-name-${source}`}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Your first name"
+          maxLength={40}
+          autoComplete="given-name"
+          autoFocus
+          className={cn('h-12 rounded-full px-5 text-sm', t.input)}
+        />
+        {error && <p className={cn('px-1 text-xs', t.error)}>{error}</p>}
+        <Button type="submit" disabled={isSubmitting} className={cn('h-12 w-full rounded-full text-sm font-semibold', t.button)}>
+          {isSubmitting ? 'Saving…' : 'Save'}
+        </Button>
+        <button type="button" onClick={() => finishName(false)} disabled={isSubmitting} className="text-xs underline underline-offset-2 opacity-70 hover:opacity-100">
+          Skip
+        </button>
+      </form>
     )
   }
 

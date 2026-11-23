@@ -71,6 +71,7 @@ class Subscriber extends Model
 
     protected $fillable = [
         'email',
+        'name',
         'source',
         'referrer',
         'status',
