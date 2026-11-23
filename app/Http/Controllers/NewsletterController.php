@@ -16,7 +16,7 @@ class NewsletterController extends Controller
         try {
             // Honeypot: people never see the `website` field, bots fill it. Same reply, nothing stored or mailed.
             if (filled($request->input('website'))) {
-                return redirect()->back()->with('flash', ['type' => 'success', 'message' => 'Check your inbox to confirm your subscription.']);
+                return redirect()->back()->with('flash', ['type' => 'success', 'message' => 'Check your inbox to confirm your subscription.', 'askName' => true]);
             }
 
             // A signed-in, verified member subscribing their own address already proved ownership: no confirm mail.
@@ -24,6 +24,7 @@ class NewsletterController extends Controller
             $user = $request->user();
             if ($user?->email_verified_at && strcasecmp(trim((string) $user->email), trim($request->email)) === 0) {
                 Subscriber::subscribeVerified($user->email, $request->source ?? 'account');
+                // Members already have a name on their account, so no name step.
                 Cache::forget('newsletter.subscriber_count');
 
                 return redirect()->back()->with('flash', ['type' => 'success', 'message' => "You're subscribed. The next issue lands in your inbox."]);
@@ -32,9 +33,13 @@ class NewsletterController extends Controller
             // Same reply whether or not a mail went out, so the form can't be used to probe addresses.
             Subscriber::requestConfirmation($request->email, $request->source, $request->referrer);
 
+            // Only this browser may name the address it just entered (see name()), so nobody can rename a stranger's row.
+            $request->session()->put(self::NAME_KEY, strtolower(trim($request->email)));
+
             return redirect()->back()->with('flash', [
                 'type' => 'success',
                 'message' => 'Check your inbox to confirm your subscription.',
+                'askName' => true,
             ]);
         } catch (\Exception $e) {
             report($e);
@@ -44,6 +49,21 @@ class NewsletterController extends Controller
                 'message' => 'Sorry, something went wrong. Please try again later.',
             ]);
         }
+    }
+
+    private const NAME_KEY = 'newsletter.name_for';
+
+    /** Optional step after subscribing: "What should we call you?". Empty clears nothing and is fine. */
+    public function name(Request $request)
+    {
+        $name = trim((string) $request->validate(['name' => ['nullable', 'string', 'max:80']])['name']);
+        $email = $request->session()->pull(self::NAME_KEY);
+
+        if ($email && $name !== '') {
+            Subscriber::whereRaw('lower(email) = ?', [$email])->update(['name' => $name]);
+        }
+
+        return redirect()->back();
     }
 
     public function confirm(Subscriber $subscriber)

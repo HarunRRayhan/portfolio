@@ -68,6 +68,7 @@ class NewsletterRoadmapProgressTest extends TestCase
         $html = $this->render(Subscriber::factory()->create());
 
         $this->assertStringContainsString('Hi there,', $html);
+        $this->assertStringContainsString('Hi Grace,', $this->render(Subscriber::factory()->create(['name' => 'Grace'])));
 
         $this->assertStringContainsString('Start a roadmap', $html);
         $this->assertStringContainsString('/roadmaps', $html);

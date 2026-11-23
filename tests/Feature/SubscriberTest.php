@@ -303,4 +303,29 @@ class SubscriberTest extends TestCase
         $this->assertFalse(Subscriber::isSubscribed('new@example.com'));
         Mail::assertSent(SubscribeConfirmationMail::class);
     }
+
+    #[Test]
+    public function the_optional_name_step_names_only_the_address_this_browser_just_entered()
+    {
+        $this->post('/subscribe', ['email' => 'Ada@Example.com'])->assertSessionHas('flash.askName', true);
+        $this->post('/subscribe/name', ['name' => '  Ada  '])->assertRedirect();
+        $this->assertSame('Ada', Subscriber::where('email', 'ada@example.com')->value('name'));
+
+        // The session key is used up, so a second call can't rename it or anyone else.
+        Subscriber::factory()->create(['email' => 'victim@example.com', 'status' => 'subscribed']);
+        $this->post('/subscribe/name', ['name' => 'Hacked'])->assertRedirect();
+        $this->assertNull(Subscriber::where('email', 'victim@example.com')->value('name'));
+        $this->assertSame('Ada', Subscriber::where('email', 'ada@example.com')->value('name'));
+
+        $this->post('/subscribe/name', ['name' => str_repeat('a', 81)])->assertSessionHasErrors('name');
+    }
+
+    #[Test]
+    public function a_skipped_name_leaves_it_empty()
+    {
+        $this->post('/subscribe', ['email' => 'quiet@example.com']);
+        $this->post('/subscribe/name', ['name' => ''])->assertRedirect();
+
+        $this->assertNull(Subscriber::where('email', 'quiet@example.com')->value('name'));
+    }
 }

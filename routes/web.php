@@ -660,6 +660,10 @@ Route::post('/subscribe', [NewsletterController::class, 'subscribe'])
     ->middleware('throttle:5,1')
     ->name('subscribe');
 
+Route::post('/subscribe/name', [NewsletterController::class, 'name'])
+    ->middleware('throttle:5,1')
+    ->name('subscribe.name');
+
 Route::post('/newsletter/account', [AgreementController::class, 'subscribe'])
     ->middleware(['auth', 'throttle:10,1'])
     ->name('newsletter.account');
