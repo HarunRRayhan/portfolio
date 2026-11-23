@@ -237,6 +237,18 @@ class NewsletterTest extends TestCase
         $this->assertDatabaseCount('newsletter_campaigns', 0);
     }
 
+    public function test_the_preview_and_test_email_can_show_the_learner_version(): void
+    {
+        Mail::fake();
+        $admin = $this->admin();
+
+        $this->actingAs($admin)->get('/admin/newsletter/templates/preview')->assertSee('Start a roadmap')->assertDontSee('XP in total');
+        $this->actingAs($admin)->get('/admin/newsletter/templates/preview?learner=1')->assertSee('XP in total')->assertSee('Next:')->assertDontSee('Start a roadmap');
+
+        $this->actingAs($admin)->post('/admin/newsletter/templates/test', ['email' => 'tester@example.com', 'learner' => true]);
+        Mail::assertSent(WeeklyNewsletterMail::class, fn (WeeklyNewsletterMail $mail) => $mail->sampleProgress !== null);
+    }
+
     public function test_an_admin_can_toggle_a_subscribers_status(): void
     {
         $admin = $this->admin();

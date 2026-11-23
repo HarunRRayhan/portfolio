@@ -9,6 +9,7 @@ use App\Models\NewsletterClick;
 use App\Models\NewsletterDelivery;
 use App\Models\Subscriber;
 use App\Support\NewsletterIssue;
+use App\Support\RoadmapRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -102,9 +103,9 @@ class NewsletterController extends Controller
     }
 
     /** Renders the default template with this week's posts (or the latest ones) for the preview iframe. */
-    public function preview(NewsletterIssue $issue): \Illuminate\Http\Response
+    public function preview(Request $request, NewsletterIssue $issue): \Illuminate\Http\Response
     {
-        return response($this->previewMail($issue)->render())
+        return response($this->previewMail($issue, $request->boolean('learner'))->render())
             ->header('Cache-Control', 'no-store, private');
     }
 
@@ -163,7 +164,7 @@ class NewsletterController extends Controller
         $email = $request->validate(['email' => ['required', 'email:rfc', 'max:255']])['email'];
 
         try {
-            Mail::to($email)->send($this->previewMail($issue));
+            Mail::to($email)->send($this->previewMail($issue, $request->boolean('learner')));
         } catch (Throwable $exception) {
             report($exception);
 
@@ -218,7 +219,7 @@ class NewsletterController extends Controller
             ->header('Cache-Control', 'no-store, private');
     }
 
-    private function previewMail(NewsletterIssue $issue): WeeklyNewsletterMail
+    private function previewMail(NewsletterIssue $issue, bool $learner = false): WeeklyNewsletterMail
     {
         $now = now(config('newsletter.schedule.timezone'));
         $posts = $issue->recentPosts($now);
@@ -231,7 +232,28 @@ class NewsletterController extends Controller
             subscriber: null,
             products: $issue->chooseProducts(),
             tweets: $issue->tweets(),
+            sampleProgress: $learner ? $this->sampleProgress() : null,
         );
+    }
+
+    /** Made-up numbers on a real roadmap and lesson, so the preview links work. */
+    private function sampleProgress(): ?array
+    {
+        $repo = new RoadmapRepository;
+        $slug = $repo->all()[0]['slug'] ?? null;
+        $topic = $slug ? ($repo->find($slug)['stages'][0]['topics'][0] ?? null) : null;
+        $lesson = $topic['lessons'][0] ?? null;
+        if (! $lesson) {
+            return null;
+        }
+
+        return [
+            'xpTotal' => 240, 'xpWeek' => 45, 'lessonsWeek' => 3, 'idle' => false,
+            'roadmaps' => [[
+                'title' => $repo->find($slug)['title'], 'url' => $repo->absoluteUrl($slug), 'done' => 6, 'total' => 24, 'percent' => 25,
+                'next' => ['title' => $lesson['title'], 'url' => $repo->topicUrl($slug, $topic['id']).'/'.$lesson['id']],
+            ]],
+        ];
     }
 
     /**

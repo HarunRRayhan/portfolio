@@ -7,10 +7,12 @@ import { Mail } from 'lucide-react'
 
 export default function Templates() {
   const [open, setOpen] = useState(false)
-  const form = useForm({ email: '' })
+  const [learner, setLearner] = useState(false)
+  const form = useForm({ email: '', learner: false })
 
   const sendTest = (event: FormEvent) => {
     event.preventDefault()
+    form.transform((data) => ({ ...data, learner }))
     form.post(route('admin.newsletter.test'), { preserveScroll: true, onSuccess: () => setOpen(false) })
   }
 
@@ -62,7 +64,22 @@ export default function Templates() {
 
           <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-3">
-              <p className="text-sm text-gray-500">Preview with this week's posts (or the latest ones when nothing new went out).</p>
+              <div className="space-y-2">
+                <p className="text-sm text-gray-500">Preview with this week's posts (or the latest ones when nothing new went out).</p>
+                <div role="group" aria-label="Reader" className="inline-flex rounded-md border border-gray-300 text-sm">
+                  {[{ value: false, label: 'Not following a roadmap' }, { value: true, label: 'Following a roadmap (sample)' }].map((option) => (
+                    <button
+                      key={option.label}
+                      type="button"
+                      aria-pressed={learner === option.value}
+                      onClick={() => setLearner(option.value)}
+                      className={'px-3 py-1.5 first:rounded-l-md last:rounded-r-md ' + (learner === option.value ? 'bg-gray-900 text-white' : 'text-gray-700 hover:bg-gray-50')}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={() => setOpen(true)}
@@ -72,7 +89,7 @@ export default function Templates() {
                 Send test email
               </button>
             </div>
-            <iframe title="Weekly digest preview" src={route('admin.newsletter.preview')} className="h-[80vh] w-full" />
+            <iframe title="Weekly digest preview" src={route('admin.newsletter.preview', learner ? { learner: 1 } : {})} className="h-[80vh] w-full" />
           </div>
         </div>
       </div>
