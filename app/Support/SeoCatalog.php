@@ -211,7 +211,7 @@ final class SeoCatalog
 
         $pages['/roadmaps'] = new SeoMeta(
             title: 'Learning roadmaps | Harun R. Rayhan',
-            description: 'Step-by-step learning paths from beginner to advanced: how the internet works, DevOps, SRE and more. Each topic comes with hand-picked resources and a ready AI prompt.',
+            description: 'Step-by-step learning paths, from first steps to deep dives: how the internet works (free), DevOps, SRE and more. Each topic comes with hand-picked resources and a ready AI prompt.',
             canonicalUrl: $siteUrl.'/roadmaps',
         );
 

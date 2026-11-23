@@ -72,6 +72,7 @@ class RoadmapController extends Controller
                 'joinCount' => (int) ($joins[$r['slug']] ?? 0),
                 'prerequisites' => $this->links($this->repo->prerequisiteSlugs($r)),
                 'updatedAt' => (string) $r['updated'],
+                'free' => (bool) ($r['free'] ?? false),
                 'art' => $this->art($r),
             ], $this->repo->all()),
             'mine' => $mine,
@@ -128,7 +129,7 @@ class RoadmapController extends Controller
             : [];
 
         return Inertia::render('Roadmaps/Show', [
-            'roadmap' => ['slug' => $slug, 'title' => $roadmap['title'], 'summary' => $roadmap['summary'], 'prerequisites' => $this->links($this->repo->prerequisiteSlugs($roadmap)), 'successors' => $this->links(array_column($this->repo->successors($slug), 'slug')), 'updatedAt' => (string) $roadmap['updated'], 'art' => $this->art($roadmap)],
+            'roadmap' => ['slug' => $slug, 'title' => $roadmap['title'], 'summary' => $roadmap['summary'], 'prerequisites' => $this->links($this->repo->prerequisiteSlugs($roadmap)), 'successors' => $this->links(array_column($this->repo->successors($slug), 'slug')), 'updatedAt' => (string) $roadmap['updated'], 'free' => (bool) ($roadmap['free'] ?? false), 'art' => $this->art($roadmap)],
             'hasAccount' => (bool) $user,
             'stages' => $stages,
             'hasPaidAccess' => $paid,
