@@ -48,6 +48,20 @@ class NewsletterRoadmapProgressTest extends TestCase
         $this->assertStringNotContainsString('Start a roadmap', $html);
     }
 
+    public function test_an_active_learner_gets_their_week_in_the_subject(): void
+    {
+        $subscriber = $this->learner();
+        $post = ['title' => 'A useful post', 'brief' => 'Brief.', 'canonicalUrl' => 'https://harun.dev/blog/a', 'publishedAtHuman' => 'Nov 20', 'readTimeLabel' => '3 min read'];
+
+        $mail = new WeeklyNewsletterMail([$post], $subscriber, [], roadmaps: []);
+        $mail->render();
+        $this->assertMatchesRegularExpression('/^Your week: 1 lesson, \d+ XP · plus A useful post$/', $mail->subject);
+
+        $plain = new WeeklyNewsletterMail([$post], Subscriber::factory()->create(), [], roadmaps: []);
+        $plain->render();
+        $this->assertSame('This week on Harun.dev: A useful post', $plain->subject);
+    }
+
     public function test_a_subscriber_without_a_roadmap_is_invited_to_start_one(): void
     {
         $html = $this->render(Subscriber::factory()->create());

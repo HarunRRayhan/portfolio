@@ -57,7 +57,7 @@ class WeeklyNewsletterMail extends Mailable
         $appUrl = rtrim(config('app.url'), '/');
         $progress = $this->roadmapProgress();
 
-        return $this->subject($this->subjectLine())
+        return $this->subject($this->subjectLine($progress))
             ->view('emails.newsletter.weekly', [
                 'progress' => $progress,
                 'roadmapsUrl' => $appUrl.'/roadmaps',
@@ -101,8 +101,15 @@ class WeeklyNewsletterMail extends Mailable
             : rtrim(config('app.url'), '/').'/blog';
     }
 
-    private function subjectLine(): string
+    private function subjectLine(?array $progress = null): string
     {
+        // An active learner sees their own week first; that's the line most likely to get opened.
+        if ($progress && ! $progress['idle']) {
+            $week = sprintf('Your week: %d lesson%s, %d XP', $progress['lessonsWeek'], $progress['lessonsWeek'] === 1 ? '' : 's', $progress['xpWeek']);
+
+            return Str::limit($this->posts === [] ? "{$week} · plus roadmap updates" : "{$week} · plus {$this->posts[0]['title']}", 150, '…');
+        }
+
         if ($this->posts === []) {
             return 'This week on Harun.dev: your roadmap week and what I’m building';
         }
