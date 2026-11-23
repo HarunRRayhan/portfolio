@@ -51,7 +51,14 @@ export function SubscribeForm({
     }
     if (!save || !name.trim()) return done()
     setIsSubmitting(true)
-    router.post('/subscribe/name', { name: name.trim() }, { preserveScroll: true, onFinish: done })
+    router.post('/subscribe/name', { name: name.trim() }, {
+      preserveScroll: true,
+      onSuccess: done,
+      onError: (errors: Record<string, string>) => {
+        setIsSubmitting(false)
+        setError(errors.name ?? 'Something went wrong. Please try again.')
+      },
+    })
   }
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -101,11 +108,12 @@ export function SubscribeForm({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Your first name"
-          maxLength={80}
+          maxLength={40}
           autoComplete="given-name"
           autoFocus
           className={cn('h-12 rounded-full px-5 text-sm', t.input)}
         />
+        {error && <p className={cn('px-1 text-xs', t.error)}>{error}</p>}
         <Button type="submit" disabled={isSubmitting} className={cn('h-12 w-full rounded-full text-sm font-semibold', t.button)}>
           {isSubmitting ? 'Saving…' : 'Save'}
         </Button>

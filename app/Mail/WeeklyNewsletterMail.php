@@ -61,8 +61,9 @@ class WeeklyNewsletterMail extends Mailable
         $appUrl = rtrim(config('app.url'), '/');
         $member = $this->member();
         $progress = $this->roadmapProgress($member);
-        // The name they gave when subscribing, else the member's first name, else "there" (also owner copies and previews).
-        $name = trim((string) $this->subscriber?->name) ?: (trim(explode(' ', trim((string) $member?->name))[0]) ?: 'there');
+        // A verified member's own first name wins (the subscribe form can't prove ownership), then the name typed
+        // when subscribing, else "there" (also owner copies and previews).
+        $name = trim(explode(' ', trim((string) $member?->name))[0]) ?: (trim((string) $this->subscriber?->name) ?: 'there');
 
         return $this->subject($this->subjectLine($progress))
             ->view('emails.newsletter.weekly', [

@@ -8,6 +8,7 @@ use App\Models\Subscriber;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
@@ -307,6 +308,7 @@ class SubscriberTest extends TestCase
     #[Test]
     public function the_optional_name_step_names_only_the_address_this_browser_just_entered()
     {
+        $this->withoutMiddleware(ThrottleRequests::class); // many attempts below
         $this->post('/subscribe', ['email' => 'Ada@Example.com'])->assertSessionHas('flash.askName', true);
         $this->post('/subscribe/name', ['name' => '  Ada  '])->assertRedirect();
         $this->assertSame('Ada', Subscriber::where('email', 'ada@example.com')->value('name'));
@@ -317,7 +319,10 @@ class SubscriberTest extends TestCase
         $this->assertNull(Subscriber::where('email', 'victim@example.com')->value('name'));
         $this->assertSame('Ada', Subscriber::where('email', 'ada@example.com')->value('name'));
 
-        $this->post('/subscribe/name', ['name' => str_repeat('a', 81)])->assertSessionHasErrors('name');
+        foreach ([str_repeat('a', 41), 'Visit evil.com/x', 'https://x.io', 'Bob: click'] as $bad) {
+            $this->post('/subscribe/name', ['name' => $bad])->assertSessionHasErrors('name');
+        }
+        $this->post('/subscribe/name', ['name' => "José O'Neil-Smith"])->assertSessionDoesntHaveErrors();
     }
 
     #[Test]

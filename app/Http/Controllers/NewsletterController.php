@@ -61,7 +61,7 @@ class NewsletterController extends Controller
     /** Optional step after subscribing: "What should we call you?". Empty clears nothing and is fine. */
     public function name(Request $request)
     {
-        $name = trim((string) $request->validate(['name' => ['nullable', 'string', 'max:80']])['name']);
+        $name = trim((string) $request->validate(['name' => ['nullable', 'string', 'max:40', "regex:/^[\\p{L}\\p{M}][\\p{L}\\p{M} .'-]*$/u"]], ['name.regex' => 'Use letters only, please.'])['name']);
         $id = $request->session()->pull(self::NAME_KEY);
 
         if ($id && $name !== '') {
