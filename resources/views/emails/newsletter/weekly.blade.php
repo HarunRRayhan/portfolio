@@ -19,6 +19,7 @@
         <table role="presentation" class="newsletter" cellpadding="0" cellspacing="0" width="720" style="width:720px;max-width:100%;background:#ffffff;border:1px solid #dce2e8;">
             <tr><td class="inset" style="padding:38px 42px 20px;">
                 <h1 style="margin:0 0 12px;color:#17212e;font-size:32px;line-height:1.2;">This week on Harun.dev</h1>
+                <p style="margin:0 0 6px;color:#17212e;font-size:17px;line-height:1.6;">Hi {{ $name }},</p>
                 <p style="margin:0;color:#516071;font-size:16px;line-height:1.6;">New notes from the blog, your roadmap week, and what I’m building.</p>
             </td></tr>
             @if(isset($products[0]))

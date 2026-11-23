@@ -24,7 +24,7 @@ class NewsletterRoadmapProgressTest extends TestCase
 
     private function learner(?Carbon $doneAt = null): Subscriber
     {
-        $user = User::factory()->create(['email' => 'learner@example.com', 'email_verified_at' => now()]);
+        $user = User::factory()->create(['email' => 'learner@example.com', 'email_verified_at' => now(), 'name' => 'Ada Lovelace']);
         RoadmapProgress::create(['user_id' => $user->id, 'roadmap_slug' => 'internet-networking', 'step_id' => 'lan-vs-wan', 'completed_at' => $doneAt ?? now()->subDay()]);
         XpAward::query()->where('user_id', $user->id)->delete();
         XpAward::create(['user_id' => $user->id, 'key' => 'lesson:internet-networking/lan-vs-wan', 'points' => 10, 'created_at' => $doneAt ?? now()->subDay()]);
@@ -42,6 +42,7 @@ class NewsletterRoadmapProgressTest extends TestCase
         $html = $this->render($this->learner());
 
         $this->assertStringContainsString('Your roadmap week', $html);
+        $this->assertStringContainsString('Hi Ada,', $html);
         $this->assertStringContainsString('You finished 1 lesson', $html);
         $this->assertStringContainsString('How the Internet Works', $html);
         $this->assertMatchesRegularExpression('#/roadmaps/internet-networking/[a-z0-9-]+/[a-z0-9-]+#', $html);
@@ -65,6 +66,8 @@ class NewsletterRoadmapProgressTest extends TestCase
     public function test_a_subscriber_without_a_roadmap_is_invited_to_start_one(): void
     {
         $html = $this->render(Subscriber::factory()->create());
+
+        $this->assertStringContainsString('Hi there,', $html);
 
         $this->assertStringContainsString('Start a roadmap', $html);
         $this->assertStringContainsString('/roadmaps', $html);

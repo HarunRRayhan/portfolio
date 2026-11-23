@@ -1,5 +1,7 @@
 This week on Harun.dev
 
+Hi {{ $name }},
+
 New notes from the blog, your roadmap week, and what I’m building.
 
 @if(isset($products[0]))
