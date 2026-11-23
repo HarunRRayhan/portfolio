@@ -42,6 +42,12 @@ Also sponsoring this issue: {{ $products[1]['name'] }}
 
 @endif
 @endforeach
+@if(empty($posts) && isset($products[1]))
+Also sponsoring this issue: {{ $products[1]['name'] }}
+{{ $products[1]['description'] }}
+{!! $track($products[1]['url']) !!}
+
+@endif
 @if(!empty($roadmaps))
 Roadmap updates
 

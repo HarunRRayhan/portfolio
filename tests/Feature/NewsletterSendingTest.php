@@ -156,7 +156,7 @@ class NewsletterSendingTest extends TestCase
     }
 
     #[Test]
-    public function a_pending_campaign_is_not_sent_when_its_post_is_older_than_seven_days(): void
+    public function a_pending_campaign_leaves_out_a_post_older_than_seven_days(): void
     {
         Carbon::setTestNow('2026-10-13 16:00:00');
         Mail::fake();
@@ -169,8 +169,8 @@ class NewsletterSendingTest extends TestCase
 
         $this->artisan('newsletter:send-weekly')->assertSuccessful();
 
-        Mail::assertNothingSent();
-        $this->assertDatabaseCount('newsletter_deliveries', 0);
+        Mail::assertSent(WeeklyNewsletterMail::class, fn (WeeklyNewsletterMail $mail): bool => $mail->posts === []);
+        $this->assertDatabaseCount('newsletter_deliveries', 1);
     }
 
     #[Test]
@@ -188,7 +188,7 @@ class NewsletterSendingTest extends TestCase
     }
 
     #[Test]
-    public function a_week_without_a_new_post_does_not_send_or_create_a_campaign(): void
+    public function a_week_without_a_new_post_still_sends_roadmaps_and_both_sponsors(): void
     {
         Carbon::setTestNow('2026-10-13 16:00:00');
         Mail::fake();
@@ -196,8 +196,14 @@ class NewsletterSendingTest extends TestCase
 
         $this->artisan('newsletter:send-weekly')->assertSuccessful();
 
-        Mail::assertNothingSent();
-        $this->assertDatabaseCount('newsletter_campaigns', 0);
+        $campaign = NewsletterCampaign::query()->firstOrFail();
+        $this->assertSame([], $campaign->post_slugs);
+        $this->assertNotNull($campaign->sent_at);
+        $this->assertStringContainsString('your roadmap week', $campaign->subject);
+        $this->assertStringContainsString('Your roadmap week', $campaign->html);
+        $this->assertStringContainsString('Also sponsoring this issue', $campaign->html);
+        $this->assertStringContainsString('CloudPloy', $campaign->html);
+        Mail::assertSent(WeeklyNewsletterMail::class, 2); // subscriber + owner copy
     }
 
     #[Test]

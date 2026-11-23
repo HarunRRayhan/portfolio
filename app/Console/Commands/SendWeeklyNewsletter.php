@@ -46,12 +46,6 @@ class SendWeeklyNewsletter extends Command
         $weekKey = $now->format('o-\\WW');
         $recentPosts = $issue->recentPosts($now);
 
-        if ($recentPosts->isEmpty()) {
-            $this->info('No posts were published in the last seven days. Newsletter skipped.');
-
-            return self::SUCCESS;
-        }
-
         $campaign = NewsletterCampaign::query()->where('key', $weekKey)->first();
 
         if ($campaign?->sent_at) {
@@ -72,12 +66,7 @@ class SendWeeklyNewsletter extends Command
                 ->values();
         }
 
-        if ($posts->isEmpty()) {
-            $this->info('No published posts are ready for this week\'s newsletter.');
-
-            return self::SUCCESS;
-        }
-
+        // A week without a post still sends: the roadmap progress and updates go out every week.
         $posts = $issue->withLeadExcerpt($posts);
         $tweets = $issue->tweets();
 
@@ -208,7 +197,11 @@ class SendWeeklyNewsletter extends Command
      */
     private function subjectFor(array $posts): string
     {
-        $firstTitle = (string) ($posts[0]['title'] ?? 'New notes from Harun.dev');
+        if ($posts === []) {
+            return 'This week on Harun.dev: your roadmap week and what I’m building';
+        }
+
+        $firstTitle = (string) $posts[0]['title'];
 
         if (count($posts) === 1) {
             return Str::limit("This week on Harun.dev: {$firstTitle}", 150, '…');

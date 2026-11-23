@@ -99,7 +99,11 @@ class WeeklyNewsletterMail extends Mailable
 
     private function subjectLine(): string
     {
-        $firstTitle = (string) ($this->posts[0]['title'] ?? 'New notes from Harun.dev');
+        if ($this->posts === []) {
+            return 'This week on Harun.dev: your roadmap week and what I’m building';
+        }
+
+        $firstTitle = (string) $this->posts[0]['title'];
 
         if (count($this->posts) === 1) {
             return Str::limit("This week on Harun.dev: {$firstTitle}", 150, '…');
