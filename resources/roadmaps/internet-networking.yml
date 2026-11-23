@@ -2377,11 +2377,11 @@ stages:
               - { label: "CloudFront caching behaviors: cache keys, TTL and Origin Shield (CloudWolf AWS)", url: "https://www.youtube.com/watch?v=rrpREiIAcHE", kind: video }
 
       - id: autonomous-systems
-        title: Autonomous systems
+        title: The networks that make up the internet
         summary: The internet is about 100,000 networks, each run by someone, each with its own number.
         lessons:
           - id: what-is-an-asn
-            title: What an AS and an ASN are
+            title: Autonomous systems and their numbers
             summary: "The internet is not one network. It is tens of thousands of separate networks, each run by someone and each known by its own number."
             learn:
               - "What an autonomous system is"
@@ -2421,7 +2421,7 @@ stages:
               - { label: "AS Rank: ranking networks by customer cone (CAIDA)", url: "https://asrank.caida.org/", kind: tool }
               - { label: "32-bit ASN allocation report (Geoff Huston, potaroo)", url: "https://www.potaroo.net/tools/asn32/", kind: tool }
           - id: transit-vs-peering
-            title: Transit vs peering
+            title: How networks pay to connect, or swap for free
             summary: "Networks reach the rest of the internet in two ways: they pay a bigger network to carry their traffic, or they agree to swap traffic directly, often for free."
             learn:
               - "Transit: paying for access to everywhere"
@@ -2462,11 +2462,11 @@ stages:
               - { label: "Architecting Robust BGP Routing Policies (NANOG)", url: "https://www.youtube.com/watch?v=_wRvNINnSQg", kind: video }
 
       - id: bgp
-        title: BGP
+        title: BGP, the internet's map of routes
         summary: "The system big networks use to tell each other which addresses they can reach. It is the internet's shared, constantly updated map of routes."
         lessons:
           - id: bgp-announcements
-            title: How BGP announcements spread
+            title: How networks tell each other where addresses live
             summary: "Networks tell their neighbours which addresses they can reach, and each neighbour passes the news on. That is BGP, and it is how the internet builds its map."
             learn:
               - "What BGP is for"
@@ -2505,7 +2505,7 @@ stages:
               - { label: "BGPlay: replay prefix announcements over time (RIPEstat)", url: "https://stat.ripe.net/widget/bgplay", kind: tool }
               - { label: "Routing Information Service collectors (RIPE NCC)", url: "https://www.ripe.net/analyse/internet-measurements/routing-information-service-ris/", kind: docs }
           - id: bgp-hijacks-rpki
-            title: Hijacks, route leaks and RPKI
+            title: When the route map goes wrong, and how it is checked
             summary: "BGP mostly believes what neighbours say. When a network announces addresses it does not own, traffic goes to the wrong place. RPKI is a signed record of who may announce what."
             learn:
               - "Why BGP is built on trust"
@@ -2550,11 +2550,11 @@ stages:
               - { label: "Tutorial: RPKI-Based BGP Origin Validation Workshop (NANOG)", url: "https://www.youtube.com/watch?v=Pxsk5stzJCs", kind: video }
 
       - id: internet-exchange-points
-        title: Internet exchange points
+        title: "Internet exchange points: where networks meet"
         summary: The buildings where networks plug into each other directly.
         lessons:
           - id: why-ixps
-            title: Why IXPs make traffic cheaper and faster
+            title: Why exchange points make the internet cheaper and faster
             summary: "An internet exchange point is a building where many networks plug into the same equipment and swap traffic directly. That makes the internet cheaper and faster."
             learn:
               - "What happens inside an exchange point"
@@ -2592,7 +2592,7 @@ stages:
               - { label: "PeeringDB: who is present at which IXP", url: "https://www.peeringdb.com/", kind: tool }
               - { label: "What is an Internet Exchange? (Iron Mountain Data Centers)", url: "https://www.youtube.com/watch?v=gUZF23RC8wM", kind: video }
           - id: public-vs-private-peering
-            title: Public vs private peering
+            title: Shared meeting points vs private cables
             summary: "Networks can swap traffic over the shared equipment at an exchange point, or run a private cable straight between them. Big flows get a private cable."
             learn:
               - "Peering over a shared exchange"
@@ -2629,11 +2629,11 @@ stages:
               - { label: "Colocation centre and cross-connects (Wikipedia)", url: "https://en.wikipedia.org/wiki/Colocation_centre", kind: article }
 
       - id: anycast
-        title: Anycast
-        summary: One IP address announced from many places, so users reach the closest one.
+        title: "Anycast: one address, many places"
+        summary: One address that lives in many places at once, so everyone reaches the copy nearest to them.
         lessons:
           - id: anycast-vs-unicast
-            title: Anycast vs unicast
+            title: One address in one place vs many places
             summary: "Normally an address points to one place. With anycast, the same address is announced from many places at once, and each user is sent to a nearby one."
             learn:
               - "One address, one place (unicast)"
@@ -2670,7 +2670,7 @@ stages:
               - { label: "What is BGP Anycast? (NetActuate)", url: "https://www.youtube.com/watch?v=u9S5e71hoWg", kind: video }
               - { label: "One IP to all servers? Anycast vs Unicast (Piyush Garg)", url: "https://www.youtube.com/watch?v=jIHvQ-236OY", kind: video }
           - id: anycast-in-practice
-            title: How DNS and CDNs use anycast
+            title: How big services use it to stay fast and online
             summary: "DNS servers, public resolvers and CDNs use anycast so users everywhere get a fast answer, and so one broken site does not take the service down."
             learn:
               - "Why DNS loves anycast"
@@ -2713,11 +2713,11 @@ stages:
               - { label: "Google Public DNS FAQ (Google)", url: "https://developers.google.com/speed/public-dns/faq", kind: docs }
 
       - id: ipv6
-        title: IPv6 in practice
-        summary: Running IPv6 next to IPv4, how clients choose between them, and protecting a network without NAT.
+        title: Living with old and new addresses (IPv6)
+        summary: How the old and new address systems run side by side, how your device picks one, and what keeps home devices safe.
         lessons:
           - id: dual-stack
-            title: Dual stack
+            title: Running old and new addresses side by side
             summary: "Most of the internet runs the old IPv4 and the new IPv6 side by side. Your device quietly tries both and uses whichever answers first."
             learn:
               - "What dual stack means"
@@ -2759,7 +2759,7 @@ stages:
               - { label: "IPv6 capability measurement by country (APNIC Labs)", url: "https://stats.labs.apnic.net/ipv6", kind: tool }
               - { label: "IPv4/IPv6 Dual-Stack on Abilene (NANOG)", url: "https://www.youtube.com/watch?v=dTEjQSViynk", kind: video }
           - id: ipv6-no-nat
-            title: No NAT by default
+            title: Every device gets its own address
             optional: true
             summary: "IPv6 has enough addresses for every device, so it does not need the address sharing (NAT) that IPv4 uses. A firewall does the protecting instead."
             learn:
@@ -2799,11 +2799,11 @@ stages:
               - { label: "IPv6 resources and training (RIPE NCC)", url: "https://www.ripe.net/manage-ips-and-asns/ipv6/", kind: docs }
 
       - id: quic-http3
-        title: QUIC and HTTP/3
-        summary: HTTP over UDP, with TLS built in and no head-of-line blocking.
+        title: A faster way to load web pages (QUIC and HTTP/3)
+        summary: The newest way browsers fetch pages, so one lost piece no longer holds up the rest and calls survive switching networks.
         lessons:
           - id: http2-and-hol-blocking
-            title: What was wrong with TCP for the web
+            title: Why one lost piece could freeze a whole page
             summary: "HTTP/2 loads a whole page over one connection. That is quicker, until one lost packet holds up everything behind it."
             learn:
               - "How browsers loaded pages with HTTP/1.1"
@@ -2845,7 +2845,7 @@ stages:
               - { label: "HTTP/3 explained (Daniel Stenberg)", url: "https://http3-explained.haxx.se/", kind: article }
               - { label: "HTTP/3 and QUIC: solving transport-layer head-of-line blocking (Last Mile Developer)", url: "https://www.youtube.com/watch?v=XMfprDkkLMU", kind: video }
           - id: quic-streams
-            title: How QUIC streams work
+            title: Many lanes instead of one queue
             summary: "QUIC is a newer way to carry web traffic. It keeps each file in its own lane, so one lost packet only slows that file, and it sets up encryption faster."
             learn:
               - "What QUIC and HTTP/3 are"
@@ -2884,7 +2884,7 @@ stages:
               - { label: "QUIC, a multiplexed transport over UDP (Chromium)", url: "https://www.chromium.org/quic/", kind: docs }
               - { label: "Head-of-line blocking in QUIC and HTTP/3: the details (Robin Marx)", url: "https://calendar.perfplanet.com/2020/head-of-line-blocking-in-quic-and-http-3-the-details/", kind: article }
           - id: connection-migration
-            title: Connection migration
+            title: Staying connected when you switch from Wi-Fi to mobile
             optional: true
             summary: "A QUIC connection can survive your phone switching from Wi-Fi to mobile data, because it is identified by an ID rather than by your address."
             learn:
@@ -2928,7 +2928,7 @@ stages:
         summary: "Attacks that flood a service with traffic from many machines at once, and how large networks spread out and absorb that flood."
         lessons:
           - id: ddos-attack-types
-            title: Volumetric, protocol and application attacks
+            title: Three ways attackers flood a website
             summary: "A DDoS attack floods a service from many machines at once. Some attacks clog the line, some wear out the servers, and some swamp the app with fake visitors."
             learn:
               - "What a DDoS attack is"
@@ -2970,7 +2970,7 @@ stages:
               - { label: "HTTP/2 Rapid Reset: deconstructing the record-breaking attack (Cloudflare)", url: "https://blog.cloudflare.com/technical-breakdown-http2-rapid-reset-ddos-attack/", kind: article }
               - { label: "RFC 4987: TCP SYN Flooding Attacks and Common Mitigations", url: "https://www.rfc-editor.org/rfc/rfc4987", kind: docs }
           - id: anycast-ddos
-            title: Why anycast helps
+            title: How spreading the flood keeps sites online
             optional: true
             summary: "Big sites survive huge attacks by announcing one address from hundreds of data centres. The flood is split into many small streams that each site can handle."
             learn:
