@@ -30,11 +30,16 @@ class NewsletterController extends Controller
                 return redirect()->back()->with('flash', ['type' => 'success', 'message' => "You're subscribed. The next issue lands in your inbox."]);
             }
 
+            $email = strtolower(trim($request->email));
+            $existed = Subscriber::whereRaw('lower(email) = ?', [$email])->exists();
+
             // Same reply whether or not a mail went out, so the form can't be used to probe addresses.
             Subscriber::requestConfirmation($request->email, $request->source, $request->referrer);
 
-            // Only this browser may name the address it just entered (see name()), so nobody can rename a stranger's row.
-            $request->session()->put(self::NAME_KEY, strtolower(trim($request->email)));
+            // The name step may only touch a row this request just created. An address that was already on the
+            // list (anyone can type anyone's email) keeps its name, so a stranger can't rename someone's subscription.
+            $created = $existed ? null : Subscriber::whereRaw('lower(email) = ?', [$email])->value('id');
+            $request->session()->put(self::NAME_KEY, $created);
 
             return redirect()->back()->with('flash', [
                 'type' => 'success',
@@ -57,10 +62,10 @@ class NewsletterController extends Controller
     public function name(Request $request)
     {
         $name = trim((string) $request->validate(['name' => ['nullable', 'string', 'max:80']])['name']);
-        $email = $request->session()->pull(self::NAME_KEY);
+        $id = $request->session()->pull(self::NAME_KEY);
 
-        if ($email && $name !== '') {
-            Subscriber::whereRaw('lower(email) = ?', [$email])->update(['name' => $name]);
+        if ($id && $name !== '') {
+            Subscriber::whereKey($id)->where('status', 'pending')->whereNull('name')->update(['name' => $name]);
         }
 
         return redirect()->back();

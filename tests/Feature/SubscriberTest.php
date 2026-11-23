@@ -321,6 +321,21 @@ class SubscriberTest extends TestCase
     }
 
     #[Test]
+    public function the_name_step_cannot_rename_an_address_already_on_the_list()
+    {
+        Subscriber::factory()->create(['email' => 'victim@example.com', 'status' => 'subscribed', 'name' => 'Real']);
+        Subscriber::factory()->create(['email' => 'pending@example.com', 'status' => 'pending']);
+
+        $this->post('/subscribe', ['email' => 'victim@example.com']);
+        $this->post('/subscribe/name', ['name' => 'Hacked']);
+        $this->post('/subscribe', ['email' => 'pending@example.com']);
+        $this->post('/subscribe/name', ['name' => 'Hacked']);
+
+        $this->assertSame('Real', Subscriber::where('email', 'victim@example.com')->value('name'));
+        $this->assertNull(Subscriber::where('email', 'pending@example.com')->value('name'));
+    }
+
+    #[Test]
     public function a_skipped_name_leaves_it_empty()
     {
         $this->post('/subscribe', ['email' => 'quiet@example.com']);
