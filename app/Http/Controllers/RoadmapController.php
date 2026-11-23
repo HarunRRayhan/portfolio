@@ -99,7 +99,7 @@ class RoadmapController extends Controller
 
         $lessons = $this->repo->lessonIndex($roadmap);
         $stages = array_map(function (array $stage) use ($paid, $done) {
-            $locked = ! $paid && $stage['level'] !== RoadmapRepository::FREE_LEVEL;
+            $locked = ! $paid && ! $stage['free'];
 
             return [
                 'level' => $stage['level'],
@@ -157,7 +157,7 @@ class RoadmapController extends Controller
         ['stage' => $stage, 'topic' => $topic, 'prev' => $prev, 'next' => $next] = $found;
 
         $user = $request->user();
-        $locked = $stage['level'] !== RoadmapRepository::FREE_LEVEL && ! RoadmapAccess::canAccessPaid($user);
+        $locked = ! $stage['free'] && ! RoadmapAccess::canAccessPaid($user);
         if ($locked) {
             return redirect()->to("/roadmaps/{$slug}#unlock"); // paid topics and lessons stay fully closed
         }
@@ -195,7 +195,7 @@ class RoadmapController extends Controller
         ['stage' => $stage, 'topic' => $topic] = $found;
 
         $user = $request->user();
-        $locked = $stage['level'] !== RoadmapRepository::FREE_LEVEL && ! RoadmapAccess::canAccessPaid($user);
+        $locked = ! $stage['free'] && ! RoadmapAccess::canAccessPaid($user);
         if ($locked) {
             return redirect()->to("/roadmaps/{$slug}#unlock"); // paid topics and lessons stay fully closed
         }
@@ -397,9 +397,9 @@ class RoadmapController extends Controller
 
     private function openLessonOr404(Request $request, string $slug, string $lesson): void
     {
-        $level = $this->repo->lessonIndex($this->roadmapOr404($slug))[$lesson]['level'] ?? null;
-        abort_unless($level, 404);
-        abort_if($level !== RoadmapRepository::FREE_LEVEL && ! RoadmapAccess::canAccessPaid($request->user()), 403);
+        $entry = $this->repo->lessonIndex($this->roadmapOr404($slug))[$lesson] ?? null;
+        abort_unless($entry, 404);
+        abort_if(! $entry['free'] && ! RoadmapAccess::canAccessPaid($request->user()), 403);
     }
 
     /** @return array{icon: string, color: string, logos: list<string>} */
@@ -446,7 +446,7 @@ class RoadmapController extends Controller
     {
         $open = array_keys(array_filter(
             $this->repo->lessonIndex($roadmap),
-            fn (array $l) => ! $l['optional'] && ($paid || $l['level'] === RoadmapRepository::FREE_LEVEL),
+            fn (array $l) => ! $l['optional'] && ($paid || $l['free']),
         ));
         $ticked = array_intersect($open, $done);
         $next = collect($open)->first(fn ($id) => ! in_array($id, $done, true));

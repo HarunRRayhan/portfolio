@@ -75,7 +75,7 @@ class RoadmapCommentController extends Controller
         $found = $roadmap ? $this->repo->findTopic($roadmap, $topic) : null;
         abort_unless($found, 404);
         // Paid topics' discussions are for readers who can open them.
-        abort_if($found['stage']['level'] !== RoadmapRepository::FREE_LEVEL && ! RoadmapAccess::canAccessPaid(request()->user()), 403);
+        abort_if(! $found['stage']['free'] && ! RoadmapAccess::canAccessPaid(request()->user()), 403);
 
         return $found;
     }

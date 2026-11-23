@@ -44,7 +44,7 @@ final class RoadmapDigest
             $required = $next = null;
             $total = $finished = 0;
             foreach ($roadmap['stages'] as $stage) {
-                $open = $stage['level'] === RoadmapRepository::FREE_LEVEL || $canPaid;
+                $open = $stage['free'] || $canPaid;
                 foreach ($stage['topics'] as $topic) {
                     foreach ($topic['lessons'] as $lesson) {
                         if ($lesson['optional']) {

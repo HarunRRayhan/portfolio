@@ -17,11 +17,11 @@ class RoadmapActionsTest extends TestCase
 
     private const R = '/roadmaps/internet-networking';
 
-    private function lessonAt(string $level): string
+    private function lessonAt(string $level, string $slug = 'internet-networking'): string
     {
         $repo = new RoadmapRepository;
 
-        return collect($repo->lessonIndex($repo->find('internet-networking')))->filter(fn ($l) => $l['level'] === $level)->keys()->first();
+        return collect($repo->lessonIndex($repo->find($slug)))->filter(fn ($l) => $l['level'] === $level)->keys()->first();
     }
 
     public function test_guests_are_sent_to_login(): void
@@ -57,12 +57,16 @@ class RoadmapActionsTest extends TestCase
     public function test_paid_topic_needs_access(): void
     {
         $user = User::factory()->create(['email' => 'a@b.com']);
-        $this->actingAs($user)->post(self::R.'/lessons/'.$this->lessonAt('advanced'))->assertForbidden();
+        $this->actingAs($user)->post('/roadmaps/networking/lessons/'.$this->lessonAt('advanced', 'networking'))->assertForbidden();
         $this->assertSame(0, RoadmapProgress::count());
 
-        RoadmapAccessGrant::create(['email' => 'a@b.com', 'expires_at' => now()->addWeek()]);
-        $this->actingAs($user)->post(self::R.'/lessons/'.$this->lessonAt('advanced'))->assertRedirect();
+        // How the Internet Works is free at every level.
+        $this->actingAs($user)->post(self::R.'/lessons/'.$this->lessonAt('intermediate'))->assertRedirect();
         $this->assertSame(1, RoadmapProgress::count());
+
+        RoadmapAccessGrant::create(['email' => 'a@b.com', 'expires_at' => now()->addWeek()]);
+        $this->actingAs($user)->post('/roadmaps/networking/lessons/'.$this->lessonAt('advanced', 'networking'))->assertRedirect();
+        $this->assertSame(2, RoadmapProgress::count());
     }
 
     public function test_unknown_roadmap_or_step_is_404(): void

@@ -27,7 +27,11 @@ class RoadmapContentTest extends TestCase
             $this->assertNotEmpty($raw['title'] ?? null, $name);
             $this->assertNotEmpty($raw['summary'] ?? null, $name);
             $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}$/', (string) ($raw['updated'] ?? ''), "{$name} needs updated: 'YYYY-MM-DD'");
-            $this->assertSame(['beginner', 'intermediate', 'advanced'], array_column($raw['stages'], 'level'), "{$name}: stages must be beginner, intermediate, advanced");
+            // Any non-empty subset of the levels, in order: e.g. beginner+intermediate, or intermediate+advanced.
+            $levels = array_column($raw['stages'], 'level');
+            $this->assertNotEmpty($levels, "{$name}: needs at least one stage");
+            $this->assertSame(array_values(array_intersect(RoadmapRepository::LEVELS, $levels)), $levels, "{$name}: stages must be distinct levels in beginner, intermediate, advanced order");
+            $this->assertIsBool($raw['free'] ?? false, "{$name}: free must be true or false");
             $this->assertContains($raw['icon'] ?? null, RoadmapRepository::ICONS, "{$name}: icon must be one of RoadmapRepository::ICONS");
             $this->assertContains($raw['color'] ?? null, RoadmapRepository::COLORS, "{$name}: color must be one of RoadmapRepository::COLORS");
             $this->assertLessThanOrEqual(4, count($raw['logos'] ?? []), "{$name}: at most 4 logos");
@@ -118,12 +122,13 @@ class RoadmapContentTest extends TestCase
         }
     }
 
-    public function test_internet_roadmap_has_all_three_stages(): void
+    public function test_internet_roadmap_is_free_with_beginner_and_intermediate_only(): void
     {
         $roadmap = (new RoadmapRepository)->find('internet-networking');
 
         $this->assertNotNull($roadmap);
-        $this->assertSame(['beginner', 'intermediate', 'advanced'], array_column($roadmap['stages'], 'level'));
+        $this->assertSame(['beginner', 'intermediate'], array_column($roadmap['stages'], 'level'));
+        $this->assertSame([true, true], array_column($roadmap['stages'], 'free'));
     }
 
     public function test_default_prompt_matches_template(): void

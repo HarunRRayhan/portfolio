@@ -206,7 +206,7 @@ export default function RoadmapShow({ roadmap, stages, started, loved, saved, lo
         })}
 
         {roadmap.successors.length > 0 ? (
-          <PathStop label="Continue with" note="Done with Advanced? These roadmaps build on this one." links={roadmap.successors} accent />
+          <PathStop label="Continue with" note={`Done with ${levelLabel[stages[stages.length - 1]?.level] ?? "this roadmap"}? These roadmaps build on this one.`} links={roadmap.successors} accent />
         ) : (
           <div className="relative z-10 flex pt-10 md:justify-center">
             <span className="inline-flex items-center gap-2 rounded-full border-2 border-amber-500 bg-white px-5 py-2 text-sm font-semibold text-amber-700 dark:bg-slate-950 dark:text-amber-400">
