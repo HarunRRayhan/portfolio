@@ -29,6 +29,7 @@ class WeeklyNewsletterMail extends Mailable
         public array $tweets = [],
         public ?NewsletterDelivery $delivery = null,
         public ?array $roadmaps = null,
+        public ?array $sampleProgress = null, // admin preview of the learner version
     ) {}
 
     /** Roadmaps added or updated this week; worked out at send time unless given. */
@@ -40,6 +41,9 @@ class WeeklyNewsletterMail extends Mailable
     /** This reader's own roadmap week, when the subscriber is a signed-up learner with an unfinished roadmap. */
     private function roadmapProgress(): ?array
     {
+        if ($this->sampleProgress) {
+            return $this->sampleProgress;
+        }
         if (! $this->subscriber) {
             return null;
         }
