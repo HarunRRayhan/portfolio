@@ -994,6 +994,9 @@ Route::get('/feed', $redirectLegacyBlogAlias);
 Route::get('/rss', $redirectLegacyBlogAlias);
 Route::get('/blog/feed', $redirectLegacyBlogAlias);
 Route::get('/blog/rss', $redirectLegacyBlogAlias);
+Route::get('/blog/rss.xml', $redirectLegacyBlogAlias);
+Route::get('/blog/sponsor', $redirectLegacyBlogAlias);
+Route::get('/blog/archive', $redirectLegacyBlogAlias);
 Route::get('/blog/tag/{tag?}', $redirectLegacyBlogAlias)->where('tag', '.*');
 Route::get('/blog/page/{page?}', $redirectLegacyBlogAlias)->where('page', '.*');
 
