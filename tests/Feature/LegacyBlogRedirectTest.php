@@ -64,6 +64,18 @@ class LegacyBlogRedirectTest extends TestCase
             ->assertStatus(301)
             ->assertRedirect('/blog/feed.xml?utm=1');
 
+        $this->get('/blog/rss.xml')
+            ->assertStatus(301)
+            ->assertRedirect('/blog/feed.xml');
+
+        $this->get('/blog/archive')
+            ->assertStatus(301)
+            ->assertRedirect('/blog');
+
+        $this->get('/blog/sponsor')
+            ->assertStatus(301)
+            ->assertRedirect('/sponsor-me');
+
         $this->get('/blog')->assertOk();
         $this->get('/blog/feed.xml')->assertOk();
         $this->get('/blog/production-ai-code-review-for-terraform-and-lambda-prs')->assertOk();
