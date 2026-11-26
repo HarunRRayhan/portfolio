@@ -61,11 +61,15 @@ final class LegacyBlogRedirect
     {
         $path = trim($path, '/');
 
-        if (in_array($path, ['feed', 'rss', 'blog/feed', 'blog/rss'], true)) {
+        if (in_array($path, ['feed', 'rss', 'blog/feed', 'blog/rss', 'blog/rss.xml'], true)) {
             return '/blog/feed.xml';
         }
 
-        if ($path === 'blog/tag' || str_starts_with($path, 'blog/tag/')) {
+        if ($path === 'blog/sponsor') {
+            return '/sponsor-me';
+        }
+
+        if ($path === 'blog/archive' || $path === 'blog/tag' || str_starts_with($path, 'blog/tag/')) {
             return '/blog';
         }
 
