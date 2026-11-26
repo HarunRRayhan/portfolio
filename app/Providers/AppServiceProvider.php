@@ -54,6 +54,10 @@ class AppServiceProvider extends ServiceProvider
             'slides.show',
             'videos.index',
             'videos.show',
+            'roadmaps.index',
+            'roadmaps.show',
+            'roadmaps.topic',
+            'roadmaps.lesson',
         ) || request()->is('bio', 'hrr')) || request()->user() !== null);
 
         // The homepage already has HTML. Give its stylesheet priority over

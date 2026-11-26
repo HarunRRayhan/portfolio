@@ -15,7 +15,7 @@ const extraPages = import.meta.glob(
         './Pages/Services.tsx', './Pages/Services/*.tsx', './Pages/Products.tsx', './Pages/RayStack.tsx',
         './Pages/About.tsx', './Pages/Bio.tsx', './Pages/Book.tsx', './Pages/Contact.tsx',
         './Pages/Privacy.tsx', './Pages/Sponsor.tsx', './Pages/Terms.tsx',
-        './Pages/CaseStudies/*.tsx', './Pages/Media/*.tsx',
+        './Pages/CaseStudies/*.tsx', './Pages/Media/*.tsx', './Pages/Roadmaps/*.tsx',
     ],
     { eager: true },
 ) as Record<string, { default: ComponentType }>;
