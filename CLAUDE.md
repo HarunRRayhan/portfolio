@@ -57,10 +57,12 @@ The auto-mode classifier blocks these Railway/infra actions from Bash even after
   `service-assets`/`case-studies-assets` to R2, then purges **prefixes on
   `cdn.harun.dev` only**. Never restore `purge_everything` — it nukes HTML edge
   cache on `harun.dev` for no gain on hashed assets.
-- **SEO does not require Inertia SSR here.** Title, description, canonical, OG,
-  and JSON-LD already ship in the Blade first response; empty `#app` is fine for
-  crawlers. Prefer weight cuts + CDN + leaner PHP over SSR/Next rewrites unless
-  first-paint UX is still bad after those.
+- **Public pages are server-rendered through an allowlist.** A new public page needs
+  its route name in `Inertia::disableSsr` (`AppServiceProvider`) and its component in
+  the page map in `resources/js/ssr.tsx`; miss either and the first response is an
+  empty `#app` (roadmaps were, so Google left them "Discovered, not indexed"; fixed in
+  #539). Logged-in users and drafts skip SSR. Title, description, canonical, OG and
+  JSON-LD ship in the Blade first response regardless. Don't propose a Next rewrite.
 - **`/blog` TTFB:** `BlogRepository` caches **metadata only** (~15 min,
   key `blog.repository.payload.meta1.*`). Full HTML is hydrated on demand via
   `withContent()` for post pages / `llms-full`. Index cards use canonical URLs
