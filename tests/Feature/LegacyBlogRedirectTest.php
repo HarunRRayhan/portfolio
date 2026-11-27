@@ -39,6 +39,18 @@ class LegacyBlogRedirectTest extends TestCase
         $this->get('http://blog.harun.dev/sitemap.xml')
             ->assertStatus(301)
             ->assertRedirect('https://harun.dev/sitemap.xml');
+
+        $this->get('http://blog.harun.dev/_next/static/media/c25783985a269397-s.p.woff2')
+            ->assertStatus(301)
+            ->assertRedirect('https://harun.dev/blog');
+
+        $this->get('http://blog.harun.dev/cdn-cgi/l/email-protection')
+            ->assertStatus(301)
+            ->assertRedirect('https://harun.dev/blog');
+
+        $this->get('http://blog.harun.dev/$')
+            ->assertStatus(301)
+            ->assertRedirect('https://harun.dev/blog');
     }
 
     #[Test]
@@ -79,5 +91,24 @@ class LegacyBlogRedirectTest extends TestCase
         $this->get('/blog')->assertOk();
         $this->get('/blog/feed.xml')->assertOk();
         $this->get('/blog/production-ai-code-review-for-terraform-and-lambda-prs')->assertOk();
+    }
+
+    #[Test]
+    public function it_sends_multi_segment_legacy_blog_noise_to_the_blog_index(): void
+    {
+        $this->get('/blog/_next/static/media/c25783985a269397-s.p.woff2')
+            ->assertStatus(301)
+            ->assertRedirect('/blog');
+
+        $this->get('/blog/cdn-cgi/l/email-protection')
+            ->assertStatus(301)
+            ->assertRedirect('/blog');
+
+        $this->get('/blog/console.aws.amazon.com/iamv2/home')
+            ->assertStatus(301)
+            ->assertRedirect('/blog');
+
+        $this->get('/blog/not-a-real-post')->assertNotFound();
+        $this->get('/blog/not-a-real-post/nested')->assertNotFound();
     }
 }
