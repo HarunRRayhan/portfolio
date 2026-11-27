@@ -76,6 +76,12 @@
             <style data-homepage-critical>{!! $homepageStyles['css'] !!}</style>
             <noscript><link rel="stylesheet" href="{{ asset('build/'.$homepageStyles['stylesheet']) }}"></noscript>
         @endif
+        @php
+            $lcp = \App\Support\LcpPreload::for($page, request()->path());
+        @endphp
+        @if ($lcp)
+            <link rel="preload" as="image" fetchpriority="high" href="{{ $lcp['href'] }}" imagesrcset="{{ $lcp['srcset'] }}" imagesizes="{{ $lcp['sizes'] }}">
+        @endif
         @vite(['resources/js/app.tsx', "resources/js/Pages/{$page['component']}.tsx"])
         @php
             $isDraftBlogPost = ($page['component'] ?? null) === 'Blog/Post' && data_get($page, 'props.post.isDraft');
