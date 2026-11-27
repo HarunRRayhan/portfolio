@@ -70,6 +70,13 @@ The auto-mode classifier blocks these Railway/infra actions from Bash even after
   `blog.views.map.*` cache — do not reintroduce per-slug `Cache::put` storms on
   the index. With `CACHE_STORE=database`, a fat HTML blob in cache was the main
   `/blog` vs homepage gap.
+- **Anonymous HTML is edge-cacheable (`CacheablePublicPage`).** For cookieless GETs on a short
+  allowlist it drops the session/XSRF cookies and sends `s-maxage=300`. It does nothing until a
+  Cloudflare Cache Rule exists: eligible paths, bypass when the request has the session cookie, any
+  `remember_*` cookie (`CompleteLogin` always remembers) or an `X-Inertia` header, cache key keeps the
+  query string. The API token cannot edit Cache Rules, so create it in the dashboard. Visitors get
+  their XSRF cookie from `/sanctum/csrf-cookie` on first interaction (`lib/csrfCookie.ts`). Never add a
+  page that renders per-visitor data to the allowlist.
 - **Security while speeding up:** Only rewrite public media paths; do not move
   secrets, sessions, or `/build` onto the CDN; do not weaken auth/CSP for speed.
 
