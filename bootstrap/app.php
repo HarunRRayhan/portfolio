@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CacheablePublicPage;
 use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\EnsureTermsAccepted;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -41,8 +42,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Runs before session/CSRF so trailing-slash URLs are normalized to
         // their canonical (slash-free) form with a 301 before any real work.
+        // CacheablePublicPage must run before StartSession (it swaps the session driver).
         $middleware->web(prepend: [
             RedirectTrailingSlash::class,
+            CacheablePublicPage::class,
         ]);
 
         $middleware->web(append: [

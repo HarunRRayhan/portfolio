@@ -5,6 +5,7 @@ import { createRoot, hydrateRoot } from 'react-dom/client';
 import PublicLayout from './Layouts/PublicLayout';
 import { SubscribeProvider } from './Components/SubscribeProvider';
 import { resolveDocumentTitle } from './lib/documentTitle';
+import { fetchCsrfCookieOnFirstInteraction } from './lib/csrfCookie';
 
 const pages = import.meta.glob('./Pages/**/*.tsx') as Record<
     string,
@@ -21,6 +22,8 @@ const stylesReady = deferredStyles && !deferredStyles.sheet && !deferredStyles.d
         deferredStyles.media = 'all';
     })
     : Promise.resolve();
+
+fetchCsrfCookieOnFirstInteraction();
 
 createInertiaApp({
     title: (title) => resolveDocumentTitle(title ?? '', import.meta.env.VITE_APP_NAME),
