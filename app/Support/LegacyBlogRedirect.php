@@ -42,7 +42,7 @@ final class LegacyBlogRedirect
             return '/blog/feed.xml';
         }
 
-        if (self::isArchive($path)) {
+        if (self::isArchive($path) || self::isBuildAsset($path) || self::isBlogNoise($path)) {
             return '/blog';
         }
 
@@ -77,7 +77,45 @@ final class LegacyBlogRedirect
             return '/blog';
         }
 
+        if (self::isBlogNoise($path)) {
+            return '/blog';
+        }
+
         return null;
+    }
+
+    /**
+     * Next.js chunks, fonts and Cloudflare email-obfuscation paths that the
+     * old host served. They have no equivalent here, and Google keeps
+     * re-crawling the ones it already knows.
+     */
+    private static function isBuildAsset(string $path): bool
+    {
+        return str_starts_with($path, '_next/')
+            || str_starts_with($path, 'cdn-cgi/')
+            || $path === '$'
+            || str_starts_with($path, '$/');
+    }
+
+    /**
+     * Copies of those old asset paths, plus hostnames that leaked into a post
+     * body as a relative link (`console.aws.amazon.com/iamv2/home`).
+     */
+    private static function isBlogNoise(string $path): bool
+    {
+        if (! str_starts_with($path, 'blog/')) {
+            return false;
+        }
+
+        $rest = substr($path, strlen('blog/'));
+
+        if (self::isBuildAsset($rest)) {
+            return true;
+        }
+
+        $slug = explode('/', $rest)[0];
+
+        return str_contains($slug, '.');
     }
 
     private static function isFeed(string $path): bool

@@ -1252,4 +1252,9 @@ Route::get('/terms', function () {
 Route::get('/health', [OperationalHealthController::class, 'web'])->withoutMiddleware('web')->name('health');
 Route::get('/health/scheduler', [OperationalHealthController::class, 'scheduler'])->withoutMiddleware('web')->name('health.scheduler');
 
+// Multi-segment legacy blog paths (/blog/_next/..., /blog/cdn-cgi/..., a
+// hostname leaked into a post body). Single-segment slugs are handled by the
+// /blog/{slug} route above, so anything reaching here would have 404'd.
+Route::get('/blog/{legacyPath}', $redirectLegacyBlogAlias)->where('legacyPath', '.*');
+
 require __DIR__.'/auth.php';
