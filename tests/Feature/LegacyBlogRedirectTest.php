@@ -108,6 +108,11 @@ class LegacyBlogRedirectTest extends TestCase
             ->assertStatus(301)
             ->assertRedirect('/blog');
 
+        // blog.harun.dev/$ is redirected here as /blog/$ by the old host.
+        $this->get('/blog/$')
+            ->assertStatus(301)
+            ->assertRedirect('/blog');
+
         $this->get('/blog/not-a-real-post')->assertNotFound();
         $this->get('/blog/not-a-real-post/nested')->assertNotFound();
     }

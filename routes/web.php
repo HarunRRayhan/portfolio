@@ -1112,6 +1112,14 @@ Route::post('/blog/{slug}/view', function (string $slug) {
 
 // Blog post
 Route::get('/blog/{slug}', function (Request $request, string $slug) {
+    // A legacy asset path collapsed into one segment (/blog/$) still lands
+    // here, so hand it to the alias map before treating it as a slug.
+    $alias = LegacyBlogRedirect::harunAlias('/blog/'.$slug);
+
+    if ($alias !== null) {
+        return redirect($alias, 301);
+    }
+
     $blog = new BlogRepository;
     $post = $blog->find($slug);
 
